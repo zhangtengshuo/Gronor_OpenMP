@@ -1,0 +1,49 @@
+GronOR Non-Orthogonal Configuration Interaction
+
+Authors: T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN
+	 C. de Graaf, University Rovira i Virgili, Tarragona, Spain
+	 R. W. A. Havenith, University of Groningen, Groningen, Netherlands
+
+
+Downloading from the GitLab repository creates a directory structure as follows:
+
+gronor --- src            (source directory with sub-directories)
+        |
+	-- include        (with a few include files)
+	|
+	-- CMakeLists.txt (the cmake build file)
+
+
+To build, do the following within the gronor directory;
+
+1. mkdir build
+2. cd build
+3. cmake [flags] ../
+4. make -j 10
+
+This will expand the directory structure as follows:
+
+gronor --- src            (source directory with sub-directories)
+        |
+	-- include        (with a few include files)
+	|
+	-- CMakeLists.txt (the cmake build file)
+	|
+	-- build --- bin  (directory with the gronor binary)
+	          |
+		  -- lib  (directory with the gronor libraries)
+		  |
+		  -- CMakeFiles  (cmake files created during build)
+
+
+The following rules need to be followed for the src subdirectories:
+
+1. programs in a single source file in a subdirectory with the same name
+2. library files in a subdirectory will be in a single library
+
+
+Build flags are the following:
+
+--DMPI=ON is required as GronOR requires a minimum of 2 MPI ranks to run
+
+

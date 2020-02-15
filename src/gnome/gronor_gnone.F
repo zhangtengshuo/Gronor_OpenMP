@@ -1,0 +1,167 @@
+
+      subroutine gronor_gnone(lfndbg)
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+      implicit none
+      integer :: lfndbg
+
+      integer :: i,j,k,ielem,jkoff,nb,nn
+      real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
+
+      integer (kind=8), allocatable :: nnn(:)
+
+      nb = nbas   ! this is actually not needed anymore, all 'nb' can be replaced with nbas
+*      nb=nbsym(1)
+      nn=0
+      tsum=0.0d0
+      vsum=0.0d0
+      ielem=0
+      jkoff=0
+
+      allocate(nnn(nb))
+
+      nnn(1)=0
+      do i=2,nb
+      nnn(i)=nnn(i-1)+i-1
+      enddo
+
+!$acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa)
+!$acc& copyin(nnn,ndxtv)
+
+      if(ising.eq.0) then
+!$acc loop reduction(+:tsum,vsum)
+        do j=1,nb
+         nn=ndxtv(j)
+         tsj=0.0d0
+         vsj=0.0d0
+         do k=1,j
+          abjk=(aaa(j,k)+aaa(k,j)+ta(j,k)+ta(k,j))*deta*2
+!         kinetic and nuclear attraction energies
+          tsj=tsj+t(nn+k)*abjk
+          vsj=vsj+v(nn+k)*abjk
+         enddo
+         tsum=tsum+tsj
+         vsum=vsum+vsj
+        enddo
+      else
+!$acc loop reduction(+:tsum,vsum)
+        do j=1,nb
+         nn=ndxtv(j)
+         tsj=0.0d0
+         vsj=0.0d0
+         do k=1,j
+          abjk=diag(j)*csdiag(k)+bdiag(j)*bsdiag(k)
+     &        +diag(k)*csdiag(j)+bdiag(k)*bsdiag(j)
+!         kinetic and nuclear attraction energies
+          tsj=tsj+t(nn+k)*abjk
+          vsj=vsj+v(nn+k)*abjk
+         enddo
+         tsum=tsum+tsj
+         vsum=vsum+vsj
+        enddo
+      endif
+
+!$acc end kernels
+
+      potnuc1=potnuc*deta
+      e1=tsum+vsum+potnuc1
+
+      if(idbg.ge.12) then
+       write(lfndbg,120)
+       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1
+  110  format(1x,2i4,5(2x,e20.10))
+  120  format(///,1x,'The one electron matrix elements of h are :',//)
+  130  format(15x,'Total overlap              : ',f20.12,//,
+     &        15x,'Kinetic energy term        : ',f20.12,//,
+     &        15x,'Nuclear attraction term    : ',f20.12,//,
+     &        15x,'Nuclear repulsion term     : ',f20.12,//,
+     &        15x,'One-electron matrix element: ',f20.12,//)
+      endif
+
+      deallocate(nnn)
+
+      return
+      end
+
+      subroutine gronor_gnone_omp(lfndbg)
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+      implicit none
+      integer :: lfndbg
+
+      integer :: i,j,k,ielem,jkoff,nb,nn
+      real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
+
+      integer (kind=8), allocatable :: nnn(:)
+
+      nb = nbas
+*      nb=nbsym(1)
+      nn=0
+      tsum=0.0d0
+      vsum=0.0d0
+      ielem=0
+      jkoff=0
+
+      allocate(nnn(nb))
+
+      nnn(1)=0
+      do i=2,nb
+      nnn(i)=nnn(i-1)+i-1
+      enddo
+
+      if(ising.eq.0) then
+        do j=1,nb
+         nn=ndxtv(j)
+         tsj=0.0d0
+         vsj=0.0d0
+         do k=1,j
+          abjk=(aaa(j,k)+aaa(k,j)+ta(j,k)+ta(k,j))*deta*2
+!         kinetic and nuclear attraction energies
+          tsj=tsj+t(nn+k)*abjk
+          vsj=vsj+v(nn+k)*abjk
+         enddo
+         tsum=tsum+tsj
+         vsum=vsum+vsj
+        enddo
+      else
+        do j=1,nb
+         nn=ndxtv(j)
+         tsj=0.0d0
+         vsj=0.0d0
+         do k=1,j
+          abjk=diag(j)*csdiag(k)+bdiag(j)*bsdiag(k)
+     &        +diag(k)*csdiag(j)+bdiag(k)*bsdiag(j)
+!         kinetic and nuclear attraction energies
+          tsj=tsj+t(nn+k)*abjk
+          vsj=vsj+v(nn+k)*abjk
+         enddo
+         tsum=tsum+tsj
+         vsum=vsum+vsj
+        enddo
+      endif
+
+      potnuc1=potnuc*deta
+      e1=tsum+vsum+potnuc1
+
+      if(idbg.ge.12) then
+       write(lfndbg,120)
+       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1
+  110  format(1x,2i4,5(2x,e20.10))
+  120  format(///,1x,'The one electron matrix elements of h are :',//)
+  130  format(15x,'Total overlap              : ',f20.12,//,
+     &        15x,'Kinetic energy term        : ',f20.12,//,
+     &        15x,'Nuclear attraction term    : ',f20.12,//,
+     &        15x,'Nuclear repulsion term     : ',f20.12,//,
+     &        15x,'One-electron matrix element: ',f20.12,//)
+      endif
+
+      deallocate(nnn)
+
+      return
+      end

@@ -1,4 +1,3 @@
-
       subroutine gronor_worker()
 
       use mpi
@@ -78,8 +77,7 @@
 !$acc end data
 #endif
 
-*      allocate(ioccup(mnact,nsymrp,2))
-      allocate(ioccup(mnact,1,2))   !  always one irrep, should be changed to a 2-dim array
+      allocate(ioccup(mnact,2))   !  always one irrep, should be changed to a 2-dim array
       allocate(vec(mvec,mbasel,2))
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))

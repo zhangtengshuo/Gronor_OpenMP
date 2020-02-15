@@ -25,8 +25,6 @@
       integer :: ipopcnt
       integer :: ntvc,ivc,ibas
 
-      integer :: nsymrp    ! Emergency solution
-
       real (kind=8) :: fac
 
       ndeti=idetb(ib)
@@ -97,29 +95,22 @@
        nacti=nactb(ib)
        nactj=nactb(jb)
 
-*       do n=1,nsymrp     ! All these arrays have to be simplified
-       nsymrp = 1
-       do n=1,nsymrp     ! All these arrays have to be simplified
-        nclose(n,1)=inacti
-        nclose(n,2)=inactj
-        nopen(n,1)=nacti
-        nopen(n,2)=nactj
-        nelec(1)=2*nclose(n,1)
-        nelec(2)=2*nclose(n,2)
-        ntop(1)=ntop(1)+nopen(n,1)
-        ntop(2)=ntop(2)+nopen(n,2)
-        ntcl(1)=ntcl(1)+nclose(n,1)
-        ntcl(2)=ntcl(2)+nclose(n,2)
+       nclose(1)=inacti
+       nclose(2)=inactj
+       nopen(1)=nacti
+       nopen(2)=nactj
+       nelec(1)=2*nclose(1)
+       nelec(2)=2*nclose(2)
+       ntop(1)=ntop(1)+nopen(1)
+       ntop(2)=ntop(2)+nopen(2)
+       ntcl(1)=ntcl(1)+nclose(1)
+       ntcl(2)=ntcl(2)+nclose(2)
 
 !     the following if statement should be removed once
 !     we have more than one symmetry representation
 
-        if(n.eq.1) then
-         nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
-         nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
-        endif
-
-       enddo
+       nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
+       nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
 
        if(nelec(1).ne.nelec(2)) stop
 
@@ -144,24 +135,23 @@
        ninact(2)=inactj
        nact(1)=nacti
        nact(2)=nactj
-       do n=1,nsymrp
-        call unpack(ioccb(i,ib),iocch,nact(1))
-        do k=1,nact(1)
-         ioccup(k,n,1)=iocch(k)
-         iocopen(n,k,1)=iocch(k)
-        enddo
-        call unpack(ioccb(j,jb),iocch,nact(2))
-        do k=1,nact(2)
-         ioccup(k,n,2)=iocch(k)
-         iocopen(n,k,2)=iocch(k)
-        enddo
+
+       call unpack(ioccb(i,ib),iocch,nact(1))
+       do k=1,nact(1)
+        ioccup(k,1)=iocch(k)
+        iocopen(k,1)=iocch(k)
+       enddo
+       call unpack(ioccb(j,jb),iocch,nact(2))
+       do k=1,nact(2)
+        ioccup(k,2)=iocch(k)
+        iocopen(k,2)=iocch(k)
        enddo
 
        if(idbg.ge.10) then
         write(lfndbg,610)
  610    format(//,' Active orbital occupation',/)
-        write(lfndbg,611) (ioccup(k,1,1),k=1,nact(1))
-        write(lfndbg,612) (ioccup(k,1,2),k=1,nact(2))
+        write(lfndbg,611) (ioccup(k,1),k=1,nact(1))
+        write(lfndbg,612) (ioccup(k,2),k=1,nact(2))
  611    format(' Left determinant :',(20i4))
  612    format(' Right determinant:',(20i4))
        endif
@@ -174,70 +164,67 @@
 
         if(idet.eq.2) indxx=jb
         index=0
-        do n=1,nsymrp
 
-         iv=1
-         ncl=nclose(n,idet)
-         nop=nopen(n,idet)
+        iv=1
+        ncl=nclose(idet)
+        nop=nopen(idet)
 
-         nvc=ncl+nop
-         if(nvc.gt.0) then
-*          nb=nbsym(n)
-          nb=nbas
-          ncleff=ncl
-          nopeff=nop
-          mspin=0
-          do k=1,nop
-           if(abs(iocopen(n,k,idet)).eq.1) then
-            mspin=mspin+iocopen(n,k,idet)
+        nvc=ncl+nop
+        if(nvc.gt.0) then
+         nb=nbas
+         ncleff=ncl
+         nopeff=nop
+         mspin=0
+         do k=1,nop
+          if(abs(iocopen(k,idet)).eq.1) then
+           mspin=mspin+iocopen(k,idet)
+          else
+           nopeff=nopeff-1
+           if(iocopen(k,idet).eq.2) ncleff=ncleff+1
+          endif
+         enddo
+         iclose=ncl
+         iup=ncleff
+         idown=ncleff+(nopeff+mspin)/2
+
+         do k=1,nvc
+          if(k.le.ncl) then
+           m=k
+          else
+           m=0
+           if(iocopen(k-ncl,idet).eq.1) then
+            iup=iup+1
+            m=iup
            else
-            nopeff=nopeff-1
-            if(iocopen(n,k,idet).eq.2) ncleff=ncleff+1
-           endif
-          enddo
-          iclose=ncl
-          iup=ncleff
-          idown=ncleff+(nopeff+mspin)/2
-
-          do k=1,nvc
-           if(k.le.ncl) then
-            m=k
-           else
-            m=0
-            if(iocopen(n,k-ncl,idet).eq.1) then
-             iup=iup+1
-             m=iup
+            if(iocopen(k-ncl,idet).eq.-1) then
+             idown=idown+1
+             m=idown
             else
-             if(iocopen(n,k-ncl,idet).eq.-1) then
-              idown=idown+1
-              m=idown
-             else
-              if(iocopen(n,k-ncl,idet).eq.2) then
-               iclose=iclose+1
-               m=iclose
-              endif
+             if(iocopen(k-ncl,idet).eq.2) then
+              iclose=iclose+1
+              m=iclose
              endif
             endif
            endif
-           if(m.eq.0) then
-            iv=iv+1
-           else
-            do ibv=1,nb
-             vec(index+m,ibv,idet)=vecsb(ibv,iv,indxx)
-            enddo
-            iv=iv+1
-           endif
-          enddo
+          endif
+          if(m.eq.0) then
+           iv=iv+1
+          else
+           do ibv=1,nb
+            vec(index+m,ibv,idet)=vecsb(ibv,iv,indxx)
+           enddo
+           iv=iv+1
+          endif
+         enddo
 
          index=index+ncleff+nopeff
-         nclose(n,idet)=ncleff
-         nopen(n,idet)=nopeff
-         do k=1,nopen(n,idet)
-          iocopen(n,k,idet)=1
-          if(k.gt.(nopeff+mspin)/2) iocopen(n,k,idet)=-1
+         nclose(idet)=ncleff
+         nopen(idet)=nopeff
+         do k=1,nopen(idet)
+          iocopen(k,idet)=1
+          if(k.gt.(nopeff+mspin)/2) iocopen(k,idet)=-1
          enddo
          endif
-        enddo
        enddo
 
        if(idbg.ge.11) then

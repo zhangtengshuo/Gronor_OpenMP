@@ -1,4 +1,3 @@
-
       subroutine gronor_gnome(lfndbg)
 
       use mpi
@@ -7,7 +6,6 @@
       use gnome_data
 
       implicit none
-!tps#include 'mpif.h'
 
       integer :: lfndbg
       real (kind=8) :: vecs1(nbasis,nbasis),vecs2(nbasis,nbasis)
@@ -22,8 +20,6 @@
 
       integer :: ntvc,ivc,ibas
 
-      integer :: nsymrp   ! Emergency solution
-
       if(idbg.ge.12) then
       write(lfndbg,600) nbasis
  600  format(/,' Number of basis functions is',t45,i8)
@@ -37,16 +33,13 @@
       etot=0.0d0
       ttest=0
 
-      nsymrp = 1    ! Emergency solution, should be changed
       do idet=1,2
 
        if(idbg.ge.13) then
        write(lfndbg,604) idet
  604   format(/,' Transformation of MO set',i8,/)
-       do n=1,nsymrp
-        write(lfndbg,605) n,(ioccup(k,n,idet),k=1,nact(idet))
- 605    format(' Active orbital occupation in symrep',i4,' : ',10i3)
-       enddo
+       write(lfndbg,605) n,(ioccup(k,idet),k=1,nact(idet))
+ 605   format(' Active orbital occupation in symrep',i4,' : ',10i3)
        endif
 
        call timer_start(11)
@@ -54,7 +47,7 @@
        call timer_stop(11)
 
        call timer_start(12)
-*       call gronor_order(lfndbg,idet)
+!       call gronor_order(lfndbg,idet)
        call timer_stop(12)
 
        call timer_start(13)

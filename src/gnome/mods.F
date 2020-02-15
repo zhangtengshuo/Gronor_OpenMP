@@ -1,4 +1,3 @@
-
       module const
       integer :: nr(20,3)
       data nr/0,1,0,0,2,0,0,1,1,0,3,0,0,2,2,1,0,1,0,1,
@@ -106,8 +105,8 @@
 
       integer :: nelec(2), ntcl(2), ntop(2)
       integer :: nalfa, nveca,nvecb, ntcla,ntclb, ntopa,ntopb
-      integer :: ioccna(nsrep), ioccnb(nsrep), nclose(nsrep,2)
-      integer :: nopen(nsrep,2),  iocopen(nsrep,100,2)                  
+      integer :: nclose(2)
+      integer :: nopen(2),  iocopen(100,2)                  
 
       character (len=80) :: text, name(2), namint(2)
       real (kind=8) :: potnuc
@@ -123,7 +122,7 @@
 
       integer :: nbasis, mvec, nvec(2)
 
-      integer, allocatable :: ioccup(:,:,:),itemp(:), ioccn(:,:)
+      integer, allocatable :: ioccup(:,:),itemp(:), ioccn(:,:)
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
       real (kind=8), allocatable :: vna(:),vnb(:)
       real (kind=8) :: bias,deta,smat,hmat

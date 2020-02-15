@@ -35,8 +35,6 @@
       integer :: ilast,ii,jj
       integer(kind=2)::ibuf(1020)
 
-      integer :: nsymrp     ! Emergency solution
-
       allocate(ig(mgr))
       allocate(ntarget(mgr))
 
@@ -378,18 +376,15 @@
 
 !     Scaling of the one electron integrals
 
-      nsymrp = 1     ! emergency solution, should be changed. 
       ielem=0
       jkoff=0
-      do im=1,nsymrp
-*       do j=jkoff+1,jkoff+nbsym(im)
-       do j=jkoff+1,jkoff+nbas
-        do k=jkoff+1,j
-         ielem=ielem+1
-        enddo
-        t(ielem)=0.5d0*t(ielem)
-        v(ielem)=0.5d0*v(ielem)
+
+      do j=jkoff+1,jkoff+nbas
+       do k=jkoff+1,j
+        ielem=ielem+1
        enddo
+       t(ielem)=0.5d0*t(ielem)
+       v(ielem)=0.5d0*v(ielem)
       enddo
 
       nacc=min(int(((myints(6)-myints(5))*0.05))+1,naccel)
@@ -402,11 +397,10 @@
 
 !     Calculate the integral index needed for openacc processing
 
-*      allocate(ndxtv(nsymf))
       allocate(ndxtv(nbas))
 
       ndxtv(1)=0
-*      do i=2,nbsym(1)
+
       do i=2,nbas
       ndxtv(i)=ndxtv(i-1)+i-1
       enddo

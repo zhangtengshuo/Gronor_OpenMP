@@ -5,7 +5,12 @@ Authors: T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN
 	 R. W. A. Havenith, University of Groningen, Groningen, Netherlands
 
 
-Downloading from the GitLab repository creates a directory structure as follows:
+Downloading from the GitLab repository:
+
+git clone --recursive git@gitlab.com:gronor/gronor.git
+
+
+The initial directory structure is as follows:
 
 gronor --- src            (source directory with sub-directories)
         |

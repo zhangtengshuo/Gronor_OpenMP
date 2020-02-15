@@ -128,7 +128,7 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/include)
 
-configure_file (${GRONOR_DIR}/src/include/gronor_version.h.in ${MAIN_INCLUDE_DIR}/gronor_version.h)
+configure_file (${GRONOR_DIR}/include/gronor_version.h.in ${MAIN_INCLUDE_DIR}/gronor_version.h)
 
 foreach (BASE_DIR ${basedirs})
         if (EXISTS "${BASE_DIR}/src/include")

@@ -391,12 +391,13 @@ set (FFLAGS_PGI_BASIC "-Mbackslash")
 set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
 set (FFLAGS_PGI_OPENMP "-mp")
 set (FFLAGS_PGI_ILP64 "-i8")
+set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
 # build targets
 set (FFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELEASE "-O2")
-set (FFLAGS_PGI_FAST "-fast")
+set (FFLAGS_PGI_FAST "-fast -fastsse")
 
 
 # C compiler
@@ -556,6 +557,10 @@ if (BOUNDS)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_BOUNDS}")
         add_definitions (-D_MALLOC_INTERCEPT_)
 endif ()
+
+if(ACC)
+        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
+endif()
 
 # Allow user-specified modifications
 

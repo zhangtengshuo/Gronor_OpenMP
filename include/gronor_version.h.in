@@ -1,0 +1,1 @@
+#define _GRONOR_VERSION_ "${GRONOR_VERSION}"

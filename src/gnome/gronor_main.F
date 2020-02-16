@@ -1198,12 +1198,12 @@ ccccc!$acc data copyin(g(1:mint2),lab(1:4,1:mint2),t,v,ndxtv)
        endif
        close(unit=lfnday,status='keep')
       else
-       if(ipr.lt.5) then
-        close(unit=lfnout,status='delete')
-       else
-        close(unit=lfnout,status='keep')
-       endif
-       close(unit=lfnpro,status='delete')
+!       if(ipr.lt.5) then
+!        close(unit=lfnout,status='delete')
+!       else
+!        close(unit=lfnout,status='keep')
+!       endif
+!       close(unit=lfnpro,status='delete')
       endif
 
       return

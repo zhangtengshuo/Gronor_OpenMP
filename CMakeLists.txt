@@ -74,7 +74,7 @@ else ()
         mark_as_advanced (FORCE BUILD_STATIC_LIB)
       endif ()
       
-option (MPI "Enable MPI parallellization." OFF)
+option (MPI "Enable MPI parallellization." ON)
 option (OPENACC "Enable OPENACC off-loading." OFF)
 option (OPENMP "Enable multi-threading." OFF)
 option (CUSOLVER "Enable CUSOLVER library." OFF)

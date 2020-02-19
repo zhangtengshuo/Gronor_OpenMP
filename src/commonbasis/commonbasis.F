@@ -4,8 +4,9 @@
         call transvecmain()
 
         end
-        
+
         subroutine transvecmain()
+        use inp
         implicit none
 
         integer :: i,j,k,l,m,n,nbas,l1,l2,kbas,ntot,ind3
@@ -28,7 +29,7 @@
         integer :: istart,isec1,iseca,isecg,isecg2,ib,nrecl
         integer(kind=4) :: nrec
 
-        logical :: inp_read,inp_compare,inp_a,inp_i,inp_strlen,inp_f
+!        logical :: inp_read,inp_compare,inp_a,inp_i,inp_strlen,inp_f
 
 ! thresh must be input
       data thresh/1.0d-6/
@@ -174,7 +175,8 @@
          
         end subroutine
 
-        subroutine readbasis(nbas,kbas,ntot,nocc,vec,vecfile)
+      subroutine readbasis(nbas,kbas,ntot,nocc,vec,vecfile)
+       use inp
         implicit none
 
         integer :: i,j,nbas,l1,l2,kbas,ntot,nocc
@@ -183,7 +185,7 @@
         integer :: lfnvinp
         dimension :: vec(nbas,kbas)            
         real(kind=8) :: vec
-        logical :: inp_strlen
+!        logical :: inp_strlen
 
         filvinp=vecfile(1:inp_strlen(vecfile))
         lfnvinp=11
@@ -199,6 +201,7 @@
 
         subroutine commonbasis(nocc,nstates,s,vec,thresh,
      &  nbas,kbas,l1,root)
+       use inp
 !       implicit real*8 (a-h,o-z)
         implicit none
 
@@ -210,7 +213,7 @@
         real(kind=8), allocatable :: vecbas(:,:),su(:,:),vecnew(:,:,:)
         character (len=255) :: vecfile,root,filvec 
         integer :: lfnvec 
-        logical :: inp_strlen
+!        logical :: inp_strlen
 
         l2=kbas*(kbas+1)/2
         allocate(ov(l2),vv(kbas,kbas),ev(kbas),scr(2*kbas),is(kbas+1),
@@ -946,6 +949,7 @@ c     if nw is not a multiple of mx then unpack the remaining integers
         
         subroutine read_write_vec(nbas,kbas,ntot,nocc,
      &  vec_tran,vecfile,isecv)
+       use inp
         implicit none
 
 !       gamess parameters
@@ -966,7 +970,7 @@ c     if nw is not a multiple of mx then unpack the remaining integers
 
         integer :: nvec,nints,iv,ib,istart,isecv,nocc,ntot,nbas,kbas
         real(kind=8) :: apos
-        logical :: inp_strlen
+!        logical :: inp_strlen
         character (len=255) :: item,root,vecfile
         integer, parameter :: maxvec = 10
         character (len=255),dimension(maxvec) :: vector

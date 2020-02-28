@@ -233,8 +233,8 @@
          flush(lfnout)
         endif
         write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
-     &   '  :  ',i,j,'         completed'
- 703    format(a8,2x,a8,f12.3,a,2i6,a)
+     &   '  :  ',i,j,'         completed, H,S:',hbase(i,j),sbase(i,j)
+ 703    format(a8,2x,a8,f12.3,a,2i6,a,2f20.10)
         flush(lfnday)
         call timer_start(99)
          ntasks(i,j)=-2
@@ -366,9 +366,8 @@
          flush(lfnout)
              endif
              call swatch(date,time)
-             write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  ',i,j,'         completed'
- 704         format(a8,2x,a8,f12.3,a,2i6,a)
+             write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
+     &   '  :  ',i,j,'         completed, H,S:',hbase(i,j),sbase(i,j)
              flush(lfnday)
              call timer_start(99)
              ntasks(i,j)=-2

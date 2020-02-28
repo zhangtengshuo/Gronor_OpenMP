@@ -25,16 +25,28 @@
 
       real(kind=8), external :: timer_wall_total
 
-      integer, allocatable :: ntasks(:,:)
+      integer, allocatable :: ntasks(:,:),ndets(:,:,:)
 
       allocate(lgroup(npg,5))
       allocate(lactive(npg))
       allocate(ntasks(nbase,nbase))
+      allocate(ndets(nbase,nbase,2))
 
+!     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
+!     for contributions to Hamiltonian matrix element H(i,j)
+!     nsingt(k) sums the singularities over the entire Hamiltonain matrix
+      
       do i=1,4
        nsingt(i)=0
       enddo
 
+!     Contributions to H(i,j) are sent as tasks to groups and tracked in lgroup:
+!     lgroup(igrp,1) : current i in H(i,j) for current task sent to group igrp
+!     lgroup(igrp,2) : current j in H(i,j) for current task sent to group igrp
+!     lgroup(igrp,3) : index to first determinant pair for H(i,j) in the current task sent to group igrp
+!     lgroup(igrp,4) : index to last determinant pair for H(i,j) in the current task sent to group igrp
+!     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task 
+      
       do j=1,5
        do i=1,npg
         lgroup(i,j)=0
@@ -54,12 +66,6 @@
        enddo
       enddo
 
-      do k=1,5
-       do i=1,npg
-        lgroup(i,k)=0
-       enddo
-      enddo
-
       mdet=0
       do ibase=1,nbase
        do jbase=1,ibase
@@ -70,6 +76,12 @@
         else
          mdet=mdet+idetb(ibase)*idetb(jbase)
         endif
+        if(ibase.eq.jbase) then
+         ndets(ibase,jbase,1)=idetb(ibase)*(idetb(ibase)+1)/2
+        else
+         ndets(ibase,jbase,1)=idetb(ibase)*idetb(jbase)
+        endif
+        ndets(ibase,jbase,2)=0
        enddo
       enddo
 
@@ -142,8 +154,13 @@
          endif
 
          if(lgroup(igrp,5).ne.0) then
-          nrb=nrb+lgroup(igrp,4)-lgroup(igrp,3)+1
-          pnrb=dble(100*nrb)/dble(ijend)
+            ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
+     &           ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
+     &           lgroup(igrp,4)-lgroup(igrp,3)+1
+            pnrb=dble(100*ndets(lgroup(igrp,1),lgroup(igrp,2),2))/
+     &           ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+!          nrb=nrb+lgroup(igrp,4)-lgroup(igrp,3)+1
+!          pnrb=dble(100*nrb)/dble(ijend)
           if(ipro.eq.1.or.ipro.eq.3) then
            call swatch(date,time)
            if(ipro.eq.1) rewind(unit=lfnpro)
@@ -165,11 +182,11 @@
      &         3i6,i12,f8.3,'% ')
            flush(lfnpro)
           endif
-          if(me.eq.master.and.pnrb.gt.fday) then
+          if(me.eq.master.and.pnrb.ge.fday) then
            call timer_stop(99)
            call swatch(date,time)
            write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  ',ibase,jbase,' at ',pnrb,'%'
+     &           '  :  ',lgroup(igrp,1),lgroup(igrp,2),' at ',pnrb,'%'
   702      format(a8,2x,a8,f12.3,a,2i6,a,f12.1,a)
            flush(lfnday)
            call timer_start(99)
@@ -308,8 +325,13 @@
        endif
 
        if(lgroup(igrp,5).gt.0) then
-        nrb=nrb+lgroup(igrp,4)-lgroup(igrp,3)+1
-        pnrb=dble(100*nrb)/dble(ijend)
+            ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
+     &           ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
+     &           lgroup(igrp,4)-lgroup(igrp,3)+1
+            pnrb=dble(100*ndets(lgroup(igrp,1),lgroup(igrp,2),2))/
+     &           ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+!        nrb=nrb+lgroup(igrp,4)-lgroup(igrp,3)+1
+!        pnrb=dble(100*nrb)/dble(ijend)
         if(ipro.eq.1.or.ipro.eq.3) then
          if(ipro.eq.1) rewind(unit=lfnpro)   
          write(lfnpro,680) date(1:8),time(1:8),
@@ -325,6 +347,15 @@
      &       lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,pnrb
          flush(lfnpro)
         endif
+          if(me.eq.master.and.pnrb.ge.fday) then
+           call timer_stop(99)
+           call swatch(date,time)
+           write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  ',lgroup(igrp,1),lgroup(igrp,2),' at ',pnrb,'%'
+           flush(lfnday)
+           call timer_start(99)
+           fday=fday+10.0d0
+          endif
        endif
 
        if(lgroup(igrp,5).gt.0) then
@@ -500,7 +531,7 @@
  675  format(/,' At the end of the run',i5,' of ',i5,
      & ' processes are still active')
 
-      deallocate(lgroup,lactive,ntasks)
+      deallocate(lgroup,lactive,ntasks,ndets)
 
       return
       end

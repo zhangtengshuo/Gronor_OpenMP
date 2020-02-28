@@ -73,6 +73,7 @@
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:)
+      integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 
       end module cidef

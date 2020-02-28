@@ -984,6 +984,7 @@ C      elseif (nqcp.eq.2) then
       enddo
 
       allocate(hbase(nbase,nbase),sbase(nbase,nbase))
+      allocate(nsing(nbase,nbase,4))
 
 !     Define the process groups
 
@@ -1180,6 +1181,8 @@ ccccc!$acc data copyin(g(1:mint2),lab(1:4,1:mint2),t,v,ndxtv)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
+
+      deallocate(hbase,sbase,nsing)
 
       call timer_stop(4)
       call timer_stop(1)

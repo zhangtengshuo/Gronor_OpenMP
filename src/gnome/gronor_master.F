@@ -1,5 +1,3 @@
-
-
       subroutine gronor_master()
 
       use mpi
@@ -16,22 +14,25 @@
       integer :: l2,i,j,k,ij,n,ndone,nleft,nrb
       real (kind=8) :: pnrb
       integer (kind=4) :: ierr,ireq,iremote
-      integer :: igrp
+      integer :: igrp, ltemp
       logical :: osame
 
       real (kind=8) :: fac,fday
 
-      integer :: ibuf(4),nsing(4)
+      integer :: ibuf(4),nsingt(4)
       integer, allocatable :: lgroup(:,:), lactive(:)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
       real(kind=8), external :: timer_wall_total
 
+      integer, allocatable :: ntasks(:,:)
+
       allocate(lgroup(npg,5))
       allocate(lactive(npg))
+      allocate(ntasks(nbase,nbase))
 
       do i=1,4
-       nsing(i)=0
+       nsingt(i)=0
       enddo
 
       do j=1,5
@@ -44,6 +45,12 @@
        do jbase=1,ibase
         hbase(ibase,jbase)=0.0d0
         sbase(ibase,jbase)=0.0d0
+       enddo
+       do jbase=1,nbase
+        ntasks(ibase,jbase)=-1
+        do i=1,4
+         nsing(ibase,jbase,i)=0
+        enddo
        enddo
       enddo
 
@@ -84,27 +91,6 @@
          l2=ndeti*ndetj
          ijend=l2
         endif
-
-        if(ipr.ge.3) then
-         if(ibase.eq.jbase) then
-          write(lfnout,617) ibase,jbase,                                &
-     &                      idetb(ibase),idetb(jbase),                  &
-     &                      idetb(ibase)*(idetb(jbase)+1)/2,ijend,      &
-     &    dble(100*ijend)/dble(idetb(ibase)*(idetb(jbase)+1)/2)
-         else
-          write(lfnout,617) ibase,jbase,                                &
-     &                      idetb(ibase),idetb(jbase),                  &
-     &                      idetb(ibase)*idetb(jbase),ijend,            &
-     &    dble(100*ijend)/dble(idetb(ibase)*(idetb(jbase)))
-         endif
-         flush(lfnout)
-        endif
- 617     format(//,' Calculation of H matrix element ',2i5,/,           &
-     & ' Number of left side determinants',t50,i16,/,                   &
-     & ' Number of right side determinants',t50,i16,/,                  &
-     & ' Number of determinant pairs',t50,i16,/,                        &
-     & ' Number of determinant pairs above threshold',t50,i16,          &
-     &     ' (',f6.2,'%)')
 
         fday=10.0d0
 
@@ -199,15 +185,62 @@
      &    hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
           sbase(lgroup(igrp,1),lgroup(igrp,2))=
      &    sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
-          nsing(1)=nsing(1)+int(buffer(3))
-          nsing(2)=nsing(2)+int(buffer(4))
-          nsing(3)=nsing(3)+int(buffer(5))
-          nsing(4)=nsing(4)+int(buffer(6))
+          nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
+     &    nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(3))
+          nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
+     &    nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(4))
+          nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
+     &    nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
+          nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
+     &    nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
 
+          ntasks(lgroup(igrp,1),lgroup(igrp,2))=
+     &     ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+          
           do k=1,5
            lgroup(igrp,k)=0
           enddo
 
+          do i=1,nbase
+           do j=1,nbase
+            if(i.ne.ibase.and.j.ne.jbase.and.ntasks(i,j).eq.0) then
+             call timer_stop(99)
+             call swatch(date,time)
+
+
+        if(ipr.ge.1) then
+         if(i.eq.j) then
+          ltemp=idetb(i)*(idetb(i)+1)/2
+          write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
+         else
+          ltemp=idetb(i)*idetb(j)
+          write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
+         endif
+ 617     format(//,' Calculation of H matrix element ',2i5,/,
+     &    ' Number of left side determinants',t50,i16,/,
+     &    ' Number of right side determinants',t50,i16,/,
+     &    ' Number of determinant pairs',t50,i16)
+         write(lfnout,619) (nsing(i,j,k),k=1,4)
+ 619     format(
+     &  ' Number of matrix elements with 0 singularities',t50,i16,/,
+     &  31x,' 1  singularity',t50,i16,/
+     &  31x,' 2  singularities',t50,i16,/
+     &  31x,' 3+ singularities',t50,i16)
+         write(lfnout,620) hbase(i,j),sbase(i,j)
+ 620     format(' Un-normalized Hamiltonian matrix element',
+     &     t57,f20.10,/, 
+     &     ' Overlap matrix element',t57,f20.10)
+         flush(lfnout)
+        endif
+        write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
+     &   '  :  ',i,j,'         completed'
+ 703    format(a8,2x,a8,f12.3,a,2i6,a)
+        flush(lfnday)
+        call timer_start(99)
+         ntasks(i,j)=-2
+            endif
+           enddo
+          enddo
          endif
 
          ibuf(1)=ibase
@@ -219,7 +252,10 @@
          call timer_stop(95)
 
          call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,MPI_COMM_WORLD,
-     &     ireq,ierr)
+     &        ireq,ierr)
+
+         if(ntasks(ibase,jbase).eq.-1) ntasks(ibase,jbase)=0
+         ntasks(ibase,jbase)=ntasks(ibase,jbase)+1
 
          if(idbg.gt.2) then
           call swatch(date,time)
@@ -241,7 +277,7 @@
          lgroup(igrp,5)=1
 
         enddo
-
+        
        enddo
       enddo
 
@@ -299,11 +335,47 @@
      &  hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
         sbase(lgroup(igrp,1),lgroup(igrp,2))=
      &  sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
-        nsing(1)=nsing(1)+int(buffer(3))
-        nsing(2)=nsing(2)+int(buffer(4))
-        nsing(3)=nsing(3)+int(buffer(5))
-        nsing(4)=nsing(4)+int(buffer(6))
+        nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
+     &  nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(3))
+        nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
+     &  nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(4))
+        nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
+     &  nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
+        nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
+     &  nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
 
+          ntasks(lgroup(igrp,1),lgroup(igrp,2))=
+     &       ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+          
+          do i=1,nbase
+           do j=1,nbase
+            if(i.ne.ibase.and.j.ne.jbase.and.ntasks(i,j).eq.0) then
+             call timer_stop(99)
+             call swatch(date,time)
+             
+        if(ipr.ge.1) then
+           if(i.eq.j) then
+          ltemp=idetb(i)*(idetb(i)+1)/2
+          write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
+         else
+          ltemp=idetb(i)*idetb(j)
+          write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
+         endif
+         write(lfnout,619) (nsing(i,j,k),k=1,4)
+         write(lfnout,620) hbase(i,j),sbase(i,j)
+         flush(lfnout)
+             endif
+             call swatch(date,time)
+             write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  ',i,j,'         completed'
+ 704         format(a8,2x,a8,f12.3,a,2i6,a)
+             flush(lfnday)
+             call timer_start(99)
+             ntasks(i,j)=-2
+            endif
+           enddo
+        enddo
+        
 !       Remove duplicates that have already been sent
 
         do i=1,npg
@@ -413,16 +485,23 @@
        enddo
       endif
 
-      write(lfnout,674) nsing
- 674  format(/,' Number of matrix elements with 0  singularities',
-     & t50,i16,/,t33,'1  singularity',t50,i16,/,t33,'2  singularities',
-     & t50,i16,/,t33,'3+ singularities',t50,i16)
+      do i=1,nbase
+       do j=1,nbase
+        do k=1,4
+         nsingt(k)=nsingt(k)+nsing(i,j,k)
+        enddo
+       enddo
+      enddo
+      write(lfnout,674) nsingt
+ 674  format(/,' Total number of matrix elements with 0  singularities',
+     & t50,i16,/,t39,'1  singularity',t50,i16,/,t39,'2  singularities',
+     & t50,i16,/,t39,'3+ singularities',t50,i16)
 
       write(lfnout,675) nalive*mgr+1,np
  675  format(/,' At the end of the run',i5,' of ',i5,
      & ' processes are still active')
 
-      deallocate(lgroup,lactive)
+      deallocate(lgroup,lactive,ntasks)
 
       return
       end

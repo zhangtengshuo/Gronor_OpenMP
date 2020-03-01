@@ -524,8 +524,8 @@
       enddo
       write(lfnout,674) nsingt
  674  format(/,' Total number of matrix elements with 0  singularities',
-     & t50,i16,/,t39,'1  singularity',t50,i16,/,t39,'2  singularities',
-     & t50,i16,/,t39,'3+ singularities',t50,i16)
+     & t56,i16,/,t39,'1  singularity',t56,i16,/,t39,'2  singularities',
+     & t56,i16,/,t39,'3+ singularities',t56,i16)
 
       write(lfnout,675) nalive*mgr+1,np
  675  format(/,' At the end of the run',i5,' of ',i5,

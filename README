@@ -58,6 +58,6 @@ The following rules need to be followed for the src subdirectories:
 
 Build flags are the following:
 
---DMPI=ON is default as GronOR requires a minimum of 2 MPI ranks to run
---DACC=ON will activate OpenACC directives to be interpreted for PGI compilers 
-
+-DMPI=ON is default as GronOR requires a minimum of 2 MPI ranks to run
+-DACC=ON will activate OpenACC directives to be interpreted for PGI compilers 
+-DCUSOLVER=ON will activate the CUSOLVER library, and requires -DACC=ON

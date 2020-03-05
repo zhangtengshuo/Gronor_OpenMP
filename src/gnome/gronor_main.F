@@ -1,4 +1,3 @@
-
       subroutine gronor_main()
 
 !     initialization of the calculation
@@ -496,8 +495,16 @@ C     When npg = 0, something very strange will come out (I guess).
        allocate(vecsm(maxvec,maxvec,mstates))
        allocate(ioccm(maxnact,maxci,mstates))
 
+       write(lfnout,613)
+ 613   format(/,' States included in this calculation',/)
+
+       do i=1,nmol
+        write(lfnout,617) i,(ncombv(i,j),j=1,nbase)
+ 617    format(' Molecule',i4,' : ',20i4)
+       enddo
+
        if(ipr.ge.2) write(lfnout,607)
- 607   format(/,'  istate   idetm           ci coefficient')
+ 607   format(//,'  istate   idetm           ci coefficient')
 
 Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
 C              something completely different.
@@ -984,6 +991,7 @@ C      elseif (nqcp.eq.2) then
       enddo
 
       allocate(hbase(nbase,nbase),sbase(nbase,nbase))
+      allocate(nsing(nbase,nbase,4))
 
 !     Define the process groups
 
@@ -1180,6 +1188,8 @@ ccccc!$acc data copyin(g(1:mint2),lab(1:4,1:mint2),t,v,ndxtv)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
+
+      deallocate(hbase,sbase,nsing)
 
       call timer_stop(4)
       call timer_stop(1)

@@ -568,6 +568,15 @@ if(CUSOLVER)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
 endif()
 
+if(${PLATFORM} STREQUAL "LINUX64")
+   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+   message("-- Added LINUX compile flag")
+endif()
+if(${PLATFORM} STREQUAL "LINUX")
+   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+   message("-- Added LINUX compile flag")
+endif()
+
 # Allow user-specified modifications
 
 if (EXTRA_CXXFLAGS)

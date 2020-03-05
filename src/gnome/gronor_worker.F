@@ -7,6 +7,7 @@
       use gnome_data
       use gnome_parameters
 #ifdef CUSOLVER
+      use cusolverDn
       use cuda_cusolver
       use cuda_functions
 #endif
@@ -21,13 +22,13 @@
       real (kind=8) :: sint
       integer :: status(MPI_STATUS_SIZE)
 #ifdef CUSOLVER
-      integer (c_int), target :: ndim
+c      integer (c_int), target :: ndim
 #endif
       integer :: nel2
       integer :: ipopcnt
 
 #ifdef CUSOLVER
-      if(itest.gt.0) cusolver_stat=cusolverDnDestroy(cusolver_Hndl)
+c      if(itest.gt.0) cusolver_stat=cusolverDnDestroy(cusolver_Hndl)
 #endif
 
       flush(lfnout)
@@ -61,21 +62,21 @@
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 
-#ifdef CUSOLVER
-!$acc data copyin(ta) copyout(u,w,sdiag)
-      if(itest.gt.0) then
-       ndim=nelecs
-       lwork_ptr=c_loc(lworkc)
-       cusolver_stat=cusolverDnDgesvd_bufferSize(cusolver_Hndl,
-     &  ndim,ndim,lwork_ptr)
-       write(*,555) cusolver_stat
-  555 format('cusolverDnDgesvd_bufferSize ',i5)
-       allocate(work(lworkc),rwork(nelecs-1))
-       nel2=nelecs*nelecs
-       allocate(acu(nel2),ucu(nel2),wcu(nel2),scu(nel2))
-       endif
-!$acc end data
-#endif
+c#ifdef CUSOLVER
+c!$acc data copyin(ta) copyout(u,w,sdiag)
+c      if(itest.gt.0) then
+c       ndim=nelecs
+c       lwork_ptr=c_loc(lworkc)
+c       cusolver_stat=cusolverDnDgesvd_bufferSize(cusolver_Hndl,
+c     &  ndim,ndim,lwork_ptr)
+c       write(*,555) cusolver_stat
+c  555 format('cusolverDnDgesvd_bufferSize ',i5)
+c       allocate(work(lworkc),rwork(nelecs-1))
+c       nel2=nelecs*nelecs
+c       allocate(acu(nel2),ucu(nel2),wcu(nel2),scu(nel2))
+c       endif
+c!$acc end data
+c#endif
 
       allocate(ioccup(mnact,2))   !  always one irrep, should be changed to a 2-dim array
       allocate(vec(mvec,mbasel,2))
@@ -118,6 +119,41 @@
       idet0=0
       jdet0=0
 
+#ifdef CUSOLVER
+!$acc data copyin(w,ta) create(dev_info_d)
+
+       ndim=nelecs
+       mdim=mbasel
+!$acc host_data use_device(ta)
+       cusolver_status = cusolverDnDgesvd_bufferSize
+     &  (cusolver_handle,ndim,ndim,worksize)
+!$acc end host_data
+
+       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &     write(*,*) 'cusolverDnDgesvd_bufferSize failed'
+
+!$acc host_data use_device(ta,w)
+       cusolver_status = cusolverDnDsyevd_bufferSize
+     & (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
+     &   CUBLAS_FILL_MODE_LOWER,
+     &   ndim,ta,mdim,w,worksize2)
+!$acc end host_data
+
+       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
+
+       worksize=max(worksize,worksize2)
+
+      print*,me,' CUSOLVER BUFFERSIZE',worksize
+
+       allocate(workspace_d(worksize))
+       allocate(rwork(nelecs))
+
+!$acc end data
+#endif
+
+
+      
       do i=1,6
        buffer(i)=0.0d0
       enddo
@@ -257,6 +293,13 @@
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)
       deallocate(s,st)
+
+#ifdef CUSOLVER
+        cusolver_status = cusolverDnDestroy(cusolver_handle)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &        write(*,*) 'cusolver_handle destruction failed'
+      print*,me,' CUSOLVER HANDLE DESTROYED'
+#endif
 
       return
       end

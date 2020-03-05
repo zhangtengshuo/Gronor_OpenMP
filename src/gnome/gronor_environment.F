@@ -5,6 +5,7 @@
       use cidist
 
 #ifdef CUSOLVER
+      use cusolverDn
       use cuda_cusolver
 #endif
 #ifdef _OPENACC
@@ -72,14 +73,18 @@ c      if (jstat.ne.0)numdev=0
       endif
 #endif
 #ifdef CUSOLVER
+      cusolver_status = cusolverDnCreate(cusolver_handle)
+      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &   print *, 'cusolver_handle creation failed'
+
 !      if(numdev.gt.1) then
 !       cpfre=c_loc(memfre)
 !       cptot=c_loc(memtot)
 !       istat=cudaMemGetInfo(cpfre,cptot)
 !      endif
-      cusolver_stat=cusolverDnCreate(cusolver_Hndl)
+c      cusolver_stat=cusolverDnCreate(cusolver_Hndl)
 
-      write(*,555) cusolver_stat
+      write(*,555) cusolver_status
   555 format('cusolverdncreate ',i5)
 #endif
 

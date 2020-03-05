@@ -226,6 +226,22 @@
 #ifdef CUSOLVER
       module cuda_cusolver
 
+       use cusolverDN
+
+       type(cusolverDnHandle) :: cusolver_handle
+       integer (kind=4)       :: cusolver_status
+       integer (kind=4)       :: worksize,worksize2,ndim,mdim
+       real(8),allocatable :: rwork(:)
+       real(8),allocatable :: workspace_d(:)
+       integer (kind=4) :: dev_info_d
+
+       end module cuda_cusolver
+#endif
+
+      
+#ifdef CUSOLVEROLD
+      module cuda_cusolver
+
       use iso_c_binding
 
       integer :: cusolver_stat

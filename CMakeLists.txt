@@ -392,6 +392,7 @@ set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
 set (FFLAGS_PGI_OPENMP "-mp")
 set (FFLAGS_PGI_ILP64 "-i8")
 set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
+set (FFLAGS_PGI_CUSOLVER "-DCUSOLVER -lcusolver")
 # build targets
 set (FFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
@@ -560,6 +561,11 @@ endif ()
 
 if(ACC)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
+endif()
+      
+if(CUSOLVER)
+        set (ENV{CUSOLVER} "Y")
+        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
 endif()
 
 # Allow user-specified modifications

@@ -84,7 +84,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: iload,ibatch,itest,naccel,nacc0,nacc1,inpcib,intfil
-      integer :: idipole, itp4, ione, intadd, nummps, numomp
+      integer :: iday,idipole,itp4,ione,intadd,nummps,numomp
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj

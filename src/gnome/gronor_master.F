@@ -104,7 +104,7 @@
          ijend=l2
         endif
 
-        fday=10.0d0
+        fday=dble(iday)
 
         if(ipr.ge.8) then
          write(lfnout,600) ibase,jbase
@@ -190,7 +190,7 @@
   702      format(a8,2x,a8,f12.3,a,2i6,a,f12.1,a)
            flush(lfnday)
            call timer_start(99)
-           fday=fday+10.0d0
+           fday=fday+dble(iday)
           endif
          endif
 

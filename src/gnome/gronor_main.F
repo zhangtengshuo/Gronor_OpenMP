@@ -227,6 +227,7 @@ C              let's avoid that
        ipr=-1
        itim=-1
        ipro=-1
+       iday=10
        idbg=0
        nspin=0
        mpibuf=168435456
@@ -330,6 +331,11 @@ C              let's avoid that
 
        if(inp_compare(.false.,'Debug',item)) then
         if(.not.inp_i(idbg)) idbg=1
+        goto 2
+       endif
+
+       if(inp_compare(.false.,'Dayfile',item)) then
+        if(.not.inp_i(iday)) iday=10
         goto 2
        endif
 

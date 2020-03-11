@@ -40,6 +40,8 @@ C              let's avoid that
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(3)
       character (len=255) :: string, filnam, card, item
 
+      real(kind=8), external :: timer_wall_total
+      
       integer :: l1
       logical :: osame
 
@@ -138,6 +140,14 @@ C              let's avoid that
        open(unit=lfnday,file=filday(1:inp_strlen(filday)),
      &  form='formatted',status='unknown',err=996)
 
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start of job'
+  702  format(a8,2x,a8,f12.3,a)
+       flush(lfnday)
+       call timer_start(99)
+           
        write(lfnout,600)
   600  format(/,
      &  ' GronOR: Non-Orthogonal Configuration Interaction program',//,
@@ -998,6 +1008,15 @@ C      elseif (nqcp.eq.2) then
 
       enddo
 
+      if(me.eq.master) then
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Base states generated'
+       flush(lfnday)
+       call timer_start(99)
+      endif
+       
       allocate(hbase(nbase,nbase),sbase(nbase,nbase))
       allocate(nsing(nbase,nbase,4))
 
@@ -1023,6 +1042,15 @@ C      elseif (nqcp.eq.2) then
 
       call gronor_read_integrals()
 
+      if(me.eq.master) then
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Integrals read and distributed'
+       flush(lfnday)
+       call timer_start(99)
+      endif
+       
       if(me.eq.master.and.ipr.ge.0) then
        write(lfnout,614) nbas
        write(lfnout,615) int1
@@ -1050,6 +1078,15 @@ C      elseif (nqcp.eq.2) then
        enddo
       endif
 
+      if(me.eq.master) then
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start Hamiltonian calculation'
+       flush(lfnday)
+       call timer_start(99)
+      endif
+       
       call timer_start(98)
       if(me.eq.master.and.iload.eq.1) then
        if(idbg.gt.0) then
@@ -1202,8 +1239,22 @@ ccccc!$acc data copyin(g(1:mint2),lab(1:4,1:mint2),t,v,ndxtv)
       call timer_stop(4)
       call timer_stop(1)
 
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  End of Hamiltonian calculation'
+       flush(lfnday)
+       call timer_start(99)
+       
       call gronor_timings(lfnout)
 
+       call timer_stop(99)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Timings reported'
+       flush(lfnday)
+       call timer_start(99)
+       
       if(me.eq.master) deallocate(numrecs)
 
       close(unit=lfndbg,status='keep')

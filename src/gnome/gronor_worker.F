@@ -113,6 +113,7 @@ c#endif
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
+      allocate(temp(nelecs,nelecs))
 
       ibase0=0
       jbase0=0
@@ -144,7 +145,7 @@ c#endif
 
        worksize=max(worksize,worksize2)
 
-      print*,me,' CUSOLVER BUFFERSIZE',worksize
+c      print*,me,' CUSOLVER BUFFERSIZE',worksize
 
        allocate(workspace_d(worksize))
        allocate(rwork(nelecs))
@@ -293,12 +294,13 @@ c#endif
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)
       deallocate(s,st)
+      deallocate(temp)
 
 #ifdef CUSOLVER
         cusolver_status = cusolverDnDestroy(cusolver_handle)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &        write(*,*) 'cusolver_handle destruction failed'
-      print*,me,' CUSOLVER HANDLE DESTROYED'
+c      print*,me,' CUSOLVER HANDLE DESTROYED'
 #endif
 
       return

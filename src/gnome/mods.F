@@ -142,6 +142,7 @@
       real (kind=8), allocatable :: veca(:), vecb(:)
       real (kind=8), allocatable :: s12d(:,:)
       real (kind=8), allocatable :: w1(:),w2(:,:)
+      real (kind=8), allocatable :: temp(:,:)
 
 #ifdef SINGLEP
       real (kind=8), allocatable :: ta(:,:)

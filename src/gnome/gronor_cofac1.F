@@ -16,7 +16,6 @@ c      use cuda_functions
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
       character (len=1), target :: jobu, jobvt
-      real (kind=8), allocatable :: temp(:,:), ttt(:,:)
       
 #ifdef CUSOLVER
 c      integer (c_int) :: ndim
@@ -40,7 +39,7 @@ c      integer (c_int) :: ldim
        mdim=mbasel
 c       print*,me,' NDIM,MDIM',ndim,mdim
 
-       allocate(temp(ndim,ndim))
+c       allocate(temp(ndim,ndim))
 
        do j=1,ndim
         do i=1,ndim
@@ -53,7 +52,8 @@ c       do j=1,nelecs
 c        write(*,'(12f12.6)') (ta(i,j),i=1,nelecs)
 c       enddo
 
-!$acc data copy(temp,ev,u,w,dev_info_d) create(workspace_d,rwork)
+!$acc data copyin(temp) copy(ev,u,w,dev_info_d)
+!$acc& create(workspace_d,rwork)
 !$acc host_data use_device(temp,ev,u,w,dev_info_d,workspace_d,rwork)
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
      &  ndim,ndim,temp,ndim,ev,u,ndim,w,ndim,workspace_d,
@@ -64,7 +64,7 @@ c       enddo
        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &   write(*,*) 'cusolverDnDgesvd failed',cusolver_status
 
-!$acc update self(temp,u,w,ev,dev_info_d)
+!$acc update self(u,w,ev,dev_info_d)
 !$acc end data
 
 c       do j=1,ndim
@@ -101,7 +101,7 @@ c         ta(i,j)=temp(i,j)
 c        enddo
 c     enddo
       
-       deallocate(temp)
+c       deallocate(temp)
       else
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      & ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,

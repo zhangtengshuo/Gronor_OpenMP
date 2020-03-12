@@ -1,4 +1,4 @@
-      subroutine gronor_timings(lfnout)
+      subroutine gronor_timings(lfnout,lfnday)
 
       use mpi
       use cidist
@@ -7,7 +7,7 @@
       implicit none
 !tps#include 'mpif.h'
 
-      integer :: lfnout,i,j,ndone,idum
+      integer :: lfnout,lfnday,i,j,ndone,idum
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total
       integer :: timer_calls
@@ -21,6 +21,7 @@
       real (kind=8),allocatable :: tdat(:,:)
       integer (kind=4) :: nindx
       logical (kind=4) :: odone
+      character (len=255) :: date,time
 
       if(itim.gt.0) then
 
@@ -245,6 +246,11 @@
      &  ' Finalize time on master',t55,f12.3,//)
        write(*,616) timer_wall_total(99)
   616  format(/,' Total execution wall clock time ',f12.3)
+       call swatch(date,time)
+       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Timings reported'
+  702  format(a8,2x,a8,f12.3,a)
+       flush(lfnday)
       endif
 
       return

@@ -84,8 +84,8 @@ c      if (jstat.ne.0)numdev=0
 !      endif
 c      cusolver_stat=cusolverDnCreate(cusolver_Hndl)
 
-      write(*,555) cusolver_status
-  555 format('cusolverdncreate ',i5)
+c      write(*,555) cusolver_status
+c  555 format('cusolverdncreate ',i5)
 #endif
 
       num_threads=1

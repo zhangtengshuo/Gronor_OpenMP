@@ -1,3 +1,5 @@
+
+
       subroutine gronor_gntwo(lfndbg)
 
       use mpi
@@ -8,7 +10,7 @@
 
 #ifdef _OPENACC
       use openacc
-c      use cuda_functions
+      use cuda_functions
 #endif
 
       implicit none
@@ -266,11 +268,9 @@ c!$acc wait
 
 #ifdef _OPENACC
       if(numdev.gt.1) then
-c       cpfre=c_loc(memfre)
-c       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-       memfre=0
-       memtot=0
+       cpfre=c_loc(memfre)
+       cptot=c_loc(memtot)
+       istat=cudaMemGetInfo(cpfre,cptot)
        memavail=min(memfre,memavail)
       endif
 #endif

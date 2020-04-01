@@ -21,9 +21,15 @@
       integer :: ibuf(4)
       real (kind=8) :: sint
       integer :: status(MPI_STATUS_SIZE)
-
+#ifdef CUSOLVER
+c      integer (c_int), target :: ndim
+#endif
       integer :: nel2
       integer :: ipopcnt
+
+#ifdef CUSOLVER
+c      if(itest.gt.0) cusolver_stat=cusolverDnDestroy(cusolver_Hndl)
+#endif
 
       flush(lfnout)
       l2=0
@@ -56,7 +62,23 @@
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 
-      allocate(ioccup(mnact,2))
+c#ifdef CUSOLVER
+c!$acc data copyin(ta) copyout(u,w,sdiag)
+c      if(itest.gt.0) then
+c       ndim=nelecs
+c       lwork_ptr=c_loc(lworkc)
+c       cusolver_stat=cusolverDnDgesvd_bufferSize(cusolver_Hndl,
+c     &  ndim,ndim,lwork_ptr)
+c       write(*,555) cusolver_stat
+c  555 format('cusolverDnDgesvd_bufferSize ',i5)
+c       allocate(work(lworkc),rwork(nelecs-1))
+c       nel2=nelecs*nelecs
+c       allocate(acu(nel2),ucu(nel2),wcu(nel2),scu(nel2))
+c       endif
+c!$acc end data
+c#endif
+
+      allocate(ioccup(mnact,2))   !  always one irrep, should be changed to a 2-dim array
       allocate(vec(mvec,mbasel,2))
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))
@@ -99,56 +121,36 @@
       jdet0=0
 
 #ifdef CUSOLVER
-      
-      if(itest.gt.0) then
-
-!$acc data copyin(w,ta,temp,ev,u) create(dev_info_d)
+!$acc data copyin(w,ta) create(dev_info_d)
 
        ndim=nelecs
        mdim=mbasel
-
-!     buffer size for cusolverDnDgesvd
-       if(itest.eq.1) then
 !$acc host_data use_device(ta)
-        cusolver_status = cusolverDnDgesvd_bufferSize
-     &   (cusolver_handle,ndim,ndim,worksize)
+       cusolver_status = cusolverDnDgesvd_bufferSize
+     &  (cusolver_handle,ndim,ndim,worksize)
 !$acc end host_data
-        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &     write(*,*) 'cusolverDnDgesvd_bufferSize failed'
-       endif
 
-!     buffer size for cusolverDnDgesvdj
-       if(itest.eq.2) then
-!$acc host_data use_device(temp,ev,u,w)
-        cusolver_status=cusolverDnDgesvdj_bufferSize(cusolver_handle,
-     &  jobz,econ,ndim,ndim,temp,ndim,ev,u,ndim,w,ndim,worksize,
-     &  gesvdj_params)
-!$acc end host_data
-        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &     write(*,*) 'cusolverDnDgesvd_bufferSize failed'
-       endif
 
-!     buffer size for cusolverDnDsyevd
-       if(itest.eq.3) then
 !$acc host_data use_device(ta,w)
-        cusolver_status = cusolverDnDsyevd_bufferSize
-     &  (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
+       cusolver_status = cusolverDnDsyevd_bufferSize
+     & (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &   CUBLAS_FILL_MODE_LOWER,
      &   ndim,ta,mdim,w,worksize2)
 !$acc end host_data
-        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
-       endif
 
-       if(itest.gt.0) then
-        worksize=max(worksize,worksize2)
-        allocate(workspace_d(worksize))
-        allocate(rwork(nelecs))
-       endif
+       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
+
+       worksize=max(worksize,worksize2)
+
+c      print*,me,' CUSOLVER BUFFERSIZE',worksize
+
+       allocate(workspace_d(worksize))
+       allocate(rwork(nelecs))
 
 !$acc end data
-      
-      endif
 #endif
 
 
@@ -295,11 +297,10 @@
       deallocate(temp)
 
 #ifdef CUSOLVER
-      if(itest.gt.0) then
-       cusolver_status = cusolverDnDestroy(cusolver_handle)
-       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &       write(*,*) 'cusolver_handle destruction failed'
-      endif
+        cusolver_status = cusolverDnDestroy(cusolver_handle)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &        write(*,*) 'cusolver_handle destruction failed'
+c      print*,me,' CUSOLVER HANDLE DESTROYED'
 #endif
 
       return

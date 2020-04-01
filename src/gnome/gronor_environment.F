@@ -3,7 +3,6 @@
  
       use mpi
       use cidist
-      use gnome_parameters
 
 #ifdef CUSOLVER
       use cusolverDn
@@ -11,7 +10,7 @@
 #endif
 #ifdef _OPENACC
       use openacc
-c      use cuda_functions
+      use cuda_functions
 #endif
 #ifdef _OPENMP
       use omp_lib
@@ -29,8 +28,7 @@ c      use cuda_functions
 
       character (len=MPI_MAX_PROCESSOR_NAME) :: nodename
       character (len=20) :: string
-      integer:: jstat,iout
-c      integer::  cudaGetDeviceCount
+      integer::  cudaGetDeviceCount,jstat,iout
 
 #ifdef _OPENACC
       type(c_ptr) :: cpfre, cptot
@@ -68,44 +66,26 @@ c      if (jstat.ne.0)numdev=0
       if(numdev.gt.1) then
        mydev=mod(me,numdev)
        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-c       cpfre=c_loc(memfre)
-c       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-       memfre=0
-       memtot=0
+       cpfre=c_loc(memfre)
+       cptot=c_loc(memtot)
+       istat=cudaMemGetInfo(cpfre,cptot)
        memavail=memfre
       endif
 #endif
 #ifdef CUSOLVER
-
-!     if itest is 0 use standard svd
-!     if itest is 1 use cusolver gesvd
-!     if itest is 2 use cusolver gesvdj
-
-      if(itest.gt.0) then
-       cusolver_status = cusolverDnCreate(cusolver_handle)
-       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+      cusolver_status = cusolverDnCreate(cusolver_handle)
+      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &   print *, 'cusolver_handle creation failed'
-      endif
 
-!     if test is 2 use cusolver gesvdj
+!      if(numdev.gt.1) then
+!       cpfre=c_loc(memfre)
+!       cptot=c_loc(memtot)
+!       istat=cudaMemGetInfo(cpfre,cptot)
+!      endif
+c      cusolver_stat=cusolverDnCreate(cusolver_Hndl)
 
-      if(itest.eq.2) then
-       cusolver_status=cudaStreamCreateWithFlags
-     &  (stream,cudaStreamNonBlocking)
-       cusolver_status=cusolverDnSetStream(cusolver_handle,stream)
-
-       tol=1.0d-07
-       max_sweeps=15
-
-       cusolver_status=cusolverDnCreateGesvdjInfo(gesvdj_params)
-       cusolver_status=cusolverDnXgesvdjSetTolerance(gesvdj_params,tol)
-       cusolver_status=cusolverDnXgesvdjSetMaxSweeps
-     &  (gesvdj_params,max_sweeps)
-
-       jobz=CUSOLVER_EIG_MODE_VECTOR
-       econ=0
-      endif
+c      write(*,555) cusolver_status
+c  555 format('cusolverdncreate ',i5)
 #endif
 
       num_threads=1

@@ -1,5 +1,3 @@
-
-
       subroutine gronor_gntwo(lfndbg)
 
       use mpi
@@ -14,7 +12,6 @@
 #endif
 
       implicit none
-!tps#include 'mpif.h'
 
       integer (kind=4) :: ierr
       integer :: lfndbg
@@ -49,7 +46,8 @@
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
-c      numint=ig(mod(me,mgr)+1)
+!      numint=ig(mod(me,mgr)+1)
+
       numint=mint2
 
       if(naccel.eq.0) then
@@ -87,8 +85,7 @@ c      numint=ig(mod(me,mgr)+1)
 
       if((iaf0.gt.0).or.(iaf1.gt.0)) then
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
-*       do i=1,nsymf
-*        do k=1,nsymf
+
        do i=1,nbas 
         do k=1,nbas
         tat(k,i)=ta(k,i)
@@ -96,8 +93,7 @@ c      numint=ig(mod(me,mgr)+1)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
-*       do i=1,nsymf
-*        do k=1,nsymf
+
        do i=1,nbas 
         do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
@@ -108,16 +104,14 @@ c      numint=ig(mod(me,mgr)+1)
 
       if((inf0.gt.0).or.(inf1.gt.0)) then
 !$acc update self(aaa,ta,tt,aat,tat)
-*       do i=1,nsymf
-*        do k=1,nsymf
+
        do i=1,nbas 
         do k=1,nbas
         tt(i,k)=ta(k,i)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
-*       do i=1,nsymf
-*        do k=1,nsymf
+
        do i=1,nbas 
         do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
@@ -325,7 +319,6 @@ c!$acc wait
 #endif
 
       implicit none
-!tps#include 'mpif.h'
 
       integer (kind=4) :: ierr
       integer :: lfndbg
@@ -346,7 +339,8 @@ c!$acc wait
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
-c      numint=ig(mod(me,mgr)+1)
+!      numint=ig(mod(me,mgr)+1)
+
       numint=mint2
 
       if(ising.gt.1) e1=0.0d0
@@ -356,16 +350,13 @@ c      numint=ig(mod(me,mgr)+1)
 
       call timer_start(30)
 
-*      do i=1,nsymf
-*       do k=1,nsymf
       do i=1,nbas 
        do k=1,nbas 
         tt(i,k)=ta(k,i)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
-*      do i=1,nsymf
-*       do k=1,nsymf
+
       do i=1,nbas 
        do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)

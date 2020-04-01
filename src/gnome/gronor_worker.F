@@ -13,25 +13,17 @@
 #endif
       implicit none
 
-!tps#include 'mpif.h'
-
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,j,l2,n,k,ict
       integer (kind=4) :: ireq,ierr
       integer :: ibuf(4)
       real (kind=8) :: sint
       integer :: status(MPI_STATUS_SIZE)
-#ifdef CUSOLVER
-c      integer (c_int), target :: ndim
-#endif
       integer :: nel2
       integer :: ipopcnt
 
-#ifdef CUSOLVER
-c      if(itest.gt.0) cusolver_stat=cusolverDnDestroy(cusolver_Hndl)
-#endif
-
       flush(lfnout)
+
       l2=0
       mnact=0
       mvec=0
@@ -62,23 +54,7 @@ c      if(itest.gt.0) cusolver_stat=cusolverDnDestroy(cusolver_Hndl)
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 
-c#ifdef CUSOLVER
-c!$acc data copyin(ta) copyout(u,w,sdiag)
-c      if(itest.gt.0) then
-c       ndim=nelecs
-c       lwork_ptr=c_loc(lworkc)
-c       cusolver_stat=cusolverDnDgesvd_bufferSize(cusolver_Hndl,
-c     &  ndim,ndim,lwork_ptr)
-c       write(*,555) cusolver_stat
-c  555 format('cusolverDnDgesvd_bufferSize ',i5)
-c       allocate(work(lworkc),rwork(nelecs-1))
-c       nel2=nelecs*nelecs
-c       allocate(acu(nel2),ucu(nel2),wcu(nel2),scu(nel2))
-c       endif
-c!$acc end data
-c#endif
-
-      allocate(ioccup(mnact,2))   !  always one irrep, should be changed to a 2-dim array
+      allocate(ioccup(mnact,2))
       allocate(vec(mvec,mbasel,2))
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))
@@ -153,8 +129,6 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
 !$acc end data
 #endif
 
-
-      
       do i=1,6
        buffer(i)=0.0d0
       enddo
@@ -191,7 +165,6 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
       endif
 
       ibase=-1
-
 
       do while(ibase.ne.0)
 
@@ -300,7 +273,6 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
         cusolver_status = cusolverDnDestroy(cusolver_handle)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &        write(*,*) 'cusolver_handle destruction failed'
-c      print*,me,' CUSOLVER HANDLE DESTROYED'
 #endif
 
       return

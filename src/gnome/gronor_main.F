@@ -29,11 +29,9 @@
       use gnome_integrals
 
       implicit none
-!tps#include 'mpif.h'
+
       integer (kind=4) :: ierr
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac
-Coen Oct17_19: idum is used for two different purposes (ugly),
-C              let's avoid that
       integer,allocatable :: iocc_tmp(:)
       integer :: maxci, maxvec, maxnact
       integer :: mactb, maxcib, mdum, node
@@ -230,6 +228,7 @@ C              let's avoid that
        naccel=-1
        nummps=1
        numomp=1
+       ixpert=0
 #ifdef _OPENACC
        naccel=0
 #endif
@@ -301,6 +300,11 @@ C              let's avoid that
        if(inp_compare(.false.,'Threshold',item)) then
         if(.not.inp_f(thresh)) call errquit()
         thresh_CI=thresh
+        goto 2
+       endif
+
+       if(inp_compare(.false.,'Expert',item)) then
+        if(.not.inp_i(ixpert)) ixpert=1
         goto 2
        endif
 
@@ -404,16 +408,26 @@ C              let's avoid that
        goto 1
        endif
 
+       
        if(mgr.eq.0) then
         if(npg.eq.0) call errquit()
         mgr=(np-1)/npg
        endif
 
+!     Unless the user is an expert let's check thresholds
+       
+       if(ixpert.eq.0) then
+         thresh=min(thresh,1.0d-05)
+         thresh_CI=min(thresh_CI,1.0d-05)
+       endif
+
        call gronor_number_integrals(numone,numtwo)
-Coen: Warning, numone and numtwo are read from a dummy entry. The real
-C     number of two electron integrals is on the next record of the 1-el
-C     integral file. Now, they always take the values 8421 and -1. 
-C     When npg = 0, something very strange will come out (I guess).
+
+!     Coen: Warning, numone and numtwo are read from a dummy entry. The real
+!           number of two electron integrals is on the next record of the 1-el
+!           integral file. Now, they always take the values 8421 and -1. 
+!           When npg = 0, something very strange will come out (I guess).
+       
        if(npg.eq.0) then
         npg=numtwo/intsrnk
         if(mod(numtwo,intsrnk).gt.0) npg=npg+1
@@ -425,7 +439,7 @@ C     When npg = 0, something very strange will come out (I guess).
        else
         if(npg*mgr+1.gt.np) then
          write(lfnout,983)
- 983     format(' Requested number of ranks exceeds available')
+  983    format(' Requested number of ranks exceeds available')
          call errquit()
         endif
        endif
@@ -524,9 +538,10 @@ C     When npg = 0, something very strange will come out (I guess).
        if(ipr.ge.2) write(lfnout,607)
  607   format(//,'  istate   idetm           ci coefficient')
 
-Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
-C              something completely different.
-      allocate( iocc_tmp(maxnact) )
+!      Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
+!                     something completely different.
+
+       allocate( iocc_tmp(maxnact) )
       do i=1,mstates
        iocc_tmp = 0
        write(filciv,200) root(1:inp_strlen(root)),i
@@ -593,10 +608,11 @@ C              something completely different.
       if(ipr.ge.3) write(lfnout,610) filsym(1:inp_strlen(filsym))
  610  format(/,' System information read from ',a,/)
 
-Coen: remove SYMOL from the list of QC programs
-C         if (nqcp.eq.1) then
-C      call gronor_gnome_symmetry_input(lfnsym,lfnout,ipr)
-C      elseif (nqcp.eq.2) then
+!      Coen: remove SYMOL from the list of QC programs
+!            if (nqcp.eq.1) then
+!            call gronor_gnome_symmetry_input(lfnsym,lfnout,ipr)
+!            elseif (nqcp.eq.2) then
+
       if ( nqcp .eq. 2 ) then
         call gronor_gnome_symmetry_input_gamess(lfnsym,lfnout,ipr)
       elseif (nqcp.eq.3) then
@@ -1018,7 +1034,7 @@ C      elseif (nqcp.eq.2) then
       endif
        
       allocate(hbase(nbase,nbase),sbase(nbase,nbase))
-      allocate(nsing(nbase,nbase,4))
+      allocate(nsing(nbase,nbase,5))
 
 !     Define the process groups
 

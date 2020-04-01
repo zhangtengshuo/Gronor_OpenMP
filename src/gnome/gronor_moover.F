@@ -1,4 +1,3 @@
-
       subroutine gronor_moover(lfndbg)
 
       use mpi
@@ -6,8 +5,9 @@
       use gnome_integrals
       use gnome_parameters
       use gnome_data
+
       implicit none
-!tps#include 'mpif.h'
+
       integer (kind=4) :: ierr
       integer :: lfndbg
       integer :: i, nopala, nopalb, nalfab, i1, i2

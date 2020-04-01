@@ -1,4 +1,3 @@
-
       subroutine gronor_environment()
  
       use mpi
@@ -17,7 +16,6 @@
 #endif
 
       implicit none
-!tps#include 'mpif.h'
 
       integer :: i,j,node
       integer (kind=4) :: len, ierr
@@ -59,10 +57,6 @@
       memtot=0
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-!$OMP PARALLEL
-c      jstat = cudaGetDeviceCount(numdev)
-!$OMP END PARALLEL
-c      if (jstat.ne.0)numdev=0
       if(numdev.gt.1) then
        mydev=mod(me,numdev)
        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
@@ -82,10 +76,7 @@ c      if (jstat.ne.0)numdev=0
 !       cptot=c_loc(memtot)
 !       istat=cudaMemGetInfo(cpfre,cptot)
 !      endif
-c      cusolver_stat=cusolverDnCreate(cusolver_Hndl)
 
-c      write(*,555) cusolver_status
-c  555 format('cusolverdncreate ',i5)
 #endif
 
       num_threads=1

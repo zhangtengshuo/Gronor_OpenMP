@@ -1,4 +1,3 @@
-
       subroutine gronor_calculate(ib,jb,id1,id2,lbuf)
 
       use mpi
@@ -12,8 +11,6 @@
 #endif
 
       implicit none
-
-!tps#include 'mpif.h'
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
@@ -58,7 +55,7 @@
        ijend=l2
       endif
 
-      do i=1,6
+      do i=1,7
        buffer(i)=0.0d0
       enddo
       e2summ=0.0d0
@@ -85,8 +82,9 @@
        j=iloop(ij,2)
        hh=0.0d0
        ss=0.0d0
+       
        if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
-          ising=3
+          ising=4
           goto 105
        endif
 

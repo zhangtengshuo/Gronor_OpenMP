@@ -84,7 +84,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: iload,ibatch,itest,naccel,nacc0,nacc1,inpcib,intfil
-      integer :: iday,idipole,itp4,ione,intadd,nummps,numomp
+      integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
@@ -162,7 +162,7 @@
       real (kind=8), allocatable :: work(:)
       integer (kind=8) :: lwrk, lwork, info
 
-      real (kind=8) :: buffer(6)
+      real (kind=8) :: buffer(7)
 
       end module gnome_data
 
@@ -238,119 +238,4 @@
        integer (kind=4) :: dev_info_d
 
        end module cuda_cusolver
-#endif
-
-      
-#ifdef CUSOLVEROLD
-      module cuda_cusolver
-
-      use iso_c_binding
-
-      integer :: cusolver_stat
-      integer, target :: lworkc
-      integer (c_int), target :: devinfo
-      type(c_ptr) :: cusolver_Hndl, lwork_ptr
-      real (kind=8), allocatable :: work(:), rwork(:)
-      real (kind=8), allocatable, target :: acu(:),ucu(:),wcu(:),scu(:)
-
-      type(c_ptr) :: d_A, d_U, d_W, d_S, d_WK, d_RW
-      type(c_ptr) :: c_A, c_U, c_W, c_S, d_devinfo
-
-      interface
-
-       integer(c_int) function cusolverDnCreate(cusolver_Hndl)
-     &                 bind(C,name="cusolverDnCreate")
-        use iso_c_binding
-        implicit none
-        type(c_ptr)::cusolver_Hndl
-       end function cusolverDnCreate
-
-       integer(c_int) function cusolverDnDestroy(cusolver_Hndl)
-     &                 bind(C,name="cusolverDnDestroy")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-       end function
-
-       integer(c_int) function cusolverDnDgesvd_bufferSize
-     &                 (cusolver_Hndl,m,n,Lwork)
-     &                 bind(C,name="cusolverDnDgesvd_bufferSize")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-        integer(c_int),value::m
-        integer(c_int),value::n
-        type(c_ptr),value::Lwork
-       end function
-
-       integer(c_int) function cusolverDnSgetrf_bufferSize
-     &                 (cusolver_Hndl,m,n,d_A,lda,Lwork)
-     &                 bind(C,name="cusolverDnSgetrf_bufferSize")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-        integer(c_int),value::m
-        integer(c_int),value::n
-        type(c_ptr),value::d_A
-        integer(c_int),value::lda
-        type(c_ptr),value::Lwork
-       end function
-
-       integer(c_int) function cusolverDnSgetrf
-     &                 (cusolver_Hndl,m,n,d_A,lda,d_WS,d_Ipiv,d_devInfo)
-     &                 bind(C, name="cusolverDnSgetrf")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-        integer(c_int),value::m
-        integer(c_int),value::n
-        type(c_ptr),value::d_A
-        integer(c_int),value::lda
-        type(c_ptr),value::d_WS
-        type(c_ptr),value::d_Ipiv
-        type(c_ptr),value::d_devInfo
-       end function cusolverDnSgetrf
-
-       integer (c_int) function cusolverDnSgetrs
-     &    (cusolver_Hndl,trans,n,nrhs,d_A,lda,d_Ipiv,d_B,ldb,d_devInfo)
-     &                  bind(C, name="cusolverDnSgetrs")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-        integer(c_int), value::trans
-        integer(c_int), value::n
-        integer(c_int), value::nrhs
-        type(c_ptr),value::d_A
-        integer(c_int), value::lda
-        type(c_ptr),value::d_Ipiv
-        type(c_ptr),value::d_B
-        integer(c_int),value::ldb
-        type(c_ptr),value::d_devInfo
-       end function
-
-       integer (c_int) function cusolverDnDgesvd
-     &    (cusolver_Hndl,jobu,jobvt,m,n,d_A,lda_A,d_S,d_U,lda_U,
-     &                d_VT,lda_VT,d_work,lworkc,d_rwork,d_devInfo)
-     &                  bind(C, name="cusolverDnDgesvd")
-        use iso_c_binding
-        implicit none
-        type(c_ptr),value::cusolver_Hndl
-        integer(c_int), value:: jobu, jobvt
-        integer(c_int), value:: m, n
-        type(c_ptr),value::d_A
-        integer(c_int), value::lda_A
-        type(c_ptr),value::d_S
-        type(c_ptr),value::d_U
-        integer(c_int), value::lda_U
-        type(c_ptr),value::d_VT
-        integer(c_int), value::lda_VT
-        type(c_ptr),value::d_work
-        integer(c_int), value::lworkc
-        type(c_ptr),value::d_rwork
-        type(c_ptr),value::d_devInfo
-       end function cusolverDnDgesvd
-
-      end interface
-
-      end module cuda_cusolver
 #endif

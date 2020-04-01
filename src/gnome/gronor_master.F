@@ -8,8 +8,6 @@
 
       implicit none
 
-!tps#include 'mpif.h'
-
       integer :: ibase,jbase,nidet,njdet,mdet
       integer :: l2,i,j,k,ij,n,ndone,nleft,nrb
       real (kind=8) :: pnrb
@@ -19,7 +17,7 @@
 
       real (kind=8) :: fac,fday
 
-      integer :: ibuf(4),nsingt(4)
+      integer :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
@@ -36,7 +34,7 @@
 !     for contributions to Hamiltonian matrix element H(i,j)
 !     nsingt(k) sums the singularities over the entire Hamiltonain matrix
       
-      do i=1,4
+      do i=1,5
        nsingt(i)=0
       enddo
 
@@ -60,7 +58,7 @@
        enddo
        do jbase=1,nbase
         ntasks(ibase,jbase)=-1
-        do i=1,4
+        do i=1,5
          nsing(ibase,jbase,i)=0
         enddo
        enddo
@@ -135,7 +133,7 @@
         do while(ndone.lt.ijend)
 
          call timer_start(94)
-         call MPI_Recv(buffer,6,MPI_REAL8,MPI_ANY_SOURCE,1,
+         call MPI_Recv(buffer,7,MPI_REAL8,MPI_ANY_SOURCE,1,
      &   MPI_COMM_WORLD,status,ierr)
          call timer_stop(94)
          call timer_start(95)
@@ -169,7 +167,7 @@
      &         iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &         lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,pnrb,buffer
  680       format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
-     &         3i6,i12,f8.3,'% ',6f12.6)
+     &         3i6,i12,f8.3,'% ',7f12.6)
            flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
            call swatch(date,time)
@@ -210,6 +208,8 @@
      &    nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
           nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
      &    nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
+          nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
+     &    nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(7))
 
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &     ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
@@ -237,12 +237,14 @@
      &    ' Number of left side determinants',t50,i16,/,
      &    ' Number of right side determinants',t50,i16,/,
      &    ' Number of determinant pairs',t50,i16)
-         write(lfnout,619) (nsing(i,j,k),k=1,4)
+         write(lfnout,619) (nsing(i,j,k),k=1,5)
  619     format(
      &  ' Number of matrix elements with 0 singularities',t50,i16,/,
      &  31x,' 1  singularity',t50,i16,/
      &  31x,' 2  singularities',t50,i16,/
-     &  31x,' 3+ singularities',t50,i16)
+     &  31x,' 3+ singularities',t50,i16,/
+     &  31x,' below threshold',t50,i16,/)
+         
          write(lfnout,620) hbase(i,j),sbase(i,j)
  620     format(' Un-normalized Hamiltonian matrix element',
      &     t57,f20.10,/, 
@@ -307,7 +309,7 @@
       call timer_start(97)
       do while(nleft.gt.0)
        call timer_start(96)
-       call MPI_Recv(buffer,6,MPI_REAL8,MPI_ANY_SOURCE,1,
+       call MPI_Recv(buffer,7,MPI_REAL8,MPI_ANY_SOURCE,1,
      & MPI_COMM_WORLD,status,ierr)
        call timer_stop(96)
 
@@ -374,6 +376,8 @@
      &  nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
         nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
      &  nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
+        nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
+     &  nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(7))
 
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &       ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
@@ -392,7 +396,7 @@
           ltemp=idetb(i)*idetb(j)
           write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
          endif
-         write(lfnout,619) (nsing(i,j,k),k=1,4)
+         write(lfnout,619) (nsing(i,j,k),k=1,5)
          write(lfnout,620) hbase(i,j),sbase(i,j)
          flush(lfnout)
              endif
@@ -517,7 +521,7 @@
 
       do i=1,nbase
        do j=1,nbase
-        do k=1,4
+        do k=1,5
          nsingt(k)=nsingt(k)+nsing(i,j,k)
         enddo
        enddo
@@ -525,7 +529,8 @@
       write(lfnout,674) nsingt
  674  format(/,' Total number of matrix elements with 0  singularities',
      & t56,i16,/,t39,'1  singularity',t56,i16,/,t39,'2  singularities',
-     & t56,i16,/,t39,'3+ singularities',t56,i16)
+     & t56,i16,/,t39,'3+ singularities',t56,i16,/,t39,'below threshold',
+     & t56,i16)
 
       write(lfnout,675) nalive*mgr+1,np
  675  format(/,' At the end of the run',i5,' of ',i5,

@@ -1,4 +1,3 @@
-
       subroutine gronor_gnone(lfndbg)
       use cidist
       use gnome_parameters
@@ -13,8 +12,8 @@
 
       integer (kind=8), allocatable :: nnn(:)
 
-      nb = nbas   ! this is actually not needed anymore, all 'nb' can be replaced with nbas
-*      nb=nbsym(1)
+      nb = nbas   ! All 'nb' can be replaced with nbas
+
       nn=0
       tsum=0.0d0
       vsum=0.0d0
@@ -101,7 +100,7 @@
       integer (kind=8), allocatable :: nnn(:)
 
       nb = nbas
-*      nb=nbsym(1)
+
       nn=0
       tsum=0.0d0
       vsum=0.0d0

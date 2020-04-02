@@ -1255,12 +1255,14 @@ ccccc!$acc data copyin(g(1:mint2),lab(1:4,1:mint2),t,v,ndxtv)
       call timer_stop(4)
       call timer_stop(1)
 
+      if(me.eq.master) then
        call timer_stop(99)
        call swatch(date,time)
        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  End of Hamiltonian calculation'
        flush(lfnday)
        call timer_start(99)
+      endif
        
       call gronor_timings(lfnout,lfnday)
        

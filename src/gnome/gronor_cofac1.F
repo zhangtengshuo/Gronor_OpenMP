@@ -30,14 +30,18 @@
        ndim=nelecs
        mdim=mbasel
 
+
+!$acc data copy(ta) copyout(ev,u,w) copy(dev_info_d)
+!$acc& create(temp,workspace_d,rwork)
+
+!$acc kernels present(temp,ta)
        do j=1,ndim
         do i=1,ndim
          temp(i,j)=ta(i,j)
         enddo
        enddo
-
-!$acc data copyin(temp) copy(ev,u,w,dev_info_d)
-!$acc& create(workspace_d,rwork)
+!$acc end kernels
+       
 !$acc host_data use_device(temp,ev,u,w,dev_info_d,workspace_d,rwork)
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
      &  ndim,ndim,temp,ndim,ev,u,ndim,w,ndim,workspace_d,
@@ -48,9 +52,9 @@
        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &   write(*,*) 'cusolverDnDgesvd failed',cusolver_status
 
-!$acc update self(u,w,ev,dev_info_d)
-!$acc end data
-
+      call timer_start(42)
+      
+!$acc kernels present(temp,w)
        do i=1,nelecs
         do j=1,nelecs
          temp(i,j)=w(j,i)
@@ -61,6 +65,25 @@
          w(i,j)=temp(i,j)
         enddo
        enddo
+!$acc end kernels
+     
+!$acc kernels present(u,w,ta)
+      do i=1,nelecs
+!$acc loop vector
+       do j=1,i
+        coef=0.0d0
+!$acc loop seq
+        do k=1,nelecs
+         coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+        enddo
+        ta(i,j)=coef
+       enddo
+      enddo
+!$acc end kernels
+
+      call timer_stop(42)
+      
+!$acc end data
       
       elseif(itest.eq.2.or.itest.eq.4) then
 
@@ -71,13 +94,41 @@
        call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &  ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &  ierr,sdiag,nelecs)
-      endif
+      
+       call timer_start(42)
+       
+       do i=1,nelecs
+        do j=1,i
+         coef=0.0d0
+         do k=1,nelecs
+          coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+         enddo
+         ta(i,j)=coef
+        enddo
+       enddo
 
+       call timer_stop(42)
+       
+      endif
 #else
       
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      & ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      & ierr,sdiag,nelecs)
+      
+      call timer_start(42)
+      
+      do i=1,nelecs
+       do j=1,i
+        coef=0.0d0
+        do k=1,nelecs
+         coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+        enddo
+        ta(i,j)=coef
+       enddo
+      enddo
+      
+      call timer_stop(42)
 
 #endif
 
@@ -90,22 +141,8 @@
 !     Calculation of det(uw) , by determination of the number
 !     of eigenvalues -2 of " a=uw+tranposed(uw) "
 
-      call timer_start(42)
       idetuw=1
-c!$acc kernels copyin(u,w) copyout(ta)
-      do i=1,nelecs
-c!$acc loop vector
-       do j=1,i
-        coef=0.0d0
-c!$acc loop seq
-        do k=1,nelecs
-         coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
-        enddo
-        ta(i,j)=coef
-       enddo
-      enddo
-c!$acc end kernels
-      call timer_stop(42)
+      
 
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,

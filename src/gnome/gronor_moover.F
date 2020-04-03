@@ -36,8 +36,9 @@
  602  format('  itypen icentn jtype jcent   icount      indbas     '
      &        ,' indbas         overlap',//)
 
-cc!$acc data copyin(s,va,vb) copyout(ta,tb,tat)
-cc!$acc kernels
+!$acc data copyin(s,va,vb) copyout(ta,tb)
+
+!$acc kernels present(ta,tb,s,vb)
 
       do iv=1,nvecb
        do ib=1,nbas
@@ -45,13 +46,15 @@ cc!$acc kernels
        enddo
       enddo
 
-      do kb=1,nbas
        do iv=1,nvecb
         do ib=1,nbas
-         tb(ib,iv)=tb(ib,iv)+s(ib,kb)*vb(iv,kb)
+         sum=0.0d0
+         do kb=1,nbas
+           sum=sum+s(ib,kb)*vb(iv,kb)
+         enddo
+         tb(ib,iv)=tb(ib,iv)+sum
         enddo
        enddo
-      enddo
 
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
@@ -61,7 +64,13 @@ cc!$acc kernels
         ta(ie,le)=0.0d0
        enddo
       enddo
+
+!$acc end kernels
+
       if(nalfa.ne.0) then
+        
+!$acc kernels present(va,tb)
+        
        do ke=1,nalfa
         do ie=1,nalfa
          sum=0.0d0
@@ -71,67 +80,94 @@ cc!$acc kernels
          ta(ie,ke)=sum
         enddo
        enddo
-      endif
 
+!$acc end kernels
+
+      endif
+      
+      
 !     generate overlapmatrix-elements for beta spin in closed-shell m.o.
 
       if(ntcla.ne.0 .and. ntclb.ne.0) then
-       do i=1,ntcla
-        ii=i+nalfa
+       
+!$acc parallel loop present(ta)
+        do i=1,ntcla
+          ii=i+nalfa
+!$acc loop vector    
         do k=1,ntclb
          kk=k+nalfa
          ta(ii,kk)=ta(i,k)
         enddo
        enddo
+      
       endif
 
+      
       m1=nalfa+1
 
 !     calculation for beta spin in open-shell-m.o.'s
 
       if(nveca.ne.nalfa) then
-       k1=0
-       do k=1,nvecb
-        if(k.le.ntclb .or. k.gt.nalfa) then
-         k1=k1+1
-         kk=k1+nalfa
-         do i=m1,nveca
-          sum=0.0d0
-          do l=1,nbas
-           sum=sum+va(i,l)*tb(l,k)
+
+        if(ntclb.gt.0) then
+!$acc kernels present(va,ta,tb)
+          do k=1,ntclb
+            kk=k+nalfa
+            do i=m1,nveca
+              sum=0.0d0
+              do l=1,nbas
+                sum=sum+va(i,l)*tb(l,k)
+              enddo
+              ta(i+ntcla,kk)=sum
+            enddo
           enddo
-          ii=i+ntcla
-          ta(ii,kk)=sum
-         enddo
+!$acc end kernels
         endif
-       enddo
+
+        if(nvecb.gt.nalfa) then
+!$acc kernels present(va,ta,tb)
+          do k=nalfa+1,nvecb
+            kk=k+ntclb
+            do i=m1,nveca
+              sum=0.0d0
+              do l=1,nbas
+                sum=sum+va(i,l)*tb(l,k)
+              enddo
+              ta(i+ntcla,kk)=sum
+            enddo
+          enddo
+!$acc end kernels
+        endif
+
       endif
 
+      
       if(nvecb.ne.nalfa .and. ntcla.ne.0) then
+!$acc kernels present(va,ta,tb)
        do i=1,ntcla
-        ii=i+nalfa
         do k=m1,nvecb
          sum=0.0d0
          do l=1,nbas
           sum=sum+va(i,l)*tb(l,k)
          enddo
-         kk=k+ntclb
-         ta(ii,kk)=sum
+         ta(i+nalfa,k+ntclb)=sum
         enddo
        enddo
+!$acc end kernels
       endif
 
 !     There are problems with svd if many off diagonal elements occur
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
 
+!$acc kernels present(ta)
       do i1=1,nelecs
        do i2=1,nelecs
         if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
        enddo
       enddo
+!$acc end kernels
 
-cc!$acc end kernels
-cc!$acc end data
-
+!$acc end data
+      
       return
       end

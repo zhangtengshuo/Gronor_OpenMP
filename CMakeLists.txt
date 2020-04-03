@@ -561,6 +561,10 @@ endif ()
 
 if(ACC)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
+      endif()
+      
+if(OMP)
+        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
 endif()
       
 if(CUSOLVER)

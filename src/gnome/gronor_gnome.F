@@ -198,14 +198,14 @@
 !     Calculations of the overlap matrices
 
         call timer_start(14)
-        call gronor_moover(lfndbg)
+        call gronor_moover_omp(lfndbg)
         call timer_stop(14)
 
 !     Calculation of the cofactor matrices and arrays corresponding
 !     to the total overlap
 
         call timer_start(15)
-        call gronor_cofac1(lfndbg)
+        call gronor_cofac1_omp(lfndbg)
         call timer_stop(15)
         
         if(idbg.ge.12) then

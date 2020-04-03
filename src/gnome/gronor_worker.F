@@ -96,6 +96,7 @@
       idet0=0
       jdet0=0
 
+      if(iamacc.ne.0) then
 #ifdef CUSOLVER
 !$acc data copyin(w,ta) create(dev_info_d)
 
@@ -128,6 +129,7 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
 
 !$acc end data
 #endif
+       endif
 
       do i=1,7
        buffer(i)=0.0d0
@@ -269,11 +271,13 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
       deallocate(s,st)
       deallocate(temp)
 
+      if(iamacc.gt.0) then
 #ifdef CUSOLVER
         cusolver_status = cusolverDnDestroy(cusolver_handle)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &        write(*,*) 'cusolver_handle destruction failed'
 #endif
-
+      endif
+      
       return
       end

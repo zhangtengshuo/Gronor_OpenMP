@@ -3,10 +3,6 @@
       use mpi
       use cidist
 
-#ifdef CUSOLVER
-      use cusolverDn
-      use cuda_cusolver
-#endif
 #ifdef _OPENACC
       use openacc
       use cuda_functions
@@ -27,10 +23,6 @@
       character (len=MPI_MAX_PROCESSOR_NAME) :: nodename
       character (len=20) :: string
       integer::  cudaGetDeviceCount,jstat,iout
-
-#ifdef _OPENACC
-      type(c_ptr) :: cpfre, cptot
-#endif
 
 !     me          : MPI global rank id
 !     np          : number of MPI ranks
@@ -55,28 +47,17 @@
 
       memfre=0
       memtot=0
+      
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-      if(numdev.gt.1) then
-       mydev=mod(me,numdev)
-       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-       cpfre=c_loc(memfre)
-       cptot=c_loc(memtot)
-       istat=cudaMemGetInfo(cpfre,cptot)
-       memavail=memfre
-      endif
-#endif
-#ifdef CUSOLVER
-      cusolver_status = cusolverDnCreate(cusolver_handle)
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *, 'cusolver_handle creation failed'
-
-!      if(numdev.gt.1) then
-!       cpfre=c_loc(memfre)
-!       cptot=c_loc(memtot)
-!       istat=cudaMemGetInfo(cpfre,cptot)
-!      endif
-
+c      if(numdev.gt.1) then
+c       mydev=mod(me,numdev)
+c       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+c       cpfre=c_loc(memfre)
+c       cptot=c_loc(memtot)
+c       istat=cudaMemGetInfo(cpfre,cptot)
+c       memavail=memfre
+c      endif
 #endif
 
       num_threads=1

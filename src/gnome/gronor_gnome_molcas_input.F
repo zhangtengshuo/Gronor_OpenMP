@@ -8,9 +8,12 @@
       integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO
 
-      read(lfnsym,*) text                                               ! first line of $Project.sym is a dummy
+      read(lfnsym,*) text
+!     first line of $Project.sym is a dummy
       read(lfnsym,'(a72)') name(1)
       read(lfnsym,'(a72)') name(2)
+      write(lfnout,*) ' '
+      write(lfnout,*) ' '
       write(lfnout,*) ' OpenMolcas header from Seward (integral module)'
       write(lfnout,*) name(1)
       write(lfnout,*) name(2)

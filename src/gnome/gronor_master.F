@@ -247,8 +247,8 @@
          
          write(lfnout,620) hbase(i,j),sbase(i,j)
  620     format(' Un-normalized Hamiltonian matrix element',
-     &     t57,f20.10,/, 
-     &     ' Overlap matrix element',t57,f20.10)
+     &     t47,f30.10,/, 
+     &     ' Overlap matrix element',t47,f30.10)
          flush(lfnout)
         endif
         write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),

@@ -210,7 +210,7 @@
      &  ' CPU count',t50,i10,/,
      &  ' Number of NVIDIA devices',t50,i10,/,
      &  ' Number of MPI ranks',t50,i10,/,
-     &  ' Number of OPENMP threads',t50,i10,/)
+     &  ' Number of OPENMP threads (OMP_NUM_THREADS)',t50,i10,/)
  602   format(' Available memory on device',t40,i20,/,
      & ' Total memory on device',t40,i20,/)
 
@@ -594,7 +594,7 @@
              write(lfnout,608) i,nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
  608         format(/,2i8,f25.14,6x,20(i2.2,1x))
            else
-             if(ipr.ge.2)
+             if(ipr.ge.3)
      &        write(lfnout,609) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
  609         format(8x,i8,f25.14,6x,20(i2.2,1x))
            endif

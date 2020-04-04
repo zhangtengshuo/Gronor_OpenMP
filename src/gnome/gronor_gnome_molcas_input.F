@@ -17,6 +17,7 @@
       write(lfnout,*) ' OpenMolcas header from Seward (integral module)'
       write(lfnout,*) name(1)
       write(lfnout,*) name(2)
+      write(lfnout,*) ' '
       flush(lfnout) 
       read(lfnsym,'(a17,i4)') text,nNucl
 
@@ -32,6 +33,7 @@
       write(lfnout,'(6x,A,10x,2A,5x,A)')
      & 'Atom','x             y             z',
      &         '          Znuc',lAO
+      write(lfnout,*) ' '
       do iAtom = 1, nNucl
         read(lfnsym,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),

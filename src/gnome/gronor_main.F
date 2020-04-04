@@ -39,7 +39,7 @@
       
       implicit none
 
-      integer (kind=4) :: ierr,istat
+      integer (kind=4) :: ierror,ierr,istat
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac
       integer,allocatable :: iocc_tmp(:)
       integer :: maxci, maxvec, maxnact
@@ -237,6 +237,8 @@
        iload=1
        ibatch=1
        itest=0
+       ifault=1
+       isolver=1
        intadd=0
        naccel=-1
        nummps=1
@@ -353,6 +355,16 @@
        
        if(inp_compare(.false.,'Timings',item)) then
          if(.not.inp_i(itim)) itim=1
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Fault',item)) then
+         if(.not.inp_i(ifault)) ifault=1
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Solver',item)) then
+         if(.not.inp_i(isolver)) isolver=1
          goto 2
        endif
        
@@ -479,10 +491,19 @@
       
       close(unit=lfninp)
       
-      if(iload.eq.0) write(lfnout,622)
- 622  format(' No load balancing',/)
-      if(iload.eq.1) write(lfnout,619) ibatch
- 619  format(' Task-based load balancing, batch size',t50,i10,/)
+      write(lfnout,622) isolver
+ 622  format(' Solver option',t50,i10)
+      if(ifault.eq.0) then
+        write(lfnout,627)
+ 627    format(' No fault tolerance')
+      else
+        write(lfnout,625) ifault
+ 625    format(' Fault tolerance wait time',t50,i10,' sec')
+      endif
+      write(lfnout,626) itest
+ 626  format(' Test option',t50,i10)
+      write(lfnout,619) ibatch
+ 619  format(' Task-based load balancing with batch size',t50,i10,/)
       write(lfnout,623) thresh_CI, thresh_SIN
  623  format(' Threshold for CI coefficients',t50,1pe12.3,/,
      &     ' Threshold for ISING',t50,1pe12.3,/)
@@ -548,7 +569,7 @@
  617     format(' Molecule',i4,' : ',20i4)
        enddo
        
-       if(ipr.ge.2) write(lfnout,607)
+       if(ipr.ge.3) write(lfnout,607)
  607   format(//,'  istate   idetm           ci coefficient')
        
 !     Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
@@ -684,14 +705,16 @@
           idum(33)=nummps
           idum(34)=numomp
           idum(35)=itim
-          idum(36)=0
+          idum(36)=isolver
+          idum(37)=ifault
+          idum(38)=0
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
         endif
         
-        call MPI_Bcast(idum,36,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,38,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,3,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -729,6 +752,8 @@
         nummps =idum(33)
         numomp =idum(34)
         itim   =idum(35)
+        isolver=idum(36)
+        ifault =idum(37)
         
         thresh=rdum(1)
         thresh_CI=rdum(2)
@@ -1335,6 +1360,12 @@
 !       close(unit=lfnpro,status='delete')
       endif
 
+      if(ifault.eq.0) then
+        call mpi_finalize(ierr)
+      else
+        if(me.eq.master) call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+      endif
+      
       return
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
       call errquit()

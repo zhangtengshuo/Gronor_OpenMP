@@ -25,7 +25,7 @@
       
 #ifdef CUSOLVER
 
-      if(itest.eq.1.or.itest.eq.3) then
+      if(isolver.eq.1) then
 
        jobu = 'A'  ! all m columns of U
        jobvt= 'A'  ! all m columns of VT
@@ -82,7 +82,7 @@
 
       call timer_stop(42)
       
-      elseif(itest.eq.2.or.itest.eq.4) then
+      elseif(isolver.eq.2) then
 
 !     here the Jacobi svd from cusolver should be implemented
         

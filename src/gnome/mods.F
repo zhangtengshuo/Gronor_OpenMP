@@ -83,7 +83,8 @@
       implicit none
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
-      integer :: iload,ibatch,itest,naccel,nacc0,nacc1,inpcib,intfil
+      integer :: iload,ibatch,itest,ifault,isolver
+      integer :: naccel,nacc0,nacc1,inpcib,intfil
       integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0

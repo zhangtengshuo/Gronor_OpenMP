@@ -507,6 +507,10 @@
       write(lfnout,623) thresh_CI, thresh_SIN
  623  format(' Threshold for CI coefficients',t50,1pe12.3,/,
      &     ' Threshold for ISING',t50,1pe12.3,/)
+      write(lfnout,636) numomp
+ 636  format(' Number of OpenMP threads per MPI (OMP)',t50,i10,/)
+      write(lfnout,637) nummps
+ 637  format(' Over-subscription of accelerators (MPS)',t50,i10,/)
       write(lfnout,620) mgr
  620  format(' Integrals divided over tasks number of ranks',t50,i10,/)
       

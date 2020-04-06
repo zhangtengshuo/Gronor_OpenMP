@@ -87,8 +87,8 @@ c      endif
        node=-1
       else
        string='                    '
-       if(i.le.20) then
-        string(21-i:20)=nodename(1:i)
+       if(j.le.20) then
+        string(21-j:20)=nodename(1:j)
        else
         string(1:20)=nodename(1:20)
        endif

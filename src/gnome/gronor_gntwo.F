@@ -325,7 +325,7 @@ c!$acc wait
 
       integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,int
+      integer :: nmax,kbloc,noff,intg
 
       real(kind=8) :: e2n,tsn,gtemp
       real (kind=8) :: tcalc, twait
@@ -373,13 +373,13 @@ c!$acc wait
 
 !$OMP PARALLEL DO REDUCTION(+:ts)
 !$OMP& SHARED(sm,aat,aaa,tt,ta,g,lab,numint)
-!$OMP& PRIVATE(int,i,k,l,n)
-       do int=1,numint
-        i=lab(1,int)
-        k=lab(2,int)
-        l=lab(3,int)
-        n=lab(4,int)
-        ts=ts+g(int)*(sm(k,i)*sm(n,l)
+!$OMP& PRIVATE(intg,i,k,l,n)
+       do intg=1,numint
+        i=lab(1,intg)
+        k=lab(2,intg)
+        l=lab(3,intg)
+        n=lab(4,intg)
+        ts=ts+g(intg)*(sm(k,i)*sm(n,l)
      &       -aat(n,i)*aaa(l,k)-tt(n,i)*ta(l,k)
      &       -aaa(n,i)*aat(l,k)-ta(n,i)*tt(l,k)
      &       -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
@@ -395,13 +395,13 @@ c!$acc wait
 
 !$OMP PARALLEL DO REDUCTION(+:e2)
 !$OMP& SHARED(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-!$OMP& PRIVATE(int,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$OMP& PRIVATE(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
 !$OMP& PRIVATE(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
-       do int=1,numint
-        i=lab(1,int) 
-        k=lab(2,int) 
-        l=lab(3,int) 
-        n=lab(4,int)
+       do intg=1,numint
+        i=lab(1,intg) 
+        k=lab(2,intg) 
+        l=lab(3,intg) 
+        n=lab(4,intg)
         aai=diag(i)
         abi=bdiag(i)
         bai=csdiag(i)
@@ -419,7 +419,7 @@ c!$acc wait
         abl=bdiag(n)
         bal=csdiag(n)
         bbl=bsdiag(n)
-        e2=e2+g(int)*
+        e2=e2+g(intg)*
      &    (sm(k,i)*(aaj*bal+aal*baj+abj*bbl+abl*bbj)+sum2*sm(n,l)
      &          -bai*(aat(n,k)*aaj+aat(l,k)*aal)
      &          -bbi*(tt(n,k)*abj+tt(l,k)*abl)

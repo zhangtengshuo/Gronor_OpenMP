@@ -20,11 +20,12 @@
 
       call timer_start(41)
 
-!$acc data copy(dev_info_d)
-!$acc& create(temp,workspace_d,rwork)
       
 #ifdef CUSOLVER
 
+!$acc data copy(dev_info_d)
+!$acc& create(temp,workspace_d,rwork)
+      
       if(isolver.eq.1) then
 
        jobu = 'A'  ! all m columns of U
@@ -113,6 +114,9 @@
        call timer_stop(42)
        
       endif
+
+!     $acc end data
+      
 #else
       
 !$acc update host (ta)
@@ -140,8 +144,6 @@
       call timer_stop(42)
 
 #endif
-
-!$acc end data
       
       call timer_stop(41)
 

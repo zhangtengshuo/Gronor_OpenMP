@@ -30,10 +30,6 @@
       string="HOME"
       call get_environment_variable(string,value,lenv,statv)
 
-      print*,'lenv=',lenv
-      print*,'statv=',statv
-      write(*,'(a,a,a)') string,' is ',value
-      
 !     me          : MPI global rank id
 !     np          : number of MPI ranks
 !     master      : id of master MPI rank

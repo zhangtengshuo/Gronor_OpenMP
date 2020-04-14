@@ -95,7 +95,7 @@
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &       ierr,sdiag,nelecs)
         
-!$acc update device (u,w)
+!$acc update device (ev,u,w)
        
        call timer_start(42)
        
@@ -125,7 +125,7 @@
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &     ierr,sdiag,nelecs)
       
-!$acc update device (u,w)
+!$acc update device (ev,u,w)
       
       call timer_start(42)
       

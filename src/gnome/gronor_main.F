@@ -1108,7 +1108,6 @@
 #ifdef _OPENACC
       if(numdev.gt.1) then
        mydev=mod(me,numdev)
-       print*,'set_device ',me,mydev,numdev
        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
        cpfre=c_loc(memfre)
        cptot=c_loc(memtot)

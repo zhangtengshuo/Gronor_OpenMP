@@ -115,7 +115,7 @@
        
       endif
 
-!     $acc end data
+!$acc end data
       
 #else
       

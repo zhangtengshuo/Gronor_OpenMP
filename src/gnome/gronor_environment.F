@@ -22,8 +22,18 @@
 
       character (len=MPI_MAX_PROCESSOR_NAME) :: nodename
       character (len=20) :: string
+      character (len=128) :: value
       integer::  cudaGetDeviceCount,jstat,iout
 
+      integer (kind=8) :: lenv,statv
+
+      string="HOME"
+      call get_environment_variable(string,value,lenv,statv)
+
+      print*,'lenv=',lenv
+      print*,'statv=',statv
+      write(*,'(a,a,a)') string,' is ',value
+      
 !     me          : MPI global rank id
 !     np          : number of MPI ranks
 !     master      : id of master MPI rank

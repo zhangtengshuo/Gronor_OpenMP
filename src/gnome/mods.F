@@ -30,6 +30,8 @@
       integer (kind=4), allocatable :: grp_comm(:)
       integer (kind=4), allocatable :: ranks_list(:), ranks_heads(:)
 
+      integer :: nnodes,nrsets,nranks
+
       integer :: numacc, numnon, numgrp
       integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive
       integer :: mygroup,myhead,ime,mpibuf
@@ -47,6 +49,7 @@
 !     Accelerator data
 
       integer (kind=8), target :: memfre, memtot, memavail
+      logical :: cyclic
 
       end module cidist
 

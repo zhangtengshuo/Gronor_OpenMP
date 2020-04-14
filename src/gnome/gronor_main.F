@@ -192,7 +192,7 @@
      &  filout(1:inp_strlen(filout)),filsym(1:inp_strlen(filsym)),
      &  filint(1:inp_strlen(filint)),
      &  root(1:inp_strlen(root)),root(1:inp_strlen(root)),
-     &  getcpucount(),numdev,np,num_threads
+     &  getcpucount(),nnodes,nrsets,nranks,numdev,np,num_threads,cyclic
        if(numdev.gt.0) write(lfnout,602) memfre,memtot
  601   format(//,
      &  ' User',t50,a,/,
@@ -208,9 +208,13 @@
      &  ' CI vector filename(s) are  ',t50,a,'_nnn.civ',/,
      &  ' MO vector filename(s) are  ',t50,a,'_nnn.vec',//,
      &  ' CPU count',t50,i10,/,
+     &  ' Number of nodes',t50,i10,/,
+     &  ' Number of resource sets per node',t50,i10,/,
+     &  ' Number of ranks per node',t50,i10,/,
      &  ' Number of NVIDIA devices',t50,i10,/,
      &  ' Number of MPI ranks',t50,i10,/,
-     &  ' Number of OPENMP threads (OMP_NUM_THREADS)',t50,i10,/)
+     &  ' Number of OPENMP threads (OMP_NUM_THREADS)',t50,i10,/,
+     &  ' Cyclic rank allocation detected',t59,l1,/)
  602   format(' Available memory on device',t40,i20,/,
      & ' Total memory on device',t40,i20,/)
 
@@ -870,6 +874,15 @@
 
       master=np-1
 
+      if(cyclic) then
+       j=0
+       do i=1,np
+        if(map2(i,5).gt.0) j=j+1
+       enddo
+       do i=1,min(np,nummps*j)
+        map2(i,5)=map2(i,1)
+       enddo
+      else
       node=map2(1,4)
       j=nummps*map2(1,1)
       do i=1,np
@@ -895,6 +908,7 @@
         endif
         if(i-1.eq.master) map2(i,5)=0
       enddo
+      endif
       
       if(me.eq.master) then
         numacc=0
@@ -997,6 +1011,7 @@
         write(lfnout,630)
  630    format(//,' MPI Rank Assignments')
  635    format(/,' Accelerated Groups')
+        if(ipr.lt.2) then
         k=1
         l=min(k+14,numacc)
         if(numacc.gt.0) then
@@ -1032,6 +1047,44 @@
             l=min(k+14,numgrp)
           enddo
         endif
+       else
+        k=1
+        l=min(k+7,numacc)
+        if(numacc.gt.0) then
+          write(lfnout,635)
+          do while (k.le.l)
+            write(lfnout,634)
+            write(lfnout,1631) (j,j=k,l)
+ 1631        format(10x,8i16)
+ 1633        format(10x,8(i8,'/',i7))
+            write(lfnout,1632) (' ------------',j=k,l)
+ 1632        format(10x,8a16)
+            do i=2,mgr+1
+              write(lfnout,1633) ((allgroups(j,i),
+     & map2(allgroups(j,i)+1,4)),j=k,l)
+            enddo
+            k=l+1
+            l=min(k+7,numacc)
+          enddo
+          write(lfnout,634)
+        endif
+        if(numnon.gt.0) then
+          write(lfnout,633)
+          k=l+1
+          l=min(k+7,numgrp)
+          do while (k.le.l)
+            write(lfnout,634)
+            write(lfnout,1631) (j,j=k,l)
+            write(lfnout,1632) (' ------------',j=k,l)
+            do i=2,mgr+1
+              write(lfnout,1633) ((allgroups(j,i),
+     & map2(allgroups(j,i)+1,4)),j=k,l)
+            enddo
+            k=l+1
+            l=min(k+7,numgrp)
+          enddo
+        endif
+       endif
       endif
       
       iamacc=0
@@ -1055,6 +1108,7 @@
 #ifdef _OPENACC
       if(numdev.gt.1) then
        mydev=mod(me,numdev)
+       print*,'set_device ',me,mydev,numdev
        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
        cpfre=c_loc(memfre)
        cptot=c_loc(memtot)
@@ -1068,7 +1122,7 @@
 #ifdef CUSOLVER
       cusolver_status = cusolverDnCreate(cusolver_handle)
       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *, 'cusolver_handle creation failed'
+     &   print *, me,'cusolver_handle creation failed'
 
 !      if(numdev.gt.1) then
 !       cpfre=c_loc(memfre)
@@ -1180,6 +1234,14 @@
         call timer_start(99)
       endif
       
+        if(idbg.gt.0) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,10i5)') date(1:8),time(1:8),
+     &         ' NVIDIA ',numdev,mydev,iamacc,nummps,
+     &           (map2(me+1,i),i=1,5)
+          flush(lfndbg)
+        endif
+
       call timer_start(98)
       if(me.eq.master.and.iload.eq.1) then
         if(idbg.gt.0) then

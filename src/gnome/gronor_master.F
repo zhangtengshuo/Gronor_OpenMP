@@ -251,10 +251,10 @@
  619                  format(
      &                     ' Number matrix elements without ',
      &                     'singularities',t50,i16,/,
-     &                     31x,'with 1  singularity',t50,i16,/
-     &                     31x,'     2  singularities',t50,i16,/
-     &                     31x,'     3+ singularities',t50,i16,/
-     &                     31x,'below threshold',t50,i16,/)
+     &                     24x,'with 1  singularity',t50,i16,/
+     &                     24x,'     2  singularities',t50,i16,/
+     &                     24x,'     3+ singularities',t50,i16,/
+     &                     24x,'below threshold',t50,i16,/)
                       
                       write(lfnout,620) hbase(i,j),sbase(i,j)
  620                  format(' Unnormalized Hamiltonian matrix element',
@@ -546,12 +546,12 @@
         enddo
       enddo
       write(lfnout,674) nsingt
- 674  format(/,' Total number of matrix elements with 0  singularities',
-     &     t56,i16,/,t39,'1  singularity',
-     &     t56,i16,/,t39,'2  singularities',
-     &     t56,i16,/,t39,'3+ singularities',
-     &     t56,i16,/,t34,'below threshold',
-     &     t56,i16)
+ 674  format(/,' Total matrix elements without singularities',
+     &     t50,i16,/,t24,'with 1  singularity',
+     &     t50,i16,/,t24,'     2  singularities',
+     &     t50,i16,/,t24,'     3+ singularities',
+     &     t50,i16,/,t24,'below threshold',
+     &     t50,i16)
       
       write(lfnout,675) nalive*mgr+1,np
  675  format(/,' At the end of the run',i5,' of ',i5,

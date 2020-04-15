@@ -233,14 +233,7 @@
       call timer_stop(99)
       
       if(me.eq.master) then
-        write(lfnout,614) 
-     &       timer_wall_total(99)-timer_wall_total(98),
-     &       timer_wall_total(98),timer_wall_total(99)
- 614    format(//,' Setup wall clock time on master',t55,f12.3,/,
-     &       ' Matrix element calculation wall clock time on master',
-     &       t55,f12.3,//,
-     &       ' Total execution wall clock time on master ',t55,f12.3)
-        write(lfnout,615) 
+        if(ipr.ge.3) write(lfnout,615) 
      &       timer_wall_total(94),timer_wall_total(95),
      &       timer_wall_total(96),
      &       timer_wall_total(97)-timer_wall_total(96)
@@ -249,6 +242,13 @@
      &       ' Response time on master',t55,f12.3,/,
      &       ' Requestf time on master',t55,f12.3,/,
      &       ' Finalize time on master',t55,f12.3,//)
+        write(lfnout,614) 
+     &       timer_wall_total(99)-timer_wall_total(98),
+     &       timer_wall_total(98),timer_wall_total(99)
+ 614    format(//,' Setup wall clock time on master',t55,f12.3,/,
+     &       ' Matrix element calculation wall clock time on master',
+     &       t55,f12.3,//,
+     &       ' Total execution wall clock time on master ',t55,f12.3)
         write(*,616) timer_wall_total(99)
  616    format(/,' Total execution wall clock time ',f12.3)
         call swatch(date,time)

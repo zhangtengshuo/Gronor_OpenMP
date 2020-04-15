@@ -1350,7 +1350,14 @@
        do j=1,nbase
         write(lfnout,672) j,(sbase(i,j),i=1,nbase)
         write(*,672) j,(sbase(i,j),i=1,nbase)
-       enddo
+      enddo
+      
+       open(unit=lfnf75,file=filf75,form='unformatted',status='unknown')
+       write(75)nbase
+       write(75)((hbase(j,i),i=1,j),j=1,nbase)
+       write(75)((sbase(j,i),i=1,j),j=1,nbase)
+       close(unit=lfnf75,status='keep')
+       
        if(nbase.gt.1) then
         write(lfnout,676)
         write(*,676)
@@ -1372,14 +1379,38 @@
          endif
         enddo
         deallocate(tc)
+
+* Diagonalize the NOCI matrix and print the energies and wave functions
+          allocate (hev(nbase))
+          allocate(work(10))
+          lwrk=-1
+          info=0
+          call dsygv(1,'V','L',nbase,hbase,nbase,
+     &               sbase,nbase,hev,work,lwrk,info)
+          lwrk=int(work(1))
+          if(lwrk.gt.lwork) then
+            deallocate(work)
+            lwork=lwrk
+            allocate(work(lwork))
+          endif
+          call dsygv(1,'V','L',nbase,hbase,nbase,
+     &              sbase,nbase,hev,work,lwork,info)
+
+*     hbase now contains eigenvectors of diagonalized matrix
+          write(lfnout,677)
+ 677      format(//,' NOCI energies and wave functions',/)
+          write(lfnout,'(A,12I20)')'     State:',(i,i=1,nbase)
+          write(lfnout,678)'    Energy:    ', (hev(i),i=1,nbase)
+          write(lfnout,*)'MEBFs'
+ 678      format((A,12f20.10),//)
+          do j=1,nbase
+            write(lfnout,'(i5,9x,12F20.10)') j,(hbase(i,j),i=1,nbase)
+          enddo
+        
        endif
-       open(unit=lfnf75,file=filf75,form='unformatted',status='unknown')
-       write(75)nbase
-       write(75)((hbase(j,i),i=1,j),j=1,nbase)
-       write(75)((sbase(j,i),i=1,j),j=1,nbase)
-       close(unit=lfnf75,status='keep')
       endif
       if(allocated(work)) deallocate(work)
+      if(allocated(hev)) deallocate(hev)
 
       deallocate(t,v,ndxtv)
       deallocate(lab,ig,g)

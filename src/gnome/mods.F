@@ -75,7 +75,7 @@
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
-      real (kind=8), allocatable :: hbase(:,:), sbase(:,:)
+      real (kind=8), allocatable :: hbase(:,:), sbase(:,:), hev(:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 

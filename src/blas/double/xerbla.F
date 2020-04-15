@@ -1,5 +1,5 @@
       SUBROUTINE XERBLA( SRNAME, INFO )
-#include "errquit.fh"
+c#include "errquit.fh"
 *
 *  -- LAPACK auxiliary routine (version 2.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -40,8 +40,8 @@ c
 *
       WRITE( *, FMT = 9999 )SRNAME, INFO
 *
-*      STOP
-      call errquit('xerbla:double: lapack error',911, BASIS_ERR)
+      STOP
+c      call errquit('xerbla:double: lapack error',911, BASIS_ERR)
 *
  9999 FORMAT( ' ** On entry to ', A6, ' parameter number ', I2, ' had ',
      $      'an illegal value' )

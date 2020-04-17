@@ -88,6 +88,15 @@
       if(ipr.ge.0) write(lfnout,618) mdet
  618  format(' Total number of determinant pairs',t50,i16)
       
+          if(ipr.gt.1) write(lfnout,621)
+ 621      format(//,' Calculation of Hamiltonian matrix elements',//,
+     &         '   Element         Determinants      ',
+     &         '              Singularities             ',
+     &         '    Below                  Unnormalized    ',/
+     &         '  idet jdet    left   right     pairs',
+     &         '      none         1         2        3+',
+     &         '  threshold       Hamiltonian           Overlap   ',/)
+          
       do ibase=1,nbase
         do jbase=1,ibase
           osame=ibase.eq.jbase
@@ -131,7 +140,7 @@
           ibuf(2)=0
           ibuf(3)=0
           ibuf(4)=0
-          
+
           do while(ndone.lt.ijend)
             
             call timer_start(94)
@@ -237,29 +246,13 @@
                     if(ipr.ge.1) then
                       if(i.eq.j) then
                         ltemp=idetb(i)*(idetb(i)+1)/2
-                        write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
                       else
                         ltemp=idetb(i)*idetb(j)
-                        write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
                       endif
- 617                  format(//,
-     &                     ' Calculation of H matrix element ',2i5,/,
-     &                     ' Number left side determinants',t50,i16,/,
-     &                     ' Number right side determinants',t50,i16,/,
-     &                     ' Number determinant pairs',t50,i16)
-                      write(lfnout,619) (nsing(i,j,k),k=1,5)
- 619                  format(
-     &                     ' Number matrix elements without ',
-     &                     'singularities',t50,i16,/,
-     &                     24x,'with 1  singularity',t50,i16,/
-     &                     24x,'     2  singularities',t50,i16,/
-     &                     24x,'     3+ singularities',t50,i16,/
-     &                     24x,'below threshold',t50,i16,/)
+                      write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
+     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j)
+ 622                  format(1x,2i5,2i8,i10,5i10,2f20.10)
                       
-                      write(lfnout,620) hbase(i,j),sbase(i,j)
- 620                  format(' Unnormalized Hamiltonian matrix element',
-     &                     t47,f30.10,/, 
-     &                     ' Overlap matrix element',t47,f30.10)
                       flush(lfnout)
                     endif
                     write(lfnday,703) date(1:8),time(1:8),
@@ -408,13 +401,11 @@
                 if(ipr.ge.1) then
                   if(i.eq.j) then
                     ltemp=idetb(i)*(idetb(i)+1)/2
-                    write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
                   else
                     ltemp=idetb(i)*idetb(j)
-                    write(lfnout,617) i,j,idetb(i),idetb(j),ltemp
                   endif
-                  write(lfnout,619) (nsing(i,j,k),k=1,5)
-                  write(lfnout,620) hbase(i,j),sbase(i,j)
+                  write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
+     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j)
                   flush(lfnout)
                 endif
                 call swatch(date,time)
@@ -545,13 +536,8 @@
           enddo
         enddo
       enddo
-      write(lfnout,674) nsingt
- 674  format(/,' Total matrix elements without singularities',
-     &     t50,i16,/,t24,'with 1  singularity',
-     &     t50,i16,/,t24,'     2  singularities',
-     &     t50,i16,/,t24,'     3+ singularities',
-     &     t50,i16,/,t24,'below threshold',
-     &     t50,i16)
+      write(lfnout,623) mdet,nsingt
+ 623  format(/,' Total',5x,16x,i10,5i10)
       
       write(lfnout,675) nalive*mgr+1,np
  675  format(/,' At the end of the run',i5,' of ',i5,

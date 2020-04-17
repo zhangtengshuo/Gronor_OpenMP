@@ -64,6 +64,8 @@
       character (len=255) :: opt_inp
       real (kind=8), allocatable :: tc(:)
 
+      character (len=4) :: token
+
       integer :: maxgrp
 
 #ifdef USE_POSIXF
@@ -1380,7 +1382,8 @@
         enddo
         deallocate(tc)
 
-* Diagonalize the NOCI matrix and print the energies and wave functions
+!     Diagonalize the NOCI matrix and print the energies and wave functions
+        
           allocate (hev(nbase))
           allocate(work(10))
           lwrk=-1
@@ -1396,15 +1399,24 @@
           call dsygv(1,'V','L',nbase,hbase,nbase,
      &              sbase,nbase,hev,work,lwork,info)
 
-*     hbase now contains eigenvectors of diagonalized matrix
+!     hbase now contains eigenvectors of diagonalized matrix
+          
           write(lfnout,677)
+          write(*,677)
  677      format(//,' NOCI energies and wave functions',/)
           write(lfnout,'(A,12I20)')'     State:',(i,i=1,nbase)
-          write(lfnout,678)'    Energy:    ', (hev(i),i=1,nbase)
-          write(lfnout,*)'MEBFs'
+          write(lfnout,678)'    Energy:   ', (hev(i),i=1,nbase)
+          write(lfnout,*) ' '
+          write(*,'(A,12I20)')'    State:',(i,i=1,nbase)
+          write(*,678)'   Energy:    ', (hev(i),i=1,nbase)
+          write(*,*) ' '
  678      format((A,12f20.10),//)
+          token="MEBF"
           do j=1,nbase
-            write(lfnout,'(i5,9x,12F20.10)') j,(hbase(i,j),i=1,nbase)
+            write(lfnout,679) token,j,(hbase(i,j),i=1,nbase)
+            write(*,679) token,j,(hbase(i,j),i=1,nbase)
+ 679        format(a4,1x,i5,4x,12F20.10)
+            token="    "
           enddo
         
        endif

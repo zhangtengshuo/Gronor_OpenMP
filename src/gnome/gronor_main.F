@@ -139,6 +139,8 @@
        lfndat=15
        filday=string(1:inp_strlen(string))//'.day'
        lfnday=18
+       filtst=string(1:inp_strlen(string))//'.tst'
+       lfntst=19
        lfnf74=74
        filf74=string(1:inp_strlen(string))//'.f74'
        lfnf75=75
@@ -151,6 +153,9 @@
      &  form='formatted',status='unknown',err=996)
 
        open(unit=lfnday,file=filday(1:inp_strlen(filday)),
+     &      form='formatted',status='unknown',err=996)
+       
+       open(unit=lfntst,file=filtst(1:inp_strlen(filtst)),
      &  form='formatted',status='unknown',err=996)
 
        call timer_stop(99)
@@ -243,6 +248,7 @@
        iload=1
        ibatch=1
        itest=0
+       idevel=0
        ifault=1
        isolver=1
        intadd=0
@@ -394,6 +400,11 @@
          goto 2
        endif
        
+       if(inp_compare(.false.,'Development',item)) then
+         if(.not.inp_i(idevel)) idevel=0
+         goto 2
+       endif
+       
        if(inp_compare(.false.,'IntAdd',item)) then
          if(.not.inp_i(intadd)) intadd=0
          goto 2
@@ -506,8 +517,8 @@
         write(lfnout,625) ifault
  625    format(' Fault tolerance wait time',t50,i10,' sec')
       endif
-      write(lfnout,626) itest
- 626  format(' Test option',t50,i10)
+      write(lfnout,626) itest,idevel
+ 626  format(' Test option',t50,i10,/,' Development option',t50,i10)
       write(lfnout,619) ibatch
  619  format(' Task-based load balancing with batch size',t50,i10,/)
       write(lfnout,623) thresh_CI, thresh_SIN
@@ -717,7 +728,7 @@
           idum(35)=itim
           idum(36)=isolver
           idum(37)=ifault
-          idum(38)=0
+          idum(38)=idevel
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -764,6 +775,7 @@
         itim   =idum(35)
         isolver=idum(36)
         ifault =idum(37)
+        idevel =idum(38)
         
         thresh=rdum(1)
         thresh_CI=rdum(2)
@@ -1333,63 +1345,70 @@
       endif
 
       if(me.eq.master) then
-       write(lfnout,670)
-       write(*,670)
- 670   format(//,' Hamiltonian Matrix',/)
-       write(*,671) (i,i=1,nbase)
-       write(lfnout,671) (i,i=1,nbase)
- 671   format(6x,7(6x,i8,6x))
-       do j=1,nbase
-        write(*,672) j,(hbase(i,j),i=1,nbase)
-        write(lfnout,672) j,(hbase(i,j),i=1,nbase)
- 672    format(i5,1x,7f20.10,/,(6x,7f20.10))
-       enddo
-       write(lfnout,673)
-       write(*,673)
- 673   format(//,' Overlap Matrix',/)
-       write(lfnout,671) (i,i=1,nbase)
-       write(*,671) (i,i=1,nbase)
-       do j=1,nbase
-        write(lfnout,672) j,(sbase(i,j),i=1,nbase)
-        write(*,672) j,(sbase(i,j),i=1,nbase)
-      enddo
-      
-       open(unit=lfnf75,file=filf75,form='unformatted',status='unknown')
-       write(75)nbase
-       write(75)((hbase(j,i),i=1,j),j=1,nbase)
-       write(75)((sbase(j,i),i=1,j),j=1,nbase)
-       close(unit=lfnf75,status='keep')
-       
-       if(nbase.gt.1) then
-        write(lfnout,676)
-        write(*,676)
- 676    format(//,' Electronic Couplings',/)
-        write(lfnout,671) (i,i=1,nbase)
+        write(*,670)
+        write(lfnout,670)
+        write(lfntst,670)
+ 670    format(//,' Hamiltonian Matrix',/)
         write(*,671) (i,i=1,nbase)
-        allocate(tc(nbase))
-        do i=1,nbase
-         do j=1,i-1
-         tc(j)=hbase(i,j)-0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j)/
-     &      (1.0d0-sbase(i,j)*sbase(i,j))
-         enddo
-         if(i.eq.1) then
-          write(lfnout,672) 1
-          write(*,672) 1
-         else
-          write(lfnout,672) i,(tc(j),j=1,i-1)
-          write(*,672) i,(tc(j),j=1,i-1)
-         endif
+        write(lfnout,671) (i,i=1,nbase)
+        write(lfntst,671) (i,i=1,nbase)
+ 671    format(6x,7(6x,i8,6x))
+        do j=1,nbase
+          write(*,672) j,(hbase(i,j),i=1,nbase)
+          write(lfnout,672) j,(hbase(i,j),i=1,nbase)
+ 672      format(i5,1x,7f20.10,/,(6x,7f20.10))
+          write(lfntst,1672) j,(hbase(i,j),i=1,nbase)
+ 1672     format(i5,1x,7f20.8,/,(6x,7f20.8))
         enddo
-        deallocate(tc)
+        write(*,673)
+        write(lfnout,673)
+        write(lfntst,673)
+ 673    format(//,' Overlap Matrix',/)
+        write(*,671) (i,i=1,nbase)
+        write(lfnout,671) (i,i=1,nbase)
+        write(lfntst,671) (i,i=1,nbase)
+        do j=1,nbase
+          write(*,672) j,(sbase(i,j),i=1,nbase)
+          write(lfnout,672) j,(sbase(i,j),i=1,nbase)
+          write(lfntst,1672) j,(sbase(i,j),i=1,nbase)
+        enddo
+      
+        open(unit=lfnf75,file=filf75,form='unformatted')
+        write(75)nbase
+        write(75)((hbase(j,i),i=1,j),j=1,nbase)
+        write(75)((sbase(j,i),i=1,j),j=1,nbase)
+        close(unit=lfnf75,status='keep')
+        
+        if(nbase.gt.1) then
+          write(lfnout,676)
+          write(*,676)
+ 676      format(//,' Electronic Couplings',/)
+          write(lfnout,671) (i,i=1,nbase)
+          write(*,671) (i,i=1,nbase)
+          allocate(tc(nbase))
+          do i=1,nbase
+            do j=1,i-1
+              tc(j)=hbase(i,j)-0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j)/
+     &             (1.0d0-sbase(i,j)*sbase(i,j))
+            enddo
+            if(i.eq.1) then
+              write(lfnout,672) 1
+              write(*,672) 1
+            else
+              write(lfnout,672) i,(tc(j),j=1,i-1)
+              write(*,672) i,(tc(j),j=1,i-1)
+            endif
+          enddo
+          deallocate(tc)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
-        
+          
           allocate (hev(nbase))
           allocate(work(10))
           lwrk=-1
           info=0
           call dsygv(1,'V','L',nbase,hbase,nbase,
-     &               sbase,nbase,hev,work,lwrk,info)
+     &         sbase,nbase,hev,work,lwrk,info)
           lwrk=int(work(1))
           if(lwrk.gt.lwork) then
             deallocate(work)
@@ -1397,29 +1416,36 @@
             allocate(work(lwork))
           endif
           call dsygv(1,'V','L',nbase,hbase,nbase,
-     &              sbase,nbase,hev,work,lwork,info)
-
+     &         sbase,nbase,hev,work,lwork,info)
+          
 !     hbase now contains eigenvectors of diagonalized matrix
           
-          write(lfnout,677)
           write(*,677)
+          write(lfnout,677)
+          write(lfntst,677)
  677      format(//,' NOCI energies and wave functions',/)
-          write(lfnout,'(A,12I20)')'     State:',(i,i=1,nbase)
-          write(lfnout,678)'    Energy:   ', (hev(i),i=1,nbase)
-          write(lfnout,*) ' '
           write(*,'(A,12I20)')'    State:',(i,i=1,nbase)
           write(*,678)'   Energy:    ', (hev(i),i=1,nbase)
           write(*,*) ' '
+          write(lfnout,'(A,12I20)')'     State:',(i,i=1,nbase)
+          write(lfnout,678)'    Energy:   ', (hev(i),i=1,nbase)
+          write(lfnout,*) ' '
+          write(lfntst,'(A,12I20)')'     State:',(i,i=1,nbase)
+          write(lfntst,1678)'    Energy:   ', (hev(i),i=1,nbase)
+          write(lfntst,*) ' '
  678      format((A,12f20.10),//)
+ 1678     format((A,12f20.8),//)
           token="MEBF"
           do j=1,nbase
-            write(lfnout,679) token,j,(hbase(i,j),i=1,nbase)
             write(*,679) token,j,(hbase(i,j),i=1,nbase)
+            write(lfnout,679) token,j,(hbase(i,j),i=1,nbase)
  679        format(a4,1x,i5,4x,12F20.10)
+            write(lfntst,1679) token,j,(hbase(i,j),i=1,nbase)
+ 1679       format(a4,1x,i5,4x,12F20.8)
             token="    "
           enddo
-        
-       endif
+          
+        endif
       endif
       if(allocated(work)) deallocate(work)
       if(allocated(hev)) deallocate(hev)
@@ -1459,6 +1485,11 @@
         close(unit=lfnpro,status='delete')
        endif
        close(unit=lfnday,status='keep')
+       if(itest.eq.0) then
+         close(unit=lfntst,status='delete')
+       else
+         close(unit=lfntst,status='keep')
+       endif
       else
 !       if(ipr.lt.5) then
 !        close(unit=lfnout,status='delete')

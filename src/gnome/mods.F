@@ -60,11 +60,11 @@
       integer :: nmol,mstates,nbase,nspin
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
-      character (len=255) :: filsym,filciv,filvec,filint
+      character (len=255) :: filsym,filciv,filvec,filint,filtst
       character (len=255) :: filf74,filf75,filone,filtwo,fildat
       integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint
       integer :: lfnpro,lfndbg,lfnf74,lfnf75,lfnone,lfntwo,lfndat
-      integer :: lfnday
+      integer :: lfnday,lfntst
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
@@ -86,7 +86,7 @@
       implicit none
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
-      integer :: iload,ibatch,itest,ifault,isolver
+      integer :: iload,ibatch,itest,ifault,isolver,idevel
       integer :: naccel,nacc0,nacc1,inpcib,intfil
       integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
       integer :: ins2

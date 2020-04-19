@@ -1422,7 +1422,6 @@
           
           write(*,677)
           write(lfnout,677)
-          write(lfntst,677)
  677      format(//,' NOCI energies and wave functions',/)
           write(*,'(A,12I20)')'    State:',(i,i=1,nbase)
           write(*,678)'   Energy:    ', (hev(i),i=1,nbase)
@@ -1430,9 +1429,12 @@
           write(lfnout,'(A,12I20)')'     State:',(i,i=1,nbase)
           write(lfnout,678)'    Energy:   ', (hev(i),i=1,nbase)
           write(lfnout,*) ' '
-          write(lfntst,'(A,12I20)')'     State:',(i,i=1,nbase)
-          write(lfntst,1678)'    Energy:   ', (hev(i),i=1,nbase)
-          write(lfntst,*) ' '
+          if(itest.eq.2) then
+            write(lfntst,677)
+            write(lfntst,'(A,12I20)')'     State:',(i,i=1,nbase)
+            write(lfntst,1678)'    Energy:   ', (hev(i),i=1,nbase)
+            write(lfntst,*) ' '
+          endif
  678      format((A,12f20.10),//)
  1678     format((A,12f20.8),//)
           token="MEBF"
@@ -1440,8 +1442,10 @@
             write(*,679) token,j,(hbase(i,j),i=1,nbase)
             write(lfnout,679) token,j,(hbase(i,j),i=1,nbase)
  679        format(a4,1x,i5,4x,12F20.10)
-            write(lfntst,1679) token,j,(hbase(i,j),i=1,nbase)
- 1679       format(a4,1x,i5,4x,12F20.8)
+            if(itest.eq.2) then
+              write(lfntst,1679) token,j,(hbase(i,j),i=1,nbase)
+ 1679         format(a4,1x,i5,4x,12F20.8)
+            endif
             token="    "
           enddo
           

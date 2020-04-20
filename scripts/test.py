@@ -16,7 +16,7 @@ print('Comm is ',comm)
 os.system(comm)
 os.system('ls -al '+name+'.inp')
 
-os.system('mpirun -n 3 gronor '+name)
+os.system('mpirun -n 7 gronor '+name)
 
 os.system('diff '+name+'.tst '+name+'.ok > '+name+'.dif')
 

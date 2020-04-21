@@ -169,61 +169,64 @@
        write(lfnout,600)
   600  format(/,
      &  ' GronOR: Non-Orthogonal Configuration Interaction program',//,
-     &  9x,'T. P. Straatsma',/,
-     &  9x,'National Center for Computational Sciences',/,
-     &  9x,'Oak Ridge National Laboratory',/,
-     &  9x,'Oak Ridge, Tennessee, USA',//,
-     &  9x,'C. de Graaf',/,
-     &  9x,'Quantum Chemistry Group',/,
-     &  9x,'University Rovira i Virgili',/,
-     &  9x,'Tarragona, Spain',//,
-     &  9x,'R. W. A. Havenith and R. K. Kathir',/,
-     &  9x,'Department of Theoretical Chemistry',/,
-     &  9x,'University of Groningen',/,
-     &  9x,'Groningen, the Netherlands',//,
-     &  9x,'Based on GNOME written by R. Broer-Braam, ',
-     &  'J. Th. van Montfort, and B. Vunderink',//,
-     &  9x,'Please cite the following reference when publishing ',
-     &  'results obtained using GronOR:',//,
-     &  9x,'T. P. Straatsma, R. Broer, S. Faraji, R. W. A. Havenith,',
-     &  'L. E. Aguilar Suarez,',/,
-     &  9x,'R. K. Kathir, M. Wibowo,and C.de Graaf',/,
-     &  9x,'"GronOR: Massively parallel and GPU-accelerated ',
-     &  'non-orthogonal configuration ',/,
-     &  9x,'interaction for large molecular systems"',/,
-     &  9x,'Journal of Chemical Physics, 152 (2020), ',
-     &  'https://doi.org/10.1063/1.5141358',/)
+     &      4x,'T. P. Straatsma',t55,
+     &      'C. de Graaf',t85,
+     &      'R. W. A. Havenith and R. K. Kathir',/,
+     &      4x,'National Center for Computational Sciences',t55,
+     &      'Quantum Chemistry Group',t85,
+     &      'Department of Theoretical Chemistry',/,
+     &      4x,'Oak Ridge National Laboratory',t55,
+     &      'University Rovira i Virgili',t85,
+     &      'University of Groningen',/,
+     &      4x,'Oak Ridge, Tennessee, USA',t55,
+     &      'Tarragona, Spain',t85,
+     &      'Groningen, the Netherlands',//,
+     &      4x,'Based on GNOME written by R. Broer-Braam, ',
+     &      'J. Th. van Montfort, and B. Vunderink',//,
+     &      4x,'Please cite the following reference when publishing ',
+     &      'results obtained using GronOR:',//,
+     &      4x,'T. P. Straatsma, R. Broer, S. Faraji,',
+     &      'R. W. A. Havenith, L. E. Aguilar Suarez, R. K. Kathir, ',
+     &      'M. Wibowo, and C.de Graaf',/,
+     &      4x,'"GronOR: Massively parallel and GPU-accelerated ',
+     &      'non-orthogonal configuration interaction for large ',
+     &      'molecular systems"',/,
+     &      4x,'Journal of Chemical Physics, 152 (2020), ',
+     &      'https://doi.org/10.1063/1.5141358',/)
 
-       write(lfnout,601) trim(user),trim(host),date(1:8),time(1:8),
-     &  trim(command),trim(cwd),filinp(1:inp_strlen(filinp)),
-     &  filout(1:inp_strlen(filout)),filsym(1:inp_strlen(filsym)),
-     &  filint(1:inp_strlen(filint)),
-     &  root(1:inp_strlen(root)),root(1:inp_strlen(root)),
-     &  getcpucount(),nnodes,nrsets,nranks,numdev,np,num_threads,cyclic
-       if(numdev.gt.0) write(lfnout,602) memfre,memtot
+       write(lfnout,601) trim(user),getcpucount(),
+     &      trim(host),nnodes,
+     &      date(1:8),nrsets,
+     &      time(1:8),nranks,numdev,
+     &      trim(command),np,
+     &      num_threads,cyclic,
+     &      filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
+     &      filout(1:inp_strlen(filout)),filint(1:inp_strlen(filint)),
+     &      root(1:inp_strlen(root)),memfre,
+     &      root(1:inp_strlen(root)),memtot,
+     &      trim(cwd)
+
  601   format(//,
-     &  ' User',t50,a,/,
-     &  ' Host',t50,a,/,
-     &  ' Date',t50,a,/,
-     &  ' Time',t50,a,//,
-     &  ' Command argument',t50,a,/,
-     &  ' Current working directory',t50,a,//,
-     &  ' Input filename is  ',t50,a,/,
-     &  ' Output filename is  ',t50,a,//,
-     &  ' Symmetry filename is  ',t50,a,/,
-     &  ' Integral filename is  ',t50,a,//,
-     &  ' CI vector filename(s) are  ',t50,a,'_nnn.civ',/,
-     &  ' MO vector filename(s) are  ',t50,a,'_nnn.vec',//,
-     &  ' CPU count',t50,i10,/,
-     &  ' Number of nodes',t50,i10,/,
-     &  ' Number of resource sets per node',t50,i10,/,
-     &  ' Number of ranks per node',t50,i10,/,
-     &  ' Number of NVIDIA devices',t50,i10,/,
-     &  ' Number of MPI ranks',t50,i10,/,
-     &  ' Number of OPENMP threads (OMP_NUM_THREADS)',t50,i10,/,
-     &  ' Cyclic rank allocation detected',t59,l1,/)
- 602   format(' Available memory on device',t40,i20,/,
-     & ' Total memory on device',t40,i20,/)
+     &      ' User',t30,a,t60,'CPU count',t100,i10,/,/,
+     &      ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
+     &      ' Date',t30,a,t60,
+     &      'Number of resource sets per node',t100,i10,/,
+     &      ' Time',t30,a,t60,
+     &      'Number of ranks per node',t100,i10,/,
+     &      t60,'Number of NVIDIA devices',t100,i10,/,
+     &      ' Command argument',t30,a,t60,
+     &      'Number of MPI ranks',t100,i10,/,
+     &      t60,'Number of OPENMP threads (OMP_NUM_THREADS)',t100,i10,/,
+     &      t60,'Cyclic rank allocation detected',t109,l1,//,
+     &      ' Input filename is',t30,a,t60,
+     &      'Symmetry filename is',t90,a,/,
+     &      ' Output filename is',t30,a,t60,
+     &      'Integral filename is',t90,a,//,
+     &      ' CI vector filename(s) are',t30,a,'_nnn.civ',t60,
+     &      'Available memory on device',t90,i20,/,
+     &      ' MO vector filename(s) are',t30,a,'_nnn.vec',t60,
+     &      'Total memory on device',t90,i20,//,
+     &      ' Current working directory',t30,a,/)
 
 !     Read from the input file
 
@@ -508,37 +511,30 @@
       
       close(unit=lfninp)
       
-      write(lfnout,622) isolver
- 622  format(' Solver option',t50,i10)
+      write(lfnout,622) isolver,numomp
+ 622  format(' Solver option',t40,i10,t60,
+     &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
-        write(lfnout,627)
- 627    format(' No fault tolerance')
+        write(lfnout,627),nummps
+ 627    format(' No fault tolerance',t60,'
+     &       Over-subscription of accelerators (MPS)',t100,i10)
       else
-        write(lfnout,625) ifault
- 625    format(' Fault tolerance wait time',t50,i10,' sec')
+        write(lfnout,625) ifault,nummps
+ 625    format(' Fault tolerance wait time',t40,i10,' sec',t60,
+     &       'Over-subscription of accelerators (MPS)',t100,i10)
       endif
-      write(lfnout,626) itest,idevel
- 626  format(' Test option',t50,i10,/,' Development option',t50,i10)
-      write(lfnout,619) ibatch
- 619  format(' Task-based load balancing with batch size',t50,i10,/)
+      write(lfnout,626) itest,mgr,idevel,nmol,ibatch,mstates
+ 626  format(' Test option',t40,i10,t60,
+     &     'Integrals divided over tasks number of ranks',t100,i10,/,
+     &     ' Development option',t40,i10,t60,
+     &     'Number of molecules (nmol)',t100,i10,/,
+     &     ' Batch size',t40,i10,t60,
+     &     'Number of molecular states (mstates)',t100,i10,/,t60,
+     &     'Number of many-electron states (nbase)',t100,i10,/)
+
       write(lfnout,623) thresh_CI, thresh_SIN
- 623  format(' Threshold for CI coefficients',t50,1pe12.3,/,
-     &     ' Threshold for ISING',t50,1pe12.3,/)
-      write(lfnout,636) numomp
- 636  format(' Number of OpenMP threads per MPI (OMP)',t50,i10,/)
-      write(lfnout,637) nummps
- 637  format(' Over-subscription of accelerators (MPS)',t50,i10,/)
-      write(lfnout,620) mgr
- 620  format(' Integrals divided over tasks number of ranks',t50,i10,/)
-      
-      if(iload.eq.1.and.mgr.gt.1) write(lfnout,621) (np-1)/mgr
- 621  format(' Parallelism for matrix elements',t50,i10,/)
-      
-      write(lfnout,603) nmol,mstates,nbase
- 603  format(
-     &     ' Number of molecules (nmol)',t50,i10,/,
-     &     ' Number of molecular states (mstates)',t50,i10,/,
-     &     ' Number of many-electron states (nbase)',t50,i10,/)
+ 623  format(' Threshold for CI coefficients',t40,1pe12.3,/,
+     &     ' Threshold for ISING',t40,1pe12.3,/)
       
       maxci=0
       maxvec=0
@@ -569,7 +565,7 @@
         if(ipr.ge.1)
      &       write(lfnout,605) i,idetm(i),nactm(i),inactm(i),nbasm(i),
      &       filciv(1:inp_strlen(filciv)),filvec(1:inp_strlen(filvec))
- 605    format(5i8,3x,a,', ',/,43x,a)
+ 605    format(5i8,3x,a,', ',a)
       enddo
       
        if(ipr.ge.1) write(lfnout,606) maxci,maxnact,maxvec
@@ -611,8 +607,7 @@
              write(lfnout,608) i,nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
  608         format(/,2i8,f25.14,6x,20(i2.2,1x))
            else
-             if(ipr.ge.3)
-     &        write(lfnout,609) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
+             write(lfnout,609) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
  609         format(8x,i8,f25.14,6x,20(i2.2,1x))
            endif
            do k=1,nactm(i)
@@ -1152,9 +1147,9 @@
       
       if(me.eq.master) write(lfnout,611) nbase,nmol,nbasis
  611  format(//,' Dimensions',//,
-     &     ' Number of states (nbase)',t50,i16,/,
-     &     ' Number of molecules (nmol)', t50,i16,/,
-     &     ' Number of basis functions (nbasis)',t50,i16)
+     &     ' Number of states (nbase)',t40,i10,t60,
+     &     'Number of molecules (nmol)', t100,i10,/,
+     &     ' Number of basis functions (nbasis)',t40,i10)
       
       do i=1,nbase
         
@@ -1187,12 +1182,12 @@
       ngr=np/npg
       
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,618) np,numgrp,mgr,np-numgrp*mgr-1
+        write(lfnout,618) np,numgrp,np-numgrp*mgr-1,mgr
  618    format(/,' Process Distribution',//,
-     &       ' Number of processes',t50,i16,/,
-     &       ' Number of process groups',t50,i16,/,
-     &       ' Number of processes per group',t50,i16,/,
-     &       ' Number of idle processes',t50,i16,/)
+     &       ' Number of processes',t40,i10,t60,
+     &       'Number of process groups',t100,i10,/,
+     &       ' Number of idle processes',t40,i10,t60,
+     &       'Number of processes per group',t100,i10)
       endif
       
       call timer_stop(2)

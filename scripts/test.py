@@ -3,23 +3,19 @@
 import os
 import sys
 
-num = len(sys.argv)
-
-print('PYTHON SCRIPT num is ',num,' ',sys.argv[1])
-
 name = sys.argv[1]
 
-comm = 'ls -al ' + name + '.inp'
+runfile = name+".run"
 
-print('Comm is ',comm)
+runcommand = open(runfile).read()
 
-os.system(comm)
-os.system('ls -al '+name+'.inp')
-
-os.system('mpirun -n 7 gronor '+name)
+os.system(runcommand+' '+name)
 
 os.system('diff '+name+'.tst '+name+'.ok > '+name+'.dif')
 
 len = os.stat(name+'.dif').st_size
 
-print('Diff size is ',len)
+if (len = 0) sys.exit(0)
+
+sys.exit(1)
+

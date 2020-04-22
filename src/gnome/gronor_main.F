@@ -62,7 +62,7 @@
       integer (kind=4) :: new,newme,newgrp,newrnk
       integer :: maxcib1
       character (len=255) :: opt_inp
-      real (kind=8), allocatable :: tc(:)
+      real (kind=8), allocatable :: tc(:), hbt(:)
 
       character (len=4) :: token
 
@@ -1340,6 +1340,7 @@
       endif
 
       if(me.eq.master) then
+        allocate(hbt(nbase))
         write(*,670)
         write(lfnout,670)
         write(lfntst,670)
@@ -1352,7 +1353,11 @@
           write(*,672) j,(hbase(i,j),i=1,nbase)
           write(lfnout,672) j,(hbase(i,j),i=1,nbase)
  672      format(i5,1x,7f20.10,/,(6x,7f20.10))
-          write(lfntst,1672) j,(hbase(i,j),i=1,nbase)
+          do i=1,nbase
+            hbt(i)=hbase(i,j)
+            if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
+          enddo
+          write(lfntst,1672) j,(hbt(i),i=1,nbase)
  1672     format(i5,1x,7f20.8,/,(6x,7f20.8))
         enddo
         write(*,673)
@@ -1365,9 +1370,15 @@
         do j=1,nbase
           write(*,672) j,(sbase(i,j),i=1,nbase)
           write(lfnout,672) j,(sbase(i,j),i=1,nbase)
-          write(lfntst,1672) j,(sbase(i,j),i=1,nbase)
+          do i=1,nbase
+            hbt(i)=sbase(i,j)
+            if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
+          enddo
+          write(lfntst,1672) j,(hbt(i),i=1,nbase)
         enddo
-      
+
+        deallocate(hbt)
+        
         open(unit=lfnf75,file=filf75,form='unformatted')
         write(75)nbase
         write(75)((hbase(j,i),i=1,j),j=1,nbase)

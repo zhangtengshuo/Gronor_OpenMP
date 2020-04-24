@@ -199,7 +199,7 @@
      &      date(1:8),nrsets,
      &      time(1:8),nranks,numdev,
      &      trim(command),np,
-     &      num_threads,cyclic,
+     &      num_threads,isummit,
      &      filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
      &      filout(1:inp_strlen(filout)),filint(1:inp_strlen(filint)),
      &      root(1:inp_strlen(root)),memfre,
@@ -217,7 +217,7 @@
      &      ' Command argument',t30,a,t60,
      &      'Number of MPI ranks',t100,i10,/,
      &      t60,'Number of OPENMP threads (OMP_NUM_THREADS)',t100,i10,/,
-     &      t60,'Cyclic rank allocation detected',t109,l1,//,
+     &      t60,'Number of Summit GPU ranks per node',t100,i10,//,
      &      ' Input filename is',t30,a,t60,
      &      'Symmetry filename is',t90,a,/,
      &      ' Output filename is',t30,a,t60,
@@ -251,6 +251,7 @@
        iload=1
        ibatch=1
        itest=0
+       isummit=0
        idevel=0
        ifault=1
        isolver=1
@@ -405,6 +406,11 @@
        
        if(inp_compare(.false.,'Development',item)) then
          if(.not.inp_i(idevel)) idevel=0
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Summit',item)) then
+         if(.not.inp_i(isummit)) isummit=6
          goto 2
        endif
        
@@ -724,13 +730,14 @@
           idum(36)=isolver
           idum(37)=ifault
           idum(38)=idevel
+          idum(39)=isummit
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
         endif
         
-        call MPI_Bcast(idum,38,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,39,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,3,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -771,6 +778,7 @@
         isolver=idum(36)
         ifault =idum(37)
         idevel =idum(38)
+        isummit=idum(39)
         
         thresh=rdum(1)
         thresh_CI=rdum(2)
@@ -882,6 +890,15 @@
       allocate(ranks_heads(ngr+1))
 
       master=np-1
+
+      if(isummit.gt.0) then
+        do i=1,np
+          map2(i,5)=-1
+        enddo
+        do i=1,min(np,nnodes*isummit)
+          map2(i,5)=1
+        enddo
+      endif
 
       if(cyclic) then
        j=0

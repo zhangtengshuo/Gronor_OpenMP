@@ -126,10 +126,20 @@ c      endif
 
       node=1
       map2(1,5)=1
+      nranks=1
+      j=1
       do i=2,np
        if(map2(i,4).ne.map2(i-1,4)) node=node+1
        map2(i,5)=node
+       if(map2(i,4).eq.map2(i-1,4)) then
+         j=j+1
+         nranks=max(nranks,j)
+       else
+         j=1
+       endif
       enddo
+
+      nnodes=node
 
       do i=1,np
        map2(i,4)=map2(i,5)

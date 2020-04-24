@@ -92,10 +92,12 @@
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
      &         '   Element         Determinants      ',
      &         '              Singularities             ',
-     &         '    Below                  Unnormalized    ',/
+     &         '    Below                  Unnormalized           ',
+     &         '  Wall Clock',/
      &         '  idet jdet    left   right     pairs',
      &         '      none         1         2        3+',
-     &         '  threshold       Hamiltonian           Overlap   ',/)
+     &         '  Threshold       Hamiltonian           Overlap   ',
+     &         '        Time',/)
           
       do ibase=1,nbase
         do jbase=1,ibase
@@ -250,10 +252,10 @@
                         ltemp=idetb(i)*idetb(j)
                       endif
                       write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j)
- 622                  format(1x,2i5,2i8,i10,5i10,2f20.10)
-                      
+     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                     timer_wall_total(99)
                       flush(lfnout)
+ 622                  format(1x,2i5,2i8,i10,5i10,2f20.10,f12.3)
                     endif
                     write(lfnday,703) date(1:8),time(1:8),
      &                   timer_wall_total(99),
@@ -405,7 +407,8 @@
                     ltemp=idetb(i)*idetb(j)
                   endif
                   write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j)
+     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                 timer_wall_total(99)
                   flush(lfnout)
                 endif
                 call swatch(date,time)

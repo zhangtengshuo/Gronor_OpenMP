@@ -13,7 +13,7 @@
 
       implicit none
 
-      integer :: i,j,node
+      integer :: i,j,k,node
       integer (kind=4) :: len, ierr
       integer (kind=4) :: istat
 
@@ -139,33 +139,61 @@ c      endif
        endif
       enddo
 
-      nnodes=node
+      nnodes=1
+      do i=2,np
+       k=0
+       do j=1,i-1
+        if(map2(i,4).eq.map2(j,4)) k=k+1
+       enddo
+       if(k.eq.0) nnodes=nnodes+1
+      enddo
+
+      ncycls=node/nnodes
+      nrsets=np/ncycls
+      nranks=ncycls*nranks
+      nrnsets=nrsets/nnodes
+
+      do i=1,ncycls
+         do j=1,nrsets
+            map2((i-1)*nrsets+j,3)=i
+         enddo
+      enddo
 
       do i=1,np
        map2(i,4)=map2(i,5)
       enddo
 
-      node=map2(1,4)
-      j=map2(1,1)
-      do i=1,np
-       if(map2(i,4).eq.node) then
-        if(j.gt.0) then
-         map2(i,5)=map2(i,1)
-         j=j-1
-        else
-         map2(i,5)=-map2(i,2)
-        endif
-       else
-        node=map2(i,4)
-        j=map2(i,1)
-        if(j.gt.0) then
-         map2(i,5)=map2(i,1)
-         j=j-1
-        else
-         map2(i,5)=-map2(i,2)
-        endif
-       endif
-      enddo
+      if(ncycls.eq.1) then
+         node=map2(1,4)
+         j=map2(1,1)
+         do i=1,np
+            if(map2(i,4).eq.node) then
+               if(j.gt.0) then
+                  map2(i,5)=map2(i,1)
+                  j=j-1
+               else
+                  map2(i,5)=-map2(i,2)
+               endif
+            else
+               node=map2(i,4)
+               j=map2(i,1)
+               if(j.gt.0) then
+                  map2(i,5)=map2(i,1)
+                  j=j-1
+               else
+                  map2(i,5)=-map2(i,2)
+               endif
+            endif
+         enddo
+      else
+         do i=1,np
+            if(map2(i,1).gt.0.and.map2(i,3).le.map2(i,1))then
+               map2(i,5)=map2(i,1)
+            else
+               map2(i,5)=-map2(i,2)
+            endif
+         enddo
+      endif
 
       return
       end

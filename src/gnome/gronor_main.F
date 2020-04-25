@@ -197,9 +197,9 @@
        write(lfnout,601) trim(user),getcpucount(),
      &      trim(host),nnodes,
      &      date(1:8),nrsets,
-     &      time(1:8),nranks,numdev,
-     &      trim(command),np,
-     &      num_threads,isummit,
+     &      time(1:8),nrnsets,numdev,
+     &      trim(command),np,np/nnodes,np/nrsets,
+     &      ncycls,num_threads,
      &      filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
      &      filout(1:inp_strlen(filout)),filint(1:inp_strlen(filint)),
      &      root(1:inp_strlen(root)),memfre,
@@ -210,14 +210,16 @@
      &      ' User',t30,a,t60,'CPU count',t100,i10,/,/,
      &      ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
      &      ' Date',t30,a,t60,
-     &      'Number of resource sets per node',t100,i10,/,
+     &      'Number of resource sets',t100,i10,/,
      &      ' Time',t30,a,t60,
-     &      'Number of ranks per node',t100,i10,/,
-     &      t60,'Number of NVIDIA devices',t100,i10,/,
+     &      'Number of resource sets per node',t100,i10,/,
+     &      t60,'Number of NVIDIA devices per resource set',t100,i10,/,
      &      ' Command argument',t30,a,t60,
      &      'Number of MPI ranks',t100,i10,/,
-     &      t60,'Number of OPENMP threads (OMP_NUM_THREADS)',t100,i10,/,
-     &      t60,'Number of Summit GPU ranks per node',t100,i10,//,
+     &      t60,'Number of MPI ranks per node',t100,i10,/,
+     &      t60,'Number of MPI ranks per resource set',t100,i10,/,
+     &      t60,'Number of rank assignment cycles',t100,i10,/,
+     &      t60,'Number of OPENMP threads (OMP_NUM_THREADS)',t100,i10,//,
      &      ' Input filename is',t30,a,t60,
      &      'Symmetry filename is',t90,a,/,
      &      ' Output filename is',t30,a,t60,
@@ -251,7 +253,6 @@
        iload=1
        ibatch=1
        itest=0
-       isummit=0
        idevel=0
        ifault=1
        isolver=1
@@ -409,11 +410,6 @@
          goto 2
        endif
        
-       if(inp_compare(.false.,'Summit',item)) then
-         if(.not.inp_i(isummit)) isummit=6
-         goto 2
-       endif
-       
        if(inp_compare(.false.,'IntAdd',item)) then
          if(.not.inp_i(intadd)) intadd=0
          goto 2
@@ -529,7 +525,8 @@
  625    format(' Fault tolerance wait time',t40,i10,' sec',t60,
      &       'Over-subscription of accelerators (MPS)',t100,i10)
       endif
-      write(lfnout,626) itest,mgr,idevel,nmol,ibatch,mstates
+      write(lfnout,626) itest,mgr,idevel,nmol,ibatch,mstates,
+     &     nbase
  626  format(' Test option',t40,i10,t60,
      &     'Integrals divided over tasks number of ranks',t100,i10,/,
      &     ' Development option',t40,i10,t60,
@@ -730,14 +727,13 @@
           idum(36)=isolver
           idum(37)=ifault
           idum(38)=idevel
-          idum(39)=isummit
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
         endif
         
-        call MPI_Bcast(idum,39,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,38,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,3,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -778,7 +774,6 @@
         isolver=idum(36)
         ifault =idum(37)
         idevel =idum(38)
-        isummit=idum(39)
         
         thresh=rdum(1)
         thresh_CI=rdum(2)
@@ -891,16 +886,7 @@
 
       master=np-1
 
-      if(isummit.gt.0) then
-        do i=1,np
-          map2(i,5)=-1
-        enddo
-        do i=1,min(np,nnodes*isummit)
-          map2(i,5)=1
-        enddo
-      endif
-
-      if(cyclic) then
+      if(ncycls.gt.1) then
        j=0
        do i=1,np
         if(map2(i,5).gt.0) j=j+1
@@ -963,6 +949,7 @@
             if(igr.eq.mgr) igr=0
           endif
         enddo
+
         if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
         igr=0
         do i=1,np
@@ -974,6 +961,7 @@
             if(igr.eq.mgr) igr=0
           endif
         enddo
+
         if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
         do i=1,numgrp
           allheads(i)=allgroups(i,2)

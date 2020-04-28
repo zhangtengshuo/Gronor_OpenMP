@@ -136,6 +136,15 @@
           endif
           flush(lfnout)
           
+          call swatch(date,time)
+          call timer_stop(99)
+          write(lfnday,802) date(1:8),time(1:8),
+     &         timer_wall_total(99),
+     &         '  :  ',ibase,jbase,' started, dimensions ',ndeti,ndetj
+ 802      format(a8,2x,a8,f12.3,a,2i6,a,2i12)
+          flush(lfnday)
+          call timer_start(99)
+          
           nrb=0
           ndone=0
           ibuf(1)=0
@@ -203,7 +212,7 @@
      &               timer_wall_total(99),
      &               '  :  ',lgroup(igrp,1),lgroup(igrp,2),' at ',
      &               pnrb(lgroup(igrp,1),lgroup(igrp,2)),'%'
- 702            format(a8,2x,a8,f12.3,a,2i6,a,f12.1,a)
+ 702            format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a)
                 flush(lfnday)
                 call timer_start(99)
                 fday(lgroup(igrp,1),lgroup(igrp,2))=
@@ -257,9 +266,10 @@
                       flush(lfnout)
  622                  format(1x,2i5,2i8,i10,5i10,2f20.10,f12.3)
                     endif
+                    call swatch(date,time)
                     write(lfnday,703) date(1:8),time(1:8),
      &                   timer_wall_total(99),
-     &                   '  :  ',i,j,'         completed, H,S:',
+     &                   '  :  ',i,j,' completed, H,S:',
      &                   hbase(i,j),sbase(i,j)
  703                format(a8,2x,a8,f12.3,a,2i6,a,2f20.10)
                     flush(lfnday)

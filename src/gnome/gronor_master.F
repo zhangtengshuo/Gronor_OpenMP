@@ -190,7 +190,7 @@
      &               pnrb(lgroup(igrp,1),lgroup(igrp,2)),
      &               buffer(1),buffer(2),(int(buffer(j)),j=3,7)
  680            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
-     &               3i6,i12,f8.3,'% ',2e12.6,5i8)
+     &               3i6,i12,f8.3,'% ',2e16.8,5i8)
                 flush(lfnpro)
               elseif(ipro.eq.2.or.ipro.eq.4) then
                 call swatch(date,time)

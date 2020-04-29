@@ -185,7 +185,7 @@
          
          flush(lfnout)
          
-         do i=1,npg
+         do i=1,np
            if(i-1.ne.master) then
              write(lfnout,611) i-1,(timings(i,j),j=30,36),
      &            timings(i,39),timings(i,37)

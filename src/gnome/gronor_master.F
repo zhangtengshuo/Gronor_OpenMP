@@ -539,17 +539,31 @@
       if(ipr.ge.3) then
         write(lfnout,670)
  670    format(//,' Hamiltonian Matrix Unnormalized',/)
-        write(lfnout,671) (i,i=1,nbase)
- 671    format(6x,7(6x,i8,6x))
+        if(nbase.le.7) then
+          write(lfnout,671) (i,i=1,nbase)
+ 671      format(6x,7(6x,i8,6x))
+        else
+          write(lfnout,1671) (i,i=1,nbase)
+ 1671   format(6x,7(6x,i8,6x))
+        endif
         do j=1,nbase
-          write(lfnout,672) j,(hbase(i,j),i=1,nbase)
- 672      format(i5,1x,7f20.10,/,(6x,7f20.10))
+          if(nbase.le.7) then
+            write(lfnout,672) j,(hbase(i,j),i=1,nbase)
+ 672        format(i5,1x,7f20.10)
+          else
+            write(lfnout,1672) j,(hbase(i,j),i=1,nbase)
+ 1672       format(i5,1x,7f20.10,/,(6x,7f20.10))
+          endif
         enddo
         write(lfnout,673)
  673    format(//,' Overlap Matrix Unnormalized',/)
         write(lfnout,671) (i,i=1,nbase)
         do j=1,nbase
-          write(lfnout,672) j,(sbase(i,j),i=1,nbase)
+          if(nbase.le.7) then
+            write(lfnout,672) j,(sbase(i,j),i=1,nbase)
+          else
+            write(lfnout,1672) j,(sbase(i,j),i=1,nbase)
+          endif
         enddo
       endif
       

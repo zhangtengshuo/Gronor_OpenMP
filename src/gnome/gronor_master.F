@@ -357,7 +357,8 @@
      &           iremote,igrp,(lgroup(igrp,j),j=1,4),
      &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &           pnrb(lgroup(igrp,1),lgroup(igrp,2)),buffer
+     &           pnrb(lgroup(igrp,1),lgroup(igrp,2)),
+     &           buffer(1),buffer(2),(int(buffer(j)),j=3,7)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             if(ipro.eq.2) rewind(unit=lfnpro)
@@ -552,10 +553,6 @@
       enddo
       write(lfnout,623) mdet,nsingt
  623  format(/,' Total',5x,16x,i10,5i10)
-      
-      write(lfnout,675) nalive*mgr+1,np
- 675  format(/,' At the end of the run',i5,' of ',i5,
-     &     ' processes are still active')
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

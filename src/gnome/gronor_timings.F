@@ -233,6 +233,9 @@
       call timer_stop(99)
       
       if(me.eq.master) then
+      write(lfnout,675) nalive*mgr+1,np
+ 675  format(//,' At the end of the run',i5,' of ',i5,
+     &     ' processes are still active')
         if(ipr.ge.3) write(lfnout,615) 
      &       timer_wall_total(94),timer_wall_total(95),
      &       timer_wall_total(96),
@@ -241,11 +244,11 @@
      &       ' Request  time on master',t55,f12.3,/,
      &       ' Response time on master',t55,f12.3,/,
      &       ' Requestf time on master',t55,f12.3,/,
-     &       ' Finalize time on master',t55,f12.3,//)
+     &       ' Finalize time on master',t55,f12.3,/)
         write(lfnout,614) 
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99)
- 614    format(//,' Setup wall clock time on master',t55,f12.3,/,
+ 614    format(/,' Setup wall clock time on master',t55,f12.3,/,
      &       ' Matrix element calculation wall clock time on master',
      &       t55,f12.3,//,
      &       ' Total execution wall clock time on master ',t55,f12.3)

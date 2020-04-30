@@ -88,7 +88,10 @@
       if(ipr.ge.0) write(lfnout,618) mdet
  618  format(' Total number of determinant pairs',t50,i16)
       
-          if(ipr.gt.1) write(lfnout,621)
+      if(ipr.gt.1) then
+        write(*,621)
+        write(lfnout,621)
+      endif
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
      &         '   Element         Determinants      ',
      &         '              Singularities             ',
@@ -261,6 +264,9 @@
                       else
                         ltemp=idetb(i)*idetb(j)
                       endif
+                      write(*,622) i,j,idetb(i),idetb(j),ltemp,
+     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                     timer_wall_total(99)
                       write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
      &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
      &                     timer_wall_total(99)
@@ -418,6 +424,9 @@
                   else
                     ltemp=idetb(i)*idetb(j)
                   endif
+                  write(*,622) i,j,idetb(i),idetb(j),ltemp,
+     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                 timer_wall_total(99)
                   write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
      &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
      &                 timer_wall_total(99)
@@ -551,6 +560,7 @@
           enddo
         enddo
       enddo
+      write(*,623) mdet,nsingt
       write(lfnout,623) mdet,nsingt
  623  format(/,' Total',5x,16x,i10,5i10)
       

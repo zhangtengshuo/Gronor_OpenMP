@@ -581,7 +581,7 @@
       enddo
       write(*,623) mdet,nsingt
       write(lfnout,623) mdet,nsingt
- 623  format(/,' Total',5x,16x,i10,5i10)
+ 623  format(/,' Total',25x,2i14,2i12,2i14)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

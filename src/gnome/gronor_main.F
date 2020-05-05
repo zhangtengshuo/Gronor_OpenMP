@@ -201,7 +201,7 @@
      &      np,np/nnodes,np/nrsets,
      &      ncycls,num_threads,trim(command),trim(cwd),
      &      filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
-     &      filout(1:inp_strlen(filout)),filint(1:inp_strlen(filint)),
+     &      filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
      &      root(1:inp_strlen(root)),memfre,
      &      root(1:inp_strlen(root)),memtot
 
@@ -220,13 +220,13 @@
      &      t60,'Number of OPENMP threads (OMP_NUM_THREADS)',t100,i10,//,
      &      ' Command argument',t30,a,/,
      &      ' Current working directory',t30,a,//,
-     &      ' Input filename is',t30,a,t60,
-     &      'Symmetry filename is',t90,a,/,
-     &      ' Output filename is',t30,a,t60,
-     &      'Integral filename is',t90,a,//,
-     &      ' CI vector filename(s) are',t30,a,'_nnn.civ',t60,
+     &      ' Input file is',t25,a,t60,
+     &      'Symmetry file is',t92,a,/,
+     &      ' Output file is',t25,a,t60,
+     &      'One electron integral file is',t92,a,//,
+     &      ' CI vector file(s) are',t25,a,'_nnn.civ',t60,
      &      'Available memory on device',t90,i20,/,
-     &      ' MO vector filename(s) are',t30,a,'_nnn.vec',t60,
+     &      ' MO vector file(s) are',t25,a,'_nnn.vec',t60,
      &      'Total memory on device',t90,i20,//)
 
 !     Read from the input file

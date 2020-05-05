@@ -93,13 +93,13 @@
         write(lfnout,621)
       endif
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
-     &         '   Element     ---- Determinants ----',
-     &         '      ---------- Singularities ---------',
-     &         '    Below         -------- Unnormalized -------   ',
+     &         '   Element       ------- Determinants -------',
+     &         '          -------------- Singularities -------------  ',
+     &         '       Below        -------- Unnormalized -------   ',
      &         '  Wall Clock',/
-     &         '  idet jdet    left   right     pairs',
-     &         '      none         1         2        3+',
-     &         '  Threshold       Hamiltonian           Overlap   ',
+     &         '  idet jdet      left     right         pairs',
+     &         '          none           1           2            3+',
+     &         '       Threshold      Hamiltonian           Overlap   ',
      &         '        Time',/)
           
       do ibase=1,nbase
@@ -271,7 +271,7 @@
      &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
      &                     timer_wall_total(99)
                       flush(lfnout)
- 622                  format(1x,2i5,2i8,i10,5i10,2f20.10,f12.3)
+ 622                  format(1x,2i5,2i10,2i14,2i12,2i14,2f20.10,f12.3)
                     endif
                     call swatch(date,time)
                     write(lfnday,703) date(1:8),time(1:8),
@@ -460,11 +460,7 @@
      &           lgroup(i,2).eq.lgroup(igrp,2).and.
      &           lgroup(i,3).eq.lgroup(igrp,3).and.
      &           lgroup(i,4).eq.lgroup(igrp,4).and.
-     &           lgroup(i,5).gt.0.and.i.ne.igrp) then
-              do j=1,5
-                lgroup(i,j)=0
-              enddo
-            endif
+     &           lgroup(i,5).gt.0.and.i.ne.igrp) lgroup(i,5)=0
           enddo
 !     Reset the current entry
           do i=1,5

@@ -93,9 +93,9 @@
         write(lfnout,621)
       endif
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
-     &         '   Element         Determinants      ',
-     &         '              Singularities             ',
-     &         '    Below                  Unnormalized           ',
+     &         '   Element     ---- Determinants ----',
+     &         '      ---------- Singularities ---------',
+     &         '    Below         -------- Unnormalized -------   ',
      &         '  Wall Clock',/
      &         '  idet jdet    left   right     pairs',
      &         '      none         1         2        3+',
@@ -325,6 +325,15 @@
         enddo
       enddo
       
+      call swatch(date,time)
+      call timer_stop(99)
+      write(lfnday,8023) date(1:8),time(1:8),
+     &     timer_wall_total(99),
+     &     '  :  Switching to duplicate tasks'
+ 8023 format(a8,2x,a8,f12.3,a)
+      flush(lfnday)
+      call timer_start(99)
+          
       nleft=0
       do i=1,npg
         if(lgroup(i,5).gt.0) nleft=nleft+1
@@ -487,7 +496,7 @@
           endif
         else
 !     Received data other than matrix elements, should currently be impossible
-          if(ipro.eq.2.or.ipro.eq.4) then
+          if(ipro.eq.1.or.ipro.eq.3) then
             write(lfnpro,683) date(1:8),time(1:8), 
      &           iremote,igrp,(lgroup(igrp,j),j=1,4),
      &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),

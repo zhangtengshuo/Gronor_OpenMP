@@ -1323,8 +1323,7 @@
        close(unit=lfnf74,status='keep')
 
        nk=nbase/ncols
-       if(mod(nbas,ncols).ne.0) nk=nk+1
-       print*,' nk=',nk
+       if(mod(nbase,ncols).ne.0) nk=nk+1
        do k=1,nk
          ii=(k-1)*ncols+1
          il=min(nbase,k*ncols)
@@ -1336,11 +1335,10 @@
        enddo
 
        nk=nbase/ncols
-       if(mod(nbas,ncols).ne.0) nk=nk+1
+       if(mod(nbase,ncols).ne.0) nk=nk+1
        do k=1,nk
          ii=(k-1)*ncols+1
          il=min(nbase,k*ncols)
-         print*,ii,il
          write(lfnout,675)
  675     format(//,' Overlap Matrix unnormalised',/)
          write(lfnout,671) (i,i=ii,il)
@@ -1372,7 +1370,7 @@
         allocate(hbt(nbase))
         write(*,670)
         nk=nbase/ncols
-        if(mod(nbas,ncols).ne.0) nk=nk+1
+        if(mod(nbase,ncols).ne.0) nk=nk+1
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
@@ -1386,20 +1384,20 @@
           do j=1,nbase
             write(*,672) j,(hbase(i,j),i=ii,il)
             write(lfnout,672) j,(hbase(i,j),i=ii,il)
- 672        format(i5,1x,7f20.10,/,(6x,7f20.10))
+ 672        format(i5,1x,10f20.10)
             do i=ii,il
               hbt(i)=hbase(i,j)
               if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
             enddo
             write(lfntst,1672) j,(hbt(i),i=ii,il)
- 1672       format(i5,1x,7f20.8,/,(6x,7f20.8))
+ 1672       format(i5,1x,10f20.8)
           enddo
           write(lfnout,*) ' '
           write(*,*) ' '
         enddo
         write(*,673)
         nk=nbase/ncols
-        if(mod(nbas,ncols).ne.0) nk=nk+1
+        if(mod(nbase,ncols).ne.0) nk=nk+1
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
@@ -1444,7 +1442,7 @@
           write(*,676)
  676      format(//,' Electronic Couplings',/)
           nk=nbase/ncols
-          if(mod(nbas,ncols).ne.0) nk=nk+1
+          if(mod(nbase,ncols).ne.0) nk=nk+1
           do k=1,nk
             ii=(k-1)*ncols+1
             il=min(nbase,k*ncols)
@@ -1489,7 +1487,7 @@
  677      format(//,' NOCI energies and wave functions',/)
 
           nk=nbase/ncols
-          if(mod(nbas,ncols).ne.0) nk=nk+1
+          if(mod(nbase,ncols).ne.0) nk=nk+1
           do k=1,nk
             ii=(k-1)*ncols+1
             il=min(nbase,k*ncols)

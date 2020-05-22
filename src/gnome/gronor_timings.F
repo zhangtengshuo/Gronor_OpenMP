@@ -18,7 +18,8 @@
       integer (kind=4), allocatable :: isync(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE),nrem
       integer (kind=4), allocatable :: ireq(:)
-      real (kind=8),allocatable :: tdat(:,:)
+!      real (kind=8),allocatable :: tdat(:,:)
+      real (kind=8),allocatable :: tdat(:)
       integer (kind=4) :: nindx
       logical (kind=4) :: odone
       character (len=255) :: date,time
@@ -35,7 +36,9 @@
            nalive=nalive*mgr
          endif
          allocate(isync(nalive))
-         allocate(ireq(nalive),tdat(68,nalive))
+         allocate(ireq(nalive))
+!         allocate(tdat(68,nalive))
+         allocate(tdat(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -57,24 +60,35 @@
          timings(me+1,66)=dble(nacc0)
          timings(me+1,67)=dble(nacc1)
          timings(me+1,68)=dble(memavail)
+
          do i=1,nalive
-           call MPI_IRecv(tdat(1,i),68,MPI_REAL8,MPI_ANY_SOURCE,11,
-     &          MPI_COMM_WORLD,ireq(i),ierr)
+           call MPI_Recv(tdat,68,MPI_REAL8,MPI_ANY_SOURCE,11,
+     &           MPI_COMM_WORLD,status,ierr)
+           iremote=status(MPI_SOURCE)
+           isync(i)=iremote
+           do j=1,68
+             timings(iremote+1,j)=tdat(j)
+           enddo
          enddo
-         call sleep(ifault)
-         do i=1,nalive
-           nrem=nalive
-           call MPI_Testany(nrem,ireq,nindx,odone,status,ierr)
-           if (odone) then
-             iremote=status(MPI_SOURCE)
-             isync(i)=iremote
-             do j=1,68
-               timings(iremote+1,j)=tdat(j,nindx)
-             enddo
-           else
-           endif
-         enddo
-       elseif(iamactive.eq.1) then
+!         do i=1,nalive
+!           call MPI_IRecv(tdat(1,i),68,MPI_REAL8,MPI_ANY_SOURCE,11,
+!     &          MPI_COMM_WORLD,ireq(i),ierr)
+!         enddo
+!         call sleep(ifault)
+!         do i=1,nalive
+!           nrem=nalive
+!           call MPI_Testany(nrem,ireq,nindx,odone,status,ierr)
+!           if (odone) then
+!             iremote=status(MPI_SOURCE)
+!             isync(i)=iremote
+!             do j=1,68
+!               timings(iremote+1,j)=tdat(j,nindx)
+!             enddo
+!           else
+!           endif
+!         enddo
+!     elseif(iamactive.eq.1) then
+       else 
          do j=1,60
            tdata(j)=timer_wall_total(j)
          enddo
@@ -112,7 +126,8 @@
            else
              write(lfnout,602) i-1,(timings(i,j),j=1,6),
      &            int(timings(i,46)),
-     &            int(timings(i,68)),(timings(i,j),j=46,49)
+     &            int(timings(i,68))
+!             ,(timings(i,j),j=46,49)
  602         format(1x,i5,6f12.3,i12,i16,4f12.3)
            endif
          enddo
@@ -217,8 +232,8 @@
          idum=1
          do i=1,nalive
            if (isync(i).ne.-1)
-     &          call MPI_Send(idum,1,MPI_INTEGER,isync(i),12,
-     &          MPI_COMM_WORLD,ierr)
+     &          call MPI_iSend(idum,1,MPI_INTEGER,isync(i),12,
+     &          MPI_COMM_WORLD,ireq,ierr)
          enddo
        else
          call MPI_Recv(idum,1,MPI_INTEGER,master,12,MPI_COMM_WORLD,
@@ -233,7 +248,7 @@
       call timer_stop(99)
       
       if(me.eq.master) then
-      write(lfnout,675) nalive*mgr+1,np
+      write(lfnout,675) nalive+1,np
  675  format(//,' At the end of the run',i5,' of ',i5,
      &     ' processes are still active')
         if(ipr.ge.3) write(lfnout,615) 

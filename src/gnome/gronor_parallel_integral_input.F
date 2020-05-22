@@ -175,8 +175,9 @@
        allocate(lab(4,mint2))
 
        if(idbg.gt.0) then
-        write(*,1300) me,mint2
- 1300   format(i5,' Allocating g and lab with dimension ',i10)
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &    ' Allocating g and lab with dimension ',mint2
        endif
 
        if(idbg.gt.3) then
@@ -286,7 +287,9 @@
         allocate(lab(4,mint2))
 
        if(idbg.gt.0) then
-        write(*,1300) me,mint2
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &    ' Allocating g and lab with dimension ',mint2
        endif
 
         if(idbg.gt.3) then

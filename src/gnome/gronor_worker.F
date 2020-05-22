@@ -13,6 +13,8 @@
 #endif
       implicit none
 
+      real(kind=8), external :: timer_wall_total
+      
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,j,l2,n,k,ict
       integer (kind=4) :: ireq,ierr
@@ -225,7 +227,14 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
        endif
 
        call timer_stop(39)
-
+       
+       if(idbg.gt.0) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
+     &        me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
+         flush(lfndbg)
+       endif
+       
        ibase=ibuf(1)
        jbase=ibuf(2)
        idet=ibuf(3)

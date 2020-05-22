@@ -104,7 +104,7 @@
      &         '        Time    Acc Time',/)
           
       do ibase=1,nbase
-        do jbase=ibase,1,-1
+        do jbase=1,ibase
           osame=ibase.eq.jbase
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)

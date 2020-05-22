@@ -101,7 +101,7 @@
      &         '  idet jdet      left     right         pairs',
      &         '          none           1           2            3+',
      &         '       Threshold      Hamiltonian           Overlap   ',
-     &         '        Time    Acc Time',/)
+     &         '        Cost        Time',/)
           
       do ibase=1,nbase
         do jbase=1,ibase

@@ -13,7 +13,7 @@
 #endif
       implicit none
 
-      real(kind=8), external :: timer_wall_total
+      real(kind=8), external :: timer_wall_total, timer_wall
       
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,j,l2,n,k,ict
@@ -133,7 +133,7 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
 #endif
        endif
 
-      do i=1,7
+      do i=1,8
        buffer(i)=0.0d0
       enddo
 
@@ -152,7 +152,7 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
 !     If head thread signal master thread to start sending tasks
 
       if(iamhead.eq.1) then
-       call MPI_iSend(buffer,7,MPI_REAL8,master,1,
+       call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      & MPI_COMM_WORLD,ireq,ierr)
        if(idbg.gt.0) then
         call swatch(date,time)
@@ -248,9 +248,10 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
      &      me,' Entering gronor_calculate '
          flush(lfndbg)
         endif
-       call timer_start(47)
+        call timer_start(47)
         call gronor_calculate(ibase,jbase,idet,jdet,ibatch)
-       call timer_stop(47)
+        call timer_stop(47)
+        buffer(3)=timer_wall(47)
         if(idbg.gt.2) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
@@ -259,7 +260,7 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
         endif
        call timer_start(48)
         if(iamhead.eq.1) then
-         call MPI_iSend(buffer,7,MPI_REAL8,master,1,
+         call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      &   MPI_COMM_WORLD,ireq,ierr)
          if(idbg.gt.2) then
           call swatch(date,time)

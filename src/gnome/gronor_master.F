@@ -11,7 +11,7 @@
       integer :: ibase,jbase,nidet,njdet,mdet
       integer :: l2,i,j,k,ij,n,ndone,nleft,nrb
       integer (kind=4) :: ierr,ireq,iremote
-      integer :: igrp, ltemp
+      integer :: igrp, ltemp, last
       logical :: osame
 
       real (kind=8) :: fac
@@ -57,6 +57,7 @@
         do jbase=1,ibase
           hbase(ibase,jbase)=0.0d0
           sbase(ibase,jbase)=0.0d0
+          tbase(ibase,jbase)=0.0d0
         enddo
         do jbase=1,nbase
           ntasks(ibase,jbase)=-1
@@ -96,14 +97,14 @@
      &         '   Element       ------- Determinants -------',
      &         '          -------------- Singularities -------------  ',
      &         '       Below        -------- Unnormalized -------   ',
-     &         '  Wall Clock',/
+     &         '  Wall Clock  Wall Clock',/
      &         '  idet jdet      left     right         pairs',
      &         '          none           1           2            3+',
      &         '       Threshold      Hamiltonian           Overlap   ',
-     &         '        Time',/)
+     &         '        Time    Acc Time',/)
           
       do ibase=1,nbase
-        do jbase=1,ibase
+        do jbase=ibase,1,-1
           osame=ibase.eq.jbase
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
@@ -158,7 +159,7 @@
           do while(ndone.lt.ijend)
             
             call timer_start(94)
-            call MPI_Recv(buffer,7,MPI_REAL8,MPI_ANY_SOURCE,1,
+            call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
      &           MPI_COMM_WORLD,status,ierr)
             call timer_stop(94)
             call timer_start(95)
@@ -191,7 +192,7 @@
      &               iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
      &               pnrb(lgroup(igrp,1),lgroup(igrp,2)),
-     &               buffer(1),buffer(2),(int(buffer(j)),j=3,7)
+     &               buffer(1),buffer(2),(int(buffer(j)),j=4,8)
  680            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
      &               3i6,i12,f8.3,'% ',2e16.8,5i8)
                 flush(lfnpro)
@@ -232,16 +233,18 @@
      &             hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
               sbase(lgroup(igrp,1),lgroup(igrp,2))=
      &             sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
+              tbase(lgroup(igrp,1),lgroup(igrp,2))=
+     &             tbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(3)
               nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
-     &             nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(3))
+     &             nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(4))
               nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &             nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(4))
+     &             nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(5))
               nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
-     &             nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
+     &             nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(6))
               nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
-     &             nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
+     &             nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(7))
               nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
-     &             nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(7))
+     &             nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(8))
               
               ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &             ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
@@ -265,13 +268,15 @@
                         ltemp=idetb(i)*idetb(j)
                       endif
                       write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                     (nsing(i,j,k),k=1,5),
+     &                     hbase(i,j),sbase(i,j),tbase(i,j),
      &                     timer_wall_total(99)
                       write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                     (nsing(i,j,k),k=1,5),
+     &                     hbase(i,j),sbase(i,j),tbase(i,j),
      &                     timer_wall_total(99)
                       flush(lfnout)
- 622                  format(1x,2i5,2i10,2i14,2i12,2i14,2f20.10,f12.3)
+ 622                  format(1x,2i5,2i10,2i14,2i12,2i14,2f20.10,2f12.1)
                     endif
                     call swatch(date,time)
                     write(lfnday,703) date(1:8),time(1:8),
@@ -308,6 +313,7 @@
               flush(lfndbg)
             endif
             if(ipr.eq.2.or.ipro.eq.4) then
+              call swatch(date,time)
               write(lfnpro,682) date(1:8),time(1:8),
      &             iremote,igrp,(ibuf(j),j=1,4),
      &             iloop(ibuf(3),1),iloop(ibuf(3),2)
@@ -333,7 +339,9 @@
  8023 format(a8,2x,a8,f12.3,a)
       flush(lfnday)
       call timer_start(99)
-          
+
+      last=0
+      
       nleft=0
       do i=1,npg
         if(lgroup(i,5).gt.0) nleft=nleft+1
@@ -343,7 +351,7 @@
       call timer_start(97)
       do while(nleft.gt.0)
         call timer_start(96)
-        call MPI_Recv(buffer,7,MPI_REAL8,MPI_ANY_SOURCE,1,
+        call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
      &       MPI_COMM_WORLD,status,ierr)
         call timer_stop(96)
         
@@ -373,7 +381,7 @@
      &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
      &           pnrb(lgroup(igrp,1),lgroup(igrp,2)),
-     &           buffer(1),buffer(2),(int(buffer(j)),j=3,7)
+     &           buffer(1),buffer(2),(int(buffer(j)),j=4,8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             if(ipro.eq.2) rewind(unit=lfnpro)
@@ -407,16 +415,18 @@
      &         hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
           sbase(lgroup(igrp,1),lgroup(igrp,2))=
      &         sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
+          tbase(lgroup(igrp,1),lgroup(igrp,2))=
+     &         tbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(3)
           nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(3))
+     &         nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(4))
           nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(4))
+     &         nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(5))
           nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(5))
+     &         nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(6))
           nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(6))
+     &         nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(7))
           nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(7))
+     &         nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(8))
           
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &         ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
@@ -434,10 +444,12 @@
                     ltemp=idetb(i)*idetb(j)
                   endif
                   write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                 (nsing(i,j,k),k=1,5),
+     &                 hbase(i,j),sbase(i,j),tbase(i,j),
      &                 timer_wall_total(99)
                   write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                 (nsing(i,j,k),k=1,5),hbase(i,j),sbase(i,j),
+     &                 (nsing(i,j,k),k=1,5),
+     &                 hbase(i,j),sbase(i,j),tbase(i,j),
      &                 timer_wall_total(99)
                   flush(lfnout)
                 endif
@@ -469,7 +481,12 @@
 !     Send a duplicate of an outstanding entry
           j=0
           do i=1,npg
-            if(lgroup(i,5).eq.1) j=i
+            if(j.eq.0) then
+              last=last+1
+              if(last.gt.npg) last=last-npg
+              if(lgroup(last,5).eq.1) j=last
+!              if(lgroup(i,5).eq.1) j=i
+            endif
           enddo
           if(j.gt.0) then
             do i=1,4
@@ -483,6 +500,14 @@
               write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &             master,' sent duplicate ibuf to',iremote
               flush(lfndbg)
+            endif
+            if(ipr.eq.2.or.ipro.eq.4) then
+              call swatch(date,time)
+              write(lfnpro,682) date(1:8),time(1:8),
+     &             iremote,igrp,(ibuf(j),j=1,4),
+     &             iloop(ibuf(3),1),iloop(ibuf(3),2)
+! 682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
+              flush(lfnpro)
             endif
             do k=1,4
               lgroup(igrp,k)=ibuf(k)

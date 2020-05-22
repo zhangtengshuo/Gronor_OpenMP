@@ -74,7 +74,8 @@
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
-      real (kind=8), allocatable :: hbase(:,:), sbase(:,:), hev(:)
+      real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
+      real (kind=8), allocatable :: hev(:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 
@@ -165,7 +166,7 @@
       real (kind=8), allocatable :: work(:)
       integer (kind=8) :: lwrk, lwork, info
 
-      real (kind=8) :: buffer(7)
+      real (kind=8) :: buffer(8)
 
       end module gnome_data
 

@@ -55,7 +55,7 @@
        ijend=l2
       endif
 
-      do i=1,7
+      do i=1,8
        buffer(i)=0.0d0
       enddo
       e2summ=0.0d0
@@ -284,7 +284,7 @@
 
        buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
        buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
-       buffer(ising+3)=buffer(ising+3)+1.0d0
+       buffer(ising+4)=buffer(ising+4)+1.0d0
 
        call timer_stop(5)
       enddo

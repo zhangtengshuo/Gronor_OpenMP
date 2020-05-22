@@ -1183,7 +1183,7 @@
         call timer_start(99)
       endif
       
-      allocate(hbase(nbase,nbase),sbase(nbase,nbase))
+      allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
       allocate(nsing(nbase,nbase,5))
       
 !     Define the process groups
@@ -1531,7 +1531,7 @@
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
 
-      deallocate(hbase,sbase,nsing)
+      deallocate(hbase,sbase,tbase,nsing)
 
       call timer_stop(4)
       call timer_stop(1)

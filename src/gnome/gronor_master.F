@@ -604,7 +604,7 @@
             nsingt(k)=nsingt(k)+nsing(i,j,k)
           enddo
         enddo
-        do j=1,ibase
+        do j=1,i
           tsum=tsum+tbase(i,j)
         enddo
       enddo

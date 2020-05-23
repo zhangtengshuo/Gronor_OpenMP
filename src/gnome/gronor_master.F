@@ -14,7 +14,7 @@
       integer :: igrp, ltemp, last
       logical :: osame
 
-      real (kind=8) :: fac
+      real (kind=8) :: fac, tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
       integer :: ibuf(4),nsingt(5)
@@ -39,6 +39,7 @@
       do i=1,5
         nsingt(i)=0
       enddo
+      tsum=0.0d0
 
 !     Contributions to H(i,j) are sent as tasks to groups and tracked in lgroup:
 !     lgroup(igrp,1) : current i in H(i,j) for current task sent to group igrp
@@ -603,10 +604,13 @@
             nsingt(k)=nsingt(k)+nsing(i,j,k)
           enddo
         enddo
+        do j=1,ibase
+          tsum=tsum+tbase(i,j)
+        enddo
       enddo
-      write(*,623) mdet,nsingt
-      write(lfnout,623) mdet,nsingt
- 623  format(/,' Total',25x,2i14,2i12,2i14)
+      write(*,623) mdet,nsingt,tsum,tsum/dble(np-1)
+      write(lfnout,623) mdet,nsingt,tsum,tsum/dble(np-1)
+ 623  format(/,' Total',25x,2i14,2i12,2i14,40x,2f12.1)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

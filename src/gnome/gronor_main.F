@@ -614,12 +614,16 @@
          do j=1,idetm(i)
            read(lfnciv,1002) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
  1002      format(i7,f25.14,6x,20(i2,x))
-           if(j.eq.1) then
-             write(lfnout,608) i,nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
- 608         format(/,2i8,f25.14,6x,20(i2.2,1x))
-           else
-             write(lfnout,609) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
- 609         format(8x,i8,f25.14,6x,20(i2.2,1x))
+           if(ipr.ge.3) then
+             if(j.eq.1) then
+               write(lfnout,608) i,nn,civm(j,i),
+     &              (iocc_tmp(k),k=1,nactm(i))
+ 608           format(/,2i8,f25.14,6x,20(i2.2,1x))
+             else
+               write(lfnout,609) nn,civm(j,i),
+     &              (iocc_tmp(k),k=1,nactm(i))
+ 609           format(8x,i8,f25.14,6x,20(i2.2,1x))
+             endif
            endif
            do k=1,nactm(i)
              if(iocc_tmp(k).eq.11) then

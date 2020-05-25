@@ -98,8 +98,9 @@
         enddo
       enddo
       
-      if(ipr.ge.0) write(lfnout,618) mdet
- 618  format(' Total number of determinant pairs',t50,i16)
+      if(ipr.ge.0) write(lfnout,618) mdet,numdet
+ 618  format(' Number of determinant pairs',t50,i16,/,
+     &     ' Number of determinants above CI threshold',t50,i16)
       
       if(ipr.gt.1) then
         write(*,621)

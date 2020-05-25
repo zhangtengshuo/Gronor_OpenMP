@@ -69,7 +69,7 @@
       integer :: maxgrp
       integer :: nk,ii,il,ik
 
-      integer :: ibase, jbase, ib, jb, l2, numdet, lnxt, lcur
+      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -1653,7 +1653,7 @@
 !       close(unit=lfnpro,status='delete')
       endif
 
-      if(ifault.eq.0) then
+      if(ifault.eq.0 .or. nalive+1.eq.np) then
         call mpi_finalize(ierr)
       else
         if(me.eq.master) call mpi_abort(MPI_COMM_WORLD,ierror,ierr)

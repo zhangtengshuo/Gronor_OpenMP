@@ -83,8 +83,10 @@
        ntcl(1)=0
        ntcl(2)=0
 
-       i=iloop(lstdet(ij+ioff),1)
-       j=iloop(lstdet(ij+ioff),2)
+!       i=iloop(lstdet(ij+ioff),1)
+!       j=iloop(lstdet(ij+ioff),2)
+       i=lstdet(ij+ioff,1)
+       j=lstdet(ij+ioff,2)
        
        hh=0.0d0
        ss=0.0d0
@@ -118,8 +120,10 @@
 
        if(nelec(1).ne.nelec(2)) stop
 
-       i=iloop(lstdet(ij+ioff),1)
-       j=iloop(lstdet(ij+ioff),2)
+!       i=iloop(lstdet(ij+ioff),1)
+!       j=iloop(lstdet(ij+ioff),2)
+       i=lstdet(ij+ioff,1)
+       j=lstdet(ij+ioff,2)
        
        hh=0.0d0
        ss=0.0d0

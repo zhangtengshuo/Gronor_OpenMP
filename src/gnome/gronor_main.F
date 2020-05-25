@@ -1195,21 +1195,14 @@
             i=iloop(k,1)
             j=iloop(k,2)
             l=l+1
-!            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
           enddo
-          if(me.eq.master) then
-!            write(*,567) ibase,jbase,idetb(ibase),idetb(jbase),l2,l
- 567        format('TPS ',6i8)
-          endif
           numdet=numdet+l
         enddo
       enddo
 
       allocate(ndxdet(nbase,nbase))
-      allocate(lstdet(numdet))
+      allocate(lstdet(numdet,2))
 
-! HIER
-      
       l=0
       numdet=0
       do ibase=1,nbase
@@ -1232,7 +1225,8 @@
             if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
               numdet=numdet+1
               l=l+1
-              lstdet(numdet)=k
+              lstdet(numdet,1)=i
+              lstdet(numdet,2)=j
             endif
           enddo
           ndxdet(jbase,ibase)=numdet
@@ -1241,11 +1235,11 @@
       enddo
 
 ! Following Bcasts should not be necessary, but added for safety
-      
-      call MPI_Bcast(ndxdet,nbase*nbase,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(lstdet,numdet,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
+
+!      call MPI_Bcast(ndxdet,nbase*nbase,MPI_INTEGER8,master,
+!     &     MPI_COMM_WORLD,ierr)
+!      call MPI_Bcast(lstdet,numdet*2,MPI_INTEGER8,master,
+!     &     MPI_COMM_WORLD,ierr)
 
       if(me.ne.master) then
         lnxt=0

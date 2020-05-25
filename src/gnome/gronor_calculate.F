@@ -24,6 +24,8 @@
 
       real (kind=8) :: fac
 
+      integer :: ioff
+
       ndeti=idetb(ib)
       ndetj=idetb(jb)
       nacti=nactb(ib)
@@ -45,6 +47,9 @@
         write(lfndbg,602) i,civb(i,jb),(iocch(k),k=1,nactj)
        enddo
       endif
+
+      ioff=ndxdet(ib,jb)
+      
       osame=ib.eq.jb
       call iloop_init(ndeti,ndetj,osame)
       if(ib.eq.jb) then
@@ -78,8 +83,9 @@
        ntcl(1)=0
        ntcl(2)=0
 
-       i=iloop(ij,1)
-       j=iloop(ij,2)
+       i=iloop(lstdet(ij+ioff),1)
+       j=iloop(lstdet(ij+ioff),2)
+       
        hh=0.0d0
        ss=0.0d0
        
@@ -112,9 +118,9 @@
 
        if(nelec(1).ne.nelec(2)) stop
 
-       i=iloop(ij,1)
-       j=iloop(ij,2)
-
+       i=iloop(lstdet(ij+ioff),1)
+       j=iloop(lstdet(ij+ioff),2)
+       
        hh=0.0d0
        ss=0.0d0
        if(ib.eq.jb) then

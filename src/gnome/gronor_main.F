@@ -69,6 +69,8 @@
       integer :: maxgrp
       integer :: nk,ii,il,ik
 
+      integer :: ibase, jbase, ib, jb, l2, numdet, lnxt, lcur
+      
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
@@ -1173,6 +1175,89 @@
      &       nmol,ncombv(1,i),nspin,thresh_CI)
         
       enddo
+
+      numdet=0
+      do ibase=1,nbase
+        do jbase=1,ibase
+          ndeti=idetb(ibase)
+          ndetj=idetb(jbase)
+          osame=ibase.eq.jbase
+          call iloop_init(ndeti,ndetj,osame)
+          if(ibase.eq.jbase) then
+            l2=ndeti*(ndeti+1)/2
+            ijend=l2
+          else
+            l2=ndeti*ndetj
+            ijend=l2
+          endif
+          l=0
+          do k=1,l2
+            i=iloop(k,1)
+            j=iloop(k,2)
+            l=l+1
+!            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+          enddo
+          if(me.eq.master) then
+!            write(*,567) ibase,jbase,idetb(ibase),idetb(jbase),l2,l
+ 567        format('TPS ',6i8)
+          endif
+          numdet=numdet+l
+        enddo
+      enddo
+
+      allocate(ndxdet(nbase,nbase))
+      allocate(lstdet(numdet))
+
+! HIER
+      
+      l=0
+      numdet=0
+      do ibase=1,nbase
+        do jbase=1,ibase
+          ndeti=idetb(ibase)
+          ndetj=idetb(jbase)
+          osame=ibase.eq.jbase
+          call iloop_init(ndeti,ndetj,osame)
+          if(ibase.eq.jbase) then
+            l2=ndeti*(ndeti+1)/2
+            ijend=l2
+          else
+            l2=ndeti*ndetj
+            ijend=l2
+          endif
+          l=0
+          do k=1,l2
+            i=iloop(k,1)
+            j=iloop(k,2)
+            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
+              numdet=numdet+1
+              l=l+1
+              lstdet(numdet)=k
+            endif
+          enddo
+          ndxdet(jbase,ibase)=numdet
+          ndxdet(ibase,jbase)=numdet
+        enddo
+      enddo
+
+! Following Bcasts should not be necessary, but added for safety
+      
+      call MPI_Bcast(ndxdet,nbase*nbase,MPI_INTEGER8,master,
+     &     MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(lstdet,numdet,MPI_INTEGER8,master,
+     &     MPI_COMM_WORLD,ierr)
+
+      if(me.ne.master) then
+        lnxt=0
+        lcur=0
+        do ibase=1,nbase
+          do jbase=1,ibase
+            lcur=ndxdet(ibase,jbase)
+            ndxdet(ibase,jbase)=lnxt
+            lnxt=lcur
+          enddo
+        enddo
+      endif
       
       if(me.eq.master) then
         call timer_stop(99)
@@ -1532,6 +1617,8 @@
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,nsing)
+
+      deallocate(lstdet,ndxdet)
 
       call timer_stop(4)
       call timer_stop(1)

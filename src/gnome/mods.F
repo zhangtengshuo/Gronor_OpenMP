@@ -168,6 +168,8 @@
 
       real (kind=8) :: buffer(8)
 
+      integer (kind=8), allocatable :: ndxdet(:,:), lstdet(:)
+      
       end module gnome_data
 
       module gnome_integrals

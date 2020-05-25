@@ -25,6 +25,8 @@
 
       integer, allocatable :: ntasks(:,:),ndets(:,:,:)
 
+      integer :: ioff
+      
       allocate(lgroup(npg,5))
       allocate(lactive(npg))
       allocate(ntasks(nbase,nbase))
@@ -86,6 +88,15 @@
           ndets(ibase,jbase,2)=0
         enddo
       enddo
+
+      ioff=0
+      do ibase=1,nbase
+        do jbase=1,ibase
+          ndets(ibase,jbase,1)=ndxdet(ibase,jbase)-ioff
+          ioff=ndxdet(ibase,jbase)
+          ndets(ibase,jbase,2)=0
+        enddo
+      enddo
       
       if(ipr.ge.0) write(lfnout,618) mdet
  618  format(' Total number of determinant pairs',t50,i16)
@@ -96,66 +107,74 @@
       endif
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
      &         '   Element       ------- Determinants -------',
-     &         '          -------------- Singularities -------------  ',
-     &         '       Below        -------- Unnormalized -------   ',
+     &         '          -------------- Singularities -------------',
+     &         '        ----- Unnormalized -----   ',
      &         '  Wall Clock  Wall Clock',/
      &         '  idet jdet      left     right         pairs',
      &         '          none           1           2            3+',
-     &         '       Threshold      Hamiltonian           Overlap   ',
+     &         '        Hamiltonian      Overlap   ',
      &         '        Cost        Time',/)
-          
-      do ibase=1,nbase
-        do jbase=1,ibase
-          osame=ibase.eq.jbase
-          ndeti=idetb(ibase)
-          ndetj=idetb(jbase)
-          nacti=nactb(ibase)
-          nactj=nactb(jbase)
-          call iloop_init(ndeti,ndetj,osame)
-          if(osame) then
-            l2=ndeti*(ndeti+1)/2
-            ijend=l2
-          else
-            l2=ndeti*ndetj
-            ijend=l2
-          endif
-          
-          fday(ibase,jbase)=dble(iday)
-          
-          if(ipr.ge.8) then
-            write(lfnout,600) ibase,jbase
- 600        format(/,' Base state pair ',2i5)
-            write(lfnout,601) ndeti
- 601        format(/,' Left wavefunction has ',i8,' determinants:',/)
-            do i=1,ndeti
-              call unpack(ioccb(i,ibase),iocch,nacti)
-              write(lfnout,602) i,civb(i,ibase),(iocch(k),k=1,nacti)
- 602          format(i5,f15.5,10i3)
-            enddo
-            write(lfnout,603) ndetj
- 603        format(//,' Right wavefunction has ',i8,' determinants:',/)
-            do i=1,ndetj
-              call unpack(ioccb(i,jbase),iocch,nactj)
-              write(lfnout,602) i,civb(i,jbase),(iocch(k),k=1,nactj)
-            enddo
-          endif
-          flush(lfnout)
-          
-          call swatch(date,time)
-          call timer_stop(99)
-          write(lfnday,802) date(1:8),time(1:8),
-     &         timer_wall_total(99),
-     &         '  :  ',ibase,jbase,' started, dimensions ',ndeti,ndetj
- 802      format(a8,2x,a8,f12.3,a,2i6,a,2i12)
-          flush(lfnday)
-          call timer_start(99)
-          
-          nrb=0
-          ndone=0
-          ibuf(1)=0
-          ibuf(2)=0
-          ibuf(3)=0
-          ibuf(4)=0
+
+          ioff=0
+          do ibase=1,nbase
+            do jbase=1,ibase
+              osame=ibase.eq.jbase
+              ndeti=idetb(ibase)
+              ndetj=idetb(jbase)
+              nacti=nactb(ibase)
+              nactj=nactb(jbase)
+              call iloop_init(ndeti,ndetj,osame)
+              if(osame) then
+                l2=ndeti*(ndeti+1)/2
+                ijend=l2
+              else
+                l2=ndeti*ndetj
+                ijend=l2
+              endif
+
+              ijend=ndxdet(ibase,jbase)-ioff
+
+              ioff=ndxdet(ibase,jbase)
+              
+              fday(ibase,jbase)=dble(iday)
+              
+              if(ipr.ge.8) then
+                write(lfnout,600) ibase,jbase
+ 600            format(/,' Base state pair ',2i5)
+                write(lfnout,601) ndeti
+ 601            format(/,' Left wavefunction has ',i8,
+     &               ' determinants:',/)
+                do i=1,ndeti
+                  call unpack(ioccb(i,ibase),iocch,nacti)
+                  write(lfnout,602) i,civb(i,ibase),(iocch(k),k=1,nacti)
+ 602              format(i5,f15.5,10i3)
+                enddo
+                write(lfnout,603) ndetj
+ 603            format(//,' Right wavefunction has ',i8,
+     &               ' determinants:',/)
+                do i=1,ndetj
+                  call unpack(ioccb(i,jbase),iocch,nactj)
+                  write(lfnout,602) i,civb(i,jbase),(iocch(k),k=1,nactj)
+                enddo
+              endif
+              flush(lfnout)
+              
+              call swatch(date,time)
+              call timer_stop(99)
+              write(lfnday,802) date(1:8),time(1:8),
+     &             timer_wall_total(99),
+     &             '  :  ',ibase,jbase,' started, dimensions ',
+     &             ndeti,ndetj
+ 802          format(a8,2x,a8,f12.3,a,2i6,a,2i12)
+              flush(lfnday)
+              call timer_start(99)
+              
+              nrb=0
+              ndone=0
+              ibuf(1)=0
+              ibuf(2)=0
+              ibuf(3)=0
+              ibuf(4)=0
 
           do while(ndone.lt.ijend)
             
@@ -269,15 +288,16 @@
                         ltemp=idetb(i)*idetb(j)
                       endif
                       write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,5),
+     &                     (nsing(i,j,k),k=1,4),
      &                     hbase(i,j),sbase(i,j),tbase(i,j),
      &                     timer_wall_total(99)
                       write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,5),
+     &                     (nsing(i,j,k),k=1,4),
      &                     hbase(i,j),sbase(i,j),tbase(i,j),
      &                     timer_wall_total(99)
                       flush(lfnout)
- 622                  format(1x,2i5,2i10,2i14,2i12,2i14,2f20.10,2f12.1)
+ 622                  format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
+     &                     f15.10,2f12.1)
                     endif
                     call swatch(date,time)
                     write(lfnday,703) date(1:8),time(1:8),
@@ -292,13 +312,13 @@
                 enddo
               enddo
             endif
-          
+
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)
             ibuf(4)=min(ndone+ibatch,ijend)
             ndone=ibuf(4)
-            
+
             call timer_stop(95)
             
             call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,MPI_COMM_WORLD,
@@ -445,11 +465,11 @@
                     ltemp=idetb(i)*idetb(j)
                   endif
                   write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                 (nsing(i,j,k),k=1,5),
+     &                 (nsing(i,j,k),k=1,4),
      &                 hbase(i,j),sbase(i,j),tbase(i,j),
      &                 timer_wall_total(99)
                   write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                 (nsing(i,j,k),k=1,5),
+     &                 (nsing(i,j,k),k=1,4),
      &                 hbase(i,j),sbase(i,j),tbase(i,j),
      &                 timer_wall_total(99)
                   flush(lfnout)

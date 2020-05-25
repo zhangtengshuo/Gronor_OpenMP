@@ -1657,7 +1657,7 @@
 !       close(unit=lfnpro,status='delete')
       endif
 
-      if(ifault.eq.0 .or. nalive+1.eq.np) then
+      if(ifault.eq.0 .and. nalive+1.eq.np) then
         call mpi_finalize(ierr)
       else
         if(me.eq.master) call mpi_abort(MPI_COMM_WORLD,ierror,ierr)

@@ -628,9 +628,9 @@
           tsum=tsum+tbase(i,j)
         enddo
       enddo
-      write(*,623) mdet,nsingt,tsum,tsum/dble(np-1)
-      write(lfnout,623) mdet,nsingt,tsum,tsum/dble(np-1)
- 623  format(/,' Total',25x,2i14,2i12,2i14,40x,2f12.1)
+      write(*,623) mdet,(nsingt(i),i=1,4),tsum,tsum/dble(np-1)
+      write(lfnout,623) mdet,(nsingt(i),i=1,4),tsum,tsum/dble(np-1)
+ 623  format(/,' Total',25x,2i14,2i12,i14,35x,2f12.1)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

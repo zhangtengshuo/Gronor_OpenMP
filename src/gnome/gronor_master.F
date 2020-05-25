@@ -188,8 +188,6 @@
             iremote=status(MPI_SOURCE)
             igrp=map2(iremote+1,3)
             
-            numrecs(iremote+1)=numrecs(iremote+1)+1
-            
             if(idbg.gt.2) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
@@ -247,6 +245,7 @@
             endif
             
             if(lgroup(igrp,5).ne.0) then
+              numrecs(iremote+1)=numrecs(iremote+1)+1
               
 !     Accumulate the returned contributions in buffer
               
@@ -380,8 +379,6 @@
         iremote=status(MPI_SOURCE)
         igrp=map2(iremote+1,3)
         
-        numrecs(iremote+1)=numrecs(iremote+1)+1
-        
         lactive(igrp)=1
         if(idbg.gt.2) then
           call swatch(date,time)
@@ -430,6 +427,7 @@
         endif
         
         if(lgroup(igrp,5).gt.0) then
+          numrecs(iremote+1)=numrecs(iremote+1)+1
           
 !     Accumulate the returned contributions in buffer
           

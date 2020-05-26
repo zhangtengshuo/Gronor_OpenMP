@@ -244,8 +244,9 @@ c      print*,me,' CUSOLVER BUFFERSIZE',worksize
        if(ibase.ne.0) then
         if(idbg.gt.2) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
-     &      me,' Entering gronor_calculate '
+         write(lfndbg,'(a,1x,a,i5,a,4i10)') date(1:8),time(1:8),
+     &        me,' Entering gronor_calculate with ',
+     &        ibase,jbase,idet,jdet,ibatch
          flush(lfndbg)
         endif
         call timer_start(47)

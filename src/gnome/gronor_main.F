@@ -39,7 +39,7 @@
       
       implicit none
 
-      integer (kind=4) :: ierror,ierr,istat
+      integer (kind=4) :: ierror,ierr,istat,icnt
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac
       integer,allocatable :: iocc_tmp(:)
       integer :: maxci, maxvec, maxnact
@@ -70,6 +70,8 @@
       integer :: nk,ii,il,ik
 
       integer :: ibase, jbase, ib, jb, l2, lnxt, lcur
+      integer :: l3, l4, ndsum, ioff
+      integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -1081,13 +1083,31 @@
           do while (k.le.l)
             write(lfnout,634)
             write(lfnout,1631) (j,j=k,l)
- 1631        format(10x,8i16)
- 1633        format(10x,8(i8,'/',i7))
+ 1631       format(10x,8i16)
+ 1633       format(10x,8(i14,'/',i1))
+ 2633       format(10x,8(i13,'/',i2))
+ 3633       format(10x,8(i12,'/',i3))
+ 4633       format(10x,8(i11,'/',i4))
+ 5633       format(10x,8(i8,'/',i7))
             write(lfnout,1632) (' ------------',j=k,l)
  1632        format(10x,8a16)
             do i=2,mgr+1
-              write(lfnout,1633) ((allgroups(j,i),
-     & map2(allgroups(j,i)+1,4)),j=k,l)
+              if(np.lt.10) then
+                write(lfnout,1633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.100) then
+                write(lfnout,2633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.1000) then
+                write(lfnout,3633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.10000) then
+                write(lfnout,4633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              else
+                write(lfnout,5633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              endif
             enddo
             k=l+1
             l=min(k+7,numacc)
@@ -1103,8 +1123,22 @@
             write(lfnout,1631) (j,j=k,l)
             write(lfnout,1632) (' ------------',j=k,l)
             do i=2,mgr+1
-              write(lfnout,1633) ((allgroups(j,i),
-     & map2(allgroups(j,i)+1,4)),j=k,l)
+              if(np.lt.10) then
+                write(lfnout,1633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.100) then
+                write(lfnout,2633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.1000) then
+                write(lfnout,3633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              elseif(np.lt.10000) then
+                write(lfnout,4633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              else
+                write(lfnout,5633) ((allgroups(j,i),
+     &               map2(allgroups(j,i)+1,4)),j=k,l)
+              endif
             enddo
             k=l+1
             l=min(k+7,numgrp)
@@ -1194,8 +1228,13 @@
             l2=ndeti*ndetj
             ijend=l2
           endif
+
+          l3=me*(l2/np)+1
+          l4=(me+1)*(l2/np)
+          if(me.eq.np-1) l4=l2
+
           l=0
-          do k=1,l2
+          do k=l3,l4
             i=iloop(k,1)
             j=iloop(k,2)
             if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
@@ -1204,13 +1243,39 @@
         enddo
       enddo
 
+      l=numdet
+      call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
+     &     MPI_COMM_WORLD,ierr)
+      
       allocate(ndxdet(nbase,nbase))
       allocate(lstdet(numdet,2))
+      allocate(lstdet0(numdet,2))
 
+      do j=1,nbase
+        do i=1,nbase
+          ndxdet(i,j)=0
+        enddo
+      enddo
+      do i=1,numdet
+        lstdet0(i,1)=0
+        lstdet0(i,2)=0
+        lstdet(i,1)=0
+        lstdet(i,2)=0
+      enddo
+      
+      allocate(numd(np))
+      allocate(ndxd(np))
+      
       l=0
       numdet=0
       do ibase=1,nbase
         do jbase=1,ibase
+
+          do i=1,np
+            numd(i)=0
+            ndxd(i)=0
+          enddo
+          
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           osame=ibase.eq.jbase
@@ -1222,21 +1287,56 @@
             l2=ndeti*ndetj
             ijend=l2
           endif
+
+          l3=me*(l2/np)+1
+          l4=(me+1)*(l2/np)
+          if(me.eq.np-1) l4=l2
+
           l=0
-          do k=1,l2
+          do k=l3,l4
+            i=iloop(k,1)
+            j=iloop(k,2)
+            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+          enddo
+
+          ndxd(me+1)=l
+          icnt=np
+          call MPI_Allreduce(ndxd,numd,icnt,MPI_INTEGER8,MPI_SUM,
+     &         MPI_COMM_WORLD,ierr)
+
+          ndsum=0
+          ndxd(1)=0
+          do i=2,np
+            ndxd(i)=ndxd(i-1)+numd(i-1)
+            ndsum=ndsum+numd(i-1)
+          enddo
+          ndsum=ndsum+numd(np)
+          ioff=ndxd(me+1)
+
+          l=0
+          do k=l3,l4
             i=iloop(k,1)
             j=iloop(k,2)
             if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
-              numdet=numdet+1
               l=l+1
-              lstdet(numdet,1)=i
-              lstdet(numdet,2)=j
+              lstdet0(numdet+ioff+l,1)=i
+              lstdet0(numdet+ioff+l,2)=j
             endif
           enddo
+          numdet=numdet+ndsum
           ndxdet(jbase,ibase)=numdet
           ndxdet(ibase,jbase)=numdet
+
         enddo
       enddo
+
+      icnt=2*numdet
+      call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
+     &     MPI_COMM_WORLD,ierr)
+      
+      deallocate(lstdet0)
+      deallocate(ndxd)
+      deallocate(numd)
 
 ! Following Bcasts should not be necessary, but added for safety
 

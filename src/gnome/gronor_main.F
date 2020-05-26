@@ -1198,7 +1198,7 @@
           do k=1,l2
             i=iloop(k,1)
             j=iloop(k,2)
-            l=l+1
+            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
           enddo
           numdet=numdet+l
         enddo

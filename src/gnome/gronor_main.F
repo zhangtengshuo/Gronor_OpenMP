@@ -1217,13 +1217,17 @@
       
       do i=1,nbase
         
-        if(me.eq.master.and.ipr.ge.3) write(lfnout,612) i
- 612    format(/,' Base state',i4)
         call gronor_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
      &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
      &       nmol,ncombv(1,i),nspin,thresh_CI)
+        
+        if(me.eq.master.and.ipr.ge.3) then
+          write(lfnout,612) i
+ 612      format(/,' Base state',i4,' completed')
+          flush(lfnout)
+        endif
         
       enddo
 
@@ -1253,6 +1257,18 @@
             if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
           enddo
           numdet=numdet+l
+
+          if(me.eq.master) then
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  Bases ',ibase,jbase,' include ',l,
+     &           ' out of',l2,' contributions' 
+ 1702       format(a8,2x,a8,f12.3,a,2i4,a,i10,a,i16,a)
+            flush(lfnday)
+            call timer_start(99)
+          endif
+           
         enddo
       enddo
 

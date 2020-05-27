@@ -1264,8 +1264,7 @@
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Bases ',ibase,jbase,' include ',l,
-     &           ' out of',l2,' contributions' 
+     &           '  :  Bases phase 1 ',ibase,jbase,' total ME list ',l
  1702       format(a8,2x,a8,f12.3,a,2i4,a,i10,a,i16,a)
             flush(lfnday)
             call timer_start(99)
@@ -1358,9 +1357,28 @@
           ndxdet(jbase,ibase)=numdet
           ndxdet(ibase,jbase)=numdet
 
+          if(me.eq.master) then
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  Bases phase 2 ',ibase,jbase,' ME list ',ndsum
+            flush(lfnday)
+            call timer_start(99)
+          endif
+          
         enddo
       enddo
-
+      
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Total ME contributions ',numdet
+ 2702   format(a8,2x,a8,f12.3,a,i10)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
       icnt=2*numdet
       call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
      &     MPI_COMM_WORLD,ierr)

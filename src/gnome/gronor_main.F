@@ -789,12 +789,21 @@
         ifault =idum(37)
         idevel =idum(38)
         
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Input broadcasted'
+          flush(lfnday)
+          call timer_start(99)
+        endif
+      
         thresh=rdum(1)
         thresh_CI=rdum(2)
         thresh_SIN=rdum(3)
         
       endif
-      
+
 #ifdef _OPENMP
       if(numomp.gt.0) num_threads=numomp
       if(num_threads.gt.0) call omp_set_num_threads(num_threads)
@@ -884,6 +893,7 @@
       if (me.eq.master) then
         write(lfnout,629) maxcib
  629    format(/,' Recommended value of maxcib is ',i10)
+        flush(lfnout)
       endif
       if(inpcib.ne.0) maxcib=inpcib
       
@@ -1196,15 +1206,18 @@
         
       endif
       
-      if(me.eq.master) write(lfnout,611) nbase,nmol,nbasis
- 611  format(//,' Dimensions',//,
-     &     ' Number of states (nbase)',t40,i10,t60,
-     &     'Number of molecules (nmol)', t100,i10,/,
-     &     ' Number of basis functions (nbasis)',t40,i10)
+      if(me.eq.master) then
+        write(lfnout,611) nbase,nmol,nbasis
+ 611    format(//,' Dimensions',//,
+     &       ' Number of states (nbase)',t40,i10,t60,
+     &       'Number of molecules (nmol)', t100,i10,/,
+     &       ' Number of basis functions (nbasis)',t40,i10)
+        flush(lfnout)
+      endif
       
       do i=1,nbase
         
-        if(me.eq.master.and.ipr.ge.5) write(lfnout,612) i
+        if(me.eq.master.and.ipr.ge.3) write(lfnout,612) i
  612    format(/,' Base state',i4)
         call gronor_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,

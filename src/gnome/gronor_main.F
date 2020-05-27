@@ -1156,6 +1156,8 @@
         endif
        endif
       endif
+
+      if(me.eq.master) flush(lfnout)
       
       iamacc=0
       iamactive=0

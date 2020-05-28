@@ -1264,8 +1264,8 @@
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Bases phase 1 ',ibase,jbase,' total ME list ',l
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,i10,a,i16,a)
+     &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',l2
+ 1702       format(a8,2x,a8,f12.3,a,2i4,a,i16)
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1361,7 +1361,8 @@
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Bases phase 2 ',ibase,jbase,' ME list ',ndsum
+     &           '  :  Phase 2 bases ',ibase,jbase,
+     &           '       ME list ',ndsum
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1373,8 +1374,8 @@
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Total ME contributions ',numdet
- 2702   format(a8,2x,a8,f12.3,a,i10)
+     &       '  :  Total ME contributions               ',numdet
+ 2702   format(a8,2x,a8,f12.3,a,i16)
         flush(lfnday)
         call timer_start(99)
       endif

@@ -914,9 +914,11 @@
        j=0
        do i=1,np
         if(map2(i,5).gt.0) j=j+1
+        if(i-1.eq.master) map2(i,5)=0
        enddo
        do i=1,min(np,nummps*j)
         map2(i,5)=map2(i,1)
+        if(i-1.eq.master) map2(i,5)=0
        enddo
       else
       node=map2(1,4)
@@ -950,6 +952,7 @@
         numacc=0
         numnon=0
         do i=1,np
+          if(i-1.eq.master) map2(i,5)=0
           if(map2(i,5).gt.0) numacc=numacc+1
           if(map2(i,5).lt.0) numnon=numnon+1
         enddo

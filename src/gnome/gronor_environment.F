@@ -22,6 +22,7 @@
 
       character (len=MPI_MAX_PROCESSOR_NAME) :: nodename
       character (len=20) :: string
+      character (len=40) :: numeric
       character (len=128) :: value
       integer::  cudaGetDeviceCount,jstat,iout
 
@@ -74,33 +75,112 @@ c      endif
 
       call MPI_get_processor_name(nodename, len, ierr)
 
-      j=len
+      j=1
       i=1
-      do while(i.le.len.and.j.gt.0)
-       if(nodename(i:i).ne.'0'.and.nodename(i:i).ne.'1'.and.
-     &    nodename(i:i).ne.'2'.and.nodename(i:i).ne.'3'.and.
-     &    nodename(i:i).ne.'4'.and.nodename(i:i).ne.'5'.and.
-     &    nodename(i:i).ne.'6'.and.nodename(i:i).ne.'7'.and.
-     &    nodename(i:i).ne.'8'.and.nodename(i:i).ne.'9') then
-         j=j-1
-         nodename(i:j)=nodename(i+1:j+1)
-       else
-        i=i+1
-       endif
-      enddo
-      i=i-1
-      if(i.eq.0) then
-       node=-1
-      else
-       string='                    '
-       if(j.le.20) then
-        string(21-j:20)=nodename(1:j)
-       else
-        string(1:20)=nodename(1:20)
-       endif
-       read(string,'(i20)') node
-      endif
 
+      do while(i.le.len.and.nodename(i:i).ne.' ')
+        if(nodename(i:i).eq.'0'.or.nodename(i:i).eq.'1'.or.
+     &       nodename(i:i).eq.'2'.or.nodename(i:i).eq.'3'.or.
+     &       nodename(i:i).eq.'4'.or.nodename(i:i).eq.'5'.or.
+     &       nodename(i:i).eq.'6'.or.nodename(i:i).eq.'7'.or.
+     &       nodename(i:i).eq.'8'.or.nodename(i:i).eq.'9') then
+          numeric(j:j)=nodename(i:i)
+          j=j+1
+        elseif(nodename(i:i).eq.'a') then
+          numeric(j:j+1)='01'
+          j=j+2
+        elseif(nodename(i:i).eq.'b') then
+          numeric(j:j+1)='02'
+          j=j+2
+        elseif(nodename(i:i).eq.'c') then
+          numeric(j:j+1)='03'
+          j=j+2
+        elseif(nodename(i:i).eq.'d') then
+          numeric(j:j+1)='04'
+          j=j+2
+        elseif(nodename(i:i).eq.'e') then
+          numeric(j:j+1)='05'
+          j=j+2
+        elseif(nodename(i:i).eq.'f') then
+          numeric(j:j+1)='06'
+          j=j+2
+        elseif(nodename(i:i).eq.'g') then
+          numeric(j:j+1)='07'
+          j=j+2
+        elseif(nodename(i:i).eq.'h') then
+          numeric(j:j+1)='08'
+          j=j+2
+        elseif(nodename(i:i).eq.'i') then
+          numeric(j:j+1)='09'
+          j=j+2
+        elseif(nodename(i:i).eq.'j') then
+          numeric(j:j+1)='10'
+          j=j+2
+        elseif(nodename(i:i).eq.'k') then
+          numeric(j:j+1)='11'
+          j=j+2
+        elseif(nodename(i:i).eq.'l') then
+          numeric(j:j+1)='12'
+          j=j+2
+        elseif(nodename(i:i).eq.'m') then
+          numeric(j:j+1)='13'
+          j=j+2
+        elseif(nodename(i:i).eq.'n') then
+          numeric(j:j+1)='14'
+          j=j+2
+        elseif(nodename(i:i).eq.'o') then
+          numeric(j:j+1)='15'
+          j=j+2
+        elseif(nodename(i:i).eq.'p') then
+          numeric(j:j+1)='16'
+          j=j+2
+        elseif(nodename(i:i).eq.'q') then
+          numeric(j:j+1)='17'
+          j=j+2
+        elseif(nodename(i:i).eq.'r') then
+          numeric(j:j+1)='18'
+          j=j+2
+        elseif(nodename(i:i).eq.'s') then
+          numeric(j:j+1)='19'
+          j=j+2
+        elseif(nodename(i:i).eq.'t') then
+          numeric(j:j+1)='20'
+          j=j+2
+        elseif(nodename(i:i).eq.'u') then
+          numeric(j:j+1)='21'
+          j=j+2
+        elseif(nodename(i:i).eq.'v') then
+          numeric(j:j+1)='22'
+          j=j+2
+        elseif(nodename(i:i).eq.'w') then
+          numeric(j:j+1)='23'
+          j=j+2
+        elseif(nodename(i:i).eq.'x') then
+          numeric(j:j+1)='24'
+          j=j+2
+        elseif(nodename(i:i).eq.'y') then
+          numeric(j:j+1)='25'
+          j=j+2
+        elseif(nodename(i:i).eq.'z') then
+          numeric(j:j+1)='26'
+          j=j+2
+        endif
+        i=i+1
+      enddo
+
+      j=j-1
+      if(j.eq.0) then
+        node=-1
+      else
+        string='                    '
+        if(j.le.20) then
+          string(21-j:20)=numeric(1:j)
+        else
+          string(1:20)=numeric(1:20)
+        endif
+        read(string,'(i20)') node
+      endif
+      
       do j=1,5
        do i=1,np
         map1(i,j)=0

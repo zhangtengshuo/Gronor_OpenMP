@@ -217,7 +217,7 @@
      &      'Number of resource sets',t100,i10,/,
      &      ' Time',t30,a,t60,
      &      'Number of resource sets per node',t100,i10,/,
-     &      t60,'Number of NVIDIA devices per resource set',t100,i10,/,
+     &      t60,'Number of GPU accelerators per resource set',t100,i10,/,
      &      t60,'Number of MPI ranks',t100,i10,/,
      &      t60,'Number of MPI ranks per node',t100,i10,/,
      &      t60,'Number of MPI ranks per resource set',t100,i10,/,

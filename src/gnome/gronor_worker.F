@@ -114,17 +114,19 @@
 
 !$acc host_data use_device(ta,w)
        cusolver_status = cusolverDnDsyevd_bufferSize
-     & (cusolver_handle,CUSOLVER_EIG_MODE_VECTOR,
+     & (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &   CUBLAS_FILL_MODE_LOWER,
-     &   ndim,ta,mdim,w,worksize2)
+     &   ndim,ta,ndim,w,worksize2)
 !$acc end host_data
 
        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
 
+       print*,me,' CUSOLVER BUFFERSIZE',worksize,worksize2
+       
        worksize=max(worksize,worksize2)
 
-c      print*,me,' CUSOLVER BUFFERSIZE',worksize
+      print*,me,' CUSOLVER BUFFERSIZE',worksize
 
        allocate(workspace_d(worksize))
        allocate(rwork(nelecs))

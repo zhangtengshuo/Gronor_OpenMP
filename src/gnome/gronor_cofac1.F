@@ -76,6 +76,7 @@
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
           ta(i,j)=coef
+          ta(j,i)=coef
         enddo
       enddo
 !$acc end kernels
@@ -106,6 +107,7 @@
              coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
            enddo
            ta(i,j)=coef
+           ta(j,i)=coef
          enddo
        enddo
 !$acc end kernels
@@ -136,6 +138,7 @@
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
           ta(i,j)=coef
+          ta(j,i)=coef
         enddo
       enddo
 !$acc end kernels
@@ -158,7 +161,7 @@
 #ifdef CUSOLVER
 
 !$acc data copy(dev_info_d)
-!$acc& create(temp,workspace_d,rwork)
+!$acc& create(temp,workspace_d)
       
       if(jsolver.eq.1) then
       elseif(jsolver.eq.2) then
@@ -174,12 +177,22 @@
        enddo
 !$acc end kernels
        
-!$acc host_data use_device(temp,ta,w,diag,dev_info_d,workspace_d,rwork)
+!$acc wait
+!$acc host_data use_device(temp,diag,dev_info_d,workspace_d)
        cusolver_status = cusolverDnDsyevd(cusolver_handle,
-     &       CUSOLVER_EIG_MODE_VECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   ndim,temp,mdim,diag,workspace_d,worksize2,dev_info_d)
+     &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
+     &   ndim,temp,ndim,diag,workspace_d,worksize2,dev_info_d)
 !$acc end host_data
-       
+!$acc wait
+
+!$acc kernels present(sdiag)
+
+       do i=1,ndim
+         sdiag(i)=0.0d0
+       enddo
+
+!$acc end kernels
+
       else
 
 !$acc update host (ta)

@@ -260,7 +260,7 @@
        idevel=0
        ifault=1
        isolver=1
-       jsolver=1
+       jsolver=0
        intadd=0
        naccel=-1
        ncols=7

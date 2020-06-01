@@ -157,8 +157,11 @@
       
 #ifdef CUSOLVER
 
-      if(isolver.eq.1) then
-      elseif(isolver.eq.2) then
+!$acc data copy(dev_info_d)
+!$acc& create(temp,workspace_d,rwork)
+      
+      if(jsolver.eq.1) then
+      elseif(jsolver.eq.2) then
         
        ndim=nelecs
        mdim=mbasel
@@ -169,17 +172,17 @@
            temp(i,j)=ta(i,j)
          enddo
        enddo
-!     $acc end kernels
+!$acc end kernels
        
 !$acc host_data use_device(temp,ta,w,diag,dev_info_d,workspace_d,rwork)
        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_VECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   ndim,temp,mdim,diag,workspace_d,worksize2,rwork,dev_info_d)
-!     $acc end host_data
+     &   ndim,temp,mdim,diag,workspace_d,worksize2,dev_info_d)
+!$acc end host_data
        
       else
 
-!     $acc update host (ta)
+!$acc update host (ta)
 
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
@@ -194,7 +197,9 @@
 !$acc update device (ta,diag,sdiag)
 
       endif
-        
+       
+!$acc end data
+      
 #else
       
 !$acc update host (ta)

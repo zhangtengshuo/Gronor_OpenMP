@@ -114,7 +114,7 @@
 
 !$acc host_data use_device(ta,w)
        cusolver_status = cusolverDnDsyevd_bufferSize
-     & (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
+     & (cusolver_handle,CUSOLVER_EIG_MODE_VECTOR,
      &   CUBLAS_FILL_MODE_LOWER,
      &   ndim,ta,mdim,w,worksize2)
 !$acc end host_data

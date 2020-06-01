@@ -260,6 +260,7 @@
        idevel=0
        ifault=1
        isolver=1
+       jsolver=1
        intadd=0
        naccel=-1
        ncols=7
@@ -386,7 +387,12 @@
        endif
        
        if(inp_compare(.false.,'Solver',item)) then
-         if(.not.inp_i(isolver)) isolver=1
+         if(.not.inp_i(isolver)) then
+           isolver=1
+           jsolver=1
+         elseif(.not.inp_i(jsolver)) then
+           jsolver=1
+         endif
          goto 2
        endif
        
@@ -524,7 +530,7 @@
       close(unit=lfninp)
       
       write(lfnout,622) isolver,numomp
- 622  format(' Solver option',t40,i10,t60,
+ 622  format(' Solver options',t40,2i5,t60,
      &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
         write(lfnout,627),nummps
@@ -739,15 +745,16 @@
           idum(34)=numomp
           idum(35)=itim
           idum(36)=isolver
-          idum(37)=ifault
-          idum(38)=idevel
+          idum(37)=jsolver
+          idum(38)=ifault
+          idum(39)=idevel
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
         endif
         
-        call MPI_Bcast(idum,38,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,39,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,3,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -786,8 +793,9 @@
         numomp =idum(34)
         itim   =idum(35)
         isolver=idum(36)
-        ifault =idum(37)
-        idevel =idum(38)
+        jsolver=idum(37)
+        ifault =idum(38)
+        idevel =idum(39)
         
         if(me.eq.master) then
           call timer_stop(99)

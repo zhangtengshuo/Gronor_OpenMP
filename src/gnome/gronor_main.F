@@ -389,9 +389,9 @@
        if(inp_compare(.false.,'Solver',item)) then
          if(.not.inp_i(isolver)) then
            isolver=1
-           jsolver=1
+           jsolver=0
          elseif(.not.inp_i(jsolver)) then
-           jsolver=1
+           jsolver=0
          endif
          goto 2
        endif

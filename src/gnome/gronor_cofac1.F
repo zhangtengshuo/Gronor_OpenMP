@@ -180,10 +180,10 @@ c      elseif(jsolver.eq.2) then
       call timer_start(43)
 
 !$acc wait
-!$acc host_data use_device(ta,temp,diag,dev_info_d,workspace_d)
+!$acc host_data use_device(temp,diag,dev_info_d,workspace_d)
        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   mdim,ta,ndim,diag,workspace_d,worksize2,dev_info_d)
+     &   ndim,temp,ndim,diag,workspace_d,worksize2,dev_info_d)
 !$acc end host_data
 !$acc wait
 

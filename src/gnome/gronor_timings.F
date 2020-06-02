@@ -168,15 +168,14 @@
  607     format('  Proc',
      &        '         SVD',
      &        '         Sum',
-     &        '       Tred2',
-     &        '        TQL2',
+     &        '         EVD',
      &        '        Rest',/)
          
          flush(lfnout)
          
          do i=1,np
            if(i-1.ne.master) then
-             write(lfnout,608) i-1,(timings(i,j),j=41,45)
+             write(lfnout,608) i-1,(timings(i,j),j=41,44)
  608         format(1x,i5,12f12.3)
            endif
          enddo

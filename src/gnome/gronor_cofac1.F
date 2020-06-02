@@ -177,13 +177,17 @@ c      elseif(jsolver.eq.2) then
        enddo
 !$acc end kernels
        
+      call timer_start(43)
+
 !$acc wait
-!$acc host_data use_device(temp,diag,dev_info_d,workspace_d)
+!$acc host_data use_device(ta,temp,diag,dev_info_d,workspace_d)
        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   ndim,temp,ndim,diag,workspace_d,worksize2,dev_info_d)
+     &   mdim,ta,ndim,diag,workspace_d,worksize2,dev_info_d)
 !$acc end host_data
 !$acc wait
+
+       call timer_stop(43)
 
 !$acc kernels present(sdiag)
 
@@ -200,12 +204,10 @@ c      elseif(jsolver.eq.2) then
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
      &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-      call timer_stop(43)
 
-      call timer_start(44)
       call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &     max(mbasel,nveca),ierr)
-      call timer_stop(44)
+      call timer_stop(43)
 
 !$acc update device (ta,diag,sdiag)
 
@@ -220,18 +222,16 @@ c      elseif(jsolver.eq.2) then
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
      &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-      call timer_stop(43)
 
-      call timer_start(44)
       call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &     max(mbasel,nveca),ierr)
-      call timer_stop(44)
+      call timer_stop(43)
 
 !$acc update device (ta,diag,sdiag)
 
 #endif
       
-      call timer_start(45)
+      call timer_start(44)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
@@ -268,7 +268,7 @@ c      elseif(jsolver.eq.2) then
         if(abs(coefu) .le. cnorm) then
           if(nz1.gt.0.and.nz2.gt.0) then
             ising=3
-            call timer_stop(45)
+            call timer_stop(44)
             return
           endif
           if(nz1 .gt. 0) nz2=i
@@ -297,7 +297,7 @@ c      elseif(jsolver.eq.2) then
           enddo
 !$acc end kernels
 
-          call timer_stop(45)
+          call timer_stop(44)
           return
           ising=1
         endif
@@ -323,7 +323,7 @@ c      elseif(jsolver.eq.2) then
         enddo
 !$acc end kernels
       
-        call timer_stop(45)
+        call timer_stop(44)
         return
       endif
 
@@ -345,11 +345,11 @@ c      elseif(jsolver.eq.2) then
         enddo
 !$acc end kernels
       
-        call timer_stop(45)
+        call timer_stop(44)
         return
       endif
 
-      call timer_stop(45)
+      call timer_stop(44)
       
       return
       end
@@ -420,16 +420,14 @@ cc!$acc update host (ta)
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
      &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-      call timer_stop(43)
 
-      call timer_start(44)
       call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &     max(mbasel,nveca),ierr)
-      call timer_stop(44)
+      call timer_stop(43)
 
 cc!$acc update device (ta,diag,sdiag)
       
-      call timer_start(45)
+      call timer_start(44)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
@@ -466,7 +464,7 @@ cc!$acc update host(ev)
         if(abs(coefu) .le. cnorm) then
           if(nz1.gt.0.and.nz2.gt.0) then
             ising=3
-            call timer_stop(45)
+            call timer_stop(44)
             return
           endif
           if(nz1 .gt. 0) nz2=i
@@ -495,7 +493,7 @@ cc!$acc kernels present(ta,u,w,ev)
           enddo
 cc!$acc end kernels
 
-          call timer_stop(45)
+          call timer_stop(44)
           return
           ising=1
         endif
@@ -521,7 +519,7 @@ cc!$acc kernels present(cdiag,diag,csdiag,sdiag)
         enddo
 cc!$acc end kernels
       
-        call timer_stop(45)
+        call timer_stop(44)
         return
       endif
 
@@ -543,11 +541,11 @@ cc!$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
         enddo
 cc!$acc end kernels
       
-        call timer_stop(45)
+        call timer_stop(44)
         return
       endif
 
-      call timer_stop(45)
+      call timer_stop(44)
       
       return
       end

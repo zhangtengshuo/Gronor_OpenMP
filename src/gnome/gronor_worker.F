@@ -122,11 +122,7 @@
        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
 
-       print*,me,' CUSOLVER BUFFERSIZE',worksize,worksize2
-       
        worksize=max(worksize,worksize2)
-
-      print*,me,' CUSOLVER BUFFERSIZE',worksize
 
        allocate(workspace_d(worksize))
        allocate(rwork(nelecs))

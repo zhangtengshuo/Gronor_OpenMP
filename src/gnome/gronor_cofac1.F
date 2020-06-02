@@ -164,7 +164,7 @@
 !$acc& create(temp,workspace_d)
       
       if(jsolver.eq.1) then
-      elseif(jsolver.eq.2) then
+c      elseif(jsolver.eq.2) then
         
        ndim=nelecs
        mdim=mbasel

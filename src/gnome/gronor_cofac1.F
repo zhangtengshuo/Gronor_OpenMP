@@ -33,17 +33,9 @@
        ndim=nelecs
        mdim=mbasel
 
-!$acc kernels present(temp,ta)
-       do j=1,ndim
-         do i=1,ndim
-           temp(i,j)=ta(i,j)
-         enddo
-       enddo
-!$acc end kernels
-       
-!$acc host_data use_device(temp,ev,u,w,dev_info_d,workspace_d,rwork)
+!$acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork)
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
-     &      ndim,ndim,temp,ndim,ev,u,ndim,w,ndim,workspace_d,
+     &      ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
      &      worksize,rwork,dev_info_d)
 !$acc end host_data
 !$acc wait
@@ -164,26 +156,17 @@
 !$acc& create(temp,workspace_d)
       
       if(jsolver.eq.1) then
-c      elseif(jsolver.eq.2) then
         
        ndim=nelecs
        mdim=mbasel
 
-!$acc kernels present(temp,ta)
-       do j=1,ndim
-         do i=1,ndim
-           temp(i,j)=ta(i,j)
-         enddo
-       enddo
-!$acc end kernels
-       
       call timer_start(43)
 
 !$acc wait
-!$acc host_data use_device(temp,diag,dev_info_d,workspace_d)
+!$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   ndim,temp,ndim,diag,workspace_d,worksize2,dev_info_d)
+     &   ndim,ta,mdim,diag,workspace_d,worksize2,dev_info_d)
 !$acc end host_data
 !$acc wait
 

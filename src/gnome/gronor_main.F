@@ -260,7 +260,7 @@
        idevel=0
        ifault=1
        isolver=1
-       jsolver=0
+       jsolver=1
        intadd=0
        naccel=-1
        ncols=7
@@ -389,9 +389,9 @@
        if(inp_compare(.false.,'Solver',item)) then
          if(.not.inp_i(isolver)) then
            isolver=1
-           jsolver=0
+           jsolver=1
          elseif(.not.inp_i(jsolver)) then
-           jsolver=0
+           jsolver=1
          endif
          goto 2
        endif

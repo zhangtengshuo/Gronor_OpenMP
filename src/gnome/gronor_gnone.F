@@ -10,8 +10,6 @@
       integer :: i,j,k,ielem,jkoff,nb,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
 
-      integer (kind=8), allocatable :: nnn(:)
-
       nb = nbas   ! All 'nb' can be replaced with nbas
 
       nn=0
@@ -20,15 +18,7 @@
       ielem=0
       jkoff=0
 
-      allocate(nnn(nb))
-
-      nnn(1)=0
-      do i=2,nb
-      nnn(i)=nnn(i-1)+i-1
-      enddo
-
-!$acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa)
-!$acc& copyin(nnn,ndxtv)
+!$acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
 
       if(ising.eq.0) then
 !$acc loop reduction(+:tsum,vsum)
@@ -80,8 +70,6 @@
      &        15x,'One-electron matrix element: ',f20.12,//)
       endif
 
-      deallocate(nnn)
-
       return
       end
 
@@ -97,8 +85,6 @@
       integer :: i,j,k,ielem,jkoff,nb,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
 
-      integer (kind=8), allocatable :: nnn(:)
-
       nb = nbas
 
       nn=0
@@ -106,13 +92,6 @@
       vsum=0.0d0
       ielem=0
       jkoff=0
-
-      allocate(nnn(nb))
-
-      nnn(1)=0
-      do i=2,nb
-      nnn(i)=nnn(i-1)+i-1
-      enddo
 
       if(ising.eq.0) then
         do j=1,nb
@@ -159,8 +138,6 @@
      &        15x,'Nuclear repulsion term     : ',f20.12,//,
      &        15x,'One-electron matrix element: ',f20.12,//)
       endif
-
-      deallocate(nnn)
 
       return
       end

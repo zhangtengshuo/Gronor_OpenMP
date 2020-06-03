@@ -374,7 +374,6 @@
 
 !     Calculate the integral index needed for openacc processing
 
-*      allocate(ndxtv(nsymf))
       allocate(ndxtv(nbas))
 
       ndxtv(1)=0

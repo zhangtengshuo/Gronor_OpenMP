@@ -401,7 +401,6 @@
       allocate(ndxtv(nbas))
 
       ndxtv(1)=0
-
       do i=2,nbas
       ndxtv(i)=ndxtv(i-1)+i-1
       enddo

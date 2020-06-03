@@ -190,11 +190,9 @@ c      elseif(jsolver.eq.2) then
        call timer_stop(43)
 
 !$acc kernels present(sdiag)
-
        do i=1,ndim
          sdiag(i)=0.0d0
        enddo
-
 !$acc end kernels
 
       else
@@ -232,9 +230,11 @@ c      elseif(jsolver.eq.2) then
 #endif
       
       call timer_start(44)
+!$acc kernels present(diag)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
+!$acc end kernels
 
 !$acc kernels present(cdiag,diag,csdiag,sdiag)
       do i=1,nelecs

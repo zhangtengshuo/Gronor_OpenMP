@@ -397,26 +397,26 @@
       
       interface
         integer(c_int) function cusolverDnDsyevj_bufferSize
-     &       (cusolver_Hndl, jobz, econ,
-     &       m, n, a, lda, s, u, ldu, v, ldv, lwork, info)
+     &       (cusolver_Hndl, jobz, uplo,
+     &       n, a, lda, v, lwork, info)
      &       bind(C,name='cusolverDnDsyevj_bufferSize')
         use iso_c_binding
         import cusolverDnHandle
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
         integer(c_int), value  :: jobz
-        integer(c_int), value  :: econ
-        integer(c_int), value  :: m, n, lda, ldu, ldv
+        integer(c_int), value  :: uplo
+        integer(c_int), value  :: n, lda
         integer(c_int)         :: lwork
-        real(c_double), device :: a(*), s(*), u(*), v(*)
+        real(c_double), device :: a(*), v(*)
         type(syevjInfo)       :: info
         end function cusolverDnDsyevj_bufferSize
       end interface
       
       interface
         integer(c_int) function cusolverDnDsyevj
-     &       (cusolver_Hndl, jobz, econ,
-     &       m, n, a, lda, s, u, ldu, v, ldv, work, lwork,
+     &       (cusolver_Hndl, jobz, uplo,
+     &       n, a, lda, v, work, lwork,
      &       devinfo, info )
      &       bind(C,name='cusolverDnDsyevj')
         use iso_c_binding
@@ -424,8 +424,9 @@
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
         integer(c_int), value  :: jobz
-        integer(c_int), value  :: econ, m, n, lda, ldu, ldv
-        real(c_double), device :: a(*), s(*), u(*), v(*), work(*)
+        integer(c_int), value  :: uplo
+        integer(c_int), value  :: n, lda
+        real(c_double), device :: a(*), v(*), work(*)
         integer(c_int)         :: lwork
         integer(c_int)         :: devinfo
         type(syevjInfo)       :: info

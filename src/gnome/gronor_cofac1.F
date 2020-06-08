@@ -205,39 +205,65 @@
       
       if(jsolver.eq.1) then
         
-       ndim=nelecs
-       mdim=mbasel
-
-      call timer_start(43)
+        ndim=nelecs
+        mdim=mbasel
+        
+        call timer_start(43)
 
 !$acc wait
 !$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
-       cusolver_status = cusolverDnDsyevd(cusolver_handle,
+        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &   ndim,ta,mdim,diag,workspace_d,worksize2,dev_info_d)
+     &       ndim,ta,mdim,diag,workspace_d,worksize2,dev_info_d)
 !$acc end host_data
 !$acc wait
 
-       call timer_stop(43)
+        call timer_stop(43)
 
 !$acc kernels present(sdiag)
-       do i=1,ndim
-         sdiag(i)=0.0d0
-       enddo
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
 !$acc end kernels
 
+      elseif(jsolver.eq.2) then
+
+        ndim=nelecs
+        mdim=mbasel
+        
+        jobz = CUSOLVER_EIG_MODE_NOVECTOR
+        uplo = CUBLAS_FILL_MODE_LOWER
+          
+        call timer_start(43)
+
+!$acc wait
+!$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
+        cusolver_status = cusolverDnDsyevj
+     &       (cusolver_handle, jobz, uplo, ndim,ta,mdim,diag,
+     &       workspace_d,worksize2,dev_info_d,syevj_params)
+!$acc end host_data
+!$acc wait
+
+        call timer_stop(43)
+
+!$acc kernels present(sdiag)
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
+!$acc end kernels
+        
       else
 
 !$acc update host (ta)
 
-      call timer_start(43)
-      call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
-     &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-
-      call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
-     &     max(mbasel,nveca),ierr)
-      call timer_stop(43)
-
+        call timer_start(43)
+        call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
+     &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
+        
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
+     &       max(mbasel,nveca),ierr)
+        call timer_stop(43)
+      
 !$acc update device (ta,diag,sdiag)
 
       endif

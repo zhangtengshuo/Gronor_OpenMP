@@ -186,10 +186,10 @@ c      use cuda_functions
           max_sweeps = 15
           worksize = 0
           
-          jobz=CUSOLVER_EIG_MODE_NOVECTOR
-          uplo=CUBLAS_FILL_MODE_LOWER;
+          jobz = CUSOLVER_EIG_MODE_NOVECTOR
+          uplo = CUBLAS_FILL_MODE_LOWER
         
-!$acc data create(dev_info_d,w,ta)
+!$acc data create(dev_info_d,w,ta,ev)
         
           cusolver_status = cudaStreamCreateWithFlags
      &         (stream,cudaStreamNonBlocking)
@@ -206,10 +206,10 @@ c      use cuda_functions
 
 !$acc host_data use_device(ta,w)
           
-c          cusolver_status = cusolverDnDsyevj_bufferSize
-c     &         (cusolver_handle,jobz,uplo,
-c     &         ndim,ta,mdim,w,worksize,
-c     &         syevj_params)
+          cusolver_status = cusolverDnDsyevj_bufferSize
+     &         (cusolver_handle,jobz,uplo,
+     &         ndim,ta,mdim,ev,worksize2,
+     &         syevj_params)
         
 !$acc end host_data
           

@@ -6,6 +6,7 @@
 #ifdef CUSOLVER
       use cusolverDn
       use cuda_cusolver
+      use cudafor
 #endif
       implicit none
       integer :: lfndbg
@@ -19,20 +20,21 @@
  600  format(/,' Cofactor matrix will be calculated')
 
       call timer_start(41)
-      
+
 #ifdef CUSOLVER
 
-!$acc data copy(dev_info_d)
-!$acc& create(temp,workspace_d,rwork)
-      
+       ndim=nelecs
+       mdim=mbasel
+       tol = 1.0d-07
+       max_sweeps = 15
+       
       if(isolver.eq.1) then
 
        jobu = 'A'  ! all m columns of U
        jobvt= 'A'  ! all m columns of VT
 
-       ndim=nelecs
-       mdim=mbasel
-
+!$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
+       
 !$acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork)
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
      &      ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
@@ -75,10 +77,76 @@
 
       call timer_stop(42)
       
+!$acc end data
       elseif(isolver.eq.2) then
 
+        jobz=CUSOLVER_EIG_MODE_VECTOR
+        
 !     here the Jacobi svd from cusolver should be implemented
         
+        cusolver_status = cusolverDnXgesvdjSetTolerance
+     &       (gesvdj_params,tol)
+
+        cusolver_status = cusolverDnXgesvdjSetMaxSweeps
+     &       (gesvdj_params,max_sweeps)
+        
+!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
+
+!$acc host_data
+!$acc& use_device(ta,ev,u,w,dev_info_d,workspace_d)
+
+        cusolver_status=cusolverDnDgesvdj
+     &       (cusolver_handle,jobz,econ,
+     &       ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
+     &       worksize,dev_info_d,gesvdj_params)
+        
+!$acc end host_data
+!$acc wait
+
+        cusolver_status=cudaDeviceSynchronize()
+        
+        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &       write(*,*) 'cusolverDnDgesvdj failed',cusolver_status
+        
+        cusolver_status = cusolverDnXgesvdjGetSweeps
+     &       (cusolver_handle, gesvdj_params, exec_sweeps)
+        cusolver_status = cusolverDnXgesvdjGetResidual
+     &       (cusolver_handle, gesvdj_params, residual)
+
+        call timer_start(42)
+      
+!$acc kernels present(temp,w)
+        do i=1,nelecs
+          do j=1,nelecs
+            temp(i,j)=w(j,i)
+          enddo
+        enddo
+        do i=1,nelecs
+          do j=1,nelecs
+            w(i,j)=temp(i,j)
+          enddo
+        enddo
+!$acc end kernels
+     
+!$acc kernels present(u,w,ta)
+        do i=1,nelecs
+!$acc loop vector
+          do j=1,i
+            coef=0.0d0
+!$acc loop seq
+            do k=1,nelecs
+              coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+            enddo
+            ta(i,j)=coef
+            ta(j,i)=coef
+          enddo
+        enddo
+!$acc end kernels
+
+        call timer_stop(42)
+        
+!$acc end data
+
       else
 
 !$acc update host (ta)
@@ -108,7 +176,6 @@
        
       endif
 
-!$acc end data
       
 #else
       
@@ -138,7 +205,7 @@
       call timer_stop(42)
 
 #endif
-      
+
       call timer_stop(41)
 
       if(idbg.ge.12) write(lfndbg,601) (ev(i),i=1,nelecs)

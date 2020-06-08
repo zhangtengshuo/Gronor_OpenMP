@@ -138,7 +138,7 @@
 
       integer :: ntesta, ntestb
       integer :: nelecs,n1bas,nstdim, mbasel, ijend
-      real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
+      real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),a(:,:)
       real (kind=8), allocatable :: u(:,:),w(:,:),ev(:),sdiag(:),diag(:)
       real (kind=8), allocatable :: bsdiag(:),bdiag(:)
       real (kind=8), allocatable :: csdiag(:),cdiag(:)
@@ -234,15 +234,119 @@
 
 #ifdef CUSOLVER
       module cuda_cusolver
-
-       use cusolverDN
-
-       type(cusolverDnHandle) :: cusolver_handle
-       integer (kind=4)       :: cusolver_status
-       integer (kind=4)       :: worksize,worksize2,ndim,mdim
-       real(8),allocatable :: rwork(:)
-       real(8),allocatable :: workspace_d(:)
-       integer (kind=4) :: dev_info_d
-
-       end module cuda_cusolver
+      
+      use cusolverDN
+      use cudafor
+      
+      type gesvdjInfo
+      type(c_ptr) :: svInfo
+      end type gesvdjInfo
+      
+      interface
+        integer(c_int) function cusolverDnCreateGesvdjInfo(info)
+     &       bind(C,name='cusolverDnCreateGesvdjInfo')
+        import gesvdjInfo
+        type(gesvdjInfo) :: info
+        end function cusolverDnCreateGesvdjInfo
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXgesvdjSetTolerance
+     &       (info, tolerance)
+     &       bind(C,name='cusolverDnXgesvdjSetTolerance')
+        use iso_c_binding
+        import gesvdjInfo
+        type(gesvdjInfo)       :: info
+        real(c_double), value  :: tolerance
+        end function cusolverDnXgesvdjSetTolerance
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXgesvdjSetMaxSweeps
+     &       (info, max_sweeps)
+     &       bind(C,name='cusolverDnXgesvdjSetMaxSweeps')
+        use iso_c_binding
+        import gesvdjInfo
+        type(gesvdjInfo)       :: info
+        integer(c_int),value   :: max_sweeps
+        end function cusolverDnXgesvdjSetMaxSweeps
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXgesvdjGetSweeps
+     &       (cusolver_Hndl, info, executed_sweeps)
+     &       bind(C,name='cusolverDnXgesvdjGetSweeps')
+        use iso_c_binding
+        import cusolverDnHandle
+        import gesvdjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        type(gesvdjInfo)              :: info
+        integer(c_int)                :: executed_sweeps
+        end function cusolverDnXgesvdjGetSweeps
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXgesvdjGetResidual
+     &       (cusolver_Hndl, info, residual)
+     &       bind(C,name='cusolverDnXgesvdjGetResidual')
+        use iso_c_binding
+        import cusolverDnHandle
+        import gesvdjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        type(gesvdjInfo)              :: info
+        real(c_double)                :: residual
+        end function cusolverDnXgesvdjGetResidual
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnDgesvdj_bufferSize
+     &       (cusolver_Hndl, jobz, econ,
+     &       m, n, a, lda, s, u, ldu, v, ldv, lwork, info)
+     &       bind(C,name='cusolverDnDgesvdj_bufferSize')
+        use iso_c_binding
+        import cusolverDnHandle
+        import gesvdjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        integer(c_int), value  :: jobz
+        integer(c_int), value  :: econ
+        integer(c_int), value  :: m, n, lda, ldu, ldv
+        integer(c_int)         :: lwork
+        real(c_double), device :: a(*), s(*), u(*), v(*)
+        type(gesvdjInfo)       :: info
+        end function cusolverDnDgesvdj_bufferSize
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnDgesvdj
+     &       (cusolver_Hndl, jobz, econ,
+     &       m, n, a, lda, s, u, ldu, v, ldv, work, lwork,
+     &       devinfo, info )
+     &       bind(C,name='cusolverDnDgesvdj')
+        use iso_c_binding
+        import cusolverDnHandle
+        import gesvdjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        integer(c_int), value  :: jobz
+        integer(c_int), value  :: econ, m, n, lda, ldu, ldv
+        real(c_double), device :: a(*), s(*), u(*), v(*), work(*)
+        integer(c_int)         :: lwork
+        integer(c_int)         :: devinfo
+        type(gesvdjInfo)       :: info
+        end function cusolverDnDgesvdj
+      end interface
+      
+      type(cusolverDnHandle) :: cusolver_handle
+      type(gesvdjInfo)       :: gesvdj_params
+      integer (kind=4)       :: cusolver_status
+      integer (kind=4)       :: worksize,worksize2,ndim,mdim
+      real (kind=8)          :: tol, residual
+      integer (kind=4)       :: max_sweeps, exec_sweeps
+      integer (kind=4), parameter :: econ=0
+      real (kind=8), allocatable :: rwork(:)
+      real (kind=8), allocatable :: workspace_d(:)
+      integer (kind=4) :: dev_info_d
+      integer(kind=cuda_stream_kind) :: stream
+      integer (kind=4) :: jobz
+      
+      end module cuda_cusolver
 #endif

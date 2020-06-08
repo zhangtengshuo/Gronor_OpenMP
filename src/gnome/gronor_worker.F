@@ -9,7 +9,8 @@
 #ifdef CUSOLVER
       use cusolverDn
       use cuda_cusolver
-      use cuda_functions
+c      use cuda_functions
+      use cudafor
 #endif
       implicit none
 
@@ -78,6 +79,7 @@
       allocate(aat(mbasel,max(mbasel,nveca)))
       allocate(sm(mbasel,max(mbasel,nveca)))
 
+      allocate(a(nelecs,nelecs))
       allocate(u(nelecs,nelecs))
       allocate(w(nelecs,nelecs))
       allocate(ev(nelecs))
@@ -97,37 +99,96 @@
       jbase0=0
       idet0=0
       jdet0=0
+      worksize=0
+      worksize2=0
 
       if(iamacc.ne.0) then
 #ifdef CUSOLVER
+
+        ndim=nelecs
+        mdim=mbasel
+        
+        if(isolver.eq.1) then
 !$acc data copyin(w,ta) create(dev_info_d)
-
-       ndim=nelecs
-       mdim=mbasel
+       
 !$acc host_data use_device(ta)
-       cusolver_status = cusolverDnDgesvd_bufferSize
-     &  (cusolver_handle,ndim,ndim,worksize)
+          cusolver_status = cusolverDnDgesvd_bufferSize
+     &         (cusolver_handle,ndim,ndim,worksize)
 !$acc end host_data
 
-       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &     write(*,*) 'cusolverDnDgesvd_bufferSize failed'
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
+!$acc end data   
+        elseif(isolver.eq.2) then
+          
+          ndim=nelecs
+          mdim=mbasel
+          tol = 1.0d-07
+          max_sweeps = 15
+          worksize = 0
+          
+          jobz=CUSOLVER_EIG_MODE_VECTOR
+        
+!$acc data create(dev_info_d,u,w,ev,ta)
+        
+          cusolver_status = cudaStreamCreateWithFlags
+     &         (stream,cudaStreamNonBlocking)
+          
+          cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
+          
+          cusolver_status = cusolverDnCreateGesvdjInfo(gesvdj_params)
+          
+          cusolver_status = cusolverDnXgesvdjSetTolerance
+     &         (gesvdj_params,tol)
+          
+          cusolver_status = cusolverDnXgesvdjSetMaxSweeps
+     &         (gesvdj_params,max_sweeps)
+
+!$acc host_data use_device(ta,ev,u,w)
+          
+          cusolver_status = cusolverDnDgesvdj_bufferSize
+     &         (cusolver_handle,jobz,econ,
+     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,worksize,
+     &         gesvdj_params)
+        
+!$acc end host_data
+          
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &         print *,"cusolverDnDgesvdj_bufferSize failed",
+     &         cusolver_status
+
+          worksize=10*worksize
+!$acc end data
+        endif
+
+        if(jsolver.eq.1.or.jsolver.eq.2) then
+!$acc data copyin(w,ta) create(dev_info_d)
+       
 !$acc host_data use_device(ta,w)
-       cusolver_status = cusolverDnDsyevd_bufferSize
-     & (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
-     &   CUBLAS_FILL_MODE_LOWER,
-     &   ndim,ta,ndim,w,worksize2)
+          cusolver_status = cusolverDnDsyevd_bufferSize
+     &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
+     &         CUBLAS_FILL_MODE_LOWER,
+     &         ndim,ta,ndim,w,worksize2)
 !$acc end host_data
 
-       if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
-
-       worksize=max(worksize,worksize2)
-
-       allocate(workspace_d(worksize))
-       allocate(rwork(nelecs))
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &         print *,"cusolverDnDsyevd_bufferSize failed",
+     &         cusolver_status
 
 !$acc end data
+        elseif(jsolver.eq.2) then
+
+          jsolver = 1
+! Jacobi EVD
+          
+        endif
+      
+        worksize=max(worksize,worksize2)
+        
+        allocate(workspace_d(worksize))
+        allocate(rwork(nelecs))
+
 #endif
        endif
 
@@ -274,7 +335,7 @@
 
       enddo
 
-      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u)
+      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)
       deallocate(s,st)

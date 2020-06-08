@@ -34,7 +34,7 @@
 #endif
 #ifdef _OPENACC
       use openacc
-      use cuda_functions
+c      use cuda_functions
 #endif
       
       implicit none
@@ -1194,7 +1194,7 @@
        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
        cpfre=c_loc(memfre)
        cptot=c_loc(memtot)
-       istat=cudaMemGetInfo(cpfre,cptot)
+c       istat=cudaMemGetInfo(cpfre,cptot)
        memavail=memfre
       endif
 #endif

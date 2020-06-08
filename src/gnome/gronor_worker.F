@@ -158,7 +158,6 @@ c      use cuda_functions
      &         print *,"cusolverDnDgesvdj_bufferSize failed",
      &         cusolver_status
 
-          worksize=10*worksize
 !$acc end data
         endif
 
@@ -179,8 +178,46 @@ c      use cuda_functions
 !$acc end data
         elseif(jsolver.eq.2) then
 
-          jsolver = 1
 ! Jacobi EVD
+          
+          ndim=nelecs
+          mdim=mbasel
+          tol = 1.0d-07
+          max_sweeps = 15
+          worksize = 0
+          
+          jobz=CUSOLVER_EIG_MODE_NOVECTOR
+          uplo=CUBLAS_FILL_MODE_LOWER;
+        
+!$acc data create(dev_info_d,w,ta)
+        
+          cusolver_status = cudaStreamCreateWithFlags
+     &         (stream,cudaStreamNonBlocking)
+          
+          cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
+          
+          cusolver_status = cusolverDnCreateSyevjInfo(syevj_params)
+          
+          cusolver_status = cusolverDnXsyevjSetTolerance
+     &         (syevj_params,tol)
+          
+          cusolver_status = cusolverDnXsyevjSetMaxSweeps
+     &         (syevj_params,max_sweeps)
+
+!$acc host_data use_device(ta,w)
+          
+c          cusolver_status = cusolverDnDsyevj_bufferSize
+c     &         (cusolver_handle,jobz,uplo,
+c     &         ndim,ta,mdim,w,worksize,
+c     &         syevj_params)
+        
+!$acc end host_data
+          
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &         print *,"cusolverDnDsyevj_bufferSize failed",
+     &         cusolver_status
+
+!$acc end data
           
         endif
       

@@ -84,12 +84,6 @@
         
 !     here the Jacobi svd from cusolver should be implemented
         
-        cusolver_status = cusolverDnXgesvdjSetTolerance
-     &       (gesvdj_params,tol)
-
-        cusolver_status = cusolverDnXgesvdjSetMaxSweeps
-     &       (gesvdj_params,max_sweeps)
-        
 !$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
 
 !$acc host_data
@@ -114,19 +108,6 @@
      &       (cusolver_handle, gesvdj_params, residual)
 
         call timer_start(42)
-      
-!$acc kernels present(temp,w)
-        do i=1,nelecs
-          do j=1,nelecs
-            temp(i,j)=w(j,i)
-          enddo
-        enddo
-        do i=1,nelecs
-          do j=1,nelecs
-            w(i,j)=temp(i,j)
-          enddo
-        enddo
-!$acc end kernels
      
 !$acc kernels present(u,w,ta)
         do i=1,nelecs

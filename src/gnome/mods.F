@@ -242,6 +242,10 @@
       type(c_ptr) :: svInfo
       end type gesvdjInfo
       
+      type syevjInfo
+      type(c_ptr) :: svInfo
+      end type syevjInfo
+      
       interface
         integer(c_int) function cusolverDnCreateGesvdjInfo(info)
      &       bind(C,name='cusolverDnCreateGesvdjInfo')
@@ -335,8 +339,102 @@
         end function cusolverDnDgesvdj
       end interface
       
+      interface
+        integer(c_int) function cusolverDnCreateSyevjInfo(info)
+     &       bind(C,name='cusolverDnCreateSyevjInfo')
+        import syevjInfo
+        type(syevjInfo) :: info
+        end function cusolverDnCreateSyevjInfo
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXsyevjSetTolerance
+     &       (info, tolerance)
+     &       bind(C,name='cusolverDnXsyevjSetTolerance')
+        use iso_c_binding
+        import syevjInfo
+        type(syevjInfo)       :: info
+        real(c_double), value  :: tolerance
+        end function cusolverDnXsyevjSetTolerance
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXsyevjSetMaxSweeps
+     &       (info, max_sweeps)
+     &       bind(C,name='cusolverDnXsyevjSetMaxSweeps')
+        use iso_c_binding
+        import syevjInfo
+        type(syevjInfo)       :: info
+        integer(c_int),value   :: max_sweeps
+        end function cusolverDnXsyevjSetMaxSweeps
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXsyevjGetSweeps
+     &       (cusolver_Hndl, info, executed_sweeps)
+     &       bind(C,name='cusolverDnXsyevjGetSweeps')
+        use iso_c_binding
+        import cusolverDnHandle
+        import syevjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        type(syevjInfo)              :: info
+        integer(c_int)                :: executed_sweeps
+        end function cusolverDnXsyevjGetSweeps
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnXsyevjGetResidual
+     &       (cusolver_Hndl, info, residual)
+     &       bind(C,name='cusolverDnXsyevjGetResidual')
+        use iso_c_binding
+        import cusolverDnHandle
+        import syevjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        type(syevjInfo)              :: info
+        real(c_double)                :: residual
+        end function cusolverDnXsyevjGetResidual
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnDsyevj_bufferSize
+     &       (cusolver_Hndl, jobz, econ,
+     &       m, n, a, lda, s, u, ldu, v, ldv, lwork, info)
+     &       bind(C,name='cusolverDnDsyevj_bufferSize')
+        use iso_c_binding
+        import cusolverDnHandle
+        import syevjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        integer(c_int), value  :: jobz
+        integer(c_int), value  :: econ
+        integer(c_int), value  :: m, n, lda, ldu, ldv
+        integer(c_int)         :: lwork
+        real(c_double), device :: a(*), s(*), u(*), v(*)
+        type(syevjInfo)       :: info
+        end function cusolverDnDsyevj_bufferSize
+      end interface
+      
+      interface
+        integer(c_int) function cusolverDnDsyevj
+     &       (cusolver_Hndl, jobz, econ,
+     &       m, n, a, lda, s, u, ldu, v, ldv, work, lwork,
+     &       devinfo, info )
+     &       bind(C,name='cusolverDnDsyevj')
+        use iso_c_binding
+        import cusolverDnHandle
+        import syevjInfo
+        type(cusolverDnHandle), value :: cusolver_Hndl
+        integer(c_int), value  :: jobz
+        integer(c_int), value  :: econ, m, n, lda, ldu, ldv
+        real(c_double), device :: a(*), s(*), u(*), v(*), work(*)
+        integer(c_int)         :: lwork
+        integer(c_int)         :: devinfo
+        type(syevjInfo)       :: info
+        end function cusolverDnDsyevj
+      end interface
+      
       type(cusolverDnHandle) :: cusolver_handle
       type(gesvdjInfo)       :: gesvdj_params
+      type(syevjInfo)        :: syevj_params
       integer (kind=4)       :: cusolver_status
       integer (kind=4)       :: worksize,worksize2,ndim,mdim
       real (kind=8)          :: tol, residual
@@ -347,6 +445,7 @@
       integer (kind=4) :: dev_info_d
       integer(kind=cuda_stream_kind) :: stream
       integer (kind=4) :: jobz
+      integer (kind=4) :: uplo=0
       
       end module cuda_cusolver
 #endif

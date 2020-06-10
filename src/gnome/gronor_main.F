@@ -44,7 +44,7 @@ c      use cuda_functions
       integer,allocatable :: iocc_tmp(:)
       integer :: maxci, maxvec, maxnact
       integer :: mactb, maxcib, mdum, node
-      real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(3)
+      real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
       character (len=255) :: string, filnam, card, item
 
       real(kind=8), external :: timer_wall_total
@@ -392,6 +392,26 @@ c      use cuda_functions
            jsolver=1
          elseif(.not.inp_i(jsolver)) then
            jsolver=1
+         endif
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Tolerance',item)) then
+         if(.not.inp_f(tolsvj)) then
+           tolsvj=1.0d-07
+           tolevj=1.0d-07
+         elseif(.not.inp_f(tolevj)) then
+           tolevj=1.0d-07
+         endif
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Sweep',item)) then
+         if(.not.inp_i(iswsvj)) then
+           iswsvj=15
+           iswevj=15
+         elseif(.not.inp_i(iswevj)) then
+           iswevj=15
          endif
          goto 2
        endif
@@ -748,14 +768,18 @@ c      use cuda_functions
           idum(37)=jsolver
           idum(38)=ifault
           idum(39)=idevel
+          idum(40)=iswsvj
+          idum(41)=iswevj
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
+          rdum(4)=tolsvj
+          rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,39,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,3,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,41,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
         mstates=idum(2)
@@ -796,6 +820,8 @@ c      use cuda_functions
         jsolver=idum(37)
         ifault =idum(38)
         idevel =idum(39)
+        iswsvj =idum(40)
+        iswevj =idum(41)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -809,6 +835,8 @@ c      use cuda_functions
         thresh=rdum(1)
         thresh_CI=rdum(2)
         thresh_SIN=rdum(3)
+        tolsvj=rdum(4)
+        tolevj=rdum(5)
         
       endif
 

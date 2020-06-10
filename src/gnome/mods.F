@@ -87,12 +87,14 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: iload,ibatch,itest,ifault,isolver,jsolver,idevel
+      integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
       integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
       real (kind=8) :: thresh, thresh_CI, thresh_SIN
+      real (kind=8) :: tolsvj,tolevj
 
       logical :: corres
 

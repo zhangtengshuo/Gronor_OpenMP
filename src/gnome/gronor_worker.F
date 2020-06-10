@@ -124,8 +124,8 @@ c      use cuda_functions
           
           ndim=nelecs
           mdim=mbasel
-          tol = 1.0d-07
-          max_sweeps = 15
+          tol = tolsvj
+          max_sweeps = iswsvj
           worksize = 0
           
           jobz=CUSOLVER_EIG_MODE_VECTOR
@@ -161,7 +161,7 @@ c      use cuda_functions
 !$acc end data
         endif
 
-        if(jsolver.eq.1.or.jsolver.eq.2) then
+        if(jsolver.eq.1) then
 !$acc data copyin(w,ta) create(dev_info_d)
        
 !$acc host_data use_device(ta,w)
@@ -182,8 +182,8 @@ c      use cuda_functions
           
           ndim=nelecs
           mdim=mbasel
-          tol = 1.0d-07
-          max_sweeps = 15
+          tol = tolevj
+          max_sweeps = iswevj
           worksize = 0
           
           jobz = CUSOLVER_EIG_MODE_NOVECTOR

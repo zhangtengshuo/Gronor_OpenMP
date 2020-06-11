@@ -184,7 +184,6 @@ c      use cuda_functions
           mdim=mbasel
           tol = tolevj
           max_sweeps = iswevj
-          worksize = 0
           
           jobz = CUSOLVER_EIG_MODE_NOVECTOR
           uplo = CUBLAS_FILL_MODE_LOWER

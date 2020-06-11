@@ -267,6 +267,8 @@ c      use cuda_functions
        nummps=1
        numomp=1
        ixpert=0
+       iswsvj=15
+       iswevj=15
 #ifdef _OPENACC
        naccel=0
 #endif
@@ -281,6 +283,8 @@ c      use cuda_functions
        thresh=1.0d-10
        thresh_CI=1.0d-10
        thresh_SIN=1.0d-12
+       tolsvj=1.0d-07
+       tolevj=1.0d-07
 
        open(unit=lfninp,file=filinp,form='formatted',status='old',
      &  err=999)

@@ -378,7 +378,9 @@
         
         iremote=status(MPI_SOURCE)
         igrp=map2(iremote+1,3)
-        
+        ibase=lgroup(igrp,1)
+        jbase=lgroup(igrp,2)
+
         lactive(igrp)=1
         if(idbg.gt.2) then
           call swatch(date,time)
@@ -450,10 +452,10 @@
           
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &         ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
-          
+
           do i=1,nbase
             do j=1,nbase
-              if(i.ne.ibase.and.j.ne.jbase.and.ntasks(i,j).eq.0) then
+              if(ntasks(i,j).eq.0) then
                 call timer_stop(99)
                 call swatch(date,time)
                 
@@ -498,6 +500,7 @@
           do i=1,5
             lgroup(igrp,i)=0
           enddo
+
 !     Send a duplicate of an outstanding entry
           j=0
           do i=1,npg
@@ -521,10 +524,11 @@
      &             master,' sent duplicate ibuf to',iremote
               flush(lfndbg)
             endif
-            if(ipr.eq.2.or.ipro.eq.4) then
+
+            if(ipro.eq.2.or.ipro.eq.4) then
               call swatch(date,time)
               write(lfnpro,682) date(1:8),time(1:8),
-     &             iremote,igrp,(ibuf(j),j=1,4),
+     &             iremote,igrp,(ibuf(k),k=1,4),
      &             iloop(ibuf(3),1),iloop(ibuf(3),2)
 ! 682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
               flush(lfnpro)

@@ -1590,7 +1590,6 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       if(me.eq.master) then
-       write(*,674)
        write(lfnout,674)
  674   format(//,' Hamiltonian Matrix unnormalised',/)
        open(unit=lfnf74,file=filf74,form='unformatted',status='unknown')
@@ -1604,13 +1603,10 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
        do k=1,nk
          ii=(k-1)*ncols+1
          il=min(nbase,k*ncols)
-         write(*,671) (i,i=ii,il)
          write(lfnout,671) (i,i=ii,il)
          do j=1,nbase
-           write(*,672) j,(hbase(i,j),i=ii,il)
            write(lfnout,672) j,(hbase(i,j),i=ii,il)
          enddo
-         write(*,*) ' '
          write(lfnout,*) ' '
        enddo
 
@@ -1619,16 +1615,12 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
        do k=1,nk
          ii=(k-1)*ncols+1
          il=min(nbase,k*ncols)
-         write(*,675)
          write(lfnout,675)
  675     format(//,' Overlap Matrix unnormalised',/)
-         write(*,671) (i,i=ii,il)
          write(lfnout,671) (i,i=ii,il)
          do j=1,nbase
-           write(*,672) j,(sbase(i,j),i=ii,il)
            write(lfnout,672) j,(sbase(i,j),i=ii,il)
          enddo
-         write(*,*) ' '
          write(lfnout,*) ' '
        enddo
       endif

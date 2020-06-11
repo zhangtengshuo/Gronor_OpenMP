@@ -410,12 +410,14 @@
       
       return
       end
-
       
       subroutine gronor_cofac1_omp(lfndbg)
       use cidist
       use gnome_parameters
       use gnome_data
+#ifdef MKL
+      use mkl_solver
+#endif
 
       implicit none
       integer :: lfndbg
@@ -430,22 +432,44 @@
 
       call timer_start(41)
 
-cc!$acc data copy(dev_info_d)
-cc!$acc& create(temp,workspace_d,rwork)
-      
+#ifdef MKL
 
+      if(isolver.eq.1) then
+
+        ndim=nelecs
+        mdim=mbasel
+
+        call dgesvd('All','All',ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,
+     &       workspace_d,worksize,ierr)
+        
+        do i=1,nelecs
+          do j=1,nelecs
+            a(i,j)=w(i,j)
+          enddo
+        enddo
+        do i=1,nelecs
+          do j=1,nelecs
+            w(j,i)=a(i,j)
+          enddo
+        enddo
+      else
       
-cc!$acc update host (ta)
+        call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
+     &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
+     &       ierr,sdiag,nelecs)
+        
+      endif
+
+#else
       
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &     ierr,sdiag,nelecs)
       
-cc!$acc update device (u,w)
-      
+#endif
+
       call timer_start(42)
       
-cc!$acc kernels present(u,w,ta)
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -455,12 +479,9 @@ cc!$acc kernels present(u,w,ta)
           ta(i,j)=coef
         enddo
       enddo
-cc!$acc end kernels
       
       call timer_stop(42)
 
-cc!$acc end data
-      
       call timer_stop(41)
 
       if(idbg.ge.12) write(lfndbg,601) (ev(i),i=1,nelecs)
@@ -472,39 +493,49 @@ cc!$acc end data
 
       idetuw=1
       
-cc!$acc update host (ta)
-
       call timer_start(43)
+#ifdef MKL
+      if(jsolver.eq.1) then
+
+        ndim=nelecs
+        mdim=mbasel
+
+        stop 'No MKL evd yet'
+
+      else
+        call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
+     &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
+        
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
+     &       max(mbasel,nveca),ierr)
+      endif
+#else
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
      &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
 
       call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &     max(mbasel,nveca),ierr)
+#endif
+      
       call timer_stop(43)
 
-cc!$acc update device (ta,diag,sdiag)
-      
       call timer_start(44)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
 
-cc!$acc kernels present(cdiag,diag,csdiag,sdiag)
       do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
-cc!$acc end kernels
 
 !      calculation of det(a) and x and y
 
       cmax=0.00
 
-cc!$acc kernels present(ev)
       do i=1,nelecs
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
-cc!$acc end kernels
 
       if(cmax.le.0.01) stop 'no overlap between m.o.s'
 
@@ -514,8 +545,6 @@ cc!$acc end kernels
       nz2=0
       deta=0.0
 
-cc!$acc update host(ev)
-      
       do i=1,nelecs
         coefu=ev(i)
         if(abs(coefu) .le. cnorm) then
@@ -538,7 +567,6 @@ cc!$acc update host(ev)
           deta=coef
           ising=0
 
-cc!$acc kernels present(ta,u,w,ev)
           do i=1,nelecs
             do j=1,nelecs
               coefu=0.0d0
@@ -548,14 +576,12 @@ cc!$acc kernels present(ta,u,w,ev)
               ta(i,j)=coefu*0.5d0
             enddo
           enddo
-cc!$acc end kernels
 
           call timer_stop(44)
           return
           ising=1
         endif
 
-cc!$acc kernels present(diag,sdiag,ta,u,w,ev)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -567,14 +593,11 @@ cc!$acc kernels present(diag,sdiag,ta,u,w,ev)
             ta(i,j)=coefu
           enddo
         enddo
-cc!$acc end kernels
 
-cc!$acc kernels present(cdiag,diag,csdiag,sdiag)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
-cc!$acc end kernels
       
         call timer_stop(44)
         return
@@ -583,7 +606,7 @@ cc!$acc end kernels
       if(abs(coef).lt.thresh_SIN) then
         ising=3
       else
-cc!$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
+
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -596,7 +619,6 @@ cc!$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
-cc!$acc end kernels
       
         call timer_stop(44)
         return

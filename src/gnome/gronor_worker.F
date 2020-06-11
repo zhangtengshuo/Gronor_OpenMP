@@ -12,6 +12,9 @@
 c      use cuda_functions
       use cudafor
 #endif
+#ifdef MKL
+      use mkl_solver
+#endif
       implicit none
 
       real(kind=8), external :: timer_wall_total, timer_wall
@@ -225,7 +228,36 @@ c      use cuda_functions
         allocate(rwork(nelecs))
 
 #endif
-       endif
+      else
+#ifdef MKL
+        ndim=nelecs
+        mdim=mbasel
+        worksize=-1
+        worksize2=-1
+        worksizei=-1
+        if(isolver.eq.1) then
+          allocate(workspace_d(2448))
+          call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
+     &         workspace_d,worksize,ierr)
+          worksize=int(workspace_d(1))
+          deallocate(workspace_d)
+        endif
+        if(jsolver.eq.1) then
+          allocate(workspace_d(2448))
+          allocate(workspace_i(2448))
+          call dsyevd('N','U',ndim,a,ndim,w,workspace_d,worksize2,
+     &         workspace_i,worksizei,ierr)
+          worksize2=int(workspace_d(1))
+          worksizei=workspace_i(1)
+          deallocate(workspace_d)
+          deallocate(workspace_i)
+        endif
+        worksize=max(8,worksize,worksize2)
+        worksizei=max(8,worksizei)
+        allocate(workspace_d(worksize))
+        allocate(workspace_i(worksizei))
+#endif  
+      endif
 
       do i=1,8
        buffer(i)=0.0d0

@@ -99,14 +99,14 @@ c      use cuda_functions
       jbase0=0
       idet0=0
       jdet0=0
-      worksize=0
-      worksize2=0
 
       if(iamacc.ne.0) then
 #ifdef CUSOLVER
 
         ndim=nelecs
         mdim=mbasel
+        worksize=0
+        worksize2=0
         
         if(isolver.eq.1) then
 !$acc data copyin(w,ta) create(dev_info_d)
@@ -126,7 +126,6 @@ c      use cuda_functions
           mdim=mbasel
           tol = tolsvj
           max_sweeps = iswsvj
-          worksize = 0
           
           jobz=CUSOLVER_EIG_MODE_VECTOR
         

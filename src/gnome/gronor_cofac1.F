@@ -11,7 +11,7 @@
       implicit none
       integer :: lfndbg
       integer :: i,ierr,j,idetuw,k
-      real (kind=8) :: coef
+      real (kind=8) :: coef,td
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
       character (len=1), target :: jobu, jobvt
@@ -25,8 +25,6 @@
 
        ndim=nelecs
        mdim=mbasel
-       tol = 1.0d-07
-       max_sweeps = 15
        
       if(isolver.eq.1) then
 
@@ -47,7 +45,7 @@
 
       call timer_start(42)
       
-!$acc kernels present(temp,w)
+!$acc kernels present(temp,u,w,ta)
       do i=1,nelecs
         do j=1,nelecs
           temp(i,j)=w(j,i)
@@ -58,9 +56,6 @@
           w(i,j)=temp(i,j)
         enddo
       enddo
-!$acc end kernels
-     
-!$acc kernels present(u,w,ta)
       do i=1,nelecs
 !$acc loop vector
         do j=1,i
@@ -95,7 +90,6 @@
      &       worksize,dev_info_d,gesvdj_params)
         
 !$acc end host_data
-!$acc wait
 
         cusolver_status=cudaDeviceSynchronize()
         
@@ -157,7 +151,6 @@
        
       endif
 
-      
 #else
       
 !$acc update host (ta)
@@ -201,7 +194,7 @@
 #ifdef CUSOLVER
 
 !$acc data copy(dev_info_d)
-!$acc& create(temp,workspace_d)
+!$acc& create(workspace_d)
       
       if(jsolver.eq.1) then
         
@@ -218,6 +211,9 @@
 !$acc end host_data
 !$acc wait
 
+       if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &       write(*,*) 'cusolverDnDsyevd failed',cusolver_status
+       
         call timer_stop(43)
 
 !$acc kernels present(sdiag)
@@ -236,14 +232,19 @@
           
         call timer_start(43)
 
-!$acc wait
+!$acc data copy(dev_info_d,syevj_params) create(workspace_d)
+
 !$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
         cusolver_status = cusolverDnDsyevj
      &       (cusolver_handle, jobz, uplo, ndim,ta,mdim,diag,
      &       workspace_d,worksize2,dev_info_d,syevj_params)
 !$acc end host_data
-!$acc wait
 
+        cusolver_status=cudaDeviceSynchronize()
+        
+       if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &       write(*,*) 'cusolverDnDsyevj failed',cusolver_status
+       
         call timer_stop(43)
 
 !$acc kernels present(sdiag)
@@ -251,6 +252,8 @@
           sdiag(i)=0.0d0
         enddo
 !$acc end kernels
+        
+!$acc end data
         
       else
 
@@ -269,7 +272,7 @@
       endif
        
 !$acc end data
-      
+
 #else
       
 !$acc update host (ta)
@@ -293,20 +296,16 @@
       enddo
 !$acc end kernels
 
-!$acc kernels present(cdiag,diag,csdiag,sdiag)
+      cmax=0.0d0
+      
+!$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
+!     calculation of det(a) and x and y
+      do i=1,nelecs
+        if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
+      enddo
       do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
-      enddo
-!$acc end kernels
-
-!      calculation of det(a) and x and y
-
-      cmax=0.00
-
-!$acc kernels present(ev)
-      do i=1,nelecs
-        if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
 !$acc end kernels
 
@@ -316,7 +315,7 @@
       coef=idetuw
       nz1=0
       nz2=0
-      deta=0.0
+      deta=0.0d0
 
 !$acc update host(ev)
       
@@ -359,7 +358,7 @@
           ising=1
         endif
 
-!$acc kernels present(diag,sdiag,ta,u,w,ev)
+!$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -371,9 +370,6 @@
             ta(i,j)=coefu
           enddo
         enddo
-!$acc end kernels
-
-!$acc kernels present(cdiag,diag,csdiag,sdiag)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)

@@ -170,7 +170,7 @@ c      use cuda_functions
           cusolver_status = cusolverDnDsyevd_bufferSize
      &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &         CUBLAS_FILL_MODE_LOWER,
-     &         ndim,ta,ndim,w,worksize2)
+     &         ndim,ta,mdim,w,worksize2)
 !$acc end host_data
 
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)

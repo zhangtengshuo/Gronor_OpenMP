@@ -553,7 +553,7 @@ c      use cuda_functions
       
       close(unit=lfninp)
       
-      write(lfnout,622) isolver,numomp
+      write(lfnout,622) isolver,jsolver,numomp
  622  format(' Solver options',t40,2i5,t60,
      &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
@@ -1561,7 +1561,7 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
      &             ' mint2= ',mint2
               flush(lfndbg)
             endif
-
+            
 !$acc data copyin(g,lab,t,v,ndxtv)
             if(idbg.gt.0) then
               call swatch(date,time)
@@ -1572,21 +1572,21 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
             call gronor_worker()
 !$acc end data
 
-       else
-         lwork=10
-         allocate(work(lwork))
-         call gronor_worker()
-       endif
-      endif
+          else
+            lwork=10
+            allocate(work(lwork))
+            call gronor_worker()
+          endif
+        endif
       endif
       call timer_stop(98)
       
       if(idbg.gt.0) then
-       call swatch(date,time)
-       write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),
-     & ' Closing ',trim(fildbg)
-       flush(lfndbg)
-       close(unit=lfndbg,status='keep')
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),
+     &       ' Closing ',trim(fildbg)
+        flush(lfndbg)
+        close(unit=lfndbg,status='keep')
       endif
 
       if(me.eq.master) then
@@ -1823,8 +1823,10 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
        call timer_start(99)
       endif
        
+       write(*,'(i4,a)') me,'  A'
       call gronor_timings(lfnout,lfnday)
        
+       write(*,'(i4,a)') me,'  B'
       if(me.eq.master) deallocate(numrecs)
 
       close(unit=lfndbg,status='keep')
@@ -1849,11 +1851,16 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
 !       endif
 !       close(unit=lfnpro,status='delete')
       endif
+       write(*,'(i4,a)') me,'  C'
 
-      if(ifault.eq.0 .and. nalive+1.eq.np) then
-        call mpi_finalize(ierr)
+c      write(*,'(a,5i5)') ' End ',me,ifault,nalive,np,mgr*npg
+
+      if(me.eq.master.and.nalive+1.ne.np) then
+        write(*,'(i4,a)') me,' mpi_abort'
+        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
       else
-        if(me.eq.master) call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+        write(*,'(i,4a)') me,' mpi_finalize'
+        call mpi_finalize(ierr)
       endif
       
       return

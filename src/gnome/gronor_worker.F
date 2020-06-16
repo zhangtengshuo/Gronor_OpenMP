@@ -103,9 +103,12 @@ c      use cuda_functions
         allocate(aatl(nbatch,mbasel,max(mbasel,nveca)))
         allocate(aaal(nbatch,mbasel,max(mbasel,nveca)))
         allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(ddata(nbatch,3))
+        allocate(hdata(nbatch,3))
         allocate(bdata(nbatch,4))
         allocate(ibdata(nbatch,3))
         allocate(esum(nbatch))
+        allocate(fsum(nbatch))
       else
         allocate(diagl(1,1))
         allocate(bsdiagl(1,1))
@@ -116,9 +119,12 @@ c      use cuda_functions
         allocate(aatl(1,1,1))
         allocate(aaal(1,1,1))
         allocate(tatl(1,1,1))
+        allocate(ddata(1,1))
+        allocate(hdata(1,1))
         allocate(bdata(1,1))
         allocate(ibdata(1,1))
         allocate(esum(1))
+        allocate(fsum(1))
       endif
 
       allocate(w1(max(nelecs,nbas,mbasel)))
@@ -432,10 +438,12 @@ c      use cuda_functions
 
       if(lbatch.gt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(bdata,ibdata,esum)
+        deallocate(bdata,ibdata,esum,fsum)
+        deallocate(ddata,ddata)
       else
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(bdata,ibdata,esum)
+        deallocate(bdata,ibdata,esum,fsum)
+        deallocate(ddata,ddata)
       endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
       deallocate(aat,tt,sm)

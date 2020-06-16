@@ -169,7 +169,8 @@
       real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
       real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #endif
-      real (kind=8), allocatable :: bdata(:,:),esum(:)
+      real (kind=8), allocatable :: hdata(:,:),ddata(:,:)
+      real (kind=8), allocatable :: bdata(:,:),esum(:),fsum(:)
       integer (kind=4), allocatable :: ibdata(:,:)
 
       integer :: ising

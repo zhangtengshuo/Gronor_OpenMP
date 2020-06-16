@@ -662,10 +662,17 @@ c      write(*,'(3f12.6)') ts,e2,e1
 c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 !     Copying arrays into batch arrays
 
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
       if(ihc.eq.1) then
         nb0=0
         nb1=0
       endif
+      ibdata(ihc,1)=-1
+      ibdata(ihc,2)=-1
       
       if(ising.lt.3) then
 
@@ -676,19 +683,31 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
         ibl=nhc-nb1
         nb1=nb1+1
       endif
+
+!     Task list data arrays
+
+!     ibdata(ihc,1) : index into task list arrays ddata and hdata
+!     ibdata(ihc,2) : singularity
+      
+!     hdata(ihc,1)  : one-electron energy
+!     hdata(ihc,2)  :
+!     hdata(ihc,3)  : 
+
+!     ddata(ibl,1)  : energy
+!     ddata(ibl,2)  : deta
+
+      
       ibdata(ihc,1)=ibl
       ibdata(ihc,2)=ising
 
       bdata(ibl,2)=deta
       bdata(ibl,3)=bias
+
+      ddata(ibl,2)=deta
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
-!      numint=ig(mod(me,mgr)+1)
-
-c      if(nb1+nb0.gt.nbatch) stop 'dimension issue'
-c      write(*,'(6i5)') nb0,nb1,ihc,nhc,nbatch,ising
       numint=mint2
 
       if(ising.gt.1) e1=0.0d0
@@ -736,20 +755,18 @@ c      write(*,'(6i5)') nb0,nb1,ihc,nhc,nbatch,ising
 
       endif
 
-
+      hdata(ihc,1)=e1
       
       call timer_start(38)
 
-c      write(*,'(5i5)') ihc,nhc
+!     After the last element of a task the list of energies is generated
+      
       if(ihc.eq.nhc) then
 
-c        write(*,'(a,5i5)') 'GnTwo batch ',nb0,nb1,ihc,nhc,nbatch
-        
         call timer_start(38)
         
-        if(nb0.gt.0) then
+        if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(31)
-
           do i=1,nbatch
             esum(i)=0.0d0
           enddo
@@ -769,18 +786,81 @@ c        write(*,'(a,5i5)') 'GnTwo batch ',nb0,nb1,ihc,nhc,nbatch
      &             -aaal(ibl,l,i)*aatl(ibl,n,k)
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
-
           enddo
           do i=1,nb0
+            ddata(i,1)=4.0d0*ddata(i,2)*esum(i)
+! bdata to become obsolete
             bdata(i,1)=4.0d0*bdata(i,2)*esum(i)
           enddo
-c          write(*,'(5i5)') nb0
-c          write(*,'(10f12.6)') (esum(i),i=1,nb0)
           call timer_stop(31)
         endif
-        if(nb1.gt.0) then
+
+        if(nb0.gt.0.and.nb1.gt.0) then
+          call timer_start(31)
           do i=1,nbatch
             esum(i)=0.0d0
+            fsum(i)=0.0d0
+          enddo
+          do int=1,numint
+            i=lab(1,int)
+            k=lab(2,int)
+            l=lab(3,int)
+            n=lab(4,int)
+            do ibl=1,nb0
+              esum(ibl)=esum(ibl)+g(int)*(sml(ibl,k,i)*sml(ibl,n,l)
+     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
+     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
+     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
+     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
+     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
+     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
+     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
+     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
+            enddo
+            do ibl=nhc-nb1+1,nhc
+              fsum(ibl)=fsum(ibl)+g(int)*
+     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+     &             +diagl(ibl,n)*csdiagl(ibl,l)
+     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
+     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &             +(diagl(ibl,i)*csdiagl(ibl,k)
+     &             +diagl(ibl,k)*csdiagl(ibl,i)
+     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+     &             +aatl(ibl,l,k)*diagl(ibl,n))
+     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+     &             +aaal(ibl,n,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
+     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+     &             +aatl(ibl,l,i)*diagl(ibl,n))
+     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+     &             +aaal(ibl,l,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
+            enddo
+          enddo
+          do i=1,nb0
+            ddata(i,1)=4.0d0*ddata(i,2)*esum(i)
+! bdata to become obsolete
+            bdata(i,1)=4.0d0*bdata(i,2)*esum(i)
+          enddo
+          do i=nhc-nb1+1,nhc
+            ddata(i,1)=fsum(i)
+            bdata(i,1)=fsum(i)
+          enddo
+          call timer_stop(31)
+        endif
+        
+        if(nb0.le.0.and.nb1.gt.0) then
+          call timer_start(31)
+          do i=1,nbatch
+            fsum(i)=0.0d0
           enddo
           do int=1,numint
             i=lab(1,int) 
@@ -788,15 +868,15 @@ c          write(*,'(10f12.6)') (esum(i),i=1,nb0)
             l=lab(3,int) 
             n=lab(4,int)
             do ibl=nhc-nb1+1,nhc
-              sum2=diagl(ibl,i)*csdiagl(ibl,k)
-     &             +diagl(ibl,k)*csdiagl(ibl,i)
-     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
-     &             +bdiagl(ibl,k)*bsdiagl(ibl,i)
-              esum(ibl)=esum(ibl)+g(int)*
+              fsum(ibl)=fsum(ibl)+g(int)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
-     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))+sum2*sml(ibl,n,l)
+     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &             +(diagl(ibl,i)*csdiagl(ibl,k)
+     &             +diagl(ibl,k)*csdiagl(ibl,i)
+     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
      &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
      &             +aatl(ibl,l,k)*diagl(ibl,n))
      &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
@@ -816,77 +896,15 @@ c          write(*,'(10f12.6)') (esum(i),i=1,nb0)
             enddo
           enddo
           do i=nhc-nb1+1,nhc
-            bdata(i,1)=esum(i)
+            ddata(i,1)=fsum(i)
+            bdata(i,1)=fsum(i)
           enddo
+          call timer_stop(31)
         endif
+        
       endif
 
 c      print*,'Returning from gntwo'
-      return
-      
-      if(ising.le.0) then
-
-       call timer_start(32)
-
-       do intg=1,numint
-        i=lab(1,intg)
-        k=lab(2,intg)
-        l=lab(3,intg)
-        n=lab(4,intg)
-        ts=ts+g(intg)*(sm(k,i)*sm(n,l)
-     &       -aat(n,i)*aaa(l,k)-tt(n,i)*ta(l,k)
-     &       -aaa(n,i)*aat(l,k)-ta(n,i)*tt(l,k)
-     &       -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
-     &       -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
-       enddo
-
-       call timer_stop(32)
-
-      else
-
-       call timer_start(35)
-
-       do intg=1,numint
-        i=lab(1,intg) 
-        k=lab(2,intg) 
-        l=lab(3,intg) 
-        n=lab(4,intg)
-        aai=diag(i)
-        abi=bdiag(i)
-        bai=csdiag(i)
-        bbi=bsdiag(i)
-        aak=diag(k)
-        abk=bdiag(k)
-        bak=csdiag(k)
-        bbk=bsdiag(k)
-        sum2=aai*bak+aak*bai+abi*bbk+abk*bbi
-        aaj=diag(l)
-        abj=bdiag(l)
-        baj=csdiag(l)
-        bbj=bsdiag(l)
-        aal=diag(n)
-        abl=bdiag(n)
-        bal=csdiag(n)
-        bbl=bsdiag(n)
-        e2=e2+g(intg)*
-     &    (sm(k,i)*(aaj*bal+aal*baj+abj*bbl+abl*bbj)+sum2*sm(n,l)
-     &          -bai*(aat(n,k)*aaj+aat(l,k)*aal)
-     &          -bbi*(tt(n,k)*abj+tt(l,k)*abl)
-     &          -baj*(aaa(n,i)*aak+aaa(n,k)*aai)
-     &          -bbj*(ta(n,i)*abk+ta(n,k)*abi)
-     &          -bak*(aat(n,i)*aaj+aat(l,i)*aal)
-     &          -bbk*(tt(n,i)*abj+tt(l,i)*abl)
-     &          -bal*(aaa(l,i)*aak+aaa(l,k)*aai)
-     &          -bbl*(ta(l,i)*abk+ta(l,k)*abi))
-       enddo
-
-       call timer_stop(35)
-      endif
-
-      ts=ts*fourdet
-      e2=e2+ts
-
-      call timer_stop(38)
 
       return
       end

@@ -274,7 +274,6 @@ c        write(*,'(a,4i5)') 'In Gnome ',ihc,nhc,ising
           endif
 !     Calculation of the two-electron matrix elements
 
-c          write(*,'(a,4i5)') 'At gntwo ',ihc,nhc,ising
           if((icalc.eq.2.or.icalc.eq.0)) then
             call timer_start(22)
             if(lbatch.gt.0) then

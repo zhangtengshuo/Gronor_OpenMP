@@ -14,7 +14,7 @@
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
-      integer :: ib,jb,id1,id2,lbuf,ii,jj,ig0,ihc,nhc
+      integer :: ib,jb,id1,id2,lbuf,ii,jj,ig0,ihc,nhc,ibl
 
       integer :: i,ibv,idet,iin,ij,j,jin,k,l2,m,n,nck,nop,nvc,indxx
       integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,index
@@ -320,23 +320,25 @@ c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
           endif
           ihc=ij-id1+1
           nhc=id2-id1+1
-          if(ibdata(ihc,1).gt.0) then
+          ibl=ibdata(ihc,1)
+          if(ibl.gt.0) then
 c            write(*,'(i5,4f12.6)') ibdata(ihc,1),
 c     &           bdata(ibdata(ihc,1),1),
 c     &           bdata(ibdata(ihc,1),2),
 c     &           bdata(ibdata(ihc,1),3),
 c     &           bdata(ihc,4)
+c            ibl=ibdata(ihc,1)
             if((icalc.eq.2.or.icalc.eq.0)) then
               if(icalc.eq.0) then
                 if(mgr.le.1) then
-                  etot=bdata(ihc,4)+bdata(ibdata(ihc,1),1)
+                  etot=hdata(ihc,1)+bdata(ibl,1)
                 else
-                  etot=bdata(ihc,4)
-                  e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*bdata(ihc,4)
+                  etot=hdata(ihc,1)
+                  e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*hdata(ihc,1)
                 endif
                 if(iamhead.eq.1) then
-                  hh=etot-bdata(ibdata(ihc,1),2)*bdata(ibdata(ihc,1),3)
-                  ss=bdata(ibdata(ihc,1),2)
+                  hh=etot-bdata(ibl,2)*bdata(ibl,3)
+                  ss=bdata(ibl,2)
                 endif
               endif
             endif

@@ -93,6 +93,34 @@ c      use cuda_functions
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
 
+      if(lbatch.gt.0) then
+        allocate(diagl(nbatch,max(nelecs,nbas,mbasel)))
+        allocate(bsdiagl(nbatch,max(nelecs,nbas,mbasel)))
+        allocate(bdiagl(nbatch,max(nelecs,nbas,mbasel)))
+        allocate(csdiagl(nbatch,max(nelecs,nbas,mbasel)))
+        allocate(sml(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(ttl(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(aatl(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(aaal(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
+        allocate(bdata(nbatch,4))
+        allocate(ibdata(nbatch,3))
+        allocate(esum(nbatch))
+      else
+        allocate(diagl(1,1))
+        allocate(bsdiagl(1,1))
+        allocate(bdiagl(1,1))
+        allocate(csdiagl(1,1))
+        allocate(sml(1,1,1))
+        allocate(ttl(1,1,1))
+        allocate(aatl(1,1,1))
+        allocate(aaal(1,1,1))
+        allocate(tatl(1,1,1))
+        allocate(bdata(1,1))
+        allocate(ibdata(1,1))
+        allocate(esum(1))
+      endif
+
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
@@ -372,11 +400,11 @@ c      use cuda_functions
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i10)') date(1:8),time(1:8),
      &        me,' Entering gronor_calculate with ',
-     &        ibase,jbase,idet,jdet,ibatch
+     &        ibase,jbase,idet,jdet,nbatch
          flush(lfndbg)
         endif
         call timer_start(47)
-        call gronor_calculate(ibase,jbase,idet,jdet,ibatch)
+        call gronor_calculate(ibase,jbase,idet,jdet,nbatch)
         call timer_stop(47)
         buffer(3)=timer_wall(47)
         if(idbg.gt.2) then
@@ -402,6 +430,13 @@ c      use cuda_functions
 
       enddo
 
+      if(lbatch.gt.0) then
+        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
+        deallocate(bdata,ibdata,esum)
+      else
+        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
+        deallocate(bdata,ibdata,esum)
+      endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)

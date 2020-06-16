@@ -14,7 +14,7 @@
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
-      integer :: ib,jb,id1,id2,lbuf,ii,jj,ig0
+      integer :: ib,jb,id1,id2,lbuf,ii,jj,ig0,ihc,nhc
 
       integer :: i,ibv,idet,iin,ij,j,jin,k,l2,m,n,nck,nop,nvc,indxx
       integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,index
@@ -66,239 +66,295 @@
       e2summ=0.0d0
       e2buff=0.0d0
 
+c      write(*,'(a,4i5)') 'ij ',id1,id2 
+      
+      nhc=id2-id1+1
+      
       do ij=id1,id2
-       call timer_start(5)
-
-       if(idbg.ge.10)
-     &  write(lfndbg,608) ij, iloop(ij,1),iloop(ij,2)
+        call timer_start(5)
+        
+        if(idbg.ge.10)
+     &       write(lfndbg,608) ij, iloop(ij,1),iloop(ij,2)
  608    format(//,
-     &  25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,
-     &  '         Left determinant      Right determinant',/,
-     &  ' Irrep   inactive   active     inactive   active',//)
+     &       25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,
+     &       '         Left determinant      Right determinant',/,
+     &       ' Irrep   inactive   active     inactive   active',//)
+        
+        nelec(1)=0
+        nelec(2)=0
+        ntop(1)=0
+        ntop(2)=0
+        ntcl(1)=0
+        ntcl(2)=0
+        
+        i=lstdet(ij+ioff,1)
+        j=lstdet(ij+ioff,2)
+        
+        ihc=ij-id1+1
 
-       nelec(1)=0
-       nelec(2)=0
-       ntop(1)=0
-       ntop(2)=0
-       ntcl(1)=0
-       ntcl(2)=0
-
-!       i=iloop(lstdet(ij+ioff),1)
-!       j=iloop(lstdet(ij+ioff),2)
-       i=lstdet(ij+ioff,1)
-       j=lstdet(ij+ioff,2)
-       
-       hh=0.0d0
-       ss=0.0d0
-       
-       if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
+        hh=0.0d0
+        ss=0.0d0
+        
+        if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
           ising=4
-          goto 105
-       endif
-
-       inacti=inactb(ib)
-       inactj=inactb(jb)
-       nacti=nactb(ib)
-       nactj=nactb(jb)
-
-       nclose(1)=inacti
-       nclose(2)=inactj
-       nopen(1)=nacti
-       nopen(2)=nactj
-       nelec(1)=2*nclose(1)
-       nelec(2)=2*nclose(2)
-       ntop(1)=ntop(1)+nopen(1)
-       ntop(2)=ntop(2)+nopen(2)
-       ntcl(1)=ntcl(1)+nclose(1)
-       ntcl(2)=ntcl(2)+nclose(2)
+          ibdata(ihc,2)=-1
+          ibdata(ihc,2)=4
+        else
+          
+          inacti=inactb(ib)
+          inactj=inactb(jb)
+          nacti=nactb(ib)
+          nactj=nactb(jb)
+          
+          nclose(1)=inacti
+          nclose(2)=inactj
+          nopen(1)=nacti
+          nopen(2)=nactj
+          nelec(1)=2*nclose(1)
+          nelec(2)=2*nclose(2)
+          ntop(1)=ntop(1)+nopen(1)
+          ntop(2)=ntop(2)+nopen(2)
+          ntcl(1)=ntcl(1)+nclose(1)
+          ntcl(2)=ntcl(2)+nclose(2)
 
 !     the following if statement should be removed once
 !     we have more than one symmetry representation
 
-       nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
-       nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
+          nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
+          nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
 
-       if(nelec(1).ne.nelec(2)) stop
+          if(nelec(1).ne.nelec(2)) stop
 
-!       i=iloop(lstdet(ij+ioff),1)
-!       j=iloop(lstdet(ij+ioff),2)
-       i=lstdet(ij+ioff,1)
-       j=lstdet(ij+ioff,2)
-       
-       hh=0.0d0
-       ss=0.0d0
-       if(ib.eq.jb) then
-        if(i.eq.j) then
-         fac=1.0d0
-        else
-         fac=2.0d0
-        endif
-       else
-        fac=1.0d0
-       endif
+          i=lstdet(ij+ioff,1)
+          j=lstdet(ij+ioff,2)
+          
+          hh=0.0d0
+          ss=0.0d0
+          if(ib.eq.jb) then
+            if(i.eq.j) then
+              fac=1.0d0
+            else
+              fac=2.0d0
+            endif
+          else
+            fac=1.0d0
+          endif
 
 !     copy the occupation of the active orbitals for determinants i and j
 
-       ninact(1)=inacti
-       ninact(2)=inactj
-       nact(1)=nacti
-       nact(2)=nactj
+          ninact(1)=inacti
+          ninact(2)=inactj
+          nact(1)=nacti
+          nact(2)=nactj
 
-       call unpack(ioccb(i,ib),iocch,nact(1))
-       do k=1,nact(1)
-        ioccup(k,1)=iocch(k)
-        iocopen(k,1)=iocch(k)
-       enddo
-       call unpack(ioccb(j,jb),iocch,nact(2))
-       do k=1,nact(2)
-        ioccup(k,2)=iocch(k)
-        iocopen(k,2)=iocch(k)
-       enddo
+          call unpack(ioccb(i,ib),iocch,nact(1))
+          do k=1,nact(1)
+            ioccup(k,1)=iocch(k)
+            iocopen(k,1)=iocch(k)
+          enddo
+          call unpack(ioccb(j,jb),iocch,nact(2))
+          do k=1,nact(2)
+            ioccup(k,2)=iocch(k)
+            iocopen(k,2)=iocch(k)
+          enddo
 
-       if(idbg.ge.10) then
-        write(lfndbg,610)
- 610    format(//,' Active orbital occupation',/)
-        write(lfndbg,611) (ioccup(k,1),k=1,nact(1))
-        write(lfndbg,612) (ioccup(k,2),k=1,nact(2))
- 611    format(' Left determinant :',(20i4))
- 612    format(' Right determinant:',(20i4))
-       endif
-
-       ncl=0
-       nop=0
-       nvc=0
-       indxx=ib
-       do idet=1,2
-
-        if(idet.eq.2) indxx=jb
-        index=0
-
-        iv=1
-        ncl=nclose(idet)
-        nop=nopen(idet)
-
-        nvc=ncl+nop
-        if(nvc.gt.0) then
-         nb=nbas
-         ncleff=ncl
-         nopeff=nop
-         mspin=0
-         do k=1,nop
-          if(abs(iocopen(k,idet)).eq.1) then
-           mspin=mspin+iocopen(k,idet)
-          else
-           nopeff=nopeff-1
-           if(iocopen(k,idet).eq.2) ncleff=ncleff+1
+          if(idbg.ge.10) then
+            write(lfndbg,610)
+ 610        format(//,' Active orbital occupation',/)
+            write(lfndbg,611) (ioccup(k,1),k=1,nact(1))
+            write(lfndbg,612) (ioccup(k,2),k=1,nact(2))
+ 611        format(' Left determinant :',(20i4))
+ 612        format(' Right determinant:',(20i4))
           endif
-         enddo
-         iclose=ncl
-         iup=ncleff
-         idown=ncleff+(nopeff+mspin)/2
 
-         do k=1,nvc
-          if(k.le.ncl) then
-           m=k
-          else
-           m=0
-           if(iocopen(k-ncl,idet).eq.1) then
-            iup=iup+1
-            m=iup
-           else
-            if(iocopen(k-ncl,idet).eq.-1) then
-             idown=idown+1
-             m=idown
-            else
-             if(iocopen(k-ncl,idet).eq.2) then
-              iclose=iclose+1
-              m=iclose
-             endif
+          ncl=0
+          nop=0
+          nvc=0
+          indxx=ib
+          do idet=1,2
+
+            if(idet.eq.2) indxx=jb
+            index=0
+
+            iv=1
+            ncl=nclose(idet)
+            nop=nopen(idet)
+
+            nvc=ncl+nop
+            if(nvc.gt.0) then
+              nb=nbas
+              ncleff=ncl
+              nopeff=nop
+              mspin=0
+              do k=1,nop
+                if(abs(iocopen(k,idet)).eq.1) then
+                  mspin=mspin+iocopen(k,idet)
+                else
+                  nopeff=nopeff-1
+                  if(iocopen(k,idet).eq.2) ncleff=ncleff+1
+                endif
+              enddo
+              iclose=ncl
+              iup=ncleff
+              idown=ncleff+(nopeff+mspin)/2
+
+              do k=1,nvc
+                if(k.le.ncl) then
+                  m=k
+                else
+                  m=0
+                  if(iocopen(k-ncl,idet).eq.1) then
+                    iup=iup+1
+                    m=iup
+                  else
+                    if(iocopen(k-ncl,idet).eq.-1) then
+                      idown=idown+1
+                      m=idown
+                    else
+                      if(iocopen(k-ncl,idet).eq.2) then
+                        iclose=iclose+1
+                        m=iclose
+                      endif
+                    endif
+                  endif
+                endif
+                if(m.eq.0) then
+                  iv=iv+1
+                else
+                  do ibv=1,nb
+                    vec(index+m,ibv,idet)=vecsb(ibv,iv,indxx)
+                  enddo
+                  iv=iv+1
+                endif
+              enddo
+
+              index=index+ncleff+nopeff
+              nclose(idet)=ncleff
+              nopen(idet)=nopeff
+              do k=1,nopen(idet)
+                iocopen(k,idet)=1
+                if(k.gt.(nopeff+mspin)/2) iocopen(k,idet)=-1
+              enddo
             endif
-           endif
+          enddo
+
+          if(idbg.ge.11) then
+            do idet=1,2
+              ntvc=ntcl(idet)+ntop(idet)
+              write(lfndbg,1603) ntvc
+ 1603         format(/,' Closed shell M.O.''s',i5,/)
+              do ivc=1,ntvc
+                if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
+ 1604           format(/,' Open shell M.O.'' s:')
+                write(lfndbg,1605)  ' (',ivc,')',
+     &               (vec(ivc,ibas,idet),ibas=1,nbas)
+ 1605           format(a2,i3,a1,(t9,10f12.8))
+              enddo
+            enddo
           endif
-          if(m.eq.0) then
-           iv=iv+1
-          else
-           do ibv=1,nb
-            vec(index+m,ibv,idet)=vecsb(ibv,iv,indxx)
-           enddo
-           iv=iv+1
-          endif
-         enddo
 
-         index=index+ncleff+nopeff
-         nclose(idet)=ncleff
-         nopen(idet)=nopeff
-         do k=1,nopen(idet)
-          iocopen(k,idet)=1
-          if(k.gt.(nopeff+mspin)/2) iocopen(k,idet)=-1
-         enddo
-         endif
-       enddo
+          if(idbg.ge.15) write(lfndbg,618) ij,i,j
+ 618      format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
-       if(idbg.ge.11) then
-        do idet=1,2
-         ntvc=ntcl(idet)+ntop(idet)
-         write(lfndbg,1603) ntvc
- 1603     format(/,' Closed shell M.O.''s',i5,/)
-         do ivc=1,ntvc
-          if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
- 1604     format(/,' Open shell M.O.'' s:')
-          write(lfndbg,1605)  ' (',ivc,')',
-     &      (vec(ivc,ibas,idet),ibas=1,nbas)
- 1605     format(a2,i3,a1,(t9,10f12.8))
-         enddo
-        enddo
-       endif
+c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
+          call timer_start(6)
+          call gronor_gnome(lfndbg,ihc,nhc)
+          call timer_stop(6)
 
-       if(idbg.ge.15) write(lfndbg,618) ij,i,j
- 618   format(//,' Entering GNOME :',i8,', for determinants',2i8)
- 
-       call timer_start(6)
-       call gronor_gnome(lfndbg)
-       call timer_stop(6)
-
- 105   continue
-
-       if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
-
-        if(icalc.eq.0) then
-         if(mgr.le.1) then
-          etot=e1+e2
-         else
-          etot=e1
-          e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*e2
-         endif
-         if(iamhead.eq.1) then
-          hh=etot-bias*deta
-          ss=deta
-         endif
+          if(idbg.ge.15) write(lfndbg,619) ij,i,j
+ 619      format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
+        
         endif
-       else
-       endif
 
-!      Upon return from gronor_gnome the head thread has the accumulated
-!      results from all threads in the group
 
-!      hh contains the Hamiltonian matrix element
-!      ss contains the Overlap matrix element
+!     hh contains the Hamiltonian matrix element
+!     ss contains the Overlap matrix element
 
-       if(idbg.ge.15) write(lfndbg,619) ij,i,j
- 619   format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
 
-       if(idbg.ge.11) then
-        write(lfndbg,651) me,iamhead,hh,ss
- 651    format(' Calculated values from gronor_gnome ',2i5,/,             &
-     & ' hh    ',f20.10,/,                                              &
-     & ' ss    ',f20.10)
-       endif
+        if(lbatch.eq.0) then
+          if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
+            if(icalc.eq.0) then
+              if(mgr.le.1) then
+                etot=e1+e2
+              else
+                etot=e1
+                e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*e2
+              endif
+              if(iamhead.eq.1) then
+                hh=etot-bias*deta
+                ss=deta
+              endif
+            endif
+          endif
+          if(idbg.ge.11) then
+            write(lfndbg,651) me,iamhead,hh,ss
+ 651        format(' Calculated values from gronor_gnome ',2i5,/,
+     &           ' hh    ',f20.10,/,
+     &           ' ss    ',f20.10)
+          endif
+          buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
+          buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
+         else
+          
+        endif
+        buffer(ising+4)=buffer(ising+4)+1.0d0
 
-       buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
-       buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
-       buffer(ising+4)=buffer(ising+4)+1.0d0
+        call timer_stop(5)
 
-       call timer_stop(5)
       enddo
 
+      if(lbatch.ge.1) then
+        do ij=id1,id2
+          i=lstdet(ij+ioff,1)
+          j=lstdet(ij+ioff,2)
+          hh=0.0d0
+          ss=0.0d0
+          if(ib.eq.jb) then
+            if(i.eq.j) then
+              fac=1.0d0
+            else
+              fac=2.0d0
+            endif
+          else
+            fac=1.0d0
+          endif
+          ihc=ij-id1+1
+          nhc=id2-id1+1
+          if(ibdata(ihc,1).gt.0) then
+c            write(*,'(i5,4f12.6)') ibdata(ihc,1),
+c     &           bdata(ibdata(ihc,1),1),
+c     &           bdata(ibdata(ihc,1),2),
+c     &           bdata(ibdata(ihc,1),3),
+c     &           bdata(ihc,4)
+            if((icalc.eq.2.or.icalc.eq.0)) then
+              if(icalc.eq.0) then
+                if(mgr.le.1) then
+                  etot=bdata(ihc,4)+bdata(ibdata(ihc,1),1)
+                else
+                  etot=bdata(ihc,4)
+                  e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*bdata(ihc,4)
+                endif
+                if(iamhead.eq.1) then
+                  hh=etot-bdata(ibdata(ihc,1),2)*bdata(ibdata(ihc,1),3)
+                  ss=bdata(ibdata(ihc,1),2)
+                endif
+              endif
+            endif
+c     if(idbg.ge.11) then
+c     write(lfndbg,651) me,iamhead,hh,ss
+c     651        format(' Calculated values from gronor_gnome ',2i5,/,
+c     &           ' hh    ',f20.10,/,
+c     &           ' ss    ',f20.10)
+c     endif
+            buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
+            buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
+          endif
+        enddo
+      endif
+      
+!     Upon return from gronor_calculate the head thread has the
+!     accumulated results from all threads in the group
+      
       call timer_start(37)
       if(mgr.gt.1) then
        if(iamhead.eq.1) then

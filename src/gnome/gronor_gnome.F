@@ -1,4 +1,4 @@
-      subroutine gronor_gnome(lfndbg)
+      subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       use mpi
       use cidist
@@ -17,7 +17,7 @@
       character (len=25) :: idfmess, line
 
       integer (kind=4) :: ierr
-      integer :: nwor, n, k, iv, ib, i, j
+      integer :: nwor, n, k, iv, ib, i, j, ihc, nhc
 
       integer :: ntvc,ivc,ibas
 
@@ -34,6 +34,7 @@
       etot=0.0d0
       ttest=0
 
+c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
       do idet=1,2
 
         if(idbg.ge.13) then
@@ -110,6 +111,7 @@
         
 !$acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev)
 !$acc& copyin(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat)
+!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)
         
 !     Calculations of the overlap matrices
 
@@ -136,7 +138,7 @@
  612      format(/,' A has more than two singularities: ',
      &         'one and two electron matrix elements are zero')
         endif
-      
+
         if(ising.lt.3) then
         
           if(corres) then
@@ -184,7 +186,11 @@
 
           if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
             call timer_start(22)
-            call gronor_gntwo(lfndbg)
+            if(lbatch.gt.0) then
+                call gronor_gntwo_batch(lfndbg,ihc,nhc)
+              else
+                call gronor_gntwo(lfndbg)
+              endif
             call timer_stop(22)
           endif
         endif
@@ -215,57 +221,76 @@
           if(ising.eq.3) write(lfndbg,612)
         endif
 
-        if(ising.ge.3) return
+c        write(*,'(a,4i5)') 'In Gnome ',ihc,nhc,ising
 
-        if(corres) then
-          call timer_start(16)
-          call gronor_cororb(lfndbg)
-          call timer_stop(16)
+        if(lbatch.eq.1) then
+          ibdata(ihc,1)=-1
+          ibdata(ihc,2)=-1
         endif
-        
-        call timer_start(17)
-        call gronor_tramat_omp(lfndbg)
-        call timer_stop(17)
-        
-        if(idipole.ne.0) then
-          call timer_start(18)
-          call gronor_dipole(lfndbg)
-          call timer_stop(18)
-        endif
-        
-        if(idbg.ge.13) then
-          if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
-        endif
-        
+          
+        if(ising.lt.3) then
+
+          if(corres) then
+            call timer_start(16)
+            call gronor_cororb(lfndbg)
+            call timer_stop(16)
+          endif
+          
+          call timer_start(17)
+          call gronor_tramat_omp(lfndbg)
+          call timer_stop(17)
+          
+          if(idipole.ne.0) then
+            call timer_start(18)
+            call gronor_dipole(lfndbg)
+            call timer_stop(18)
+          endif
+          
+          if(idbg.ge.13) then
+            if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
+          endif
+          
 !     Transformation of the  m.o.'s into the bassisset of the two
 !     electron integrals
 
-        call timer_start(19)
-!       call gronor_trsym_omp(lfndbg)
-        call timer_stop(19)
+          call timer_start(19)
+!     call gronor_trsym_omp(lfndbg)
+          call timer_stop(19)
 
 !     transformation of the first order cofactor matrix
 !     (x-matrix to f-matrix in terms of the basis set of the 2-el.integr
 
-        call timer_start(20)
-        call gronor_tramat2_omp(lfndbg)
-        call timer_stop(20)
+          call timer_start(20)
+          call gronor_tramat2_omp(lfndbg)
+          call timer_stop(20)
 
 !     Calculation of the one electron Hamiltonian matrix elements
 
-        call timer_start(21)
-        if(icalc.le.1.and.ising.le.1) call gronor_gnone_omp(lfndbg)
-        call timer_stop(21)
+          call timer_start(21)
+          if(icalc.le.1.and.ising.le.1) call gronor_gnone_omp(lfndbg)
+          call timer_stop(21)
+          if(lbatch.eq.1) bdata(ihc,4)=e1
 
+          endif
 !     Calculation of the two-electron matrix elements
 
-        if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
-          call timer_start(22)
-          call gronor_gntwo_omp(lfndbg)
-          call timer_stop(22)
-        endif
+c          write(*,'(a,4i5)') 'At gntwo ',ihc,nhc,ising
+          if((icalc.eq.2.or.icalc.eq.0)) then
+            call timer_start(22)
+            if(lbatch.gt.0) then
+              call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
+            else
+              call gronor_gntwo_omp(lfndbg)
+            endif
+            call timer_stop(22)
+          endif
 
+c        elseif(lbatch.eq.1) then
+c          ibdata(ihc,1)=-1
+c          ibdata(ihc,2)=-1
+c        endif
+c        write(*,'(a,4i5)') 'Exit Gnome ',ihc,nhc,nb0,nb1
       endif
-
+      
       return
       end

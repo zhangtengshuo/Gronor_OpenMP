@@ -255,7 +255,8 @@ c      use cuda_functions
        nmol=0
        mstates=0
        iload=1
-       ibatch=1
+       nbatch=1
+       lbatch=0
        itest=0
        idevel=0
        ifault=1
@@ -366,12 +367,17 @@ c      use cuda_functions
        endif
        
        if(inp_compare(.false.,'Range',item)) then
-         if(.not.inp_i(ibatch)) ibatch=1
+         if(.not.inp_i(nbatch)) nbatch=1
          goto 2
        endif
        
        if(inp_compare(.false.,'Batch',item)) then
-         if(.not.inp_i(ibatch)) ibatch=1
+         if(.not.inp_i(nbatch)) nbatch=1
+         goto 2
+       endif
+       
+       if(inp_compare(.false.,'Batched',item)) then
+         lbatch=1
          goto 2
        endif
        
@@ -565,7 +571,7 @@ c      use cuda_functions
  625    format(' Fault tolerance wait time',t40,i10,' sec',t60,
      &       'Over-subscription of accelerators (MPS)',t100,i10)
       endif
-      write(lfnout,626) itest,mgr,idevel,nmol,ibatch,mstates,
+      write(lfnout,626) itest,mgr,idevel,nmol,nbatch,mstates,
      &     nbase
  626  format(' Test option',t40,i10,t60,
      &     'Integrals divided over tasks number of ranks',t100,i10,/,
@@ -756,7 +762,7 @@ c      use cuda_functions
           idum(21)=nnucl
           idum(22)=nbas
           idum(23)=iload
-          idum(24)=ibatch
+          idum(24)=nbatch
           idum(25)=mgr
           idum(26)=itest
           idum(27)=naccel
@@ -774,6 +780,7 @@ c      use cuda_functions
           idum(39)=idevel
           idum(40)=iswsvj
           idum(41)=iswevj
+          idum(42)=lbatch
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -782,7 +789,7 @@ c      use cuda_functions
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,41,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,42,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -808,7 +815,7 @@ c      use cuda_functions
         nnucl  =idum(21)
         nbas   =idum(22)
         iload  =idum(23)
-        ibatch =idum(24)
+        nbatch =idum(24)
         mgr    =idum(25)
         itest  =idum(26)
         naccel =idum(27)
@@ -826,6 +833,7 @@ c      use cuda_functions
         idevel =idum(39)
         iswsvj =idum(40)
         iswevj =idum(41)
+        lbatch =idum(42)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -1822,11 +1830,11 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
        flush(lfnday)
        call timer_start(99)
       endif
-       
-       write(*,'(i4,a)') me,'  A'
+      
+c       write(*,'(i4,a)') me,'  A'
       call gronor_timings(lfnout,lfnday)
        
-       write(*,'(i4,a)') me,'  B'
+c       write(*,'(i4,a)') me,'  B'
       if(me.eq.master) deallocate(numrecs)
 
       close(unit=lfndbg,status='keep')
@@ -1851,15 +1859,15 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
 !       endif
 !       close(unit=lfnpro,status='delete')
       endif
-       write(*,'(i4,a)') me,'  C'
+c       write(*,'(i4,a)') me,'  C'
 
 c      write(*,'(a,5i5)') ' End ',me,ifault,nalive,np,mgr*npg
 
       if(me.eq.master.and.nalive+1.ne.np) then
-        write(*,'(i4,a)') me,' mpi_abort'
+c        write(*,'(i4,a)') me,' mpi_abort'
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
       else
-        write(*,'(i,4a)') me,' mpi_finalize'
+c        write(*,'(i,4a)') me,' mpi_finalize'
         call mpi_finalize(ierr)
       endif
       

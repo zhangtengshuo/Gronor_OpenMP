@@ -86,7 +86,7 @@
       implicit none
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
-      integer :: iload,ibatch,itest,ifault,isolver,jsolver,idevel
+      integer :: iload,nbatch,itest,ifault,isolver,jsolver,idevel,lbatch
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
       integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
@@ -129,6 +129,8 @@
 
       integer :: nbasis, mvec, nvec(2)
 
+      integer :: nb0, nb1
+
       integer, allocatable :: ioccup(:,:),itemp(:), ioccn(:,:)
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
       real (kind=8), allocatable :: vna(:),vnb(:)
@@ -150,15 +152,25 @@
       real (kind=8), allocatable :: w1(:),w2(:,:)
       real (kind=8), allocatable :: temp(:,:)
 
+      real (kind=8), allocatable :: taa(:,:),ta(:,:)
+      real (kind=8), allocatable :: sm(:,:)
+      real (kind=8), allocatable :: aaa(:,:),aat(:,:)
+      real (kind=8), allocatable :: tt(:,:),tat(:,:)
 #ifdef SINGLEP
-      real (kind=8), allocatable :: ta(:,:)
-      real (kind=4), allocatable :: taa(:,:),aaa(:,:),tat(:,:)
-      real (kind=4), allocatable :: aat(:,:),tt(:,:)
-      real (kind=4), allocatable :: sm(:,:)
+      real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
+      real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
+      real (kind=4), allocatable :: sml(:,:,:)
+      real (kind=4), allocatable :: aaal(:,:,:),aatl(:,:,:)
+      real (kind=4), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #else
-      real (kind=8), allocatable :: taa(:,:),aaa(:,:),ta(:,:),tat(:,:)
-      real (kind=8), allocatable :: aat(:,:),tt(:,:),sm(:,:)
+      real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
+      real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
+      real (kind=8), allocatable :: sml(:,:,:)
+      real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
+      real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #endif
+      real (kind=8), allocatable :: bdata(:,:),esum(:)
+      integer (kind=4), allocatable :: ibdata(:,:)
 
       integer :: ising
 

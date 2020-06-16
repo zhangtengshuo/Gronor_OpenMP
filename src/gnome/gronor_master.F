@@ -316,7 +316,7 @@
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)
-            ibuf(4)=min(ndone+ibatch,ijend)
+            ibuf(4)=min(ndone+nbatch,ijend)
             ndone=ibuf(4)
 
             call timer_stop(95)

@@ -439,11 +439,11 @@ c      use cuda_functions
       if(lbatch.gt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(bdata,ibdata,esum,fsum)
-        deallocate(ddata,ddata)
+        deallocate(ddata,hdata)
       else
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(bdata,ibdata,esum,fsum)
-        deallocate(ddata,ddata)
+        deallocate(ddata,hdata)
       endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
       deallocate(aat,tt,sm)

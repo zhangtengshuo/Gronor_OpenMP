@@ -112,7 +112,6 @@
         call timer_start(34)
 
         e2t=e2
-        if(itest.eq.12345) then
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g)
 !$acc& present(lab,diag,bdiag,bsdiag,csdiag)
 !$acc loop reduction (+:e2t)
@@ -150,7 +149,6 @@
      &         -bbl*(tat(l,i)*abk+tat(l,k)*abi))
         enddo
 !$acc end kernels
-        endif
         e2=e2t
 
         call timer_stop(34)
@@ -214,6 +212,7 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 !     nb0 : number of singularity 0 elements
 !     nb1 : number of singularity 1 or 2 elements
       
+      
       if(ihc.eq.1) then
         nb0=0
         nb1=0
@@ -231,6 +230,7 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
         nb1=nb1+1
       endif
 
+c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
 !     Task list data arrays
 
 !     ibdata(ihc,1) : index into task list arrays ddata and hdata
@@ -257,14 +257,14 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 
       numint=mint2
 
-!$acc update host(ta,aaa,sm,diag,bdiag,bsdiag,csdiag)
-
+      
       if(ising.gt.1) e1=0.0d0
       e2=0.0d0
       ts=0.0d0
       fourdet=4.0d0*deta
       call timer_start(30)
 
+!$acc kernels present(tat,ta,tt,aat,aaa,sm)
       do i=1,nbas 
         do k=1,nbas 
           tat(k,i)=ta(k,i)
@@ -278,7 +278,9 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
+!$acc end kernels
 
+!$acc kernels present(sml,aaal,aatl,ttl,tatl,tat,tt,aat,aaa,sm)
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=sm(i,k)
@@ -288,8 +290,12 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
           tatl(ibl,i,k)=tat(i,k)
         enddo
       enddo
+!$acc end kernels
           
       if(ising.gt.0) then
+
+!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 
         do i=1,nbas
           diagl(ibl,i)=diag(i)
@@ -297,9 +303,10 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
+!$acc end kernels
 
       endif
-      
+  
       call timer_stop(30)
 
       endif
@@ -311,9 +318,11 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 !     After the last element of a task the list of energies is generated
       
       if(ihc.eq.nhc) then
-
+        
         call timer_start(38)
         
+!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
+
         if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(31)
           do i=1,nbatch
@@ -450,6 +459,14 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
           enddo
           call timer_stop(31)
         endif
+
+c        if(nb0.gt.0) print*,(esum(i),i=1,nbatch)
+c        if(nb0.gt.0) write(*,'(15f12.6)') (esum(i),i=1,nbatch)
+c        if(nb1.gt.0) write(*,'(15f12.6)') (fsum(i),i=1,nbatch)
+c        do ibl=1,nb0
+c          if(abs(esum(ibl)).gt.10000) stop
+c        enddo
+
         
       endif
 

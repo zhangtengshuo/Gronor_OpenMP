@@ -97,8 +97,8 @@ c      write(*,'(a,4i5)') 'ij ',id1,id2
         
         if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
           ising=4
+          ibdata(ihc,1)=-1
           ibdata(ihc,2)=-1
-          ibdata(ihc,2)=4
         else
           
           inacti=inactb(ib)
@@ -271,7 +271,7 @@ c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
 !     ss contains the Overlap matrix element
 
 
-        if(lbatch.eq.0) then
+        if(lbatch.le.0) then
           if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
             if(icalc.eq.0) then
               if(mgr.le.1) then
@@ -322,12 +322,12 @@ c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
           nhc=id2-id1+1
           ibl=ibdata(ihc,1)
           if(ibl.gt.0) then
-c            write(*,'(i5,4f12.6)') ibdata(ihc,1),
-c     &           bdata(ibdata(ihc,1),1),
-c     &           bdata(ibdata(ihc,1),2),
-c     &           bdata(ibdata(ihc,1),3),
-c     &           bdata(ihc,4)
-c            ibl=ibdata(ihc,1)
+c            write(*,'(6i5,4f12.6)') ihc,ibl,i,j,ib,jb,
+c     &           bdata(ibl,1),
+c     &           bdata(ibl,2),
+c     &           bdata(ibl,3),
+c     &           hdata(ihc,1)
+            ibl=ibdata(ihc,1)
             if((icalc.eq.2.or.icalc.eq.0)) then
               if(icalc.eq.0) then
                 if(mgr.le.1) then
@@ -387,7 +387,7 @@ c     endif
        buffer(1)=buffer(1)+e2buff
       endif
       call timer_stop(37)
-
+c      stop
       return
       end
       

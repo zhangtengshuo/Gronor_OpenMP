@@ -110,8 +110,9 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
       if(iamacc.gt.0) then
         
 !$acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev)
-!$acc& copyin(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat)
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)
+!$acc& create(esum,ddata,bdata)
         
 !     Calculations of the overlap matrices
 
@@ -181,18 +182,18 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           call timer_start(21)
           if(icalc.le.1.and.ising.le.1) call gronor_gnone(lfndbg)
           call timer_stop(21)
+        endif
 
 !     Calculation of the two-electron matrix elements
 
-          if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
-            call timer_start(22)
-            if(lbatch.gt.0) then
-                call gronor_gntwo_batch(lfndbg,ihc,nhc)
-              else
-                call gronor_gntwo(lfndbg)
-              endif
-            call timer_stop(22)
+        if((icalc.eq.2.or.icalc.eq.0)) then
+          call timer_start(22)
+          if(lbatch.gt.0) then
+            call gronor_gntwo_batch(lfndbg,ihc,nhc)
+          else
+            if(ising.le.2) call gronor_gntwo(lfndbg)
           endif
+          call timer_stop(22)
         endif
 
 !$acc end data

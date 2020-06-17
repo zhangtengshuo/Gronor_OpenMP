@@ -328,6 +328,8 @@ c      use cuda_functions
        endif
       endif
 
+CTPS  Point for start of data
+
       ibase=-1
 
       do while(ibase.ne.0)
@@ -436,6 +438,8 @@ c      use cuda_functions
 
       enddo
 
+CTPS  Point for end data
+      
       if(lbatch.gt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(bdata,ibdata,esum,fsum)

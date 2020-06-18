@@ -1830,11 +1830,9 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
        flush(lfnday)
        call timer_start(99)
       endif
-      
-c       write(*,'(i4,a)') me,'  A'
+
       call gronor_timings(lfnout,lfnday)
-       
-c       write(*,'(i4,a)') me,'  B'
+
       if(me.eq.master) deallocate(numrecs)
 
       close(unit=lfndbg,status='keep')
@@ -1859,15 +1857,10 @@ c       write(*,'(i4,a)') me,'  B'
 !       endif
 !       close(unit=lfnpro,status='delete')
       endif
-c       write(*,'(i4,a)') me,'  C'
-
-c      write(*,'(a,5i5)') ' End ',me,ifault,nalive,np,mgr*npg
 
       if(me.eq.master.and.nalive+1.ne.np) then
-c        write(*,'(i4,a)') me,' mpi_abort'
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
       else
-c        write(*,'(i,4a)') me,' mpi_finalize'
         call mpi_finalize(ierr)
       endif
       

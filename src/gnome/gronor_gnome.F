@@ -112,7 +112,7 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 !$acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev)
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)
-!$acc& create(esum,ddata,bdata)
+!$acc& create(esum,fsum,ddata,bdata)
         
 !     Calculations of the overlap matrices
 
@@ -222,8 +222,6 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           if(ising.eq.3) write(lfndbg,612)
         endif
 
-c        write(*,'(a,4i5)') 'In Gnome ',ihc,nhc,ising
-
         if(lbatch.eq.1) then
           ibdata(ihc,1)=-1
           ibdata(ihc,2)=-1
@@ -285,11 +283,6 @@ c        write(*,'(a,4i5)') 'In Gnome ',ihc,nhc,ising
             call timer_stop(22)
           endif
 
-c        elseif(lbatch.eq.1) then
-c          ibdata(ihc,1)=-1
-c          ibdata(ihc,2)=-1
-c        endif
-c        write(*,'(a,4i5)') 'Exit Gnome ',ihc,nhc,nb0,nb1
       endif
       
       return

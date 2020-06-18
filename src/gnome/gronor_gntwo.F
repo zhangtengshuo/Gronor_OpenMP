@@ -204,7 +204,6 @@
 
       real(kind=8), external :: timer_wall
 
-c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 !     Copying arrays into batch arrays
 
 !     Initialize nb0 and nb1 when first matrix element in a batch
@@ -230,7 +229,6 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
         nb1=nb1+1
       endif
 
-c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
 !     Task list data arrays
 
 !     ibdata(ihc,1) : index into task list arrays ddata and hdata
@@ -321,11 +319,12 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
         
         call timer_start(38)
         
-!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
+c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
         if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(31)
-          do i=1,nbatch
+!$acc kernels present(esum,lab,g,sml,aatl,aaal,ttl,tatl)
+          do i=1,nb0
             esum(i)=0.0d0
           enddo
           do int=1,numint
@@ -345,6 +344,8 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
           enddo
+!$acc end kernels
+!$acc update host(esum)
           do i=1,nb0
             ddata(i,1)=4.0d0*ddata(i,2)*esum(i)
 ! bdata to become obsolete
@@ -355,6 +356,8 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
 
         if(nb0.gt.0.and.nb1.gt.0) then
           call timer_start(31)
+!$acc kernels present(esum,fsum,lab,g,sml,aatl,aaal,ttl,tatl)
+!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)      
           do i=1,nbatch
             esum(i)=0.0d0
             fsum(i)=0.0d0
@@ -403,6 +406,8 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+!$acc end kernels
+!$acc update host(esum,fsum)
           do i=1,nb0
             ddata(i,1)=4.0d0*ddata(i,2)*esum(i)
 ! bdata to become obsolete
@@ -417,6 +422,8 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
         
         if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(31)
+!$acc kernels present(fsum,lab,g,sml,aatl,aaal,ttl,tatl)
+!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)  
           do i=1,nbatch
             fsum(i)=0.0d0
           enddo
@@ -453,6 +460,8 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+!$acc end kernels
+!$acc update host(esum,fsum)
           do i=nhc-nb1+1,nhc
             ddata(i,1)=fsum(i)
             bdata(i,1)=fsum(i)
@@ -460,17 +469,7 @@ c      write(*,'(a,4i5)') '      gntwo ',ihc,nhc,ising,ibl
           call timer_stop(31)
         endif
 
-c        if(nb0.gt.0) print*,(esum(i),i=1,nbatch)
-c        if(nb0.gt.0) write(*,'(15f12.6)') (esum(i),i=1,nbatch)
-c        if(nb1.gt.0) write(*,'(15f12.6)') (fsum(i),i=1,nbatch)
-c        do ibl=1,nb0
-c          if(abs(esum(ibl)).gt.10000) stop
-c        enddo
-
-        
       endif
-
-c      print*,'Returning from gntwo'
 
       return
       end
@@ -920,7 +919,6 @@ c      endif
       endif
 
       ts=ts*fourdet
-c      write(*,'(3f12.6)') ts,e2,e1
       e2=e2+ts
 
       call timer_stop(38)
@@ -958,7 +956,6 @@ c      write(*,'(3f12.6)') ts,e2,e1
 
       real(kind=8), external :: timer_wall
 
-c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
 !     Copying arrays into batch arrays
 
 !     Initialize nb0 and nb1 when first matrix element in a batch
@@ -1203,8 +1200,6 @@ c      write(*,'(a,4i5)') 'Start gntwo ',ihc,nhc,ising
         
       endif
 
-c      print*,'Returning from gntwo'
-
       return
       end
 
@@ -1324,7 +1319,6 @@ c      print*,'Returning from gntwo'
 
       if(ihc.eq.nhc) then
 
-c        write(*,'(a,4i5)') 'GNTWO ',nhc,nb0,nb1
         call timer_start(38)
         
         if(nb0.gt.0) then

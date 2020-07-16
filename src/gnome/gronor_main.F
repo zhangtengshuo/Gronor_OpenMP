@@ -40,9 +40,10 @@ c      use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,istat,icnt
-      integer :: iarg,i,j,idum(51),k,l,len,nn,ifac
+      integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
       integer,allocatable :: iocc_tmp(:)
-      integer :: maxci, maxvec, maxnact
+      integer,allocatable :: jspinmol(:)
+      integer :: maxci, maxvec, maxnact, maxspinmul
       integer :: mactb, maxcib, mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
       character (len=255) :: string, filnam, card, item
@@ -584,6 +585,9 @@ c      use cuda_functions
       write(lfnout,623) thresh_CI, thresh_SIN
  623  format(' Threshold for CI coefficients',t40,1pe12.3,/,
      &     ' Threshold for ISING',t40,1pe12.3,/)
+
+      write(lfnout,636) nspin
+ 636  format(/,' Spin state',t40,i10,/)
       
       maxci=0
       maxvec=0
@@ -781,6 +785,7 @@ c      use cuda_functions
           idum(40)=iswsvj
           idum(41)=iswevj
           idum(42)=lbatch
+          idum(43)=nspin
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -789,7 +794,7 @@ c      use cuda_functions
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,42,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,43,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -834,6 +839,7 @@ c      use cuda_functions
         iswsvj =idum(40)
         iswevj =idum(41)
         lbatch =idum(42)
+        nspin  =idum(43)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -928,16 +934,40 @@ c      use cuda_functions
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
-      
+      allocate(jspinmol(mstates))
+      do i=1,mstates
+         jspinmol(i)=0
+         do j=1,nactm(i)
+            if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
+     &           ioccm(j,1,i)
+         enddo
+      enddo
+      maxspinmul=0
+      do i=1,nmol
+         if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
+            maxspinmul=jspinmol(ncombv(i,1))
+         endif
+      enddo
+      maxspinmul=maxspinmul+1
       maxcib=0
       do i=1,nbase
         maxcib1=1
         do j=1,nmol
+          if(mod(jspinmol(ncombv(j,i))+1,2).eq.0) then
+            scounter=((jspinmol(ncombv(j,i))+1)/2)-1
+          else
+            scounter=jspinmol(ncombv(j,i))/2
+          endif
           maxcib1=maxcib1*idetm(ncombv(j,i))
+          imul=jspinmol(ncombv(j,i))+1
+          do k=1,scounter
+            maxcib1=maxcib1*((imul)*(imul))/nactm(ncombv(i,1))
+            imul=imul-2
+          enddo
         enddo
         maxcib=max(maxcib,maxcib1)
       enddo
-      maxcib=6*maxcib
+      maxcib=2*maxspinmul*maxcib
       if (me.eq.master) then
         write(lfnout,629) maxcib
  629    format(/,' Recommended value of maxcib is ',i10)
@@ -1809,7 +1839,7 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(t,v,ndxtv)
       deallocate(lab,ig,g)
-
+      deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)

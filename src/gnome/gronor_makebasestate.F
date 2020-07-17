@@ -86,7 +86,7 @@
 
       if(me.eq.master.and.ipr.ge.3) then
         write(lfnout,'(/,a,i4,a,20i3)') ' Spin of the ',nmol,' states',
-        & (jspin(i),i=1,nmol)
+     & (jspin(i),i=1,nmol)
         flush(lfnout)
       endif
       

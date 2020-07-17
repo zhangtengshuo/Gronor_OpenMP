@@ -4,7 +4,7 @@
      &     civb,vecsc,ioccb,inactb,nactb,idetb,                           
      &     maxcib,nbasis,mactb,                        
      &     nmol,ncomb,nspin,thresh_CI)
-      
+
       implicit none
       integer :: maxact
       parameter (maxact=31)
@@ -29,7 +29,6 @@
       real (kind=8), external :: ddot,cg
       logical :: oalls,onew,ocomparocc
 
-      flush(lfnout)
       inactb=0
       nactb=0
       idetb=1
@@ -73,7 +72,6 @@
          jstart=jstart+nactm(ncomb(i))
       enddo
 
-      flush(lfnout)
       allocate(jspin(nmol))
       
       do i=1,nmol
@@ -84,13 +82,6 @@
         enddo
       enddo
 
-      if(me.eq.master.and.ipr.ge.3) then
-        write(lfnout,'(/,a,i4,a,20i3)') ' Spin of the ',nmol,' states',
-     & (jspin(i),i=1,nmol)
-        flush(lfnout)
-      endif
-      
-      flush(lfnout)
       oalls=.true.
       
       do i=2,nmol

@@ -1,6 +1,6 @@
 
       subroutine productf(civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,
-     &            maxci,mstates,maxnact,mactb,maxcib,ndetout,thresh_CI)
+     &     maxci,mstates,maxnact,mactb,maxcib,ndetout,thresh_CI,lfnout)
       implicit none
       integer :: nmol,maxci,mstates,maxnact,mactb,maxcib
       real (kind=8) :: civm(maxci,mstates)
@@ -11,7 +11,8 @@
       integer :: ioccb(maxcib),ncomb(nmol)
       integer, allocatable :: kloop(:),jdet(:)
       integer :: ndets,i,j,jact,k,isetsign4,iocch(32),ndetout
-      external :: isetsign4
+      integer :: lfnout
+      integer, external :: setsign_mebf
 
       ndets=1
       allocate(kloop(nmol),jdet(nmol))
@@ -43,7 +44,11 @@
             enddo
          enddo
          jact=jact-1
-         civb(ndetout)=isetsign4(iocch,jact)*civb(ndetout)
+         if(nmol.gt.1)then
+            civb(ndetout)=
+     &         setsign_mebf(iocch,nactm(ncomb(1)),nactm(ncomb(2)),jact)*
+     &         civb(ndetout)
+         endif
          call pack(ioccb(ndetout),iocch,jact)
        endif
       enddo

@@ -14,7 +14,7 @@
       integer :: igrp, ltemp, last
       logical :: osame
 
-      real (kind=8) :: fac, tsum
+      real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
       integer :: ibuf(4),nsingt(5)

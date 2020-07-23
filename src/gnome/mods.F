@@ -135,7 +135,8 @@
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
       real (kind=8), allocatable :: vna(:),vnb(:)
       real (kind=8) :: bias,deta,smat,hmat
-      real (kind=8) :: etot,e1,e2,e2c
+      real (kind=8) :: etot,e1,e2,e2c,etotb,fac,fctr
+      real (kind=8) :: e1tot,e2tot,sstot
       real (kind=8) :: hh, ss
       real (kind=8) :: e2buff,e2summ
       integer :: ttest
@@ -159,13 +160,13 @@
 #ifdef SINGLEP
       real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
       real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-      real (kind=4), allocatable :: sml(:,:,:)
+      real (kind=4), allocatable :: sml(:,:,:), factor(:), prefac(:)
       real (kind=4), allocatable :: aaal(:,:,:),aatl(:,:,:)
       real (kind=4), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #else
       real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
       real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-      real (kind=8), allocatable :: sml(:,:,:)
+      real (kind=8), allocatable :: sml(:,:,:), factor(:), prefac(:)
       real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
       real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #endif

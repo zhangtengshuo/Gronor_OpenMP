@@ -109,6 +109,7 @@ c      use cuda_functions
         allocate(ibdata(nbatch,3))
         allocate(esum(nbatch))
         allocate(fsum(nbatch))
+        allocate(factor(nbatch),prefac(nbatch))
       else
         allocate(diagl(1,1))
         allocate(bsdiagl(1,1))
@@ -125,6 +126,7 @@ c      use cuda_functions
         allocate(ibdata(1,1))
         allocate(esum(1))
         allocate(fsum(1))
+        allocate(factor(1),prefac(1))
       endif
 
       allocate(w1(max(nelecs,nbas,mbasel)))
@@ -442,11 +444,11 @@ CTPS  Point for end data
       
       if(lbatch.gt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(bdata,ibdata,esum,fsum)
+        deallocate(bdata,ibdata,esum,fsum,factor,prefac)
         deallocate(ddata,hdata)
       else
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(bdata,ibdata,esum,fsum)
+        deallocate(bdata,ibdata,esum,fsum,factor,prefac)
         deallocate(ddata,hdata)
       endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)

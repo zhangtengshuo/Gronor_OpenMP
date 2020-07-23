@@ -22,30 +22,30 @@
       integer :: ipopcnt
       integer :: ntvc,ivc,ibas
 
-      real (kind=8) :: fac
-
       integer :: ioff
+
+      real (kind=8) :: btemp,btemp2
 
       ndeti=idetb(ib)
       ndetj=idetb(jb)
       nacti=nactb(ib)
       nactj=nactb(jb)
       if(idbg.ge.10) then
-       write(lfndbg,600) ib,jb,id1,id2
- 600   format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
-       write(lfndbg,601) ndeti
- 601   format(/,' Left wavefunction has ',i8,' determinants:',/)
-       do i=1,ndeti
-        call unpack(ioccb(i,ib),iocch,nacti)
-        write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
- 602    format(I5,F15.5,10I3)
-       enddo
-       write(lfndbg,603) ndetj
- 603   format(//,' Right wavefunction has ',i8,' determinants:',/)
-       do i=1,ndetj
-        call unpack(ioccb(i,jb),iocch,nactj)
-        write(lfndbg,602) i,civb(i,jb),(iocch(k),k=1,nactj)
-       enddo
+        write(lfndbg,600) ib,jb,id1,id2
+ 600    format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
+        write(lfndbg,601) ndeti
+ 601    format(/,' Left wavefunction has ',i8,' determinants:',/)
+        do i=1,ndeti
+          call unpack(ioccb(i,ib),iocch,nacti)
+          write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+ 602      format(I5,F15.5,10I3)
+        enddo
+        write(lfndbg,603) ndetj
+ 603    format(//,' Right wavefunction has ',i8,' determinants:',/)
+        do i=1,ndetj
+          call unpack(ioccb(i,jb),iocch,nactj)
+          write(lfndbg,602) i,civb(i,jb),(iocch(k),k=1,nactj)
+        enddo
       endif
 
       ioff=ndxdet(ib,jb)
@@ -53,22 +53,26 @@
       osame=ib.eq.jb
       call iloop_init(ndeti,ndetj,osame)
       if(ib.eq.jb) then
-       l2=ndeti*(ndeti+1)/2
-       ijend=l2
+        l2=ndeti*(ndeti+1)/2
+        ijend=l2
       else
-       l2=ndeti*ndetj
-       ijend=l2
+        l2=ndeti*ndetj
+        ijend=l2
       endif
 
+      btemp=0.0d0
+      btemp2=0.0d0
       do i=1,8
-       buffer(i)=0.0d0
+        buffer(i)=0.0d0
       enddo
       e2summ=0.0d0
       e2buff=0.0d0
 
-c      write(*,'(a,4i5)') 'ij ',id1,id2 
-      
       nhc=id2-id1+1
+      e1tot=0.0d0
+      e2tot=0.0d0
+      etotb=0.0d0
+      sstot=0.0d0
       
       do ij=id1,id2
         call timer_start(5)
@@ -94,6 +98,7 @@ c      write(*,'(a,4i5)') 'ij ',id1,id2
 
         hh=0.0d0
         ss=0.0d0
+
         
         if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
           ising=4
@@ -139,6 +144,7 @@ c      write(*,'(a,4i5)') 'ij ',id1,id2
           else
             fac=1.0d0
           endif
+          fctr=fac*civb(i,ib)*civb(j,jb)
 
 !     copy the occupation of the active orbitals for determinants i and j
 
@@ -256,20 +262,17 @@ c      write(*,'(a,4i5)') 'ij ',id1,id2
           if(idbg.ge.15) write(lfndbg,618) ij,i,j
  618      format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
-c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
           call timer_start(6)
           call gronor_gnome(lfndbg,ihc,nhc)
           call timer_stop(6)
 
           if(idbg.ge.15) write(lfndbg,619) ij,i,j
  619      format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
-        
-        endif
 
+        endif
 
 !     hh contains the Hamiltonian matrix element
 !     ss contains the Overlap matrix element
-
 
         if(lbatch.le.0) then
           if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
@@ -294,64 +297,25 @@ c          write(*,'(a,4i5)') 'Call Gnome ',ihc,nhc,i,j
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
-         else
+        else
           
         endif
         buffer(ising+4)=buffer(ising+4)+1.0d0
 
-        call timer_stop(5)
+        if(iamhead.eq.1) e1tot=e1tot+e1*fctr
 
+        call timer_stop(5)
+        
       enddo
 
       if(lbatch.ge.1) then
-        do ij=id1,id2
-          i=lstdet(ij+ioff,1)
-          j=lstdet(ij+ioff,2)
-          hh=0.0d0
-          ss=0.0d0
-          if(ib.eq.jb) then
-            if(i.eq.j) then
-              fac=1.0d0
-            else
-              fac=2.0d0
-            endif
-          else
-            fac=1.0d0
-          endif
-          ihc=ij-id1+1
-          nhc=id2-id1+1
-          ibl=ibdata(ihc,1)
-          if(ibl.gt.0) then
-c            write(*,'(6i5,4f12.6)') ihc,ibl,i,j,ib,jb,
-c     &           bdata(ibl,1),
-c     &           bdata(ibl,2),
-c     &           bdata(ibl,3),
-c     &           hdata(ihc,1)
-            ibl=ibdata(ihc,1)
-            if((icalc.eq.2.or.icalc.eq.0)) then
-              if(icalc.eq.0) then
-                if(mgr.le.1) then
-                  etot=hdata(ihc,1)+bdata(ibl,1)
-                else
-                  etot=hdata(ihc,1)
-                  e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*hdata(ihc,1)
-                endif
-                if(iamhead.eq.1) then
-                  hh=etot-bdata(ibl,2)*bdata(ibl,3)
-                  ss=bdata(ibl,2)
-                endif
-              endif
-            endif
-c     if(idbg.ge.11) then
-c     write(lfndbg,651) me,iamhead,hh,ss
-c     651        format(' Calculated values from gronor_gnome ',2i5,/,
-c     &           ' hh    ',f20.10,/,
-c     &           ' ss    ',f20.10)
-c     endif
-            buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
-            buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
-          endif
-        enddo
+        if(iamhead.eq.1) then
+          buffer(1)=e1tot+etotb
+          buffer(2)=sstot
+          e2buff=0.0d0
+        else
+          e2buff=e1tot+etotb
+        endif
       endif
       
 !     Upon return from gronor_calculate the head thread has the
@@ -359,35 +323,36 @@ c     endif
       
       call timer_start(37)
       if(mgr.gt.1) then
-       if(iamhead.eq.1) then
-        do ii=1,mgr-1
-         call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
-     &                 MPI_COMM_WORLD,status,ierr)
-         if(idbg.gt.3) then
-         iremote=status(MPI_SOURCE)
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
-     &       me,' received e2buf from',iremote
-          flush(lfndbg)
-         endif
-         e2buff=e2buff+e2summ
-        enddo
-       else
-        call MPI_iSend(e2buff,1,MPI_REAL8,thisgroup(2),5,
-     &                MPI_COMM_WORLD,ireq,ierr)
+        if(iamhead.eq.1) then
+          e2buff=0.0d0
+          do ii=1,mgr-1
+            call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
+     &           MPI_COMM_WORLD,status,ierr)
+            if(idbg.gt.3) then
+              iremote=status(MPI_SOURCE)
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
+     &             me,' received e2buf from',iremote
+              flush(lfndbg)
+            endif
+            e2buff=e2buff+e2summ
+          enddo
+        else
+          call MPI_iSend(e2buff,1,MPI_REAL8,thisgroup(2),5,
+     &         MPI_COMM_WORLD,ireq,ierr)
 
-        if(idbg.gt.3) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
-     &      me,' sent e2buf to',thisgroup(2)
-         flush(lfndbg)
+          if(idbg.gt.3) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
+     &           me,' sent e2buf to',thisgroup(2)
+            flush(lfndbg)
+          endif
+
         endif
-
-       endif
-       buffer(1)=buffer(1)+e2buff
+        buffer(1)=buffer(1)+e2buff
       endif
       call timer_stop(37)
-c      stop
+
       return
       end
       

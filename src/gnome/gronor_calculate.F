@@ -102,8 +102,6 @@
         
         if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh_CI) then
           ising=4
-          ibdata(ihc,1)=-1
-          ibdata(ihc,2)=-1
         else
           
           inacti=inactb(ib)

@@ -195,7 +195,7 @@
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,int
 
-      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: e2n,tsn,gtemp, e2t
       real (kind=8) :: tcalc, twait
 
       real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
@@ -245,6 +245,8 @@
 
       call timer_start(30)
 
+!$acc data create(sm)
+      
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
       do i=1,nbas 
         do k=1,nbas 
@@ -272,7 +274,9 @@
         enddo
       enddo
 !$acc end kernels
-          
+
+!$acc end data
+      
       if(ising.gt.0) then
 
 !$acc kernels present(diag,bdiag,bsdiag,csdiag)
@@ -332,6 +336,7 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+          e2t=0.0d0
           do int=1,numint
             i=lab(1,int)
             k=lab(2,int)
@@ -349,7 +354,7 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
             do ibl=nhc-nb1+1,nhc
-              etotb=etotb+g(int)*prefac(ibl)*
+              e2t=e2t+g(int)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -376,6 +381,7 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+          etotb=etotb+e2t
 !$acc end kernels
 
           call timer_stop(31)
@@ -423,9 +429,9 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
           call timer_stop(31)
         endif
-        
-      endif
 
+      endif
+      
       return
       end
 

@@ -195,7 +195,7 @@
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,int
 
-      real (kind=8) :: e2n,tsn,gtemp, e2t
+      real(kind=8) :: e2n,tsn,gtemp
       real (kind=8) :: tcalc, twait
 
       real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
@@ -245,38 +245,27 @@
 
       call timer_start(30)
 
-!$acc data create(sm)
-      
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm)
       do i=1,nbas 
         do k=1,nbas 
-          tat(k,i)=ta(k,i)
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-
-      do i=1,nbas 
-       do k=1,nbas
-         sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
-        enddo
-      enddo
 !$acc end kernels
 
-!$acc kernels present(sml,aaal,aatl,ttl,tatl,tat,tt,aat,aaa,sm)
+!$acc kernels present(sml,aaal,aatl,ttl,tatl,tt,aat,aaa)
       do k=1,nbas
         do i=1,nbas
-          sml(ibl,i,k)=sm(i,k)
+          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
           aaal(ibl,i,k)=aaa(i,k)
           aatl(ibl,i,k)=aat(i,k)
           ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=tat(i,k)
+          tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
 !$acc end kernels
-
-!$acc end data
-      
+          
       if(ising.gt.0) then
 
 !$acc kernels present(diag,bdiag,bsdiag,csdiag)
@@ -336,7 +325,6 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
-          e2t=0.0d0
           do int=1,numint
             i=lab(1,int)
             k=lab(2,int)
@@ -354,7 +342,7 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
             do ibl=nhc-nb1+1,nhc
-              e2t=e2t+g(int)*prefac(ibl)*
+              etotb=etotb+g(int)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -381,7 +369,6 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-          etotb=etotb+e2t
 !$acc end kernels
 
           call timer_stop(31)
@@ -429,9 +416,9 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
           call timer_stop(31)
         endif
-
+        
       endif
-      
+
       return
       end
 
@@ -644,25 +631,18 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
 
       do i=1,nbas 
         do k=1,nbas 
-          tat(k,i)=ta(k,i)
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
 
-      do i=1,nbas 
-       do k=1,nbas
-         sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
-        enddo
-      enddo
-
       do k=1,nbas
         do i=1,nbas
-          sml(ibl,i,k)=sm(i,k)
+          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
           aaal(ibl,i,k)=aaa(i,k)
           aatl(ibl,i,k)=aat(i,k)
           ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=tat(i,k)
+          tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
           

@@ -1,7 +1,9 @@
-
       integer function setsign_mebf(iocc,nact1,nact2,nact)
+
 !     Sets the sign the MEBF
+      
       implicit none
+      
       integer :: nact1,nact2,nact
       integer :: iocc1(nact1),iocc2(nact2)
       integer :: iocc1aux(nact1),iocc2aux(nact2)

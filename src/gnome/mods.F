@@ -79,6 +79,10 @@
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 
+      integer :: ncorr,nwt
+      real(kind=8), allocatable :: ecorr(:)           ! the shifts
+      real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
+      
       end module cidef
 
       module gnome_parameters

@@ -93,7 +93,6 @@ c      use cuda_functions
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
 
-      write(*,'(5i10)') nbatch,nbas,mbasel,max(mbasel,nveca)
       if(lbatch.gt.0) then
 c        allocate(diagl(nbatch,max(nelecs,nbas,mbasel)))
 c        allocate(bsdiagl(nbatch,max(nelecs,nbas,mbasel)))

@@ -245,7 +245,20 @@
 
       call timer_start(30)
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+      if(ising.gt.0) then
+
+!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+        do i=1,nbas
+          diagl(ibl,i)=diag(i)
+          bdiagl(ibl,i)=bdiag(i)
+          bsdiagl(ibl,i)=bsdiag(i)
+          csdiagl(ibl,i)=csdiag(i)
+        enddo
+!$acc end kernels
+
+      endif
+!$acc kernels present(aat,aaa,tt,ta)
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
@@ -254,7 +267,9 @@
       enddo
 !$acc end kernels
 
-!$acc kernels present(sml,aaal,aatl,ttl,tatl,tt,aat,aaa)
+!     ASSEMBLE ARRAYS ON GPU
+      
+!$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -265,21 +280,25 @@
         enddo
       enddo
 !$acc end kernels
-          
-      if(ising.gt.0) then
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
-        do i=1,nbas
-          diagl(ibl,i)=diag(i)
-          bdiagl(ibl,i)=bdiag(i)
-          bsdiagl(ibl,i)=bsdiag(i)
-          csdiagl(ibl,i)=csdiag(i)
-        enddo
-!$acc end kernels
-
-      endif
+!     END ASSEMBLY ON GPU
       
+!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+!$acc update self(ta,aaa,aat,tt)
+
+      do k=1,nbas
+        do i=1,nbas
+          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          aaal(ibl,i,k)=aaa(i,k)
+          aatl(ibl,i,k)=aat(i,k)
+          ttl(ibl,i,k)=tt(i,k)
+          tatl(ibl,i,k)=ta(i,k)
+        enddo
+      enddo
+
+!     END ASSEMBLY ON CPU
+
       call timer_stop(30)
 
       endif
@@ -290,14 +309,18 @@
       
       if(ihc.eq.nhc) then
 
-        call timer_start(38)
+c!$acc update device(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
+!$acc update device(tatl,aaal,aatl,ttl,sml)
+
+        etotb=0.0d0
         
-c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
+!$acc data copyin(prefac)
         
-        if(nb0.gt.0.and.nb1.le.0) then
+c        if(nb0.gt.0.and.nb1.le.0) then
+        if(nb0.gt.0) then
           call timer_start(31)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl)
+!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
           do int=1,numint
             i=lab(1,int)
             k=lab(2,int)
@@ -320,64 +343,66 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
           call timer_stop(31)
         endif
 
-        if(nb0.gt.0.and.nb1.gt.0) then
-          call timer_start(31)
-
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
-          do int=1,numint
-            i=lab(1,int)
-            k=lab(2,int)
-            l=lab(3,int)
-            n=lab(4,int)
-            do ibl=1,nb0
-              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
-     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
-     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
-     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
-     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
-     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
-     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
-     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
-     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
-            enddo
-            do ibl=nhc-nb1+1,nhc
-              etotb=etotb+g(int)*prefac(ibl)*
-     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
-     &             +diagl(ibl,n)*csdiagl(ibl,l)
-     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
-     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
-     &             +(diagl(ibl,i)*csdiagl(ibl,k)
-     &             +diagl(ibl,k)*csdiagl(ibl,i)
-     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
-     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
-     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
-     &             +aatl(ibl,l,k)*diagl(ibl,n))
-     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
-     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
-     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
-     &             +aaal(ibl,n,k)*diagl(ibl,i))
-     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
-     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
-     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
-     &             +aatl(ibl,l,i)*diagl(ibl,n))
-     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
-     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
-     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
-     &             +aaal(ibl,l,k)*diagl(ibl,i))
-     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
-     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
-            enddo
-          enddo
-!$acc end kernels
-
-          call timer_stop(31)
-        endif
+c        if(nb0.gt.0.and.nb1.gt.0) then
+cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
+c          call timer_start(31)
+c
+c!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+c          do int=1,numint
+c            i=lab(1,int)
+c            k=lab(2,int)
+c            l=lab(3,int)
+c            n=lab(4,int)
+c            do ibl=1,nb0
+c              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+c     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
+c     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
+c     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
+c     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
+c     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
+c     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
+c     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
+c     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
+c            enddo
+c            do ibl=nhc-nb1+1,nhc
+c              etotb=etotb+g(int)*prefac(ibl)*
+c     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+c     &             +diagl(ibl,n)*csdiagl(ibl,l)
+c     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
+c     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
+c     &             +(diagl(ibl,i)*csdiagl(ibl,k)
+c     &             +diagl(ibl,k)*csdiagl(ibl,i)
+c     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
+c     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+c     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+c     &             +aatl(ibl,l,k)*diagl(ibl,n))
+c     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+c     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
+c     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+c     &             +aaal(ibl,n,k)*diagl(ibl,i))
+c     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+c     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
+c     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+c     &             +aatl(ibl,l,i)*diagl(ibl,n))
+c     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+c     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
+c     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+c     &             +aaal(ibl,l,k)*diagl(ibl,i))
+c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
+c            enddo
+c          enddo
+c!$acc end kernels
+c
+c          call timer_stop(31)
+c        endif
         
-        if(nb0.le.0.and.nb1.gt.0) then
+c        if(nb0.le.0.and.nb1.gt.0) then
+        if(nb1.gt.0) then
           call timer_start(31)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl)
+!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
           do int=1,numint
             i=lab(1,int) 
@@ -413,12 +438,16 @@ c!$acc update host(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
             enddo
           enddo
 !$acc end kernels
-
+    
           call timer_stop(31)
         endif
         
+!$acc end data
+
       endif
 
+      call timer_stop(38)
+      
       return
       end
 

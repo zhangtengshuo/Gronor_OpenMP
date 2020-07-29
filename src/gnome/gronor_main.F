@@ -274,7 +274,7 @@ c      use cuda_functions
 #ifdef _OPENACC
        naccel=0
 #endif
-       nqcp=1
+       nqcp=3
        ipr=-1
        itim=-1
        ipro=-1
@@ -499,7 +499,7 @@ c      use cuda_functions
          goto 2
        endif
 
-       if (inp_compare(.false.,'HDiag',item)) then
+       if (inp_compare(.false.,'Ecorr',item)) then
          ncorr = 1
          allocate(ecorr(mstates))
          do i=1,mstates

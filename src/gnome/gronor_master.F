@@ -278,9 +278,7 @@
                   if((i.ne.ibase.or.j.ne.jbase).and.
      &                 ntasks(i,j).eq.0) then
                     call timer_stop(99)
-                    call swatch(date,time)
-                    
-                    
+                    call swatch(date,time)                    
                     if(ipr.ge.1) then
                       if(i.eq.j) then
                         ltemp=idetb(i)*(idetb(i)+1)/2
@@ -478,7 +476,7 @@
                 call swatch(date,time)
                 write(lfnday,703) date(1:8),time(1:8),
      &               timer_wall_total(99),
-     &               '  :  ',i,j,'         completed, H,S:',
+     &               '  :  ',i,j,' completed, H,S:',
      &               hbase(i,j),sbase(i,j)
                 flush(lfnday)
                 call timer_start(99)

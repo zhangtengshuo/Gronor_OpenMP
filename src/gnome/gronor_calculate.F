@@ -315,14 +315,13 @@
           e2buff=e1tot+etotb
         endif
       endif
-      
+
 !     Upon return from gronor_calculate the head thread has the
 !     accumulated results from all threads in the group
       
       call timer_start(37)
       if(mgr.gt.1) then
         if(iamhead.eq.1) then
-          e2buff=0.0d0
           do ii=1,mgr-1
             call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
      &           MPI_COMM_WORLD,status,ierr)

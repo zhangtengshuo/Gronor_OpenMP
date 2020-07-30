@@ -400,7 +400,7 @@ c        endif
         
 c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
-          call timer_start(31)
+          call timer_start(34)
 
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
@@ -439,7 +439,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           enddo
 !$acc end kernels
     
-          call timer_stop(31)
+          call timer_stop(34)
         endif
         
 !$acc end data
@@ -699,7 +699,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         call timer_start(38)
         
         if(nb0.gt.0.and.nb1.le.0) then
-          call timer_start(31)
+          call timer_start(32)
 
           do int=1,numint
             i=lab(1,int)
@@ -719,11 +719,11 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 
-          call timer_stop(31)
+          call timer_stop(32)
         endif
 
         if(nb0.gt.0.and.nb1.gt.0) then
-          call timer_start(31)
+          call timer_start(36)
           do int=1,numint
             i=lab(1,int)
             k=lab(2,int)
@@ -768,11 +768,11 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-          call timer_stop(31)
+          call timer_stop(36)
         endif
         
         if(nb0.le.0.and.nb1.gt.0) then
-          call timer_start(31)
+          call timer_start(35)
           do int=1,numint
             i=lab(1,int) 
             k=lab(2,int) 
@@ -806,7 +806,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-          call timer_stop(31)
+          call timer_stop(35)
         endif
         
       endif

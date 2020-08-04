@@ -17,7 +17,7 @@
       integer :: lfndbg
       integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,int
+      integer :: nmax,kbloc,noff,intg
 
       integer :: iaf0,ial0,inf0,inl0,iaf1,ial1,inf1,inl1
 
@@ -91,12 +91,12 @@
         tst=ts
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
 !$acc loop reduction (+:tst)
-        do int=1,numint
-          i=lab(1,int)
-          k=lab(2,int)
-          l=lab(3,int)
-          n=lab(4,int)
-          tst=tst+g(int)*(sm(k,i)*sm(n,l)
+        do intg=1,numint
+          i=lab(1,intg)
+          k=lab(2,intg)
+          l=lab(3,intg)
+          n=lab(4,intg)
+          tst=tst+g(intg)*(sm(k,i)*sm(n,l)
      &         -aat(n,i)*aaa(l,k)-tt(n,i)*tat(l,k)
      &         -aaa(n,i)*aat(l,k)-tat(n,i)*tt(l,k)
      &         -aat(l,i)*aaa(n,k)-tt(l,i)*tat(n,k)
@@ -115,11 +115,11 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g)
 !$acc& present(lab,diag,bdiag,bsdiag,csdiag)
 !$acc loop reduction (+:e2t)
-        do int=1,numint
-          i=lab(1,int) 
-          k=lab(2,int) 
-          l=lab(3,int) 
-          n=lab(4,int)
+        do intg=1,numint
+          i=lab(1,intg) 
+          k=lab(2,intg) 
+          l=lab(3,intg) 
+          n=lab(4,intg)
           aai=diag(i)
           abi=bdiag(i)
           bai=csdiag(i)
@@ -137,7 +137,7 @@
           abl=bdiag(n)
           bal=csdiag(n)
           bbl=bsdiag(n)
-          e2t=e2t+g(int)*
+          e2t=e2t+g(intg)*
      &         (sm(k,i)*(aaj*bal+aal*baj+abj*bbl+abl*bbj)+sum2*sm(n,l)
      &         -bai*(aat(n,k)*aaj+aat(l,k)*aal)
      &         -bbi*(tt(n,k)*abj+tt(l,k)*abl)
@@ -193,7 +193,7 @@
 
       integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,int
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
 
       real(kind=8) :: e2n,tsn,gtemp
       real (kind=8) :: tcalc, twait
@@ -321,13 +321,13 @@ c        if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(31)
 
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-          do int=1,numint
-            i=lab(1,int)
-            k=lab(2,int)
-            l=lab(3,int)
-            n=lab(4,int)
+          do intg=1,numint
+            i=lab(1,intg)
+            k=lab(2,intg)
+            l=lab(3,intg)
+            n=lab(4,intg)
             do ibl=1,nb0
-              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
      &             -ttl(ibl,n,i)*tatl(ibl,l,k)
      &             -aaal(ibl,n,i)*aatl(ibl,l,k)
@@ -349,13 +349,13 @@ c          call timer_start(31)
 c
 c!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
-c          do int=1,numint
-c            i=lab(1,int)
-c            k=lab(2,int)
-c            l=lab(3,int)
-c            n=lab(4,int)
+c          do intg=1,numint
+c            i=lab(1,intg)
+c            k=lab(2,intg)
+c            l=lab(3,intg)
+c            n=lab(4,intg)
 c            do ibl=1,nb0
-c              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
 c     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
 c     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
 c     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
@@ -366,7 +366,7 @@ c     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
 c     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
 c            enddo
 c            do ibl=nhc-nb1+1,nhc
-c              etotb=etotb+g(int)*prefac(ibl)*
+c              etotb=etotb+g(intg)*prefac(ibl)*
 c     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
 c     &             +diagl(ibl,n)*csdiagl(ibl,l)
 c     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -404,13 +404,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
-          do int=1,numint
-            i=lab(1,int) 
-            k=lab(2,int) 
-            l=lab(3,int) 
-            n=lab(4,int)
+          do intg=1,numint
+            i=lab(1,intg) 
+            k=lab(2,intg) 
+            l=lab(3,intg) 
+            n=lab(4,intg)
             do ibl=nhc-nb1+1,nhc
-              etotb=etotb+g(int)*prefac(ibl)*
+              etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -607,7 +607,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,int
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
 
       real(kind=8) :: e2n,tsn,gtemp
       real (kind=8) :: tcalc, twait
@@ -701,13 +701,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(32)
 
-          do int=1,numint
-            i=lab(1,int)
-            k=lab(2,int)
-            l=lab(3,int)
-            n=lab(4,int)
+          do intg=1,numint
+            i=lab(1,intg)
+            k=lab(2,intg)
+            l=lab(3,intg)
+            n=lab(4,intg)
             do ibl=1,nb0
-              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
      &             -ttl(ibl,n,i)*tatl(ibl,l,k)
      &             -aaal(ibl,n,i)*aatl(ibl,l,k)
@@ -724,13 +724,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
         if(nb0.gt.0.and.nb1.gt.0) then
           call timer_start(36)
-          do int=1,numint
-            i=lab(1,int)
-            k=lab(2,int)
-            l=lab(3,int)
-            n=lab(4,int)
+          do intg=1,numint
+            i=lab(1,intg)
+            k=lab(2,intg)
+            l=lab(3,intg)
+            n=lab(4,intg)
             do ibl=1,nb0
-              etotb=etotb+g(int)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
      &             -ttl(ibl,n,i)*tatl(ibl,l,k)
      &             -aaal(ibl,n,i)*aatl(ibl,l,k)
@@ -741,7 +741,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
             do ibl=nhc-nb1+1,nhc
-              etotb=etotb+g(int)*prefac(ibl)*
+              etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -773,13 +773,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         
         if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(35)
-          do int=1,numint
-            i=lab(1,int) 
-            k=lab(2,int) 
-            l=lab(3,int) 
-            n=lab(4,int)
+          do intg=1,numint
+            i=lab(1,intg) 
+            k=lab(2,intg) 
+            l=lab(3,intg) 
+            n=lab(4,intg)
             do ibl=nhc-nb1+1,nhc
-              etotb=etotb+g(int)*prefac(ibl)*
+              etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &             +diagl(ibl,n)*csdiagl(ibl,l)
      &             +bdiagl(ibl,l)*bsdiagl(ibl,n)

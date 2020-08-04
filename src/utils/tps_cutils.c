@@ -10,6 +10,7 @@ double linux_cputime_(void)
 double linux_walltime_(void)
 {
     struct timeval time;
+    int gettimeofday ( struct timeval *tp , int *tz );
     if (gettimeofday(&time,NULL)){return 0;}
     return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }

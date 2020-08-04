@@ -262,7 +262,11 @@ c      use cuda_functions
        idevel=0
        ifault=1
        isolver=1
+#ifdef MKL
+       jsolver=0
+#else
        jsolver=1
+#endif
        intadd=0
        naccel=-1
        ncols=7

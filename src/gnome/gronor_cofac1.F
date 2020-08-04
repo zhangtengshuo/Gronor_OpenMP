@@ -496,7 +496,11 @@
         ndim=nelecs
         mdim=mbasel
 
-        stop 'No MKL evd yet'
+        call dsyevd('V','U',ndim,ta,mdim,diag,
+     &       workspace_d,worksize,
+     &       workspace_i,worksizei,ierr)
+
+        stop 'No working MKL evd yet'
 
       else
         call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,

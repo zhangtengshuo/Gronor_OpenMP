@@ -82,12 +82,13 @@ option (MKL "Enable MKL library." OFF)
 option (CUBLAS "Enable CUDA BLAS library." OFF)
 option (NVBLAS "Enable NVidia BLAS library." OFF)
 option (CTEST "Enable CTest." OFF)
+option (SINGLEP "Enable single precision." OFF)
 
 
 # Define project name with associated languages
 
 project (GronOR Fortran C CXX)
-
+ 
 # Avoid using CXX compiler for linking
 
 set (CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES FALSE)
@@ -405,6 +406,44 @@ set (FFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELEASE "-O2")
 set (FFLAGS_PGI_FAST "-fast -fastsse")
 
+# NVIDIA Compilers
+
+# defines __NVIDIA
+# C++ compiler
+list (APPEND SUPPORTED_CXX_COMPILERS "NVIDIA")
+set (CXXFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
+set (CXXFLAGS_NVIDIA_OPENMP "-mp")
+# build targets
+set (CXXFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
+set (CXXFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_NVIDIA_RELEASE "-O2")
+set (CXXFLAGS_NVIDIA_FAST "-O2")
+# C compiler
+list (APPEND SUPPORTED_C_COMPILERS "NVIDIA")
+set (CFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
+set (CFLAGS_NVIDIA_OPENMP "-mp")
+# build targets
+set (CFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
+set (CFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
+set (CFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CFLAGS_NVIDIA_RELEASE "-O2")
+set (CFLAGS_NVIDIA_FAST "-O2")
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "NVIDIA")
+set (FFLAGS_NVIDIA_BASIC "-Mbackslash")
+set (FFLAGS_NVIDIA_PREPROCESS "-Mpreprocess")
+set (FFLAGS_NVIDIA_OPENMP "-mp")
+set (FFLAGS_NVIDIA_ILP64 "-i8")
+set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc")
+set (FFLAGS_NVIDIA_CUSOLVER "-DCUSOLVER -lcusolver")
+# build targets
+set (FFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
+set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (FFLAGS_NVIDIA_RELEASE "-O2")
+set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
+
 
 # C compiler
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
@@ -577,6 +616,11 @@ if(CUSOLVER)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
 endif()
       
+if(SINGLEP)
+  set (ENV{SINGLEP} "Y")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DSINGLEP")
+endif()
+      
 if(MKL)
   set (ENV{MKL} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_MKL}")
@@ -735,6 +779,9 @@ if (MKL)
                 find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
                         PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
         elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI") # apparently PGI uses this too
+                find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+        elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA") # apparently NVIDIA uses this too
                 find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
                         PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
         endif ()

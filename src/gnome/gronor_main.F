@@ -261,7 +261,11 @@ c      use cuda_functions
        itest=0
        idevel=0
        ifault=1
+#ifdef CUSOLVER
+       isolver=0
+#else
        isolver=1
+#endif
 #ifdef MKL
        jsolver=0
 #else

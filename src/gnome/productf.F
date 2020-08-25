@@ -1,5 +1,5 @@
-
-      subroutine productf(civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,
+      subroutine productf
+     &     (civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,
      &     maxci,mstates,maxnact,mactb,maxcib,ndetout,thresh_CI,lfnout)
       implicit none
       integer :: nmol,maxci,mstates,maxnact,mactb,maxcib
@@ -204,5 +204,60 @@
        endif
       enddo
       if(jj.ne.nclosed)stop 'you have to learn how to count'
+      return
+      end
+      
+      subroutine old_productf
+     &     (civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,
+     &     maxci,mstates,maxnact,mactb,maxcib,ndetout,thresh_CI)
+      implicit none
+      integer :: nmol,maxci,mstates,maxnact,mactb,maxcib
+      real (kind=8) :: civm(maxci,mstates)
+      integer :: ioccm(maxnact,maxci,mstates)
+      integer :: nactm(mstates)
+      integer :: idetm(mstates)
+      real (kind=8) :: civb(maxcib),ci2,thresh_CI
+      integer :: ioccb(maxcib),ncomb(nmol)
+      integer, allocatable :: kloop(:),jdet(:)
+      integer :: ndets,i,j,jact,k,isetsign4,iocch(32),ndetout
+      external :: isetsign4
+
+      ndets=1
+      allocate(kloop(nmol),jdet(nmol))
+
+      do i=1,nmol
+       ndets=ndets*idetm(ncomb(i))
+       jdet(i)=idetm(ncomb(i))
+      enddo
+      if (ndets.gt.maxcib) then
+         print *,'error ndets',ndets,maxcib
+         stop 'ndets error'
+      endif
+
+      ndetout=0
+      do i=1,ndets
+       call calciloop(i,kloop,nmol,jdet)
+       ci2=1.0d0
+       do j=1,nmol
+        ci2=ci2*civm(kloop(j),ncomb(j))
+       enddo
+       if (dabs(ci2).gt.thresh_CI) then
+         ndetout = ndetout + 1
+         civb(ndetout)=ci2
+         jact=1
+         do j=1,nmol
+            do k=1,nactm(ncomb(j))
+             iocch(jact)=ioccm(k,kloop(j),ncomb(j))
+             jact=jact+1
+            enddo
+         enddo
+         jact=jact-1
+         civb(ndetout)=isetsign4(iocch,jact)*civb(ndetout)
+         call pack(ioccb(ndetout),iocch,jact)
+       endif
+      enddo
+
+      deallocate(kloop,jdet)
+
       return
       end

@@ -1322,12 +1322,20 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       do i=1,nbase
-        
+
+        if(idevel.eq.0) then
+        call gronor_old_makebasestate
+     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
+     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
+     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
+     &         nmol,ncombv(1,i),nspin,thresh_CI)
+      else
         call gronor_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
      &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
-     &       nmol,ncombv(1,i),nspin,thresh_CI)
+     &         nmol,ncombv(1,i),nspin,thresh_CI)
+      endif
         
         if(me.eq.master.and.ipr.ge.3) then
           write(lfnout,612) i

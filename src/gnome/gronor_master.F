@@ -148,7 +148,7 @@
                 do i=1,ndeti
                   call unpack(ioccb(i,ibase),iocch,nacti)
                   write(lfnout,602) i,civb(i,ibase),(iocch(k),k=1,nacti)
- 602              format(i5,f15.5,10i3)
+ 602              format(i5,f25.15,35i3)
                 enddo
                 write(lfnout,603) ndetj
  603            format(//,' Right wavefunction has ',i8,

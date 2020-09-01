@@ -1711,10 +1711,6 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
           hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
-        do i=1,nbase
-          hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
-          sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
-        enddo
         call print_results(hbase,sbase,nbase)
         if ( ncorr .eq. 1 ) then
           allocate( hcorr(nbase,nbase) )

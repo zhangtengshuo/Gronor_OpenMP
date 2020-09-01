@@ -107,14 +107,16 @@
         write(lfnout,621)
       endif
  621      format(//,' Calculation of Hamiltonian matrix elements',//,
-     &         '   Element       ------- Determinants -------',
-     &         '          -------------- Singularities -------------',
-     &         '        ----- Unnormalized -----   ',
-     &         '  Wall Clock  Wall Clock',/
-     &         '  idet jdet      left     right         pairs',
-     &         '          none           1           2            3+',
-     &         '        Hamiltonian      Overlap   ',
-     &         '        Cost        Time',/)
+     &     '   Element       ------- Determinants -------',
+     &     '          -------------- Singularities -------------',
+     &     '        ----- Unnormalized -----   ',
+     &     '         Normalized ',
+     &     '  Wall Clock  Wall Clock',/
+     &     '  idet jdet      left     right         pairs',
+     &     '          none           1           2            3+',
+     &     '        Hamiltonian      Overlap   ',
+     &     '        Hamiltonian ',
+     &     '        Cost        Time',/)
 
           ioff=0
           do ibase=1,nbase
@@ -285,24 +287,46 @@
                       else
                         ltemp=idetb(i)*idetb(j)
                       endif
-                      write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,4),
-     &                     hbase(i,j),sbase(i,j),tbase(i,j),
-     &                     timer_wall_total(99)
-                      write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
-     &                     (nsing(i,j,k),k=1,4),
-     &                     hbase(i,j),sbase(i,j),tbase(i,j),
-     &                     timer_wall_total(99)
+                      if(i.ne.j) then
+                        write(*,1622) i,j,idetb(i),idetb(j),ltemp,
+     &                       (nsing(i,j,k),k=1,4),
+     &                       hbase(i,j),sbase(i,j),
+     &                       tbase(i,j),timer_wall_total(99)
+                        write(lfnout,1622) i,j,idetb(i),idetb(j),ltemp,
+     &                       (nsing(i,j,k),k=1,4),
+     &                       hbase(i,j),sbase(i,j),
+     &                       tbase(i,j),timer_wall_total(99)
+                      else
+                        write(*,622) i,j,idetb(i),idetb(j),ltemp,
+     &                       (nsing(i,j,k),k=1,4),
+     &                       hbase(i,j),sbase(i,j),
+     &                       hbase(i,j)/sbase(i,j),
+     &                       tbase(i,j),timer_wall_total(99)
+                        write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
+     &                       (nsing(i,j,k),k=1,4),
+     &                       hbase(i,j),sbase(i,j),
+     &                       hbase(i,j)/sbase(i,j),
+     &                       tbase(i,j),timer_wall_total(99)
+                      endif
                       flush(lfnout)
  622                  format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
-     &                     f15.10,2f12.1)
+     &                     f15.10,f20.10,2f12.1)
+ 1622                  format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
+     &                     f15.10,20x,2f12.1)
                     endif
                     call swatch(date,time)
-                    write(lfnday,703) date(1:8),time(1:8),
-     &                   timer_wall_total(99),
-     &                   '  :  ',i,j,' completed, H,S:',
-     &                   hbase(i,j),sbase(i,j)
- 703                format(a8,2x,a8,f12.3,a,2i6,a,2f20.10)
+                    if(i.ne.j) then
+                      write(lfnday,703) date(1:8),time(1:8),
+     &                     timer_wall_total(99),
+     &                     '  :  ',i,j,' completed, H,S   :',
+     &                     hbase(i,j),sbase(i,j)
+                    else
+                      write(lfnday,703) date(1:8),time(1:8),
+     &                     timer_wall_total(99),
+     &                     '  :  ',i,j,' completed, H,S,H*:',
+     &                     hbase(i,j),sbase(i,j),hbase(i,j)/sbase(i,j)
+                    endif
+ 703                format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
                     flush(lfnday)
                     call timer_start(99)
                     ntasks(i,j)=-2
@@ -474,10 +498,18 @@
                   flush(lfnout)
                 endif
                 call swatch(date,time)
-                write(lfnday,703) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',i,j,' completed, H,S:',
-     &               hbase(i,j),sbase(i,j)
+                if(i.ne.j) then
+                  write(lfnday,703) date(1:8),time(1:8),
+     &                 timer_wall_total(99),
+     &                 '  :  ',i,j,' completed, H,S   :',
+     &                 hbase(i,j),sbase(i,j)
+                else
+                  write(lfnday,703) date(1:8),time(1:8),
+     &                 timer_wall_total(99),
+     &                 '  :  ',i,j,' completed, H,S,H*:',
+     &                 hbase(i,j),sbase(i,j),
+     &                 hbase(i,j)/sbase(i,j)
+                endif
                 flush(lfnday)
                 call timer_start(99)
                 ntasks(i,j)=-2

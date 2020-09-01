@@ -587,7 +587,7 @@ c      use cuda_functions
  622  format(' Solver options',t40,2i5,t60,
      &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
-        write(lfnout,627),nummps
+        write(lfnout,627) nummps
  627    format(' No fault tolerance',t60,'
      &       Over-subscription of accelerators (MPS)',t100,i10)
       else

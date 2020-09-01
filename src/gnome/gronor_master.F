@@ -487,14 +487,27 @@
                   else
                     ltemp=idetb(i)*idetb(j)
                   endif
+                  if(i.ne.j) then
+                  write(*,1622) i,j,idetb(i),idetb(j),ltemp,
+     &                 (nsing(i,j,k),k=1,4),
+     &                 hbase(i,j),sbase(i,j),tbase(i,j),
+     &                 timer_wall_total(99)
+                  write(lfnout,1622) i,j,idetb(i),idetb(j),ltemp,
+     &                 (nsing(i,j,k),k=1,4),
+     &                 hbase(i,j),sbase(i,j),tbase(i,j),
+     &                 timer_wall_total(99)
+                else
                   write(*,622) i,j,idetb(i),idetb(j),ltemp,
      &                 (nsing(i,j,k),k=1,4),
-     &                 hbase(i,j),sbase(i,j),tbase(i,j),
-     &                 timer_wall_total(99)
+     &                 hbase(i,j),sbase(i,j),
+     &                 hbase(i,j)/sbase(i,j),
+     &                 tbase(i,j),timer_wall_total(99)
                   write(lfnout,622) i,j,idetb(i),idetb(j),ltemp,
      &                 (nsing(i,j,k),k=1,4),
-     &                 hbase(i,j),sbase(i,j),tbase(i,j),
-     &                 timer_wall_total(99)
+     &                 hbase(i,j),sbase(i,j),
+     &                 hbase(i,j)/sbase(i,j),
+     &                 tbase(i,j),timer_wall_total(99)
+                  endif
                   flush(lfnout)
                 endif
                 call swatch(date,time)

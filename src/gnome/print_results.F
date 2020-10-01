@@ -79,8 +79,8 @@
       if(nbase.gt.1) then
         do i=2,nbase
           do j=1,i-1
-            tc(i,j)=hbase(i,j)
-     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j)/
+            tc(i,j)=(hbase(i,j)
+     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/
      &           (1.0d0-sbase(i,j)*sbase(i,j))
           enddo
         enddo

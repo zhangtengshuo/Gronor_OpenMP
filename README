@@ -61,3 +61,6 @@ Build flags are the following:
 -DMPI=ON is default as GronOR requires a minimum of 2 MPI ranks to run
 -DACC=ON will activate OpenACC directives to be interpreted for PGI compilers 
 -DCUSOLVER=ON will activate the CUSOLVER library, and requires -DACC=ON
+
+GronOR is interfaced with OpenMolcas for integrals and CASSCF orbital coefficients.
+Some minor changes in the OpenMolcas source code are required for GronOR to properly function per the instructions in the file OpenMolcas-GronOR.txt.

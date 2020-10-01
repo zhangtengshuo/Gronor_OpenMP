@@ -63,4 +63,5 @@ Build flags are the following:
 -DCUSOLVER=ON will activate the CUSOLVER library, and requires -DACC=ON
 
 GronOR is interfaced with OpenMolcas for integrals and CASSCF orbital coefficients.
-Some minor changes in the OpenMolcas source code are required for GronOR to properly function per the instructions in the file OpenMolcas-GronOR.txt.
+Some minor changes in the OpenMolcas source code are required for GronOR to properly 
+function per the instructions in the file OpenMolcas-GronOR.pdf.

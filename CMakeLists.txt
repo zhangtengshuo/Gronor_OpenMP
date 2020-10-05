@@ -88,6 +88,7 @@ option (SINGLEP "Enable single precision." OFF)
 # Define project name with associated languages
 
 project (GronOR Fortran C CXX)
+
  
 # Avoid using CXX compiler for linking
 
@@ -444,6 +445,44 @@ set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELEASE "-O2")
 set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
 
+# Cray Compilers
+
+# defines __Cray
+# C++ compiler
+list (APPEND SUPPORTED_CXX_COMPILERS "Cray")
+set (CXXFLAGS_Cray_BASIC "-c99 -pgf90libs")
+set (CXXFLAGS_Cray_OPENMP "-mp")
+# build targets
+set (CXXFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
+set (CXXFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_Cray_RELEASE "-O2")
+set (CXXFLAGS_Cray_FAST "-O2")
+# C compiler
+list (APPEND SUPPORTED_C_COMPILERS "Cray")
+set (CFLAGS_Cray_BASIC "-c99 -pgf90libs")
+set (CFLAGS_Cray_OPENMP "-mp")
+# build targets
+set (CFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
+set (CFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
+set (CFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CFLAGS_Cray_RELEASE "-O2")
+set (CFLAGS_Cray_FAST "-O2")
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
+set (FFLAGS_Cray_BASIC "-Mbackslash")
+set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
+set (FFLAGS_Cray_OPENMP "-mp")
+set (FFLAGS_Cray_ILP64 "-i8")
+set (FFLAGS_Cray_ACC "-acc -Minfo=accel -Mcuda=rdc")
+set (FFLAGS_Cray_CUSOLVER "-DCUSOLVER -lcusolver")
+# build targets
+set (FFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
+set (FFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (FFLAGS_Cray_RELEASE "-O2")
+set (FFLAGS_Cray_FAST "-fast -fastsse")
+
 
 # C compiler
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
@@ -603,11 +642,11 @@ if (BOUNDS)
         add_definitions (-D_MALLOC_INTERCEPT_)
 endif ()
 
-if(ACC)
+if(OPENACC)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
       endif()
       
-if(OMP)
+if(OPENOMP)
         set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
 endif()
       
@@ -675,10 +714,13 @@ endif ()
 
 if (MPI)
         message ("Configuring with MPI parallellization:")
+
         find_package (MPI REQUIRED)
 
         add_definitions (-D_GRONOR_MPP_)
+
         include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
+
         link_directories(${MPI_Fortran_LIBRARIES})
 
         message ("-- MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
@@ -698,7 +740,9 @@ if (MPI)
                 set (MPI_IMPLEMENTATION "impi")
         elseif (MPIEXEC_VERSION MATCHES "HYDRA")
                 set (MPI_IMPLEMENTATION "mpich")
-        elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum")
+        elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
+                set (MPI_IMPLEMENTATION "openmpi")
+        elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(Open MPI\\)")
                 set (MPI_IMPLEMENTATION "openmpi")
         else ()
                 message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")

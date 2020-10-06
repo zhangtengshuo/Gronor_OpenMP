@@ -89,17 +89,19 @@ option (SINGLEP "Enable single precision." OFF)
 
 project (GronOR Fortran C CXX)
 
+# Piz Daint specific stuff
+
 if("$ENV{CUDA_HOME}" STREQUAL "")
-  if("$ENV{CUDATOOLKITHOME}" STREQUAL "")
+  if("$ENV{CUDATOOLKIT_HOME}" STREQUAL "")
     message ("-- CUDA_HOME not set")
   else()
-    set(ENV{TEST} $ENV{CUDATOOLKITHOME})
-    message ("-- CUDA_HOME set to CUDATOOLKITHOME: $ENV{CUDA_HOME}")
+    set(ENV{CUDA_HOME} $ENV{CUDATOOLKIT_HOME})
+    message ("-- CUDA_HOME set to CUDATOOLKIT_HOME: $ENV{CUDA_HOME}")
   endif()
 else()
   message ("-- CUDA_HOME found: $ENV{CUDA_HOME}")
 endif()
- 
+
 # Avoid using CXX compiler for linking
 
 set (CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES FALSE)
@@ -408,6 +410,11 @@ set (FFLAGS_PGI_BASIC "-Mbackslash")
 set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
 set (FFLAGS_PGI_OPENMP "-mp")
 set (FFLAGS_PGI_ILP64 "-i8")
+if("$ENV{HOST}" MATCHES "daint")
+set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60")
+else()
+set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
+endif()
 set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
 set (FFLAGS_PGI_CUSOLVER "-DCUSOLVER -lcusolver")
 # build targets

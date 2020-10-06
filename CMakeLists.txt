@@ -643,16 +643,16 @@ if (BOUNDS)
 endif ()
 
 if(OPENACC)
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
-      endif()
-      
-if(OPENOMP)
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
 endif()
-      
+
+if(OPENOMP)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
+endif()
+
 if(CUSOLVER)
-        set (ENV{CUSOLVER} "Y")
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
+  set (ENV{CUSOLVER} "Y")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
 endif()
       
 if(SINGLEP)
@@ -742,7 +742,7 @@ if (MPI)
                 set (MPI_IMPLEMENTATION "mpich")
         elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
                 set (MPI_IMPLEMENTATION "openmpi")
-        elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(Open MPI\\)")
+        elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
                 set (MPI_IMPLEMENTATION "openmpi")
         else ()
                 message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")

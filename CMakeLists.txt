@@ -89,6 +89,16 @@ option (SINGLEP "Enable single precision." OFF)
 
 project (GronOR Fortran C CXX)
 
+if("$ENV{CUDA_HOME}" STREQUAL "")
+  if("$ENV{CUDATOOLKITHOME}" STREQUAL "")
+    message ("-- CUDA_HOME not set")
+  else()
+    set(ENV{TEST} $ENV{CUDATOOLKITHOME})
+    message ("-- CUDA_HOME set to CUDATOOLKITHOME: $ENV{CUDA_HOME}")
+  endif()
+else()
+  message ("-- CUDA_HOME found: $ENV{CUDA_HOME}")
+endif()
  
 # Avoid using CXX compiler for linking
 

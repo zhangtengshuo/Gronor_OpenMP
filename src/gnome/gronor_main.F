@@ -1735,7 +1735,7 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
      &       np,mgr,numacc,numnon
  802    format(5x,3i5,2i3,e12.3,i8,3i6)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
- 803    format(5x,8f16.8)
+ 803    format(5x,8f20.10)
         write(lfnlog,804)
  804    format(' ')
         close(unit=lfnlog,status='keep')

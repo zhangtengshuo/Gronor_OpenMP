@@ -1727,18 +1727,20 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
         endif
         open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
      &       form='formatted',status='unknown',access='append',err=993)
+        call timer_stop(99)
         call swatch(date,time)
-        write(lfnlog,801) date(1:8),time(1:8),user(1:inp_strlen(user)),
-     &       ' : ',string(1:inp_strlen(string))
- 801    format(a8,2x,a8,2x,a,a,a)
+        write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),np,
+     &       user(1:inp_strlen(user)),' : ',string(1:inp_strlen(string))
+ 801    format(a8,1x,a8,f12.3,i8,1x,a,a,a)
         write(lfnlog,802) nmol,nbase,mstates,isolver,jsolver,thresh,
-     &       np,mgr,numacc,numnon
- 802    format(5x,3i5,2i3,e12.3,i8,3i6)
+     &       mgr,numacc,numnon
+ 802    format(5x,3i5,2i3,e12.3,i8,2i6)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
  803    format(5x,8f20.10)
         write(lfnlog,804)
  804    format(' ')
         close(unit=lfnlog,status='keep')
+        call timer_start(99)
       endif
 
       deallocate(t,v,ndxtv)

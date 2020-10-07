@@ -147,6 +147,8 @@ c      use cuda_functions
        lfnday=18
        filtst=string(1:inp_strlen(string))//'.tst'
        lfntst=19
+       fillog=root(1:inp_strlen(root))//'.log'
+       lfnlog=20
        lfnf74=74
        filf74=string(1:inp_strlen(string))//'.f74'
        lfnf75=75
@@ -1723,6 +1725,20 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
           call print_results(hcorr,sbase,nbase)
           deallocate( hcorr )
         endif
+        open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
+     &       form='formatted',status='unknown',access='append',err=993)
+        call swatch(date,time)
+        write(lfnlog,801) date(1:8),time(1:8),user(1:inp_strlen(user)),
+     &       ' : ',string(1:inp_strlen(string))
+ 801    format(a8,2x,a8,2x,a,a,a)
+        write(lfnlog,802) nmol,nbase,mstates,isolver,jsolver,thresh,
+     &       np,mgr,numacc,numnon
+ 802    format(5x,3i5,2i3,e12.3,i8,3i6)
+        write(lfnlog,803) (hbase(i,i),i=1,nbase)
+ 803    format(5x,8f16.8)
+        write(lfnlog,804)
+ 804    format(' ')
+        close(unit=lfnlog,status='keep')
       endif
 
       deallocate(t,v,ndxtv)
@@ -1783,6 +1799,8 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       return
+ 993  write(lfnout,984) fillog(1:inp_strlen(fillog))
+      call errquit()
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
       call errquit()
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))

@@ -60,10 +60,10 @@
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
       character (len=255) :: filsym,filciv,filvec,filint,filtst
-      character (len=255) :: filf74,filf75,filone,filtwo,fildat
+      character (len=255) :: filf74,filf75,filone,filtwo,fildat,fillog
       integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint
       integer :: lfnpro,lfndbg,lfnf74,lfnf75,lfnone,lfntwo,lfndat
-      integer :: lfnday,lfntst
+      integer :: lfnday,lfntst,lfnlog
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs

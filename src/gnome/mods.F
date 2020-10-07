@@ -254,7 +254,8 @@
       
       use cusolverDN
       use cudafor
-      
+
+#ifdef CUSOLVERJ
       type gesvdjInfo
       type(c_ptr) :: svInfo
       end type gesvdjInfo
@@ -449,10 +450,13 @@
         type(syevjInfo)       :: info
         end function cusolverDnDsyevj
       end interface
+#endif
       
       type(cusolverDnHandle) :: cusolver_handle
+#ifdef CUSOLVERJ
       type(gesvdjInfo)       :: gesvdj_params
       type(syevjInfo)        :: syevj_params
+#endif
       integer (kind=4)       :: cusolver_status
       integer (kind=4)       :: worksize,worksize2,ndim,mdim
       real (kind=8)          :: tol, residual

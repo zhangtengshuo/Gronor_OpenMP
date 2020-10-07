@@ -25,8 +25,8 @@
 
        ndim=nelecs
        mdim=mbasel
-       
-      if(isolver.eq.1) then
+
+       if(isolver.eq.1) then
 
        jobu = 'A'  ! all m columns of U
        jobvt= 'A'  ! all m columns of VT
@@ -73,6 +73,7 @@
       call timer_stop(42)
       
 !$acc end data
+#ifdef CUSOLVERJ
       elseif(isolver.eq.2) then
 
         jobz=CUSOLVER_EIG_MODE_VECTOR
@@ -123,6 +124,7 @@
 !$acc end data
 
       else
+#endif
 
 !$acc update host (ta)
 
@@ -222,6 +224,7 @@
         enddo
 !$acc end kernels
 
+#ifdef CUSOLVERJ
       elseif(jsolver.eq.2) then
 
         ndim=nelecs
@@ -255,6 +258,7 @@
         
 !$acc end data
         
+#endif
       else
 
 !$acc update host (ta)

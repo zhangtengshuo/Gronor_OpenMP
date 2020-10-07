@@ -143,8 +143,10 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         mdim=mbasel
         worksize=0
         worksize2=0
-        
+
+#ifdef CUSOLVERJ
         if(isolver.eq.1) then
+#endif
 !$acc data copyin(w,ta) create(dev_info_d)
        
 !$acc host_data use_device(ta)
@@ -156,6 +158,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
 !$acc end data   
+#ifdef CUSOLVERJ
         elseif(isolver.eq.2) then
           
           ndim=nelecs
@@ -195,8 +198,11 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
 
 !$acc end data
         endif
+#endif
 
+#ifdef CUSOLVERJ
         if(jsolver.eq.1) then
+#endif
 !$acc data copyin(w,ta) create(dev_info_d)
        
 !$acc host_data use_device(ta,w)
@@ -211,6 +217,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
      &         cusolver_status
 
 !$acc end data
+#ifdef CUSOLVERJ         
         elseif(jsolver.eq.2) then
 
 ! Jacobi EVD
@@ -254,6 +261,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
 !$acc end data
           
         endif
+#endif
       
         worksize=max(worksize,worksize2)
         

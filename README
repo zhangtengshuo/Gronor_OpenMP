@@ -18,6 +18,9 @@ Downloading from the GitLab repository:
 
 git clone --recursive git@gitlab.com:gronor/gronor.git
 
+To check out the stable version 3 branch of gronor:
+
+git checkout gronor3
 
 The initial directory structure is as follows:
 

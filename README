@@ -65,6 +65,7 @@ Build flags are the following:
 -DOPENACC=ON will activate OpenACC directives to be interpreted for PGI compilers 
 -DOPENMP=ON will activate OpenMP directives to be interpreted for most compilers 
 -DCUSOLVER=ON will activate the CUSOLVER library, and requires -DOPENACC=ON
+-DCUSOLVERJ=ON will activate the CUSOLVER library including the iterative Jacobi solvers, and requires -DOPENACC=ON
 -DMKL=ON will link against MKL libraries for compatible compilers
 
 GronOR is interfaced with OpenMolcas for integrals and CASSCF orbital coefficients.

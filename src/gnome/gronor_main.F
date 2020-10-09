@@ -602,13 +602,14 @@ c      use cuda_functions
      &       'Over-subscription of accelerators (MPS)',t100,i10)
       endif
       write(lfnout,626) itest,mgr,idevel,nmol,nbatch,mstates,
-     &     nbase
+     &     lbatch,nbase
  626  format(' Test option',t40,i10,t60,
      &     'Integrals divided over tasks number of ranks',t100,i10,/,
      &     ' Development option',t40,i10,t60,
      &     'Number of molecules (nmol)',t100,i10,/,
      &     ' Batch size',t40,i10,t60,
-     &     'Number of molecular states (mstates)',t100,i10,/,t60,
+     &     'Number of molecular states (mstates)',t100,i10,/,
+     &     ' Batched option',t40,i10,t60,
      &     'Number of many-electron states (nbase)',t100,i10,/)
 
       write(lfnout,623) thresh_CI, thresh_SIN

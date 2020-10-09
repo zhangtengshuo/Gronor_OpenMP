@@ -665,6 +665,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
       enddo
 
+!$OMP PARALLEL DO
+!$OMP& SHARED(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$OMP& PRIVATE(i,k)
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -674,15 +677,20 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
+!$OMP END PARALLEL DO
           
       if(ising.gt.0) then
 
+!$OMP PARALLEL DO
+!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl,nbas)
+!$OMP& PRIVATE(i)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
+!$OMP END PARALLEL DO
 
       endif
       
@@ -701,6 +709,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(32)
 
+!$OMP PARALLEL DO REDUCTION(+:etotb)
+!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$OMP& PRIVATE(intg,i,k,l,n,ibl)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -718,12 +729,17 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
           enddo
+!$OMP END PARALLEL DO
 
           call timer_stop(32)
         endif
 
         if(nb0.gt.0.and.nb1.gt.0) then
           call timer_start(36)
+!$OMP PARALLEL DO REDUCTION(+:etotb)
+!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl)
+!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$OMP& PRIVATE(intg,i,k,l,n,ibl)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -768,11 +784,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+!$OMP END PARALLEL DO
           call timer_stop(36)
         endif
         
         if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(35)
+!$OMP PARALLEL DO REDUCTION(+:etotb)
+!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl)
+!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$OMP& PRIVATE(intg,i,k,l,n,ibl)
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
@@ -806,6 +827,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+!$OMP END PARALLEL DO
           call timer_stop(35)
         endif
         

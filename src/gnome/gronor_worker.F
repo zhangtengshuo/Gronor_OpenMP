@@ -289,7 +289,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           call dsyevd('N','U',ndim,a,ndim,w,workspace_d,worksize2,
      &         workspace_i,worksizei,ierr)
           worksize2=int(workspace_d(1))
-          worksizei=workspace_i(1)
+          worksizei=int(workspace_i(1))
           deallocate(workspace_d)
           deallocate(workspace_i)
         endif

@@ -500,13 +500,14 @@
         ndim=nelecs
         mdim=mbasel
 
-        call dsyevd('V','U',ndim,ta,mdim,diag,
+        call dsyevd('N','U',ndim,ta,mdim,diag,
      &       workspace_d,worksize,
      &       workspace_i,worksizei,ierr)
 
-        stop 'No working MKL evd yet'
+!        stop 'No correctly working MKL evd yet'
 
       else
+
         call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
      &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
         
@@ -523,6 +524,9 @@
       
       call timer_stop(43)
 
+c      write(*,'(12f10.3)') (diag(i),i=1,nelecs)
+c      stop
+      
       call timer_start(44)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw

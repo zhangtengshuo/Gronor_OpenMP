@@ -475,10 +475,10 @@
 #ifdef MKL
       module mkl_solver
       
-      integer (kind=4)    :: worksize,worksize2,worksizei,ndim,mdim
-      real(8),allocatable :: rwork(:)
-      real(8),allocatable :: workspace_d(:)
-      integer (kind=4), allocatable :: workspace_i(:)
+      integer (kind=8)    :: worksize,worksize2,worksizei,ndim,mdim
+      real (kind=8),allocatable :: rwork(:)
+      real (kind=8),allocatable :: workspace_d(:)
+      integer (kind=8), allocatable :: workspace_i(:)
       
       end module mkl_solver
 #endif

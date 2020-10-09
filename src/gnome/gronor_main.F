@@ -73,6 +73,8 @@ c      use cuda_functions
       integer :: ibase, jbase, ib, jb, l2, lnxt, lcur
       integer :: l3, l4, ndsum, ioff
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
+
+      integer :: iaslvr,jaslvr,inslvr,jnslvr
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -263,16 +265,10 @@ c      use cuda_functions
        itest=0
        idevel=0
        ifault=1
-#ifdef CUSOLVER
-       isolver=0
-#else
-       isolver=1
-#endif
-#ifdef MKL
-       jsolver=0
-#else
-       jsolver=1
-#endif
+
+       isolver=-1
+       jsolver=-1
+
        intadd=0
        naccel=-1
        ncols=7
@@ -281,6 +277,7 @@ c      use cuda_functions
        ixpert=0
        iswsvj=15
        iswevj=15
+       
 #ifdef _OPENACC
        naccel=0
 #endif
@@ -407,12 +404,22 @@ c      use cuda_functions
          goto 2
        endif
        
-       if(inp_compare(.false.,'Solver',item)) then
-         if(.not.inp_i(isolver)) then
-           isolver=1
-           jsolver=1
-         elseif(.not.inp_i(jsolver)) then
-           jsolver=1
+       if(inp_compare(.false.,'Solver',item).or.
+     &      inp_compare(.false.,'Solvers',item)) then
+         if(.not.inp_i(iaslvr)) then
+           iaslvr=-1
+           jaslvr=-1
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(jaslvr)) then
+           jaslvr=-1
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(inslvr)) then
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(jnslvr)) then
+           jnslvr=-1
          endif
          goto 2
        endif
@@ -585,9 +592,6 @@ c      use cuda_functions
       
       close(unit=lfninp)
       
-      write(lfnout,622) isolver,jsolver,numomp
- 622  format(' Solver options',t40,2i5,t60,
-     &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
         write(lfnout,627) nummps
  627    format(' No fault tolerance',t60,'
@@ -762,6 +766,11 @@ c      use cuda_functions
         endif
       endif
 
+      if(numdev.eq.0) then
+        if(inslvr.lt.0) inslvr=iaslvr
+        if(jnslvr.lt.0) jnslvr=jaslvr
+      endif
+         
 !     Distribute input data to all processes
 
       if(np.gt.1) then
@@ -803,14 +812,16 @@ c      use cuda_functions
           idum(33)=nummps
           idum(34)=numomp
           idum(35)=itim
-          idum(36)=isolver
-          idum(37)=jsolver
-          idum(38)=ifault
-          idum(39)=idevel
-          idum(40)=iswsvj
-          idum(41)=iswevj
-          idum(42)=lbatch
-          idum(43)=nspin
+          idum(36)=iaslvr
+          idum(37)=jaslvr
+          idum(38)=inslvr
+          idum(39)=jnslvr
+          idum(40)=ifault
+          idum(41)=idevel
+          idum(42)=iswsvj
+          idum(43)=iswevj
+          idum(44)=lbatch
+          idum(45)=nspin
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -819,7 +830,7 @@ c      use cuda_functions
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,43,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,45,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -857,14 +868,16 @@ c      use cuda_functions
         nummps =idum(33)
         numomp =idum(34)
         itim   =idum(35)
-        isolver=idum(36)
-        jsolver=idum(37)
-        ifault =idum(38)
-        idevel =idum(39)
-        iswsvj =idum(40)
-        iswevj =idum(41)
-        lbatch =idum(42)
-        nspin  =idum(43)
+        iaslvr =idum(36)
+        jaslvr =idum(37)
+        inslvr =idum(38)
+        jnslvr =idum(39)
+        ifault =idum(40)
+        idevel =idum(41)
+        iswsvj =idum(42)
+        iswevj =idum(43)
+        lbatch =idum(44)
+        nspin  =idum(45)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -1284,37 +1297,74 @@ c      use cuda_functions
 !     only accelerated ranks need to set device
 
 #ifdef _OPENACC
-      if(numdev.gt.1) then
-       mydev=mod(me,numdev)
-       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-       cpfre=c_loc(memfre)
-       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-       memavail=memfre
-      endif
+        if(numdev.gt.1) then
+          mydev=mod(me,numdev)
+          call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+          cpfre=c_loc(memfre)
+          cptot=c_loc(memtot)
+c     istat=cudaMemGetInfo(cpfre,cptot)
+          memavail=memfre
+        endif
 #endif
-      
+        
 !     only accelerated ranks need to define cusolver handles
         
 #ifdef CUSOLVER
-      cusolver_status = cusolverDnCreate(cusolver_handle)
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *, me,'cusolver_handle creation failed'
+        cusolver_status = cusolverDnCreate(cusolver_handle)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &       print *, me,'cusolver_handle creation failed'
 
-!      if(numdev.gt.1) then
-!       cpfre=c_loc(memfre)
-!       cptot=c_loc(memtot)
-!       istat=cudaMemGetInfo(cpfre,cptot)
-!      endif
+!     if solvers were not specified use cusolver QR solvers
+        isolver=iaslvr
+        jsolver=jaslvr
+        if(isolver.lt.0) isolver=1
+        if(jsolver.lt.0) jsolver=1
+        if(iaslvr.lt.0) iaslvr=1
+        if(jaslvr.lt.0) jaslvr=1
+
+!     if(numdev.gt.1) then
+!     cpfre=c_loc(memfre)
+!     cptot=c_loc(memtot)
+!     istat=cudaMemGetInfo(cpfre,cptot)
+!     endif
 
 #endif
-      else
-!     only non-accelerated ranks will use OpenMP threads
 
         
+      else
+        
+!     only non-accelerated ranks will use OpenMP threads
+
+#ifdef MKL
+
+!     if solvers were not specified use MKL solver for svd only
+        
+        isolver=inslvr
+        jsolver=jnslvr
+        if(isolver.lt.0) isolver=1
+        if(jsolver.lt.0) jsolver=0
+        if(inslvr.lt.0) inslvr=1
+        if(jnslvr.lt.0) jnslvr=0
+
+#endif
+        
       endif
+
+!     if solvers were not specified use the default ones
+        
+      if(isolver.lt.0) isolver=0
+      if(jsolver.lt.0) jsolver=0
+      if(iaslvr.lt.0) iaslvr=0
+      if(jaslvr.lt.0) jaslvr=0
+      if(inslvr.lt.0) inslvr=0
+      if(jnslvr.lt.0) jnslvr=0
+      
       
       if(me.eq.master) then
+        write(lfnout,622) iaslvr,jaslvr,inslvr,jnslvr,numomp
+ 622    format(//,' Solver options accelerated',t40,2i5,/,
+     &       ' Solver options non-accelerated',t40,2i5,t60,
+     &       'Number of OpenMP threads per MPI (OMP)',t100,i10)
         write(lfnout,611) nbase,nmol,nbasis
  611    format(//,' Dimensions',//,
      &       ' Number of states (nbase)',t40,i10,t60,

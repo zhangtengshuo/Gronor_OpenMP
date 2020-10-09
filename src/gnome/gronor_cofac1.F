@@ -524,9 +524,6 @@
       
       call timer_stop(43)
 
-c      write(*,'(12f10.3)') (diag(i),i=1,nelecs)
-c      stop
-      
       call timer_start(44)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw

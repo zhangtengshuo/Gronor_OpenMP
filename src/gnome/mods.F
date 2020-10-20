@@ -192,7 +192,7 @@
 
       module gnome_integrals
 
-      integer :: intone,int1,int2,mint2,nt(3),myints(7)
+      integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
       integer :: igfr,igto
       real (kind=8), allocatable :: s(:,:),t(:),v(:)
 #ifdef SINGLEP

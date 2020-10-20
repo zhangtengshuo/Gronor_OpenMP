@@ -835,3 +835,318 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       return
       end
+
+
+      subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
+
+      real (kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+      character (len=1) :: ch
+
+      etotb=0.0d0
+      
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+      endif
+      
+      if(ising.lt.3) then
+
+      if(ising.eq.0) then
+        nb0=nb0+1
+        ibl=nb0        
+        prefac(ibl)=4.0d0*deta*fctr
+      else
+        ibl=nhc-nb1
+        nb1=nb1+1
+        prefac(ibl)=fctr
+      endif
+      factor(ibl)=fctr
+
+      if(iamhead.eq.1) sstot=sstot+factor(ibl)*deta
+
+      if(idbg.ge.13) write(lfndbg,600)
+ 600  format(' Calculating two electron matrix element',/)
+
+      numint=mint2
+
+      if(ising.gt.1) e1=0.0d0
+      e2=0.0d0
+      ts=0.0d0
+      fourdet=4.0d0*deta
+      call timer_start(30)
+
+      do i=1,nbas 
+        do k=1,nbas 
+          tt(i,k)=ta(k,i)
+          aat(i,k)=aaa(k,i)
+        enddo
+      enddo
+
+      do k=1,nbas
+        do i=1,nbas
+          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          aaal(ibl,i,k)=aaa(i,k)
+          aatl(ibl,i,k)=aat(i,k)
+          ttl(ibl,i,k)=tt(i,k)
+          tatl(ibl,i,k)=ta(i,k)
+        enddo
+      enddo
+          
+      if(ising.gt.0) then
+
+        do i=1,nbas
+          diagl(ibl,i)=diag(i)
+          bdiagl(ibl,i)=bdiag(i)
+          bsdiagl(ibl,i)=bsdiag(i)
+          csdiagl(ibl,i)=csdiag(i)
+        enddo
+
+      endif
+      
+      call timer_stop(30)
+
+      endif
+      
+      call timer_start(38)
+
+!     After the last element of a task the list of energies is generated
+      
+      if(ihc.eq.nhc) then
+
+!        print*,'nbas=',nbas
+!        kl=nbas*(nbas+1)/2
+!!        kl=0
+!!        do i=1,nbas
+!!          do k=1,i
+!!            kl=kl+1
+!!            mlab(kl,1)=k
+!!            mlab(kl,2)=i
+!!          enddo
+!!        enddo
+!        nn=0
+!        ll=0
+!        print*,'kl=',kl
+!        do ii=1,kl
+!          do jj=ii,kl
+!            nn=nn+1
+!            i=mlab(ii,1)
+!            k=mlab(ii,2)
+!            l=mlab(jj,1)
+!            n=mlab(jj,2)
+!            ch=' '
+!            if(i.ne.lab(1,nn)) ch='*'
+!            if(k.ne.lab(2,nn)) ch='*'
+!            if(l.ne.lab(3,nn)) ch='*'
+!            if(n.ne.lab(4,nn)) ch='*'
+!            if(ch.ne.' ') ll=ll+1
+!c            write(*,'(a1,1x,8i8,i10,f16.12,2i8)')
+!c     &           ch,i,k,l,n,(lab(j,nn),j=1,4),nn,g(nn),ii,jj
+!          enddo
+!        enddo
+!        print*,'ll=',ll
+!        print*,'nn=',nn
+
+!        stop
+
+        call timer_start(38)
+        
+        if(nb0.gt.0.and.nb1.le.0) then
+          call timer_start(32)
+
+          kl=nbas*(nbas+1)/2
+          intg=0
+!     do ii=1,kl
+          do ii=intndx,jntndx
+            do jj=ii,kl
+              intg=intg+1
+              i=lab(1,ii)
+              k=lab(2,ii)
+              l=lab(1,jj)
+              n=lab(2,jj)
+              do ibl=1,nb0
+                etotb=etotb+g(intg)*prefac(ibl)*
+     &               (sml(ibl,k,i)*sml(ibl,n,l)
+     &               -aatl(ibl,n,i)*aaal(ibl,l,k)
+     &               -ttl(ibl,n,i)*tatl(ibl,l,k)
+     &               -aaal(ibl,n,i)*aatl(ibl,l,k)
+     &               -tatl(ibl,n,i)*ttl(ibl,l,k)
+     &               -aatl(ibl,l,i)*aaal(ibl,n,k)
+     &               -ttl(ibl,l,i)*tatl(ibl,n,k)
+     &               -aaal(ibl,l,i)*aatl(ibl,n,k)
+     &               -tatl(ibl,l,i)*ttl(ibl,n,k))
+              enddo
+            enddo
+          enddo
+
+!          do intg=1,numint
+!            i=lab(1,intg)
+!            k=lab(2,intg)
+!            l=lab(3,intg)
+!            n=lab(4,intg)
+!            do ibl=1,nb0
+!              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+!     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
+!     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
+!     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
+!     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
+!     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
+!     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
+!     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
+!     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
+!            enddo
+!          enddo
+
+          call timer_stop(32)
+        endif
+
+        if(nb0.gt.0.and.nb1.gt.0) then
+          call timer_start(36)
+          kl=nbas*(nbas+1)/2
+          intg=0
+c          do ii=1,kl
+          do ii=intndx,jntndx
+            write(*,'(10i5)') ii,intndx,jntndx
+            do jj=ii,kl
+              intg=intg+1
+              i=lab(1,ii)
+              k=lab(2,ii)
+              l=lab(1,jj)
+              n=lab(2,jj)
+!     do intg=1,numint
+!     i=lab(1,intg)
+!     k=lab(2,intg)
+!     l=lab(3,intg)
+!     n=lab(4,intg)
+              do ibl=1,nb0
+                etotb=etotb+g(intg)*prefac(ibl)*
+     &               (sml(ibl,k,i)*sml(ibl,n,l)
+     &               -aatl(ibl,n,i)*aaal(ibl,l,k)
+     &               -ttl(ibl,n,i)*tatl(ibl,l,k)
+     &               -aaal(ibl,n,i)*aatl(ibl,l,k)
+     &               -tatl(ibl,n,i)*ttl(ibl,l,k)
+     &               -aatl(ibl,l,i)*aaal(ibl,n,k)
+     &               -ttl(ibl,l,i)*tatl(ibl,n,k)
+     &               -aaal(ibl,l,i)*aatl(ibl,n,k)
+     &               -tatl(ibl,l,i)*ttl(ibl,n,k))
+              enddo
+              do ibl=nhc-nb1+1,nhc
+                etotb=etotb+g(intg)*prefac(ibl)*
+     &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+     &               +diagl(ibl,n)*csdiagl(ibl,l)
+     &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
+     &               +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &               +(diagl(ibl,i)*csdiagl(ibl,k)
+     &               +diagl(ibl,k)*csdiagl(ibl,i)
+     &               +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &               +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+     &               -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+     &               +aatl(ibl,l,k)*diagl(ibl,n))
+     &               -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+     &               +ttl(ibl,l,k)*bdiagl(ibl,n))
+     &               -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+     &               +aaal(ibl,n,k)*diagl(ibl,i))
+     &               -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+     &               +tatl(ibl,n,k)*bdiagl(ibl,i))
+     &               -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+     &               +aatl(ibl,l,i)*diagl(ibl,n))
+     &               -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+     &               +ttl(ibl,l,i)*bdiagl(ibl,n))
+     &               -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+     &               +aaal(ibl,l,k)*diagl(ibl,i))
+     &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+     &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
+              enddo
+            enddo
+          enddo
+          call timer_stop(36)
+        endif
+        
+        if(nb0.le.0.and.nb1.gt.0) then
+          call timer_start(35)
+          kl=nbas*(nbas+1)/2
+          intg=0
+          do ii=intndx,jntndx
+c          do ii=1,kl
+            do jj=ii,kl
+              intg=intg+1
+              i=lab(1,ii)
+              k=lab(2,ii)
+              l=lab(1,jj)
+              n=lab(2,jj)
+!     do intg=1,numint
+!     i=lab(1,intg) 
+!     k=lab(2,intg) 
+!     l=lab(3,intg) 
+!     n=lab(4,intg)
+              do ibl=nhc-nb1+1,nhc
+                etotb=etotb+g(intg)*prefac(ibl)*
+     &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+     &               +diagl(ibl,n)*csdiagl(ibl,l)
+     &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
+     &               +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &               +(diagl(ibl,i)*csdiagl(ibl,k)
+     &               +diagl(ibl,k)*csdiagl(ibl,i)
+     &               +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &               +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+     &               -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+     &               +aatl(ibl,l,k)*diagl(ibl,n))
+     &               -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+     &               +ttl(ibl,l,k)*bdiagl(ibl,n))
+     &               -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+     &               +aaal(ibl,n,k)*diagl(ibl,i))
+     &               -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+     &               +tatl(ibl,n,k)*bdiagl(ibl,i))
+     &               -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+     &               +aatl(ibl,l,i)*diagl(ibl,n))
+     &               -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+     &               +ttl(ibl,l,i)*bdiagl(ibl,n))
+     &               -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+     &               +aaal(ibl,l,k)*diagl(ibl,i))
+     &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+     &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
+              enddo
+            enddo
+          enddo
+          call timer_stop(35)
+        endif
+        
+      endif
+
+      return
+      end
+
+      

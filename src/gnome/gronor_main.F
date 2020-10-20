@@ -277,6 +277,11 @@ c      use cuda_functions
        ixpert=0
        iswsvj=15
        iswevj=15
+
+!     labels   0 : read labels from the integral file
+!              1 : use Molcas integral ordering
+       
+       labels=1
        
 #ifdef _OPENACC
        naccel=0
@@ -351,6 +356,11 @@ c      use cuda_functions
        if(inp_compare(.false.,'Threshold',item)) then
          if(.not.inp_f(thresh)) call errquit()
          thresh_CI=thresh
+         goto 2
+       endif
+
+       if(inp_compare(.false.,'Labels',item)) then
+         if(.not.inp_i(labels)) call errquit()
          goto 2
        endif
        
@@ -823,6 +833,7 @@ c      use cuda_functions
           idum(43)=iswevj
           idum(44)=lbatch
           idum(45)=nspin
+          idum(46)=labels
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -831,7 +842,7 @@ c      use cuda_functions
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,45,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,46,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -879,6 +890,7 @@ c      use cuda_functions
         iswevj =idum(43)
         lbatch =idum(44)
         nspin  =idum(45)
+        labels =idum(46)
         
         if(me.eq.master) then
           call timer_stop(99)

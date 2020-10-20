@@ -208,6 +208,8 @@
       integer (kind=4) :: new_group,grp_group
       integer, allocatable :: ntarget(:)
 
+      integer (kind=8) :: labels, mlab
+
       end module gnome_integrals
 
 #ifdef _OPENACC

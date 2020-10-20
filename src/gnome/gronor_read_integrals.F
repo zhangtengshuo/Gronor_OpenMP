@@ -219,7 +219,21 @@
 !      read and broadcast the two-electron integrals
 
        allocate(g(mint2))
-       allocate(lab(4,mint2))
+
+       if(labels.eq.0) then
+         allocate(lab(4,mint2))
+       else
+         mlab=nbas*(nbas+1)/2
+         allocate(lab(2,mlab))
+         kl=0
+         do i=1,nbas
+           do k=1,i
+             kl=kl+1
+             lab(1,kl)=k
+             lab(2,kl)=i
+           enddo
+         enddo
+       endif
 
        if(idbg.gt.0) then
          call swatch(date,time)
@@ -231,25 +245,27 @@
 !      single array and broadcasted
 
        if(mgr.eq.1) then
-        if(me.eq.master) then
-         ilast=0
-         ii=0
-         do while(ilast.eq.0)
-          write(lfnout,*) 'We aren-t here, are we?'
-          flush(lfnout)
-          read(lfnint,end=993) (b(n),n=1,255),(ibuf(nn),nn=1,1020),
-     &                         jint,ilast
-          jj=0
-          do nn=1,jint
-           ii=ii+1
-           g(ii)=b(nn)
-           do n=1,4
-            jj=jj+1
-            lab(n,ii)=ibuf(jj)
+         if(me.eq.master) then
+           ilast=0
+           ii=0
+           do while(ilast.eq.0)
+             write(lfnout,*) 'We aren-t here, are we?'
+             flush(lfnout)
+             read(lfnint,end=993) (b(n),n=1,255),(ibuf(nn),nn=1,1020),
+     &            jint,ilast
+             jj=0
+             do nn=1,jint
+               ii=ii+1
+               g(ii)=b(nn)
+               if(labels.eq.0) then
+                 do n=1,4
+                   jj=jj+1
+                   lab(n,ii)=ibuf(jj)
+                 enddo
+               endif
+             enddo
            enddo
-          enddo
-         enddo
-        endif
+         endif
 
         kint=mpibuf
         kintbatch=int2/kint

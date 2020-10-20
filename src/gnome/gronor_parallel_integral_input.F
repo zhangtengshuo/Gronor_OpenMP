@@ -172,7 +172,20 @@
        nrec=0
 
        allocate(g(mint2))
-       allocate(lab(4,mint2))
+       if(labels.eq.0) then
+         allocate(lab(4,mint2))
+       else
+         mlab=nbas*(nbas+1)/2
+         allocate(lab(2,mlab))
+         kl=0
+         do i=1,nbas
+           do k=1,i
+             kl=kl+1
+             lab(1,kl)=k
+             lab(2,kl)=i
+           enddo
+         enddo
+       endif
 
        if(idbg.gt.0) then
          call swatch(date,time)

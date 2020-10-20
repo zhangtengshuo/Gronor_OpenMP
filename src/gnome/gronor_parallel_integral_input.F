@@ -160,6 +160,10 @@
         idfil=idfil-ifil(i,1)
        enddo
 
+       write(*,'(i5,a,i10)') me,' myrecs=',myrecs
+       write(*,'(i5,a,i10)') me,' myrec =',myrec
+       write(*,'(i5,a,i10)') me,' myfile=',myfile
+       
        mint2 = myrecs * mbuf
        if(me.eq.thisgroup(mgr+1)) then
         mint2 = ninttot - (mgr-1) * myrecs * mbuf
@@ -205,6 +209,7 @@
        mint2=0
        do while(nrec.lt.myrecs)
         nrec=nrec+ifil(myfile,1)-idfil+1
+       write(*,'(i5,a,i10)') me,' nrec  =',nrec
         jdfil=ifil(myfile,1)
         if(nrec.gt.myrecs) jdfil=jdfil-nrec+myrecs
         write(filtwo,'(a,a,i3.3,a)')

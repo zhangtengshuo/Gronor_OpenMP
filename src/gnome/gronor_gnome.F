@@ -188,9 +188,17 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
         if((icalc.eq.2.or.icalc.eq.0)) then
           call timer_start(22)
           if(lbatch.gt.0) then
-            call gronor_gntwo_batch(lfndbg,ihc,nhc)
+            if(labels.eq.0) then
+              call gronor_gntwo_batch(lfndbg,ihc,nhc)
+            else
+              call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
+            endif
           else
-            if(ising.le.2) call gronor_gntwo(lfndbg)
+            if(labels.eq.0) then
+              if(ising.le.2) call gronor_gntwo(lfndbg)
+            else
+              if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
+            endif
           endif
           call timer_stop(22)
         endif
@@ -275,7 +283,11 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
                 call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
               endif
             else
-              call gronor_gntwo_omp(lfndbg)
+              if(labels.eq.0) then
+                call gronor_gntwo_omp(lfndbg)
+              else
+                call gronor_gntwo_omp_mlab(lfndbg)
+              endif
             endif
             call timer_stop(22)
           endif

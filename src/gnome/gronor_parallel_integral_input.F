@@ -482,7 +482,7 @@
         enddo
 
         if(labels.eq.1) then
-           call MPI_Bcast(lab,2*mlab,MPI_INTEGER8,0,
+           call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
      &          new_comm(ig0),ierr)
         endif
         

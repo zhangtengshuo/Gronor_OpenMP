@@ -947,41 +947,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       
       if(ihc.eq.nhc) then
 
-!        print*,'nbas=',nbas
-!        kl=nbas*(nbas+1)/2
-!!        kl=0
-!!        do i=1,nbas
-!!          do k=1,i
-!!            kl=kl+1
-!!            mlab(kl,1)=k
-!!            mlab(kl,2)=i
-!!          enddo
-!!        enddo
-!        nn=0
-!        ll=0
-!        print*,'kl=',kl
-!        do ii=1,kl
-!          do jj=ii,kl
-!            nn=nn+1
-!            i=mlab(ii,1)
-!            k=mlab(ii,2)
-!            l=mlab(jj,1)
-!            n=mlab(jj,2)
-!            ch=' '
-!            if(i.ne.lab(1,nn)) ch='*'
-!            if(k.ne.lab(2,nn)) ch='*'
-!            if(l.ne.lab(3,nn)) ch='*'
-!            if(n.ne.lab(4,nn)) ch='*'
-!            if(ch.ne.' ') ll=ll+1
-!c            write(*,'(a1,1x,8i8,i10,f16.12,2i8)')
-!c     &           ch,i,k,l,n,(lab(j,nn),j=1,4),nn,g(nn),ii,jj
-!          enddo
-!        enddo
-!        print*,'ll=',ll
-!        print*,'nn=',nn
-
-!        stop
-
         call timer_start(38)
         
         if(nb0.gt.0.and.nb1.le.0) then
@@ -989,7 +954,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!     do ii=1,kl
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=intg+1
@@ -1012,24 +976,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 
-!          do intg=1,numint
-!            i=lab(1,intg)
-!            k=lab(2,intg)
-!            l=lab(3,intg)
-!            n=lab(4,intg)
-!            do ibl=1,nb0
-!              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
-!     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
-!     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
-!     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
-!     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
-!     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
-!     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
-!     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
-!     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
-!            enddo
-!          enddo
-
           call timer_stop(32)
         endif
 
@@ -1037,20 +983,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(36)
           kl=nbas*(nbas+1)/2
           intg=0
-c          do ii=1,kl
           do ii=intndx,jntndx
-            write(*,'(10i5)') ii,intndx,jntndx
             do jj=ii,kl
               intg=intg+1
               i=lab(1,ii)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!     do intg=1,numint
-!     i=lab(1,intg)
-!     k=lab(2,intg)
-!     l=lab(3,intg)
-!     n=lab(4,intg)
               do ibl=1,nb0
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*sml(ibl,n,l)
@@ -1100,18 +1039,12 @@ c          do ii=1,kl
           kl=nbas*(nbas+1)/2
           intg=0
           do ii=intndx,jntndx
-c          do ii=1,kl
             do jj=ii,kl
               intg=intg+1
               i=lab(1,ii)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!     do intg=1,numint
-!     i=lab(1,intg) 
-!     k=lab(2,intg) 
-!     l=lab(3,intg) 
-!     n=lab(4,intg)
               do ibl=nhc-nb1+1,nhc
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)

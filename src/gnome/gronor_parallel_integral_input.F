@@ -144,7 +144,7 @@
       enddo
 
       if(me.eq.master.or.iamactive.eq.0) then
-       allocate(g(1),lab(1,1))
+       allocate(g(1),lab(1,1),ndx(1))
       endif
 
 !     Only the first group reads the integrals from file
@@ -245,10 +245,10 @@
        
        allocate(g(mint2))
        if(labels.eq.0) then
-         allocate(lab(4,mint2))
+         allocate(lab(4,mint2),ndx(1))
        else
          mlab=nbas*(nbas+1)/2
-         allocate(lab(2,mlab))
+         allocate(lab(2,mlab),ndx(mlab))
          kl=0
          do i=1,nbas
            do k=1,i
@@ -414,9 +414,9 @@
        if(mygroup.gt.1) then
          allocate(g(mint2))
          if(labels.eq.0) then
-           allocate(lab(4,mint2))
+           allocate(lab(4,mint2),ndx(1))
          else
-           allocate(lab(2,mlab))
+           allocate(lab(2,mlab),ndx(mlab))
            kl=0
            do i=1,nbas
              do k=1,i
@@ -547,6 +547,16 @@
 
       ig(igr)=mint2
 
+      if(me.ne.master.and.iamactive.eq.1.and.labels.eq.1) then
+        kk=1
+        do ii=intndx,jntndx
+          ndx(ii)=kk-ii
+          do jj=ii,mlab
+            kk=kk+1
+          enddo
+        enddo
+      endif
+      
       return
  993  write(lfnout,983) filone(1:inp_strlen(filone))
       call errquit()

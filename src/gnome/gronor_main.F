@@ -1696,7 +1696,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             
-!$acc data copyin(g,lab,t,v,ndxtv)
+!$acc data copyin(g,lab,ndx,t,v,ndxtv)
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1806,7 +1806,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       deallocate(t,v,ndxtv)
-      deallocate(lab,ig,g)
+      deallocate(lab,ndx,ig,g)
       deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)

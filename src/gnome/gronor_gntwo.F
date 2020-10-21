@@ -257,21 +257,21 @@
 !$acc end kernels
 
       call timer_stop(30)
-
+      
       call timer_start(38)
 
       if(ising.le.0) then
         
         call timer_start(31)
-        
+
         tst=ts
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
-!$acc loop reduction (+:tst)
+!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
+!$acc& copyin(kl,intndx,jntndx)
         do ii=intndx,jntndx
           do jj=ii,kl
-            intg=intg+1
+            intg=ndx(ii)+jj
             i=lab(1,ii)
             k=lab(2,ii)
             l=lab(1,jj)
@@ -295,12 +295,11 @@
         e2t=e2
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g)
-!$acc& present(lab,diag,bdiag,bsdiag,csdiag)
-!$acc loop reduction (+:e2t)
+!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
+!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
         do ii=intndx,jntndx
           do jj=ii,kl
-            intg=intg+1
+            intg=ndx(ii)+jj
             i=lab(1,ii)
             k=lab(2,ii)
             l=lab(1,jj)
@@ -512,6 +511,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
+!$acc loop private(ibl)
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
@@ -595,6 +595,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             k=lab(2,intg) 
             l=lab(3,intg) 
             n=lab(4,intg)
+!$acc loop private(ibl)
             do ibl=nhc-nb1+1,nhc
               etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -785,14 +786,15 @@ c        if(nb0.gt.0.and.nb1.le.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
           do ii=intndx,jntndx
             do jj=ii,kl
-              intg=intg+1
+              intg=ndx(ii)+jj
               i=lab(1,ii)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+!$acc loop private(ibl)
               do ibl=1,nb0
                 etotb=etotb+g(intg)*
      &               prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
@@ -818,11 +820,11 @@ c          call timer_start(31)
 c
 c       kl=nbas*(nbas+1)/2
 c       intg=0
-c!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+c!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
 c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 c       do ii=intndx,jntndx
 c         do jj=ii,kl
-c           intg=intg+1
+c           intg=ndx(ii)+jj
 c           i=lab(1,ii)
 c           k=lab(2,ii)
 c           l=lab(1,jj)
@@ -877,15 +879,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
           do ii=intndx,jntndx
             do jj=ii,kl
-              intg=intg+1
+              intg=ndx(ii)+jj
               i=lab(1,ii)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+!$acc loop private(ibl)
               do ibl=nhc-nb1+1,nhc
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)

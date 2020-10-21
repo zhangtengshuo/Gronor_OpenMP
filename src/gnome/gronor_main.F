@@ -75,6 +75,7 @@ c      use cuda_functions
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
       integer :: iaslvr,jaslvr,inslvr,jnslvr
+      real (kind=8) :: rint,rlab,rndx
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -268,6 +269,10 @@ c      use cuda_functions
 
        isolver=-1
        jsolver=-1
+       iaslvr=-1
+       jaslvr=-1
+       inslvr=-1
+       jnslvr=-1
 
        intadd=0
        naccel=-1
@@ -1628,12 +1633,27 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,614) nbas
-        write(lfnout,615) int1
-        write(lfnout,616) int2
- 614    format(' Number of basisfunctions',t62,20i4)
- 615    format(' Number of one-electron integrals',t50,i16)
- 616    format(' Number of two-electron integrals',t50,i16)
+#ifdef SINGLEP
+        rint=dble(4*int2)*1.0d-9
+#else
+        rint=dble(8*int2)*1.0d-9
+#endif
+        if(labels.eq.0) then
+          rlab=dble(8*int2)*1.0d-9
+          rndx=0.0d0
+        else
+          rlab=0.0d0
+          rndx=(dble(mlab*4)+dble(mlab*4))*1.0d-09
+        endif
+        write(lfnout,614) nbas,rndx
+        write(lfnout,615) int1,rlab
+        write(lfnout,616) int2,rint
+ 614    format(' Number of basisfunctions',t50,i16,
+     &       t80,' Size of index arrays',t115,f5.1,' GB')
+ 615    format(' Number of one-electron integrals',t50,i16,
+     &       t80,' Size of integral labels',t115,f5.1,' GB')
+ 616    format(' Number of two-electron integrals',t50,i16,
+     &       t80,' Size of two-electron integrals',t115,f5.1,' GB')
       endif
       
       call timer_stop(3)

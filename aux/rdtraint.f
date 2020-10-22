@@ -23,6 +23,7 @@
 
       integer, parameter                :: nToc = 64
       integer, parameter                :: nTraToc = 106,nTraBuf = 9600
+      integer, parameter                :: nTraRec = 27959
       integer, parameter                :: mxSym = 8, maxBfn = 10000
       integer, parameter                :: labelSize = 2 * maxBfn * 4
       integer, parameter                :: LblL  = 6           !LenIN  in OpenMolcas
@@ -74,6 +75,10 @@
       character (len = 144)             :: Header
       logical                           :: debug,empty,deep_debug
 
+      integer (kind=8) :: nFil, lastfil, iFil, nFilRec
+      logical :: noLabels
+
+      noLabels=.true.
       debug = .false.
       deep_debug = .false.
       call get_command_argument(1,Project) 
@@ -236,7 +241,13 @@
       luOne_GronOR = 31
       write(filename,'(2a)')trim(Project),'.one'
       open(luOne_GronOR, file = filename, form = 'unformatted')
-      write(luOne_GronOR) title1,title2,nOrbtt,potNuc,nOrbTot,nTraBuf,0
+      if(noLabels) then
+        write(luOne_GronOR)
+     &       title1,title2,nOrbtt,potNuc,nOrbTot,nTraBuf,1
+      else
+        write(luOne_GronOR)
+     &       title1,title2,nOrbtt,potNuc,nOrbTot,nTraBuf,0
+      endif
       write(luOne_GronOR) (s(i),i=1,nOrbtt)
 *      write(luOne_GronOR) (fock(i),i=1,nOrbtt)
 *      write(luOne_GronOR) (fock(i)-kinInt(i),i=1,nOrbtt)
@@ -267,19 +278,30 @@
       end do
       nBuf = int(ltuvx/nTraBuf)
       lastBuf = ltuvx - nBuf * nTraBuf
+      nFil = int(nBuf/nTraRec)
+      lastFil = nBuf - nFil * nTraRec
+      if(lastFil.gt.0) nFil = nFil + 1
       write(*,*) 'Number of 2 el. integrals :',ltuvx
       write(*,*) 'Number of full buffers    :',nBuf
       write(*,*) 'Length of last buffer     :',lastBuf
+      write(*,*) 'Number of integral files  :',nFil
+      write(*,*) 'Length last integral file :',lastFil
 * some additional info on the 2-el ints is expected on luOne_GronOR
       write(luOne_GronOR) ltuvx     !  number of integrals
-      write(luOne_GronOR) 1         !  number of files with two-el. integrals
-      if (lastBuf .eq. 0) then
-        write(luOne_GronOR) nBuf 
-        write(luOne_GronOR) nBuf * nTraBuf
-      else
-        write(luOne_GronOR) nBuf + 1
-        write(luOne_GronOR) (nBuf + 1) * nTraBuf
-      end if
+      write(luOne_GronOR) nFil      !  number of files with two-el. integrals
+c      if (lastBuf .eq. 0) then
+c        write(luOne_GronOR) nBuf 
+c        write(luOne_GronOR) nBuf * nTraBuf
+c      else
+c        write(luOne_GronOR) nBuf + 1
+c        write(luOne_GronOR) (nBuf + 1) * nTraBuf
+c     end if
+      write(luOne_GronOR) (nTraRec,k=1,nFil-1),lastFil
+      write(luOne_Gronor) (nTraRec*nTraBuf,k=1,nFil-1),
+     &     ltuvx-(nFil-1)*nTraRec*nTraBuf
+      write(*,'(10i10)') (nTraRec,k=1,nFil-1),lastFil
+      write(*,'(10i10)') (nTraRec*nTraBuf,k=1,nFil-1),
+     &     ltuvx-(nFil-1)*nTraRec*nTraBuf
       close(luOne_Gronor)
 
 * set up a small array for generating the labels i, j, k and l label of the 2-el integrals
@@ -303,11 +325,17 @@
 * read the two-electron integrals in nBuf batches of nTraBuf length
       luTwo_GronOR = 32
       inquire( iolength = nrec ) traBuf(1)
-      RecordLength = ( 2 * ntraBuf + 2 ) * nrec
+      if(noLabels) then
+        RecordLength = ( ntraBuf + 2 ) * nrec
+      else
+        RecordLength = ( 2 * ntraBuf + 2 ) * nrec
+      endif
       if ( debug ) write(*,*)'nrec and Record length:',nrec,recordLength
-      write(filename,'(2a)')trim(Project),'_001.two'
+      iFil = 1
+      write(filename,'(2a,i3.3,a)') trim(Project),'_',iFil,'.two'
       open(luTwo_GronOR, file = filename, form = 'unformatted', 
-     &                   access = 'direct', recl = RecordLength)
+     &     access = 'direct', recl = RecordLength)
+      write(*,'(a,a)') ' Opened integral file ',trim(filename)
       iCounter = 0
       ii_start = 1
       jj_start = 1
@@ -315,6 +343,7 @@
       almostZero = 1e-6
       nonZeroInt = 0
       recordNumber = 0
+      nFilRec = 0
       do iBuf = 1, nBuf
         recordNumber = recordNumber + 1
         if (iBuf .eq. nBuf .and. lastBuf .eq. 0) ilast = 1      ! in the very special case that the number of ints is a multiple of nTraBuf
@@ -348,8 +377,25 @@
  59     ii_start = ii
         jj_start = jj 
         iCounter = 0
-        write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf),   ! Dump the 2-el. ints on the GronOR file
-     &                      (labels(n),n=1,4*nTraBuf),nTraBuf,ilast
+        if(noLabels) then
+          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the 2-el. ints on the GronOR file
+     &         nTraBuf,ilast
+        else
+          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the 2-el. ints on the GronOR file
+     &         (labels(n),n=1,4*nTraBuf),nTraBuf,ilast
+        endif
+        nFilRec = nFilRec + 1
+        if(nFilRec.eq.nTraRec) then
+          close(luTwo_GronOR, status='keep')
+          write(*,'(a,i10)') ' Closed integral file, records:',nFilRec
+          iFil= iFil + 1
+          write(filename,'(2a,i3.3,a)') trim(Project),'_',iFil,'.two'
+          open(luTwo_GronOR, file = filename, form = 'unformatted', 
+     &         access = 'direct', recl = RecordLength)
+          recordNumber = 0
+          write(*,'(a,a)') ' Opened integral file ',trim(filename)
+          nFilRec = 0
+        endif
       end do
 * one last read with the remaining lastBuf integrals
       if ( lastBuf .gt. 0 ) then
@@ -379,11 +425,18 @@
           end do
           jj_start = ii + 1
         end do
-        write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf),   ! Dump the last 2-el. ints on the GronOR file
-     &        (labels(n),n=1,4*nTraBuf),lastBuf,1
 
+        if(noLabels) then
+          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the last 2-el. ints on the GronOR file
+     &         lastBuf,1
+        else
+          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the last 2-el. ints on the GronOR file
+     &         (labels(n),n=1,4*nTraBuf),lastBuf,1
+        endif
+        nFilRec = nFilRec + 1
       end if
-      close(luTwo_GronOR)
+      close(luTwo_GronOR, status='keep')
+      write(*,'(a,i10)') ' Closed integral file, records:',nFilRec
       write(*,'(A,ES8.1,A,I8)')'Number of integrals smaller than ',
      &                                    almostZero, ' :  ',nonZeroInt
       percentage = 100*(float(nonZeroInt)/float(ltuvx))

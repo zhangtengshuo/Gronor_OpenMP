@@ -15,7 +15,7 @@
       integer :: nrecb
       integer :: i,ie,im,is,ke,km,ks,le,lm,ne,ig0,j,ni,ng,nz
       integer :: nm,ns,kl,k,ll,l,ls,nl,n,nn,igr,ngi,ngir
-      integer :: nmax,kbloc,mdum,itarget,noff
+      integer :: nmax,kbloc,mclab,itarget,noff
       integer :: numfiles,nrecfil,nrectot,irecs(4),myrecs,myrec,myfile
       integer :: nrfil,id,idfil,jdfil,nrec,ilast,ninttot
       integer (kind=8), allocatable :: igrrecs(:,:), ifil(:,:)
@@ -32,26 +32,29 @@
       if(me.eq.master) then
        rewind(lfnone)
 
+       mclab=0
        if(ione.eq.0) then
-        read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mdum
+         read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
        else
         read(lfnone,err=993) namint,nbas,intone,potnuc
-       endif
+      endif
+      if(mclab.eq.1) labels=1
 
        if(ipr.ge.1) then
         write(lfnout,601) namint
        call flush(lfnout)
   601   format(/,' Integral file title: ',t25,a,/,t25,a)
         write(lfnout,602) nbas,intone,potnuc
-  602   format(/,' Number of basis functions',t50,i16,                    &
-     &  /,' Number of one electron integrals',t50,i16,                    &
+  602   format(/,' Number of basis functions',t50,i16,
+     &  /,' Number of one electron integrals',t50,i16,
      &  //,' Nuclear potential energy',t57,f20.10)
        endif
        int1=int1+(nbas*(nbas+1))/2
        if(ipr.ge.1) then
-        write(lfnout,603) intone,int1
- 603    format(/,' Number of one electron integrals',t50,i16,             &
-     &  /,' Number of calculated one electron integrals ',t50,i16)
+        write(lfnout,603) intone,int1,mclab
+ 603    format(/,' Number of one electron integrals',t50,i16,
+     &  /,' Number of calculated one electron integrals ',t50,i16,
+     &  /,' Two electron integral labels option ',t50,i16)
        endif
        allocate(s(nbas,nbas))
        allocate(t(int1))
@@ -240,7 +243,11 @@
 
        inquire(iolength=nrecb4) b(1)
        nrecb = nrecb4
-       nrecl=(2*mbuf+2)*nrecb
+       if(mclab.ne.1) then
+         nrecl=(2*mbuf+2)*nrecb
+       else
+         nrecl=(mbuf+2)*nrecb
+       endif
        nrec=0
        
        allocate(g(mint2))
@@ -298,8 +305,13 @@
            endif
            call flush(lfnout)
            do id=idfil,jdfil
-             read(lfntwo,rec=id)
-     &            (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             if(mclab.eq.0) then
+               read(lfntwo,rec=id)
+     &              (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             else
+               read(lfntwo,rec=id)
+     &              (b(n),n=1,mbuf),jint,ilast
+             endif
              j=0
              do i=1,jint
                g(mint2+i)=b(i)

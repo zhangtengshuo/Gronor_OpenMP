@@ -54,7 +54,8 @@
         write(lfnout,603) intone,int1,mclab
  603    format(/,' Number of one electron integrals',t50,i16,
      &  /,' Number of calculated one electron integrals ',t50,i16,
-     &  /,' Two electron integral labels option ',t50,i16)
+     &  /,' Two electron integral labels option on file ',t50,i16,
+     &  /,' Two electron integral labels input option ',t50,i16)
        endif
        allocate(s(nbas,nbas))
        allocate(t(int1))

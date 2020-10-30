@@ -1649,11 +1649,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         write(lfnout,615) int1,rlab
         write(lfnout,616) int2,rint
  614    format(' Number of basisfunctions',t50,i16,
-     &       t80,' Size of index arrays',t115,f5.1,' GB')
+     &       t80,' Size of index arrays',t115,f8.3,' GB')
  615    format(' Number of one-electron integrals',t50,i16,
-     &       t80,' Size of integral labels',t115,f5.1,' GB')
+     &       t80,' Size of integral labels',t115,f8.3,' GB')
  616    format(' Number of two-electron integrals',t50,i16,
-     &       t80,' Size of two-electron integrals',t115,f5.1,' GB')
+     &       t80,' Size of two-electron integrals',t115,f8.3,' GB')
       endif
       
       call timer_stop(3)

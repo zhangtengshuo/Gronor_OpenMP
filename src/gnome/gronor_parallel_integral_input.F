@@ -51,7 +51,7 @@
        endif
        int1=int1+(nbas*(nbas+1))/2
        if(ipr.ge.1) then
-        write(lfnout,603) intone,int1,mclab
+        write(lfnout,603) intone,int1,mclab,labels
  603    format(/,' Number of one electron integrals',t50,i16,
      &  /,' Number of calculated one electron integrals ',t50,i16,
      &  /,' Two electron integral labels option on file ',t50,i16,

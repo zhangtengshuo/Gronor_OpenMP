@@ -1,6 +1,6 @@
       subroutine gronor_parallel_integral_input()
 
-      use mpi
+!      use mpi
       use inp
       use cidef
       use cidist
@@ -9,6 +9,7 @@
       use gnome_parameters
 
       implicit none
+#include 'mpif.h'
 
       integer (kind=4) :: ierr
       integer (kind=4) :: nrecb4

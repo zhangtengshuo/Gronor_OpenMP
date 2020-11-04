@@ -1,12 +1,13 @@
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
-      use mpi
+!      use mpi
       use cidist
       use gnome_integrals
       use gnome_parameters
       use gnome_data
 
       implicit none
+#include 'mpif.h'
 
       integer :: lfndbg
       real (kind=8) :: vecs1(nbasis,nbasis),vecs2(nbasis,nbasis)

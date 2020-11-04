@@ -59,18 +59,20 @@
       integer :: nmol,mstates,nbase,nspin
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
-      character (len=255) :: filsym,filciv,filvec,filint,filtst
+      character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet  ! fildet will replace filciv in the near future
       character (len=255) :: filf74,filf75,filone,filtwo,fildat,fillog
-      integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint
+      integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet       ! lfndet will replace lfnciv in the near future
       integer :: lfnpro,lfndbg,lfnf74,lfnf75,lfnone,lfntwo,lfndat
       integer :: lfnday,lfntst,lfnlog
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
 
+      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci
+
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
-      integer, allocatable :: inactm(:), idetm(:)
+      integer, allocatable :: inactm(:), idetm(:), spinm(:)       !  spinm = spin of each monomer state
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
@@ -78,6 +80,8 @@
       real (kind=8), allocatable :: hev(:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
+
+      logical :: vecdet                     ! only temporary, as long as we keep active the possibility to read from the civ files
 
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts

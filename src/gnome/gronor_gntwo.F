@@ -1,6 +1,6 @@
       subroutine gronor_gntwo(lfndbg)
 
-      use mpi
+!      use mpi
       use cidist
       use gnome_parameters
       use gnome_data
@@ -12,6 +12,7 @@
 #endif
 
       implicit none
+#include 'mpif.h'
 
       integer (kind=4) :: ierr
       integer :: lfndbg

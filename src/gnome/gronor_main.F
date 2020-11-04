@@ -20,7 +20,7 @@
 !     Need to specify the format and content of these files,
 !     as well as the third party codes that generate them
 
-      use mpi
+!      use mpi
       use inp
       use cidef
       use cidist
@@ -38,13 +38,13 @@ c      use cuda_functions
 #endif
       
       implicit none
+#include 'mpif.h'
 
       integer (kind=4) :: ierror,ierr,istat,icnt
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
-      integer,allocatable :: iocc_tmp(:)
       integer,allocatable :: jspinmol(:)
-      integer :: maxci, maxvec, maxnact, maxspinmul
-      integer :: mactb, maxcib, mdum, node
+      integer :: maxspinmul
+      integer :: mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
       character (len=255) :: string, filnam, card, item
 
@@ -134,7 +134,8 @@ c      use cuda_functions
        lfnout=16
        filsym=root(1:inp_strlen(root))//'.sym'
        lfnsym=7
-       lfnciv=9
+       lfndet=79          
+       lfnciv=9           ! lfnciv will disappear
        lfnvec=10
        filint=root(1:inp_strlen(root))//'.int'
        filone=root(1:inp_strlen(root))//'.one'
@@ -355,6 +356,7 @@ c      use cuda_functions
        
        if(inp_compare(.false.,'Spin',item)) then
          if(.not.inp_i(nspin)) call errquit()
+         nspin = nspin - 1                           ! Change multiplicity to 2 * M_S,max
          goto 2
        endif
 
@@ -561,6 +563,22 @@ c      use cuda_functions
         thresh=min(thresh,1.0d-05)
         thresh_CI=min(thresh_CI,1.0d-05)
       endif
+
+!     For now, we report on the algorithm for generating the MEBFs
+!     Furthermore, it need to ensured that reading the root_xxx.det
+!     files activates the new makebasestate. Reading civ files must
+!     be accompanied by going through the original makebasestate
+      if ( idevel .eq. 0 ) then
+        write(lfnout,'(/,A,/)') 
+     &     ' Original makebasestate is used to contruct the MEBFs'
+        vecdet = .false.
+      else
+        write(lfnout,'(/,2A,/)')
+     &       ' New makebasestate with general spin coupling is',
+     &       ' used to contruct the MEBFs'
+        vecdet = .true. 
+      end if 
+        
       
       call gronor_number_integrals(numone,numtwo)
       
@@ -631,134 +649,10 @@ c      use cuda_functions
  623  format(' Threshold for CI coefficients',t40,1pe12.3,/,
      &     ' Threshold for ISING',t40,1pe12.3,/)
 
-      write(lfnout,636) nspin
- 636  format(/,' Spin state',t40,i10,/)
+      write(lfnout,636) nspin+1
+ 636  format(/,' Spin state (2S+1)',t40,i10,/)
       
-      maxci=0
-      maxvec=0
-      maxnact=0
-      
-      if(ipr.ge.1) write(lfnout,604)
- 604  format(/,' Dimensions',//,
-     &     '  istate   ndetm   nactm  ninatm   nbasm   files',/)
-      
-      do i=1,mstates
-        write(filciv,200) root(1:inp_strlen(root)),i
- 200    format(a,'_',i3.3,'.civ')
-        len=inp_strlen(filciv)
-        open(unit=lfnciv,file=filciv(1:len),form='formatted',
-     &       status='old',err=998)
-        read(lfnciv,*) idetm(i),nactm(i),inactm(i)
-        close(unit=lfnciv)
-        write(filvec,201) root(1:inp_strlen(root)),i
- 201    format(a,'_',i3.3,'.vec')
-        len=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:len),form='formatted',
-     &       status='old',err=998)
-        read(lfnvec,*) nbasm(i)
-        close(unit=lfnvec)
-        maxci=max(maxci,idetm(i))
-        maxvec=max(maxvec,nbasm(i))
-        maxnact=max(maxnact,nactm(i))
-        if(ipr.ge.1)
-     &       write(lfnout,605) i,idetm(i),nactm(i),inactm(i),nbasm(i),
-     &       filciv(1:inp_strlen(filciv)),filvec(1:inp_strlen(filvec))
- 605    format(5i8,3x,a,', ',a)
-      enddo
-      
-       if(ipr.ge.1) write(lfnout,606) maxci,maxnact,maxvec
- 606   format(8x,'  ------  ------',8x,'  ------',/,
-     &  '    max:',i8,i8,8x,i8)
-
-       allocate(civm(maxci,mstates))
-       allocate(vecsm(maxvec,maxvec,mstates))
-       allocate(ioccm(maxnact,maxci,mstates))
-       
-       write(lfnout,613) (i,i=1,nbase)
- 613   format(/,' Molecular states included in this calculation',//,
-     &      ' State        : ',20i4)
-       write(lfnout,624)
- 624   format(/)
-       do i=1,nmol
-         write(lfnout,617) i,(ncombv(i,j),j=1,nbase)
- 617     format(' Molecule',i4,' : ',20i4)
-       enddo
-       
-       if(ipr.ge.3) write(lfnout,607)
- 607   format(//,'  istate   idetm           ci coefficient')
-       
-!     Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
-!     something completely different.
-       
-       allocate( iocc_tmp(maxnact) )
-       do i=1,mstates
-         iocc_tmp = 0
-         write(filciv,200) root(1:inp_strlen(root)),i
-         len=inp_strlen(filciv)
-         open(unit=lfnciv,file=filciv(1:len),form='formatted',
-     &        status='old',err=998)
-         read(lfnciv,*)
-         do j=1,idetm(i)
-           read(lfnciv,1002) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
- 1002      format(i7,f25.14,6x,20(i2,x))
-           if(ipr.ge.3) then
-             if(j.eq.1) then
-               write(lfnout,608) i,nn,civm(j,i),
-     &              (iocc_tmp(k),k=1,nactm(i))
- 608           format(/,2i8,f25.14,6x,20(i2.2,1x))
-             else
-               write(lfnout,609) nn,civm(j,i),
-     &              (iocc_tmp(k),k=1,nactm(i))
- 609           format(8x,i8,f25.14,6x,20(i2.2,1x))
-             endif
-           endif
-           do k=1,nactm(i)
-             if(iocc_tmp(k).eq.11) then
-               ioccm(k,j,i)=2
-             elseif(iocc_tmp(k).eq.1) then
-               ioccm(k,j,i)=-1
-             elseif(iocc_tmp(k).eq.10) then
-               ioccm(k,j,i)=1
-             elseif(iocc_tmp(k).eq.0) then
-               ioccm(k,j,i)=0
-             else
-               print *,(iocc_tmp(l),l=1,nactm(i))
-               stop 'weird occupation'
-             endif
-           enddo
-         enddo
-         close(unit=lfnciv)
-         
-         write(filvec,201) root(1:inp_strlen(root)),i
-         len=inp_strlen(filvec)
-         open(unit=lfnvec,file=filvec(1:len),form='formatted',
-     &        status='old',err=998)
-         read(lfnvec,*)
-         if(ipr.ge.4) then
-           write(lfnout,2002) filvec(1:len),nbasm(i)
- 2002      format(/,' Vector File ',a,//,
-     &          ' Number of basis functions ',i8,/)
-         endif
-         do j=1,nbasm(i)
-           read(lfnvec,1003) (vecsm(k,j,i),k=1,nbasm(i))
- 1003      format(4F18.14)
-           if(ipr.ge.4) then
-             write(lfnout,2003) j,(vecsm(k,j,i),k=1,nbasm(i))
- 2003        format(i5,5f25.14,/,(5x,5f25.14))
-           endif
-         enddo
-         close(unit=lfnvec)
-         flush(lfnout)
-       enddo
-       deallocate (iocc_tmp)
-       write(filsym,202) root(1:inp_strlen(root))
- 202   format(a,'.sym')
-       len=inp_strlen(filsym)
-       open(unit=lfnsym,file=filsym(1:len),form='formatted',
-     &      status='old',err=995)
-       
-       if(ipr.ge.3) write(lfnout,610) filsym(1:inp_strlen(filsym))
- 610   format(/,' System information read from ',a,/)
+      call read_vectors_and_determinants 
        
 !     Coen: remove SYMOL from the list of QC programs
 !     if (nqcp.eq.1) then
@@ -845,6 +739,8 @@ c      use cuda_functions
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
+
+
         endif
         
         call MPI_Bcast(idum,46,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
@@ -990,47 +886,55 @@ c      use cuda_functions
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
-      allocate(jspinmol(mstates))
-      do i=1,mstates
-         jspinmol(i)=0
-         do j=1,nactm(i)
-            if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
-     &           ioccm(j,1,i)
-         enddo
-      enddo
-      maxspinmul=0
-      do i=1,nmol
-         if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
-            maxspinmul=jspinmol(ncombv(i,1))
-         endif
-      enddo
-      maxspinmul=maxspinmul+1
-      maxcib=0
-      do i=1,nbase
-        maxcib1=1
-        do j=1,nmol
-          if(mod(jspinmol(ncombv(j,i))+1,2).eq.0) then
-            scounter=((jspinmol(ncombv(j,i))+1)/2)-1
-          else
-            scounter=jspinmol(ncombv(j,i))/2
-          endif
-          maxcib1=maxcib1*idetm(ncombv(j,i))
-          imul=jspinmol(ncombv(j,i))+1
-          do k=1,scounter
-            maxcib1=maxcib1*((imul)*(imul))/nactm(ncombv(i,1))
-            imul=imul-2
-          enddo
-        enddo
-        maxcib=max(maxcib,maxcib1)
-      enddo
-      maxcib=2*maxspinmul*maxcib
-      if (me.eq.master) then
-        write(lfnout,629) maxcib
- 629    format(/,' Recommended value of maxcib is ',i10)
-        flush(lfnout)
-      endif
-      if(inpcib.ne.0) maxcib=inpcib
-      
+*      allocate(jspinmol(mstates))
+*      do i=1,mstates
+*         jspinmol(i)=0
+*         do j=1,nactm(i)
+*            if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
+*     &           ioccm(j,1,i)
+*         enddo
+*      enddo
+*      maxspinmul=0
+*      do i=1,nmol
+*         if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
+*            maxspinmul=jspinmol(ncombv(i,1))
+*         endif
+*      enddo
+*      maxspinmul=maxspinmul+1
+*      maxcib=0
+*      do i=1,nbase
+*        maxcib1=1
+*        do j=1,nmol
+*          if(mod(jspinmol(ncombv(j,i))+1,2).eq.0) then
+*            scounter=((jspinmol(ncombv(j,i))+1)/2)-1
+*          else
+*            scounter=jspinmol(ncombv(j,i))/2
+*          endif
+*          maxcib1=maxcib1*idetm(ncombv(j,i))
+*          imul=jspinmol(ncombv(j,i))+1
+*          do k=1,scounter
+*            maxcib1=maxcib1*((imul)*(imul))/nactm(ncombv(i,1))
+*            imul=imul-2
+*          enddo
+*        enddo
+*        maxcib=max(maxcib,maxcib1)
+*      enddo
+*      maxcib=2*maxspinmul*maxcib
+*      if (me.eq.master) then
+*        write(lfnout,629) maxcib
+* 629    format(/,' Recommended value of maxcib is ',i10)
+*        flush(lfnout)
+*      endif
+*      if(inpcib.ne.0) maxcib=inpcib
+
+      if ( me .eq. master) then
+        call determine_nci
+        call determine_maxcib
+      end if
+      if ( np .gt. 1 ) then
+        call MPI_Bcast(maxcib,1,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+      end if 
       allocate(civb(maxcib,nbase))
       allocate(vecsb(nbasis,nbasis,nbase))
       allocate(ioccb(maxcib,nbase))
@@ -1394,18 +1298,14 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       do i=1,nbase
 
         if(idevel.eq.0) then
-        call gronor_old_makebasestate
+          call gronor_old_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
      &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
-      else
-        call gronor_makebasestate
-     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
-     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
-     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
-     &         nmol,ncombv(1,i),nspin,thresh_CI)
-      endif
+        else
+          call makebasestate(i)
+        endif
         
         if(me.eq.master.and.ipr.ge.3) then
           write(lfnout,612) i
@@ -1454,7 +1354,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
            
         enddo
       enddo
-
       l=numdet
       call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
      &     MPI_COMM_WORLD,ierr)
@@ -1524,7 +1423,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           enddo
           ndsum=ndsum+numd(np)
           ioff=ndxd(me+1)
-
           l=0
           do k=l3,l4
             i=iloop(k,1)
@@ -1891,10 +1789,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       call errquit()
  996  write(lfnout,986) filout(1:inp_strlen(filout))
       call errquit()
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit()
- 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call errquit()
+* 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
+*      call errquit()
+* 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
+*      call errquit()
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))
       call errquit()
  984  format('Unable to open debug file ',a)

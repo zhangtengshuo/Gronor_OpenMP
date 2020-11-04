@@ -59,18 +59,20 @@
       integer :: nmol,mstates,nbase,nspin
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
-      character (len=255) :: filsym,filciv,filvec,filint,filtst
-      character (len=255) :: filf74,filf75,filone,filtwo,fildat
-      integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint
+      character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet  ! fildet will replace filciv in the near future
+      character (len=255) :: filf74,filf75,filone,filtwo,fildat,fillog
+      integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet       ! lfndet will replace lfnciv in the near future
       integer :: lfnpro,lfndbg,lfnf74,lfnf75,lfnone,lfntwo,lfndat
-      integer :: lfnday,lfntst
+      integer :: lfnday,lfntst,lfnlog
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
 
+      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci
+
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
-      integer, allocatable :: inactm(:), idetm(:)
+      integer, allocatable :: inactm(:), idetm(:), spinm(:)       !  spinm = spin of each monomer state
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
@@ -78,6 +80,8 @@
       real (kind=8), allocatable :: hev(:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
+
+      logical :: vecdet                     ! only temporary, as long as we keep active the possibility to read from the civ files
 
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
@@ -254,7 +258,8 @@
       
       use cusolverDN
       use cudafor
-      
+
+#ifdef CUSOLVERJ
       type gesvdjInfo
       type(c_ptr) :: svInfo
       end type gesvdjInfo
@@ -449,10 +454,13 @@
         type(syevjInfo)       :: info
         end function cusolverDnDsyevj
       end interface
+#endif
       
       type(cusolverDnHandle) :: cusolver_handle
+#ifdef CUSOLVERJ
       type(gesvdjInfo)       :: gesvdj_params
       type(syevjInfo)        :: syevj_params
+#endif
       integer (kind=4)       :: cusolver_status
       integer (kind=4)       :: worksize,worksize2,ndim,mdim
       real (kind=8)          :: tol, residual
@@ -471,10 +479,10 @@
 #ifdef MKL
       module mkl_solver
       
-      integer (kind=4)    :: worksize,worksize2,worksizei,ndim,mdim
-      real(8),allocatable :: rwork(:)
-      real(8),allocatable :: workspace_d(:)
-      integer (kind=4), allocatable :: workspace_i(:)
+      integer (kind=8)    :: worksize,worksize2,worksizei,ndim,mdim
+      real (kind=8),allocatable :: rwork(:)
+      real (kind=8),allocatable :: workspace_d(:)
+      integer (kind=8), allocatable :: workspace_i(:)
       
       end module mkl_solver
 #endif

@@ -1,12 +1,13 @@
       subroutine gronor_master()
 
-      use mpi
+!      use mpi
       use cidef
       use cidist
       use gnome_data
       use gnome_parameters
 
       implicit none
+#include 'mpif.h'
 
       integer :: ibase,jbase,nidet,njdet,mdet
       integer :: l2,i,j,k,ij,n,ndone,nleft,nrb
@@ -678,7 +679,7 @@
      &     dble(mgr)*tsum/dble(np-1)
       write(lfnout,623) mdet,(nsingt(i),i=1,4),tsum,
      &     dble(mgr)*tsum/dble(np-1)
- 623  format(/,' Total',25x,2i14,2i12,i14,35x,2f12.1)
+ 623  format(/,' Total',25x,2i14,2i12,i14,55x,2f12.1)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

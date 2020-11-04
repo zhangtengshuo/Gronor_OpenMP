@@ -1,6 +1,6 @@
       subroutine gronor_environment()
  
-      use mpi
+!      use mpi
       use cidist
 
 #ifdef _OPENACC
@@ -12,6 +12,7 @@
 #endif
 
       implicit none
+#include 'mpif.h'
 
       integer :: i,j,k,node
       integer (kind=4) :: len, ierr

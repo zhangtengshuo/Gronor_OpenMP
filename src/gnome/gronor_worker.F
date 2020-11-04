@@ -1,6 +1,6 @@
       subroutine gronor_worker()
 
-      use mpi
+!      use mpi
       use cidef
       use cidist
       use gnome_integrals
@@ -16,6 +16,7 @@ c      use cuda_functions
       use mkl_solver
 #endif
       implicit none
+#include 'mpif.h'
 
       real(kind=8), external :: timer_wall_total, timer_wall
       
@@ -143,8 +144,10 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         mdim=mbasel
         worksize=0
         worksize2=0
-        
+
+#ifdef CUSOLVERJ
         if(isolver.eq.1) then
+#endif
 !$acc data copyin(w,ta) create(dev_info_d)
        
 !$acc host_data use_device(ta)
@@ -156,6 +159,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
 !$acc end data   
+#ifdef CUSOLVERJ
         elseif(isolver.eq.2) then
           
           ndim=nelecs
@@ -195,8 +199,11 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
 
 !$acc end data
         endif
+#endif
 
+#ifdef CUSOLVERJ
         if(jsolver.eq.1) then
+#endif
 !$acc data copyin(w,ta) create(dev_info_d)
        
 !$acc host_data use_device(ta,w)
@@ -211,6 +218,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
      &         cusolver_status
 
 !$acc end data
+#ifdef CUSOLVERJ         
         elseif(jsolver.eq.2) then
 
 ! Jacobi EVD
@@ -254,6 +262,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
 !$acc end data
           
         endif
+#endif
       
         worksize=max(worksize,worksize2)
         
@@ -281,7 +290,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           call dsyevd('N','U',ndim,a,ndim,w,workspace_d,worksize2,
      &         workspace_i,worksizei,ierr)
           worksize2=int(workspace_d(1))
-          worksizei=workspace_i(1)
+          worksizei=int(workspace_i(1))
           deallocate(workspace_d)
           deallocate(workspace_i)
         endif

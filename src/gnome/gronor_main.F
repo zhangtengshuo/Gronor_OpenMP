@@ -20,7 +20,7 @@
 !     Need to specify the format and content of these files,
 !     as well as the third party codes that generate them
 
-      use mpi
+!      use mpi
       use inp
       use cidef
       use cidist
@@ -38,13 +38,13 @@ c      use cuda_functions
 #endif
       
       implicit none
+#include 'mpif.h'
 
       integer (kind=4) :: ierror,ierr,istat,icnt
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
-      integer,allocatable :: iocc_tmp(:)
       integer,allocatable :: jspinmol(:)
-      integer :: maxci, maxvec, maxnact, maxspinmul
-      integer :: mactb, maxcib, mdum, node
+      integer :: maxspinmul
+      integer :: mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
       character (len=255) :: string, filnam, card, item
 
@@ -73,6 +73,8 @@ c      use cuda_functions
       integer :: ibase, jbase, ib, jb, l2, lnxt, lcur
       integer :: l3, l4, ndsum, ioff
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
+
+      integer :: iaslvr,jaslvr,inslvr,jnslvr
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -131,7 +133,8 @@ c      use cuda_functions
        lfnout=16
        filsym=root(1:inp_strlen(root))//'.sym'
        lfnsym=7
-       lfnciv=9
+       lfndet=79          
+       lfnciv=9           ! lfnciv will disappear
        lfnvec=10
        filint=root(1:inp_strlen(root))//'.int'
        filone=root(1:inp_strlen(root))//'.one'
@@ -147,6 +150,8 @@ c      use cuda_functions
        lfnday=18
        filtst=string(1:inp_strlen(string))//'.tst'
        lfntst=19
+       fillog=root(1:inp_strlen(root))//'.log'
+       lfnlog=20
        lfnf74=74
        filf74=string(1:inp_strlen(string))//'.f74'
        lfnf75=75
@@ -261,16 +266,10 @@ c      use cuda_functions
        itest=0
        idevel=0
        ifault=1
-#ifdef CUSOLVER
-       isolver=0
-#else
-       isolver=1
-#endif
-#ifdef MKL
-       jsolver=0
-#else
-       jsolver=1
-#endif
+
+       isolver=-1
+       jsolver=-1
+
        intadd=0
        naccel=-1
        ncols=7
@@ -279,6 +278,7 @@ c      use cuda_functions
        ixpert=0
        iswsvj=15
        iswevj=15
+       
 #ifdef _OPENACC
        naccel=0
 #endif
@@ -346,6 +346,7 @@ c      use cuda_functions
        
        if(inp_compare(.false.,'Spin',item)) then
          if(.not.inp_i(nspin)) call errquit()
+         nspin = nspin - 1                           ! Change multiplicity to 2 * M_S,max
          goto 2
        endif
 
@@ -405,12 +406,22 @@ c      use cuda_functions
          goto 2
        endif
        
-       if(inp_compare(.false.,'Solver',item)) then
-         if(.not.inp_i(isolver)) then
-           isolver=1
-           jsolver=1
-         elseif(.not.inp_i(jsolver)) then
-           jsolver=1
+       if(inp_compare(.false.,'Solver',item).or.
+     &      inp_compare(.false.,'Solvers',item)) then
+         if(.not.inp_i(iaslvr)) then
+           iaslvr=-1
+           jaslvr=-1
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(jaslvr)) then
+           jaslvr=-1
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(inslvr)) then
+           inslvr=-1
+           jnslvr=-1
+         elseif(.not.inp_i(jnslvr)) then
+           jnslvr=-1
          endif
          goto 2
        endif
@@ -537,6 +548,22 @@ c      use cuda_functions
         thresh=min(thresh,1.0d-05)
         thresh_CI=min(thresh_CI,1.0d-05)
       endif
+
+!     For now, we report on the algorithm for generating the MEBFs
+!     Furthermore, it need to ensured that reading the root_xxx.det
+!     files activates the new makebasestate. Reading civ files must
+!     be accompanied by going through the original makebasestate
+      if ( idevel .eq. 0 ) then
+        write(lfnout,'(/,A,/)') 
+     &     ' Original makebasestate is used to contruct the MEBFs'
+        vecdet = .false.
+      else
+        write(lfnout,'(/,2A,/)')
+     &       ' New makebasestate with general spin coupling is',
+     &       ' used to contruct the MEBFs'
+        vecdet = .true. 
+      end if 
+        
       
       call gronor_number_integrals(numone,numtwo)
       
@@ -583,9 +610,6 @@ c      use cuda_functions
       
       close(unit=lfninp)
       
-      write(lfnout,622) isolver,jsolver,numomp
- 622  format(' Solver options',t40,2i5,t60,
-     &     'Number of OpenMP threads per MPI (OMP)',t100,i10)
       if(ifault.eq.0) then
         write(lfnout,627) nummps
  627    format(' No fault tolerance',t60,'
@@ -596,147 +620,24 @@ c      use cuda_functions
      &       'Over-subscription of accelerators (MPS)',t100,i10)
       endif
       write(lfnout,626) itest,mgr,idevel,nmol,nbatch,mstates,
-     &     nbase
+     &     lbatch,nbase
  626  format(' Test option',t40,i10,t60,
      &     'Integrals divided over tasks number of ranks',t100,i10,/,
      &     ' Development option',t40,i10,t60,
      &     'Number of molecules (nmol)',t100,i10,/,
      &     ' Batch size',t40,i10,t60,
-     &     'Number of molecular states (mstates)',t100,i10,/,t60,
+     &     'Number of molecular states (mstates)',t100,i10,/,
+     &     ' Batched option',t40,i10,t60,
      &     'Number of many-electron states (nbase)',t100,i10,/)
 
       write(lfnout,623) thresh_CI, thresh_SIN
  623  format(' Threshold for CI coefficients',t40,1pe12.3,/,
      &     ' Threshold for ISING',t40,1pe12.3,/)
 
-      write(lfnout,636) nspin
- 636  format(/,' Spin state',t40,i10,/)
+      write(lfnout,636) nspin+1
+ 636  format(/,' Spin state (2S+1)',t40,i10,/)
       
-      maxci=0
-      maxvec=0
-      maxnact=0
-      
-      if(ipr.ge.1) write(lfnout,604)
- 604  format(/,' Dimensions',//,
-     &     '  istate   ndetm   nactm  ninatm   nbasm   files',/)
-      
-      do i=1,mstates
-        write(filciv,200) root(1:inp_strlen(root)),i
- 200    format(a,'_',i3.3,'.civ')
-        len=inp_strlen(filciv)
-        open(unit=lfnciv,file=filciv(1:len),form='formatted',
-     &       status='old',err=998)
-        read(lfnciv,*) idetm(i),nactm(i),inactm(i)
-        close(unit=lfnciv)
-        write(filvec,201) root(1:inp_strlen(root)),i
- 201    format(a,'_',i3.3,'.vec')
-        len=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:len),form='formatted',
-     &       status='old',err=998)
-        read(lfnvec,*) nbasm(i)
-        close(unit=lfnvec)
-        maxci=max(maxci,idetm(i))
-        maxvec=max(maxvec,nbasm(i))
-        maxnact=max(maxnact,nactm(i))
-        if(ipr.ge.1)
-     &       write(lfnout,605) i,idetm(i),nactm(i),inactm(i),nbasm(i),
-     &       filciv(1:inp_strlen(filciv)),filvec(1:inp_strlen(filvec))
- 605    format(5i8,3x,a,', ',a)
-      enddo
-      
-       if(ipr.ge.1) write(lfnout,606) maxci,maxnact,maxvec
- 606   format(8x,'  ------  ------',8x,'  ------',/,
-     &  '    max:',i8,i8,8x,i8)
-
-       allocate(civm(maxci,mstates))
-       allocate(vecsm(maxvec,maxvec,mstates))
-       allocate(ioccm(maxnact,maxci,mstates))
-       
-       write(lfnout,613) (i,i=1,nbase)
- 613   format(/,' Molecular states included in this calculation',//,
-     &      ' State        : ',20i4)
-       write(lfnout,624)
- 624   format(/)
-       do i=1,nmol
-         write(lfnout,617) i,(ncombv(i,j),j=1,nbase)
- 617     format(' Molecule',i4,' : ',20i4)
-       enddo
-       
-       if(ipr.ge.3) write(lfnout,607)
- 607   format(//,'  istate   idetm           ci coefficient')
-       
-!     Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
-!     something completely different.
-       
-       allocate( iocc_tmp(maxnact) )
-       do i=1,mstates
-         iocc_tmp = 0
-         write(filciv,200) root(1:inp_strlen(root)),i
-         len=inp_strlen(filciv)
-         open(unit=lfnciv,file=filciv(1:len),form='formatted',
-     &        status='old',err=998)
-         read(lfnciv,*)
-         do j=1,idetm(i)
-           read(lfnciv,1002) nn,civm(j,i),(iocc_tmp(k),k=1,nactm(i))
- 1002      format(i7,f25.14,6x,20(i2,x))
-           if(ipr.ge.3) then
-             if(j.eq.1) then
-               write(lfnout,608) i,nn,civm(j,i),
-     &              (iocc_tmp(k),k=1,nactm(i))
- 608           format(/,2i8,f25.14,6x,20(i2.2,1x))
-             else
-               write(lfnout,609) nn,civm(j,i),
-     &              (iocc_tmp(k),k=1,nactm(i))
- 609           format(8x,i8,f25.14,6x,20(i2.2,1x))
-             endif
-           endif
-           do k=1,nactm(i)
-             if(iocc_tmp(k).eq.11) then
-               ioccm(k,j,i)=2
-             elseif(iocc_tmp(k).eq.1) then
-               ioccm(k,j,i)=-1
-             elseif(iocc_tmp(k).eq.10) then
-               ioccm(k,j,i)=1
-             elseif(iocc_tmp(k).eq.0) then
-               ioccm(k,j,i)=0
-             else
-               print *,(iocc_tmp(l),l=1,nactm(i))
-               stop 'weird occupation'
-             endif
-           enddo
-         enddo
-         close(unit=lfnciv)
-         
-         write(filvec,201) root(1:inp_strlen(root)),i
-         len=inp_strlen(filvec)
-         open(unit=lfnvec,file=filvec(1:len),form='formatted',
-     &        status='old',err=998)
-         read(lfnvec,*)
-         if(ipr.ge.4) then
-           write(lfnout,2002) filvec(1:len),nbasm(i)
- 2002      format(/,' Vector File ',a,//,
-     &          ' Number of basis functions ',i8,/)
-         endif
-         do j=1,nbasm(i)
-           read(lfnvec,1003) (vecsm(k,j,i),k=1,nbasm(i))
- 1003      format(4F18.14)
-           if(ipr.ge.4) then
-             write(lfnout,2003) j,(vecsm(k,j,i),k=1,nbasm(i))
- 2003        format(i5,5f25.14,/,(5x,5f25.14))
-           endif
-         enddo
-         close(unit=lfnvec)
-         flush(lfnout)
-       enddo
-       deallocate (iocc_tmp)
-       write(filsym,202) root(1:inp_strlen(root))
- 202   format(a,'.sym')
-       len=inp_strlen(filsym)
-       open(unit=lfnsym,file=filsym(1:len),form='formatted',
-     &      status='old',err=995)
-       
-       if(ipr.ge.3) write(lfnout,610) filsym(1:inp_strlen(filsym))
- 610   format(/,' System information read from ',a,/)
+      call read_vectors_and_determinants 
        
 !     Coen: remove SYMOL from the list of QC programs
 !     if (nqcp.eq.1) then
@@ -760,6 +661,12 @@ c      use cuda_functions
         endif
       endif
 
+      if(numdev.eq.0) then
+        if(inslvr.lt.0) inslvr=iaslvr
+        if(jnslvr.lt.0) jnslvr=jaslvr
+      endif
+
+         
 !     Distribute input data to all processes
 
       if(np.gt.1) then
@@ -801,23 +708,27 @@ c      use cuda_functions
           idum(33)=nummps
           idum(34)=numomp
           idum(35)=itim
-          idum(36)=isolver
-          idum(37)=jsolver
-          idum(38)=ifault
-          idum(39)=idevel
-          idum(40)=iswsvj
-          idum(41)=iswevj
-          idum(42)=lbatch
-          idum(43)=nspin
+          idum(36)=iaslvr
+          idum(37)=jaslvr
+          idum(38)=inslvr
+          idum(39)=jnslvr
+          idum(40)=ifault
+          idum(41)=idevel
+          idum(42)=iswsvj
+          idum(43)=iswevj
+          idum(44)=lbatch
+          idum(45)=nspin
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
+
+
         endif
         
-        call MPI_Bcast(idum,43,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,45,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -855,14 +766,16 @@ c      use cuda_functions
         nummps =idum(33)
         numomp =idum(34)
         itim   =idum(35)
-        isolver=idum(36)
-        jsolver=idum(37)
-        ifault =idum(38)
-        idevel =idum(39)
-        iswsvj =idum(40)
-        iswevj =idum(41)
-        lbatch =idum(42)
-        nspin  =idum(43)
+        iaslvr =idum(36)
+        jaslvr =idum(37)
+        inslvr =idum(38)
+        jnslvr =idum(39)
+        ifault =idum(40)
+        idevel =idum(41)
+        iswsvj =idum(42)
+        iswevj =idum(43)
+        lbatch =idum(44)
+        nspin  =idum(45)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -957,47 +870,55 @@ c      use cuda_functions
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
-      allocate(jspinmol(mstates))
-      do i=1,mstates
-         jspinmol(i)=0
-         do j=1,nactm(i)
-            if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
-     &           ioccm(j,1,i)
-         enddo
-      enddo
-      maxspinmul=0
-      do i=1,nmol
-         if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
-            maxspinmul=jspinmol(ncombv(i,1))
-         endif
-      enddo
-      maxspinmul=maxspinmul+1
-      maxcib=0
-      do i=1,nbase
-        maxcib1=1
-        do j=1,nmol
-          if(mod(jspinmol(ncombv(j,i))+1,2).eq.0) then
-            scounter=((jspinmol(ncombv(j,i))+1)/2)-1
-          else
-            scounter=jspinmol(ncombv(j,i))/2
-          endif
-          maxcib1=maxcib1*idetm(ncombv(j,i))
-          imul=jspinmol(ncombv(j,i))+1
-          do k=1,scounter
-            maxcib1=maxcib1*((imul)*(imul))/nactm(ncombv(i,1))
-            imul=imul-2
-          enddo
-        enddo
-        maxcib=max(maxcib,maxcib1)
-      enddo
-      maxcib=2*maxspinmul*maxcib
-      if (me.eq.master) then
-        write(lfnout,629) maxcib
- 629    format(/,' Recommended value of maxcib is ',i10)
-        flush(lfnout)
-      endif
-      if(inpcib.ne.0) maxcib=inpcib
-      
+*      allocate(jspinmol(mstates))
+*      do i=1,mstates
+*         jspinmol(i)=0
+*         do j=1,nactm(i)
+*            if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
+*     &           ioccm(j,1,i)
+*         enddo
+*      enddo
+*      maxspinmul=0
+*      do i=1,nmol
+*         if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
+*            maxspinmul=jspinmol(ncombv(i,1))
+*         endif
+*      enddo
+*      maxspinmul=maxspinmul+1
+*      maxcib=0
+*      do i=1,nbase
+*        maxcib1=1
+*        do j=1,nmol
+*          if(mod(jspinmol(ncombv(j,i))+1,2).eq.0) then
+*            scounter=((jspinmol(ncombv(j,i))+1)/2)-1
+*          else
+*            scounter=jspinmol(ncombv(j,i))/2
+*          endif
+*          maxcib1=maxcib1*idetm(ncombv(j,i))
+*          imul=jspinmol(ncombv(j,i))+1
+*          do k=1,scounter
+*            maxcib1=maxcib1*((imul)*(imul))/nactm(ncombv(i,1))
+*            imul=imul-2
+*          enddo
+*        enddo
+*        maxcib=max(maxcib,maxcib1)
+*      enddo
+*      maxcib=2*maxspinmul*maxcib
+*      if (me.eq.master) then
+*        write(lfnout,629) maxcib
+* 629    format(/,' Recommended value of maxcib is ',i10)
+*        flush(lfnout)
+*      endif
+*      if(inpcib.ne.0) maxcib=inpcib
+
+      if ( me .eq. master) then
+        call determine_nci
+        call determine_maxcib
+      end if
+      if ( np .gt. 1 ) then
+        call MPI_Bcast(maxcib,1,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+      end if 
       allocate(civb(maxcib,nbase))
       allocate(vecsb(nbasis,nbasis,nbase))
       allocate(ioccb(maxcib,nbase))
@@ -1282,37 +1203,74 @@ c      use cuda_functions
 !     only accelerated ranks need to set device
 
 #ifdef _OPENACC
-      if(numdev.gt.1) then
-       mydev=mod(me,numdev)
-       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-       cpfre=c_loc(memfre)
-       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-       memavail=memfre
-      endif
+        if(numdev.gt.1) then
+          mydev=mod(me,numdev)
+          call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+          cpfre=c_loc(memfre)
+          cptot=c_loc(memtot)
+c     istat=cudaMemGetInfo(cpfre,cptot)
+          memavail=memfre
+        endif
 #endif
-      
+        
 !     only accelerated ranks need to define cusolver handles
         
 #ifdef CUSOLVER
-      cusolver_status = cusolverDnCreate(cusolver_handle)
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &   print *, me,'cusolver_handle creation failed'
+        cusolver_status = cusolverDnCreate(cusolver_handle)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+     &       print *, me,'cusolver_handle creation failed'
 
-!      if(numdev.gt.1) then
-!       cpfre=c_loc(memfre)
-!       cptot=c_loc(memtot)
-!       istat=cudaMemGetInfo(cpfre,cptot)
-!      endif
+!     if solvers were not specified use cusolver QR solvers
+        isolver=iaslvr
+        jsolver=jaslvr
+        if(isolver.lt.0) isolver=1
+        if(jsolver.lt.0) jsolver=1
+        if(iaslvr.lt.0) iaslvr=1
+        if(jaslvr.lt.0) jaslvr=1
+
+!     if(numdev.gt.1) then
+!     cpfre=c_loc(memfre)
+!     cptot=c_loc(memtot)
+!     istat=cudaMemGetInfo(cpfre,cptot)
+!     endif
 
 #endif
-      else
-!     only non-accelerated ranks will use OpenMP threads
 
         
+      else
+        
+!     only non-accelerated ranks will use OpenMP threads
+
+#ifdef MKL
+
+!     if solvers were not specified use MKL solver for svd only
+        
+        isolver=inslvr
+        jsolver=jnslvr
+        if(isolver.lt.0) isolver=1
+        if(jsolver.lt.0) jsolver=0
+        if(inslvr.lt.0) inslvr=1
+        if(jnslvr.lt.0) jnslvr=0
+
+#endif
+        
       endif
+
+!     if solvers were not specified use the default ones
+        
+      if(isolver.lt.0) isolver=0
+      if(jsolver.lt.0) jsolver=0
+      if(iaslvr.lt.0) iaslvr=0
+      if(jaslvr.lt.0) jaslvr=0
+      if(inslvr.lt.0) inslvr=0
+      if(jnslvr.lt.0) jnslvr=0
+      
       
       if(me.eq.master) then
+        write(lfnout,622) iaslvr,jaslvr,inslvr,jnslvr,numomp
+ 622    format(//,' Solver options accelerated',t40,2i5,/,
+     &       ' Solver options non-accelerated',t40,2i5,t60,
+     &       'Number of OpenMP threads per MPI (OMP)',t100,i10)
         write(lfnout,611) nbase,nmol,nbasis
  611    format(//,' Dimensions',//,
      &       ' Number of states (nbase)',t40,i10,t60,
@@ -1324,18 +1282,14 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
       do i=1,nbase
 
         if(idevel.eq.0) then
-        call gronor_old_makebasestate
+          call gronor_old_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
      &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
-      else
-        call gronor_makebasestate
-     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
-     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
-     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
-     &         nmol,ncombv(1,i),nspin,thresh_CI)
-      endif
+        else
+          call makebasestate(i)
+        endif
         
         if(me.eq.master.and.ipr.ge.3) then
           write(lfnout,612) i
@@ -1384,7 +1338,6 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
            
         enddo
       enddo
-
       l=numdet
       call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
      &     MPI_COMM_WORLD,ierr)
@@ -1454,7 +1407,6 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
           enddo
           ndsum=ndsum+numd(np)
           ioff=ndxd(me+1)
-
           l=0
           do k=l3,l4
             i=iloop(k,1)
@@ -1723,11 +1675,26 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
           call print_results(hcorr,sbase,nbase)
           deallocate( hcorr )
         endif
+        open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
+     &       form='formatted',status='unknown',access='append',err=993)
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),np,
+     &       isolver,jsolver,nbatch,lbatch,nmol,nbase,mstates,
+     &       thresh,mgr,numacc,numnon,
+     &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
+ 801    format(a8,1x,a8,f12.3,i8,2i3,i5,i2,3i5,e12.3,i8,2i6,1x,a,1x,a)
+        write(lfnlog,803) (hbase(i,i),i=1,nbase)
+ 803    format(5x,8f20.10)
+        write(lfnlog,804)
+ 804    format(' ')
+        close(unit=lfnlog,status='keep')
+        call timer_start(99)
       endif
 
       deallocate(t,v,ndxtv)
       deallocate(lab,ig,g)
-      deallocate(jspinmol)
+*      deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
@@ -1783,16 +1750,18 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       return
+ 993  write(lfnout,984) fillog(1:inp_strlen(fillog))
+      call errquit()
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
       call errquit()
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
       call errquit()
  996  write(lfnout,986) filout(1:inp_strlen(filout))
       call errquit()
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit()
- 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call errquit()
+* 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
+*      call errquit()
+* 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
+*      call errquit()
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))
       call errquit()
  984  format('Unable to open debug file ',a)

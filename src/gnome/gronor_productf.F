@@ -261,3 +261,160 @@
 
       return
       end
+      integer function setsign_mebf(iocc,nact1,nact2,nact)
+
+!     Sets the sign the MEBF
+      
+      implicit none
+      
+      integer :: nact1,nact2,nact
+      integer :: iocc1(nact1),iocc2(nact2)
+      integer :: iocc1aux(nact1),iocc2aux(nact2)
+      integer :: iocc(nact),ioccaux(nact)
+      integer :: i,j,nperm
+      
+      setsign_mebf=0
+      j=0
+      nperm=0
+      do i=1,nact1
+         j=j+1
+         iocc1(i)=iocc(j)
+      enddo
+      do i=1,nact2
+         j=j+1
+         iocc2(i)=iocc(j)
+      enddo      
+      j=0
+      do i=1,nact1
+         if(iocc1(i).eq.2)then
+            j=j+1
+            iocc1aux(j)=1
+            j=j+1
+            iocc1aux(j)=-1
+         elseif(iocc1(i).eq.1)then
+            j=j+1
+            iocc1aux(j)=1
+         elseif(iocc1(i).eq.-1)then
+            j=j+1
+            iocc1aux(j)=-1
+         endif
+      enddo
+      j=0
+      do i=1,nact2
+         if(iocc2(i).eq.2)then
+            j=j+1
+            iocc2aux(j)=1
+            j=j+1
+            iocc2aux(j)=-1
+         elseif(iocc2(i).eq.1)then
+            j=j+1
+            iocc2aux(j)=1
+         elseif(iocc2(i).eq.-1)then
+            j=j+1
+            iocc2aux(j)=-1
+         endif
+      enddo
+!     order iocc1 and iocc2 separately
+      call bubble_sort(iocc1aux,nact1,nperm)
+      call bubble_sort(iocc2aux,nact2,nperm)                        
+      j=0
+      do i=1,nact1
+         j=j+1
+         ioccaux(j)=iocc1aux(i)
+      enddo
+      do i=1,nact2
+         j=j+1
+         ioccaux(j)=iocc2aux(i)
+      enddo     
+      call bubble_sort(ioccaux,nact,nperm)
+      if(mod(nperm,2).eq.1)then
+         setsign_mebf=-1
+      else
+         setsign_mebf=1
+      endif
+      return
+      end
+
+
+      subroutine sminop(ciin,ioccin,ciout,ioccout,idetin,nact,idetout,
+     & maxn)
+      implicit none
+      integer :: idetin,nact,idetout,maxn
+      real (kind=8) :: ciin(idetin)
+      integer :: ioccin(maxn,idetin)
+      real (kind=8) :: ciout(*)
+      integer :: ioccout(maxn,*)
+      integer, allocatable :: iopen(:),nocc(:)
+      logical :: onew,ocomparocc
+      integer :: k,i,nopen,j,jocc
+      integer :: ioccb(32),ioccb2(32),iocca(32),na,nb,ib,ia
+      integer :: nperm, jperm, ifind, index, ipar
+
+      idetout=0
+      allocate (iopen(nact),nocc(nact))
+
+      do i=1,idetin
+       nopen=0
+       na=0
+       nb=0
+       ib=0
+       ia=0
+       do j=1,nact
+        if(ioccin(j,i).eq.2) then
+         na=na+1
+         nb=nb+1
+         ia=ia+1
+         iocca(ia)=j
+         ib=ib+1
+         ioccb(ib)=j
+        else if(ioccin(j,i).eq.1) then
+         nopen=nopen+1
+         iopen(nopen)=j
+         na=na+1
+         ia=ia+1
+         iocca(ia)=j
+        else if(ioccin(j,i).eq.-1) then
+         nb=nb+1
+         ib=ib+1
+         ioccb(ib)=j
+        endif
+       enddo
+       do j=1,nopen
+        do k=1,nact
+         nocc(k)=ioccin(k,i)
+        enddo
+        do k=1,nb
+         ioccb2(k+1)=ioccb(k)
+        enddo
+        nocc(iopen(j))=-1
+        index=ifind(iopen(j),iocca,na)
+        nperm=index-1+na-1
+        ioccb2(1)=iopen(j)
+        call bubble_sort(ioccb2,nb+1,jperm)
+        nperm=nperm+jperm
+        ipar=(-1)**nperm
+         idetout=idetout+1
+         ciout(idetout)=ipar*ciin(i)
+         do k=1,nact
+          ioccout(k,idetout)=nocc(k)
+         enddo
+       enddo
+      enddo
+
+      deallocate(iopen,nocc)
+
+      return
+      end
+
+      logical function ocomparocc(ia,ib,nact)
+      implicit none
+      integer :: ia(nact),ib(nact),nact
+      integer :: i
+      ocomparocc=.true.
+
+      do i=1,nact
+       if(ia(i).ne.ib(i))ocomparocc=.false.
+      enddo
+
+      return
+      end

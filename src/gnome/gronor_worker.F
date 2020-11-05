@@ -1,6 +1,6 @@
       subroutine gronor_worker()
 
-!      use mpi
+      use mpi
       use cidef
       use cidist
       use gnome_integrals
@@ -16,7 +16,6 @@ c      use cuda_functions
       use mkl_solver
 #endif
       implicit none
-#include 'mpif.h'
 
       real(kind=8), external :: timer_wall_total, timer_wall
       

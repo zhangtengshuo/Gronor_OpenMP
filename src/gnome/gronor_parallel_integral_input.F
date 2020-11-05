@@ -1,6 +1,6 @@
       subroutine gronor_parallel_integral_input()
 
-!      use mpi
+      use mpi
       use inp
       use cidef
       use cidist
@@ -9,7 +9,6 @@
       use gnome_parameters
 
       implicit none
-#include 'mpif.h'
 
       integer (kind=4) :: ierr
       integer (kind=4) :: nrecb4
@@ -52,7 +51,7 @@
        endif
        int1=int1+(nbas*(nbas+1))/2
        if(ipr.ge.1) then
-        write(lfnout,603) intone,int1,mclab
+        write(lfnout,603) intone,int1,mclab,labels
  603    format(/,' Number of one electron integrals',t50,i16,
      &  /,' Number of calculated one electron integrals ',t50,i16,
      &  /,' Two electron integral labels option on file ',t50,i16,

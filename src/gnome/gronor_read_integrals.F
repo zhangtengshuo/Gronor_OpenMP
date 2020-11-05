@@ -1,6 +1,6 @@
       subroutine gronor_read_integrals()
 
-!      use mpi
+      use mpi
       use inp
       use cidef
       use cidist
@@ -13,7 +13,6 @@
 #endif
 
       implicit none
-#include 'mpif.h'
 
 !tps#include 'mpif.h'
 

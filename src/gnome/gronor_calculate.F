@@ -1,6 +1,6 @@
       subroutine gronor_calculate(ib,jb,id1,id2,lbuf)
 
-!      use mpi
+      use mpi
       use cidist
       use cidef
       use gnome_data
@@ -11,7 +11,6 @@
 #endif
 
       implicit none
-#include 'mpif.h'
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)

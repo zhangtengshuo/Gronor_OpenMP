@@ -1,12 +1,11 @@
       subroutine gronor_timings(lfnout,lfnday)
 
-!      use mpi
+      use mpi
       use cidist
       use gnome_parameters
 
       implicit none
 !tps#include 'mpif.h'
-#include 'mpif.h'
 
       integer :: lfnout,lfnday,i,j,ndone,idum
       external :: timer_wall_total,timer_calls

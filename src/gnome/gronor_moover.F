@@ -1,13 +1,12 @@
       subroutine gronor_moover(lfndbg)
 
-!      use mpi
+      use mpi
       use cidist
       use gnome_integrals
       use gnome_parameters
       use gnome_data
       
       implicit none
-#include 'mpif.h'
       
       integer (kind=4) :: ierr
       integer :: lfndbg
@@ -168,14 +167,13 @@
       end
       subroutine gronor_moover_omp(lfndbg)
 
-!      use mpi
+      use mpi
       use cidist
       use gnome_integrals
       use gnome_parameters
       use gnome_data
       
       implicit none
-#include 'mpif.h'
       
       integer (kind=4) :: ierr
       integer :: lfndbg

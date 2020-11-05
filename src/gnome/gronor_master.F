@@ -1,13 +1,12 @@
       subroutine gronor_master()
 
-!      use mpi
+      use mpi
       use cidef
       use cidist
       use gnome_data
       use gnome_parameters
 
       implicit none
-#include 'mpif.h'
 
       integer :: ibase,jbase,nidet,njdet,mdet
       integer :: l2,i,j,k,ij,n,ndone,nleft,nrb

@@ -1,5 +1,5 @@
-      subroutine corr_ener(nwt,mstates,ecorr,nbase,nmol,ncombv,
-     &                                             hbase,sbase,hcorr)
+      subroutine gronor_correlation_energy(
+     &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout
       use gnome_parameters, only :  ipr
 
@@ -98,7 +98,7 @@
       deallocate(work)
       hcorr=matmul(transpose(slow),matmul(hcorr,slow))
 
-      end subroutine corr_ener
+      end subroutine gronor_correlation_energy
 
       subroutine lowdin(lfnout,ipr,nbase,sbase,slow)
       implicit none

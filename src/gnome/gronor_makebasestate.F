@@ -26,7 +26,7 @@
       real (kind=8) :: civb(maxcib),vecsc(nbasis,nbasis)
       real (kind=8),allocatable :: ciint(:,:),ciout(:,:)
       real (kind=8) :: civm(maxci,mstates),vecsm(maxvec,maxvec,mstates)
-      real (kind=8), external :: ddot,cg
+      real (kind=8), external :: ddot,clebsch_gordon
       logical :: oalls,onew,ocomparocc
 
       inactb=0
@@ -230,7 +230,7 @@
      &                 nmstates,maxnact,mactb,maxcib-ioff2+1,
      &                 idetoutoutd,thresh_CI,lfnout)   
                   idetoutout(ivecs)=idetoutoutd
-                  dnorm=cg(jspin(1)/2.0d0,jspin(2)/2.0d0,
+                  dnorm=clebsch_gordon(jspin(1)/2.0d0,jspin(2)/2.0d0,
      &                 jjspin(1)/2.0d0,jjspin(2)/2.0d0,
      &                 nspin/2.0d0,nspin/2.0d0)
                   call dscal(idetoutout(ivecs),dnorm,civb(ioff2),1)

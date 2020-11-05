@@ -6,7 +6,7 @@
       real(kind=8)      :: s1,s2,s
       real(kind=8)      :: m1,m2,m
       real(kind=8)      :: ispin,k,j
-      real(kind=8)      :: recurrence_factor,A0,cg_p1,cg_p2
+      real(kind=8)      :: recurrence_factor,A0,cg_p1,cg_p2,cg
       
       if((abs(m1).gt.s1).or.(abs(m2).gt.s2))then                                                                                                         
          stop 'CLEBSCH-GORDAN:: Input data error'
@@ -37,7 +37,8 @@
             cg_p2 = cg_p1
             cg_p1 = cg
          enddo
-      endif      
+       endif
+       clebsch_gordon=cg
       return
       end
 

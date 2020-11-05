@@ -1,4 +1,4 @@
-      subroutine print_results(hbase,sbase,nbase)
+      subroutine gronor_print_results(hbase,sbase,nbase)
       
       use gnome_parameters, only : itest,ncols
       use cidef           , only : filf75,lfnf75,lfnout,lfntst
@@ -167,4 +167,4 @@
       
       return
       
-      end subroutine print_results
+      end subroutine gronor_print_results

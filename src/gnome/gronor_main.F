@@ -75,6 +75,7 @@ c      use cuda_functions
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
       integer :: iaslvr,jaslvr,inslvr,jnslvr
+      real (kind=8) :: rint,rlab,rndx
       
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -268,6 +269,10 @@ c      use cuda_functions
 
        isolver=-1
        jsolver=-1
+       iaslvr=-1
+       jaslvr=-1
+       inslvr=-1
+       jnslvr=-1
 
        intadd=0
        naccel=-1
@@ -277,6 +282,11 @@ c      use cuda_functions
        ixpert=0
        iswsvj=15
        iswevj=15
+
+!     labels   0 : read labels from the integral file
+!              1 : use Molcas integral ordering
+       
+       labels=1
        
 #ifdef _OPENACC
        naccel=0
@@ -351,6 +361,11 @@ c      use cuda_functions
        if(inp_compare(.false.,'Threshold',item)) then
          if(.not.inp_f(thresh)) call errquit()
          thresh_CI=thresh
+         goto 2
+       endif
+
+       if(inp_compare(.false.,'Labels',item)) then
+         if(.not.inp_i(labels)) call errquit()
          goto 2
        endif
        
@@ -823,6 +838,7 @@ c      use cuda_functions
           idum(43)=iswevj
           idum(44)=lbatch
           idum(45)=nspin
+          idum(46)=labels
           
           rdum(1)=thresh
           rdum(2)=thresh_CI
@@ -831,7 +847,7 @@ c      use cuda_functions
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,45,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,46,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -879,6 +895,7 @@ c      use cuda_functions
         iswevj =idum(43)
         lbatch =idum(44)
         nspin  =idum(45)
+        labels =idum(46)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -1616,12 +1633,27 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,614) nbas
-        write(lfnout,615) int1
-        write(lfnout,616) int2
- 614    format(' Number of basisfunctions',t62,20i4)
- 615    format(' Number of one-electron integrals',t50,i16)
- 616    format(' Number of two-electron integrals',t50,i16)
+#ifdef SINGLEP
+        rint=dble(4*int2)*1.0d-9
+#else
+        rint=dble(8*int2)*1.0d-9
+#endif
+        if(labels.eq.0) then
+          rlab=dble(8*int2)*1.0d-9
+          rndx=0.0d0
+        else
+          rlab=0.0d0
+          rndx=(dble(mlab*4)+dble(mlab*4))*1.0d-09
+        endif
+        write(lfnout,614) nbas,rndx
+        write(lfnout,615) int1,rlab
+        write(lfnout,616) int2,rint
+ 614    format(' Number of basisfunctions',t50,i16,
+     &       t80,' Size of index arrays',t115,f8.3,' GB')
+ 615    format(' Number of one-electron integrals',t50,i16,
+     &       t80,' Size of integral labels',t115,f8.3,' GB')
+ 616    format(' Number of two-electron integrals',t50,i16,
+     &       t80,' Size of two-electron integrals',t115,f8.3,' GB')
       endif
       
       call timer_stop(3)
@@ -1684,7 +1716,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             
-!$acc data copyin(g,lab,t,v,ndxtv)
+!$acc data copyin(g,lab,ndx,t,v,ndxtv)
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1794,7 +1826,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       deallocate(t,v,ndxtv)
-      deallocate(lab,ig,g)
+      deallocate(lab,ndx,ig,g)
       deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)

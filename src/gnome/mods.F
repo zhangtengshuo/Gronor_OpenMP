@@ -192,7 +192,7 @@
 
       module gnome_integrals
 
-      integer :: intone,int1,int2,mint2,nt(3),myints(7)
+      integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
       integer :: igfr,igto
       real (kind=8), allocatable :: s(:,:),t(:),v(:)
 #ifdef SINGLEP
@@ -201,12 +201,15 @@
       real (kind=8), allocatable :: g(:),gg(:)
 #endif
       integer (kind=2), allocatable :: lab(:,:)
+      integer (kind=4), allocatable :: ndx(:)
       integer, allocatable :: ig(:)
       integer (kind=4), allocatable :: ndxtv(:)
       integer :: nqcp,mbuf
       integer (kind=4), allocatable :: new_comm(:)
       integer (kind=4) :: new_group,grp_group
       integer, allocatable :: ntarget(:)
+
+      integer (kind=8) :: labels, mlab
 
       end module gnome_integrals
 

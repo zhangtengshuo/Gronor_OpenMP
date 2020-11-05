@@ -10,45 +10,52 @@
 
       implicit none
 
-      integer(kind=4) :: ierr
+      integer (kind=4) :: ierr
       integer (kind=4) :: nrecb4
       integer :: nrecb
       integer :: i,ie,im,is,ke,km,ks,le,lm,ne,ig0,j,ni,ng,nz
       integer :: nm,ns,kl,k,ll,l,ls,nl,n,nn,igr,ngi,ngir
-      integer :: nmax,kbloc,mdum,itarget,noff
+      integer :: nmax,kbloc,mclab,itarget,noff
       integer :: numfiles,nrecfil,nrectot,irecs(4),myrecs,myrec,myfile
       integer :: nrfil,id,idfil,jdfil,nrec,ilast,ninttot
-      integer(kind=8), allocatable :: igrrecs(:,:), ifil(:,:)
+      integer (kind=8), allocatable :: igrrecs(:,:), ifil(:,:)
       integer :: nrecl
       real (kind=8) :: sdum
       real (kind=8),allocatable :: b(:)
-      integer(kind=2),allocatable :: ibuf(:)
+      integer (kind=2),allocatable :: ibuf(:)
       integer :: kint, kintbatch, mint,nint,jint,lint
       integer :: ielem,jkoff,nacc
+
+      integer (kind=8), allocatable :: indxr(:,:,:)
+      integer (kind=8) :: numigr,idi,idf,idr,igp,jdi,ii,jj,kk
 
       if(me.eq.master) then
        rewind(lfnone)
 
+       mclab=0
        if(ione.eq.0) then
-        read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mdum
+         read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
        else
         read(lfnone,err=993) namint,nbas,intone,potnuc
-       endif
+      endif
+      if(mclab.eq.1) labels=1
 
        if(ipr.ge.1) then
         write(lfnout,601) namint
        call flush(lfnout)
   601   format(/,' Integral file title: ',t25,a,/,t25,a)
         write(lfnout,602) nbas,intone,potnuc
-  602   format(/,' Number of basis functions',t50,i16,                    &
-     &  /,' Number of one electron integrals',t50,i16,                    &
+  602   format(/,' Number of basis functions',t50,i16,
+     &  /,' Number of one electron integrals',t50,i16,
      &  //,' Nuclear potential energy',t57,f20.10)
        endif
        int1=int1+(nbas*(nbas+1))/2
        if(ipr.ge.1) then
-        write(lfnout,603) intone,int1
- 603    format(/,' Number of one electron integrals',t50,i16,             &
-     &  /,' Number of calculated one electron integrals ',t50,i16)
+        write(lfnout,603) intone,int1,mclab,labels
+ 603    format(/,' Number of one electron integrals',t50,i16,
+     &  /,' Number of calculated one electron integrals ',t50,i16,
+     &  /,' Two electron integral labels option on file ',t50,i16,
+     &  /,' Two electron integral labels input option ',t50,i16)
        endif
        allocate(s(nbas,nbas))
        allocate(t(int1))
@@ -95,6 +102,8 @@
       call MPI_Bcast(int1,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(int2,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(mclab,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(labels,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(numfiles,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(mbuf,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(potnuc,1,MPI_REAL8,master,
@@ -141,7 +150,7 @@
       enddo
 
       if(me.eq.master.or.iamactive.eq.0) then
-       allocate(g(1),lab(1,1))
+       allocate(g(1),lab(1,1),ndx(1))
       endif
 
 !     Only the first group reads the integrals from file
@@ -160,26 +169,112 @@
         idfil=idfil-ifil(i,1)
        enddo
 
-       mint2 = myrecs * mbuf
-       if(me.eq.thisgroup(mgr+1)) then
-        mint2 = ninttot - (mgr-1) * myrecs * mbuf
-        myrecs=nrectot-(mgr-1)*myrecs
+       mlab=nbas*(nbas+1)/2
+
+       allocate(indxr(mgr,8,2))
+       
+       n=0
+       nn=0
+       idf=1
+       idr=1
+       idi=1
+       igp=1
+       numigr=int2/mgr
+       indxr(igp,3,1)=1
+       indxr(igp,4,1)=1
+       do i=1,mlab
+         do j=i,mlab
+           n=n+1
+         enddo
+         if(n.ge.numigr.or.i.eq.mlab) then
+           nn=nn+n
+           n=0
+           indxr(igp,3,2)=i
+           indxr(igp,4,2)=nn
+           igp=igp+1
+           if(igp.le.mgr) then
+           indxr(igp,3,1)=i+1
+           indxr(igp,4,1)=nn+1
+           endif
+         endif
+       enddo
+       mint2=indxr(igr,4,2)
+       if(igr.gt.1) mint2=indxr(igr,4,2)-indxr(igr-1,4,2)
+       
+       numigr=int2/mgr
+
+       igp=1
+       
+       indxr(1,1,1)=1
+       indxr(1,2,1)=1
+       indxr(1,5,1)=1
+       n=0
+       nn=0
+       igp=1
+       do i=1,numfiles
+         do j=1,ifil(i,1)
+           n=n+mbuf
+           nn=nn+1
+           if(n.gt.indxr(igp,4,2)) then
+             indxr(igp,1,2)=i
+             indxr(igp,2,2)=nn
+             indxr(igp,5,2)=indxr(igp,4,2)-i*(j-1)*mbuf
+             igp=igp+1
+             if(igp.le.mgr) then
+               indxr(igp,1,1)=i
+               indxr(igp,2,1)=nn
+               indxr(igp,5,1)=indxr(igp-1,5,2)+1
+               if(indxr(igp-1,4,2)-i*j*mbuf.eq.0) then
+                 indxr(igp,1,1)=i
+                 indxr(igp,2,1)=nn+1
+                 indxr(igp,5,1)=1
+                 if(j.eq.ifil(i,1)) indxr(igp,1,1)=i+1
+               endif
+             endif
+           endif
+         enddo
+         nn=0
+       enddo
+
+       if(labels.eq.0) then
+         mint2 = myrecs * mbuf
+         if(me.eq.thisgroup(mgr+1)) then
+           mint2 = ninttot - (mgr-1) * myrecs * mbuf
+           myrecs=nrectot-(mgr-1)*myrecs
+         endif
        endif
 
        inquire(iolength=nrecb4) b(1)
        nrecb = nrecb4
-       nrecl=(2*mbuf+2)*nrecb
+       if(mclab.ne.1) then
+         nrecl=(2*mbuf+2)*nrecb
+       else
+         nrecl=(mbuf+2)*nrecb
+       endif
        nrec=0
-
+       
        allocate(g(mint2))
-       allocate(lab(4,mint2))
+       if(labels.eq.0) then
+         allocate(lab(4,mint2),ndx(1))
+       else
+         mlab=nbas*(nbas+1)/2
+         allocate(lab(2,mlab),ndx(mlab))
+         kl=0
+         do i=1,nbas
+           do k=1,i
+             kl=kl+1
+             lab(1,kl)=k
+             lab(2,kl)=i
+           enddo
+         enddo
+       endif
 
        if(idbg.gt.0) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &    ' Allocating g and lab with dimension ',mint2
        endif
-
+       
        if(idbg.gt.3) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,1x,a,5i12,4i10)') date(1:8),time(1:8),
@@ -189,69 +284,113 @@
         flush(lfndbg)
        endif
 
-       mint2=0
-       do while(nrec.lt.myrecs)
-        nrec=nrec+ifil(myfile,1)-idfil+1
-        jdfil=ifil(myfile,1)
-        if(nrec.gt.myrecs) jdfil=jdfil-nrec+myrecs
-        write(filtwo,'(a,a,i3.3,a)')
-     &        root(1:inp_strlen(root)),'_',myfile,'.two'
-        open(unit=lfntwo,file=filtwo,access='direct',form='unformatted',
-     &       recl=nrecl,status='old')
-        if(idbg.gt.0) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a,a)') date(1:8),time(1:8),
-     & ' Opened file ',filtwo(1:inp_strlen(filtwo))
-         flush(lfndbg)
-        endif
-        if(idbg.gt.0) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a,3i10)') date(1:8),time(1:8),
-     & ' Reading records ',idfil,jdfil,jdfil-idfil+1
-         flush(lfndbg)
-        endif
-        call flush(lfnout)
-        do id=idfil,jdfil
-         read(lfntwo,rec=id)
-     &        (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
-         j=0
-         do i=1,jint
-          g(mint2+i)=b(i)
-          do n=1,4
-             j=j+1
-           lab(n,mint2+i)=ibuf(j)
-          enddo
+       if(labels.eq.0) then
+         mint2=0
+         do while(nrec.lt.myrecs)
+           nrec=nrec+ifil(myfile,1)-idfil+1
+           jdfil=ifil(myfile,1)
+           if(nrec.gt.myrecs) jdfil=jdfil-nrec+myrecs
+           write(filtwo,'(a,a,i3.3,a)')
+     &          root(1:inp_strlen(root)),'_',myfile,'.two'
+           open(unit=lfntwo,file=filtwo,access='direct',
+     &          form='unformatted',recl=nrecl,status='old')
+           if(idbg.gt.0) then
+             call swatch(date,time)
+             write(lfndbg,'(a,1x,a,1x,a,a)') date(1:8),time(1:8),
+     &            ' Opened file ',filtwo(1:inp_strlen(filtwo))
+             flush(lfndbg)
+           endif
+           if(idbg.gt.0) then
+             call swatch(date,time)
+             write(lfndbg,'(a,1x,a,1x,a,3i10)') date(1:8),time(1:8),
+     &            ' Reading records ',idfil,jdfil,jdfil-idfil+1
+             flush(lfndbg)
+           endif
+           call flush(lfnout)
+           do id=idfil,jdfil
+             if(mclab.eq.0) then
+               read(lfntwo,rec=id)
+     &              (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             else
+               read(lfntwo,rec=id)
+     &              (b(n),n=1,mbuf),jint,ilast
+             endif
+             j=0
+             do i=1,jint
+               g(mint2+i)=b(i)
+               do n=1,4
+                 j=j+1
+                 lab(n,mint2+i)=ibuf(j)
+               enddo
+             enddo
+             mint2=mint2+jint
+             if(idbg.gt.0) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a,3i10,i5)')
+     &              date(1:8),time(1:8),' Read ',id,mint2,jint,ilast
+               flush(lfndbg)
+             endif
+           enddo
+           close(unit=lfntwo,status='keep')
+           if(idbg.gt.0) then
+             call swatch(date,time)
+             write(lfndbg,'(a,1x,a,1x,a,a,i5,i10)')
+     &            date(1:8),time(1:8),' Closed file ',
+     &            filtwo(1:inp_strlen(filtwo)),ilast,jint
+             flush(lfndbg)
+           endif
+           myfile=myfile+1
+           idfil=1
          enddo
-         mint2=mint2+jint
-         if(idbg.gt.0) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a,3i10,i5)') date(1:8),time(1:8),
-     &  ' Read ',id,mint2,jint,ilast
-          flush(lfndbg)
-         endif
-        enddo
-        close(unit=lfntwo,status='keep')
-        if(idbg.gt.0) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a,a,i5,i10)') date(1:8),time(1:8),
-     & ' Closed file ',filtwo(1:inp_strlen(filtwo)),ilast,jint
-         flush(lfndbg)
-        endif
-        myfile=myfile+1
-        idfil=1
-       enddo
+         
+       else
 
-       ig(igr)=mint2
+         idi=indxr(igr,5,1)
+         jdi=mbuf
 
+         mint2=0
 
-       if(idbg.gt.0) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),
-     &  ' mint2= ',mint2
-        flush(lfndbg)
+         do idf=indxr(igr,1,1),indxr(igr,1,2)
+
+           write(filtwo,'(a,a,i3.3,a)')
+     &          root(1:inp_strlen(root)),'_',idf,'.two'
+           open(unit=lfntwo,file=filtwo,access='direct',
+     &          form='unformatted',recl=nrecl,status='old')
+
+           do idr=indxr(igr,2,1),indxr(igr,2,2)
+
+             read(lfntwo,rec=idr)
+     &            (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             if(idf.eq.indxr(igr,1,2).and.idr.eq.indxr(igr,2,2))
+     &            jdi=indxr(igr,5,2)
+             do i=idi,jdi
+               mint2=mint2+1
+               g(mint2)=b(i)
+             enddo
+             idi=1
+           enddo
+
+           close(unit=lfntwo,status='keep')
+           
+         enddo
+         
        endif
 
-      endif
+         intndx=indxr(igr,3,1)
+         jntndx=indxr(igr,3,2)
+
+         deallocate(indxr)
+         
+         ig(igr)=mint2
+
+         if(idbg.gt.0) then
+           call swatch(date,time)
+           write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),
+     &          ' mint2= ',mint2
+           flush(lfndbg)
+         endif
+         
+       endif
 
 !     Dimensions need to be broadcasted to all worker ranks
 !     if there are more than one group
@@ -270,6 +409,8 @@
        enddo
 
        if(ig0.ge.0) then
+        call MPI_Bcast(intndx,1,MPI_INTEGER8,0,new_comm(ig0),ierr)
+        call MPI_Bcast(jntndx,1,MPI_INTEGER8,0,new_comm(ig0),ierr)
         call MPI_Bcast(mint2,1,MPI_INTEGER8,0,new_comm(ig0),ierr)
         call MPI_Bcast(myrec,1,MPI_INTEGER8,0,new_comm(ig0),ierr)
        endif
@@ -282,9 +423,24 @@
         flush(lfndbg)
        endif
 
+       mlab=nbas*(nbas+1)/2
+
+       
        if(mygroup.gt.1) then
-        allocate(g(mint2))
-        allocate(lab(4,mint2))
+         allocate(g(mint2))
+         if(labels.eq.0) then
+           allocate(lab(4,mint2),ndx(1))
+         else
+           allocate(lab(2,mlab),ndx(mlab))
+           kl=0
+           do i=1,nbas
+             do k=1,i
+               kl=kl+1
+               lab(1,kl)=k
+               lab(2,kl)=i
+             enddo
+           enddo
+         endif
 
        if(idbg.gt.0) then
          call swatch(date,time)
@@ -331,13 +487,20 @@
 #else
          call MPI_Bcast(g(nint),lint,MPI_REAL8,0,new_comm(ig0),ierr)
 #endif
-         call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &                  new_comm(ig0),ierr)
+         if(labels.eq.0) then
+           call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &          new_comm(ig0),ierr)
+         endif
 
          nint=nint+lint
          mint=mint-lint
         enddo
 
+        if(labels.eq.1) then
+           call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &          new_comm(ig0),ierr)
+        endif
+        
         if(idbg.gt.0) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a,3i12)') date(1:8),time(1:8),
@@ -395,10 +558,20 @@
 
       intfil=me+1
 
-      write(filtwo,'(a,i5.5,a)') root(1:inp_strlen(root)),intfil,'.two'
+!      write(filtwo,'(a,i5.5,a)') root(1:inp_strlen(root)),intfil,'.two'
 
       ig(igr)=mint2
 
+      if(me.ne.master.and.iamactive.eq.1.and.labels.eq.1) then
+        kk=1
+        do ii=intndx,jntndx
+          ndx(ii)=kk-ii
+          do jj=ii,mlab
+            kk=kk+1
+          enddo
+        enddo
+      endif
+      
       return
  993  write(lfnout,983) filone(1:inp_strlen(filone))
       call errquit()

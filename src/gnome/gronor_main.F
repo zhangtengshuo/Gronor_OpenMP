@@ -1796,16 +1796,16 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
-        call print_results(hbase,sbase,nbase)
+        call gronor_print_results(hbase,sbase,nbase)
         if ( ncorr .eq. 1 ) then
           allocate( hcorr(nbase,nbase) )
           hcorr = 0.0
-          call corr_ener(nwt,mstates,ecorr,nbase,nmol,ncombv,
-     &         hbase,sbase,hcorr)
+          call gronor_correlation_energy(
+     &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           write(lfnout,*)
           write(lfnout,*)
           write(lfnout,*) 'After applying a shift to the diagonal of H'
-          call print_results(hcorr,sbase,nbase)
+          call gronor_print_results(hcorr,sbase,nbase)
           deallocate( hcorr )
         endif
         open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),

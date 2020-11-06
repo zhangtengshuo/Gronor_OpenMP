@@ -1,4 +1,249 @@
-      subroutine gronor_makebasestate                                     
+      subroutine gronor_make_basestate(ibase)
+      use cidef
+      use gnome_data
+      use gnome_parameters
+      implicit none
+      
+
+      integer              :: ibase,state1,state2
+      integer              :: i,j,k,kk,iact,jact,l
+      integer              :: jstart,kstart
+      integer              :: ndets,ms_states
+      integer              :: ms1,ms2,det,det1,det2
+      integer, external    :: perm_ab,isetsign4
+      integer, parameter   :: maxact = 32        ! because of the packing, maxact is limited to 32 (I guess)
+      integer, allocatable :: spin(:)
+      integer, allocatable :: ndet_ms(:),ndet1_ms(:),ndet2_ms(:)
+      integer, allocatable :: occ_ms(:,:,:),occ1_ms(:,:,:),
+     &                                      occ2_ms(:,:,:)
+
+      logical              :: all_singlet
+
+      real (kind = 8)              :: prod,dnorm
+      real (kind = 8), external    :: clebsch_gordon
+      real (kind = 8), allocatable :: ci_ms(:,:)
+      real (kind = 8), allocatable :: ci1_ms(:,:)
+      real (kind = 8), allocatable :: ci2_ms(:,:)
+      
+
+
+      inactb(ibase) = 0
+      nactb(ibase)  = 0
+      do i = 1, nmol
+         inactb(ibase) = inactb(ibase) + inactm(ncombv(i,ibase))
+         nactb(ibase)  = nactb(ibase) + nactm(ncombv(i,ibase))
+      end do
+
+      if ( nactb(ibase) .gt. maxact) then
+         write(lfnout,*)' * * *  Error  * * *'
+         write(lfnout,*)'Max. number of active orbitals: ',maxact
+         write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
+         stop 'Too many active orbitals'
+      endif
+
+* Combining the vectors of the fragments
+
+      do i = 1, nbasis
+         do j = 1, nbasis
+            vecsb(i,j,ibase) = 0.0d0
+         enddo
+      enddo
+      jstart = 1
+      kstart = 1
+      do i = 1, nmol
+         do j = 1, inactm(ncombv(i,ibase))
+            do k = 1, nbasm(ncombv(i,ibase))
+               vecsb(kstart+k-1,jstart+j-1,ibase) =
+     &              vecsm(k,j,ncombv(i,ibase))
+            end do
+         end do
+         kstart = kstart +  nbasm(ncombv(i,ibase))
+         jstart = jstart + inactm(ncombv(i,ibase))
+      end do
+
+      jstart = inactb(ibase) + 1
+      kstart = 1
+
+      do i = 1, nmol
+         do j = 1, nactm(ncombv(i,ibase))
+            do k = 1, nbasm(ncombv(i,ibase))
+               vecsb(kstart + k-1, jstart + j-1,ibase) = vecsm(k, j +
+     &              inactm(ncombv(i,ibase)),ncombv(i,ibase))
+            end do
+         end do
+         kstart = kstart + nbasm(ncombv(i,ibase))
+         jstart = jstart + nactm(ncombv(i,ibase))
+      end do
+
+*     Generation of the spin functions
+
+      allocate ( spin(nmol) )
+      all_singlet = .true.
+      do i = 1, nmol
+        spin(i) = spinm(ncombv(i,ibase))
+        if ( spin(i) .ne. 0 ) all_singlet = .false.
+      end do
+
+      do i = 1, maxcib
+         civb(i,ibase) = 0.0d0
+         ioccb(i,ibase)= 0
+      enddo
+
+* Just one molecule
+      if ( nmol .eq. 1 ) then
+        do i = 1, idetm(ibase)
+          do jact = 1, nactm(ibase)
+            iocch(jact) = ioccm(jact,i,ibase)
+          end do
+          civb(i,ibase) = civm(i,ibase) * perm_ab(iocch,nactm(ibase))
+          civb(i,ibase) = civb(i,ibase) * isetsign4(iocch,nactm(ibase))
+          call pack(ioccb(i,ibase),iocch,nactm(ibase))
+        end do
+        ndets = idetm(ibase)
+        goto 1581
+      end if 
+
+      state1 = ncombv(1,ibase)
+      state2 = ncombv(2,ibase)
+
+* Two fragments, both singlet functions
+      if ( all_singlet ) then
+        k = 0
+        do i = 1, idetm(state1)
+          do j = 1, idetm(state2)
+            prod = civm(i,state1) * civm(j,state2)
+            if ( abs(prod) .gt. thresh_CI ) then
+              k = k + 1
+              civb(k,ibase) = prod
+              kk = 0
+              do iact = 1, nactm(state1)
+                kk = kk + 1
+                iocch(kk) = ioccm(iact,i,state1)
+              end do
+              do jact = 1, nactm(state2)
+                kk = kk + 1
+                iocch(kk) = ioccm(jact,j,state2)
+              end do
+              call pack(ioccb(k,ibase),iocch,nactb(ibase))
+              civb(k,ibase) = civb(k,ibase) * 
+     &                                   perm_ab(iocch,nactb(ibase))
+              civb(k,ibase) = civb(k,ibase) * 
+     &                                   isetsign4(iocch,nactb(ibase))
+            end if
+          end do
+        end do
+        ndets = k
+        goto 1581
+      end if
+
+* All other cases
+      ms_states = max(spin(1)+1 , spin(2)+1)
+      allocate(ndet_ms(ms_states))
+      allocate(ci_ms(nci,ms_states))
+      allocate(occ_ms(maxnact,nci,ms_states))
+      ndet_ms = 0
+      ci_ms   = 0.0
+      occ_ms  = 0
+      allocate(ndet1_ms(ms_states))
+      allocate(ci1_ms(nci,ms_states))
+      allocate(occ1_ms(maxnact,nci,ms_states))
+      allocate(ndet2_ms(ms_states))
+      allocate(ci2_ms(nci,ms_states))
+      allocate(occ2_ms(maxnact,nci,ms_states))
+      ndet1_ms = 0
+      ci1_ms   = 0.0
+      occ1_ms  = 0
+      ndet2_ms = 0
+      ci2_ms   = 0.0
+      occ2_ms  = 0
+*   M_S of fragment 1
+      call sminop2(civm(1,ncombv(1,ibase)),ci_ms,
+     &     ioccm(1,1,ncombv(1,ibase)),occ_ms,
+     &     idetm(ncombv(1:,ibase)),ndet_ms,
+     &     spin(1),nactm(ncombv(1,ibase)),nci,lfnout)
+      do j = 1, spin(1) + 1
+        ndet1_ms(j) = ndet_ms(j)
+        do det = 1, ndet_ms(j)
+          ci1_ms(det,j) = ci_ms(det,j)
+          occ1_ms(:,det,j) = occ_ms(:,det,j)
+        end do
+      end do
+*   M_S of fragment 2
+      ndet_ms = 0
+      ci_ms   = 0  
+      occ_ms  = 0
+      call sminop2(civm(1,ncombv(2,ibase)),ci_ms,
+     &     ioccm(1,1,ncombv(2,ibase)),occ_ms,
+     &     idetm(ncombv(2:,ibase)),ndet_ms,
+     &     spin(2),nactm(ncombv(2,ibase)),nci,lfnout)
+      do j = 1, spin(2) + 1
+        ndet2_ms(j) = ndet_ms(j)
+        do det = 1, ndet_ms(j)
+          ci2_ms(det,j) = ci_ms(det,j)
+          occ2_ms(:,det,j) = occ_ms(:,det,j)
+        end do
+      end do
+
+      deallocate(ndet_ms,ci_ms,occ_ms)
+
+      
+      k = 0
+      do i = 1, spin(1) + 1
+        ms1  = spin(1) - 2*(i-1)
+        do j = 1, spin(2) + 1
+          ms2 = spin(2) - 2*(j-1)
+          if ( ms1 + ms2 .eq. nspin ) then
+            do det1 = 1, ndet1_ms(i)
+              do det2 = 1, ndet2_ms(j)
+                dnorm = clebsch_gordon(spin(1)/2.d0,spin(2)/2.d0,
+     &                      ms1/2.d0,ms2/2.d0,
+     &                      nspin/2.d0,nspin/2.d0)
+                prod = ci1_ms(det1,i)*ci2_ms(det2,j)
+                if (abs(prod) .gt. thresh_CI) then
+                  iocch = 0
+                  k = k + 1
+                  civb(k,ibase) = prod * dnorm
+                  kk = 0
+                  do iact = 1, nactm(state1)
+                    kk = kk + 1
+                    iocch(kk) = occ1_ms(iact,det1,i)
+                  end do
+                  do jact = 1, nactm(state2)
+                    kk = kk + 1
+                    iocch(kk) = occ2_ms(jact,det2,j)
+                  end do
+                  call pack(ioccb(k,ibase),iocch,nactb(ibase))
+                  civb(k,ibase) = civb(k,ibase) * 
+     &                              perm_ab(iocch,nactb(ibase))
+                  civb(k,ibase) = civb(k,ibase) * 
+     &                              isetsign4(iocch,nactb(ibase))
+                end if
+              end do
+            end do
+          end if
+        end do
+      end do
+      deallocate(ndet1_ms,occ1_ms)            
+      deallocate(ndet2_ms,occ2_ms)            
+      deallocate(ci1_ms)
+      deallocate(ci2_ms)
+      ndets = k
+
+
+ 1581 dnorm = 0.0
+      idetb(ibase) = ndets
+      do i = 1, idetb(ibase)
+        dnorm = dnorm + civb(i,ibase)**2
+      end do
+      dnorm = 1/dsqrt(dnorm)
+      do i = 1, idetb(ibase)
+        civb(i,ibase) = civb(i,ibase) * dnorm
+      end do
+      deallocate(spin)
+      return
+      end 
+
+      subroutine gronor_makebasestate_remove                                     
      &     (lfnout,civm,vecsm,ioccm,nbasm,nactm,                            
      &     inactm,idetm,maxci,maxvec,maxnact,mstates,                     
      &     civb,vecsc,ioccb,inactb,nactb,idetb,                           

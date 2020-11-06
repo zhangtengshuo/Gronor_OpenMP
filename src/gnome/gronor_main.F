@@ -151,6 +151,7 @@ c      use cuda_functions
        lfnpro=14
        fildat=string(1:inp_strlen(string))//'.dat'
        lfndat=15
+       lfndet=17
        filday=string(1:inp_strlen(string))//'.day'
        lfnday=18
        filtst=string(1:inp_strlen(string))//'.tst'
@@ -360,6 +361,7 @@ c      use cuda_functions
        
        if(inp_compare(.false.,'Spin',item)) then
          if(.not.inp_i(nspin)) call errquit()
+         nspin = nspin - 1
          goto 2
        endif
 
@@ -567,6 +569,23 @@ c      use cuda_functions
         thresh_CI=min(thresh_CI,1.0d-05)
       endif
       
+
+!     For now, we report on the algorithm for generating the MEBFs
+!     Furthermore, it need to ensured that reading the root_xxx.det
+!     files activates the new makebasestate. Reading civ files must
+!     be accompanied by going through the original makebasestate
+      
+      if(idevel .eq. 0) then
+        write(lfnout,'(/,A,/)')
+     &     ' Original makebasestate is used to contruct the MEBFs'
+        vecdet = .false.
+      else
+        write(lfnout,'(/,2A,/)')
+     &       ' New makebasestate with general spin coupling is',
+     &       ' used to contruct the MEBFs'
+        vecdet = .true.
+      endif
+      
       call gronor_number_integrals(numone,numtwo)
       
 !     Coen: Warning, numone and numtwo are read from a dummy entry. The real
@@ -636,9 +655,19 @@ c      use cuda_functions
  623  format(' Threshold for CI coefficients',t40,1pe12.3,/,
      &     ' Threshold for ISING',t40,1pe12.3,/)
 
-      write(lfnout,636) nspin
- 636  format(/,' Spin state',t40,i10,/)
+      write(lfnout,636) nspin+1
+ 636  format(/,' Spin state (2S+1)',t40,i10,/)
       
+      if(idevel .ne. 0) then
+        
+!     new, experimental code
+        call gronor_read_vectors_and_determinants()
+      
+      else
+        
+!     standard code begins here, no extra indent
+!     to keep everything as it is now
+
       maxci=0
       maxvec=0
       maxnact=0
@@ -764,7 +793,13 @@ c      use cuda_functions
        
        if(ipr.ge.3) write(lfnout,610) filsym(1:inp_strlen(filsym))
  610   format(/,' System information read from ',a,/)
+
        
+      endif
+      
+!     new and old code come together again      
+
+!
 !     Coen: remove SYMOL from the list of QC programs
 !     if (nqcp.eq.1) then
 !     call gronor_gnome_symmetry_input(lfnsym,lfnout,ipr)
@@ -1002,7 +1037,12 @@ c      use cuda_functions
             if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
      &           ioccm(j,1,i)
          enddo
-      enddo
+       enddo
+
+
+       if(idevel .eq. 0) then
+!     again no indent to keep the code as it is
+         
       maxspinmul=0
       do i=1,nmol
          if(maxspinmul.lt.jspinmol(ncombv(i,1))) then
@@ -1042,6 +1082,24 @@ c      use cuda_functions
       allocate(inactb(nbase))
       allocate(nactb(nbase))
       allocate(idetb(nbase))
+      
+
+      else
+!     alternative code starts here
+
+        allocate(vecsb(nbasis,nbasis,nbase))
+        allocate(inactb(nbase))
+        allocate(nactb(nbase))
+        allocate(idetb(nbase))      
+
+        call gronor_determine_nci()
+        call gronor_determine_maxcib()
+
+        allocate(ioccb(maxcib,nbase))
+        allocate(civb(maxcib,nbase))
+
+      endif
+!     old and new come together again
       
       ngr=(np-1)/mgr
 
@@ -1405,11 +1463,14 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
       else
-        call gronor_makebasestate
-     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
-     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
-     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
-     &         nmol,ncombv(1,i),nspin,thresh_CI)
+        call gronor_make_basestate(i)
+
+!        call gronor_makebasestate_remove
+!     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
+!     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
+!     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
+!     &         nmol,ncombv(1,i),nspin,thresh_CI)
+        
       endif
         
         if(me.eq.master.and.ipr.ge.3) then

@@ -1,3 +1,8 @@
+!> @brief   Main driver for the GronOR application
+!! @author  Tjerk P. Straatsma, ORNL
+!! @author  Coen de Graaf, URV
+!! @date    2016
+
       subroutine gronor_main()
 
 !     initialization of the calculation
@@ -43,8 +48,8 @@ c      use cuda_functions
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
       integer,allocatable :: iocc_tmp(:)
       integer,allocatable :: jspinmol(:)
-      integer :: maxci, maxvec, maxnact, maxspinmul
-      integer :: mactb, maxcib, mdum, node
+      integer :: maxspinmul
+      integer :: mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
       character (len=255) :: string, filnam, card, item
 

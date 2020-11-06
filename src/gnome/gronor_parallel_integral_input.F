@@ -314,6 +314,7 @@
              else
                read(lfntwo,rec=id)
      &              (b(n),n=1,mbuf),jint,ilast
+               stop 'Error in integral options'
              endif
              j=0
              do i=1,jint
@@ -351,16 +352,21 @@
          mint2=0
 
          do idf=indxr(igr,1,1),indxr(igr,1,2)
-
+           
            write(filtwo,'(a,a,i3.3,a)')
      &          root(1:inp_strlen(root)),'_',idf,'.two'
            open(unit=lfntwo,file=filtwo,access='direct',
      &          form='unformatted',recl=nrecl,status='old')
-
+           
            do idr=indxr(igr,2,1),indxr(igr,2,2)
-
-             read(lfntwo,rec=idr)
-     &            (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             
+             if(mclab.eq.0) then
+               read(lfntwo,rec=idr)
+     &              (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
+             else
+               read(lfntwo,rec=idr)
+     &              (b(n),n=1,mbuf),jint,ilast
+             endif
              if(idf.eq.indxr(igr,1,2).and.idr.eq.indxr(igr,2,2))
      &            jdi=indxr(igr,5,2)
              do i=idi,jdi

@@ -1,4 +1,12 @@
 
+!> @brief
+!! Dipole calculation
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_dipole(lfndbg)
       use cidist
       use gnome_parameters

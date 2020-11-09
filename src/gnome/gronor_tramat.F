@@ -1,4 +1,12 @@
 
+!> @brief
+!! Transformed MOs matrix multiplication
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_tramat(lfndbg)
 
 !      This routine mutiplies the input-matrix (a)

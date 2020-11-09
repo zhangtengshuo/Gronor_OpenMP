@@ -1,3 +1,12 @@
+
+!> @brief
+!! MO Overlap
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_moover(lfndbg)
 
       use mpi

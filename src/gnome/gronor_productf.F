@@ -1,3 +1,14 @@
+
+!> @brief
+!! Several routines used in generating basestates
+!!     
+!! @author  T. P. Straatsma, ORNL
+!! @author  R. Havenith, ORNL
+!! @author  C. de Graaf, ORNL
+!! @date    2016, 2020
+!!
+  
+      
       subroutine productf
      &     (civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,
      &     maxci,mstates,maxnact,mactb,maxcib,ndetout,thresh_CI,lfnout)
@@ -535,11 +546,11 @@
 !> @brief   Counts the number of permutations to bring a determinant in
 !!          the alpha-beta-alpha-beta-... order.
 !!
-!! @detail  When M_S larger than zero, the excess alphas are moved to
+!! @details  When M_S larger than zero, the excess alphas are moved to
 !!          the end.
-!! @detail  Doubly occupied orbitals are first expanded and empty
+!! @details  Doubly occupied orbitals are first expanded and empty
 !!          orbitals eliminated: a2b0 --> aabb
-!! @detail  Adaptation of the Python script "civec.py"
+!! @details  Adaptation of the Python script "civec.py"
 !! @author  Aitor Sanchez, URV
 !! @author  Coen de Graaf, URV
 !! @date    October 2020

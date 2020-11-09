@@ -1,3 +1,12 @@
+
+!> @brief
+!! General Non-Orthogonal Matrix Element calculation using GNOME structure
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       use mpi

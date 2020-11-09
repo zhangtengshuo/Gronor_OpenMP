@@ -1,3 +1,11 @@
+
+!> @brief
+!! Read integral file
+!!     
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_read_integrals()
 
       use mpi

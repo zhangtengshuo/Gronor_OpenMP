@@ -1,3 +1,17 @@
+
+!> @brief
+!! Reading integral fiels in parallel mode
+!!
+!! @author  T. P. Straatsma, ORNL
+!! @date    2020
+!!
+!! Integrals are read in parallel by all ranks the first worker group. 
+!! If worker groups have only one rank, one rank is doing the reading of integrals.
+!! After the integrals are read, an MPI broadcast copies them to the corresponding ranks in other worker groups.
+!!
+!! The integrals may be read from multiple files, with or witjout integral labels. If used without labels, the
+!! canonical order as defined by OpenMolcas is assumed.
+      
       subroutine gronor_parallel_integral_input()
 
       use mpi

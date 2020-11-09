@@ -1,3 +1,26 @@
+
+!> @brief
+!! Processing the two-electron integrals
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+!! These routines come in eight different forms
+!!
+!! <table>
+!! <caption id="multi_row">gntwo routines</caption>
+!! <tr><th> Routine name <th> OpenACC <th> OpenMP <th> Labeled <th> Batched
+!! <tr><td> gronor_gntwo <td> \htmlonly &#x2714;\endhtmlonly <td>  <td> \htmlonly &#x2714;\endhtmlonly <td>
+!! <tr><td> gronor_gntwo_mlab <td> \htmlonly &#x2714;\endhtmlonly <td>  <td>  <td>
+!! <tr><td> gronor_gntwo_batch <td> \htmlonly &#x2714;\endhtmlonly <td>  <td> \htmlonly &#x2714;\endhtmlonly <td>\htmlonly &#x2714;\endhtmlonly
+!! <tr><td> gronor_gntwo_batch_mlab <td> \htmlonly &#x2714;\endhtmlonly <td>  <td>  <td>\htmlonly &#x2714;\endhtmlonly
+!! <tr><td> gronor_gntwo_omp <td> <td> \htmlonly &#x2714;\endhtmlonly <td>  \htmlonly &#x2714;\endhtmlonly <td>
+!! <tr><td> gronor_gntwo_omp_mlab <td>  <td> \htmlonly &#x2714;\endhtmlonly  <td>  <td>
+!! <tr><td> gronor_gntwo_omp_batch <td> <td> \htmlonly &#x2714;\endhtmlonly  <td> \htmlonly &#x2714;\endhtmlonly <td>\htmlonly &#x2714;\endhtmlonly
+!! <tr><td> gronor_gntwo_omp_batch_mlab <td>  <td> \htmlonly &#x2714;\endhtmlonly <td>  <td>\htmlonly &#x2714;\endhtmlonly
+!! </table>
+!!
+      
+      
       subroutine gronor_gntwo(lfndbg)
 
       use mpi

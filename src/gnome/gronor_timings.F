@@ -20,7 +20,6 @@
       use gnome_parameters
 
       implicit none
-!tps#include 'mpif.h'
 
       integer :: lfnout,lfnday,i,j,ndone,idum
       external :: timer_wall_total,timer_calls

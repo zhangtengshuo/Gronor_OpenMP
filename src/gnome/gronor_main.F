@@ -1475,8 +1475,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
       else
+        if(ipr.gt.2) then
+          write(lfnout,*) ' Calling the new make_basestate'
+          flush(lfnout)
+        endif
         call gronor_make_basestate(i)
-
 !        call gronor_makebasestate_remove
 !     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
 !     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),

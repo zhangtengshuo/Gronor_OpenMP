@@ -1,3 +1,22 @@
+!> @brief
+!!    Construct the MEBFs from the fragment functions	
+!!
+!!  @author
+!!    Aitor Sanchez-Mansilla
+!!    Coen de Graaf	
+!!
+!!  @todo
+!!    Get rid of the packing of the orbital occupations, which
+!!    limits the number of active orbitals to 32	
+!!
+!!  @details
+!!    MEBF(ibase) is made by multplying state1 and state2
+!!    First the vectors of the two state are combined, then
+!!    three scenarios are foreseen: 
+!!    (i) there is only one fragment,
+!!    (ii) state1 and state2 are spin singlets 
+!!    (iii) all other cases
+
       subroutine gronor_make_basestate(ibase)
       use cidef
       use gnome_data
@@ -6,7 +25,7 @@
       
 
       integer              :: ibase,state1,state2
-      integer              :: i,j,k,kk,iact,jact,l
+      integer              :: i,j,k,kk,iact,jact
       integer              :: jstart,kstart
       integer              :: ndets,ms_states
       integer              :: ms1,ms2,det,det1,det2
@@ -25,8 +44,6 @@
       real (kind = 8), allocatable :: ci1_ms(:,:)
       real (kind = 8), allocatable :: ci2_ms(:,:)
       
-
-
       inactb(ibase) = 0
       nactb(ibase)  = 0
       do i = 1, nmol

@@ -1,15 +1,20 @@
 
-!>    @brief Driver for calculation Hamiltonian matrix elements
+!>    @brief
+!!    Driver for calculation range of Hamiltonian matrix element contributions
+!!    on worker ranks
+!!    @details
 !!    This routine calculates all Slater determinant contributions id1 to id2
 !!    for <ib|H|jb>, and is called by all worker ranks.
 !!    If the calling rank is part of a group of ranks assigned to calculating
 !!    this contribution, the head rank of the group has the accumulated result
 !!    upon exit of this routine.
-!!    @author T. P. Straatsma (ORNL)
-!!    @param[in] ib left basestate
-!!    @param[in] jb right basestate
-!!    @param[in] id1 initial matrix contribution
-!!    @param[in] id2 final matrix contribution
+!!    @author
+!!    T. P. Straatsma (ORNL)
+!!    @param[in] ib  : left basestate
+!!    @param[in] jb  : right basestate
+!!    @param[in] id1 : index of initial matrix contribution
+!!    @param[in] id2 : index of final matrix contribution
+!!    @date    2016
       
       subroutine gronor_calculate(ib,jb,id1,id2)
 
@@ -364,5 +369,5 @@
       call timer_stop(37)
 
       return
-      end
+      end subroutine gronor_calculate
       

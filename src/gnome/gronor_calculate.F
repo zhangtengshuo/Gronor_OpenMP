@@ -1,4 +1,17 @@
-      subroutine gronor_calculate(ib,jb,id1,id2,lbuf)
+
+!>    @brief Driver for calculation Hamiltonian matrix elements
+!!    This routine calculates all Slater determinant contributions id1 to id2
+!!    for <ib|H|jb>, and is called by all worker ranks.
+!!    If the calling rank is part of a group of ranks assigned to calculating
+!!    this contribution, the head rank of the group has the accumulated result
+!!    upon exit of this routine.
+!!    @author T. P. Straatsma (ORNL)
+!!    @param[in] ib left basestate
+!!    @param[in] jb right basestate
+!!    @param[in] id1 initial matrix contribution
+!!    @param[in] id2 final matrix contribution
+      
+      subroutine gronor_calculate(ib,jb,id1,id2)
 
       use mpi
       use cidist
@@ -14,7 +27,7 @@
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
-      integer :: ib,jb,id1,id2,lbuf,ii,jj,ig0,ihc,nhc,ibl
+      integer :: ib,jb,id1,id2,ii,jj,ig0,ihc,nhc,ibl
 
       integer :: i,ibv,idet,iin,ij,j,jin,k,l2,m,n,nck,nop,nvc,indxx
       integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,index

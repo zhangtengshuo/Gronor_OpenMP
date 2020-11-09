@@ -1,3 +1,7 @@
+!>    Driver routine for worker ranks
+!!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
+!!    @author T. P. Straatsma (ORNL)
+      
       subroutine gronor_worker()
 
       use mpi
@@ -9,7 +13,6 @@
 #ifdef CUSOLVER
       use cusolverDn
       use cuda_cusolver
-c      use cuda_functions
       use cudafor
 #endif
 #ifdef MKL
@@ -419,7 +422,7 @@ CTPS  Point for start of data
          flush(lfndbg)
         endif
         call timer_start(47)
-        call gronor_calculate(ibase,jbase,idet,jdet,nbatch)
+        call gronor_calculate(ibase,jbase,idet,jdet)
         call timer_stop(47)
         buffer(3)=timer_wall(47)
         if(idbg.gt.2) then

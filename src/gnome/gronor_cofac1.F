@@ -1,3 +1,12 @@
+
+!> @brief
+!! Cofactor matrix evaluation and factorization
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+      
       subroutine gronor_cofac1(lfndbg)
       use cidist
       use gnome_parameters

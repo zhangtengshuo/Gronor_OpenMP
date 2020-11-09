@@ -1,3 +1,12 @@
+
+!> @brief
+!! Apply dynamic correlation correction
+!!     
+!! @author  C. de Graaf, URV
+!! @date    2020
+!!
+      
+      
       subroutine gronor_correlation_energy(
      &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout

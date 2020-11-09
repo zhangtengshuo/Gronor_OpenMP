@@ -1,3 +1,23 @@
+
+!> @brief
+!! Main driver routine for the master rank
+!!
+!! @author T. P. Straatsma, ORNL      
+!! @author C. de Graaf, URV
+!! @date 2016
+!!
+!! The master rank orchestrates the calculation by reponding to messages received 
+!! from worker ranks.
+!! The master rank requests matrix element contributions from worker ranks as tasks
+!! consisting of batches of contributions with user defined bacth size.
+!! When all tasks have been dispatched by the master rank, a duplicate of still outstanding
+!! tasks is sent to worker ranks requesting a new task. The master rank will ignore results
+!! from a worker rank if these results were already received from a different rank.
+!! This is the primary mechanism to achieve fault resiliency.
+!! A consequence of this implementation is that when all results have been received
+!! and the calculation has normally completed, the main program terminates with an MPI-Abort,
+!! rather than an MPI_Finalize. This avoids the job from hanging if a harware fault occurred. 
+      
       subroutine gronor_master()
 
       use mpi

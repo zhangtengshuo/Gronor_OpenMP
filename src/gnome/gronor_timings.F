@@ -1,3 +1,18 @@
+
+!> @brief
+!! Collect and print timings to the output file
+!!
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+!! The code is instrumented with timers to collect CPU and wall-clock times for the 
+!! computationally demanding parts of the calculation. These timings are presented for each 
+!! of the ranks used in the calculation.
+!! Because of the fault resilient implementation, the master ranks only waits for a limited 
+!! time for timning data from other ranks. In that case values of zero are reported for those
+!! ranks. This is not an error!
+!!
+ 
       subroutine gronor_timings(lfnout,lfnday)
 
       use mpi
@@ -5,7 +20,6 @@
       use gnome_parameters
 
       implicit none
-!tps#include 'mpif.h'
 
       integer :: lfnout,lfnday,i,j,ndone,idum
       external :: timer_wall_total,timer_calls

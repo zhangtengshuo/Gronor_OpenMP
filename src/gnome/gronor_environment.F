@@ -1,3 +1,11 @@
+
+!> @brief
+!! Setup the parallel computing environment
+!!     
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+    
       subroutine gronor_environment()
  
       use mpi

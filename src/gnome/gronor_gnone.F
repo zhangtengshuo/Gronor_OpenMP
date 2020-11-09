@@ -1,3 +1,19 @@
+
+!> @brief
+!! Processing the one-electron integrals
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+!! These routines come in two different forms
+!!
+!! <table>
+!! <caption id="multi_row">gntwo routines</caption>
+!! <tr><th> Routine name <th> OpenACC <th> OpenMP
+!! <tr><td> gronor_gntwo <td> \htmlonly &#x2714;\endhtmlonly <td>  
+!! <tr><td> gronor_gntwo_omp <td> <td> \htmlonly &#x2714;\endhtmlonly  
+!! </table>
+!!
+      
       subroutine gronor_gnone(lfndbg)
       use cidist
       use gnome_parameters

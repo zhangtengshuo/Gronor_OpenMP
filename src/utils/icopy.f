@@ -1,3 +1,7 @@
+!> @brief Strided copy routine
+!> @author Tjerk P. Straatsma
+
+      
       Subroutine icopy(n,src,ix,dest,iy)
 *
 * $Id: icopy.f 19707 2010-10-29 17:59:36Z d3y133 $

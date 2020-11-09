@@ -14,8 +14,6 @@
 
       implicit none
 
-!tps#include 'mpif.h'
-
       integer (kind=4) :: ierr
       integer :: i,ie,im,is,ke,km,ks,le,lm,ne,ig0,j,ni,ng,nz
       integer :: nm,ns,kl,k,ll,l,ls,nl,n,nn,igr,ngi,ngir

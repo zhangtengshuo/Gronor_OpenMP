@@ -1,4 +1,12 @@
 
+!> @brief
+!! GNOME input of sym file in Gamess format
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_gnome_symmetry_input_gamess
      & (lfnsym,lfnout,ipr)
       use cidist

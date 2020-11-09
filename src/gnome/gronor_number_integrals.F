@@ -1,4 +1,11 @@
 
+!> @brief
+!! Determine number of integrals
+!!     
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_number_integrals(numone,numtwo)
 
       use inp

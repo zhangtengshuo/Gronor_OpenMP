@@ -1,4 +1,12 @@
 
+!> @brief
+!! Cororb
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_cororb(lfndbg)
       use gnome_parameters
       use gnome_data
@@ -22,4 +30,4 @@
       enddo
 
       return
-      end
+      end subroutine gronor_cororb

@@ -1,4 +1,12 @@
 
+!> @brief
+!! Transformation of MOs
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
       subroutine gronor_tramat2(lfndbg)
 
 !      Transformation of the  m.o.'s

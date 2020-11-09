@@ -1,3 +1,13 @@
+
+!> @brief
+!! Transform vectors
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
+      
       subroutine gronor_transvc(lfndbg,idet)
       use cidist
       use gnome_data

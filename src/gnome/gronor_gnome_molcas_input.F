@@ -1,4 +1,12 @@
 
+!> @brief
+!! GNOME input of sym file
+!!     
+!! @author  R. Broer, RUG
+!! @author  T. P. Straatsma, ORNL
+!! @date    2016
+!!
+  
 
       subroutine gronor_gnome_molcas_input(lfnsym,lfnout,ipr)
       use gnome_data

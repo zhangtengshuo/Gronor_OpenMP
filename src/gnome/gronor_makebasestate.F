@@ -3,6 +3,7 @@
 !!
 !!  @author
 !!    Aitor Sanchez-Mansilla
+!!  @author
 !!    Coen de Graaf	
 !!
 !!  @todo
@@ -10,7 +11,7 @@
 !!    limits the number of active orbitals to 32	
 !!
 !!  @details
-!!    MEBF(ibase) is made by multplying state1 and state2
+!!    MEBF(ibase) is made by multiplying state1 and state2
 !!    First the vectors of the two state are combined, then
 !!    three scenarios are foreseen: 
 !!    (i) there is only one fragment,
@@ -529,6 +530,15 @@
       return
       end
       
+!> @brief
+!!    Construct the MEBFs from the fragment functions	
+!!
+!!  @author
+!!    Remco Havenith
+!!
+!!  @todo
+!!    To be replaced with gronor_make_basestate
+!!
       subroutine gronor_old_makebasestate
      &     (lfnout,civm,vecsm,ioccm,nbasm,nactm,
      &     inactm,idetm,maxci,maxvec,maxnact,mstates,

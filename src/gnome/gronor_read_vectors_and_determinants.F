@@ -1,7 +1,7 @@
 !> @brief   Read the CI coefficients and the vectors
 !!
-!! @detail  For the moment, both civ-files and det-files can be used.
-!! @detail  Duplicates are removed from the list of determinants by
+!! @details  For the moment, both civ-files and det-files can be used.
+!! @details  Duplicates are removed from the list of determinants by
 !!          remove_duplicates_fildet
 !! @author  Aitor Sanchez, URV
 !! @author  Coen de Graaf, URV

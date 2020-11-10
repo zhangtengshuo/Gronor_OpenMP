@@ -1,7 +1,10 @@
 !> @brief   Update the number of determinants for a monomer function
-!!          by the action of the S- operator 
-!! @author  Coen de Graaf, URV
-!! @date    November 2020
+!>          by the action of the S- operator 
+!> @author  Coen de Graaf, URV
+!> @date    November 2020
+!>
+!> @details Rough estimate to stay on the save side, duplicates are
+!>          not taken into account
 
       subroutine gronor_determine_nci()
 

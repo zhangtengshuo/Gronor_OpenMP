@@ -1,10 +1,27 @@
-
 !> @brief
-!! Apply dynamic correlation correction
-!!     
-!! @author  C. de Graaf, URV
-!! @date    2020
-!!
+!>    Adding the correlation energy of the fragment wave functions
+!>
+!> @authors
+!>    Kathir R.K., Remco H.A.W. Havenith (University of Groningen), Coen de Graaf (URV, Tarragona)
+!>
+!> @date
+!>    2019
+!>
+!> @details
+!>    After transforming the Hamiltion to an orthogonal basis, the diagonal
+!>    matrix elements are shifted by the previously calculated correlation
+!>    energy corrections as given by the user in the input (Ecorr). One can
+!>    either directly use the shifts as given in the input or take a linear
+!>    combination of shifts in line with the composition of the orthogonalized
+!>    MEBFs by means of the Gallup-Norbeck weights. After applying the shift
+!>    the Hamiltonian is transformed back to the original non-orthogonal basis.
+!>
+!> @param hbase orginal unshifted Hamiltonian
+!> @param sbase overlap matrix of the non-orthogonal MEBFs
+!> @param hcorr shifted Hamiltonian in non-orthogonal basis (at the end of the routine)
+!> @param wgn Gallup-Norbeck weights
+!> @param shft shifts applied on the diagonal of the orthogonalized Hamiltonian
+!> @param slow S^-1/2 matrix
       
       
       subroutine gronor_correlation_energy(

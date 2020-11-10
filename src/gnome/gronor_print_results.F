@@ -6,6 +6,10 @@
 !! @author  C. de Graaf, URV
 !! @date    2020
 !!
+!> @todo
+!>  Change the unformatted f75 file to formatted (with proper headers) 
+!>  and merge with f74, now written in gronor_main
+!>
 
       subroutine gronor_print_results(hbase,sbase,nbase)
       

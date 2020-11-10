@@ -7,7 +7,7 @@
 !! @author  C. de Graaf, ORNL
 !! @date    2016, 2020
 !!
-  
+!> @details  bound to disappear when old makebasestate is discontinued  
       
       subroutine productf
      &     (civm,ioccm,nactm,idetm,nmol,ncomb,civb,ioccb,

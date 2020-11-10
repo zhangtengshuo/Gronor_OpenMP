@@ -1,3 +1,21 @@
+!> @brief   Counts the number of determinants in each MEBF
+!>
+!> @details Going through the list of determinants of the fragment
+!>          wave function for each MEBF and decide if the product
+!>          (and the products of the different MS-components) is
+!>          above the threshold for being included in the calculation
+!>          of the Hamiltonian. Some additional checks on the consistency
+!>          of the input are made.
+!>          
+!>          
+!> @author  Coen de Graaf, URV
+!> @date    October 2020
+!>
+!> @todo    Decide whether we filter before or after multiplying with
+!>          the Clebsch-Gordon coefficient. This may substantially reduce
+!>          the number of determinants in the MEBF at the cost of possibly
+!>          introducing some spin contamination.
+!> 
       subroutine gronor_determine_maxcib
       use cidef
       use gnome_parameters
@@ -91,9 +109,9 @@
           deallocate(mspin,ndet_mspin,ci_mspin,occ_mspin)
         endif
         if(cib .eq. 0) then 
-          write(lfnout,1573) '   spin(1) = ',spin(1)
-          write(lfnout,1573) '   spin(2) = ',spin(2)
-          write(lfnout,1573) 'total spin = ',nspin
+          write(lfnout,1573) '   spin(1) = ',spin(1)+1
+          write(lfnout,1573) '   spin(2) = ',spin(2)+1
+          write(lfnout,1573) 'total spin = ',nspin+1
           write(lfnout,*) 'not possible'
           flush(lfnout)
           stop

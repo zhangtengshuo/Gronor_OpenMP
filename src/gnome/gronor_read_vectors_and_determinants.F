@@ -1,17 +1,21 @@
 !> @brief   Read the CI coefficients and the vectors
-!!
-!! @details  For the moment, both civ-files and det-files can be used.
-!! @details  Duplicates are removed from the list of determinants by
-!!          remove_duplicates_fildet
-!! @author  Aitor Sanchez, URV
-!! @author  Coen de Graaf, URV
-!! @date    October 2020
-!! @todo    Remove the possibility to read from civ files
-!! @param   idet_raw number of determinants for each monomer function
-!! @param   civ_raw  CI coefficients of the raw list of determinants
-!! @param   maxci_raw maximum number of raw determinants
-!! @param   occ_string ocupation string as read from the root_nnn.det
-!!          file
+!>
+!> @details For the moment, both civ-files and det-files can be used.
+!>          Duplicates are removed from the list of determinants by
+!>          remove_duplicates_fildet. Two linear combinations of
+!determinants
+!>          of two CSFs sharing the same orbital occupation (that is,
+!>          arising from the same electronic configuration) may contain
+!>          some determinants that are identical.
+!> @author  Aitor Sanchez, URV
+!> @author  Coen de Graaf, URV
+!> @date    October 2020
+!> @todo    Remove the possibility to read from civ files
+!> @param   idet_raw number of determinants for each monomer function
+!> @param   civ_raw  CI coefficients of the raw list of determinants
+!> @param   maxci_raw maximum number of raw determinants
+!> @param   occ_string ocupation string as read from the root_nnn.det
+!>          file
 
       subroutine gronor_read_vectors_and_determinants() 
 

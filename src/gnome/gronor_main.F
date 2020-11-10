@@ -4,6 +4,11 @@
 !! @author  Tjerk P. Straatsma, ORNL
 !! @author  Coen de Graaf, URV
 !! @date    2016
+!>
+!> @todo     Maybe we could take out some parts and put them in
+!>           separate subroutines. A subroutine for reading the
+!>           input would be nice (with some extra checks on 
+!>           input errors)
 
       subroutine gronor_main()
 

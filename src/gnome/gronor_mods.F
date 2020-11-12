@@ -227,8 +227,7 @@
 
       end module gnome_integrals
 
-!!!   #ifdef _OPENACC
-#if defined(_OL_ACC_) || defined(_OL_OMP_)
+#ifdef _OL_ACC_
       module cuda_functions
        use iso_c_binding
        interface

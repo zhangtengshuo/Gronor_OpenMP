@@ -6,7 +6,9 @@
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
+#include "tgt_guard.fh"
+      
       subroutine gronor_moover(lfndbg)
 
       use mpi
@@ -45,7 +47,7 @@
  602  format('  itypen icentn jtype jcent   icount      indbas     '
      &     ,' indbas         overlap',//)
       
-!$acc kernels present(ta,tb,s,vb)
+!_ACCTGT_($acc kernels present(ta,tb,s,vb))
       
       do iv=1,nvecb
         do ib=1,nbas
@@ -72,12 +74,12 @@
        enddo
       enddo
 
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       if(nalfa.ne.0) then
         
-!$acc kernels present(va,tb)
-        
+!_ACCTGT_($acc kernels present(va,tb))
+
         do ke=1,nalfa
           do ie=1,nalfa
             sum=0.0d0
@@ -88,7 +90,7 @@
           enddo
         enddo
 
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       endif
       
@@ -97,10 +99,10 @@
 
       if(ntcla.ne.0 .and. ntclb.ne.0) then
        
-!$acc parallel loop present(ta)
+!_ACCTGT_($acc parallel loop present(ta))
         do i=1,ntcla
           ii=i+nalfa
-!$acc loop vector    
+!_ACCTGT_($acc loop vector)
           do k=1,ntclb
             kk=k+nalfa
             ta(ii,kk)=ta(i,k)
@@ -116,7 +118,7 @@
       if(nveca.ne.nalfa) then
 
         if(ntclb.gt.0) then
-!$acc kernels present(va,ta,tb)
+!_ACCTGT_($acc kernels present(va,ta,tb))
           do k=1,ntclb
             kk=k+nalfa
             do i=m1,nveca
@@ -127,11 +129,11 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         endif
 
         if(nvecb.gt.nalfa) then
-!$acc kernels present(va,ta,tb)
+!_ACCTGT_($acc kernels present(va,ta,tb))
           do k=nalfa+1,nvecb
             kk=k+ntclb
             do i=m1,nveca
@@ -142,13 +144,13 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         endif
 
       endif
       
       if(nvecb.ne.nalfa .and. ntcla.ne.0) then
-!$acc kernels present(va,ta,tb)
+!_ACCTGT_($acc kernels present(va,ta,tb))
         do i=1,ntcla
           do k=m1,nvecb
             sum=0.0d0
@@ -158,19 +160,19 @@
             ta(i+nalfa,k+ntclb)=sum
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
       endif
 
 !     There are problems with svd if many off diagonal elements occur
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
 
-!$acc kernels present(ta)
+!_ACCTGT_($acc kernels present(ta))
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       return
       end
@@ -212,8 +214,6 @@
  602  format('  itypen icentn jtype jcent   icount      indbas     '
      &     ,' indbas         overlap',//)
       
-cc!$acc kernels present(ta,tb,s,vb)
-      
       do iv=1,nvecb
         do ib=1,nbas
           tb(ib,iv)=0.0d0
@@ -239,11 +239,7 @@ cc!$acc kernels present(ta,tb,s,vb)
        enddo
       enddo
 
-cc!$acc end kernels
-
       if(nalfa.ne.0) then
-        
-cc!$acc kernels present(va,tb)
         
         do ke=1,nalfa
           do ie=1,nalfa
@@ -255,8 +251,6 @@ cc!$acc kernels present(va,tb)
           enddo
         enddo
 
-cc!$acc end kernels
-
       endif
       
       
@@ -264,10 +258,8 @@ cc!$acc end kernels
 
       if(ntcla.ne.0 .and. ntclb.ne.0) then
        
-cc!$acc parallel loop present(ta)
         do i=1,ntcla
           ii=i+nalfa
-cc!$acc loop vector    
           do k=1,ntclb
             kk=k+nalfa
             ta(ii,kk)=ta(i,k)
@@ -283,7 +275,6 @@ cc!$acc loop vector
       if(nveca.ne.nalfa) then
 
         if(ntclb.gt.0) then
-cc!$acc kernels present(va,ta,tb)
           do k=1,ntclb
             kk=k+nalfa
             do i=m1,nveca
@@ -294,11 +285,9 @@ cc!$acc kernels present(va,ta,tb)
               ta(i+ntcla,kk)=sum
             enddo
           enddo
-cc!$acc end kernels
         endif
 
         if(nvecb.gt.nalfa) then
-cc!$acc kernels present(va,ta,tb)
           do k=nalfa+1,nvecb
             kk=k+ntclb
             do i=m1,nveca
@@ -309,13 +298,11 @@ cc!$acc kernels present(va,ta,tb)
               ta(i+ntcla,kk)=sum
             enddo
           enddo
-cc!$acc end kernels
         endif
 
       endif
       
       if(nvecb.ne.nalfa .and. ntcla.ne.0) then
-cc!$acc kernels present(va,ta,tb)
         do i=1,ntcla
           do k=m1,nvecb
             sum=0.0d0
@@ -325,19 +312,16 @@ cc!$acc kernels present(va,ta,tb)
             ta(i+nalfa,k+ntclb)=sum
           enddo
         enddo
-cc!$acc end kernels
       endif
 
 !     There are problems with svd if many off diagonal elements occur
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
 
-cc!$acc kernels present(ta)
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
         enddo
       enddo
-cc!$acc end kernels
 
       return
       end

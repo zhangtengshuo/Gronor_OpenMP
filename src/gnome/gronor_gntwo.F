@@ -19,7 +19,8 @@
 !! <tr><td> gronor_gntwo_omp_batch_mlab <td>  <td> \htmlonly &#x2714;\endhtmlonly <td>  <td>\htmlonly &#x2714;\endhtmlonly
 !! </table>
 !!
-      
+
+#include "tgt_guard.fh"
       
       subroutine gronor_gntwo(lfndbg)
 
@@ -82,12 +83,9 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-!$acc data create(sm)
-
       call timer_start(30)
       
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
-
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
       do i=1,nbas 
         do k=1,nbas
           tat(k,i)=ta(k,i)
@@ -101,7 +99,7 @@
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       call timer_stop(30)
 
@@ -112,8 +110,8 @@
         call timer_start(31)
         
         tst=ts
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
-!$acc loop reduction (+:tst)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab))
+!_ACCTGT_($acc loop reduction (+:tst))
         do intg=1,numint
           i=lab(1,intg)
           k=lab(2,intg)
@@ -125,7 +123,7 @@
      &         -aat(l,i)*aaa(n,k)-tt(l,i)*tat(n,k)
      &         -aaa(l,i)*aat(n,k)-tat(l,i)*tt(n,k))
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         ts=tst
 
         call timer_stop(31)
@@ -135,9 +133,9 @@
         call timer_start(34)
 
         e2t=e2
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g)
-!$acc& present(lab,diag,bdiag,bsdiag,csdiag)
-!$acc loop reduction (+:e2t)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g))
+!_ACCTGT_($acc& present(lab,diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc loop reduction (+:e2t))
         do intg=1,numint
           i=lab(1,intg) 
           k=lab(2,intg) 
@@ -171,7 +169,7 @@
      &         -bal*(aaa(l,i)*aak+aaa(l,k)*aai)
      &         -bbl*(tat(l,i)*abk+tat(l,k)*abi))
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         e2=e2t
 
         call timer_stop(34)
@@ -186,8 +184,6 @@
         memavail=min(memfre,memavail)
       endif
 #endif
-
-!$acc end data
 
       ts=ts*fourdet
       e2=e2+ts
@@ -258,11 +254,9 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-!$acc data create(sm)
-
       call timer_start(30)
       
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
 
       do i=1,nbas 
         do k=1,nbas
@@ -277,7 +271,7 @@
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       call timer_stop(30)
       
@@ -290,8 +284,8 @@
         tst=ts
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
-!$acc& copyin(kl,intndx,jntndx)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& copyin(kl,intndx,jntndx))
         do ii=intndx,jntndx
           do jj=ii,kl
             intg=ndx(ii)+jj
@@ -306,7 +300,7 @@
      &           -aaa(l,i)*aat(n,k)-tat(l,i)*tt(n,k))
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         ts=tst
 
         call timer_stop(31)
@@ -318,8 +312,8 @@
         e2t=e2
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx))
         do ii=intndx,jntndx
           do jj=ii,kl
             intg=ndx(ii)+jj
@@ -356,7 +350,7 @@
      &           -bbl*(tat(l,i)*abk+tat(l,k)*abi))
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         e2=e2t
 
         call timer_stop(34)
@@ -371,8 +365,6 @@
         memavail=min(memfre,memavail)
       endif
 #endif
-
-!$acc end data
 
       ts=ts*fourdet
       e2=e2+ts
@@ -455,29 +447,29 @@
 
       if(ising.gt.0) then
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       endif
-!$acc kernels present(aat,aaa,tt,ta)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -487,13 +479,13 @@
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     END ASSEMBLY ON GPU
       
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!$acc update self(ta,aaa,aat,tt)
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
 
       do k=1,nbas
         do i=1,nbas
@@ -517,24 +509,23 @@
       
       if(ihc.eq.nhc) then
 
-c!$acc update device(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
-!$acc update device(tatl,aaal,aatl,ttl,sml)
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
-!$acc data copyin(prefac)
+!_ACCTGT_($acc data copyin(prefac))
         
 c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
           call timer_start(31)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
@@ -547,7 +538,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
           call timer_stop(31)
         endif
@@ -556,8 +547,8 @@ c        if(nb0.gt.0.and.nb1.gt.0) then
 cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
 c          call timer_start(31)
 c
-c!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+c!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 c          do intg=1,numint
 c            i=lab(1,intg)
 c            k=lab(2,intg)
@@ -602,7 +593,7 @@ c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
 c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
 c            enddo
 c          enddo
-c!$acc end kernels
+c!_ACCTGT_($acc end kernels)
 c
 c          call timer_stop(31)
 c        endif
@@ -611,14 +602,14 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
           call timer_start(34)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
             l=lab(3,intg) 
             n=lab(4,intg)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
             do ibl=nhc-nb1+1,nhc
               etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -647,12 +638,12 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
     
           call timer_stop(34)
         endif
         
-!$acc end data
+!_ACCTGT_($acc end data)
 
       endif
 
@@ -734,29 +725,29 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       if(ising.gt.0) then
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       endif
-!$acc kernels present(aat,aaa,tt,ta)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -766,13 +757,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     END ASSEMBLY ON GPU
       
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!$acc update self(ta,aaa,aat,tt)
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
 
       do k=1,nbas
         do i=1,nbas
@@ -796,12 +787,11 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       
       if(ihc.eq.nhc) then
 
-c!$acc update device(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
-!$acc update device(tatl,aaal,aatl,ttl,sml)
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
-!$acc data copyin(prefac)
+!_ACCTGT_($acc data copyin(prefac))
         
 c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
@@ -809,7 +799,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -817,7 +807,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
               do ibl=1,nb0
                 etotb=etotb+g(intg)*
      &               prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
@@ -832,7 +822,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
               enddo
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
           call timer_stop(31)
         endif
@@ -843,8 +833,8 @@ c          call timer_start(31)
 c
 c       kl=nbas*(nbas+1)/2
 c       intg=0
-c!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
-c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+c!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 c       do ii=intndx,jntndx
 c         do jj=ii,kl
 c           intg=ndx(ii)+jj
@@ -891,7 +881,7 @@ c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
 c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
 c            enddo
 c          enddo
-c!$acc end kernels
+c!_ACCTGT_($acc end kernels)
 c
 c          call timer_stop(31)
 c        endif
@@ -902,8 +892,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -911,7 +901,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
               do ibl=nhc-nb1+1,nhc
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -941,12 +931,12 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               enddo
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
     
           call timer_stop(34)
         endif
         
-!$acc end data
+!_ACCTGT_($acc end data)
 
       endif
 

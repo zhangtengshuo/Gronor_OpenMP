@@ -11,13 +11,16 @@
       use mpi
       use cidist
 
-#ifdef _OPENACC
+#if defined(_OPENACC) || defined(_OL_ACC_)
       use openacc
-      use cuda_functions
 #endif
-#ifdef _OPENMP
+#if defined(_OPENMP) || defined(_OL_OMP_)
       use omp_lib
 #endif
+#if defined(_OPENACC) || defined(_OL_ACC_) || defined(_OL_OMP_)
+      use cuda_functions
+#endif
+      
 
       implicit none
 
@@ -63,11 +66,22 @@
       memfre=0
       memtot=0
       
-#ifdef _OPENACC
+#ifdef _OL_ACC_
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
 c      if(numdev.gt.1) then
 c       mydev=mod(me,numdev)
 c       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+c       cpfre=c_loc(memfre)
+c       cptot=c_loc(memtot)
+c       istat=cudaMemGetInfo(cpfre,cptot)
+c       memavail=memfre
+c      endif
+#endif
+#ifdef _OL_OMP_
+      numdev = omp_get_num_devices()
+c      if (numdev .gt. 1) then
+c       mydev=mod(me,numdev)
+c       call omp_set_default_device(mydev)
 c       cpfre=c_loc(memfre)
 c       cptot=c_loc(memtot)
 c       istat=cudaMemGetInfo(cpfre,cptot)

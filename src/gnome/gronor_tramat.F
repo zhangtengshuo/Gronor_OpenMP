@@ -6,7 +6,9 @@
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
+#include "tgt_guard.fh"
+      
       subroutine gronor_tramat(lfndbg)
 
 !      This routine mutiplies the input-matrix (a)
@@ -30,7 +32,7 @@
 
       m1=nalfa+1
 
-!$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
+!_ACCTGT_($acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2))
 
       do i=1,nelecs
        do j=1,nelecs
@@ -45,12 +47,12 @@
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+diag(k)*va(k,j)
          enddo
          if(ntcla .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+diag(kk)*va(k,j)
@@ -58,7 +60,7 @@
          endif
         endif
         if(nalfa .ne. nveca) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+diag(kk)*va(k,j)
@@ -80,12 +82,12 @@
        do i=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+va(k,i)*taa(k,j)
          enddo
          if(ntcla .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+va(k,i)*taa(kk,j)
@@ -93,7 +95,7 @@
          endif
         endif
         if(nalfa .ne. nveca) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+va(k,i)*taa(kk,j)
@@ -117,12 +119,12 @@
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+taa(i,k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+taa(i,kk)*vb(k,j)
@@ -130,7 +132,7 @@
          endif
         endif
         if(nalfa .ne. nvecb) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+taa(i,kk)*vb(k,j)
@@ -154,12 +156,12 @@
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+sdiag(k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+sdiag(kk)*vb(k,j)
@@ -167,7 +169,7 @@
          endif
         endif
         if(nalfa .ne. nvecb) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+sdiag(kk)*vb(k,j)
@@ -180,7 +182,7 @@
        enddo
       endif
 
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       return
       end
@@ -208,8 +210,6 @@
 
       m1=nalfa+1
 
-cc!$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
-
       do i=1,nelecs
        do j=1,nelecs
         taa(j,i)=ta(j,i)
@@ -223,12 +223,10 @@ cc!$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+diag(k)*va(k,j)
          enddo
          if(ntcla .ne. 0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+diag(kk)*va(k,j)
@@ -236,7 +234,6 @@ cc!$acc loop reduction(+:sum)
          endif
         endif
         if(nalfa .ne. nveca) then
-cc!$acc loop reduction(+:sum)
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+diag(kk)*va(k,j)
@@ -258,12 +255,10 @@ cc!$acc loop reduction(+:sum)
        do i=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-cc!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+va(k,i)*taa(k,j)
          enddo
          if(ntcla .ne. 0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+va(k,i)*taa(kk,j)
@@ -271,7 +266,6 @@ cc!$acc loop reduction(+:sum)
          endif
         endif
         if(nalfa .ne. nveca) then
-cc!$acc loop reduction(+:sum)
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+va(k,i)*taa(kk,j)
@@ -295,12 +289,10 @@ cc!$acc loop reduction(+:sum)
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-cc!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+taa(i,k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+taa(i,kk)*vb(k,j)
@@ -308,7 +300,6 @@ cc!$acc loop reduction(+:sum)
          endif
         endif
         if(nalfa .ne. nvecb) then
-cc!$acc loop reduction(+:sum)
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+taa(i,kk)*vb(k,j)
@@ -332,12 +323,10 @@ cc!$acc loop reduction(+:sum)
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+sdiag(k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+sdiag(kk)*vb(k,j)
@@ -345,7 +334,6 @@ cc!$acc loop reduction(+:sum)
          endif
         endif
         if(nalfa .ne. nvecb) then
-cc!$acc loop reduction(+:sum)
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+sdiag(kk)*vb(k,j)
@@ -357,8 +345,6 @@ cc!$acc loop reduction(+:sum)
         sdiag(j)=w1(j)
        enddo
       endif
-
-cc!$acc end kernels
 
       return
       end

@@ -1,6 +1,8 @@
 !>    Driver routine for worker ranks
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)
+
+#include "tgt_guard.fh"
       
       subroutine gronor_worker()
 
@@ -150,17 +152,17 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
 #ifdef CUSOLVERJ
         if(isolver.eq.1) then
 #endif
-!$acc data copyin(w,ta) create(dev_info_d)
+!_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
        
-!$acc host_data use_device(ta)
+!_ACCTGT_($acc host_data use_device(ta))
           cusolver_status = cusolverDnDgesvd_bufferSize
      &         (cusolver_handle,ndim,ndim,worksize)
-!$acc end host_data
+!_ACCTGT_($acc end host_data)
 
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
-!$acc end data   
+!_ACCTGT_($acc end data)
 #ifdef CUSOLVERJ
         elseif(isolver.eq.2) then
           
@@ -171,8 +173,8 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           
           jobz=CUSOLVER_EIG_MODE_VECTOR
         
-!$acc data create(dev_info_d,u,w,ev,ta)
-        
+!_ACCTGT_($acc data create(dev_info_d,u,w,ev,ta))
+
           cusolver_status = cudaStreamCreateWithFlags
      &         (stream,cudaStreamNonBlocking)
           
@@ -186,40 +188,40 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           cusolver_status = cusolverDnXgesvdjSetMaxSweeps
      &         (gesvdj_params,max_sweeps)
 
-!$acc host_data use_device(ta,ev,u,w)
-          
+!_ACCTGT_($acc host_data use_device(ta,ev,u,w))
+
           cusolver_status = cusolverDnDgesvdj_bufferSize
      &         (cusolver_handle,jobz,econ,
      &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,worksize,
      &         gesvdj_params)
         
-!$acc end host_data
-          
+!_ACCTGT_($acc end host_data)
+
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDgesvdj_bufferSize failed",
      &         cusolver_status
 
-!$acc end data
+!_ACCTGT_($acc end data)
         endif
 #endif
 
 #ifdef CUSOLVERJ
         if(jsolver.eq.1) then
 #endif
-!$acc data copyin(w,ta) create(dev_info_d)
-       
-!$acc host_data use_device(ta,w)
+!_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
+
+!_ACCTGT_($acc host_data use_device(ta,w))
           cusolver_status = cusolverDnDsyevd_bufferSize
      &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &         CUBLAS_FILL_MODE_LOWER,
      &         ndim,ta,mdim,w,worksize2)
-!$acc end host_data
+!_ACCTGT_($acc end host_data)
 
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDsyevd_bufferSize failed",
      &         cusolver_status
 
-!$acc end data
+!_ACCTGT_($acc end data)
 #ifdef CUSOLVERJ         
         elseif(jsolver.eq.2) then
 
@@ -233,8 +235,8 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           jobz = CUSOLVER_EIG_MODE_NOVECTOR
           uplo = CUBLAS_FILL_MODE_LOWER
         
-!$acc data create(dev_info_d,w,ta,ev)
-        
+!_ACCTGT_($acc data create(dev_info_d,w,ta,ev))
+
           cusolver_status = cudaStreamCreateWithFlags
      &         (stream,cudaStreamNonBlocking)
           
@@ -248,20 +250,20 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
           cusolver_status = cusolverDnXsyevjSetMaxSweeps
      &         (syevj_params,max_sweeps)
 
-!$acc host_data use_device(ta,w)
-          
+!_ACCTGT_($acc host_data use_device(ta,w))
+  
           cusolver_status = cusolverDnDsyevj_bufferSize
      &         (cusolver_handle,jobz,uplo,
      &         ndim,ta,mdim,ev,worksize2,
      &         syevj_params)
         
-!$acc end host_data
-          
+!_ACCTGT_($acc end host_data)
+
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDsyevj_bufferSize failed",
      &         cusolver_status
 
-!$acc end data
+!_ACCTGT_($acc end data)
           
         endif
 #endif

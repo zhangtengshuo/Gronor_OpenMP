@@ -6,6 +6,8 @@
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
+
+#include "tgt_guard.fh"
       
       subroutine gronor_cofac1(lfndbg)
       use cidist
@@ -40,21 +42,21 @@
        jobu = 'A'  ! all m columns of U
        jobvt= 'A'  ! all m columns of VT
 
-!$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
+!_ACCTGT_($acc data copy(dev_info_d) create(temp,workspace_d,rwork))
        
-!$acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork)
+!_ACCTGT_($acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork))
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
      &      ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
      &      worksize,rwork,dev_info_d)
-!$acc end host_data
-!$acc wait
+!_ACCTGT_($acc end host_data)
+!_ACCTGT_($acc wait)
 
        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &      write(*,*) 'cusolverDnDgesvd failed',cusolver_status
 
       call timer_start(42)
       
-!$acc kernels present(temp,u,w,ta)
+!_ACCTGT_($acc kernels present(temp,u,w,ta))
       do i=1,nelecs
         do j=1,nelecs
           temp(i,j)=w(j,i)
@@ -66,10 +68,10 @@
         enddo
       enddo
       do i=1,nelecs
-!$acc loop vector
+!_ACCTGT_($acc loop vector)
         do j=1,i
           coef=0.0d0
-!$acc loop seq
+!_ACCTGT_($acc loop seq)
           do k=1,nelecs
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
@@ -77,11 +79,11 @@
           ta(j,i)=coef
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       call timer_stop(42)
       
-!$acc end data
+!_ACCTGT_($acc end data)
 #ifdef CUSOLVERJ
       elseif(isolver.eq.2) then
 
@@ -89,17 +91,17 @@
         
 !     here the Jacobi svd from cusolver should be implemented
         
-!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
+!_ACCTGT_($acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp))
 
-!$acc host_data
-!$acc& use_device(ta,ev,u,w,dev_info_d,workspace_d)
+!_ACCTGT_($acc host_data)
+!_ACCTGT_($acc& use_device(ta,ev,u,w,dev_info_d,workspace_d))
 
         cusolver_status=cusolverDnDgesvdj
      &       (cusolver_handle,jobz,econ,
      &       ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
      &       worksize,dev_info_d,gesvdj_params)
         
-!$acc end host_data
+!_ACCTGT_($acc end host_data)
 
         cusolver_status=cudaDeviceSynchronize()
         
@@ -113,12 +115,12 @@
 
         call timer_start(42)
      
-!$acc kernels present(u,w,ta)
+!_ACCTGT_($acc kernels present(u,w,ta))
         do i=1,nelecs
-!$acc loop vector
+!_ACCTGT_($acc loop vector)
           do j=1,i
             coef=0.0d0
-!$acc loop seq
+!_ACCTGT_($acc loop seq)
             do k=1,nelecs
               coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
             enddo
@@ -126,26 +128,26 @@
             ta(j,i)=coef
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
         call timer_stop(42)
         
-!$acc end data
+!_ACCTGT_($acc end data)
 
       else
 #endif
 
-!$acc update host (ta)
+!_ACCTGT_($acc update host (ta))
 
         call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &       ierr,sdiag,nelecs)
         
-!$acc update device (ev,u,w)
+!_ACCTGT_($acc update device (ev,u,w))
        
        call timer_start(42)
        
-!$acc kernels present(u,w,ta)
+!_ACCTGT_($acc kernels present(u,w,ta))
        do i=1,nelecs
          do j=1,i
            coef=0.0d0
@@ -156,7 +158,7 @@
            ta(j,i)=coef
          enddo
        enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
        call timer_stop(42)
        
@@ -164,17 +166,17 @@
 
 #else
       
-!$acc update host (ta)
+!_ACCTGT_($acc update host (ta))
       
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &     ierr,sdiag,nelecs)
       
-!$acc update device (ev,u,w)
+!_ACCTGT_($acc update device (ev,u,w))
       
       call timer_start(42)
       
-!$acc kernels present(u,w,ta)
+!_ACCTGT_($acc kernels present(u,w,ta))
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -185,7 +187,7 @@
           ta(j,i)=coef
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
       
       call timer_stop(42)
 
@@ -204,8 +206,8 @@
       
 #ifdef CUSOLVER
 
-!$acc data copy(dev_info_d)
-!$acc& create(workspace_d)
+!_ACCTGT_($acc data copy(dev_info_d))
+!_ACCTGT_($acc& create(workspace_d))
       
       if(jsolver.eq.1) then
         
@@ -214,24 +216,24 @@
         
         call timer_start(43)
 
-!$acc wait
-!$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
+!_ACCTGT_($acc wait)
+!_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
      &       ndim,ta,mdim,diag,workspace_d,worksize2,dev_info_d)
-!$acc end host_data
-!$acc wait
+!_ACCTGT_($acc end host_data)
+!_ACCTGT_($acc wait)
 
        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       write(*,*) 'cusolverDnDsyevd failed',cusolver_status
        
         call timer_stop(43)
 
-!$acc kernels present(sdiag)
+!_ACCTGT_($acc kernels present(sdiag))
         do i=1,ndim
           sdiag(i)=0.0d0
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 #ifdef CUSOLVERJ
       elseif(jsolver.eq.2) then
@@ -244,13 +246,13 @@
           
         call timer_start(43)
 
-!$acc data copy(dev_info_d,syevj_params) create(workspace_d)
+!_ACCTGT_($acc data copy(dev_info_d,syevj_params) create(workspace_d))
 
-!$acc host_data use_device(ta,diag,dev_info_d,workspace_d)
+!_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevj
      &       (cusolver_handle, jobz, uplo, ndim,ta,mdim,diag,
      &       workspace_d,worksize2,dev_info_d,syevj_params)
-!$acc end host_data
+!_ACCTGT_($acc end host_data)
 
         cusolver_status=cudaDeviceSynchronize()
         
@@ -259,18 +261,18 @@
        
         call timer_stop(43)
 
-!$acc kernels present(sdiag)
+!_ACCTGT_($acc kernels present(sdiag))
         do i=1,ndim
           sdiag(i)=0.0d0
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         
-!$acc end data
+!_ACCTGT_($acc end data)
         
 #endif
       else
 
-!$acc update host (ta)
+!_ACCTGT_($acc update host (ta))
 
         call timer_start(43)
         call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
@@ -280,15 +282,15 @@
      &       max(mbasel,nveca),ierr)
         call timer_stop(43)
       
-!$acc update device (ta,diag,sdiag)
+!_ACCTGT_($acc update device (ta,diag,sdiag))
 
       endif
        
-!$acc end data
+!_ACCTGT_($acc end data)
 
 #else
       
-!$acc update host (ta)
+!_ACCTGT_($acc update host (ta))
 
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
@@ -298,20 +300,20 @@
      &     max(mbasel,nveca),ierr)
       call timer_stop(43)
 
-!$acc update device (ta,diag,sdiag)
+!_ACCTGT_($acc update device (ta,diag,sdiag))
 
 #endif
       
       call timer_start(44)
-!$acc kernels present(diag)
+!_ACCTGT_($acc kernels present(diag))
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       cmax=0.0d0
       
-!$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
+!_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,ev))
 !     calculation of det(a) and x and y
       do i=1,nelecs
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
@@ -320,7 +322,7 @@
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       if(cmax.le.0.01) stop 'no overlap between m.o.s'
 
@@ -330,7 +332,7 @@
       nz2=0
       deta=0.0d0
 
-!$acc update host(ev)
+!_ACCTGT_($acc update host(ev))
       
       do i=1,nelecs
         coefu=ev(i)
@@ -354,7 +356,7 @@
           deta=coef
           ising=0
 
-!$acc kernels present(ta,u,w,ev)
+!_ACCTGT_($acc kernels present(ta,u,w,ev))
           do i=1,nelecs
             do j=1,nelecs
               coefu=0.0d0
@@ -364,14 +366,14 @@
               ta(i,j)=coefu*0.5d0
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
           call timer_stop(44)
           return
           ising=1
         endif
 
-!$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
+!_ACCTGT_($acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag))
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -387,7 +389,7 @@
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
       
         call timer_stop(44)
         return
@@ -396,7 +398,7 @@
       if(abs(coef).lt.thresh_SIN) then
         ising=3
       else
-!$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
+!_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta))
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -409,7 +411,7 @@
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
       
         call timer_stop(44)
         return

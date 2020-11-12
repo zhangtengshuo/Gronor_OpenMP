@@ -10,6 +10,8 @@
 !>           input would be nice (with some extra checks on 
 !>           input errors)
 
+#include "tgt_guard.fh"
+
       subroutine gronor_main()
 
 !>    Initialization of the calculation
@@ -1802,7 +1804,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             
-!$acc data copyin(g,lab,ndx,t,v,ndxtv)
+!_ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv))
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1810,7 +1812,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             call gronor_worker()
-!$acc end data
+!_ACCTGT_($acc end data)
 
           else
             lwork=10

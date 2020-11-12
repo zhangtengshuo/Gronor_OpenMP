@@ -76,6 +76,7 @@ else ()
       
 option (MPI "Enable MPI parallellization." ON)
 option (OPENACC "Enable OPENACC off-loading." OFF)
+option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
 option (OPENMP "Enable multi-threading." OFF)
 option (CUSOLVER "Enable CUSOLVER library." OFF)
 option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
@@ -664,7 +665,15 @@ if (BOUNDS)
 endif ()
 
 if(OPENACC)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+endif()
+
+if(_OL_ACC_)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+endif()
+
+if(_OL_OMP_)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -D_OL_OMP_")
 endif()
 
 if(OPENOMP)

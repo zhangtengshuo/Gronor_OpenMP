@@ -1011,21 +1011,23 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       call timer_start(30)
 
-!$omp parallel do collapse(2)
+!$omp parallel firstprivate(nbas)
+!$omp do collapse(2)
       do i=1,nbas 
        do k=1,nbas 
         tt(i,k)=ta(k,i)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
-!$omp end parallel do
-!$omp parallel do collapse(2)
+!$omp end do
+!$omp do collapse(2)
       do i=1,nbas 
        do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
        enddo
-!$omp end parallel do
+!$omp end do
+!$omp end parallel
 
       call timer_stop(30)
 

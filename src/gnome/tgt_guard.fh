@@ -2,7 +2,7 @@
 #define __TGT_GUARD_H__
 
 #ifdef _OL_OMP_
-#define _OMPTGT_(dirstring) $omp dirstring
+#define _OMPTGT_(dirstring) dirstring
 #else
 #define _OMPTGT_(dirstring) OpenMP_target_disabled
 #endif

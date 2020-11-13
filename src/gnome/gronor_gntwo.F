@@ -1036,8 +1036,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
        call timer_start(32)
 
 !$omp parallel do reduction(+:ts)
-!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n)
+!$omp& shared(sm,aat,aaa,tt,ta,g,lab)
+!$omp& private(intg,i,k,l,n) firstprivate(numint)
        do intg=1,numint
         i=lab(1,intg)
         k=lab(2,intg)
@@ -1058,9 +1058,10 @@ c        if(nb0.le.0.and.nb1.gt.0) then
        call timer_start(35)
 
 !$omp parallel do reduction(+:e2)
-!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
+!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab)
 !$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
 !$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp& firstprivate(numint)
        do intg=1,numint
         i=lab(1,intg) 
         k=lab(2,intg) 
@@ -1179,8 +1180,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
        kl=nbas*(nbas+1)/2
        intg=0
 !$omp parallel do reduction(+:ts)
-!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n)
+!$omp& shared(sm,aat,aaa,tt,ta,g,lab)
+!$omp& private(intg,i,k,l,n) firstprivate(kl,intndx,jntndx)
        do ii=intndx,jntndx
          i=lab(1,ii)
          k=lab(2,ii)
@@ -1207,9 +1208,10 @@ c        if(nb0.le.0.and.nb1.gt.0) then
        kl=nbas*(nbas+1)/2
        intg=0
 !$omp parallel do reduction(+:e2)
-!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
+!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab)
 !$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
 !$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp& firstprivate(kl,intndx,jntndx)
        do ii=intndx,jntndx
          i=lab(1,ii)
          k=lab(2,ii)
@@ -1386,8 +1388,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(32)
 
 !$omp parallel do reduction(+:etotb)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
 !$omp& private(intg,i,k,l,n,ibl)
+!$omp& firstprivate(kl,numint,nb0,intndx,jntndx)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -1417,8 +1420,8 @@ c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
           call timer_start(36)
 !$omp parallel do reduction(+:etotb)
 !$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
-!$omp& private(intg,i,k,l,n,ibl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
+!$omp& private(intg,i,k,l,n,ibl) firstprivate(numint,nb0,nhc,nb1)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -1471,8 +1474,8 @@ c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
           call timer_start(35)
 !$omp parallel do reduction(+:etotb)
 !$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
-!$omp& private(intg,i,k,l,n,ibl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
+!$omp& private(intg,i,k,l,n,ibl) firstprivate(kl,numint,nb0,nhc,nb1)
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
@@ -1642,7 +1645,7 @@ c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
 
 !$omp parallel do reduction(+:etotb)
 !$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab)
-!$omp& private(i,k,m,l,n,intg)
+!$omp& private(i,k,m,l,n,intg) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
             i=lab(1,ii)
             k=lab(2,ii)
@@ -1676,7 +1679,7 @@ c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
 
 !$omp parallel do reduction(+:etotb)
 !$omp& shared(sml,aatl,aaal,ttl,tatl,diagl,csdiagl,bdiagl,bsdiagl,g,lab)
-!$omp& private(intg,i,k,l,n,m)
+!$omp& private(intg,i,k,l,n,m) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
             i=lab(1,ii)
             k=lab(2,ii)
@@ -1736,7 +1739,7 @@ c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
 
 !$omp parallel do reduction(+:etotb)
 !$omp& shared(sml,aatl,aaal,ttl,tatl,diagl,csdiagl,bdiagl,bsdiagl,g,lab)
-!$omp& private(intg,i,k,l,n,m)
+!$omp& private(intg,i,k,l,n,m) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
             i=lab(1,ii)
             k=lab(2,ii)

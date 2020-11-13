@@ -37,6 +37,7 @@
 !_ACCTGT_($acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv))
       if(ising.eq.0) then
 !_ACCTGT_($acc loop reduction(+:tsum,vsum))
+!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
@@ -52,6 +53,7 @@
         enddo
       else
 !_ACCTGT_($acc loop reduction(+:tsum,vsum))
+!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0

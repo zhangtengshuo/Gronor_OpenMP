@@ -86,6 +86,7 @@
       call timer_start(30)
       
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           tat(k,i)=ta(k,i)
@@ -93,7 +94,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-      
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
@@ -112,6 +113,8 @@
         tst=ts
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab))
 !_ACCTGT_($acc loop reduction (+:tst))
+!_OMPTGT_($omp taskwait)
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:tst))
         do intg=1,numint
           i=lab(1,intg)
           k=lab(2,intg)
@@ -136,6 +139,7 @@
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g))
 !_ACCTGT_($acc& present(lab,diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc loop reduction (+:e2t))
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:e2t))
         do intg=1,numint
           i=lab(1,intg) 
           k=lab(2,intg) 
@@ -257,7 +261,7 @@
       call timer_start(30)
       
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           tat(k,i)=ta(k,i)
@@ -265,7 +269,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-      
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))      
       do i=1,nbas 
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
@@ -286,6 +290,8 @@
         intg=0
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
 !_ACCTGT_($acc& copyin(kl,intndx,jntndx))
+!_OMPTGT_($omp taskwait)
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:tst))
         do ii=intndx,jntndx
           do jj=ii,kl
             intg=ndx(ii)+jj
@@ -314,6 +320,7 @@
         intg=0
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
 !_ACCTGT_($acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx))
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:e2t))
         do ii=intndx,jntndx
           do jj=ii,kl
             intg=ndx(ii)+jj
@@ -449,6 +456,7 @@
 
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
@@ -459,6 +467,7 @@
 
       endif
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
@@ -470,6 +479,7 @@
 !     ASSEMBLE ARRAYS ON GPU
       
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -486,6 +496,7 @@
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
 !_ACCTGT_($acc update self(ta,aaa,aat,tt))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
 
       do k=1,nbas
         do i=1,nbas
@@ -510,16 +521,18 @@
       if(ihc.eq.nhc) then
 
 !_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
 !_ACCTGT_($acc data copyin(prefac))
-        
-c        if(nb0.gt.0.and.nb1.le.0) then
+!_OMPTGT_($omp target data map(to:prefac))        
+
         if(nb0.gt.0) then
           call timer_start(31)
 
 !_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_OMPTGT_($omp target teams distribute parallel do)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -604,6 +617,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
@@ -644,7 +658,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         endif
         
 !_ACCTGT_($acc end data)
-
+!_OMPTGT_($omp end target data)
       endif
 
       call timer_stop(38)
@@ -727,6 +741,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
@@ -737,6 +752,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       endif
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
@@ -748,6 +764,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 !     ASSEMBLE ARRAYS ON GPU
       
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -764,7 +781,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
 !_ACCTGT_($acc update self(ta,aaa,aat,tt))
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -792,6 +809,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         etotb=0.0d0
         
 !_ACCTGT_($acc data copyin(prefac))
+!_OMPTGT_($omp target data map(to:prefac))
         
 c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
@@ -800,6 +818,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
           kl=nbas*(nbas+1)/2
           intg=0
 !_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_OMPTGT_($omp target teams distribute parallel do)
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -894,6 +913,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           intg=0
 !_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -937,7 +957,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         endif
         
 !_ACCTGT_($acc end data)
-
+!_OMPTGT_($omp end target data)
       endif
 
       call timer_stop(38)

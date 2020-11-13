@@ -49,12 +49,14 @@
       
 !_ACCTGT_($acc kernels present(ta,tb,s,vb))
       
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do iv=1,nvecb
         do ib=1,nbas
           tb(ib,iv)=0.0d0
         enddo
       enddo
 
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
       do iv=1,nvecb
         do ib=1,nbas
           sum=0.0d0
@@ -68,6 +70,7 @@
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do le=1,nelecs
         do ie=1,nelecs
           ta(ie,le)=0.0d0
@@ -80,6 +83,7 @@
         
 !_ACCTGT_($acc kernels present(va,tb))
 
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do ke=1,nalfa
           do ie=1,nalfa
             sum=0.0d0
@@ -100,6 +104,7 @@
       if(ntcla.ne.0 .and. ntclb.ne.0) then
        
 !_ACCTGT_($acc parallel loop present(ta))
+!_OMPTGT_($omp target teams distribute parallel do private(ii))
         do i=1,ntcla
           ii=i+nalfa
 !_ACCTGT_($acc loop vector)
@@ -119,6 +124,7 @@
 
         if(ntclb.gt.0) then
 !_ACCTGT_($acc kernels present(va,ta,tb))
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
           do k=1,ntclb
             kk=k+nalfa
             do i=m1,nveca
@@ -134,6 +140,7 @@
 
         if(nvecb.gt.nalfa) then
 !_ACCTGT_($acc kernels present(va,ta,tb))
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
           do k=nalfa+1,nvecb
             kk=k+ntclb
             do i=m1,nveca
@@ -151,6 +158,7 @@
       
       if(nvecb.ne.nalfa .and. ntcla.ne.0) then
 !_ACCTGT_($acc kernels present(va,ta,tb))
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do i=1,ntcla
           do k=m1,nvecb
             sum=0.0d0
@@ -167,6 +175,7 @@
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
 
 !_ACCTGT_($acc kernels present(ta))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0

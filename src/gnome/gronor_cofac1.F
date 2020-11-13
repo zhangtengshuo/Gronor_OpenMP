@@ -138,16 +138,17 @@
 #endif
 
 !_ACCTGT_($acc update host (ta))
-
+!_OMPTGT_($omp target update from(ta))
         call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &       ierr,sdiag,nelecs)
-        
 !_ACCTGT_($acc update device (ev,u,w))
+!_OMPTGT_($omp target update to(ev,u,w))
        
        call timer_start(42)
        
 !_ACCTGT_($acc kernels present(u,w,ta))
+!_OMPTGT_($omp target teams distribute parallel do private(coef))
        do i=1,nelecs
          do j=1,i
            coef=0.0d0
@@ -167,16 +168,16 @@
 #else
       
 !_ACCTGT_($acc update host (ta))
-      
+!_OMPTGT_($omp target update from(ta))      
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
-     &     ierr,sdiag,nelecs)
-      
+     &     ierr,sdiag,nelecs)      
 !_ACCTGT_($acc update device (ev,u,w))
-      
+!_OMPTGT_($omp target update to(ev,u,w))     
       call timer_start(42)
       
 !_ACCTGT_($acc kernels present(u,w,ta))
+!_OMPTGT_($omp target teams distribute parallel do private(coef))
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -273,17 +274,15 @@
       else
 
 !_ACCTGT_($acc update host (ta))
-
+!_OMPTGT_($omp target update from(ta))
         call timer_start(43)
         call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
      &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-        
         call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &       max(mbasel,nveca),ierr)
         call timer_stop(43)
-      
 !_ACCTGT_($acc update device (ta,diag,sdiag))
-
+!_OMPTGT_($omp target update to(ta,diag,sdiag))
       endif
        
 !_ACCTGT_($acc end data)
@@ -291,21 +290,21 @@
 #else
       
 !_ACCTGT_($acc update host (ta))
-
+!_OMPTGT_($omp target update from(ta))
       call timer_start(43)
       call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
      &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-
       call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
      &     max(mbasel,nveca),ierr)
       call timer_stop(43)
-
 !_ACCTGT_($acc update device (ta,diag,sdiag))
+!_OMPTGT_($omp target update to(ta,diag,sdiag))
 
 #endif
       
       call timer_start(44)
 !_ACCTGT_($acc kernels present(diag))
+!_OMPTGT_($omp target teams distribute parallel do)
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
@@ -314,10 +313,12 @@
       cmax=0.0d0
       
 !_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,ev))
+!_OMPTGT_($omp target teams distribute parallel do)
 !     calculation of det(a) and x and y
       do i=1,nelecs
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
+!_OMPTGT_($omp target teams distribute parallel do)
       do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
@@ -333,7 +334,8 @@
       deta=0.0d0
 
 !_ACCTGT_($acc update host(ev))
-      
+!_OMPTGT_($omp target update from(ev))    
+
       do i=1,nelecs
         coefu=ev(i)
         if(abs(coefu) .le. cnorm) then
@@ -374,6 +376,7 @@
         endif
 
 !_ACCTGT_($acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag))
+!_OMPTGT_($omp target teams distribute parallel do private(coefu))
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -385,6 +388,7 @@
             ta(i,j)=coefu
           enddo
         enddo
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
@@ -399,6 +403,7 @@
         ising=3
       else
 !_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta))
+!_OMPTGT_($omp target teams distribute parallel do private(coefu))
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -407,6 +412,7 @@
             ta(i,j)=coefu*w(j,nz2)
           enddo
         enddo
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)

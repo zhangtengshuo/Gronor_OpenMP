@@ -227,7 +227,7 @@
 
       end module gnome_integrals
 
-#ifdef _OL_ACC_
+#ifdef CUDA
       module cuda_functions
        use iso_c_binding
        interface

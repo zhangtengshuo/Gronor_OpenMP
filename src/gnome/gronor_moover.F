@@ -55,6 +55,7 @@
           tb(ib,iv)=0.0d0
         enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !_OMPTGT_($omp target teams distribute parallel do private(sum))
       do iv=1,nvecb
@@ -66,6 +67,7 @@
           tb(ib,iv)=tb(ib,iv)+sum
         enddo
       enddo
+!_OMPTGT_($omp end target)
       
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
@@ -76,6 +78,7 @@
           ta(ie,le)=0.0d0
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !_ACCTGT_($acc end kernels)
 
@@ -93,6 +96,7 @@
             ta(ie,ke)=sum
           enddo
         enddo
+!_OMPTGT_($omp end target)
 
 !_ACCTGT_($acc end kernels)
 
@@ -113,6 +117,7 @@
             ta(ii,kk)=ta(i,k)
           enddo
         enddo
+!_OMPTGT_($omp end target)
       
       endif
       
@@ -136,6 +141,7 @@
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
         endif
 
         if(nvecb.gt.nalfa) then
@@ -152,6 +158,7 @@
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
         endif
 
       endif
@@ -169,6 +176,7 @@
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
       endif
 
 !     There are problems with svd if many off diagonal elements occur
@@ -182,6 +190,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
       return
       end

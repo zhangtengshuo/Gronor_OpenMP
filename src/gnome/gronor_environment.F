@@ -17,7 +17,7 @@
 #if defined(_OPENMP) || defined(_OL_OMP_)
       use omp_lib
 #endif
-#if defined(_OPENACC) || defined(_OL_ACC_) || defined(_OL_OMP_)
+#if defined(_OPENACC) || defined(_OL_ACC_)
       use cuda_functions
 #endif
       

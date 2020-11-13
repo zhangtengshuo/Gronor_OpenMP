@@ -39,6 +39,7 @@
         taa(j,i)=ta(j,i)
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
       if(ising.ne.0) then
 
@@ -68,6 +69,7 @@
         endif
         w1(j)=sum
       enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
        do j=1,nbas
         diag(j)=w1(j)
@@ -106,6 +108,7 @@
         w2(i,j)=sum
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !     put w in the work-matrix (aa)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
@@ -114,6 +117,7 @@
         taa(i,j)=w2(i,j)
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !     calculation of the final matrix aa
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
@@ -143,6 +147,7 @@
         w2(i,j)=sum
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !     put w back in the work-matrix aa
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
@@ -151,6 +156,7 @@
         taa(i,j)=w2(i,j)
        enddo
       enddo
+!_OMPTGT_($omp end target)
 
 !        transformation of sdiag
       if(ising.ne.0) then
@@ -179,6 +185,7 @@
         endif
         w1(j)=sum
       enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
        do j=1,nbas
         sdiag(j)=w1(j)

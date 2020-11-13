@@ -94,6 +94,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
@@ -101,7 +102,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-
+!_OMPTGT_($omp end target)
       call timer_stop(30)
 
       call timer_start(38)
@@ -269,6 +270,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))      
       do i=1,nbas 
         do k=1,nbas
@@ -276,6 +278,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
       call timer_stop(30)
       
@@ -307,6 +310,7 @@
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
         ts=tst
 
         call timer_stop(31)
@@ -358,6 +362,7 @@
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
         e2=e2t
 
         call timer_stop(34)
@@ -475,6 +480,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
 !     ASSEMBLE ARRAYS ON GPU
       
@@ -490,6 +496,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
 !     END ASSEMBLY ON GPU
       
@@ -552,6 +559,7 @@
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
           call timer_stop(31)
         endif
@@ -653,6 +661,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
     
           call timer_stop(34)
         endif
@@ -760,6 +769,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
 !     ASSEMBLE ARRAYS ON GPU
       
@@ -775,13 +785,14 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
 !     END ASSEMBLY ON GPU
       
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
 !_ACCTGT_($acc update self(ta,aaa,aat,tt))
-!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -805,6 +816,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       if(ihc.eq.nhc) then
 
 !_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         
@@ -842,6 +854,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
 
           call timer_stop(31)
         endif
@@ -952,6 +965,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
+!_OMPTGT_($omp end target)
     
           call timer_stop(34)
         endif

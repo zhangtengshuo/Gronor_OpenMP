@@ -160,7 +160,7 @@
          enddo
        enddo
 !_ACCTGT_($acc end kernels)
-
+!_OMPTGT_($omp end target)
        call timer_stop(42)
        
       endif
@@ -189,7 +189,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-      
+!_OMPTGT_($omp end target)      
       call timer_stop(42)
 
 #endif
@@ -309,7 +309,7 @@
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
 !_ACCTGT_($acc end kernels)
-
+c!_OMPTGT_($omp end target)
       cmax=0.0d0
       
 !_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,ev))
@@ -318,13 +318,14 @@
       do i=1,nelecs
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
+c!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
       do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
 !_ACCTGT_($acc end kernels)
-
+c!_OMPTGT_($omp end target)
       if(cmax.le.0.01) stop 'no overlap between m.o.s'
 
       cnorm=thresh_SIN*cmax
@@ -350,7 +351,7 @@
           coef=coef*coefu
         endif
       enddo
-
+c!_OMPTGT_($omp end target)
       ising=2
       if(nz2.le.0) then
         ising=1
@@ -358,6 +359,7 @@
           deta=coef
           ising=0
 
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(coefu))
 !_ACCTGT_($acc kernels present(ta,u,w,ev))
           do i=1,nelecs
             do j=1,nelecs
@@ -369,7 +371,7 @@
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-
+!_OMPTGT_($omp end target)
           call timer_stop(44)
           return
           ising=1
@@ -388,11 +390,13 @@
             ta(i,j)=coefu
           enddo
         enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
+c!_OMPTGT_($omp end target)
 !_ACCTGT_($acc end kernels)
       
         call timer_stop(44)
@@ -412,11 +416,13 @@
             ta(i,j)=coefu*w(j,nz2)
           enddo
         enddo
+!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
+c!_OMPTGT_($omp end target)
 !_ACCTGT_($acc end kernels)
       
         call timer_stop(44)

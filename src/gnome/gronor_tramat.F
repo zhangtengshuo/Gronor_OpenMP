@@ -33,7 +33,7 @@
       m1=nalfa+1
 
 !_ACCTGT_($acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2))
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nelecs
        do j=1,nelecs
         taa(j,i)=ta(j,i)
@@ -43,7 +43,7 @@
       if(ising.ne.0) then
 
 !     transformation of diag
-
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
@@ -67,7 +67,8 @@
          enddo
         endif
         w1(j)=sum
-       enddo
+      enddo
+!_OMPTGT_($omp target teams distribute parallel do)
        do j=1,nbas
         diag(j)=w1(j)
        enddo
@@ -78,6 +79,7 @@
 !                first :
 !     calculation of an intermediate array (w)
 
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
       do j=1,nelecs
        do i=1,nbas
         sum=0.0d0
@@ -106,7 +108,7 @@
       enddo
 
 !     put w in the work-matrix (aa)
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do j=1,nelecs
        do i=1,nbas
         taa(i,j)=w2(i,j)
@@ -114,7 +116,7 @@
       enddo
 
 !     calculation of the final matrix aa
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
       do i=1,nbas
        do j=1,nbas
         sum=0.0d0
@@ -143,7 +145,7 @@
       enddo
 
 !     put w back in the work-matrix aa
-
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do j=1,nbas
        do i=1,nbas
         taa(i,j)=w2(i,j)
@@ -151,8 +153,8 @@
       enddo
 
 !        transformation of sdiag
-
       if(ising.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
@@ -176,7 +178,8 @@
          enddo
         endif
         w1(j)=sum
-       enddo
+      enddo
+!_OMPTGT_($omp target teams distribute parallel do)
        do j=1,nbas
         sdiag(j)=w1(j)
        enddo

@@ -34,7 +34,8 @@
 
 !     transformation of diag and sdiag
 
-       if(nalfa.ne.0) then
+        if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas 
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -46,6 +47,7 @@
        endif
 
        if(ntcla.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas 
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -58,7 +60,8 @@
        endif
 
        if(nalfa.ne.nveca) then
-        m1=nalfa+1
+         m1=nalfa+1
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -71,6 +74,7 @@
        endif
 
        if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -82,6 +86,7 @@
        endif
 
        if(ntclb.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -94,7 +99,8 @@
        endif
 
        if(nalfa.ne.nvecb) then
-        m1=nalfa+1
+         m1=nalfa+1
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
 !_ACCTGT_($acc loop reduction(+:sum))
@@ -104,8 +110,9 @@
          enddo
          bsdiag(j)=bsdiag(j)+sum
         enddo
-       endif
-
+      endif
+      
+!_OMPTGT_($omp target teams distribute parallel do)
        do j=1,nbas
         csdiag(j)=w1(j)
        enddo
@@ -116,6 +123,7 @@
 !     calculation of the intermediate matrices
 
       if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do i=1,nalfa
         do j=1,nbas
          sum=0.0d0
@@ -125,7 +133,8 @@
          enddo
          w2(i,j)=sum
         enddo
-       enddo
+      enddo
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=1,nalfa
          ta(i,j)=w2(i,j)
@@ -135,6 +144,7 @@
 
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do i=m1,nelecs
         do j=1,nbas
          sum=0.0d0
@@ -155,6 +165,7 @@
          w2(i,j)=sum
         enddo
        enddo
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=m1,nelecs
          ta(i,j)=w2(i,j)
@@ -165,6 +176,7 @@
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do j=1,nbas
         do i=1,nbas
          sum=0.0
@@ -178,6 +190,7 @@
       endif
 
       if(nalfa.ne.nelecs) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do j=1,nbas
         do i=1,nbas
          sum=0.0d0
@@ -198,12 +211,14 @@
          w2(i,j)=sum
         enddo
        enddo
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=w2(i,j)
         enddo
        enddo
       else
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=0.0d0

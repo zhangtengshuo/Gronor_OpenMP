@@ -189,7 +189,6 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)      
       call timer_stop(42)
 
 #endif
@@ -371,7 +370,6 @@ c!_OMPTGT_($omp end target)
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
           call timer_stop(44)
           return
           ising=1
@@ -390,7 +388,6 @@ c!_OMPTGT_($omp end target)
             ta(i,j)=coefu
           enddo
         enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)
@@ -416,7 +413,6 @@ c!_OMPTGT_($omp end target)
             ta(i,j)=coefu*w(j,nz2)
           enddo
         enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nelecs
           cdiag(i)=diag(i)

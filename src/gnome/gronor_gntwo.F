@@ -94,7 +94,6 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
@@ -102,7 +101,6 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
       call timer_stop(30)
 
       call timer_start(38)
@@ -270,7 +268,6 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))      
       do i=1,nbas 
         do k=1,nbas
@@ -278,7 +275,6 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
       call timer_stop(30)
       
@@ -310,7 +306,6 @@
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
         ts=tst
 
         call timer_stop(31)
@@ -362,7 +357,6 @@
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
         e2=e2t
 
         call timer_stop(34)
@@ -480,7 +474,6 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
 !     ASSEMBLE ARRAYS ON GPU
       
@@ -496,7 +489,6 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
 !     END ASSEMBLY ON GPU
       
@@ -559,7 +551,6 @@
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
           call timer_stop(31)
         endif
@@ -661,7 +652,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
     
           call timer_stop(34)
         endif
@@ -769,7 +759,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
 !     ASSEMBLE ARRAYS ON GPU
       
@@ -785,7 +774,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
 !     END ASSEMBLY ON GPU
       
@@ -854,7 +842,6 @@ c        if(nb0.gt.0.and.nb1.le.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
 
           call timer_stop(31)
         endif
@@ -965,7 +952,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
-!_OMPTGT_($omp end target)
     
           call timer_stop(34)
         endif

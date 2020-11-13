@@ -44,7 +44,6 @@
          enddo
          diag(j)=sum
         enddo
-!_OMPTGT_($omp end target)
        endif
 
        if(ntcla.ne.0) then
@@ -58,7 +57,6 @@
          enddo
          bdiag(j)=sum
         enddo
-!_OMPTGT_($omp end target)
        endif
 
        if(nalfa.ne.nveca) then
@@ -73,7 +71,6 @@
          enddo
          bdiag(j)=bdiag(j)+sum
         enddo
-!_OMPTGT_($omp end target)
        endif
 
        if(nalfa.ne.0) then
@@ -86,7 +83,6 @@
          enddo
          w1(j)=sum
         enddo
-!_OMPTGT_($omp end target)
        endif
 
        if(ntclb.ne.0) then
@@ -100,7 +96,6 @@
          enddo
          bsdiag(j)=sum
         enddo
-!_OMPTGT_($omp end target)
        endif
 
        if(nalfa.ne.nvecb) then
@@ -115,7 +110,6 @@
          enddo
          bsdiag(j)=bsdiag(j)+sum
         enddo
-!_OMPTGT_($omp end target)
       endif
       
 !_OMPTGT_($omp target teams distribute parallel do)
@@ -140,14 +134,12 @@
          w2(i,j)=sum
         enddo
       enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=1,nalfa
          ta(i,j)=w2(i,j)
         enddo
        enddo
-!_OMPTGT_($omp end target)
       endif
 
       m1=nalfa+1
@@ -173,14 +165,12 @@
          w2(i,j)=sum
         enddo
        enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=m1,nelecs
          ta(i,j)=w2(i,j)
         enddo
        enddo
-!_OMPTGT_($omp end target)
       endif
 
 !     calculation of the two final matrices
@@ -197,7 +187,6 @@
          aaa(i,j)=sum
         enddo
        enddo
-!_OMPTGT_($omp end target)
       endif
 
       if(nalfa.ne.nelecs) then
@@ -222,14 +211,12 @@
          w2(i,j)=sum
         enddo
        enddo
-!_OMPTGT_($omp end target)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=w2(i,j)
         enddo
        enddo
-!_OMPTGT_($omp end target)
       else
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
@@ -237,7 +224,6 @@
          ta(i,j)=0.0d0
         enddo
        enddo
-!_OMPTGT_($omp end target)
       endif
 
 !_ACCTGT_($acc end kernels)

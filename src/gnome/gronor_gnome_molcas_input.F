@@ -8,10 +8,10 @@
 !!
   
 
-      subroutine gronor_gnome_molcas_input(lfnsym,lfnout,ipr)
+      subroutine gronor_gnome_molcas_input(lfnsym,lfnout,lfnarx,ipr)
       use gnome_data
       implicit none
-      integer               :: lfnsym, lfnout, ipr
+      integer               :: lfnsym, lfnout, lfnarx, ipr
       integer               :: i,l,iAtom
       integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO
@@ -38,15 +38,22 @@
 
       read(lfnsym,*) text
       lAO = 's  p  d  f  g  h  i'
-      write(lfnout,'(6x,A,10x,2A,5x,A)')
+      write(lfnout,625)
      & 'Atom','x             y             z',
-     &         '          Znuc',lAO
+     &     '          Znuc',lAO
+      write(lfnarx,625)
+     & 'Atom','x             y             z',
+     &     '          Znuc',lAO
+ 625  format(6x,A,10x,2A,5x,A)
       write(lfnout,*) ' '
       do iAtom = 1, nNucl
         read(lfnsym,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
         write(lfnout,626)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
+     &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
+     &                   l=1,7)
+        write(lfnarx,626)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
       end do

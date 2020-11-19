@@ -1,0 +1,274 @@
+
+!> @brief
+!! Input routine for the GronOR application
+!! @author  Tjerk P. Straatsma, ORNL
+!! @author  Coen de Graaf, URV
+!! @date    2020
+
+      subroutine gronor_input()
+
+      use inp
+      use cidef
+      use cidist
+      use gnome_parameters
+      use gnome_integrals
+      
+      implicit none
+
+      integer :: i,j
+      character (len=255) :: item
+      character (len=255) :: opt_inp
+      
+      open(unit=lfninp,file=filinp,form='formatted',status='old',
+     &     err=999)
+
+ 1    continue
+
+      if(inp_read()) then
+
+ 2      continue
+
+        if(.not.inp_a(item)) goto 1
+
+ 3      continue
+
+        if(inp_compare(.false.,'Groups',item)) then
+          if(.not.inp_i(npg)) call errquit()
+          goto 2
+        endif
+
+        if(inp_compare(.false.,'Size',item)) then
+          if(.not.inp_i(mgr)) call errquit()
+          if(npg.eq.0) npg=(np-1)/mgr
+          if(np.lt.mgr+1) then
+            write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
+     &           ') cannot be supported by available ranks (',np,')'
+            call errquit()
+          endif
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Molecules',item)) then
+          if(.not.inp_i(nmol)) call errquit()
+          if(.not.inp_i(nbase)) call errquit()
+          allocate(ncombv(nmol,nbase))
+          do i=1,nmol
+            if(.not.inp_read()) call errquit()
+            do j=1,nbase
+              if(.not.inp_i(ncombv(i,j))) call errquit()
+              if(ncombv(i,j).eq.0) ncombv(i,j)=9
+            enddo
+          enddo
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'States',item)) then
+          if(.not.inp_i(mstates)) mstates=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Spin',item)) then
+          if(.not.inp_i(nspin)) call errquit()
+          nspin = nspin - 1
+          goto 2
+        endif
+
+        if(inp_compare(.false.,'Threshold',item)) then
+          if(.not.inp_f(thresh)) call errquit()
+          thresh_CI=thresh
+          goto 2
+        endif
+
+        if(inp_compare(.false.,'Labels',item)) then
+          if(.not.inp_i(labels)) call errquit()
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Expert',item)) then
+          if(.not.inp_i(ixpert)) ixpert=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Thresh_CI',item)) then
+          if(.not.inp_f(thresh_CI)) thresh_CI=1.0d-10
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Thresh_SIN',item)) then
+          if(.not.inp_f(thresh_SIN)) thresh_SIN=1.0d-12
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Load',item)) then
+          if(.not.inp_i(iload)) iload=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Range',item)) then
+          if(.not.inp_i(nbatch)) nbatch=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Batch',item)) then
+          if(.not.inp_i(nbatch)) nbatch=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Batched',item)) then
+          lbatch=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Print',item)) then
+          if(.not.inp_i(ipr)) ipr=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Timings',item)) then
+          if(.not.inp_i(itim)) itim=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Fault',item)) then
+          if(.not.inp_i(ifault)) ifault=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Solver',item).or.
+     &       inp_compare(.false.,'Solvers',item)) then
+          if(.not.inp_i(iaslvr)) then
+            iaslvr=-1
+            jaslvr=-1
+            inslvr=-1
+            jnslvr=-1
+          elseif(.not.inp_i(jaslvr)) then
+            jaslvr=-1
+            inslvr=-1
+            jnslvr=-1
+          elseif(.not.inp_i(inslvr)) then
+            inslvr=-1
+            jnslvr=-1
+          elseif(.not.inp_i(jnslvr)) then
+            jnslvr=-1
+          endif
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Tolerance',item)) then
+          if(.not.inp_f(tolsvj)) then
+            tolsvj=1.0d-07
+            tolevj=1.0d-07
+          elseif(.not.inp_f(tolevj)) then
+            tolevj=1.0d-07
+          endif
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Sweep',item)) then
+          if(.not.inp_i(iswsvj)) then
+            iswsvj=15
+            iswevj=15
+          elseif(.not.inp_i(iswevj)) then
+            iswevj=15
+          endif
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Debug',item)) then
+          if(.not.inp_i(idbg)) idbg=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Dayfile',item)) then
+          if(.not.inp_i(iday)) iday=10
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Progress',item)) then
+          if(.not.inp_i(ipro)) ipro=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Test',item)) then
+          if(.not.inp_i(itest)) itest=0
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Development',item)) then
+          if(.not.inp_i(idevel)) idevel=0
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'IntAdd',item)) then
+          if(.not.inp_i(intadd)) intadd=0
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Maxcib',item)) then
+          if(.not.inp_i(inpcib)) inpcib=0
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Columns',item)) then
+          if(.not.inp_i(ncols)) ncols=7
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'MPIbuffer',item)) then
+          if(.not.inp_i(mpibuf)) call errquit()
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'Accelerate',item)) then
+          if(.not.inp_i(naccel)) naccel=0
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'MPS',item)) then
+          if(.not.inp_i(nummps)) nummps=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'OMP',item)) then
+          if(.not.inp_i(numomp)) numomp=1
+          goto 2
+        endif
+        
+        if(inp_compare(.false.,'QCprogram',item)) then
+          if(.not.inp_a(opt_inp)) opt_inp='symol'
+          if(inp_compare(.false.,'symol',opt_inp)) then
+            nqcp=1
+          else if(inp_compare(.false.,'gamess',opt_inp)) then
+            nqcp=2
+          else if(inp_compare(.false.,'molcas',opt_inp)) then
+            nqcp=3
+          end if
+          goto 2
+        endif
+
+        if (inp_compare(.false.,'Ecorr',item)) then
+          ncorr = 1
+          allocate(ecorr(mstates))
+          do i=1,mstates
+            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
+          end do
+          goto 2
+        end if
+        
+*     Use Gallup-Norbeck weights? Yes, nwt=1; No, nwt .ne. 1
+        if (inp_compare(.false.,'GNWeights',item)) then
+          if(.not.inp_i(nwt)) nwt = 0
+          goto 2
+        endif
+        
+        goto 1
+      endif
+
+      return
+      
+ 999  write(lfnout,989) filinp(1:inp_strlen(filinp))
+ 989  format('Unable to open input file ',a)
+      
+      call errquit()
+      
+      end subroutine gronor_input

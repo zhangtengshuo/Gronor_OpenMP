@@ -14,7 +14,7 @@
       subroutine gronor_print_results(hbase,sbase,nbase)
       
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : filf75,lfnf75,lfnout,lfntst
+      use cidef           , only : filf75,lfnf75,lfnout,lfntst,lfnarx
 
       implicit none
 
@@ -38,14 +38,17 @@
         il=min(nbase,k*ncols)
         write(lfnout,670)
         write(lfntst,670)
+        write(lfnarx,670)
  670    format(//,' Hamiltonian Matrix',/)
         write(*,671) (i,i=ii,il)
         write(lfnout,671) (i,i=ii,il)
         write(lfntst,671) (i,i=ii,il)
+        write(lfnarx,671) (i,i=ii,il)
  671    format(6x,7(6x,i8,6x))
         do j=1,nbase
           write(*,672) j,(hbase(i,j),i=ii,il)
           write(lfnout,672) j,(hbase(i,j),i=ii,il)
+          write(lfnarx,672) j,(hbase(i,j),i=ii,il)
  672      format(i5,1x,10f20.10)
           do i=ii,il
             hbt(i)=hbase(i,j)
@@ -65,13 +68,16 @@
         il=min(nbase,k*ncols)
         write(lfnout,673)
         write(lfntst,673)
+        write(lfnarx,673)
  673    format(//,' Overlap Matrix',/)
         write(*,671) (i,i=ii,il)
         write(lfnout,671) (i,i=ii,il)
         write(lfntst,671) (i,i=ii,il)
+        write(lfnarx,671) (i,i=ii,il)
         do j=1,nbase
           write(*,672) j,(sbase(i,j),i=ii,il)
           write(lfnout,672) j,(sbase(i,j),i=ii,il)
+          write(lfnarx,672) j,(sbase(i,j),i=ii,il)
           do i=ii,il
             hbt(i)=sbase(i,j)
             if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
@@ -99,6 +105,7 @@
         enddo
 
         write(lfnout,676)
+        write(lfnarx,676)
         write(*,676)
  676    format(//,' Electronic Couplings',/)
         nk=nbase/ncols
@@ -107,14 +114,17 @@
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
           write(lfnout,671) (i,i=ii,il)
+          write(lfnarx,671) (i,i=ii,il)
           write(*,671) (i,i=ii,il)
           do j=1,nbase
             if(j.eq.1) then
               write(lfnout,672) 1
+              write(lfnarx,672) 1
               write(*,672) 1
             else
               ik=min(j-1,il)
               write(lfnout,672) j,(tc(j,i),i=ii,ik)
+              write(lfnarx,672) j,(tc(j,i),i=ii,ik)
               write(*,672) j,(tc(j,i),i=ii,ik)
             endif
           enddo

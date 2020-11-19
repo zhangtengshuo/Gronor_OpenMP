@@ -71,9 +71,10 @@
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
       character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet
       character (len=255) :: filf74,filf75,filone,filtwo,fildat,fillog
+      character (len=255) :: filcpr,filarx
       integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet
       integer :: lfnpro,lfndbg,lfnf74,lfnf75,lfnone,lfntwo,lfndat
-      integer :: lfnday,lfntst,lfnlog
+      integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
@@ -88,6 +89,7 @@
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
       real (kind=8), allocatable :: hev(:)
+      logical, allocatable :: bpdone(:,:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 
@@ -105,6 +107,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: iload,nbatch,itest,ifault,isolver,jsolver,idevel,lbatch
+      integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
       integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert

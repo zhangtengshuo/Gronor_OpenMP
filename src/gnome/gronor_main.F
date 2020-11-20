@@ -1473,28 +1473,22 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         do k=1,nbase*nbase
           read(lfncpr,203,end=299) i,j,rh,rs,rt,nsr
  203      format(2i4,3e20.12,4i10)
-          hbase(i,j)=rh
-          sbase(i,j)=rs
-          tbase(i,j)=rt
-          hbase(j,i)=rh
-          sbase(j,i)=rs
-          tbase(j,i)=rt
-          do ksr=1,4
-            nsing(i,j,ksr)=nsr(ksr)
-            nsing(j,i,ksr)=nsr(ksr)
-          enddo
-          bpdone(i,j)=.true.
-          bpdone(j,i)=.true.
+          if(i.gt.0.and.j.gt.0) then
+            hbase(i,j)=rh
+            sbase(i,j)=rs
+            tbase(i,j)=rt
+            hbase(j,i)=rh
+            sbase(j,i)=rs
+            tbase(j,i)=rt
+            do ksr=1,4
+              nsing(i,j,ksr)=nsr(ksr)
+              nsing(j,i,ksr)=nsr(ksr)
+            enddo
+            bpdone(i,j)=.true.
+            bpdone(j,i)=.true.
+          endif
         enddo
  299    continue
-        do i=1,nbase
-          do j=1,i
-            write(*,333) bpdone(i,j),i,j,
-     &           hbase(i,j),sbase(i,j),tbase(i,j),
-     &           (nsing(i,j,k),k=1,4)
- 333        format('CPR ',l1,2i4,3f12.6,4i10)
-          enddo
-        enddo
       endif
       
 !     Define the process groups

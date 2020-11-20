@@ -84,12 +84,16 @@
 !     hbase(i,j)   collects the Hamiltonain matrix results for basestate combination i j
 !     sbase(i,j)   collects the overlap matrix results for basestate combination i j
 !     tbase(i,j)   collects the wall clock time spent basestate combination i j
-!     ntasks(i,j)  contains the number of tasks to be done for base state combination i j
+!     ntasks(i,j)  contains the task status for base state combination i j
+!                   -2 : base pair calculation has completed
+!                   -1 : base pair calculation has not yet started
+!                    0 : base pair contributions have been calculated and accumulated
+!                   >0 : number of base pair contributions calculated
 !     nsing(i,j,k) sums the number of singularities for base state combination i j
 
       do ibase=1,nbase
         do jbase=1,ibase
-c          if(.not.bpdone(ibase,jbase)) then
+          if(.not.bpdone(ibase,jbase)) then
             hbase(ibase,jbase)=0.0d0
             sbase(ibase,jbase)=0.0d0
             tbase(ibase,jbase)=0.0d0
@@ -97,9 +101,9 @@ c          if(.not.bpdone(ibase,jbase)) then
             do i=1,5
               nsing(ibase,jbase,i)=0
             enddo
-c          else
-c            ntasks(ibase,jbase)=-2
-c          endif
+          else
+            ntasks(ibase,jbase)=-2
+          endif
         enddo
       enddo
 
@@ -163,7 +167,6 @@ c          endif
       ioff=0
       do ibase=1,nbase
         do jbase=1,ibase
-c     if(.not.bpdone(ibase,jbase)) then
 
 !     Determine offset and number of determinant pairs for this base pair
           
@@ -226,6 +229,8 @@ c     if(.not.bpdone(ibase,jbase)) then
             ibuf(2)=0
             ibuf(3)=0
             ibuf(4)=0
+
+            if(ntasks(ibase,jbase).eq.-2) ndone=ijend
 
 !     Loop over the number of determinant pairs for the current base pair
             
@@ -362,10 +367,15 @@ c     if(.not.bpdone(ibase,jbase)) then
 
                 do i=1,ibase
                   do j=1,i
-c                    if(.not.bpdone(i,j)) then
+
+!     All tasks for a base pair are done if ntasks(i,j) is zero
+
                       if((i.ne.ibase.or.j.ne.jbase).and.
      &                     ntasks(i,j).eq.0) then
                         call timer_stop(99)
+
+!     Print information to output
+
                         call swatch(date,time)                    
                         if(ipr.ge.1) then
                           if(i.eq.j) then
@@ -404,12 +414,18 @@ c                    if(.not.bpdone(i,j)) then
  1622                     format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
      &                         f15.10,20x,2f12.1)
                         endif
-                        call swatch(date,time)
+
+!     Write entry in the checkpoint restart file
+
                         write(lfncpr,203) i,j,
      &                       hbase(i,j),sbase(i,j),tbase(i,j),
      &                       (nsing(i,j,k),k=1,4)
  203                    format(2i4,3e20.12,4i10)
                         flush(lfncpr)
+
+!     Write completion message to dayfile
+
+                        call swatch(date,time)
                         if(i.ne.j) then
                           write(lfnday,703) date(1:8),time(1:8),
      &                         timer_wall_total(99),
@@ -430,7 +446,6 @@ c                    if(.not.bpdone(i,j)) then
                         
                         ntasks(i,j)=-2
                       endif
-c                    endif
                   enddo
                 enddo
               endif
@@ -456,10 +471,11 @@ c                    endif
               call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &             MPI_COMM_WORLD,ireq,ierr)
 
-!     Set ntasks(ibase,jbase) to 0 if this is the first
+!     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
               if(ntasks(ibase,jbase).eq.-1) ntasks(ibase,jbase)=0
-              ntasks(ibase,jbase)=ntasks(ibase,jbase)+1
+              if(ntasks(ibase,jbase).ge.0)
+     &             ntasks(ibase,jbase)=ntasks(ibase,jbase)+1
 
 !     Debug message
 
@@ -492,8 +508,6 @@ c                    endif
 
 !     At this point the while loop over the determinant pairs for base pair ibase jabase has completed
             
-c          endif
-          
         enddo
       enddo
 
@@ -628,13 +642,12 @@ c          endif
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &         ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
 
-
 !     Loop over all base pairs to check if all tasks have been completed
 !     This will be the case if ntasks(i,j) is zero
 
           do i=1,nbase
             do j=1,i
-c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
+
               if(ntasks(i,j).eq.0) then
                 call timer_stop(99)
                 call swatch(date,time)

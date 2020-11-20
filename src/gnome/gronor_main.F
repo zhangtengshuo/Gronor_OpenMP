@@ -416,8 +416,6 @@ c      use cuda_functions
       bias=0.0d0
       corres=.false.
       
-      close(unit=lfninp)
-      
       if(ifault.eq.0) then
         write(lfnout,627) nummps
  627    format(' No fault tolerance',t60,'

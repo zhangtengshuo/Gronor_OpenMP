@@ -264,6 +264,8 @@
         goto 1
       endif
 
+      close(unit=lfninp)
+      
       return
       
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))

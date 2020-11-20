@@ -6,7 +6,7 @@
 !! @author C. de Graaf, URV
 !! @date 2016
 !!
-!! The master rank orchestrates the calculation by reponding to messages received 
+!! The master rank orchestrates the calculation by reponding to task requests received 
 !! from worker ranks.
 !! The master rank requests matrix element contributions from worker ranks as tasks
 !! consisting of batches of contributions with user defined bacth size.
@@ -64,18 +64,29 @@
       tsum=0.0d0
 
 !     Contributions to H(i,j) are sent as tasks to groups and tracked in lgroup:
+
 !     lgroup(igrp,1) : current i in H(i,j) for current task sent to group igrp
 !     lgroup(igrp,2) : current j in H(i,j) for current task sent to group igrp
 !     lgroup(igrp,3) : index to first determinant pair for H(i,j) in the current task sent to group igrp
 !     lgroup(igrp,4) : index to last determinant pair for H(i,j) in the current task sent to group igrp
 !     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task 
+
+!     Initialize the list with outstanding rasks
       
       do j=1,5
         do i=1,npg
           lgroup(i,j)=0
         enddo
       enddo
-      
+
+!     Initialize the results matrices to zero
+
+!     hbase(i,j)   collects the Hamiltonain matrix results for basestate combination i j
+!     sbase(i,j)   collects the overlap matrix results for basestate combination i j
+!     tbase(i,j)   collects the wall clock time spent basestate combination i j
+!     ntasks(i,j)  contains the number of tasks to be done for base state combination i j
+!     nsing(i,j,k) sums the number of singularities for base state combination i j
+
       do ibase=1,nbase
         do jbase=1,ibase
 c          if(.not.bpdone(ibase,jbase)) then
@@ -91,36 +102,39 @@ c            ntasks(ibase,jbase)=-2
 c          endif
         enddo
       enddo
+
+!     Calculation of the number of matrix element pairs for each base state combination
+
+!     idetb(i)     has the number of determinants in base state i
+!     ndets(i,j,1) has the number of determinant pairs for base state combination i j
+!     ndets(i,j,2) has the number of completed determinant pairs for base state combination i j
+!     mdet         has the total number of determinant pairs to be evaluated
       
       mdet=0
       do ibase=1,nbase
         do jbase=1,ibase
-c     if(.not.bpdone(ibase,jbase)) then
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           if(ibase.eq.jbase) then
             mdet=mdet+idetb(ibase)*(idetb(jbase)+1)/2
-          else
-            mdet=mdet+idetb(ibase)*idetb(jbase)
-          endif
-          if(ibase.eq.jbase) then
             ndets(ibase,jbase,1)=idetb(ibase)*(idetb(ibase)+1)/2
           else
+            mdet=mdet+idetb(ibase)*idetb(jbase)
             ndets(ibase,jbase,1)=idetb(ibase)*idetb(jbase)
           endif
           ndets(ibase,jbase,2)=0
-c     endif
         enddo
       enddo
 
+!     ndest(i,j,1) is replaced by offset in matrix element pair list for base state combination i j
+!     ndets(i,j,2) has the number of completed determinant pairs for base state combination i j
+      
       ioff=0
       do ibase=1,nbase
         do jbase=1,ibase
-c     if(.not.bpdone(ibase,jbase)) then
           ndets(ibase,jbase,1)=ndxdet(ibase,jbase)-ioff
           ioff=ndxdet(ibase,jbase)
           ndets(ibase,jbase,2)=0
-c     endif
         enddo
       enddo
       
@@ -144,10 +158,15 @@ c     endif
      &     '        Hamiltonian ',
      &     '        Cost        Time',/)
 
+!     Loop over all base state combinations
+      
       ioff=0
       do ibase=1,nbase
         do jbase=1,ibase
-c          if(.not.bpdone(ibase,jbase)) then
+c     if(.not.bpdone(ibase,jbase)) then
+
+!     Determine offset and number of determinant pairs for this base pair
+          
             osame=ibase.eq.jbase
             ndeti=idetb(ibase)
             ndetj=idetb(jbase)
@@ -161,10 +180,10 @@ c          if(.not.bpdone(ibase,jbase)) then
               l2=ndeti*ndetj
               ijend=l2
             endif
-
             ijend=ndxdet(ibase,jbase)-ioff
-
             ioff=ndxdet(ibase,jbase)
+
+!     fday is the progress counter for messages to the dayfile
             
             fday(ibase,jbase)=dble(iday)
             
@@ -208,13 +227,19 @@ c          if(.not.bpdone(ibase,jbase)) then
             ibuf(3)=0
             ibuf(4)=0
 
+!     Loop over the number of determinant pairs for the curren base pair
+            
             do while(ndone.lt.ijend)
+
+!     Wait for a request for a task from any worker group
               
               call timer_start(94)
               call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
      &             MPI_COMM_WORLD,status,ierr)
               call timer_stop(94)
               call timer_start(95)
+
+!     Determine rank and group from which the request came
               
               iremote=status(MPI_SOURCE)
               igrp=map2(iremote+1,3)
@@ -227,8 +252,15 @@ c          if(.not.bpdone(ibase,jbase)) then
      &               (lgroup(igrp,i),i=1,5)
                 flush(lfndbg)
               endif
+
+!     If the request group completed a task accumulate into appropriate arrays
+!     The very first request comes without results so this is skipped
               
               if(lgroup(igrp,5).ne.0) then
+
+!     Determine the number of determinants completed for the base pair in ndets
+!     Determine the percent complete for the base pair in pnrb
+                
                 ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
      &               ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
      &               lgroup(igrp,4)-lgroup(igrp,3)+1
@@ -236,6 +268,9 @@ c          if(.not.bpdone(ibase,jbase)) then
      &               dble(100*ndets(lgroup(igrp,1),
      &               lgroup(igrp,2),2))/
      &               ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+
+!     Write entry to progress file
+                
                 if(ipro.eq.1.or.ipro.eq.3) then
                   call swatch(date,time)
                   if(ipro.eq.1) rewind(unit=lfnpro)
@@ -262,6 +297,9 @@ c          if(.not.bpdone(ibase,jbase)) then
      &                 3i6,i12,f8.3,'% ')
                   flush(lfnpro)
                 endif
+                
+!     Write entry to dayfile
+                
                 if(me.eq.master.and.
      &               pnrb(lgroup(igrp,1),lgroup(igrp,2)).ge.
      &               fday(lgroup(igrp,1),lgroup(igrp,2))) then
@@ -279,9 +317,9 @@ c          if(.not.bpdone(ibase,jbase)) then
      &                 fday(lgroup(igrp,1),
      &                 lgroup(igrp,2))+dble(iday)
                 endif
-              endif
-              
-              if(lgroup(igrp,5).ne.0) then
+                
+!     Count the number of tasks completed by the remote rank in numrecs
+                
                 numrecs(iremote+1)=numrecs(iremote+1)+1
                 
 !     Accumulate the returned contributions in buffer
@@ -307,14 +345,21 @@ c          if(.not.bpdone(ibase,jbase)) then
                 nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
      &               nsing(lgroup(igrp,1),
      &               lgroup(igrp,2),5)+int(buffer(8))
+
+!     Decrement the tasks still to be done for base pair
                 
                 ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &               ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+
+!     Reset the task information for the group from which request came
                 
                 do k=1,5
                   lgroup(igrp,k)=0
                 enddo
-                
+
+!     Loop over all base pairs to check if all tasks have been completed
+!     This will be the case if ntasks(i,j) is zero
+
                 do i=1,ibase
                   do j=1,i
 c                    if(.not.bpdone(i,j)) then
@@ -380,6 +425,9 @@ c                    if(.not.bpdone(i,j)) then
  703                    format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
                         flush(lfnday)
                         call timer_start(99)
+
+!     Setting ntasks to -2 identifies this base pair as completed and reported
+                        
                         ntasks(i,j)=-2
                       endif
 c                    endif
@@ -387,6 +435,8 @@ c                    endif
                 enddo
               endif
 
+!     Setup the next task to be sent to requesting rank
+              
               ibuf(1)=ibase
               ibuf(2)=jbase
               ibuf(3)=min(ndone+1,ijend)

@@ -227,7 +227,7 @@ c     if(.not.bpdone(ibase,jbase)) then
             ibuf(3)=0
             ibuf(4)=0
 
-!     Loop over the number of determinant pairs for the curren base pair
+!     Loop over the number of determinant pairs for the current base pair
             
             do while(ndone.lt.ijend)
 
@@ -435,8 +435,14 @@ c                    endif
                 enddo
               endif
 
-!     Setup the next task to be sent to requesting rank
-              
+!     Setup the next task to be sent to requesting rank in an integer buffer with length 4
+!     buffer(1) : ibase of the base pair
+!     buffer(2) : jbase of the base pair
+!     buffer(3) : first index into the determinant pair list
+!     buffer(4) : last index into the determinant pair list
+
+!     ndone becomes the last index of the determinant pairs that have been put in a task
+
               ibuf(1)=ibase
               ibuf(2)=jbase
               ibuf(3)=min(ndone+1,ijend)
@@ -444,19 +450,28 @@ c                    endif
               ndone=ibuf(4)
 
               call timer_stop(95)
-              
+
+!     Send buffer to requesting rank without waiting for completion of mpi
+
               call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &             MPI_COMM_WORLD,ireq,ierr)
-              
+
+!     Set ntasks(ibase,jbase) to 0 if this is the first
+
               if(ntasks(ibase,jbase).eq.-1) ntasks(ibase,jbase)=0
               ntasks(ibase,jbase)=ntasks(ibase,jbase)+1
-              
+
+!     Debug message
+
               if(idbg.gt.2) then
                 call swatch(date,time)
                 write(lfndbg,'(a,1x,a,i5,a,6i5)') date(1:8),time(1:8),
      &               master,' sent ibuf to',iremote,igrp,(ibuf(i),i=1,4)
                 flush(lfndbg)
               endif
+
+!     Progress entry
+
               if(ipr.eq.2.or.ipro.eq.4) then
                 call swatch(date,time)
                 write(lfnpro,682) date(1:8),time(1:8),
@@ -465,7 +480,9 @@ c                    endif
  682            format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
                 flush(lfnpro)
               endif
-              
+
+!     Store the buffer information sent to remote rank in lgroup
+
               do k=1,4
                 lgroup(igrp,k)=ibuf(k)
               enddo
@@ -473,12 +490,18 @@ c                    endif
               
             enddo
 
+!     At this point the while loop over the determinant pairs for base pair ibase jabase has completed
             
 c          endif
           
         enddo
       enddo
-      
+
+!     At this point the loopover base pairs has completed and all tasks have been dispatched
+
+!     Now the still outstanding tasks need to be collected
+!     Assuming that some may be unresponsive, duplicates of outstanding tasks are sent
+
       call swatch(date,time)
       call timer_stop(99)
       write(lfnday,8023) date(1:8),time(1:8),
@@ -489,24 +512,35 @@ c          endif
       call timer_start(99)
 
       last=0
+
+!     Count the outstanding tasks in nleft
       
       nleft=0
       do i=1,npg
         if(lgroup(i,5).gt.0) nleft=nleft+1
         lactive(i)=0
       enddo
-      
+
+!     Loop until no tasks are left to be received and accumulated
+
       call timer_start(97)
       do while(nleft.gt.0)
+
+!     Wait for request from any remote rank
+        
         call timer_start(96)
         call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
      &       MPI_COMM_WORLD,status,ierr)
         call timer_stop(96)
-        
+
+!     Determine the rank, group and base pair of received request
+
         iremote=status(MPI_SOURCE)
         igrp=map2(iremote+1,3)
         ibase=lgroup(igrp,1)
         jbase=lgroup(igrp,2)
+
+!     Flag this group as still active
 
         lactive(igrp)=1
         if(idbg.gt.2) then
@@ -515,13 +549,22 @@ c          endif
      &         master,' received last buffer from',iremote
           flush(lfndbg)
         endif
-        
+ 
+!     Accumulate results into appropriate arrays
+
         if(lgroup(igrp,5).gt.0) then
+
+!     Determine the number of determinants completed for the base pair in ndets
+!     Determine the percent complete for the base pair in pnrb
+
           ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
      &         ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
      &         lgroup(igrp,4)-lgroup(igrp,3)+1
           pnrb=dble(100*ndets(lgroup(igrp,1),lgroup(igrp,2),2))/
      &         ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+
+!     Write entry to progress file
+                
           if(ipro.eq.1.or.ipro.eq.3) then
             if(ipro.eq.1) rewind(unit=lfnpro)   
             write(lfnpro,680) date(1:8),time(1:8),
@@ -540,6 +583,9 @@ c          endif
      &           pnrb(lgroup(igrp,1),lgroup(igrp,2))
             flush(lfnpro)
           endif
+                
+!     Write entry to dayfile
+                
           if(me.eq.master.and.
      &         pnrb(lgroup(igrp,1),lgroup(igrp,2)).ge.
      &         fday(lgroup(igrp,1),lgroup(igrp,2))) then
@@ -553,9 +599,9 @@ c          endif
             fday(lgroup(igrp,1),lgroup(igrp,2))=
      &           fday(lgroup(igrp,1),lgroup(igrp,2))+dble(iday)
           endif
-        endif
+                
+!     Count the number of tasks completed by the remote rank in numrecs
         
-        if(lgroup(igrp,5).gt.0) then
           numrecs(iremote+1)=numrecs(iremote+1)+1
           
 !     Accumulate the returned contributions in buffer
@@ -576,9 +622,15 @@ c          endif
      &         nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(7))
           nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
      &         nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(8))
+
+!     Decrement the tasks still to be done for base pair
           
           ntasks(lgroup(igrp,1),lgroup(igrp,2))=
      &         ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+
+
+!     Loop over all base pairs to check if all tasks have been completed
+!     This will be the case if ntasks(i,j) is zero
 
           do i=1,nbase
             do j=1,i
@@ -635,6 +687,9 @@ c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
                 endif
                 flush(lfnday)
                 call timer_start(99)
+
+!     Setting ntasks to -2 identifies this base pair as completed and reported
+                        
                 ntasks(i,j)=-2
               endif
             enddo
@@ -649,34 +704,44 @@ c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
      &           lgroup(i,4).eq.lgroup(igrp,4).and.
      &           lgroup(i,5).gt.0.and.i.ne.igrp) lgroup(i,5)=0
           enddo
+          
 !     Reset the current entry
+
           do i=1,5
             lgroup(igrp,i)=0
           enddo
 
 !     Send a duplicate of an outstanding entry
+
           j=0
           do i=1,npg
             if(j.eq.0) then
               last=last+1
               if(last.gt.npg) last=last-npg
               if(lgroup(last,5).eq.1) j=last
-!     if(lgroup(i,5).eq.1) j=i
             endif
           enddo
+
           if(j.gt.0) then
             do i=1,4
               ibuf(i)=lgroup(j,i)
             enddo
-            
+
+!     Send the duplicate buffer to requesting rank without waiting for completion of mpi
+
             call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,MPI_COMM_WORLD,
      &           ireq,ierr)
+
+!     Debug message
+
             if(idbg.gt.2) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &             master,' sent duplicate ibuf to',iremote
               flush(lfndbg)
             endif
+
+!     Progress entry
 
             if(ipro.eq.2.or.ipro.eq.4) then
               call swatch(date,time)
@@ -686,14 +751,21 @@ c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
 !     682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
               flush(lfnpro)
             endif
+
+!     Store the buffer information sent to remote rank in lgroup
+
             do k=1,4
               lgroup(igrp,k)=ibuf(k)
             enddo
             lgroup(igrp,5)=2
             lgroup(j,5)=2
+
           endif
+
         else
+
 !     Received data other than matrix elements, should currently be impossible
+
           if(ipro.eq.1.or.ipro.eq.3) then
             write(lfnpro,683) date(1:8),time(1:8), 
      &           iremote,igrp,(lgroup(igrp,j),j=1,4),
@@ -703,14 +775,21 @@ c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
      &           3i6)
           endif
         endif
+
+!     Count the outstanding tasks in nleft
+      
         nleft=0
         do i=1,npg
           if(lgroup(i,5).gt.0) nleft=nleft+1
         enddo
       enddo
-      
+
+!     At this point all outstaning tasks completed
+
       call timer_stop(97)
-      
+
+!     Count the number of groups that are still active in nalive
+
       nalive=0
       do i=1,npg
         if(lactive(i).eq.1) nalive=nalive+1
@@ -735,15 +814,17 @@ c              if((.not.bpdone(i,j)).and.ntasks(i,j).eq.0) then
           flush(lfndbg)
         endif
       enddo
+
+!     Fill lower half of the Hamiltonian and overlap matrices
       
       do i=1,nbase
         do j=i+1,nbase
-c     if(.not.bpdone(i,j)) then
           hbase(i,j)=hbase(j,i)
           sbase(i,j)=sbase(j,i)
-c     endif
         enddo
       enddo
+
+!     OUtput of the un-normalized results
       
       if(ipr.ge.3) then
         write(lfnout,670)
@@ -776,7 +857,7 @@ c     endif
         enddo
       endif
 
-      
+!     Sum the different singularities
       
       do i=1,nbase
         do j=1,nbase
@@ -788,6 +869,9 @@ c     endif
           tsum=tsum+tbase(i,j)
         enddo
       enddo
+
+!     Output the total singularites and wall clock times
+
       write(*,623) mdet,(nsingt(i),i=1,4),tsum,
      &     dble(mgr)*tsum/dble(np-1)
       write(lfnout,623) mdet,(nsingt(i),i=1,4),tsum,

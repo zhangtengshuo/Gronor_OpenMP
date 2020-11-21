@@ -76,10 +76,13 @@ else ()
       
 option (MPI "Enable MPI parallellization." ON)
 option (OPENACC "Enable OPENACC off-loading." OFF)
+option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
 option (OPENMP "Enable multi-threading." OFF)
+option (_OL_OMP_ "Enable OPENMP off-loading." OFF)
 option (CUSOLVER "Enable CUSOLVER library." OFF)
 option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
 option (MKL "Enable MKL library." OFF)
+option (CUDA "Enable CUDA Functions." OFF)
 option (CUBLAS "Enable CUDA BLAS library." OFF)
 option (NVBLAS "Enable NVidia BLAS library." OFF)
 option (CTEST "Enable CTest." OFF)
@@ -664,11 +667,23 @@ if (BOUNDS)
 endif ()
 
 if(OPENACC)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+endif()
+
+if(_OL_ACC_)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+endif()
+
+if(_OL_OMP_)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -D_OL_OMP_")
 endif()
 
 if(OPENOMP)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
+endif()
+
+if(CUDA)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCUDA")
 endif()
 
 if(CUSOLVER)

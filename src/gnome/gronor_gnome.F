@@ -7,6 +7,8 @@
 !! @date    2016
 !!
   
+#include "tgt_guard.fh"
+      
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       use mpi
@@ -118,10 +120,14 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 
       if(iamacc.gt.0) then
         
-!$acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev)
-!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
-!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)
+!_ACCTGT_($acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
+!_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
+!_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
         
+!_OMPTGT_($omp target data map(to:s,ta,va,vb,tat) map(alloc:tb,w1,w2,taa,u,w,ev))
+!_OMPTGT_($omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
+!_OMPTGT_($omp& map(alloc: diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)) 
+
 !     Calculations of the overlap matrices
 
         call timer_start(14)
@@ -212,7 +218,8 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           call timer_stop(22)
         endif
 
-!$acc end data
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
 
       else
 

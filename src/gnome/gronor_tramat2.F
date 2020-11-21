@@ -6,7 +6,9 @@
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
+#include "tgt_guard.fh"
+      
       subroutine gronor_tramat2(lfndbg)
 
 !      Transformation of the  m.o.'s
@@ -25,18 +27,18 @@
       if(idbg.ge.13) write(lfndbg,600) 
  600  format(/,' Cofactor matrix transform to symmetry functions')
 
-!$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
+!_ACCTGT_($acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2))
 
       if(ising .ne. 0.) then
 
 
 !     transformation of diag and sdiag
 
-       if(nalfa.ne.0) then
-*        do j=1,nsymf
+        if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas 
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+cdiag(k)*va(k,j)
          enddo
@@ -45,10 +47,10 @@
        endif
 
        if(ntcla.ne.0) then
-*        do j=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas 
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,ntcla
           kk=k+nalfa
           sum=sum+cdiag(kk)*va(k,j)
@@ -58,11 +60,11 @@
        endif
 
        if(nalfa.ne.nveca) then
-        m1=nalfa+1
-*        do j=1,nsymf
+         m1=nalfa+1
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+cdiag(kk)*va(k,j)
@@ -72,10 +74,10 @@
        endif
 
        if(nalfa.ne.0) then
-*        do j=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+csdiag(k)*vb(k,j)
          enddo
@@ -84,10 +86,10 @@
        endif
 
        if(ntclb.ne.0) then
-*        do j=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,ntclb
           kk=k+nalfa
           sum=sum+csdiag(kk)*vb(k,j)
@@ -97,21 +99,21 @@
        endif
 
        if(nalfa.ne.nvecb) then
-        m1=nalfa+1
-*        do j=1,nsymf
+         m1=nalfa+1
+!_OMPTGT_($omp target teams distribute parallel do private(sum))
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+csdiag(kk)*vb(k,j)
          enddo
          bsdiag(j)=bsdiag(j)+sum
         enddo
-       endif
-
-*        do j=1,nsymf
-        do j=1,nbas
+      endif
+      
+!_OMPTGT_($omp target teams distribute parallel do)
+       do j=1,nbas
         csdiag(j)=w1(j)
        enddo
       endif
@@ -121,18 +123,18 @@
 !     calculation of the intermediate matrices
 
       if(nalfa.ne.0) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do i=1,nalfa
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+ta(i,k)*vb(k,j)
          enddo
          w2(i,j)=sum
         enddo
-       enddo
-*        do j=1,nsymf
+      enddo
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=1,nalfa
          ta(i,j)=w2(i,j)
@@ -142,19 +144,19 @@
 
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do i=m1,nelecs
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
          if(ntclb.ne.0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+ta(i,kk)*vb(k,j)
           enddo
          endif
          if(nalfa.ne.nvecb) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=m1,nvecb
            kk=k+ntclb
            sum=sum+ta(i,kk)*vb(k,j)
@@ -163,7 +165,7 @@
          w2(i,j)=sum
         enddo
        enddo
-*        do j=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
         do j=1,nbas
         do i=m1,nelecs
          ta(i,j)=w2(i,j)
@@ -174,12 +176,11 @@
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
-*       do j=1,nsymf
-*        do i=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do j=1,nbas
         do i=1,nbas
          sum=0.0
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+ta(k,j)*va(k,i)
          enddo
@@ -189,20 +190,19 @@
       endif
 
       if(nalfa.ne.nelecs) then
-*       do j=1,nsymf
-*        do i=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
        do j=1,nbas
         do i=1,nbas
          sum=0.0d0
          if(ntcla.ne.0) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+ta(kk,j)*va(k,i)
           enddo
          endif
          if(nalfa.ne.nveca) then
-!$acc loop reduction(+:sum)
+!_ACCTGT_($acc loop reduction(+:sum))
           do k=m1,nveca
            kk=k+ntcla
            sum=sum+ta(kk,j)*va(k,i)
@@ -211,16 +211,14 @@
          w2(i,j)=sum
         enddo
        enddo
-*       do j=1,nsymf
-*        do i=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=w2(i,j)
         enddo
        enddo
       else
-*       do j=1,nsymf
-*        do i=1,nsymf
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=0.0d0
@@ -228,9 +226,9 @@
        enddo
       endif
 
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
-c!$acc update host(ta,w2)
+cccc!_ACCTGT_($acc update host(ta,w2))
 
 c        write(*,'(a,i5)') 'TA tramat2 '
 c        do k=1,min(5,nbas)
@@ -262,18 +260,14 @@ c        enddo
       if(idbg.ge.13) write(lfndbg,600) 
  600  format(/,' Cofactor matrix transform to symmetry functions')
 
-cc!$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
-
       if(ising .ne. 0.) then
 
 
 !     transformation of diag and sdiag
 
        if(nalfa.ne.0) then
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+cdiag(k)*va(k,j)
          enddo
@@ -282,10 +276,8 @@ cc!$acc loop reduction(+:sum)
        endif
 
        if(ntcla.ne.0) then
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=1,ntcla
           kk=k+nalfa
           sum=sum+cdiag(kk)*va(k,j)
@@ -296,10 +288,8 @@ cc!$acc loop reduction(+:sum)
 
        if(nalfa.ne.nveca) then
         m1=nalfa+1
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+cdiag(kk)*va(k,j)
@@ -309,10 +299,8 @@ cc!$acc loop reduction(+:sum)
        endif
 
        if(nalfa.ne.0) then
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+csdiag(k)*vb(k,j)
          enddo
@@ -321,10 +309,8 @@ cc!$acc loop reduction(+:sum)
        endif
 
        if(ntclb.ne.0) then
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=1,ntclb
           kk=k+nalfa
           sum=sum+csdiag(kk)*vb(k,j)
@@ -335,10 +321,8 @@ cc!$acc loop reduction(+:sum)
 
        if(nalfa.ne.nvecb) then
         m1=nalfa+1
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+csdiag(kk)*vb(k,j)
@@ -347,8 +331,7 @@ cc!$acc loop reduction(+:sum)
         enddo
        endif
 
-*        do j=1,nsymf
-        do j=1,nbas
+       do j=1,nbas
         csdiag(j)=w1(j)
        enddo
       endif
@@ -359,17 +342,14 @@ cc!$acc loop reduction(+:sum)
 
       if(nalfa.ne.0) then
        do i=1,nalfa
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
-cc!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+ta(i,k)*vb(k,j)
          enddo
          w2(i,j)=sum
         enddo
        enddo
-*        do j=1,nsymf
         do j=1,nbas
         do i=1,nalfa
          ta(i,j)=w2(i,j)
@@ -380,18 +360,15 @@ cc!$acc loop reduction(+:sum)
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
        do i=m1,nelecs
-*        do j=1,nsymf
         do j=1,nbas
          sum=0.0d0
          if(ntclb.ne.0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+ta(i,kk)*vb(k,j)
           enddo
          endif
          if(nalfa.ne.nvecb) then
-cc!$acc loop reduction(+:sum)
           do k=m1,nvecb
            kk=k+ntclb
            sum=sum+ta(i,kk)*vb(k,j)
@@ -400,8 +377,7 @@ cc!$acc loop reduction(+:sum)
          w2(i,j)=sum
         enddo
        enddo
-*        do j=1,nsymf
-        do j=1,nbas
+       do j=1,nbas
         do i=m1,nelecs
          ta(i,j)=w2(i,j)
         enddo
@@ -411,12 +387,9 @@ cc!$acc loop reduction(+:sum)
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
-*       do j=1,nsymf
-*        do i=1,nsymf
        do j=1,nbas 
         do i=1,nbas 
          sum=0.0
-cc!$acc loop reduction(+:sum)
          do k=1,nalfa
           sum=sum+ta(k,j)*va(k,i)
          enddo
@@ -426,20 +399,16 @@ cc!$acc loop reduction(+:sum)
       endif
 
       if(nalfa.ne.nelecs) then
-*       do j=1,nsymf
-*        do i=1,nsymf
        do j=1,nbas 
         do i=1,nbas
          sum=0.0d0
          if(ntcla.ne.0) then
-cc!$acc loop reduction(+:sum)
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+ta(kk,j)*va(k,i)
           enddo
          endif
          if(nalfa.ne.nveca) then
-cc!$acc loop reduction(+:sum)
           do k=m1,nveca
            kk=k+ntcla
            sum=sum+ta(kk,j)*va(k,i)
@@ -448,24 +417,18 @@ cc!$acc loop reduction(+:sum)
          w2(i,j)=sum
         enddo
        enddo
-*       do j=1,nsymf
-*        do i=1,nsymf
        do j=1,nbas 
         do i=1,nbas
          ta(i,j)=w2(i,j)
         enddo
        enddo
       else
-*       do j=1,nsymf
-*        do i=1,nsymf
        do j=1,nbas 
         do i=1,nbas
          ta(i,j)=0.0d0
         enddo
        enddo
       endif
-
-cc!$acc end kernels
 
       return
       end

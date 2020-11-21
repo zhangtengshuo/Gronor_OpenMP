@@ -14,6 +14,8 @@
 !! </table>
 !!
       
+#include "tgt_guard.fh"
+      
       subroutine gronor_gnone(lfndbg)
       use cidist
       use gnome_parameters
@@ -23,10 +25,8 @@
       implicit none
       integer :: lfndbg
 
-      integer :: i,j,k,ielem,jkoff,nb,nn
+      integer :: i,j,k,ielem,jkoff,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
-
-      nb = nbas   ! All 'nb' can be replaced with nbas
 
       nn=0
       tsum=0.0d0
@@ -34,11 +34,11 @@
       ielem=0
       jkoff=0
 
-!$acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
-
+!_ACCTGT_($acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv))
       if(ising.eq.0) then
-!$acc loop reduction(+:tsum,vsum)
-        do j=1,nb
+!_ACCTGT_($acc loop reduction(+:tsum,vsum))
+!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
+        do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
          vsj=0.0d0
@@ -52,8 +52,9 @@
          vsum=vsum+vsj
         enddo
       else
-!$acc loop reduction(+:tsum,vsum)
-        do j=1,nb
+!_ACCTGT_($acc loop reduction(+:tsum,vsum))
+!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
+        do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
          vsj=0.0d0
@@ -68,8 +69,7 @@
          vsum=vsum+vsj
         enddo
       endif
-
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       potnuc1=potnuc*deta
       e1=tsum+vsum+potnuc1
@@ -98,10 +98,8 @@
       implicit none
       integer :: lfndbg
 
-      integer :: i,j,k,ielem,jkoff,nb,nn
+      integer :: i,j,k,ielem,jkoff,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
-
-      nb = nbas
 
       nn=0
       tsum=0.0d0
@@ -110,7 +108,7 @@
       jkoff=0
 
       if(ising.eq.0) then
-        do j=1,nb
+        do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
          vsj=0.0d0
@@ -124,7 +122,7 @@
          vsum=vsum+vsj
         enddo
       else
-        do j=1,nb
+        do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
          vsj=0.0d0

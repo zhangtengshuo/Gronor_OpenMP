@@ -56,7 +56,7 @@
 
        if(ipr.ge.1) then
         write(lfnout,601) namint
-       call flush(lfnout)
+        flush(lfnout)
   601   format(/,' Integral file title: ',t25,a,/,t25,a)
         write(lfnout,602) nbas,intone,potnuc
   602   format(/,' Number of basis functions',t50,i16,
@@ -320,7 +320,7 @@
      &            ' Reading records ',idfil,jdfil,jdfil-idfil+1
              flush(lfndbg)
            endif
-           call flush(lfnout)
+           flush(lfnout)
            do id=idfil,jdfil
              if(mclab.eq.0) then
                read(lfntwo,rec=id)

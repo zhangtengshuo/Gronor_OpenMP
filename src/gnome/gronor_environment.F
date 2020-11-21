@@ -74,7 +74,10 @@ c       istat=cudaMemGetInfo(cpfre,cptot)
 c       memavail=memfre
 c      endif
 #endif
-
+#ifdef _OL_OMP_
+      numdev=omp_get_num_devices()
+#endif
+      
       num_threads=1
 
       if(me.eq.master) num_threads=0

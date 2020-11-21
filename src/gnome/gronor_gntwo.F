@@ -19,7 +19,8 @@
 !! <tr><td> gronor_gntwo_omp_batch_mlab <td>  <td> \htmlonly &#x2714;\endhtmlonly <td>  <td>\htmlonly &#x2714;\endhtmlonly
 !! </table>
 !!
-      
+
+#include "tgt_guard.fh"
       
       subroutine gronor_gntwo(lfndbg)
 
@@ -82,12 +83,10 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-!$acc data create(sm)
-
       call timer_start(30)
       
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
-
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           tat(k,i)=ta(k,i)
@@ -95,14 +94,13 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-      
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
         enddo
       enddo
-!$acc end kernels
-
+!_ACCTGT_($acc end kernels)
       call timer_stop(30)
 
       call timer_start(38)
@@ -112,8 +110,10 @@
         call timer_start(31)
         
         tst=ts
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
-!$acc loop reduction (+:tst)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab))
+!_ACCTGT_($acc loop reduction (+:tst))
+!_OMPTGT_($omp taskwait)
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:tst))
         do intg=1,numint
           i=lab(1,intg)
           k=lab(2,intg)
@@ -125,7 +125,7 @@
      &         -aat(l,i)*aaa(n,k)-tt(l,i)*tat(n,k)
      &         -aaa(l,i)*aat(n,k)-tat(l,i)*tt(n,k))
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         ts=tst
 
         call timer_stop(31)
@@ -135,9 +135,10 @@
         call timer_start(34)
 
         e2t=e2
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g)
-!$acc& present(lab,diag,bdiag,bsdiag,csdiag)
-!$acc loop reduction (+:e2t)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g))
+!_ACCTGT_($acc& present(lab,diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc loop reduction (+:e2t))
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:e2t))
         do intg=1,numint
           i=lab(1,intg) 
           k=lab(2,intg) 
@@ -171,7 +172,7 @@
      &         -bal*(aaa(l,i)*aak+aaa(l,k)*aai)
      &         -bbl*(tat(l,i)*abk+tat(l,k)*abi))
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         e2=e2t
 
         call timer_stop(34)
@@ -186,8 +187,6 @@
         memavail=min(memfre,memavail)
       endif
 #endif
-
-!$acc end data
 
       ts=ts*fourdet
       e2=e2+ts
@@ -214,7 +213,7 @@
 
       integer (kind=4) :: ierr
       integer :: lfndbg
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
+      integer :: i,ii,jj,k,l,m,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg
 
@@ -258,12 +257,10 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-!$acc data create(sm)
-
       call timer_start(30)
       
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
-
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas
           tat(k,i)=ta(k,i)
@@ -271,13 +268,13 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-      
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))      
       do i=1,nbas 
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       call timer_stop(30)
       
@@ -290,13 +287,16 @@
         tst=ts
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
-!$acc& copyin(kl,intndx,jntndx)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& copyin(kl,intndx,jntndx))
+!_OMPTGT_($omp taskwait)
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:tst))
         do ii=intndx,jntndx
+          i=lab(1,ii)
+          k=lab(2,ii)
+          m=ndx(ii)
           do jj=ii,kl
-            intg=ndx(ii)+jj
-            i=lab(1,ii)
-            k=lab(2,ii)
+            intg=m+jj
             l=lab(1,jj)
             n=lab(2,jj)
             tst=tst+g(intg)*(sm(k,i)*sm(n,l)
@@ -306,7 +306,7 @@
      &           -aaa(l,i)*aat(n,k)-tat(l,i)*tt(n,k))
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         ts=tst
 
         call timer_stop(31)
@@ -318,13 +318,15 @@
         e2t=e2
         kl=nbas*(nbas+1)/2
         intg=0
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx))
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:e2t))
         do ii=intndx,jntndx
+          i=lab(1,ii)
+          k=lab(2,ii)
+          m=ndx(ii)
           do jj=ii,kl
-            intg=ndx(ii)+jj
-            i=lab(1,ii)
-            k=lab(2,ii)
+            intg=m+jj
             l=lab(1,jj)
             n=lab(2,jj)
             aai=diag(i)
@@ -356,7 +358,7 @@
      &           -bbl*(tat(l,i)*abk+tat(l,k)*abi))
           enddo
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
         e2=e2t
 
         call timer_stop(34)
@@ -371,8 +373,6 @@
         memavail=min(memfre,memavail)
       endif
 #endif
-
-!$acc end data
 
       ts=ts*fourdet
       e2=e2+ts
@@ -455,29 +455,32 @@
 
       if(ising.gt.0) then
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       endif
-!$acc kernels present(aat,aaa,tt,ta)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -487,13 +490,14 @@
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     END ASSEMBLY ON GPU
       
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!$acc update self(ta,aaa,aat,tt)
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
 
       do k=1,nbas
         do i=1,nbas
@@ -517,24 +521,25 @@
       
       if(ihc.eq.nhc) then
 
-c!$acc update device(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
-!$acc update device(tatl,aaal,aatl,ttl,sml)
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
-!$acc data copyin(prefac)
-        
-c        if(nb0.gt.0.and.nb1.le.0) then
+!_ACCTGT_($acc data copyin(prefac))
+!_OMPTGT_($omp target data map(to:prefac))        
+
         if(nb0.gt.0) then
           call timer_start(31)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
+!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_OMPTGT_($omp target teams distribute parallel do)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
@@ -547,7 +552,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
           call timer_stop(31)
         endif
@@ -556,8 +561,8 @@ c        if(nb0.gt.0.and.nb1.gt.0) then
 cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
 c          call timer_start(31)
 c
-c!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+c!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 c          do intg=1,numint
 c            i=lab(1,intg)
 c            k=lab(2,intg)
@@ -602,7 +607,7 @@ c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
 c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
 c            enddo
 c          enddo
-c!$acc end kernels
+c!_ACCTGT_($acc end kernels)
 c
 c          call timer_stop(31)
 c        endif
@@ -611,14 +616,15 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
           call timer_start(34)
 
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
             l=lab(3,intg) 
             n=lab(4,intg)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
             do ibl=nhc-nb1+1,nhc
               etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -647,13 +653,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
     
           call timer_stop(34)
         endif
         
-!$acc end data
-
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
       endif
 
       call timer_stop(38)
@@ -734,29 +740,32 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       if(ising.gt.0) then
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
       endif
-!$acc kernels present(aat,aaa,tt,ta)
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -766,14 +775,14 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
 !     END ASSEMBLY ON GPU
       
 !     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!$acc update self(ta,aaa,aat,tt)
-
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -796,12 +805,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       
       if(ihc.eq.nhc) then
 
-c!$acc update device(tatl,aaal,aatl,ttl,sml,diagl,bdiagl,bsdiagl,csdiagl)
-!$acc update device(tatl,aaal,aatl,ttl,sml)
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         
-!$acc data copyin(prefac)
+!_ACCTGT_($acc data copyin(prefac))
+!_OMPTGT_($omp target data map(to:prefac))
         
 c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
@@ -809,7 +819,8 @@ c        if(nb0.gt.0.and.nb1.le.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_OMPTGT_($omp target teams distribute parallel do)
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -817,7 +828,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
               do ibl=1,nb0
                 etotb=etotb+g(intg)*
      &               prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
@@ -832,7 +843,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
               enddo
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
 
           call timer_stop(31)
         endif
@@ -843,8 +854,8 @@ c          call timer_start(31)
 c
 c       kl=nbas*(nbas+1)/2
 c       intg=0
-c!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
-c!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+c!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 c       do ii=intndx,jntndx
 c         do jj=ii,kl
 c           intg=ndx(ii)+jj
@@ -891,7 +902,7 @@ c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
 c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
 c            enddo
 c          enddo
-c!$acc end kernels
+c!_ACCTGT_($acc end kernels)
 c
 c          call timer_stop(31)
 c        endif
@@ -902,8 +913,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
           kl=nbas*(nbas+1)/2
           intg=0
-!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
           do ii=intndx,jntndx
             do jj=ii,kl
               intg=ndx(ii)+jj
@@ -911,7 +923,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!$acc loop private(ibl)
+!_ACCTGT_($acc loop private(ibl))
               do ibl=nhc-nb1+1,nhc
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -941,13 +953,13 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               enddo
             enddo
           enddo
-!$acc end kernels
+!_ACCTGT_($acc end kernels)
     
           call timer_stop(34)
         endif
         
-!$acc end data
-
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
       endif
 
       call timer_stop(38)
@@ -999,18 +1011,23 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       call timer_start(30)
 
+!$omp parallel firstprivate(nbas)
+!$omp do collapse(2)
       do i=1,nbas 
        do k=1,nbas 
         tt(i,k)=ta(k,i)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
-
+!$omp end do
+!$omp do collapse(2)
       do i=1,nbas 
        do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
        enddo
+!$omp end do
+!$omp end parallel
 
       call timer_stop(30)
 
@@ -1020,9 +1037,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
        call timer_start(32)
 
-!$OMP PARALLEL DO REDUCTION(+:ts)
-!$OMP& SHARED(sm,aat,aaa,tt,ta,g,lab,numint)
-!$OMP& PRIVATE(intg,i,k,l,n)
+!$omp parallel do reduction(+:ts)
+!$omp& shared(sm,aat,aaa,tt,ta,g,lab)
+!$omp& private(intg,i,k,l,n) firstprivate(numint)
        do intg=1,numint
         i=lab(1,intg)
         k=lab(2,intg)
@@ -1034,7 +1051,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &       -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
      &       -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
        enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
        call timer_stop(32)
 
@@ -1042,10 +1059,11 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
        call timer_start(35)
 
-!$OMP PARALLEL DO REDUCTION(+:e2)
-!$OMP& SHARED(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-!$OMP& PRIVATE(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
-!$OMP& PRIVATE(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp parallel do reduction(+:e2)
+!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab)
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp& firstprivate(numint)
        do intg=1,numint
         i=lab(1,intg) 
         k=lab(2,intg) 
@@ -1079,7 +1097,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &          -bal*(aaa(l,i)*aak+aaa(l,k)*aai)
      &          -bbl*(ta(l,i)*abk+ta(l,k)*abi))
        enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
        call timer_stop(35)
       endif
@@ -1109,7 +1127,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       integer (kind=4) :: ierr
       integer :: lfndbg
 
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
+      integer :: i,ii,jj,k,l,m,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg
 
@@ -1136,18 +1154,22 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
       call timer_start(30)
 
+!$omp parallel do collapse(2)
       do i=1,nbas 
        do k=1,nbas 
         tt(i,k)=ta(k,i)
         aat(i,k)=aaa(k,i)
        enddo
       enddo
+!$omp end parallel do
 
+!$omp parallel do collapse(2)
       do i=1,nbas 
        do k=1,nbas
          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
        enddo
+!$omp end parallel do
 
       call timer_stop(30)
 
@@ -1159,14 +1181,15 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
        kl=nbas*(nbas+1)/2
        intg=0
-!$OMP PARALLEL DO REDUCTION(+:ts)
-!$OMP& SHARED(sm,aat,aaa,tt,ta,g,lab,numint)
-!$OMP& PRIVATE(intg,i,k,l,n)
+!$omp parallel do reduction(+:ts)
+!$omp& shared(sm,aat,aaa,tt,ta,g,lab)
+!$omp& private(intg,i,k,l,n) firstprivate(kl,intndx,jntndx)
        do ii=intndx,jntndx
+         i=lab(1,ii)
+         k=lab(2,ii)
+         m=ndx(ii)  
          do jj=ii,kl
-           intg=intg+1
-           i=lab(1,ii)
-           k=lab(2,ii)
+           intg=m+jj
            l=lab(1,jj)
            n=lab(2,jj)
            ts=ts+g(intg)*(sm(k,i)*sm(n,l)
@@ -1176,7 +1199,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &          -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
          enddo
        enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
        call timer_stop(32)
 
@@ -1186,15 +1209,17 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
        kl=nbas*(nbas+1)/2
        intg=0
-!$OMP PARALLEL DO REDUCTION(+:e2)
-!$OMP& SHARED(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-!$OMP& PRIVATE(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
-!$OMP& PRIVATE(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp parallel do reduction(+:e2)
+!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab)
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp& firstprivate(kl,intndx,jntndx)
        do ii=intndx,jntndx
+         i=lab(1,ii)
+         k=lab(2,ii)
+         m=ndx(ii)
          do jj=ii,kl
-           intg=intg+1
-           i=lab(1,ii)
-           k=lab(2,ii)
+           intg=m+jj
            l=lab(1,jj)
            n=lab(2,jj)
            aai=diag(i)
@@ -1226,7 +1251,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &          -bbl*(ta(l,i)*abk+ta(l,k)*abi))
          enddo
        enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
        call timer_stop(35)
       endif
@@ -1260,7 +1285,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
 
-      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: e2n,tsn,gtemp,etmp
       real (kind=8) :: tcalc, twait
 
       real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
@@ -1309,16 +1334,20 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       fourdet=4.0d0*deta
       call timer_start(30)
 
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k) collapse(2)
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
+!$omp end parallel do
 
-!$OMP PARALLEL DO
-!$OMP& SHARED(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$OMP& PRIVATE(i,k)
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k) collapse(2)
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -1328,20 +1357,20 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
           
       if(ising.gt.0) then
 
-!$OMP PARALLEL DO
-!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$OMP& PRIVATE(i)
+!$omp parallel do
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
+!$omp& private(i)
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
       endif
       
@@ -1356,20 +1385,23 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       if(ihc.eq.nhc) then
 
         call timer_start(38)
-        
+
         if(nb0.gt.0.and.nb1.le.0) then
           call timer_start(32)
 
-!$OMP PARALLEL DO REDUCTION(+:etotb)
-!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
-!$OMP& PRIVATE(intg,i,k,l,n,ibl)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
+!$omp& private(intg,i,k,l,n,ibl)
+!$omp& firstprivate(kl,numint,nb0,intndx,jntndx)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
+            etmp=0.0d0
             do ibl=1,nb0
-              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+              etmp=etmp+prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
      &             -ttl(ibl,n,i)*tatl(ibl,l,k)
      &             -aaal(ibl,n,i)*aatl(ibl,l,k)
@@ -1379,18 +1411,19 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             -aaal(ibl,l,i)*aatl(ibl,n,k)
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
+            etotb=etotb+g(intg)*etmp
           enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
 
           call timer_stop(32)
         endif
 
         if(nb0.gt.0.and.nb1.gt.0) then
           call timer_start(36)
-!$OMP PARALLEL DO REDUCTION(+:etotb)
-!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl)
-!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
-!$OMP& PRIVATE(intg,i,k,l,n,ibl)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
+!$omp& private(intg,i,k,l,n,ibl) firstprivate(numint,nb0,nhc,nb1)
           do intg=1,numint
             i=lab(1,intg)
             k=lab(2,intg)
@@ -1435,16 +1468,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
           call timer_stop(36)
         endif
         
         if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(35)
-!$OMP PARALLEL DO REDUCTION(+:etotb)
-!$OMP& SHARED(diagl,bdiagl,csdiagl,bsdiagl)
-!$OMP& SHARED(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
-!$OMP& PRIVATE(intg,i,k,l,n,ibl)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,prefac)
+!$omp& private(intg,i,k,l,n,ibl) firstprivate(kl,numint,nb0,nhc,nb1)
           do intg=1,numint
             i=lab(1,intg) 
             k=lab(2,intg) 
@@ -1478,7 +1511,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
-!$OMP END PARALLEL DO
+!$omp end parallel do
           call timer_stop(35)
         endif
         
@@ -1505,7 +1538,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       integer (kind=4) :: ierr
       integer :: lfndbg
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
+      integer :: i,ii,k,l,m,status(MPI_STATUS_SIZE)
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
 
@@ -1560,13 +1593,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       fourdet=4.0d0*deta
       call timer_start(30)
 
+!$omp parallel
+!$omp do collapse(2)
       do i=1,nbas 
         do k=1,nbas 
           tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-
+!$omp end do
+!$omp do collapse(2)
       do k=1,nbas
         do i=1,nbas
           sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
@@ -1576,15 +1612,19 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
+!$omp end do
+!$omp end parallel
           
       if(ising.gt.0) then
 
+!$omp parallel do
         do i=1,nbas
           diagl(ibl,i)=diag(i)
           bdiagl(ibl,i)=bdiag(i)
           bsdiagl(ibl,i)=bsdiag(i)
           csdiagl(ibl,i)=csdiag(i)
         enddo
+!$omp end parallel do
 
       endif
       
@@ -1604,12 +1644,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(32)
 
           kl=nbas*(nbas+1)/2
-          intg=0
+
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab)
+!$omp& private(i,k,m,l,n,intg) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
+            i=lab(1,ii)
+            k=lab(2,ii)
+            m=ndx(ii)
             do jj=ii,kl
-              intg=intg+1
-              i=lab(1,ii)
-              k=lab(2,ii)
+              intg=m+jj
               l=lab(1,jj)
               n=lab(2,jj)
               do ibl=1,nb0
@@ -1626,6 +1670,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               enddo
             enddo
           enddo
+!$omp end parallel do
 
           call timer_stop(32)
         endif
@@ -1633,12 +1678,16 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb0.gt.0.and.nb1.gt.0) then
           call timer_start(36)
           kl=nbas*(nbas+1)/2
-          intg=0
+
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,diagl,csdiagl,bdiagl,bsdiagl,g,lab)
+!$omp& private(intg,i,k,l,n,m) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
+            i=lab(1,ii)
+            k=lab(2,ii)
+            m=ndx(ii)
             do jj=ii,kl
-              intg=intg+1
-              i=lab(1,ii)
-              k=lab(2,ii)
+              intg=m+jj
               l=lab(1,jj)
               n=lab(2,jj)
               do ibl=1,nb0
@@ -1682,18 +1731,23 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               enddo
             enddo
           enddo
+!$omp end parallel do
           call timer_stop(36)
         endif
         
         if(nb0.le.0.and.nb1.gt.0) then
           call timer_start(35)
           kl=nbas*(nbas+1)/2
-          intg=0
+
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,diagl,csdiagl,bdiagl,bsdiagl,g,lab)
+!$omp& private(intg,i,k,l,n,m) firstprivate(kl,nb0,intndx,jntndx)
           do ii=intndx,jntndx
+            i=lab(1,ii)
+            k=lab(2,ii)
+            m=ndx(ii)
             do jj=ii,kl
-              intg=intg+1
-              i=lab(1,ii)
-              k=lab(2,ii)
+              intg=m+jj
               l=lab(1,jj)
               n=lab(2,jj)
               do ibl=nhc-nb1+1,nhc
@@ -1725,6 +1779,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               enddo
             enddo
           enddo
+!$omp end parallel do
           call timer_stop(35)
         endif
         

@@ -10,6 +10,8 @@
 !>           input would be nice (with some extra checks on 
 !>           input errors)
 
+#include "tgt_guard.fh"
+
       subroutine gronor_main()
 
 !>    Initialization of the calculation
@@ -34,7 +36,6 @@
 !!                 <td> OpenMolcas
 !!     </table>
 !!
-
 
       use mpi
       use inp
@@ -62,7 +63,7 @@ c      use cuda_functions
       integer :: maxspinmul
       integer :: mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
-      character (len=255) :: string, filnam, card, item
+      character (len=255) :: string, filnam, card
 
       real(kind=8), external :: timer_wall_total
       
@@ -78,7 +79,6 @@ c      use cuda_functions
       integer :: igr, numone, numtwo
       integer (kind=4) :: new,newme,newgrp,newrnk
       integer :: maxcib1
-      character (len=255) :: opt_inp
       real (kind=8), allocatable :: tc(:,:), hbt(:)
 
       character (len=4) :: token
@@ -86,13 +86,12 @@ c      use cuda_functions
       integer :: maxgrp
       integer :: nk,ii,il,ik
 
-      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur
-      integer :: l3, l4, ndsum, ioff
+      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr
+      integer :: l3, l4, ndsum, ioff, nsr(4)
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
-      integer :: iaslvr,jaslvr,inslvr,jnslvr
-      real (kind=8) :: rint,rlab,rndx
-      
+      real (kind=8) :: rint,rlab,rndx,rh,rs,rt
+
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
@@ -169,6 +168,10 @@ c      use cuda_functions
        lfntst=19
        fillog=root(1:inp_strlen(root))//'.log'
        lfnlog=20
+       filcpr=string(1:inp_strlen(string))//'.cpr'
+       lfncpr=21
+       filarx=string(1:inp_strlen(string))//'.arx'
+       lfnarx=22
        lfnf74=74
        filf74=string(1:inp_strlen(string))//'.f74'
        lfnf75=75
@@ -184,6 +187,12 @@ c      use cuda_functions
      &      form='formatted',status='unknown',err=996)
        
        open(unit=lfntst,file=filtst(1:inp_strlen(filtst)),
+     &  form='formatted',status='unknown',err=996)
+       
+       open(unit=lfncpr,file=filcpr(1:inp_strlen(filcpr)),
+     &  form='formatted',status='unknown',err=996)
+       
+       open(unit=lfnarx,file=filarx(1:inp_strlen(filarx)),
      &  form='formatted',status='unknown',err=996)
 
        call timer_stop(99)
@@ -257,6 +266,11 @@ c      use cuda_functions
      &      ' MO vector file(s) are',t25,a,'_nnn.vec',t60,
      &      'Total memory on device',t90,i20,//)
 
+       write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
+ 401   format('*** ',a,' on ',a,' : ',a)
+       write(lfnarx,402) nnodes,np
+ 402   format(i8,i10)
+
 !>
 !!    <table>
 !!    <caption id="multi_row">Input derived variables</caption> 
@@ -328,256 +342,12 @@ c      use cuda_functions
        tolsvj=1.0d-07
        tolevj=1.0d-07
 
-       open(unit=lfninp,file=filinp,form='formatted',status='old',
-     &  err=999)
-
- 1     continue
-
-       if(inp_read()) then
-
- 2     continue
-
-       if(.not.inp_a(item)) goto 1
-
- 3     continue
-
-       if(inp_compare(.false.,'Groups',item)) then
-         if(.not.inp_i(npg)) call errquit()
-         goto 2
-       endif
-
-       if(inp_compare(.false.,'Size',item)) then
-         if(.not.inp_i(mgr)) call errquit()
-         if(npg.eq.0) npg=(np-1)/mgr
-         if(np.lt.mgr+1) then
-           write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
-     &          ') cannot be supported by available ranks (',np,')'
-           call errquit()
-         endif
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Molecules',item)) then
-         if(.not.inp_i(nmol)) call errquit()
-         if(.not.inp_i(nbase)) call errquit()
-         allocate(ncombv(nmol,nbase))
-         do i=1,nmol
-           if(.not.inp_read()) call errquit()
-           do j=1,nbase
-             if(.not.inp_i(ncombv(i,j))) call errquit()
-             if(ncombv(i,j).eq.0) ncombv(i,j)=9
-           enddo
-         enddo
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'States',item)) then
-         if(.not.inp_i(mstates)) mstates=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Spin',item)) then
-         if(.not.inp_i(nspin)) call errquit()
-         nspin = nspin - 1
-         goto 2
-       endif
-
-       if(inp_compare(.false.,'Threshold',item)) then
-         if(.not.inp_f(thresh)) call errquit()
-         thresh_CI=thresh
-         goto 2
-       endif
-
-       if(inp_compare(.false.,'Labels',item)) then
-         if(.not.inp_i(labels)) call errquit()
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Expert',item)) then
-         if(.not.inp_i(ixpert)) ixpert=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Thresh_CI',item)) then
-         if(.not.inp_f(thresh_CI)) thresh_CI=1.0d-10
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Thresh_SIN',item)) then
-         if(.not.inp_f(thresh_SIN)) thresh_SIN=1.0d-12
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Load',item)) then
-         if(.not.inp_i(iload)) iload=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Range',item)) then
-         if(.not.inp_i(nbatch)) nbatch=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Batch',item)) then
-         if(.not.inp_i(nbatch)) nbatch=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Batched',item)) then
-         lbatch=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Print',item)) then
-         if(.not.inp_i(ipr)) ipr=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Timings',item)) then
-         if(.not.inp_i(itim)) itim=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Fault',item)) then
-         if(.not.inp_i(ifault)) ifault=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Solver',item).or.
-     &      inp_compare(.false.,'Solvers',item)) then
-         if(.not.inp_i(iaslvr)) then
-           iaslvr=-1
-           jaslvr=-1
-           inslvr=-1
-           jnslvr=-1
-         elseif(.not.inp_i(jaslvr)) then
-           jaslvr=-1
-           inslvr=-1
-           jnslvr=-1
-         elseif(.not.inp_i(inslvr)) then
-           inslvr=-1
-           jnslvr=-1
-         elseif(.not.inp_i(jnslvr)) then
-           jnslvr=-1
-         endif
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Tolerance',item)) then
-         if(.not.inp_f(tolsvj)) then
-           tolsvj=1.0d-07
-           tolevj=1.0d-07
-         elseif(.not.inp_f(tolevj)) then
-           tolevj=1.0d-07
-         endif
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Sweep',item)) then
-         if(.not.inp_i(iswsvj)) then
-           iswsvj=15
-           iswevj=15
-         elseif(.not.inp_i(iswevj)) then
-           iswevj=15
-         endif
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Debug',item)) then
-         if(.not.inp_i(idbg)) idbg=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Dayfile',item)) then
-         if(.not.inp_i(iday)) iday=10
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Progress',item)) then
-         if(.not.inp_i(ipro)) ipro=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Test',item)) then
-         if(.not.inp_i(itest)) itest=0
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Development',item)) then
-         if(.not.inp_i(idevel)) idevel=0
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'IntAdd',item)) then
-         if(.not.inp_i(intadd)) intadd=0
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Maxcib',item)) then
-         if(.not.inp_i(inpcib)) inpcib=0
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Columns',item)) then
-         if(.not.inp_i(ncols)) ncols=7
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'MPIbuffer',item)) then
-         if(.not.inp_i(mpibuf)) call errquit()
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'Accelerate',item)) then
-         if(.not.inp_i(naccel)) naccel=0
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'MPS',item)) then
-         if(.not.inp_i(nummps)) nummps=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'OMP',item)) then
-         if(.not.inp_i(numomp)) numomp=1
-         goto 2
-       endif
-       
-       if(inp_compare(.false.,'QCprogram',item)) then
-         if(.not.inp_a(opt_inp)) opt_inp='symol'
-         if(inp_compare(.false.,'symol',opt_inp)) then
-           nqcp=1
-         else if(inp_compare(.false.,'gamess',opt_inp)) then
-           nqcp=2
-         else if(inp_compare(.false.,'molcas',opt_inp)) then
-           nqcp=3
-         end if
-         goto 2
-       endif
-
-       if (inp_compare(.false.,'Ecorr',item)) then
-         ncorr = 1
-         allocate(ecorr(mstates))
-         do i=1,mstates
-           if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
-         end do
-         goto 2
-       end if
-       
-* Use Gallup-Norbeck weights? Yes, nwt=1; No, nwt .ne. 1
-       if (inp_compare(.false.,'GNWeights',item)) then
-         if(.not.inp_i(nwt)) nwt = 0
-         goto 2
-       endif
-       
-       goto 1
-      endif
+       call gronor_input()
       
-      
-      if(mgr.eq.0) then
-        if(npg.eq.0) call errquit()
-        mgr=(np-1)/npg
-      endif
+       if(mgr.eq.0) then
+         if(npg.eq.0) call errquit()
+         mgr=(np-1)/npg
+       endif
       
 !     Unless the user is an expert let's check thresholds
       
@@ -645,8 +415,6 @@ c      use cuda_functions
       ione=0
       bias=0.0d0
       corres=.false.
-      
-      close(unit=lfninp)
       
       if(ifault.eq.0) then
         write(lfnout,627) nummps
@@ -825,7 +593,7 @@ c      use cuda_functions
        if ( nqcp .eq. 2 ) then
          call gronor_gnome_symmetry_input_gamess(lfnsym,lfnout,ipr)
        elseif (nqcp.eq.3) then
-         call gronor_gnome_molcas_input(lfnsym,lfnout,ipr) ! OpenMolcas
+         call gronor_gnome_molcas_input(lfnsym,lfnout,lfnarx,ipr) ! OpenMolcas
        endif
        close(unit=lfnsym)
        
@@ -1686,6 +1454,42 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
       allocate(nsing(nbase,nbase,5))
+      allocate(bpdone(nbase,nbase))
+
+      if(me.eq.master) then
+        do i=1,nbase
+          do j=1,nbase
+            bpdone(i,j)=.false.
+            hbase(i,j)=0.0d0
+            sbase(i,j)=0.0d0
+            tbase(i,j)=0.0d0
+            do ksr=1,4
+              nsing(i,j,ksr)=-1
+              nsing(j,i,ksr)=-1
+            enddo
+          enddo
+        enddo
+        rewind(lfncpr)
+        do k=1,nbase*nbase
+          read(lfncpr,203,end=299) i,j,rh,rs,rt,nsr
+ 203      format(2i4,3e20.12,4i10)
+          if(i.gt.0.and.j.gt.0) then
+            hbase(i,j)=rh
+            sbase(i,j)=rs
+            tbase(i,j)=rt
+            hbase(j,i)=rh
+            sbase(j,i)=rs
+            tbase(j,i)=rt
+            do ksr=1,4
+              nsing(i,j,ksr)=nsr(ksr)
+              nsing(j,i,ksr)=nsr(ksr)
+            enddo
+            bpdone(i,j)=.true.
+            bpdone(j,i)=.true.
+          endif
+        enddo
+ 299    continue
+      endif
       
 !     Define the process groups
       
@@ -1800,9 +1604,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),
      &             ' mint2= ',mint2
               flush(lfndbg)
-            endif
-            
-!$acc data copyin(g,lab,ndx,t,v,ndxtv)
+            endif            
+!_ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv))
+!_OMPTGT_($omp target data map(to:g,lab,ndx,t,v,ndxtv))
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1810,8 +1614,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             call gronor_worker()
-!$acc end data
-
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
           else
             lwork=10
             allocate(work(lwork))
@@ -1899,10 +1703,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),np,
-     &       isolver,jsolver,nbatch,lbatch,nmol,nbase,mstates,
-     &       thresh,mgr,numacc,numnon,
+     &       iaslvr,jaslvr,inslvr,jnslvr,nbatch,lbatch,nmol,nbase,
+     &       mstates,thresh,mgr,numacc,numnon,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,f12.3,i8,2i3,i5,i2,3i5,e12.3,i8,2i6,1x,a,1x,a)
+ 801    format(a8,1x,a8,f12.3,i8,4i2,i5,i2,3i5,e12.3,i8,2i6,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
  803    format(5x,8f20.10)
         write(lfnlog,804)
@@ -1919,7 +1723,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
 
-      deallocate(hbase,sbase,tbase,nsing)
+      deallocate(hbase,sbase,tbase,nsing,bpdone)
 
       deallocate(lstdet,ndxdet)
 
@@ -1941,7 +1745,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
       close(unit=lfndbg,status='keep')
       if(me.eq.master) then
-       close(unit=lfnout,status='keep')
        if(ipro.ge.3) then
         close(unit=lfnpro,status='keep')
        else
@@ -1953,6 +1756,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
        else
          close(unit=lfntst,status='keep')
        endif
+       close(unit=lfncpr,status='keep')
+       close(unit=lfnarx,status='keep')
+       close(unit=lfnout,status='keep')
       else
 !       if(ipr.lt.5) then
 !        close(unit=lfnout,status='delete')
@@ -1981,13 +1787,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       call errquit()
  998  write(lfnout,988) filciv(1:inp_strlen(filciv))
       call errquit()
- 999  write(lfnout,989) filinp(1:inp_strlen(filinp))
-      call errquit()
  984  format('Unable to open debug file ',a)
  985  format('Unable to open symmetry file ',a)
  986  format('Unable to open output file ',a)
  987  format('Unable to open vects file ',a)
  988  format('Unable to open civec file ',a)
- 989  format('Unable to open input file ',a)
       end
       

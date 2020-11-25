@@ -515,7 +515,7 @@
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
-!_ACCTGT_($acc loop private(ibl))
+!_ACCTGT_($acc loop private(ibl) vector(32))
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
@@ -781,7 +781,7 @@ c        if(nb0.gt.0.and.nb1.le.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!_ACCTGT_($acc loop private(ibl))
+!_ACCTGT_($acc loop private(ibl) vector(32))
               do ibl=1,nb0
                 etotb=etotb+g(intg)*
      &               prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)

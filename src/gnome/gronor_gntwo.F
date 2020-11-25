@@ -477,8 +477,6 @@
       enddo
 !_ACCTGT_($acc end kernels)
 
-!     ASSEMBLE ARRAYS ON GPU
-      
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
@@ -492,25 +490,6 @@
       enddo
 !_ACCTGT_($acc end kernels)
 
-!     END ASSEMBLY ON GPU
-      
-!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
-      
-!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
-
-      do k=1,nbas
-        do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-          aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=ta(i,k)
-        enddo
-      enddo
-
-!     END ASSEMBLY ON CPU
-
       call timer_stop(30)
 
       endif
@@ -520,9 +499,6 @@
 !     After the last element of a task the list of energies is generated
       
       if(ihc.eq.nhc) then
-
-!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
@@ -762,8 +738,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       enddo
 !_ACCTGT_($acc end kernels)
 
-!     ASSEMBLE ARRAYS ON GPU
-      
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
@@ -777,24 +751,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       enddo
 !_ACCTGT_($acc end kernels)
 
-!     END ASSEMBLY ON GPU
-      
-!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
-      
-!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
-      do k=1,nbas
-        do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-          aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=ta(i,k)
-        enddo
-      enddo
-
-!     END ASSEMBLY ON CPU
-
       call timer_stop(30)
 
       endif
@@ -804,9 +760,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 !     After the last element of a task the list of energies is generated
       
       if(ihc.eq.nhc) then
-
-!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         

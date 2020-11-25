@@ -417,10 +417,9 @@
 
 !     Write entry in the checkpoint restart file
 
-                        write(lfncpr,203) i,j,
+                        write(lfncpr) i,j,
      &                       hbase(i,j),sbase(i,j),tbase(i,j),
      &                       (nsing(i,j,k),k=1,4)
- 203                    format(2i4,3e20.12,4i10)
                         flush(lfncpr)
 
 !     Write completion message to dayfile
@@ -682,7 +681,7 @@
                   flush(lfnout)
                 endif
                 call swatch(date,time)
-                write(lfncpr,203) i,j,
+                write(lfncpr) i,j,
      &               hbase(i,j),sbase(i,j),tbase(i,j),
      &               (nsing(i,j,k),k=1,4)
                 flush(lfncpr)

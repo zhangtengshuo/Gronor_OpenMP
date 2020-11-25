@@ -93,7 +93,7 @@
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 
-      logical :: vecdet
+      logical :: vecdet,lcpr
       
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts

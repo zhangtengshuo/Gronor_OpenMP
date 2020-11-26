@@ -49,8 +49,9 @@
         do j=1,nbase
           write(*,672) j,(hbase(i,j),i=ii,il)
           write(lfnout,672) j,(hbase(i,j),i=ii,il)
-          write(lfnarx,672) j,(hbase(i,j),i=ii,il)
+          write(lfnarx,662) j,(hbase(i,j),i=ii,il)
  672      format(i5,1x,10f20.10)
+ 662      format(i5,1x,10e20.13)
           do i=ii,il
             hbt(i)=hbase(i,j)
             if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
@@ -79,7 +80,7 @@
         do j=1,nbase
           write(*,672) j,(sbase(i,j),i=ii,il)
           write(lfnout,672) j,(sbase(i,j),i=ii,il)
-          write(lfnarx,672) j,(sbase(i,j),i=ii,il)
+          write(lfnarx,662) j,(sbase(i,j),i=ii,il)
           do i=ii,il
             hbt(i)=sbase(i,j)
             if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
@@ -122,12 +123,12 @@
           do j=1,nbase
             if(j.eq.1) then
               write(lfnout,672) 1
-              write(lfnarx,672) 1
+              write(lfnarx,662) 1
               write(*,672) 1
             else
               ik=min(j-1,il)
               write(lfnout,672) j,(tc(j,i),i=ii,ik)
-              write(lfnarx,672) j,(tc(j,i),i=ii,ik)
+              write(lfnarx,662) j,(tc(j,i),i=ii,ik)
               write(*,672) j,(tc(j,i),i=ii,ik)
             endif
           enddo

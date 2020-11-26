@@ -269,7 +269,7 @@ c      use cuda_functions
        write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
  401   format('*** ',a,' on ',a,' : ',a)
        write(lfnarx,402) nnodes,np
- 402   format(i8,i10)
+ 402   format('Nodes',i10,i10)
 
 !>
 !!    <table>

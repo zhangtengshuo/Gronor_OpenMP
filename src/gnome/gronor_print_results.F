@@ -30,6 +30,8 @@
       real(kind=8),allocatable      :: work(:)
       character(len=4)              :: token
 
+      write(lfnarx,660) nbase,ncols
+ 660  format('Hamil',2i10)
       write(*,670)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -38,7 +40,6 @@
         il=min(nbase,k*ncols)
         write(lfnout,670)
         write(lfntst,670)
-        write(lfnarx,670)
  670    format(//,' Hamiltonian Matrix',/)
         write(*,671) (i,i=ii,il)
         write(lfnout,671) (i,i=ii,il)
@@ -60,6 +61,8 @@
         write(lfnout,*) ' '
         write(*,*) ' '
       enddo
+      write(lfnarx,663) nbase,ncols
+ 663  format('Overl',2i10)
       write(*,673)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -68,7 +71,6 @@
         il=min(nbase,k*ncols)
         write(lfnout,673)
         write(lfntst,673)
-        write(lfnarx,673)
  673    format(//,' Overlap Matrix',/)
         write(*,671) (i,i=ii,il)
         write(lfnout,671) (i,i=ii,il)
@@ -105,7 +107,8 @@
         enddo
 
         write(lfnout,676)
-        write(lfnarx,676)
+        write(lfnarx,666) nbase,ncols
+ 666    format('Coupl',2i10)
         write(*,676)
  676    format(//,' Electronic Couplings',/)
         nk=nbase/ncols

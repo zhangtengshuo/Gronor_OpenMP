@@ -162,6 +162,8 @@
      &     '        Hamiltonian ',
      &     '        Cost        Time',/)
 
+      write(lfnarx,521) nbase
+ 521  format('Data ',i10)
 !     Loop over all base state combinations
       
       ioff=0
@@ -383,6 +385,10 @@
                           else
                             ltemp=idetb(i)*idetb(j)
                           endif
+                            write(lfnarx,522) i,j,idetb(i),idetb(j),
+     &                           ltemp,
+     &                           (nsing(i,j,k),k=1,4),
+     &                           hbase(i,j),sbase(i,j)
                           if(i.ne.j) then
                             write(*,1622) i,j,idetb(i),idetb(j),
      &                           ltemp,
@@ -409,6 +415,7 @@
      &                           tbase(i,j),timer_wall_total(99)
                           endif
                           flush(lfnout)
+ 522                      format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
  622                      format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
      &                         f15.10,f20.10,2f12.1)
  1622                     format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
@@ -657,6 +664,9 @@
                   else
                     ltemp=idetb(i)*idetb(j)
                   endif
+                    write(lfnarx,522) i,j,idetb(i),idetb(j),ltemp,
+     &                   (nsing(i,j,k),k=1,4),
+     &                   hbase(i,j),sbase(i,j)
                   if(i.ne.j) then
                     write(*,1622) i,j,idetb(i),idetb(j),ltemp,
      &                   (nsing(i,j,k),k=1,4),

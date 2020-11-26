@@ -234,6 +234,11 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'cpr',item)) then
+          lcpr=.true.
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'QCprogram',item)) then
           if(.not.inp_a(opt_inp)) opt_inp='symol'
           if(inp_compare(.false.,'symol',opt_inp)) then

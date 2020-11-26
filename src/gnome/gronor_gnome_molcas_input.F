@@ -41,6 +41,8 @@
       write(lfnout,625)
      & 'Atom','x             y             z',
      &     '          Znuc',lAO
+      write(lfnarx,624) nNucl
+ 624  format('Atoms',i10)
       write(lfnarx,625)
      & 'Atom','x             y             z',
      &     '          Znuc',lAO

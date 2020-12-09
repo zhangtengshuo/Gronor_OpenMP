@@ -1703,10 +1703,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),
-     &       nnodes,np,numacc,numnon,mgr,iaslvr,jaslvr,inslvr,jnslvr,
+     &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
+     &       iaslvr,jaslvr,inslvr,jnslvr,
      &       nbatch,lbatch,nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,f12.3,4i7,i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
  803    format(5x,8f20.10)
         write(lfnlog,804)

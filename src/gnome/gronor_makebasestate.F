@@ -208,7 +208,8 @@
       occ2_ms  = 0
 *   M_S of fragment 1
       call sminop2(civm(1,ncombv(1,ibase)),ci_ms,
-     &     ioccm(1,1,ncombv(1,ibase)),occ_ms,
+     &     ioccm(1,1,ncombv(1,ibase)),
+     &     occ_ms(1:nactm(ncombv(1,ibase)),:,:),
      &     idetm(ncombv(1:,ibase)),ndet_ms,
      &     spin(1),nactm(ncombv(1,ibase)),nci,lfnout)
       do j = 1, spin(1) + 1
@@ -223,7 +224,8 @@
       ci_ms   = 0  
       occ_ms  = 0
       call sminop2(civm(1,ncombv(2,ibase)),ci_ms,
-     &     ioccm(1,1,ncombv(2,ibase)),occ_ms,
+     &     ioccm(1,1,ncombv(2,ibase)),
+     &     occ_ms(1:nactm(ncombv(2,ibase)),:,:),
      &     idetm(ncombv(2:,ibase)),ndet_ms,
      &     spin(2),nactm(ncombv(2,ibase)),nci,lfnout)
       do j = 1, spin(2) + 1

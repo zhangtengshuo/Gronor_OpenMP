@@ -883,6 +883,18 @@ c      use cuda_functions
 
         allocate(ioccb(maxcib,nbase))
         allocate(civb(maxcib,nbase))
+        if (me.eq.master) then
+          write(lfnout,637) maxcib
+ 637      format(/,' Calculated value of maxcib is ',i10)
+          flush(lfnout)
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1704) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Maxcib calculated value is           ',maxcib
+ 1704     format(a8,2x,a8,f12.3,a,i16)
+          flush(lfnday)
+          call timer_start(99)
+        endif
 
       endif
 !     old and new come together again

@@ -125,9 +125,9 @@
         idetb(ibase) = cib
         maxcib = max(cib,maxcib)
       enddo
-      write(lfnout,*)
-      write(lfnout,'(2a,i10)')' Maximum number of determinants in ',
-     &                         'MEBFs (maxcib) : ',maxcib
-      flush(lfnout)
+c      write(lfnout,*)
+c      write(lfnout,'(2a,i10)')' Maximum number of determinants in ',
+c     &                         'MEBFs (maxcib) : ',maxcib
+c      flush(lfnout)
       return
       end subroutine gronor_determine_maxcib

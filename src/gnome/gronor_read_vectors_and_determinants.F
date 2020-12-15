@@ -17,6 +17,49 @@
 !> @param   occ_string ocupation string as read from the root_nnn.det
 !>          file
 
+      subroutine gronor_check_vectors_and_determinants()
+      use inp
+      use cidef
+      use gnome_parameters
+
+      implicit none
+      
+      integer :: i,length
+      
+      do i = 1, mstates
+        write(fildet,203) root(1:inp_strlen(root)),i
+        length=inp_strlen(fildet)
+        open(unit=lfndet,file=fildet(1:length),form='formatted',
+     &       status='old',err=998)
+        close(unit=lfndet,status='keep')
+ 203  format(a,'_',i3.3,'.det')
+      enddo
+      idevel=1
+      return
+ 998  continue
+      
+      do i = 1, mstates
+        write(filvec,204) root(1:inp_strlen(root)),i
+        length=inp_strlen(filvec)
+        open(unit=lfnvec,file=filvec(1:length),form='formatted',
+     &       status='old',err=999)
+        close(unit=lfnvec,status='keep')
+ 204    format(a,'_',i3.3,'.vec')
+        write(filciv,205) root(1:inp_strlen(root)),i
+        length=inp_strlen(filciv)
+        open(unit=lfnciv,file=filciv(1:length),form='formatted',
+     &       status='old',err=999)
+        close(unit=lfnciv,status='keep')
+ 205    format(a,'_',i3.3,'.civ')
+      enddo
+      idevel=0
+      return
+ 999  continue
+      
+      stop 'No vector files'
+      return
+      end subroutine gronor_check_vectors_and_determinants
+      
       subroutine gronor_read_vectors_and_determinants() 
 
       use inp

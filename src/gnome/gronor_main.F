@@ -294,22 +294,50 @@ c      use cuda_functions
 !Set defaults
 
        npg=0
-       mgr=0
+
+!     Default is one rank per worker group
+
+       mgr=1
+       if(npg.eq.0) npg=(np-1)/mgr
+       if(np.lt.mgr+1) then
+         write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
+     &        ') cannot be supported by available ranks (',np,')'
+         call errquit()
+       endif
+
        nmol=0
+
+!     mstates will be set depending on Molecule input parameters
+
        mstates=0
        iload=1
-       nbatch=1
+
+!     Default batch size is 32
+       
+       nbatch=32
+
+!     Desult is to process integrals for each task entry
+
        lbatch=0
-       itest=0
-       idevel=0
+
+!     Default is to write a test file
+       
+       itest=1
+
+!     Development option idevel 0: original makebasestate; 1: most recent makebasestate
+!     This may be reset depending on the file check
+
+       idevel=1
        ifault=1
 
-       isolver=-1
-       jsolver=-1
-       iaslvr=-1
-       jaslvr=-1
-       inslvr=-1
-       jnslvr=-1
+!     Default solvers are those included in the code
+       
+       isolver=0
+       jsolver=0
+       iaslvr=0
+       jaslvr=0
+       inslvr=0
+       jnslvr=0
 
        intadd=0
        naccel=-1
@@ -329,15 +357,22 @@ c      use cuda_functions
        naccel=0
 #endif
        nqcp=3
-       ipr=-1
-       itim=-1
+
+!     Default print flag set to 2
+       
+       ipr=2
+
+!     Default is to turn timing on
+
+       itim=1
+
        ipro=-1
        iday=10
        idbg=0
        nspin=0
        mpibuf=168435456
        thresh=1.0d-10
-       thresh_CI=1.0d-10
+       thresh_CI=1.0d-5
        thresh_SIN=1.0d-12
        tolsvj=1.0d-07
        tolevj=1.0d-07
@@ -356,7 +391,10 @@ c      use cuda_functions
         thresh=min(thresh,1.0d-05)
         thresh_CI=min(thresh_CI,1.0d-05)
       endif
-      
+
+!     Check if vec/civ or det files are available
+
+      call gronor_check_vectors_and_determinants()
 
 !     For now, we report on the algorithm for generating the MEBFs
 !     Furthermore, it need to ensured that reading the root_xxx.det
@@ -1192,14 +1230,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         cusolver_status = cusolverDnCreate(cusolver_handle)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
-
-!     if solvers were not specified use cusolver QR solvers
-        isolver=iaslvr
-        jsolver=jaslvr
-        if(isolver.lt.0) isolver=1
-        if(jsolver.lt.0) jsolver=1
-        if(iaslvr.lt.0) iaslvr=1
-        if(jaslvr.lt.0) jaslvr=1
 
 !     if(numdev.gt.1) then
 !     cpfre=c_loc(memfre)

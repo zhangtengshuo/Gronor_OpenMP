@@ -60,6 +60,7 @@ c      use cuda_functions
       integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
       integer,allocatable :: iocc_tmp(:)
       integer,allocatable :: jspinmol(:)
+      integer :: nci0, maxcib0
       integer :: maxspinmul
       integer :: mdum, node
       real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
@@ -401,13 +402,14 @@ c      use cuda_functions
       allocate(nactm(mstates))
       allocate(inactm(mstates))
       allocate(idetm(mstates))
-      
-      iocc(1)=1
-      iocc(2)=2
-      iord(1)=0
-      iord(2)=0
-      indx(1)=0
-      indx(2)=0
+      allocate(iocc(nmol))
+      allocate(iord(nmol))
+      allocate(indx(nmol))
+      do i=1,nmol
+         iocc(i)=i
+      enddo
+      iord=0      
+      indx=0      
       icalc=0
       ins2=0
       ipvec=0
@@ -624,12 +626,7 @@ c      use cuda_functions
           idum(4)=maxci
           idum(5)=maxvec
           idum(6)=maxnact
-          idum(7)=iocc(1)
-          idum(8)=iocc(2)
-          idum(9)=iord(1)
-          idum(10)=iord(2)
-          idum(11)=indx(1)
-          idum(12)=indx(2)
+          
           idum(13)=icalc
           idum(14)=ipr
           idum(15)=ins2
@@ -682,12 +679,7 @@ c      use cuda_functions
         maxci  =idum(4)
         maxvec =idum(5)
         maxnact=idum(6)
-        iocc(1)=idum(7)
-        iocc(2)=idum(8)
-        iord(1)=idum(9)
-        iord(2)=idum(10)
-        indx(1)=idum(11)
-        indx(2)=idum(12)
+        
         icalc  =idum(13)
         ipr    =idum(14)
         ins2   =idum(15)
@@ -774,13 +766,11 @@ c      use cuda_functions
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
-  
-        iocc(1)=idum(7)
-        iocc(2)=idum(8)
-        iord(1)=idum(9)
-        iord(2)=idum(10)
-        indx(1)=idum(11)
-        indx(2)=idum(12)
+        if(nmol.ge.3)allocate(inter_couplings(nmol-1,nbase))
+        allocate(iocc(nmol))
+        allocate(indx(nmol))
+        allocate(iord(nmol))
+        
         icalc  =idum(13)
         ipr    =idum(14)
         ins2   =idum(15)
@@ -808,8 +798,22 @@ c      use cuda_functions
      &       MPI_COMM_WORLD,ierr)
         call MPI_Bcast(idetm,mstates,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(iocc,nmol,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(indx,nmol,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(iord,nmol,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+        if(nmol.ge.3)then
+           call MPI_Bcast(inter_couplings,(nmol-1)*nbase,MPI_INTEGER8,
+     &          master,MPI_COMM_WORLD,ierr)
+        endif
       endif
       
+      if(nmol.ge.3)then
+         write(lfnout,*)'COUPLINGS'
+         write(lfnout,*)inter_couplings
+      endif
       nbasis=0
       mactb=0
       do i=1,nmol
@@ -877,9 +881,14 @@ c      use cuda_functions
         allocate(inactb(nbase))
         allocate(nactb(nbase))
         allocate(idetb(nbase))      
+        write(lfnout,*)'maxcib, nci determine'
 
-        call gronor_determine_nci()
+
+        call gronor_determine_nci(mstates,nactm,idetm,ioccm)
+        write(lfnout,*)'nci determined',nci
         call gronor_determine_maxcib()
+        write(lfnout,*)'maxcib determined',maxcib
+
 
         allocate(ioccb(maxcib,nbase))
         allocate(civb(maxcib,nbase))
@@ -1251,9 +1260,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ' Number of basis functions (nbasis)',t40,i10)
         flush(lfnout)
       endif
-      
+      nci0=nci
+      maxcib0=maxcib
       do i=1,nbase
-
+         nci=nci0         
         if(idevel.eq.0) then
         call gronor_old_makebasestate
      &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
@@ -1265,13 +1275,13 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           write(lfnout,*) ' Calling the new make_basestate'
           flush(lfnout)
         endif
-        call gronor_make_basestate(i)
+        call gronor_make_basestate(i,maxcib0)
 !        call gronor_makebasestate_remove
 !     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
 !     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
 !     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
 !     &         nmol,ncombv(1,i),nspin,thresh_CI)
-        
+        maxcib0=maxcib
       endif
         
         if(me.eq.master.and.ipr.ge.3) then
@@ -1726,11 +1736,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),
-     &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
-     &       iaslvr,jaslvr,inslvr,jnslvr,
+     &       nnodes,np,numacc,numnon,mgr,iaslvr,jaslvr,inslvr,jnslvr,
      &       nbatch,lbatch,nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,f12.3,4i7,i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
  803    format(5x,8f20.10)
         write(lfnlog,804)
@@ -1745,6 +1754,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
+      deallocate(iocc,indx,iord)
+      if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,nsing,bpdone)

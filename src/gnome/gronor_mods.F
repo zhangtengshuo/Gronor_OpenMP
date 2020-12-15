@@ -84,6 +84,7 @@
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
       integer, allocatable :: inactm(:), idetm(:), spinm(:)
+      integer, allocatable :: inter_couplings(:,:)
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
@@ -105,7 +106,8 @@
 
       implicit none
 
-      integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
+      integer,allocatable :: iocc(:),iord(:),indx(:)
+      integer :: icalc,ipr,ipro,ipvec,idbg,itim
       integer :: iload,nbatch,itest,ifault,isolver,jsolver,idevel,lbatch
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj

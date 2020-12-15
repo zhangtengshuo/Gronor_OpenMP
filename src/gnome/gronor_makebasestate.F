@@ -168,11 +168,101 @@
 
 *     Two fragments, both singlet functions
       if ( all_singlet ) then
-         k = 0
-         do i = 1, idetm(state1)
-            do j = 1, idetm(state2)
-               prod = civm(i,state1) * civm(j,state2)
-               if ( abs(prod) .gt. thresh_CI ) then
+        k = 0
+        do i = 1, idetm(state1)
+          do j = 1, idetm(state2)
+            prod = civm(i,state1) * civm(j,state2)
+            if ( abs(prod) .gt. thresh_CI ) then
+              k = k + 1
+              civb(k,ibase) = prod
+              kk = 0
+              do iact = 1, nactm(state1)
+                kk = kk + 1
+                iocch(kk) = ioccm(iact,i,state1)
+              end do
+              do jact = 1, nactm(state2)
+                kk = kk + 1
+                iocch(kk) = ioccm(jact,j,state2)
+              end do
+              call pack(ioccb(k,ibase),iocch,nactb(ibase))
+              civb(k,ibase) = civb(k,ibase) * 
+     &                                   perm_ab(iocch,nactb(ibase))
+              civb(k,ibase) = civb(k,ibase) * 
+     &                                   isetsign4(iocch,nactb(ibase))
+            end if
+          end do
+        end do
+        ndets = k
+        goto 1581
+      end if
+
+* All other cases
+      ms_states = max(spin(1)+1 , spin(2)+1)
+      allocate(ndet_ms(ms_states))
+      allocate(ci_ms(nci,ms_states))
+      allocate(occ_ms(maxnact,nci,ms_states))
+      ndet_ms = 0
+      ci_ms   = 0.0
+      occ_ms  = 0
+      allocate(ndet1_ms(ms_states))
+      allocate(ci1_ms(nci,ms_states))
+      allocate(occ1_ms(maxnact,nci,ms_states))
+      allocate(ndet2_ms(ms_states))
+      allocate(ci2_ms(nci,ms_states))
+      allocate(occ2_ms(maxnact,nci,ms_states))
+      ndet1_ms = 0
+      ci1_ms   = 0.0
+      occ1_ms  = 0
+      ndet2_ms = 0
+      ci2_ms   = 0.0
+      occ2_ms  = 0
+*   M_S of fragment 1
+      call sminop2(civm(1,ncombv(1,ibase)),ci_ms,
+     &     ioccm(1,1,ncombv(1,ibase)),
+     &     occ_ms(1:nactm(ncombv(1,ibase)),:,:),
+     &     idetm(ncombv(1:,ibase)),ndet_ms,
+     &     spin(1),nactm(ncombv(1,ibase)),nci,lfnout)
+      do j = 1, spin(1) + 1
+        ndet1_ms(j) = ndet_ms(j)
+        do det = 1, ndet_ms(j)
+          ci1_ms(det,j) = ci_ms(det,j)
+          occ1_ms(:,det,j) = occ_ms(:,det,j)
+        end do
+      end do
+*   M_S of fragment 2
+      ndet_ms = 0
+      ci_ms   = 0  
+      occ_ms  = 0
+      call sminop2(civm(1,ncombv(2,ibase)),ci_ms,
+     &     ioccm(1,1,ncombv(2,ibase)),
+     &     occ_ms(1:nactm(ncombv(2,ibase)),:,:),
+     &     idetm(ncombv(2:,ibase)),ndet_ms,
+     &     spin(2),nactm(ncombv(2,ibase)),nci,lfnout)
+      do j = 1, spin(2) + 1
+        ndet2_ms(j) = ndet_ms(j)
+        do det = 1, ndet_ms(j)
+          ci2_ms(det,j) = ci_ms(det,j)
+          occ2_ms(:,det,j) = occ_ms(:,det,j)
+        end do
+      end do
+
+      deallocate(ndet_ms,ci_ms,occ_ms)
+
+      
+      k = 0
+      do i = 1, spin(1) + 1
+        ms1  = spin(1) - 2*(i-1)
+        do j = 1, spin(2) + 1
+          ms2 = spin(2) - 2*(j-1)
+          if ( ms1 + ms2 .eq. nspin ) then
+            do det1 = 1, ndet1_ms(i)
+              do det2 = 1, ndet2_ms(j)
+                dnorm = clebsch_gordon(spin(1)/2.d0,spin(2)/2.d0,
+     &                      ms1/2.d0,ms2/2.d0,
+     &                      nspin/2.d0,nspin/2.d0)
+                prod = ci1_ms(det1,i)*ci2_ms(det2,j)
+                if (abs(prod) .gt. thresh_CI) then
+                  iocch = 0
                   k = k + 1
                   civb(k,ibase) = prod
                   kk = 0

@@ -892,6 +892,18 @@ c      use cuda_functions
 
         allocate(ioccb(maxcib,nbase))
         allocate(civb(maxcib,nbase))
+        if (me.eq.master) then
+          write(lfnout,637) maxcib
+ 637      format(/,' Calculated value of maxcib is ',i10)
+          flush(lfnout)
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1704) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Maxcib calculated value is           ',maxcib
+ 1704     format(a8,2x,a8,f12.3,a,i16)
+          flush(lfnday)
+          call timer_start(99)
+        endif
 
       endif
 !     old and new come together again
@@ -1311,8 +1323,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',l2
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,i16)
+     &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
+     &           l2,numdet
+ 1702       format(a8,2x,a8,f12.3,a,2i4,a,2i16)
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1324,6 +1337,16 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
      &     MPI_COMM_WORLD,ierr)
       
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Basestate dimension set to           ',numdet
+ 1703   format(a8,2x,a8,f12.3,a,i16)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+          
       allocate(ndxdet(nbase,nbase))
       allocate(lstdet(numdet,2))
       allocate(lstdet0(numdet,2))

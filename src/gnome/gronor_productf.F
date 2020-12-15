@@ -512,15 +512,7 @@
       do j = 1, ndetout(1)
         cicoef_out(j,1) = cicoef_out(j,1)*dnorm
       end do
-      write(lfnout,*)
-      write(lfnout,*)'#####-------SMINOP-------#####'
-      do i=1,spin+1
-         write(lfnout,*)
-         write(lfnout,*)'MS STATE',i
-         do j=1,ndetout(i)
-            write(lfnout,*)cicoef_out(j,i),(occ_out(k,j,i),k=1,nact)
-         enddo
-      enddo
+
       return
       end
       

@@ -6,18 +6,14 @@
 !> @details Rough estimate to stay on the save side, duplicates are
 !>          not taken into account
 
-      subroutine gronor_determine_nci
-     &     (mstates,nactm,idetm,ioccm)
-      
-      use cidef, only : nci
-      
+      subroutine gronor_determine_nci()
+
+      use cidef
+
       implicit none
 
       integer     :: i,j,k,pascal,ms
       integer     :: state,det,act,alpha
-      integer     :: mstates
-      integer     :: nactm(mstates),idetm(mstates)
-      integer     :: ioccm(:,:,:)
 
       integer,allocatable  :: spin(:)
       integer,allocatable  :: ndets(:)

@@ -166,20 +166,30 @@
           
           write(*,'(a,12i20)')'    State:',(i,i=ii,il)
           write(*,678)'   Energy:    ', (hev(i),i=ii,il)
+          if(nbase.gt.1) then
+            write(*,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
+          endif
           write(*,*) ' '
           write(lfnout,'(a,12i20)')'     State:',(i,i=ii,il)
           write(lfnout,678)'    Energy:   ', (hev(i),i=ii,il)
+          if(nbase.gt.1) then
+            write(lfnout,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
+          endif
           write(lfnout,*) ' '
           if(itest.eq.2) then
             write(lfntst,677)
             write(lfntst,'(a,12i20)')'     State:',(i,i=ii,il)
             write(lfntst,1678)'    Energy:   ', (hev(i),i=ii,il)
+            if(nbase.gt.1) then
+              write(lfntst,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
+            endif
             write(lfntst,*) ' '
           endif
  678      format((a,12f20.10),//)
  1678     format((a,12f20.8),//)
           token="MEBF"
           do j=1,nbase
+            write(*,679) token,j,(hsave(j,i),i=ii,il)
             write(*,679) token,j,(hsave(j,i),i=ii,il)
             write(lfnout,679) token,j,(hsave(j,i),i=ii,il)
  679        format(a4,1x,i5,4x,12f20.10)

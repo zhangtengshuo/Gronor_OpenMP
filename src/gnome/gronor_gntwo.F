@@ -1169,12 +1169,12 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
        kl=nbas*(nbas+1)/2
        intg=0
-c!$omp parallel do reduction(+:ts)
-c!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-c!$omp& private(intg,i,k,l,n)
+!$omp parallel do reduction(+:ts)
+!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
+!$omp& private(intg,i,k,l,n,ii,jj)
        do ii=intndx,jntndx
          do jj=ii,kl
-           intg=intg+1
+           intg=ndx(ii)+jj
            i=lab(1,ii)
            k=lab(2,ii)
            l=lab(1,jj)
@@ -1186,7 +1186,7 @@ c!$omp& private(intg,i,k,l,n)
      &          -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
          enddo
        enddo
-c!$omp end parallel do
+!$omp end parallel do
 
        call timer_stop(32)
 
@@ -1196,13 +1196,13 @@ c!$omp end parallel do
 
        kl=nbas*(nbas+1)/2
        intg=0
-c!$omp parallel do reduction(+:e2)
-c!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-c!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
-c!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp parallel do reduction(+:e2)
+!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl,ii,jj)
        do ii=intndx,jntndx
          do jj=ii,kl
-           intg=intg+1
+           intg=ndx(ii)+jj
            i=lab(1,ii)
            k=lab(2,ii)
            l=lab(1,jj)
@@ -1236,7 +1236,7 @@ c!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
      &          -bbl*(ta(l,i)*abk+ta(l,k)*abi))
          enddo
        enddo
-c!$omp end parallel do
+!$omp end parallel do
 
        call timer_stop(35)
       endif

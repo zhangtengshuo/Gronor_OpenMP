@@ -9,6 +9,8 @@ runfile = name+".run"
 
 runcommand = open(runfile).read().rstrip("\n")
 
+os.system('rm '+name+'.dif')
+
 os.system(runcommand+' '+name)
 
 os.system('diff '+name+'.tst '+name+'.ok > '+name+'.dif')

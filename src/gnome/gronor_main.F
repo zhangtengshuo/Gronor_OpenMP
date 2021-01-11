@@ -87,7 +87,7 @@ c      use cuda_functions
       integer :: nk,ii,il,ik
 
       integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr, ln, lsum
-      integer :: l3, l4, ndsum, ioff, nsr(4)
+      integer :: l3, l4, ltot, ndsum, ioff, nsr(4)
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
@@ -1313,6 +1313,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       enddo
 
       numdet=0
+      ltot=0
       do ibase=1,nbase
         do jbase=1,ibase
           ndeti=idetb(ibase)
@@ -1339,17 +1340,19 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           enddo
           numdet=numdet+l
 
-          ln=numdet
+          ln=l
           call MPI_Allreduce(ln,lsum,1,MPI_INTEGER8,MPI_SUM,
      &         MPI_COMM_WORLD,ierr)
+          ltot=ltot+lsum
           
           if(me.eq.master) then
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
      &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
-     &           l2,lsum
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,2i16)
+     &           l2,lsum,ltot
+ 1702       format(a8,2x,a8,f12.3,a,2i4,a,3i16)
+ 1712       format(a8,2x,a8,f12.3,a,2i4,a,16x,2i16)
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1366,7 +1369,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call swatch(date,time)
         write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  Basestate dimension set to           ',numdet
- 1703   format(a8,2x,a8,f12.3,a,i16)
+ 1703   format(a8,2x,a8,f12.3,a,32x,i16)
         flush(lfnday)
         call timer_start(99)
       endif
@@ -1454,9 +1457,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           if(me.eq.master) then
             call timer_stop(99)
             call swatch(date,time)
-            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
+            write(lfnday,1712) date(1:8),time(1:8),timer_wall_total(99),
      &           '  :  Phase 2 bases ',ibase,jbase,
-     &           '       ME list ',ndsum
+     &           '       ME list ',ndsum,numdet
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1469,7 +1472,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call swatch(date,time)
         write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  Total ME contributions               ',numdet
- 2702   format(a8,2x,a8,f12.3,a,i16)
+ 2702   format(a8,2x,a8,f12.3,a,32x,i16)
         flush(lfnday)
         call timer_start(99)
       endif

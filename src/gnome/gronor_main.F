@@ -86,7 +86,7 @@ c      use cuda_functions
       integer :: maxgrp
       integer :: nk,ii,il,ik
 
-      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr
+      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr, ln, lsum
       integer :: l3, l4, ndsum, ioff, nsr(4)
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
@@ -1339,12 +1339,16 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           enddo
           numdet=numdet+l
 
+          ln=numdet
+          call MPI_Allreduce(ln,lsum,1,MPI_INTEGER8,MPI_SUM,
+     &         MPI_COMM_WORLD,ierr)
+          
           if(me.eq.master) then
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
      &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
-     &           l2,numdet
+     &           l2,lsum
  1702       format(a8,2x,a8,f12.3,a,2i4,a,2i16)
             flush(lfnday)
             call timer_start(99)

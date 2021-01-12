@@ -90,6 +90,8 @@ c      use cuda_functions
       integer :: l3, l4, ltot, ndsum, ioff, nsr(4)
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
+      integer jdet, kdet, kdetbatch, ldet, mdet, ndet
+
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
 #ifdef USE_POSIXF
@@ -1476,10 +1478,27 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnday)
         call timer_start(99)
       endif
-      
+
       icnt=2*numdet
-      call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
-     &     MPI_COMM_WORLD,ierr)
+      if(icnt.le.mpibuf) then
+        call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
+     &       MPI_COMM_WORLD,ierr)
+      else
+        kdet=mpibuf
+        kdetbatch=numdet/kdet
+        if (mod(numdet,kdet).ne.0) kdetbatch=kdetbatch+1
+        mdet=numdet
+        ndet=1
+        do jdet=1,kdetbatch
+         ldet=min(mdet,kdet)
+         call MPI_Allreduce(lstdet0(ndet,1),lstdet(ndet,1),ldet,
+     &        MPI_INTEGER8,MPI_SUM,MPI_COMM_WORLD,ierr)
+         call MPI_Allreduce(lstdet0(ndet,2),lstdet(ndet,2),ldet,
+     &        MPI_INTEGER8,MPI_SUM,MPI_COMM_WORLD,ierr)
+         ndet=ndet+ldet
+         mdet=mdet-ldet
+        enddo
+      endif
       
       deallocate(lstdet0)
       deallocate(ndxd)

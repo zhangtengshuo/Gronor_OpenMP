@@ -94,6 +94,9 @@ c      use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
+      integer :: li
+      real(kind=8) :: p, q
+
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
@@ -1321,7 +1324,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           osame=ibase.eq.jbase
-          call iloop_init(ndeti,ndetj,osame)
+
           if(ibase.eq.jbase) then
             l2=ndeti*(ndeti+1)/2
             ijend=l2
@@ -1335,11 +1338,27 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           if(me.eq.np-1) l4=l2
 
           l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
-          enddo
+
+          if(osame) then
+            do k=l3,l4
+              p=-0.5+dsqrt(8.0d0*k+1)/2
+              i=p
+              li=i*(i+1)/2
+              q=p-i
+              if (q.gt.1.0d-8) i=i+1
+              j=k-li
+              if (j.eq.0) j=i
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            enddo
+          else
+            do k=l3,l4
+              i=k/ndetj+1
+              if (mod(k,ndetj).eq.0) i=i-1
+              j=k-(i-1)*ndetj
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            enddo
+          endif
+          
           numdet=numdet+l
 
           ln=l
@@ -1408,7 +1427,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           osame=ibase.eq.jbase
-          call iloop_init(ndeti,ndetj,osame)
+
           if(ibase.eq.jbase) then
             l2=ndeti*(ndeti+1)/2
             ijend=l2
@@ -1422,11 +1441,26 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           if(me.eq.np-1) l4=l2
 
           l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
-          enddo
+
+          if(osame) then
+            do k=l3,l4
+              p=-0.5+dsqrt(8.0d0*k+1)/2
+              i=p
+              li=i*(i+1)/2
+              q=p-i
+              if (q.gt.1.0d-8) i=i+1
+              j=k-li
+              if (j.eq.0) j=i
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            enddo
+          else
+            do k=l3,l4
+              i=k/ndetj+1
+              if (mod(k,ndetj).eq.0) i=i-1
+              j=k-(i-1)*ndetj
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            enddo
+          endif
 
           ndxd(me+1)=l
           icnt=np
@@ -1443,15 +1477,35 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ioff=ndxd(me+1)
 
           l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
-              l=l+1
-              lstdet0(numdet+ioff+l,1)=i
-              lstdet0(numdet+ioff+l,2)=j
-            endif
-          enddo
+
+          if(osame) then
+            do k=l3,l4
+              p=-0.5+dsqrt(8.0d0*k+1)/2
+              i=p
+              li=i*(i+1)/2
+              q=p-i
+              if (q.gt.1.0d-8) i=i+1
+              j=k-li
+              if (j.eq.0) j=i
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
+                l=l+1
+                lstdet0(numdet+ioff+l,1)=i
+                lstdet0(numdet+ioff+l,2)=j
+              endif
+            enddo
+          else
+            do k=l3,l4
+              i=k/ndetj+1
+              if (mod(k,ndetj).eq.0) i=i-1
+              j=k-(i-1)*ndetj
+              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
+                l=l+1
+                lstdet0(numdet+ioff+l,1)=i
+                lstdet0(numdet+ioff+l,2)=j
+              endif
+            enddo
+          endif
+          
           numdet=numdet+ndsum
           ndxdet(jbase,ibase)=numdet
           ndxdet(ibase,jbase)=numdet

@@ -11,6 +11,7 @@ runcommand = open(runfile).read().rstrip("\n")
 
 os.system('rm '+name+'.dif')
 os.system('rm '+name+'.tst')
+os.system('rm '+name+'.cpr')
 
 os.system(runcommand+' '+name)
 

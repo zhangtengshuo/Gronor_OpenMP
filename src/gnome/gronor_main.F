@@ -94,7 +94,7 @@ c      use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
-      integer :: li
+      integer :: li, ndtot
       real(kind=8) :: p, q
 
 #ifdef USE_POSIXF
@@ -1336,7 +1336,19 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         
       enddo
 
+      
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start of ME list generation'
+ 1708   format(a8,2x,a8,f12.3,a)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
       numdet=0
+      ndtot=0
       ltot=0
       do ibase=1,nbase
         do jbase=1,ibase
@@ -1351,6 +1363,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             l2=ndeti*ndetj
             ijend=l2
           endif
+          ndtot=ndtot+l2
 
           l3=me*(l2/np)+1
           l4=(me+1)*(l2/np)
@@ -1390,9 +1403,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             call swatch(date,time)
             write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
      &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
-     &           l2,lsum,ltot
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,3i16)
- 1712       format(a8,2x,a8,f12.3,a,2i4,a,16x,2i16)
+     &           l2,ndtot,lsum,ltot
+ 1702       format(a8,2x,a8,f12.3,a,2i4,a,4i16)
+ 1712       format(a8,2x,a8,f12.3,a,2i4,a,32x,2i16)
             flush(lfnday)
             call timer_start(99)
           endif
@@ -1408,8 +1421,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Basestate dimension set to           ',numdet
- 1703   format(a8,2x,a8,f12.3,a,32x,i16)
+     &       '  :  Basestate dimension set to           ',ndtot,numdet
+ 1703   format(a8,2x,a8,f12.3,a,16x,i16,16x,i16)
         flush(lfnday)
         call timer_start(99)
       endif

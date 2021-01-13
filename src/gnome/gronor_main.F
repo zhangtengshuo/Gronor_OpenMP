@@ -1287,6 +1287,16 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnout)
       endif
       
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start of base state generation'
+ 1707   format(a8,2x,a8,f12.3,a)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
       do i=1,nbase
 
         if(idevel.eq.0) then
@@ -1313,6 +1323,15 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           write(lfnout,612) i
  612      format(/,' Base state',i4,' completed')
           flush(lfnout)
+        endif
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Base state ',i,' completed '
+ 1706     format(a8,2x,a8,f12.3,a,i4,a)
+          flush(lfnday)
+          call timer_start(99)
         endif
         
       enddo

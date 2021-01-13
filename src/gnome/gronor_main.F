@@ -92,6 +92,11 @@ c      use cuda_functions
 
       integer jdet, kdet, kdetbatch, ldet, mdet, ndet
 
+      integer                  :: idet,length,ndet_rev
+      integer, allocatable     :: sort_occ(:),occu_aux(:)
+      real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
+      real(kind=8)             :: thres2,max_coef
+
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
       integer :: li, ndtot
@@ -1297,33 +1302,56 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_start(99)
       endif
       
+      max_coef = 0.0
+      
       do i=1,nbase
 
         if(idevel.eq.0) then
-        call gronor_old_makebasestate
-     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
-     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
-     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
+          call gronor_old_makebasestate
+     &         (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
+     &         idetm,maxci,maxvec,maxnact,mstates,civb(1,i),
+     &         vecsb(1,1,i),ioccb(1,i),inactb(i),nactb(i),
+     &         idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
-      else
-        if(ipr.gt.2) then
-          write(lfnout,*) ' Calling the new make_basestate'
-          flush(lfnout)
-        endif
-        call gronor_make_basestate(i)
+        else
+          if(ipr.gt.2.and.me.eq.master) then
+            write(lfnout,*) ' Calling the new make_basestate'
+            flush(lfnout)
+          endif
+          call gronor_make_basestate(i)
 !        call gronor_makebasestate_remove
 !     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
 !     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
 !     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
 !     &         nmol,ncombv(1,i),nspin,thresh_CI)
         
-      endif
+        endif
+        
+        allocate(sort_coef(maxcib))
+        allocate(sort_occ(maxcib))
+        sort_coef = 0.0
+        sort_occ = 0
+        do idet = 1, idetb(i)
+          sort_coef(idet) = civb(idet,i)
+          sort_occ(idet)  = ioccb(idet,i)
+        enddo
+        length = idetb(i)
+        call quicksort(sort_coef,sort_occ,length)
+        do idet = 1, idetb(i)
+          civb(idet,i)  = sort_coef(idet)
+          ioccb(idet,i) = sort_occ(idet)
+        enddo
+        deallocate(sort_coef,sort_occ)
+        if ( max_coef .lt. abs(civb(1,i)) ) then
+          max_coef = abs(civb(1,i))
+        endif
         
         if(me.eq.master.and.ipr.ge.3) then
           write(lfnout,612) i
  612      format(/,' Base state',i4,' completed')
           flush(lfnout)
         endif
+        
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
@@ -1336,7 +1364,30 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         
       enddo
 
-      
+      thres2 = thresh_CI / max_coef
+      allocate(civb_aux(maxcib))
+      allocate(occu_aux(maxcib))
+      do ibase = 1, nbase
+        ndet_rev = 0
+        civb_aux = 0.0
+        occu_aux = 0
+        do idet = 1, idetb(ibase)
+          if ( abs(civb(idet,ibase)) .gt. thres2 ) then
+            ndet_rev = ndet_rev + 1
+            civb_aux(ndet_rev) = civb(idet,ibase)
+            occu_aux(ndet_rev) = ioccb(idet,ibase)
+          endif
+        enddo
+        civb(:,ibase) = 0.0
+        ioccb(:,ibase) = 0
+        do idet = 1, ndet_rev
+          civb(idet,ibase) = civb_aux(idet)
+          ioccb(idet,ibase) = occu_aux(idet)
+        enddo
+        idetb(ibase) = ndet_rev
+      enddo
+      deallocate(civb_aux,occu_aux)
+
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)

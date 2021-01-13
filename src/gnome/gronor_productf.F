@@ -3,8 +3,8 @@
 !! Several routines used in generating basestates
 !!     
 !! @author  T. P. Straatsma, ORNL
-!! @author  R. Havenith, ORNL
-!! @author  C. de Graaf, ORNL
+!! @author  R. Havenith, RuG
+!! @author  C. de Graaf, URV
 !! @date    2016, 2020
 !!
 !> @details  bound to disappear when old makebasestate is discontinued  
@@ -437,12 +437,13 @@
 !!          removed from the code
 
       subroutine sminop2(cicoef_in,cicoef_out,occ_in,occ_out,
-     &     ndetin,ndetout,spin,nact,nci,lfnout)      
+     &     ndetin,ndetout,spin,nact,nci,maxnact,lfnout)      
+      use gnome_parameters
       implicit none
       
-      integer          :: nact,spin,ndetin,nci
+      integer          :: nact,spin,ndetin,nci,maxnact
       integer          :: ndetout(spin+1),occ_in(nact,ndetin)      
-      integer          :: occ_out(nact,nci,spin+1)  
+      integer          :: occ_out(maxnact,nci,spin+1)  
       integer          :: i,j,k,l,m,n,idup
       integer          :: lfnout
       integer,allocatable :: checklist(:,:)
@@ -482,7 +483,8 @@
                   else                       
                      cicoef_out(idup,i)=cicoef_out(idup,i)+
      &                    cicoef_out(j,i-1)
-                     if( abs(cicoef_out(idup,i)) .le. 1e-12 ) then
+*                     if( abs(cicoef_out(idup,i)) .le. 1e-12 ) then
+                     if( abs(cicoef_out(idup,i)) .le. thresh_CI ) then
                         do l=idup,ndetout(i)
                            cicoef_out(l,i)=cicoef_out(l+1,i)
                            do m=1,nact
@@ -563,15 +565,23 @@
 *     permutes the determinant in the alpha-beta order
       implicit none
 
-      integer :: nact
+      integer :: nact,nelec
       integer :: nperm,i,j
-      integer :: occ(nact),occ2(nact)
+      integer :: occ(nact)
+      integer,allocatable  :: occ2(:)
       integer :: ms,pos1,pos2,spin,oppspin,aux
       logical :: permutation
       
+      nelec = 0
+      do i = 1, nact
+        nelec = nelec + abs(occ(i))
+      end do
+      allocate( occ2(nelec) )
+
       j=0
       ms=0
       nperm=0
+      occ2=0
       do i=1,nact
          if(occ(i).eq.2)then
             j=j+1
@@ -591,7 +601,7 @@
          endif
       enddo
       if(ms.gt.0)then
-         call alphastoend(occ2,nact,nperm,ms)
+         call alphastoend(occ2,nelec,nperm,ms)
       endif      
       do i=1,nact-ms-1
          pos1=mod(i-1,2)
@@ -624,6 +634,7 @@
       else
          perm_ab=1
       endif
+      deallocate (occ2)
       return     
       end
 

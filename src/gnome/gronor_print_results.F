@@ -190,7 +190,6 @@
           token="MEBF"
           do j=1,nbase
             write(*,679) token,j,(hsave(j,i),i=ii,il)
-            write(*,679) token,j,(hsave(j,i),i=ii,il)
             write(lfnout,679) token,j,(hsave(j,i),i=ii,il)
  679        format(a4,1x,i5,4x,12f20.10)
             if(itest.eq.2) then

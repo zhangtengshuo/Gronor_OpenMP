@@ -1560,7 +1560,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call swatch(date,time)
         write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  Total ME contributions               ',numdet
- 2702   format(a8,2x,a8,f12.3,a,32x,i16)
+ 2702   format(a8,2x,a8,f12.3,a,48x,i16)
         flush(lfnday)
         call timer_start(99)
       endif

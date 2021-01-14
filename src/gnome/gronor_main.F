@@ -1400,6 +1400,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       enddo
       deallocate(civb_aux,occu_aux)
 
+      
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
@@ -1412,246 +1413,71 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       
       numdet=0
       ndtot=0
-      ltot=0
       do ibase=1,nbase
         do jbase=1,ibase
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
-          osame=ibase.eq.jbase
-
           if(ibase.eq.jbase) then
-            l2=ndeti*(ndeti+1)/2
-            ijend=l2
-          else
-            l2=ndeti*ndetj
-            ijend=l2
-          endif
-          ndtot=ndtot+l2
-
-          l3=me*(l2/np)+1
-          l4=(me+1)*(l2/np)
-          if(me.eq.np-1) l4=l2
-
-          l=0
-
-          if(osame) then
-            do k=l3,l4
-              p=-0.5+dsqrt(8.0d0*k+1)/2
-              i=p
-              li=i*(i+1)/2
-              q=p-i
-              if (q.gt.1.0d-8) i=i+1
-              j=k-li
-              if (j.eq.0) j=i
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            ndtot=ndtot+ndeti*(ndeti+1)/2
+            do i=1,ndeti
+              do j=i,ndeti
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+              enddo
             enddo
           else
-            do k=l3,l4
-              i=k/ndetj+1
-              if (mod(k,ndetj).eq.0) i=i-1
-              j=k-(i-1)*ndetj
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            ndtot=ndtot+ndeti*ndetj
+            do i=1,ndeti
+              do j=1,ndetj
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+              enddo
             enddo
           endif
-          
-          numdet=numdet+l
-
-          ln=l
-          call MPI_Allreduce(ln,lsum,1,MPI_INTEGER8,MPI_SUM,
-     &         MPI_COMM_WORLD,ierr)
-          ltot=ltot+lsum
-          
-          if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
-     &           l2,ndtot,lsum,ltot
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,4i16)
- 1712       format(a8,2x,a8,f12.3,a,2i4,a,32x,2i16)
-            flush(lfnday)
-            call timer_start(99)
-          endif
-           
         enddo
       enddo
 
-      l=numdet
-      call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
-     &     MPI_COMM_WORLD,ierr)
-      
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Basestate dimension set to           ',ndtot,numdet
- 1703   format(a8,2x,a8,f12.3,a,16x,i16,16x,i16)
+     &       '  :  ME list dimension reduced from   ',
+     &       ndtot,' to ',numdet
+ 1703   format(a8,2x,a8,f12.3,a,16x,i16,a,i16)
         flush(lfnday)
         call timer_start(99)
       endif
-          
+
       allocate(ndxdet(nbase,nbase))
       allocate(lstdet(numdet,2))
-      allocate(lstdet0(numdet,2))
 
-      do j=1,nbase
-        do i=1,nbase
-          ndxdet(i,j)=0
-        enddo
-      enddo
-      do i=1,numdet
-        lstdet0(i,1)=0
-        lstdet0(i,2)=0
-        lstdet(i,1)=0
-        lstdet(i,2)=0
-      enddo
-      
-      allocate(numd(np))
-      allocate(ndxd(np))
-      
-      l=0
       numdet=0
       do ibase=1,nbase
         do jbase=1,ibase
-
-          do i=1,np
-            numd(i)=0
-            ndxd(i)=0
-          enddo
-          
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
-          osame=ibase.eq.jbase
-
           if(ibase.eq.jbase) then
-            l2=ndeti*(ndeti+1)/2
-            ijend=l2
-          else
-            l2=ndeti*ndetj
-            ijend=l2
-          endif
-
-          l3=me*(l2/np)+1
-          l4=(me+1)*(l2/np)
-          if(me.eq.np-1) l4=l2
-
-          l=0
-
-          if(osame) then
-            do k=l3,l4
-              p=-0.5+dsqrt(8.0d0*k+1)/2
-              i=p
-              li=i*(i+1)/2
-              q=p-i
-              if (q.gt.1.0d-8) i=i+1
-              j=k-li
-              if (j.eq.0) j=i
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            do i=1,ndeti
+              do j=i,ndeti
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+                lstdet(numdet,1)=i
+                lstdet(numdet,2)=j
+              enddo
             enddo
           else
-            do k=l3,l4
-              i=k/ndetj+1
-              if (mod(k,ndetj).eq.0) i=i-1
-              j=k-(i-1)*ndetj
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
+            do i=1,ndeti
+              do j=1,ndetj
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+                lstdet(numdet,1)=i
+                lstdet(numdet,2)=j
+              enddo
             enddo
           endif
-
-          ndxd(me+1)=l
-          icnt=np
-          call MPI_Allreduce(ndxd,numd,icnt,MPI_INTEGER8,MPI_SUM,
-     &         MPI_COMM_WORLD,ierr)
-
-          ndsum=0
-          ndxd(1)=0
-          do i=2,np
-            ndxd(i)=ndxd(i-1)+numd(i-1)
-            ndsum=ndsum+numd(i-1)
-          enddo
-          ndsum=ndsum+numd(np)
-          ioff=ndxd(me+1)
-
-          l=0
-
-          if(osame) then
-            do k=l3,l4
-              p=-0.5+dsqrt(8.0d0*k+1)/2
-              i=p
-              li=i*(i+1)/2
-              q=p-i
-              if (q.gt.1.0d-8) i=i+1
-              j=k-li
-              if (j.eq.0) j=i
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
-                l=l+1
-                lstdet0(numdet+ioff+l,1)=i
-                lstdet0(numdet+ioff+l,2)=j
-              endif
-            enddo
-          else
-            do k=l3,l4
-              i=k/ndetj+1
-              if (mod(k,ndetj).eq.0) i=i-1
-              j=k-(i-1)*ndetj
-              if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
-                l=l+1
-                lstdet0(numdet+ioff+l,1)=i
-                lstdet0(numdet+ioff+l,2)=j
-              endif
-            enddo
-          endif
-          
-          numdet=numdet+ndsum
-          ndxdet(jbase,ibase)=numdet
           ndxdet(ibase,jbase)=numdet
-
-          if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1712) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Phase 2 bases ',ibase,jbase,
-     &           '       ME list ',ndsum,numdet
-            flush(lfnday)
-            call timer_start(99)
-          endif
-          
         enddo
       enddo
-      
-      if(me.eq.master) then
-        call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Total ME contributions               ',numdet
- 2702   format(a8,2x,a8,f12.3,a,48x,i16)
-        flush(lfnday)
-        call timer_start(99)
-      endif
-
-      icnt=2*numdet
-      if(icnt.le.mpibuf) then
-        call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
-     &       MPI_COMM_WORLD,ierr)
-      else
-        kdet=mpibuf
-        kdetbatch=numdet/kdet
-        if (mod(numdet,kdet).ne.0) kdetbatch=kdetbatch+1
-        mdet=numdet
-        ndet=1
-        do jdet=1,kdetbatch
-         ldet=min(mdet,kdet)
-         call MPI_Allreduce(lstdet0(ndet,1),lstdet(ndet,1),ldet,
-     &        MPI_INTEGER8,MPI_SUM,MPI_COMM_WORLD,ierr)
-         call MPI_Allreduce(lstdet0(ndet,2),lstdet(ndet,2),ldet,
-     &        MPI_INTEGER8,MPI_SUM,MPI_COMM_WORLD,ierr)
-         ndet=ndet+ldet
-         mdet=mdet-ldet
-        enddo
-      endif
-      
-      deallocate(lstdet0)
-      deallocate(ndxd)
-      deallocate(numd)
 
 ! Following Bcasts should not be necessary, but added for safety
 

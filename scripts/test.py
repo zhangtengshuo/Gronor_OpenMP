@@ -13,7 +13,7 @@ os.system('rm '+name+'.dif')
 os.system('rm '+name+'.tst')
 os.system('rm '+name+'.cpr')
 
-os.system(runcommand+' '+name)
+os.system(runcommand+' gronor '+name)
 
 os.system('diff '+name+'.tst '+name+'.ok > '+name+'.dif')
 

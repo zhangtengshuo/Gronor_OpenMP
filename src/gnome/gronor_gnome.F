@@ -52,7 +52,7 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           write(lfndbg,604) idet
  604      format(/,' Transformation of MO set',i8,/)
           write(lfndbg,605) n,(ioccup(k,idet),k=1,nact(idet))
- 605      format(' Active orbital occupation in symrep',i4,' : ',10i3)
+ 605      format(' Active orbital occupation in symrep',i4,' : ',32i3)
         endif
         
         call timer_start(11)

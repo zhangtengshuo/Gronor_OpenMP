@@ -86,11 +86,21 @@ c      use cuda_functions
       integer :: maxgrp
       integer :: nk,ii,il,ik
 
-      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr
-      integer :: l3, l4, ndsum, ioff, nsr(4)
+      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr, ln, lsum
+      integer :: l3, l4, ltot, ndsum, ioff, nsr(4)
       integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
 
+      integer jdet, kdet, kdetbatch, ldet, mdet, ndet
+
+      integer                  :: idet,length,ndet_rev
+      integer, allocatable     :: sort_occ(:),occu_aux(:)
+      real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
+      real(kind=8)             :: thres2,max_coef
+
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
+
+      integer :: li, ndtot
+      real(kind=8) :: p, q
 
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
@@ -294,22 +304,50 @@ c      use cuda_functions
 !Set defaults
 
        npg=0
-       mgr=0
+
+!     Default is one rank per worker group
+
+       mgr=1
+       if(npg.eq.0) npg=(np-1)/mgr
+       if(np.lt.mgr+1) then
+         write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
+     &        ') cannot be supported by available ranks (',np,')'
+         call errquit()
+       endif
+
        nmol=0
+
+!     mstates will be set depending on Molecule input parameters
+
        mstates=0
        iload=1
-       nbatch=1
+
+!     Default batch size is 32
+       
+       nbatch=32
+
+!     Desult is to process integrals for each task entry
+
        lbatch=0
-       itest=0
-       idevel=0
+
+!     Default is to write a test file
+       
+       itest=1
+
+!     Development option idevel 0: original makebasestate; 1: most recent makebasestate
+!     This may be reset depending on the file check
+
+       idevel=1
        ifault=1
 
-       isolver=-1
-       jsolver=-1
-       iaslvr=-1
-       jaslvr=-1
-       inslvr=-1
-       jnslvr=-1
+!     Default solvers are those included in the code
+       
+       isolver=0
+       jsolver=0
+       iaslvr=0
+       jaslvr=0
+       inslvr=0
+       jnslvr=0
 
        intadd=0
        naccel=-1
@@ -329,15 +367,22 @@ c      use cuda_functions
        naccel=0
 #endif
        nqcp=3
-       ipr=-1
-       itim=-1
+
+!     Default print flag set to 2
+       
+       ipr=2
+
+!     Default is to turn timing on
+
+       itim=1
+
        ipro=-1
        iday=10
        idbg=0
        nspin=0
        mpibuf=168435456
        thresh=1.0d-10
-       thresh_CI=1.0d-10
+       thresh_CI=1.0d-5
        thresh_SIN=1.0d-12
        tolsvj=1.0d-07
        tolevj=1.0d-07
@@ -356,7 +401,10 @@ c      use cuda_functions
         thresh=min(thresh,1.0d-05)
         thresh_CI=min(thresh_CI,1.0d-05)
       endif
-      
+
+!     Check if vec/civ or det files are available
+
+      call gronor_check_vectors_and_determinants()
 
 !     For now, we report on the algorithm for generating the MEBFs
 !     Furthermore, it need to ensured that reading the root_xxx.det
@@ -1193,14 +1241,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
 
-!     if solvers were not specified use cusolver QR solvers
-        isolver=iaslvr
-        jsolver=jaslvr
-        if(isolver.lt.0) isolver=1
-        if(jsolver.lt.0) jsolver=1
-        if(iaslvr.lt.0) iaslvr=1
-        if(jaslvr.lt.0) jaslvr=1
-
 !     if(numdev.gt.1) then
 !     cpfre=c_loc(memfre)
 !     cptot=c_loc(memtot)
@@ -1252,27 +1292,59 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnout)
       endif
       
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start of base state generation'
+ 1707   format(a8,2x,a8,f12.3,a)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
+      max_coef = 0.0
+      
       do i=1,nbase
 
         if(idevel.eq.0) then
-        call gronor_old_makebasestate
-     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
-     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
-     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
+          call gronor_old_makebasestate
+     &         (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
+     &         idetm,maxci,maxvec,maxnact,mstates,civb(1,i),
+     &         vecsb(1,1,i),ioccb(1,i),inactb(i),nactb(i),
+     &         idetb(i),maxcib,nbasis,mactb,
      &         nmol,ncombv(1,i),nspin,thresh_CI)
-      else
-        if(ipr.gt.2) then
-          write(lfnout,*) ' Calling the new make_basestate'
-          flush(lfnout)
-        endif
-        call gronor_make_basestate(i)
+        else
+          if(ipr.gt.2.and.me.eq.master) then
+            write(lfnout,*) ' Calling the new make_basestate'
+            flush(lfnout)
+          endif
+          call gronor_make_basestate(i)
 !        call gronor_makebasestate_remove
 !     &       (lfnout,civm,vecsm,ioccm,nbasm,nactm,inactm,
 !     &       idetm,maxci,maxvec,maxnact,mstates,civb(1,i),vecsb(1,1,i),
 !     &       ioccb(1,i),inactb(i),nactb(i),idetb(i),maxcib,nbasis,mactb,
 !     &         nmol,ncombv(1,i),nspin,thresh_CI)
         
-      endif
+        endif
+        
+        allocate(sort_coef(maxcib))
+        allocate(sort_occ(maxcib))
+        sort_coef = 0.0
+        sort_occ = 0
+        do idet = 1, idetb(i)
+          sort_coef(idet) = civb(idet,i)
+          sort_occ(idet)  = ioccb(idet,i)
+        enddo
+        length = idetb(i)
+        call quicksort(sort_coef,sort_occ,length)
+        do idet = 1, idetb(i)
+          civb(idet,i)  = sort_coef(idet)
+          ioccb(idet,i) = sort_occ(idet)
+        enddo
+        deallocate(sort_coef,sort_occ)
+        if ( max_coef .lt. abs(civb(1,i)) ) then
+          max_coef = abs(civb(1,i))
+        endif
         
         if(me.eq.master.and.ipr.ge.3) then
           write(lfnout,612) i
@@ -1280,173 +1352,132 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           flush(lfnout)
         endif
         
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Base state ',i,' completed '
+ 1706     format(a8,2x,a8,f12.3,a,i4,a)
+          flush(lfnday)
+          call timer_start(99)
+        endif
+        
       enddo
 
+      thres2 = thresh_CI / max_coef
+      allocate(civb_aux(maxcib))
+      allocate(occu_aux(maxcib))
+      do ibase = 1, nbase
+        ndeti=idetb(ibase)
+        ndet_rev = 0
+        civb_aux = 0.0
+        occu_aux = 0
+        do idet = 1, idetb(ibase)
+          if ( abs(civb(idet,ibase)) .gt. thres2 ) then
+            ndet_rev = ndet_rev + 1
+            civb_aux(ndet_rev) = civb(idet,ibase)
+            occu_aux(ndet_rev) = ioccb(idet,ibase)
+          endif
+        enddo
+        civb(:,ibase) = 0.0
+        ioccb(:,ibase) = 0
+        do idet = 1, ndet_rev
+          civb(idet,ibase) = civb_aux(idet)
+          ioccb(idet,ibase) = occu_aux(idet)
+        enddo
+        idetb(ibase) = ndet_rev
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Base state ',ibase,
+     &         ' coefficient list reduced from    ',
+     &         ndeti,' to ',ndet_rev
+ 1710     format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
+          flush(lfnday)
+          call timer_start(99)
+        endif
+      enddo
+      deallocate(civb_aux,occu_aux)
+
+      
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Start of ME list generation'
+ 1708   format(a8,2x,a8,f12.3,a)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
       numdet=0
+      ndtot=0
       do ibase=1,nbase
         do jbase=1,ibase
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
-          osame=ibase.eq.jbase
-          call iloop_init(ndeti,ndetj,osame)
           if(ibase.eq.jbase) then
-            l2=ndeti*(ndeti+1)/2
-            ijend=l2
+            ndtot=ndtot+ndeti*(ndeti+1)/2
+            do i=1,ndeti
+              do j=i,ndeti
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+              enddo
+            enddo
           else
-            l2=ndeti*ndetj
-            ijend=l2
+            ndtot=ndtot+ndeti*ndetj
+            do i=1,ndeti
+              do j=1,ndetj
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+              enddo
+            enddo
           endif
-
-          l3=me*(l2/np)+1
-          l4=(me+1)*(l2/np)
-          if(me.eq.np-1) l4=l2
-
-          l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
-          enddo
-          numdet=numdet+l
-
-          if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Phase 1 bases ',ibase,jbase,' Total ME list ',
-     &           l2,numdet
- 1702       format(a8,2x,a8,f12.3,a,2i4,a,2i16)
-            flush(lfnday)
-            call timer_start(99)
-          endif
-           
         enddo
       enddo
 
-      l=numdet
-      call MPI_Allreduce(l,numdet,1,MPI_INTEGER8,MPI_SUM,
-     &     MPI_COMM_WORLD,ierr)
-      
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Basestate dimension set to           ',numdet
- 1703   format(a8,2x,a8,f12.3,a,i16)
+     &       '  :  ME list dimension reduced from   ',
+     &       ndtot,' to ',numdet
+ 1703   format(a8,2x,a8,f12.3,a,16x,i16,a,i16)
         flush(lfnday)
         call timer_start(99)
       endif
-          
+
       allocate(ndxdet(nbase,nbase))
       allocate(lstdet(numdet,2))
-      allocate(lstdet0(numdet,2))
 
-      do j=1,nbase
-        do i=1,nbase
-          ndxdet(i,j)=0
-        enddo
-      enddo
-      do i=1,numdet
-        lstdet0(i,1)=0
-        lstdet0(i,2)=0
-        lstdet(i,1)=0
-        lstdet(i,2)=0
-      enddo
-      
-      allocate(numd(np))
-      allocate(ndxd(np))
-      
-      l=0
       numdet=0
       do ibase=1,nbase
         do jbase=1,ibase
-
-          do i=1,np
-            numd(i)=0
-            ndxd(i)=0
-          enddo
-          
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
-          osame=ibase.eq.jbase
-          call iloop_init(ndeti,ndetj,osame)
           if(ibase.eq.jbase) then
-            l2=ndeti*(ndeti+1)/2
-            ijend=l2
+            do i=1,ndeti
+              do j=i,ndeti
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+                lstdet(numdet,1)=i
+                lstdet(numdet,2)=j
+              enddo
+            enddo
           else
-            l2=ndeti*ndetj
-            ijend=l2
+            do i=1,ndeti
+              do j=1,ndetj
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                numdet=numdet+1
+                lstdet(numdet,1)=i
+                lstdet(numdet,2)=j
+              enddo
+            enddo
           endif
-
-          l3=me*(l2/np)+1
-          l4=(me+1)*(l2/np)
-          if(me.eq.np-1) l4=l2
-
-          l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) l=l+1
-          enddo
-
-          ndxd(me+1)=l
-          icnt=np
-          call MPI_Allreduce(ndxd,numd,icnt,MPI_INTEGER8,MPI_SUM,
-     &         MPI_COMM_WORLD,ierr)
-
-          ndsum=0
-          ndxd(1)=0
-          do i=2,np
-            ndxd(i)=ndxd(i-1)+numd(i-1)
-            ndsum=ndsum+numd(i-1)
-          enddo
-          ndsum=ndsum+numd(np)
-          ioff=ndxd(me+1)
-
-          l=0
-          do k=l3,l4
-            i=iloop(k,1)
-            j=iloop(k,2)
-            if(dabs(civb(i,ibase)*civb(j,jbase)).ge.thresh_CI) then
-              l=l+1
-              lstdet0(numdet+ioff+l,1)=i
-              lstdet0(numdet+ioff+l,2)=j
-            endif
-          enddo
-          numdet=numdet+ndsum
-          ndxdet(jbase,ibase)=numdet
           ndxdet(ibase,jbase)=numdet
-
-          if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Phase 2 bases ',ibase,jbase,
-     &           '       ME list ',ndsum
-            flush(lfnday)
-            call timer_start(99)
-          endif
-          
         enddo
       enddo
-      
-      if(me.eq.master) then
-        call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,2702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Total ME contributions               ',numdet
- 2702   format(a8,2x,a8,f12.3,a,i16)
-        flush(lfnday)
-        call timer_start(99)
-      endif
-      
-      icnt=2*numdet
-      call MPI_Allreduce(lstdet0,lstdet,icnt,MPI_INTEGER8,MPI_SUM,
-     &     MPI_COMM_WORLD,ierr)
-      
-      deallocate(lstdet0)
-      deallocate(ndxd)
-      deallocate(numd)
 
 ! Following Bcasts should not be necessary, but added for safety
 
@@ -1725,13 +1756,18 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       form='formatted',status='unknown',access='append',err=993)
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnlog,801) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnlog,801) date(1:8),time(1:8),
+     &       timer_wall_total(99)-timer_wall_total(98),
+     &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
      &       iaslvr,jaslvr,inslvr,jnslvr,
      &       nbatch,lbatch,nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,3f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
+        if(nbase.gt.1) then
+          write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)
+        endif
  803    format(5x,8f20.10)
         write(lfnlog,804)
  804    format(' ')

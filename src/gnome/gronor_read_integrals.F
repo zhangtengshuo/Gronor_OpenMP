@@ -275,7 +275,7 @@
 
         kint=mpibuf
         kintbatch=int2/kint
-        if (mod(int2,kint).ne.0)kintbatch=kintbatch+1
+        if (mod(int2,kint).ne.0) kintbatch=kintbatch+1
         mint=int2
         nint=1
         do jint=1,kintbatch

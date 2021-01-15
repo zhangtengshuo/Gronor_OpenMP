@@ -56,7 +56,7 @@
         do i=1,ndeti
           call unpack(ioccb(i,ib),iocch,nacti)
           write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
- 602      format(I5,F15.5,10I3)
+ 602      format(i5,f15.5,32i3)
         enddo
         write(lfndbg,603) ndetj
  603    format(//,' Right wavefunction has ',i8,' determinants:',/)

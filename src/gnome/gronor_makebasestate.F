@@ -58,9 +58,9 @@
       
 
       integer              :: ibase,state1,state2
-      integer              :: i,j,k,kk,iact,jact
+      integer              :: i,j,k,kk,iact,jact,l
       integer              :: jstart,kstart
-      integer              :: ndets,ms_states
+      integer              :: ndets,istate
       integer              :: ms1,ms2,det,det1,det2
       integer, external    :: perm_ab,isetsign4
       integer, parameter   :: maxact = 32        ! because of the packing, maxact is limited to 32 (I guess)
@@ -68,6 +68,7 @@
       integer, allocatable :: ndet_ms(:),ndet1_ms(:),ndet2_ms(:)
       integer, allocatable :: occ_ms(:,:,:),occ1_ms(:,:,:),
      &                                      occ2_ms(:,:,:)
+      integer, allocatable :: iocc_tmp(:,:)
 
       logical              :: all_singlet
 
@@ -76,6 +77,7 @@
       real (kind = 8), allocatable :: ci_ms(:,:)
       real (kind = 8), allocatable :: ci1_ms(:,:)
       real (kind = 8), allocatable :: ci2_ms(:,:)
+      real (kind = 8), allocatable :: cicoef_tmp(:)
       
       inactb(ibase) = 0
       nactb(ibase)  = 0
@@ -156,7 +158,7 @@
       state1 = ncombv(1,ibase)
       state2 = ncombv(2,ibase)
 
-* Two fragments, both singlet functions
+* Two singlet fragments
       if ( all_singlet ) then
         k = 0
         do i = 1, idetm(state1)
@@ -187,19 +189,12 @@
       end if
 
 * All other cases
-      ms_states = max(spin(1)+1 , spin(2)+1)
-      allocate(ndet_ms(ms_states))
-      allocate(ci_ms(nci,ms_states))
-      allocate(occ_ms(maxnact,nci,ms_states))
-      ndet_ms = 0
-      ci_ms   = 0.0
-      occ_ms  = 0
-      allocate(ndet1_ms(ms_states))
-      allocate(ci1_ms(nci,ms_states))
-      allocate(occ1_ms(maxnact,nci,ms_states))
-      allocate(ndet2_ms(ms_states))
-      allocate(ci2_ms(nci,ms_states))
-      allocate(occ2_ms(maxnact,nci,ms_states))
+      allocate(ndet1_ms(spin(1)+1))
+      allocate(ci1_ms(nci,spin(1)+1))
+      allocate(occ1_ms(maxnact,nci,spin(1)+1))
+      allocate(ndet2_ms(spin(2)+1))
+      allocate(ci2_ms(nci,spin(2)+1))
+      allocate(occ2_ms(maxnact,nci,spin(2)+1))
       ndet1_ms = 0
       ci1_ms   = 0.0
       occ1_ms  = 0
@@ -207,36 +202,33 @@
       ci2_ms   = 0.0
       occ2_ms  = 0
 *   M_S of fragment 1
-      call sminop2(civm(1,ncombv(1,ibase)),ci_ms,
-     &     ioccm(1,1,ncombv(1,ibase)),
-     &     occ_ms(1:nactm(ncombv(1,ibase)),:,:),
-     &     idetm(ncombv(1:,ibase)),ndet_ms,
-     &     spin(1),nactm(ncombv(1,ibase)),nci,lfnout)
-      do j = 1, spin(1) + 1
-        ndet1_ms(j) = ndet_ms(j)
-        do det = 1, ndet_ms(j)
-          ci1_ms(det,j) = ci_ms(det,j)
-          occ1_ms(:,det,j) = occ_ms(:,det,j)
+      istate=ncombv(1,ibase)
+      allocate(iocc_tmp(nactm(istate),idetm(istate)))
+      allocate(cicoef_tmp(idetm(istate)))
+      do j = 1, idetm(istate)
+        cicoef_tmp(j) = civm(j,istate)
+        do k = 1, nactm(istate)
+          iocc_tmp(k,j) = ioccm(k,j,istate)
         end do
       end do
+      call sminop2(cicoef_tmp,ci1_ms,iocc_tmp,occ1_ms,idetm(istate),
+     &             ndet1_ms,spin(1),nactm(istate),nci,maxnact,lfnout) 
+      deallocate(cicoef_tmp)
+      deallocate(iocc_tmp)
 *   M_S of fragment 2
-      ndet_ms = 0
-      ci_ms   = 0  
-      occ_ms  = 0
-      call sminop2(civm(1,ncombv(2,ibase)),ci_ms,
-     &     ioccm(1,1,ncombv(2,ibase)),
-     &     occ_ms(1:nactm(ncombv(2,ibase)),:,:),
-     &     idetm(ncombv(2:,ibase)),ndet_ms,
-     &     spin(2),nactm(ncombv(2,ibase)),nci,lfnout)
-      do j = 1, spin(2) + 1
-        ndet2_ms(j) = ndet_ms(j)
-        do det = 1, ndet_ms(j)
-          ci2_ms(det,j) = ci_ms(det,j)
-          occ2_ms(:,det,j) = occ_ms(:,det,j)
+      istate=ncombv(2,ibase)
+      allocate(iocc_tmp(nactm(istate),idetm(istate)))
+      allocate(cicoef_tmp(idetm(istate)))
+      do j = 1, idetm(istate)
+        cicoef_tmp(j) = civm(j,istate)
+        do k = 1, nactm(istate)
+          iocc_tmp(k,j) = ioccm(k,j,istate)
         end do
       end do
-
-      deallocate(ndet_ms,ci_ms,occ_ms)
+      call sminop2(cicoef_tmp,ci2_ms,iocc_tmp,occ2_ms,idetm(istate),
+     &             ndet2_ms,spin(2),nactm(istate),nci,maxnact,lfnout)
+      deallocate(cicoef_tmp)
+      deallocate(iocc_tmp)
 
       
       k = 0
@@ -295,10 +287,10 @@
       return
       end 
 
-      subroutine gronor_makebasestate_remove                                     
-     &     (lfnout,civm,vecsm,ioccm,nbasm,nactm,                            
-     &     inactm,idetm,maxci,maxvec,maxnact,mstates,                     
-     &     civb,vecsc,ioccb,inactb,nactb,idetb,                           
+      subroutine gronor_makebasestate_remove
+     &     (lfnout,civm,vecsm,ioccm,nbasm,nactm,
+     &     inactm,idetm,maxci,maxvec,maxnact,mstates,
+     &     civb,vecsc,ioccb,inactb,nactb,idetb,
      &     maxcib,nbasis,mactb,                        
      &     nmol,ncomb,nspin,thresh_CI)
 

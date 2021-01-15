@@ -1171,10 +1171,10 @@ c        if(nb0.le.0.and.nb1.gt.0) then
        intg=0
 !$omp parallel do reduction(+:ts)
 !$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n)
+!$omp& private(intg,i,k,l,n,ii,jj)
        do ii=intndx,jntndx
          do jj=ii,kl
-           intg=intg+1
+           intg=ndx(ii)+jj
            i=lab(1,ii)
            k=lab(2,ii)
            l=lab(1,jj)
@@ -1199,10 +1199,10 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 !$omp parallel do reduction(+:e2)
 !$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
 !$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
-!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
+!$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl,ii,jj)
        do ii=intndx,jntndx
          do jj=ii,kl
-           intg=intg+1
+           intg=ndx(ii)+jj
            i=lab(1,ii)
            k=lab(2,ii)
            l=lab(1,jj)

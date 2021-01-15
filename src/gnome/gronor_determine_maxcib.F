@@ -18,16 +18,20 @@
 !> 
       subroutine gronor_determine_maxcib
       use cidef
+      use cidist
       use gnome_parameters
       implicit none
 
       integer              :: istate,iact,ibase,i,j,k
       integer              :: det1,det2,cib
       integer              :: ms1,ms2,offsetm,mspin_states,spin(2)
+      integer              :: minspin,maxspin
       integer,allocatable  :: mspin(:),ndet_mspin(:,:),occ_mspin(:,:,:)
+      integer,allocatable  :: iocc_tmp(:,:)
 
       real (kind = 8)               :: cg,prod,dnorm
       real (kind = 8), allocatable  :: ci_mspin(:,:)
+      real (kind = 8), allocatable  :: cicoef_tmp(:)
 
       allocate( spinm(mstates) )
       spinm = 0
@@ -55,6 +59,18 @@
       endif
 
       do ibase = 1, nbase
+        if ( nmol .eq. 2 ) then
+          minspin = abs(spinm(ncombv(1,ibase)) - spinm(ncombv(2,ibase)))
+          maxspin =     spinm(ncombv(1,ibase)) + spinm(ncombv(2,ibase))
+          if (( maxspin .lt. nspin ) .or. ( minspin .gt. nspin)) then
+            write(lfnout,'(2a,i4)') 'spins of fragments not compatible',
+     &               ' with total spin in input for MEBF ',ibase
+            write(lfnout,'(a,i4)') 'Spin(1) = ',spinm(1)
+            write(lfnout,'(a,i4)') 'Spin(2) = ',spinm(2)
+            write(lfnout,'(a,i4)') 'cannot be coupled to ',nspin
+            stop
+          end if
+        end if
         cib = 0
         if((nspin .eq. 0) .and.
      &       (spinm(ncombv(1,ibase)) .eq. 0) .and.
@@ -76,11 +92,30 @@
           ndet_mspin = 0
           offsetm = 0
           do i = 1, nmol 
-            spin(i) = spinm(ncombv(i,ibase))
-            call sminop2(civm(1,ncombv(i,ibase)),ci_mspin(1,offsetm+1),
-     &           ioccm(1,1,ncombv(i,ibase)),occ_mspin(1,1,offsetm+1),
-     &           idetm(ncombv(i:,ibase)),ndet_mspin(i,:),
-     &           spin(i),nactm(ncombv(i,ibase)),nci,lfnout)
+            istate = ncombv(i,ibase)
+            spin(i) = spinm(istate)
+            allocate(iocc_tmp(nactm(istate),idetm(istate)))
+            allocate(cicoef_tmp(idetm(istate)))
+            iocc_tmp = 0
+            cicoef_tmp = 0
+            do j = 1, idetm(istate)
+              cicoef_tmp(j) = civm(j,istate)
+              do k = 1, nactm(istate)
+                iocc_tmp(k,j) = ioccm(k,j,istate)
+              end do
+             end do
+            call sminop2(cicoef_tmp,ci_mspin(1,offsetm+1),
+     &           iocc_tmp,
+     &           occ_mspin(1,1,offsetm+1),
+     &           idetm(istate),ndet_mspin(i,:),
+     &           spin(i),nactm(istate),nci,maxnact,lfnout)
+             deallocate(cicoef_tmp)
+             deallocate(iocc_tmp)
+*            call sminop2(civm(1,ncombv(i,ibase)),ci_mspin(1,offsetm+1),
+*     &           ioccm(1:nactm(ncombv(i,ibase)),1,ncombv(i,ibase)),
+*     &           occ_mspin(1,1,offsetm+1),
+*     &           idetm(ncombv(i:,ibase)),ndet_mspin(i,:),
+*     &           spin(i),nactm(ncombv(i,ibase)),nci,lfnout)
             mspin(offsetm+1)=spin(i)
             do j=2,spin(i)+1
                mspin(offsetm+j)=mspin(offsetm+j-1)-2
@@ -99,7 +134,7 @@
 *     &                         ms1/2.d0,ms2/2.d0,                    ! CG-coefficients significantly reduces
 *     &                         nspin/2.d0,nspin/2.d0)                ! the number of dets in the MEBF, but might
 *                    prod = dnorm*ci_mspin(det1,j)*ci_mspin(det2,k)   ! introduce some spin contamination
-                    prod = ci_mspin(det1,j)*ci_mspin(det2,k)
+                    prod = ci_mspin(det1,j)*ci_mspin(det2,k+spin(1)+1)
                     if (abs(prod) .gt. thresh_CI) cib = cib + 1
                   enddo
                 enddo
@@ -117,7 +152,7 @@
           stop
  1573     format(a,i4)
         endif
-        if(ipr. gt. 10) then
+        if ( (me.eq.master) .and. (ipr .gt. 10) ) then
           write(lfnout,*)
           write(lfnout,'(a,i4,a,i10)') 
      &         ' number of dets in MEBF ',ibase,' :',cib

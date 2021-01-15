@@ -57,6 +57,7 @@
             do j=1,nbase
               if(.not.inp_i(ncombv(i,j))) call errquit()
               if(ncombv(i,j).eq.0) ncombv(i,j)=9
+              mstates=max(mstates,ncombv(i,j))
             enddo
           enddo
           goto 2

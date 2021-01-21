@@ -1822,6 +1822,12 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
          close(unit=lfncpr,status='delete')
        endif
        close(unit=lfnarx,status='keep')
+       
+       call swatch(date,time)
+       write(*,602) trim(date),trim(time)
+       write(lfnout,602) trim(date),trim(time)
+ 602   format(/,' Completion of run ',2a10,/)
+       
        close(unit=lfnout,status='keep')
       else
 !       if(ipr.lt.5) then

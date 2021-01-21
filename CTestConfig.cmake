@@ -1,5 +1,5 @@
 set(CTEST_PROJECT_NAME "GronOR")
-set(CTEST_NIGHTLY_START_TIME "05:00:00 America/New_York")
+set(CTEST_NIGHTLY_START_TIME "08:00:00 America/New_York")
 set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "my.cdash.org")
 set(CTEST_DROP_LOCATION "/submit.php?project=GronOR")

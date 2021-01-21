@@ -24,13 +24,13 @@ void linux_date_(char adate[10])
  adate[1]=*(tmp+23);
  adate[2]='/';
  for (i=0; i<3; i++) mm[i]=*(tmp+i+4);
- if(mm[0]=='J'&&mm[1]=='a') {adate[3]='0'; adate[4]='1';};
  if(mm[0]=='F')             {adate[3]='0'; adate[4]='2';};
  if(mm[0]=='M'&&mm[2]=='r') {adate[3]='0'; adate[4]='3';};
  if(mm[0]=='A'&&mm[1]=='p') {adate[3]='0'; adate[4]='4';};
  if(mm[0]=='M'&&mm[2]=='y') {adate[3]='0'; adate[4]='5';};
  if(mm[0]=='J'&&mm[2]=='n') {adate[3]='0'; adate[4]='6';};
  if(mm[0]=='J'&&mm[2]=='l') {adate[3]='0'; adate[4]='7';};
+ if(mm[0]=='J'&&mm[1]=='a') {adate[3]='0'; adate[4]='1';};
  if(mm[0]=='A'&&mm[1]=='u') {adate[3]='0'; adate[4]='8';};
  if(mm[0]=='S')             {adate[3]='0'; adate[4]='9';};
  if(mm[0]=='O')             {adate[3]='1'; adate[4]='0';};

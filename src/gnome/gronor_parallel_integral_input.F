@@ -109,7 +109,7 @@
 #endif
        endif
 
-      read(lfnone,err=993) numfiles
+       read(lfnone,err=993) numfiles
 
       endif
 
@@ -220,8 +220,11 @@
        igp=1
        
        indxr(1,1,1)=1
+       indxr(1,1,2)=1
        indxr(1,2,1)=1
+       indxr(1,2,2)=ifil(1,1)
        indxr(1,5,1)=1
+
        n=0
        nn=0
        igp=1
@@ -369,9 +372,10 @@
            
            write(filtwo,'(a,a,i3.3,a)')
      &          root(1:inp_strlen(root)),'_',idf,'.two'
+
            open(unit=lfntwo,file=filtwo,access='direct',
      &          form='unformatted',recl=nrecl,status='old')
-           
+
            do idr=indxr(igr,2,1),indxr(igr,2,2)
              
              if(mclab.eq.0) then

@@ -1,0 +1,22 @@
+#!/usr/bin/tcsh
+setenv MOLCAS_NPROCS 58
+pymolcas -clean naphthaleneA.input > naphthaleneA.output
+pymolcas -clean naphthaleneD.input > naphthaleneD.output
+commmon_basis < naphthaleneCB.input
+touch TRAINT
+setenv MOLCAS_MEM 4096
+setenv MOLCAS_NPROCS 8
+pymolcas -clean naphthaleneM.input > naphthaleneM.output
+rdcho 8
+rdtraint naphthalene
+mv vecdet.1  vecdet.001
+mv vecdet.2  vecdet.002
+mv vecdet.3  vecdet.003
+mv vecdet.4  vecdet.004
+mv vecdet.5  vecdet.005
+mv vecdet.6  vecdet.006
+mv vecdet.7  vecdet.007
+mv vecdet.8  vecdet.008
+mv vecdet.9  vecdet.009
+mv vecdet.10 vecdet.010
+

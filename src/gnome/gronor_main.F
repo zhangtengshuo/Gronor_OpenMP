@@ -429,21 +429,22 @@ c      use cuda_functions
 !           integral file. Now, they always take the values 8421 and -1. 
 !           When npg = 0, something very strange will come out (I guess).
        
-      if(npg.eq.0) then
-        npg=numtwo/intsrnk
-        if(mod(numtwo,intsrnk).gt.0) npg=npg+1
-      endif
+c     if(npg.eq.0) then
+c     npg=numtwo/intsrnk
+c     if(mod(numtwo,intsrnk).gt.0) npg=npg+1
+c     npg=(np-1)/mgr
+c     endif
       
-      if(mgr.eq.0) then
-        if(iload.eq.0) mgr=np/npg
-        if(iload.eq.1) mgr=(np-1)/npg
-      else
-        if(npg*mgr+1.gt.np) then
-          write(lfnout,983)
- 983      format(' Requested number of ranks exceeds available')
-          call errquit()
-        endif
+c     if(mgr.eq.0) then
+c     if(iload.eq.0) mgr=np/npg
+c     if(iload.eq.1) mgr=(np-1)/npg
+c     else
+      if(npg*mgr+1.gt.np) then
+        write(lfnout,983)
+ 983    format(' Requested number of ranks exceeds available')
+        call errquit()
       endif
+c     endif
       
       allocate(nbasm(mstates))
       allocate(nactm(mstates))

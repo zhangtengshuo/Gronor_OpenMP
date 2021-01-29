@@ -39,7 +39,7 @@
 
         if(inp_compare(.false.,'Size',item)) then
           if(.not.inp_i(mgr)) call errquit()
-          if(npg.eq.0) npg=(np-1)/mgr
+          npg=(np-1)/mgr
           if(np.lt.mgr+1) then
             write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &           ') cannot be supported by available ranks (',np,')'

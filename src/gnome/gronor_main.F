@@ -547,14 +547,14 @@ c     endif
  613   format(/,' Molecular states included in this calculation',//,
      &      ' State        : ',20i4)
        write(lfnout,624)
- 624   format(/)
+ 624   format(' ')
        do i=1,nmol
          write(lfnout,617) i,(ncombv(i,j),j=1,nbase)
  617     format(' Molecule',i4,' : ',20i4)
        enddo
        
        if(ipr.ge.3) write(lfnout,607)
- 607   format(//,'  istate   idetm           ci coefficient')
+ 607   format(//,'  istate   idetm           CI coefficient')
        
 !     Coen Oct17_19: changed idum for iocc_tmp, idum is used later for
 !     something completely different.
@@ -1593,7 +1593,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         write(lfnout,614) nbas,rndx
         write(lfnout,615) int1,rlab
         write(lfnout,616) int2,rint
- 614    format(' Number of basisfunctions',t50,i16,
+ 614    format(/,' Number of basisfunctions',t50,i16,
      &       t80,' Size of index arrays',t115,f8.3,' GB')
  615    format(' Number of one-electron integrals',t50,i16,
      &       t80,' Size of integral labels',t115,f8.3,' GB')

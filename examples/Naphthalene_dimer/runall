@@ -8,15 +8,8 @@ setenv MOLCAS_MEM 4096
 setenv MOLCAS_NPROCS 8
 pymolcas -clean naphthaleneM.input > naphthaleneM.output
 rdcho 8
+cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 > _CHMOT1
 rdtraint naphthalene
-mv vecdet.1  vecdet.001
-mv vecdet.2  vecdet.002
-mv vecdet.3  vecdet.003
-mv vecdet.4  vecdet.004
-mv vecdet.5  vecdet.005
-mv vecdet.6  vecdet.006
-mv vecdet.7  vecdet.007
-mv vecdet.8  vecdet.008
-mv vecdet.9  vecdet.009
-mv vecdet.10 vecdet.010
+mpirun -n 36 gronor naphthalene_test
+
 

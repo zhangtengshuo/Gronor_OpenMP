@@ -47,9 +47,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_1
->>> COPY vecdet.1        $CurrDir/vecdet.1
+>>> COPY vecdet.1        $CurrDir/naphthalene_001.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_1
->>> COPY vecdet.1        $CurrDir/vecdet.6
+>>> COPY vecdet.1        $CurrDir/naphthalene_006.det
 
 
 &rasscf
@@ -69,9 +69,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_2
->>> COPY vecdet.2        $CurrDir/vecdet.2
+>>> COPY vecdet.2        $CurrDir/naphthalene_002.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_2
->>> COPY vecdet.2        $CurrDir/vecdet.7
+>>> COPY vecdet.2        $CurrDir/naphthalene_007.det
 
 
 &rasscf
@@ -88,9 +88,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_3
->>> COPY vecdet.1        $CurrDir/vecdet.3
+>>> COPY vecdet.1        $CurrDir/naphthalene_003.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_3
->>> COPY vecdet.1        $CurrDir/vecdet.8
+>>> COPY vecdet.1        $CurrDir/naphthalene_008.det
 
 
 &rasscf
@@ -107,9 +107,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_4
->>> COPY vecdet.1        $CurrDir/vecdet.4
+>>> COPY vecdet.1        $CurrDir/naphthalene_004.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_4
->>> COPY vecdet.1        $CurrDir/vecdet.9
+>>> COPY vecdet.1        $CurrDir/naphthalene_009.det
 
 
 &rasscf
@@ -126,6 +126,6 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_5
->>> COPY vecdet.1        $CurrDir/vecdet.5
+>>> COPY vecdet.1        $CurrDir/naphthalene_005.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_5
->>> COPY vecdet.1        $CurrDir/vecdet.10
+>>> COPY vecdet.1        $CurrDir/naphthalene_010.det

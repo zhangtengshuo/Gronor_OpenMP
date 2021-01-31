@@ -2,13 +2,13 @@
 setenv MOLCAS_NPROCS 58
 pymolcas -clean naphthaleneA.input > naphthaleneA.output
 pymolcas -clean naphthaleneD.input > naphthaleneD.output
-commmon_basis < naphthaleneCB.input
+common_basis < naphthaleneCB.input
 touch TRAINT
 setenv MOLCAS_MEM 4096
 setenv MOLCAS_NPROCS 8
 pymolcas -clean naphthaleneM.input > naphthaleneM.output
-rdcho 8
 cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 > _CHMOT1
+rdcho 8
 rdtraint naphthalene
 mpirun -n 36 gronor naphthalene_test
 

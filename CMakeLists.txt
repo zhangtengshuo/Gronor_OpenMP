@@ -162,6 +162,8 @@ if("${AUXILIARY}" STREQUAL "ON")
   message ("-- Found location MolCas: ${molcas_root}")
   include_directories ("${molcas_root}/src/Include")
   message ("-- Added include directory: ${molcas_root}/src/Include")
+  message ("-- Found location GA: $ENV{GA}")
+  message ("-- Found location MKL: $ENV{MKLROOT}")
 
   foreach (BASE_DIR ${basedirs})
     file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")

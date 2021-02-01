@@ -1,0 +1,14 @@
+Molecules 2 1
+  1  2  1  2  3  4  5
+  6  6  7  7  8 10  9
+States 10
+Print 4
+Batch 32
+Threshold 1e-4
+Progress 1
+Size 3
+Test 1
+Timings 1
+MPS 1
+OMP 1
+Labels 1

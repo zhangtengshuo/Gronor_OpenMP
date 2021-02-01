@@ -22,12 +22,12 @@
 
 
       integer, parameter                :: nToc = 64
-      integer, parameter                :: nTraToc = 106,nTraBuf = 9600
-      integer, parameter                :: nTraRec = 27959
-      integer, parameter                :: mxSym = 8, maxBfn = 10000
+      integer, parameter                :: nTraToc = 106
+      integer, parameter                :: mxSym = 1, maxBfn = 10000
       integer, parameter                :: labelSize = 2 * maxBfn * 4
       integer, parameter                :: LblL  = 6           !LenIN  in OpenMolcas
       integer, parameter                :: LblL8 = lblL + 8    !LenIN8 in OpenMolcas
+      integer, parameter                :: nTraBuf = 9600
       integer                           :: luTra, luOne, iAd30, iAd50
       integer                           :: luOne_GronOR,luTwo_GronOR
       integer                           :: iSym, nSym, nOrbtt
@@ -37,14 +37,13 @@
       integer                           :: ii_start,jj_start
       integer                           :: iBuf,nBuf,lastBuf,ilast,nrec
       integer                           :: recordNumber,recordLength
-      integer                           :: lTriangle,nBasMax
+      integer                           :: recNumber2
+      integer                           :: lTriangle
       integer                           :: iRC,iOpt,iComponent,iSymlbl
-      integer                           :: nBasTot,nOrbTot,iAtom,nAtoms
+      integer                           :: iAtom,nAtoms
       integer (kind=2), dimension(4*nTraBuf) :: labels
 
-      integer (kind=2), dimension(4*nTraBuf) :: intlabels
-
-      integer, dimension(mxSym)         :: nBas, nOrb, nDMO,
+      integer                           :: nBas, nOrb, nDMO,
      &                                     nDouble, nActive,nOcc,
      &                                     nFrozen
       integer, allocatable              :: nCntr(:,:)
@@ -52,13 +51,13 @@
       integer, dimension(nToc)          :: iToc
       integer, dimension(nTraToc)       :: iTraToc
       real (kind=8)                     :: potNuc,scal,almostZero,
-     &                                     percentage
+     &                                     percentage,b
       real (kind=8), dimension(nTraBuf) :: traBuf
 
       real (kind=8), dimension(nTraBuf) :: integrals
 
-      real (kind=8), allocatable        :: s(:),sAO(:,:,:)
-      real (kind=8), allocatable        :: vec(:,:,:)
+      real (kind=8), allocatable        :: s(:),sAO(:,:)
+      real (kind=8), allocatable        :: vec(:,:)
       real (kind=8), allocatable        :: kinInt(:)
       real (kind=8), allocatable        :: fock(:)
       real (kind=8), allocatable        :: zero(:)
@@ -71,14 +70,20 @@
       character (len = 19)              :: lAO
       character (len = 80)              :: title1,title2
       character (len = 80)              :: Project,filename
+      character (len = 80), allocatable   :: filename_two_el(:)
       character (len = 132)             :: line,vectit
       character (len = 144)             :: Header
       logical                           :: debug,empty,deep_debug
 
-      integer (kind=8) :: nFil, lastfil, iFil, nFilRec
-      logical :: noLabels
+      integer, parameter   :: nTraRec = 27959
+*      integer, parameter   :: nTraRec = 20
+      integer, allocatable :: nRecs_onFile(:)
+      integer, allocatable :: nInts_onFile(:)
+      integer  :: nFiles,iFile,onlastrecord,nlastrecords,totRecords,
+     &            iRec,nInts,onLastFile,stat
+      logical  :: write_labels
 
-      noLabels=.true.
+      write_labels = .true.
       debug = .false.
       deep_debug = .false.
       call get_command_argument(1,Project) 
@@ -91,45 +96,35 @@
         write(*,*) 'Remove the symmetry elements and come back'
         stop
       end if
-      Call Get_iArray('nBas',nBas,nSym)
-      write(*,'(A,8I4)')'nBas    :',(nBas(iSym),iSym=1,nSym)
-      nBasTot = 0                          ! total number of AO basis functions
-      do iSym = 1, nSym
-        nBasTot = nBasTot + nBas(iSym)
-      end do
-      nBasMAx = maxval(nBas)
-      lTriangle = 0.5 * nBasTot * (nBasTot + 1)
+      call Get_iArray('nBas',nBas,nSym)
+      lTriangle = 0.5 * nBas * (nBas + 1)
       allocate ( s(lTriangle) )
-      allocate ( sAO(nSym,nBasMax,nBasMax) )
+      allocate ( sAO(nBas,nBas) )
       s   = 0.0
       sAO = 0.0
       LuOne = 77
       iRc=-1
       iOpt=0
-      Call OpnOne(iRC,iOpt,'ONEINT',LuOne)
+      call OpnOne(iRC,iOpt,'ONEINT',LuOne)
       if (iRC.ne.0) write(6,*) 'Something went wrong opening ONEINT'
       iRC =  0
       iOpt = 2
       iComponent = 1
       iSymLbl = 1
-      Call RdOne(iRC,iOpt,'Mltpl  0',iComponent,s,iSymLbl)
-      Call ClsOne(iRc,iOpt)
+      call RdOne(iRC,iOpt,'Mltpl  0',iComponent,s,iSymLbl)
+      call ClsOne(iRc,iOpt)
       iCounter = 1
-      do iSym = 1, nSym
-        do j = 1, nBas(iSym)
-          do k = 1, j
-            sAO(iSym,j,k) = s(iCounter)
-            sAO(iSym,k,j) = s(iCounter)
-            iCounter = iCounter + 1
-          end do
+      do j = 1, nBas
+        do k = 1, j
+          sAO(j,k) = s(iCounter)
+          sAO(k,j) = s(iCounter)
+          iCounter = iCounter + 1
         end do
       end do
       if ( deep_debug ) then
         write (*,*) 'AO basis overlap'
-        do iSym = 1, nSym
-          do j = 1, nBas(iSym)
-            write(*,'(20F10.4)')(sAO(iSym,j,k),k = 1, j)
-          end do
+        do j = 1, nBas
+          write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
         end do
       end if
       s = 0.0
@@ -147,24 +142,14 @@
      &                   nFrozen, nDMO, mxSym, basLabel, labelSize)
 
       write(*,*)'Info from TRAONE'
-      write(*,'(A,8I4)')'nBas    :',(nBas   (iSym),iSym=1,nSym)
-      write(*,'(A,8I4)')'nFrozen :',(nFrozen(iSym),iSym=1,nSym)
-      write(*,'(A,8I4)')'nOrb    :',(nOrb   (iSym),iSym=1,nSym)
-      write(*,'(A,8I4)')'nDeleted:',(nDMO   (iSym),iSym=1,nSym)
-      nOrbTot = 0                          ! number of basis functions in the common MO basis
-      nOrbtt = 0                           ! number of elements in the  lower triangle
-      nBasTot = 0                          ! total number of AO basis functions
-      do iSym = 1, nSym
-        nOrbtt = nOrbtt + (nOrb(iSym) * (nOrb(iSym) + 1)) / 2
-        nOrbTot = nOrbTot + nOrb(iSym)
-        nBasTot = nBasTot + nBas(iSym)
-      end do
-      nBasMAx = maxval(nBas)
-      lTriangle = 0.5 * nBasTot * (nBasTot + 1)
-
+      write(*,'(A,I4)')'nBas    :',nBas
+      write(*,'(A,I4)')'nFrozen :',nFrozen
+      write(*,'(A,I4)')'nOrb    :',nOrb            ! number of basis functions in the common MO basis
+      write(*,'(A,I4)')'nDeleted:',nDMO
+      nOrbtt = (nOrb * (nOrb + 1)) / 2             ! number of elements in the  lower triangle
 
 * open the file with the molecular orbitals and calculate sMO (not necessarily a unit matrix with NOCI)
-      allocate( dummy(nBasMax) )
+      allocate( dummy(nBas) )
       open(11, file = 'COMMONORB', status = 'old')
       mark ='#INFO'
  63   read(11,'(A132)') line
@@ -172,39 +157,37 @@
       read(11,'(A132)') vectit
       write(*,*)
       write(*,*) vectit
+      write(*,*)
       rewind(11)
-      allocate ( vec(nSym,nOrbTot,nBasMax) )
+      allocate ( vec(nOrb,nBas) )
       vec = 0.0
       mark = '#ORB'
  64   read(11,'(A132)') line
       if (line(1:4).ne.mark) goto 64
-      do iSym = 1, nSym
-        if (nBas(iSym) .ne. 0) then
-          do j = 1, nFrozen(iSym)                          ! Skip the frozen orbitals, if any
-            read(11,'(A132)') line
-            read(11,'(5E22.14)') (dummy(k),k=1,nBas(iSym))
-          end do
-          do j = 1, nOrb(iSym)                             ! Only read the occupied (inactive + active) orbitals
-            read(11,'(A132)') line
-            read(11,'(5E22.14)') (vec(iSym,j,k),k=1,nBas(iSym))
-          end do
-        end if
-        write(*,202) 'Start overlap MOs for ',nOrb(iSym),' orbitals'
- 202    format(A,I6,A)
-        do j = 1, nOrb(iSym)
-          do k = 1, j
-            iCounter = iCounter + 1
-            do l = 1, nBas(iSym)
-              do m = 1, nBas(iSym)
-                s(iCounter) = s(iCounter) + vec(iSym,j,l) 
-     &                         * vec(iSym,k,m) * sAO(iSym,l,m)
-              end do
+      do j = 1, nFrozen                                ! Skip the frozen orbitals, if any
+        read(11,'(A132)') line
+        read(11,'(5E22.14)') (dummy(k),k=1,nBas)
+      end do
+      do j = 1, nOrb
+        read(11,'(A132)') line
+        read(11,'(5E22.14)') (vec(j,k),k=1,nBas)
+      end do
+      write(*,202) 'Start overlap MOs for ',nOrb,' orbitals'
+ 202  format(A,I6,A)
+      do j = 1, nOrb
+        do k = 1, j
+          iCounter = iCounter + 1
+          do l = 1, nBas
+            do m = 1, nBas
+              s(iCounter) = s(iCounter) + vec(j,l) 
+     &                       * vec(k,m) * sAO(l,m)
             end do
-            if ( debug ) write(*,*) iCounter,s(iCounter)
-            if ( mod(iCounter,int(nOrbtt/10)) .eq. 0 ) then
-              write(*,'(I3,A)') 100*(iCounter)/nOrbtt,'% done'
-            end if
           end do
+          if ( debug ) write(*,*) iCounter,s(iCounter)
+          if ( mod(iCounter,int(nOrbtt/10)) .eq. 0 ) then
+            b = 100.0*(float(iCounter))/float(nOrbtt)
+            write(*,'(I3,A)') nint(b),'% done'
+          end if
         end do
       end do 
       deallocate(dummy)
@@ -241,16 +224,12 @@
       luOne_GronOR = 31
       write(filename,'(2a)')trim(Project),'.one'
       open(luOne_GronOR, file = filename, form = 'unformatted')
-      if(noLabels) then
-        write(luOne_GronOR)
-     &       title1,title2,nOrbtt,potNuc,nOrbTot,nTraBuf,1
+      if ( write_labels ) then
+        write(luOne_GronOR) title1,title2,nOrbtt,potNuc,nOrb,nTraBuf,0
       else
-        write(luOne_GronOR)
-     &       title1,title2,nOrbtt,potNuc,nOrbTot,nTraBuf,0
-      endif
+        write(luOne_GronOR) title1,title2,nOrbtt,potNuc,nOrb,nTraBuf,1
+      end if
       write(luOne_GronOR) (s(i),i=1,nOrbtt)
-*      write(luOne_GronOR) (fock(i),i=1,nOrbtt)
-*      write(luOne_GronOR) (fock(i)-kinInt(i),i=1,nOrbtt)
       write(luOne_GronOR) (zero(i),i=1,nOrbtt)
       write(luOne_GronOR) (fock(i),i=1,nOrbtt)
       write(luOne_GronOR) (/8421,-1,1/)     !no idea what this is
@@ -265,50 +244,73 @@
 
 * calculate number of two-electron integrals, ltuvx
       ltuvx = 0
-      do iSym = 1, nSym
-        nt = (nOrb(isym) * (nOrb(iSym) + 1)) / 2
-        do i = 1, nOrb(iSym)
-          do j = 1, i
-            do k = 1, nt
-              ltuvx = ltuvx + 1
-            end do
-            nt = nt - 1
+      nt = (nOrb * (nOrb + 1)) / 2
+      do i = 1, nOrb
+        do j = 1, i
+          do k = 1, nt
+            ltuvx = ltuvx + 1
           end do
+          nt = nt - 1
         end do
       end do
-      nBuf = int(ltuvx/nTraBuf)
-      lastBuf = ltuvx - nBuf * nTraBuf
-      nFil = int(nBuf/nTraRec)
-      lastFil = nBuf - nFil * nTraRec
-      if(lastFil.gt.0) nFil = nFil + 1
-      write(*,*) 'Number of 2 el. integrals :',ltuvx
-      write(*,*) 'Number of full buffers    :',nBuf
-      write(*,*) 'Length of last buffer     :',lastBuf
-      write(*,*) 'Number of integral files  :',nFil
-      write(*,*) 'Length last integral file :',lastFil
+      nFiles = int( ltuvx / (nTraBuf * nTraRec))                       ! number of completely filled 2-el. files
+      allocate ( nRecs_onFile(nFiles+1) )
+      allocate ( nInts_onFile(nFiles+1) )
+      allocate ( filename_two_el(nFiles+1) )
+      nRecs_onFile(nFiles+1) = 0
+      nInts_onFile(nFiles+1) = 0
+      filename_two_el(nFiles+1) = ' '
+      luTwo_GronOR = 32
+      do iFile = 1, nFiles
+        nRecs_onFile(iFile) = nTraRec 
+        nInts_onFile(iFile) = nTraRec * nTraBuf
+        write(filename_two_el(iFile),'(2a,i3.3,a)')
+     &            trim(Project),'_',iFile,'.two'
+        filename = filename_two_el(iFile)
+        stat = 0
+        open( luTwo_GronOR, iostat=stat, file=filename, status='old' )
+        if (stat .eq. 0) close(luTwo_GronOr, status='delete')          ! delete exisiting two-el files
+      end do
+      onLastFile = ltuvx - nFiles * nTraRec * nTraBuf                  ! number of integrals on the last file
+      if ( onLastFile .gt. 0 ) then
+        nFiles = nFiles + 1 
+        nLastRecords = int(onLastFile/nTraBuf)                         ! number of records on the last file
+        onLastRecord = onLastFile - nLastRecords*nTraBuf               ! integrals on the last record
+        if ( onLastRecord .gt. 0 ) nLastRecords = nLastRecords + 1
+        nRecs_onFile(nFiles) = nLastRecords
+        nInts_onFile(nFiles) = onLastFile  
+        write(filename_two_el(iFile),'(2a,i3.3,a)')
+     &            trim(Project),'_',iFile,'.two'
+        filename = filename_two_el(iFile)
+        open( luTwo_GronOR, iostat=stat, file=filename, status='old' )
+        if (stat .eq. 0) close(luTwo_GronOr, status='delete')
+      end if
+      totRecords = sum(nRecs_onFile)
 * some additional info on the 2-el ints is expected on luOne_GronOR
-      write(luOne_GronOR) ltuvx     !  number of integrals
-      write(luOne_GronOR) nFil      !  number of files with two-el. integrals
-c      if (lastBuf .eq. 0) then
-c        write(luOne_GronOR) nBuf 
-c        write(luOne_GronOR) nBuf * nTraBuf
-c      else
-c        write(luOne_GronOR) nBuf + 1
-c        write(luOne_GronOR) (nBuf + 1) * nTraBuf
-c     end if
-      write(luOne_GronOR) (nTraRec,k=1,nFil-1),lastFil
-      write(luOne_Gronor) (nTraRec*nTraBuf,k=1,nFil-1),
-     &     ltuvx-(nFil-1)*nTraRec*nTraBuf
-      write(*,'(10i10)') (nTraRec,k=1,nFil-1),lastFil
-      write(*,'(10i10)') (nTraRec*nTraBuf,k=1,nFil-1),
-     &     ltuvx-(nFil-1)*nTraRec*nTraBuf
+      write(luOne_GronOR) ltuvx
+      write(luOne_GronOR) nFiles
+      write(luOne_GronOR) (nRecs_onFile(iFile),iFile=1,nFiles)         ! number of records per file
+      write(luOne_Gronor) (nInts_onFile(iFile),iFile=1,nFiles) ! number of integrals per file
       close(luOne_Gronor)
+      write(*,*)' Number of 2 el. integrals          :',ltuvx
+      write(*,*)' Number of integral files           :',nFiles
+      if ( nFiles .gt. 1 ) then
+        write(*,*)' Number of integrals on last file   :',onLastFile
+      end if
+      write(*,*)' Total number of records            :',totRecords
+      if ( nFiles .gt. 1 ) then
+        write(*,*)' Number of records on last file     :',
+     &         nRecs_onFile(nFiles)
+      end if
+      write(*,*)' Number of integrals on last record :',
+     &       onLastFile - (nRecs_onFile(nFiles)-1) * nTraBuf
+      write(*,*)
 
 * set up a small array for generating the labels i, j, k and l label of the 2-el integrals
       allocate( kl(nOrbtt,2) )
       kl = 0
       iCounter = 0
-      do l=1,nOrbtot
+      do l=1,nOrb
         do k = 1, l
           iCounter = iCounter + 1
           kl(iCounter,1) = k
@@ -322,121 +324,73 @@ c     end if
         end do
       end if
 
-* read the two-electron integrals in nBuf batches of nTraBuf length
-      luTwo_GronOR = 32
       inquire( iolength = nrec ) traBuf(1)
-      if(noLabels) then
-        RecordLength = ( ntraBuf + 2 ) * nrec
-      else
+      if ( write_labels ) then
         RecordLength = ( 2 * ntraBuf + 2 ) * nrec
-      endif
+      else
+        RecordLength = ( ntraBuf + 2 ) * nrec
+      end if
       if ( debug ) write(*,*)'nrec and Record length:',nrec,recordLength
-      iFil = 1
-      write(filename,'(2a,i3.3,a)') trim(Project),'_',iFil,'.two'
-      open(luTwo_GronOR, file = filename, form = 'unformatted', 
-     &     access = 'direct', recl = RecordLength)
-      write(*,'(a,a)') ' Opened integral file ',trim(filename)
       iCounter = 0
       ii_start = 1
       jj_start = 1
       ilast = 0
-      almostZero = 1e-6
+      almostZero = 1e-10
       nonZeroInt = 0
       recordNumber = 0
-      nFilRec = 0
-      do iBuf = 1, nBuf
-        recordNumber = recordNumber + 1
-        if (iBuf .eq. nBuf .and. lastBuf .eq. 0) ilast = 1      ! in the very special case that the number of ints is a multiple of nTraBuf
-        call dDAFILE(luTra,2,traBuf,nTraBuf,iad50)
-        do n = 1, nTraBuf
-          if ( abs(traBuf(n)) .lt. almostZero ) nonZeroInt=nonZeroInt+1
-        end do
-        do ii = ii_start, nOrbtt
-          do jj = jj_start, nOrbtt
-            iCounter = iCounter + 1
-            if (iCounter .le. nTraBuf) then
-              i = kl(ii,1)
-              j = kl(ii,2)
-              k = kl(jj,1)
-              l = kl(jj,2)
-              labels((iCounter-1)*4+1) = i
-              labels((iCounter-1)*4+2) = j
-              labels((iCounter-1)*4+3) = k
-              labels((iCounter-1)*4+4) = l
-              traBuf(iCounter) = traBuf(iCounter)*scal(i,j,k,l)
-              if ( deep_debug ) write(*,'(5i4,F8.3,F12.6)')
-     &           iCounter,i,j,k,l,scal(i,j,k,l),traBuf(iCounter)
-              if (( debug ) .and. ( iBuf .eq. 1 ) .and. ( iCounter .le.
+      nInts = nTraBuf
+      do iFile = 1, nFiles
+        recNumber2 = 0
+        filename = filename_two_el(iFile)
+        open(luTwo_GronOR, file = filename, form = 'unformatted', 
+     &                   access = 'direct', recl = RecordLength)
+        do iRec = 1, nRecs_onFile(iFile) 
+          recordNumber = recordNumber + 1
+          recNumber2 = recNumber2 + 1
+          if (recordNumber .eq. totRecords) then
+            ilast = 1 
+            if (onLastRecord .gt. 0) nInts = onLastRecord
+          end if
+          call dDAFILE(luTra,2,traBuf,nInts,iad50)
+          do n = 1, nInts
+            if (abs(traBuf(n)) .lt. almostZero) nonZeroInt=nonZeroInt+1
+          end do
+          do ii = ii_start, nOrbtt
+            do jj = jj_start, nOrbtt
+              iCounter = iCounter + 1
+              if (iCounter .le. nInts) then
+                i = kl(ii,1)
+                j = kl(ii,2)
+                k = kl(jj,1)
+                l = kl(jj,2)
+                labels((iCounter-1)*4+1) = i
+                labels((iCounter-1)*4+2) = j
+                labels((iCounter-1)*4+3) = k
+                labels((iCounter-1)*4+4) = l
+                traBuf(iCounter) = traBuf(iCounter)*scal(i,j,k,l)
+                if ( deep_debug ) write(*,'(5i4,F8.3,F12.6)')
+     &             iCounter,i,j,k,l,scal(i,j,k,l),traBuf(iCounter)
+                if (( debug ) .and. (iRec .eq. 1) .and. (iCounter .le.
      &            10 )) write(*,'(4I4,F18.12)') i,j,k,l,traBuf(iCounter)
-            else    
-              goto 59
-            end if
+              else    
+                goto 59
+              end if
+            end do
+            jj_start = ii + 1
           end do
-          jj_start = ii + 1
+ 59       ii_start = ii
+          jj_start = jj 
+          iCounter = 0
+          if ( write_labels ) then                                 !  Dump the integrals on the 2-el file
+            write(luTwo_GronOR,rec=recNumber2)(traBuf(n),n=1,nInts),
+     &                      (labels(n),n=1,4*nInts),nInts,ilast
+          else
+            write(luTwo_GronOR,rec=recNumber2)(traBuf(n),n=1,nInts),
+     &                      nInts,ilast
+          end if
         end do
- 59     ii_start = ii
-        jj_start = jj 
-        iCounter = 0
-        if(noLabels) then
-          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the 2-el. ints on the GronOR file
-     &         nTraBuf,ilast
-        else
-          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the 2-el. ints on the GronOR file
-     &         (labels(n),n=1,4*nTraBuf),nTraBuf,ilast
-        endif
-        nFilRec = nFilRec + 1
-        if(nFilRec.eq.nTraRec) then
-          close(luTwo_GronOR, status='keep')
-          write(*,'(a,i10)') ' Closed integral file, records:',nFilRec
-          iFil= iFil + 1
-          write(filename,'(2a,i3.3,a)') trim(Project),'_',iFil,'.two'
-          open(luTwo_GronOR, file = filename, form = 'unformatted', 
-     &         access = 'direct', recl = RecordLength)
-          recordNumber = 0
-          write(*,'(a,a)') ' Opened integral file ',trim(filename)
-          nFilRec = 0
-        endif
+        close(luTwo_GronOR)
       end do
-* one last read with the remaining lastBuf integrals
-      if ( lastBuf .gt. 0 ) then
-        traBuf = 0.0
-        labels = 0
-        recordNumber = recordNumber + 1
-        call dDAFILE(luTra,2,traBuf,lastBuf,iad50)
-        do n = 1, lastBuf
-          if ( abs(traBuf(n)) .lt. almostZero ) nonZeroInt=nonZeroInt+1
-        end do
-        do ii = ii_start, nOrbtt
-          do jj = jj_start, nOrbtt
-            iCounter = iCounter + 1
-            if (iCounter .le. lastBuf) then
-              i = kl(ii,1)
-              j = kl(ii,2)
-              k = kl(jj,1)
-              l = kl(jj,2)
-              labels((iCounter-1)*4+1) = i
-              labels((iCounter-1)*4+2) = j
-              labels((iCounter-1)*4+3) = k
-              labels((iCounter-1)*4+4) = l
-              traBuf(iCounter) = traBuf(iCounter)*scal(i,j,k,l)
-              if ( deep_debug ) write(*,'(5i4,F8.3,F20.10)')
-     &           iCounter,i,j,k,l,scal(i,j,k,l),traBuf(iCounter)
-            end if
-          end do
-          jj_start = ii + 1
-        end do
-
-        if(noLabels) then
-          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the last 2-el. ints on the GronOR file
-     &         lastBuf,1
-        else
-          write(luTwo_GronOR,rec=recordNumber) (traBuf(n),n=1,nTraBuf), ! Dump the last 2-el. ints on the GronOR file
-     &         (labels(n),n=1,4*nTraBuf),lastBuf,1
-        endif
-        nFilRec = nFilRec + 1
-      end if
-      close(luTwo_GronOR, status='keep')
-      write(*,'(a,i10)') ' Closed integral file, records:',nFilRec
       write(*,'(A,ES8.1,A,I8)')'Number of integrals smaller than ',
      &                                    almostZero, ' :  ',nonZeroInt
       percentage = 100*(float(nonZeroInt)/float(ltuvx))
@@ -473,12 +427,12 @@ c     end if
       write(15,'(A,I4)') 'number of atoms: ',nAtoms
       allocate( coord(3 * nAtoms) )
       allocate( AtomLbl(nAtoms) )
-      allocate( BasfnLbl(nBasTot) )                              ! see comment 1
+      allocate( BasfnLbl(nBas) )                              ! see comment 1
       allocate( zNuc(nAtoms) )
       allocate( nCntr(nAtoms,7) )
       Call Get_Coord_All(coord,nAtoms)
       Call Get_cArray('Unique Atom Names',AtomLbl,LblL*nAtoms)
-      Call Get_cArray('Unique Basis Name',BasfnLbl,nBasTot*LblL8)
+      Call Get_cArray('Unique Basis Name',BasfnLbl,nBas*LblL8)
       Call Get_dArray('Nuclear charge',zNuc,nAtoms)
       nCntr = 0
       iAtom = 1
@@ -489,7 +443,7 @@ c     end if
       if (BasfnLbl(1)(9:9).eq.'g') nCntr(1,5)=1
       if (BasfnLbl(1)(9:9).eq.'h') nCntr(1,6)=1
       if (BasfnLbl(1)(9:9).eq.'i') nCntr(1,7)=1
-      do j = 2, nBasTot
+      do j = 2, nBas
         if ( BasfnLbl(j)(1:6) .ne. BasfnLbl(j-1)(1:6) ) 
      &                                  iAtom = iAtom + 1   ! next atom
         if (BasfnLbl(j)(9:9).eq.'s') nCntr(iAtom,1)=nCntr(iAtom,1)+1

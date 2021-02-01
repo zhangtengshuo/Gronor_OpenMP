@@ -78,6 +78,7 @@
       startOrb = 0
       startBas = 0
       totalFrozen = 0
+      lDim = 0
       do iFrag = 1, nFragments
         if ( iFrag .le. 9 ) then
           write(runfileName,'(A6,I1)')'RUNFIL',iFrag
@@ -97,6 +98,7 @@
         nBasFragMax = nBasFrag * nVec(iFrag)
 
         commonMOs = 0.0
+        sDiag = 0.0
         call common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,
      &                         oneintName,nBasFrag,nBasFragMax,lDim)
         do j = 1, lDim
@@ -201,13 +203,14 @@
       real (kind=8),intent(out)    :: frzFragOrb (nBas,nBas)
       real (kind=8),intent(out)    :: sDiag      (nBas)
 
-      real (kind=8)  :: sAO        (nBasFrag,nBasFrag)             ! Atomic basis overlap matrix of the fragment
-      real (kind=8)  :: vec        (nBasFrag,nBasFrag)             ! MO coefficients of the different electronic states of the fragment
-      real (kind=8)  :: frzVec     (nFrozen(iFrag),nBasFrag)       ! MO coefficients of the frozen orbitals of the electronic states
-      real (kind=8)  :: froVec_1st (nFrozen(iFrag),nBasFrag)       ! MO coefficients of the frozen orbitals of the first state (NOAV)
-      real (kind=8)  :: frzDensity (nFrozen(iFrag),nFrozen(iFrag)) ! Accumulative density for average frozen orbitals
-      real (kind=8)  :: frzFragAvg (nFrozen(iFrag),nBasFrag)       ! Average frozen fragment orbitals
-      real (kind=8)  :: linDep     (nBasFragMax   ,nBasFrag)       ! linear dependent common MO basis
+      real (kind=8),allocatable  :: frzVec(:,:)       ! MO coefficients of the frozen orbitals of the electronic states
+      real (kind=8),allocatable  :: froVec_1st(:,:)   ! MO coefficients of the frozen orbitals of the first state (NOAV)
+      real (kind=8),allocatable  :: frzDensity(:,:)   ! Accumulative density for average frozen orbitals
+      real (kind=8),allocatable  :: frzFragAvg(:,:)   ! Average frozen fragment orbitals
+      real (kind=8),allocatable  :: linDep(:,:)       ! linear dependent common MO basis
+      real (kind=8),allocatable  :: vec(:,:)          ! MO coefficients of the different electronic states of the fragment
+      real (kind=8),allocatable  :: sAO(:,:)          ! Atomic basis overlap matrix of the fragment
+
 
       real (kind=8),allocatable   :: sMO        (:,:)              ! Overlap matrix of a set of MOs
       real (kind=8),allocatable   :: linDep2    (:,:)              ! linear dependent common MO basis, without the zero vectors
@@ -226,10 +229,15 @@
       character (len=20)              :: base
       character (len=12)              :: oneintName
 
-
+      allocate(     linDep(nBasFragMax   ,nBasFrag)       )
+      allocate(        vec(nBasFrag      ,nBasFrag)       )
+      allocate(        sAO(nBasFrag      ,nBasFrag)       )
+      allocate(     frzVec(nFrozen(iFrag),nBasFrag)       )
+      allocate( froVec_1st(nFrozen(iFrag),nBasFrag)       )
+      allocate( frzDensity(nFrozen(iFrag),nFrozen(iFrag)) )
+      allocate( frzFragAvg(nFrozen(iFrag),nBasFrag)       )
       luOne = 87
       call getAtomicOverlap(oneintName,luOne,nBasFrag,sAO)
-
       fragOrbTot = 0
       linDep     = 0.0
       frzDensity = 0.0
@@ -401,9 +409,11 @@
       deallocate( work       )
       deallocate( eigenValues)
       deallocate( basis      )
+      deallocate( linDep     )
       deallocate( linDep2    )
       deallocate( sU         )
       deallocate( VsU        )
+
 
       end subroutine common_basis
 

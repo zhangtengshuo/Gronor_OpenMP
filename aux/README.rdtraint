@@ -1,1 +1,0 @@
-mpif90 -fpp -i8 -r8 -heap-arrays -O2 -o rdtraint rdtraint.f /home/tps/Software/OpenMolcas/build/lib/libmolcas.a -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64 /home/tps/Software/OpenMolcas/build/lib/libmolcas.a /home/tps/Local/ga/lib/libga.a /home/tps/Local/ga/lib/libarmci.a

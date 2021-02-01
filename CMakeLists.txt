@@ -1,7 +1,7 @@
 
 # Global CMakeLists.txt for building GronOR using cmake
 
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.11.00)
 
 # Enforce out-of-source builds only
 
@@ -12,9 +12,9 @@ get_filename_component (sourcedir "${CMAKE_SOURCE_DIR}" REALPATH)
 get_filename_component (binarydir "${CMAKE_BINARY_DIR}" REALPATH)
 
 if ("${sourcedir}" STREQUAL "${binarydir}")
-        message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
-                "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
-                "separate build directory and run cmake from there.")
+  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
+    "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
+    "separate build directory and run cmake from there.")
 endif ()
 
 # Set global session identifier
@@ -37,9 +37,9 @@ message ("-- Found git: ${GIT}")
 # The build type, specifies the different optimization types.
 
 if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
-   set (CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Type of build, options are: None (CFLAGS/FFLAGS can be used), Debug, Garble, RelWithDebInfo, Release, Fast."
-      FORCE)
+  set (CMAKE_BUILD_TYPE "Release" CACHE STRING
+    "Type of build, options are: None (CFLAGS/FFLAGS can be used), Debug, Garble, RelWithDebInfo, Release, Fast."
+    FORCE)
 endif ()
 
 message ("-- Build type: ${CMAKE_BUILD_TYPE}")
@@ -49,8 +49,8 @@ set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithD
 # The place where GronOR is installed with make install.
 
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
-        set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
-                "Location where GronOR will be installed.")
+  set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
+    "Location where GronOR will be installed.")
 endif ()
 
 message("-- Install prefix: ${CMAKE_INSTALL_PREFIX}")
@@ -59,21 +59,23 @@ option (DEBUGPRINT "Enable excessive print statements for debugging." OFF)
 option (DEBUGTRACE "Enable tracing print statements for debugging." OFF)
 
 set (DEBUG_DEFS_DESC "Additional debugging definitions.")
+
 if (DEFINED DEBUG_DEFS)
-        separate_arguments(DEBUG_DEFS)
-        set (DEBUG_DEFS "${DEBUG_DEFS}" CACHE STRING "${DEBUG_DEFS_DESC}" FORCE)
+  separate_arguments(DEBUG_DEFS)
+  set (DEBUG_DEFS "${DEBUG_DEFS}" CACHE STRING "${DEBUG_DEFS_DESC}" FORCE)
 else ()
-        set (DEBUG_DEFS "" CACHE STRING "${DEBUG_DEFS_DESC}")
+  set (DEBUG_DEFS "" CACHE STRING "${DEBUG_DEFS_DESC}")
 endif ()
 
 option (BUILD_SHARED_LIBS "Build dynamically-linked GronOR library." OFF)
 option (BUILD_STATIC_LIB "Build statically-linked GronOR library too." OFF)
-if (BUILD_SHARED_LIBS)
-        mark_as_advanced (CLEAR BUILD_STATIC_LIB)
+
+if (DEFINED BUILD_SHARED_LIBS)
+  mark_as_advanced (CLEAR BUILD_STATIC_LIB)
 else ()
-        mark_as_advanced (FORCE BUILD_STATIC_LIB)
-      endif ()
-      
+  mark_as_advanced (FORCE BUILD_STATIC_LIB)
+endif ()
+
 option (MPI "Enable MPI parallellization." ON)
 option (OPENACC "Enable OPENACC off-loading." OFF)
 option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
@@ -121,11 +123,10 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
 set (GRONOR_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${GRONOR_DIR})
-        set (basedirs ${PROJECT_SOURCE_DIR})
+  set (basedirs ${PROJECT_SOURCE_DIR})
 endif ()
 
 list (APPEND basedirs ${GRONOR_DIR})
-
 
 foreach (BASE_DIR ${basedirs})
   file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/src*")
@@ -135,7 +136,43 @@ foreach (BASE_DIR ${basedirs})
   list (SORT test_roots_tmp)
   list (APPEND test_roots ${test_roots_tmp})
 endforeach ()
-      
+
+# message("Basedirs ${basedirs}")
+
+# MolCas settings
+
+set(AUXILIARY "ON")
+
+if("ENV{MOLCAS}" STREQUAL "")
+  set(AUXILIARY "")
+endif()
+
+if("ENV{MKLROOT}" STREQUAL "")
+  set(AUXILIARY "")
+endif()
+
+if("ENV{GA}" STREQUAL "")
+  set(AUXILIARY "")
+endif()
+
+
+if("${AUXILIARY}" STREQUAL "ON")
+  message ("Configuring Molcas dependencies")
+  string(REPLACE "/build" "" molcas_root $ENV{MOLCAS})
+  message ("-- Found location MolCas: ${molcas_root}")
+  include_directories ("${molcas_root}/src/Include")
+  message ("-- Added include directory: ${molcas_root}/src/Include")
+  message ("-- Found location GA: $ENV{GA}")
+  message ("-- Found location MKL: $ENV{MKLROOT}")
+
+  foreach (BASE_DIR ${basedirs})
+    file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")
+    list (SORT source_roots_tmp)
+    list (APPEND source_roots ${source_roots_tmp})
+  endforeach ()
+
+endif()
+
 list (REVERSE basedirs)
 
 #message ("basedirs is ${basedirs}")
@@ -153,10 +190,11 @@ set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/include)
 configure_file (${GRONOR_DIR}/include/gronor_version.h.in ${MAIN_INCLUDE_DIR}/gronor_version.h)
 
 foreach (BASE_DIR ${basedirs})
-        if (EXISTS "${BASE_DIR}/src/include")
-                include_directories (${BASE_DIR}/src/include)
-        endif ()
+  if (EXISTS "${BASE_DIR}/src/include")
+    include_directories (${BASE_DIR}/src/include)
+  endif ()
 endforeach ()
+
 include_directories (${MAIN_INCLUDE_DIR})
 
 #message ("main include dir is ${MAIN_INCLUDE_DIR}")
@@ -164,40 +202,40 @@ include_directories (${MAIN_INCLUDE_DIR})
 # set function to find source directories
 
 function (find_source name)
-        foreach (src ${source_roots})
-                if (EXISTS ${PROJECT_SOURCE_DIR}/${src}/${name})
-                        file (GLOB tmplist RELATIVE ${PROJECT_SOURCE_DIR}/${src}/${name} ${PROJECT_SOURCE_DIR}/${src}/${name}/*)
-                        # ignore possible leftover files from previous configure+make
-                        list (REMOVE_ITEM tmplist Makefile 00dependencies 00sources)
-                        if (tmplist)
-                                set (found "${src}/${name}")
-                                break ()
-                        endif ()
-                endif ()
-        endforeach ()
-        # do not overwrite existing definitions
-        if (DEFINED ${name}_src)
-                set (${name}_src "${${name}_src}" PARENT_SCOPE)
-        else ()
-                if (DEFINED found)
-                        set (${name}_src "${found}" PARENT_SCOPE)
-                #else ()
-                #        message (WARNING "${name} not found, expect trouble")
-                endif ()
-        endif ()
+  foreach (src ${source_roots})
+    if (EXISTS ${PROJECT_SOURCE_DIR}/${src}/${name})
+      file (GLOB tmplist RELATIVE ${PROJECT_SOURCE_DIR}/${src}/${name} ${PROJECT_SOURCE_DIR}/${src}/${name}/*)
+      # ignore possible leftover files from previous configure+make
+      list (REMOVE_ITEM tmplist Makefile 00dependencies 00sources)
+      if (tmplist)
+        set (found "${src}/${name}")
+        break ()
+      endif ()
+    endif ()
+  endforeach ()
+  # do not overwrite existing definitions
+  if (DEFINED ${name}_src)
+    set (${name}_src "${${name}_src}" PARENT_SCOPE)
+  else ()
+    if (DEFINED found)
+      set (${name}_src "${found}" PARENT_SCOPE)
+      #else ()
+      #        message (WARNING "${name} not found, expect trouble")
+    endif ()
+  endif ()
 endfunction ()
 
 # set function to insert list
 
 function (insert_before _list _item _new)
-        list (GET ${_item} 0 _first)
-        list (FIND ${_list} ${_first} _index)
-        if (_index GREATER -1)
-                list (INSERT ${_list} ${_index} ${_new})
-        else ()
-                list (APPEND ${_list} ${_new})
-        endif ()
-        set (${_list} ${${_list}} PARENT_SCOPE)
+  list (GET ${_item} 0 _first)
+  list (FIND ${_list} ${_first} _index)
+  if (_index GREATER -1)
+    list (INSERT ${_list} ${_index} ${_new})
+  else ()
+    list (APPEND ${_list} ${_new})
+  endif ()
+  set (${_list} ${${_list}} PARENT_SCOPE)
 endfunction ()
 
 # Detect system information
@@ -213,10 +251,10 @@ message ("-- OS: ${OS}")
 # Address mode
 
 if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-        set (ADDRMODE 64)
-        add_definitions (-D_I8_)
+  set (ADDRMODE 64)
+  add_definitions (-D_I8_)
 else ()
-        set (ADDRMODE 32)
+  set (ADDRMODE 32)
 endif ()
 
 message ("-- ADDRMODE: ${ADDRMODE}")
@@ -224,35 +262,35 @@ message ("-- ADDRMODE: ${ADDRMODE}")
 # Platform settings
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        add_definitions (-D_LINUX_)
-        if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86") OR
-            (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686"))
-                set (PLATFORM "LINUX")
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-                set (PLATFORM "LINUX64")
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64")
-                set (PLATFORM "LINUX64_IA")
-        elseif ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc_64") OR
-                (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc64le"))
-                set (PLATFORM "PPC64")
-        endif ()
+  add_definitions (-D_LINUX_)
+  if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86") OR
+      (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686"))
+    set (PLATFORM "LINUX")
+  elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set (PLATFORM "LINUX64")
+  elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64")
+    set (PLATFORM "LINUX64_IA")
+  elseif ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc_64") OR
+      (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc64le"))
+    set (PLATFORM "PPC64")
+  endif ()
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-        add_definitions (-D_LINUX_ -D_DARWIN_)
-        set (CMAKE_MACOSX_RPATH 0)
-        set (PLATFORM "MacOS")
+  add_definitions (-D_LINUX_ -D_DARWIN_)
+  set (CMAKE_MACOSX_RPATH 0)
+  set (PLATFORM "MacOS")
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "CYGWIN")
-        add_definitions (-D_LINUX_ -D_CYGWIN_)
-        if (ADDRMODE EQUAL 32)
-                set (PLATFORM "WIN")
-        elseif (ADDRMODE EQUAL 64)
-                set (PLATFORM "WIN64")
-        endif ()
+  add_definitions (-D_LINUX_ -D_CYGWIN_)
+  if (ADDRMODE EQUAL 32)
+    set (PLATFORM "WIN")
+  elseif (ADDRMODE EQUAL 64)
+    set (PLATFORM "WIN64")
+  endif ()
 endif ()
 
 if (NOT PLATFORM)
-        message (FATAL_ERROR "unsupported platform")
+  message (FATAL_ERROR "unsupported platform")
 else ()
-        message ("-- PLATFORM: ${PLATFORM}")
+  message ("-- PLATFORM: ${PLATFORM}")
 endif ()
 
 # GNU Compiler Collection (GCC)
@@ -296,20 +334,20 @@ set (FFLAGS_GNU_FAST "-O3")
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND
     CMAKE_Fortran_COMPILER_ID STREQUAL "GNU" AND
     (NOT CMAKE_C_COMPILER_VERSION VERSION_LESS "4.8"))
-        set (FFLAGS_GNU_BASIC "${FFLAGS_GNU_BASIC} -fno-aggressive-loop-optimizations")
-        set (FFLAGS_GNU_BOUNDS "-fsanitize=address -fno-omit-frame-pointer")
+  set (FFLAGS_GNU_BASIC "${FFLAGS_GNU_BASIC} -fno-aggressive-loop-optimizations")
+  set (FFLAGS_GNU_BOUNDS "-fsanitize=address -fno-omit-frame-pointer")
 endif ()
 
 # Add runtime checks
 # (No boundary checks because of the Work arrays)
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-        if (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "6")
-                set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=array-temps,do,mem,pointer,recursion")
-        else ()
-                set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=all,no-bounds")
-        endif ()
-      endif ()
-      
+  if (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "6")
+    set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=array-temps,do,mem,pointer,recursion")
+  else ()
+    set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=all,no-bounds")
+  endif ()
+endif ()
+
 # LLVM C frontend (Clang)
 
 # defines __clang__
@@ -374,15 +412,15 @@ set (FFLAGS_Intel_FAST "-fast")
 # Intel versions prior to 15 used -openmp
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-        set (CXXFLAGS_Intel_OPENMP "-openmp")
+  set (CXXFLAGS_Intel_OPENMP "-openmp")
 endif ()
 if (CMAKE_C_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_C_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-        set (CFLAGS_Intel_OPENMP "-openmp")
+  set (CFLAGS_Intel_OPENMP "-openmp")
 endif ()
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-        set (FFLAGS_Intel_OPENMP "-openmp")
+  set (FFLAGS_Intel_OPENMP "-openmp")
 endif ()
 
 # Portland Group (PGI) Compilers
@@ -415,11 +453,11 @@ set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
 set (FFLAGS_PGI_OPENMP "-mp")
 set (FFLAGS_PGI_ILP64 "-i8")
 if("$ENV{HOST}" MATCHES "daint")
-set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60")
-message ("-- Custom OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60")
+  message ("-- Custom OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
 else()
-set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
-message ("-- Generic OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc")
+  message ("-- Generic OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
 endif()
 set (FFLAGS_PGI_CUSOLVER "-DCUSOLVER -lcusolver")
 set (FFLAGS_PGI_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
@@ -510,160 +548,166 @@ set (FFLAGS_Cray_FAST "-fast -fastsse")
 
 # C compiler
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
-        if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")
-                set (CCID ${CMAKE_C_COMPILER_ID})
-        endif ()
+  if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")
+    set (CCID ${CMAKE_C_COMPILER_ID})
+  endif ()
 endforeach ()
 
 if (NOT CCID)
-        message (FATAL_ERROR "unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
+  message (FATAL_ERROR "unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
 endif ()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_CXX_FLAGS_USER)
-        set (CMAKE_CXX_FLAGS_DEFAULT "$ENV{CXXFLAGS} ${CXXFLAGS_${CXXCID}_BASIC}"
-                CACHE STRING "C++ compiler flags." FORCE)
-        set (CMAKE_CXX_FLAGS_DEBUG ${CXXFLAGS_${CXXCID}_DEBUG}
-                CACHE STRING "C++ compiler flags used for debug builds." FORCE)
-        set (CMAKE_CXX_FLAGS_GARBLE ${CXXFLAGS_${CXXCID}_GARBLE}
-                CACHE STRING "C++ compiler flags used for garble builds." FORCE)
-        set (CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CXXFLAGS_${CXXCID}_RELWITHDEBINFO}
-                CACHE STRING "C++ compiler flags used for release builds with debug info." FORCE)
-        set (CMAKE_CXX_FLAGS_RELEASE ${CXXFLAGS_${CXXCID}_RELEASE}
-                CACHE STRING "C++ compiler flags used for release builds." FORCE)
-        set (CMAKE_CXX_FLAGS_FAST ${CXXFLAGS_${CXXCID}_FAST}
-                CACHE STRING "C++ compiler flags used for fast release builds." FORCE)
-        set (CMAKE_CXX_FLAGS_USER "TRUE"
-                CACHE INTERNAL "set to FALSE to reset to default C++ flags" FORCE)
+  set (CMAKE_CXX_FLAGS_DEFAULT "$ENV{CXXFLAGS} ${CXXFLAGS_${CXXCID}_BASIC}"
+    CACHE STRING "C++ compiler flags." FORCE)
+  set (CMAKE_CXX_FLAGS_DEBUG ${CXXFLAGS_${CXXCID}_DEBUG}
+    CACHE STRING "C++ compiler flags used for debug builds." FORCE)
+  set (CMAKE_CXX_FLAGS_GARBLE ${CXXFLAGS_${CXXCID}_GARBLE}
+    CACHE STRING "C++ compiler flags used for garble builds." FORCE)
+  set (CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CXXFLAGS_${CXXCID}_RELWITHDEBINFO}
+    CACHE STRING "C++ compiler flags used for release builds with debug info." FORCE)
+  set (CMAKE_CXX_FLAGS_RELEASE ${CXXFLAGS_${CXXCID}_RELEASE}
+    CACHE STRING "C++ compiler flags used for release builds." FORCE)
+  set (CMAKE_CXX_FLAGS_FAST ${CXXFLAGS_${CXXCID}_FAST}
+    CACHE STRING "C++ compiler flags used for fast release builds." FORCE)
+  set (CMAKE_CXX_FLAGS_USER "TRUE"
+    CACHE INTERNAL "set to FALSE to reset to default C++ flags" FORCE)
 endif ()
 if (EXPERT)
-        mark_as_advanced(CLEAR
-                CMAKE_CXX_FLAGS_DEFAULT
-                CMAKE_CXX_FLAGS_DEBUG
-                CMAKE_CXX_FLAGS_GARBLE
-                CMAKE_CXX_FLAGS_RELWITHDEBINFO
-                CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_FAST
-                )
+  mark_as_advanced(CLEAR
+    CMAKE_CXX_FLAGS_DEFAULT
+    CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_GARBLE
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS_RELEASE
+    CMAKE_CXX_FLAGS_FAST
+    )
 else ()
-        mark_as_advanced(FORCE
-                CMAKE_CXX_FLAGS_DEFAULT
-                CMAKE_CXX_FLAGS_DEBUG
-                CMAKE_CXX_FLAGS_GARBLE
-                CMAKE_CXX_FLAGS_RELWITHDEBINFO
-                CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_FAST
-                )
+  mark_as_advanced(FORCE
+    CMAKE_CXX_FLAGS_DEFAULT
+    CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_GARBLE
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS_RELEASE
+    CMAKE_CXX_FLAGS_FAST
+    )
 endif ()
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEFAULT}")
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_C_FLAGS_USER)
-        set (CMAKE_C_FLAGS_DEFAULT "$ENV{CFLAGS} ${CFLAGS_${CCID}_BASIC}"
-                CACHE STRING "C compiler flags." FORCE)
-        set (CMAKE_C_FLAGS_DEBUG ${CFLAGS_${CCID}_DEBUG}
-                CACHE STRING "C compiler flags used for debug builds." FORCE)
-        set (CMAKE_C_FLAGS_GARBLE ${CFLAGS_${CCID}_GARBLE}
-                CACHE STRING "C compiler flags used for garble builds." FORCE)
-        set (CMAKE_C_FLAGS_RELWITHDEBINFO ${CFLAGS_${CCID}_RELWITHDEBINFO}
-                CACHE STRING "C compiler flags used for release builds with debug info." FORCE)
-        set (CMAKE_C_FLAGS_RELEASE ${CFLAGS_${CCID}_RELEASE}
-                CACHE STRING "C compiler flags used for release builds." FORCE)
-        set (CMAKE_C_FLAGS_FAST ${CFLAGS_${CCID}_FAST}
-                CACHE STRING "C compiler flags used for fast release builds." FORCE)
-        set (CMAKE_C_FLAGS_USER "TRUE"
-                CACHE INTERNAL "set to FALSE to reset to default C flags" FORCE)
+  set (CMAKE_C_FLAGS_DEFAULT "$ENV{CFLAGS} ${CFLAGS_${CCID}_BASIC}"
+    CACHE STRING "C compiler flags." FORCE)
+  set (CMAKE_C_FLAGS_DEBUG ${CFLAGS_${CCID}_DEBUG}
+    CACHE STRING "C compiler flags used for debug builds." FORCE)
+  set (CMAKE_C_FLAGS_GARBLE ${CFLAGS_${CCID}_GARBLE}
+    CACHE STRING "C compiler flags used for garble builds." FORCE)
+  set (CMAKE_C_FLAGS_RELWITHDEBINFO ${CFLAGS_${CCID}_RELWITHDEBINFO}
+    CACHE STRING "C compiler flags used for release builds with debug info." FORCE)
+  set (CMAKE_C_FLAGS_RELEASE ${CFLAGS_${CCID}_RELEASE}
+    CACHE STRING "C compiler flags used for release builds." FORCE)
+  set (CMAKE_C_FLAGS_FAST ${CFLAGS_${CCID}_FAST}
+    CACHE STRING "C compiler flags used for fast release builds." FORCE)
+  set (CMAKE_C_FLAGS_USER "TRUE"
+    CACHE INTERNAL "set to FALSE to reset to default C flags" FORCE)
 endif ()
 if (EXPERT)
-        mark_as_advanced(CLEAR
-                CMAKE_C_FLAGS_DEFAULT
-                CMAKE_C_FLAGS_DEBUG
-                CMAKE_C_FLAGS_GARBLE
-                CMAKE_C_FLAGS_RELWITHDEBINFO
-                CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_FAST
-                )
+  mark_as_advanced(CLEAR
+    CMAKE_C_FLAGS_DEFAULT
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_GARBLE
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_C_FLAGS_RELEASE
+    CMAKE_C_FLAGS_FAST
+    )
 else ()
-        mark_as_advanced(FORCE
-                CMAKE_C_FLAGS_DEFAULT
-                CMAKE_C_FLAGS_DEBUG
-                CMAKE_C_FLAGS_GARBLE
-                CMAKE_C_FLAGS_RELWITHDEBINFO
-                CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_FAST
-                )
+  mark_as_advanced(FORCE
+    CMAKE_C_FLAGS_DEFAULT
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_GARBLE
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_C_FLAGS_RELEASE
+    CMAKE_C_FLAGS_FAST
+    )
 endif ()
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEFAULT}")
 
 # Fortran compiler
 foreach (Fortran_COMPILER ${SUPPORTED_Fortran_COMPILERS})
-        if (Fortran_COMPILER STREQUAL "${CMAKE_Fortran_COMPILER_ID}")
-          set (FCID ${CMAKE_Fortran_COMPILER_ID})
-#	  message ("-- Fortran compiler ID is ${FCID}")
-        endif ()
+  if (Fortran_COMPILER STREQUAL "${CMAKE_Fortran_COMPILER_ID}")
+    set (FCID ${CMAKE_Fortran_COMPILER_ID})
+    #	  message ("-- Fortran compiler ID is ${FCID}")
+  endif ()
 endforeach ()
 
 if (NOT FCID)
-        message (FATAL_ERROR "unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
+  message (FATAL_ERROR "unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
 endif ()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_Fortran_FLAGS_USER)
-        set (CMAKE_Fortran_FLAGS_DEFAULT "$ENV{FFLAGS} ${FFLAGS_${FCID}_BASIC}"
-                CACHE STRING "Fortran compiler flags." FORCE)
-        set (CMAKE_Fortran_FLAGS_DEBUG ${FFLAGS_${FCID}_DEBUG}
-                CACHE STRING "Fortran compiler flags used for debug builds." FORCE)
-        set (CMAKE_Fortran_FLAGS_GARBLE ${FFLAGS_${FCID}_GARBLE}
-                CACHE STRING "Fortran compiler flags used for garble builds." FORCE)
-        set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO ${FFLAGS_${FCID}_RELWITHDEBINFO}
-                CACHE STRING "Fortran compiler flags used for release builds with debug info." FORCE)
-        set (CMAKE_Fortran_FLAGS_RELEASE ${FFLAGS_${FCID}_RELEASE}
-                CACHE STRING "Fortran compiler flags used for release builds." FORCE)
-        set (CMAKE_Fortran_FLAGS_FAST ${FFLAGS_${FCID}_FAST}
-                CACHE STRING "Fortran compiler flags used for fast release builds." FORCE)
-        set (CMAKE_Fortran_FLAGS_USER "TRUE"
-                CACHE INTERNAL "set to FALSE to reset to default Fortran flags" FORCE)
+  set (CMAKE_Fortran_FLAGS_DEFAULT "$ENV{FFLAGS} ${FFLAGS_${FCID}_BASIC}"
+    CACHE STRING "Fortran compiler flags." FORCE)
+  set (CMAKE_Fortran_FLAGS_DEBUG ${FFLAGS_${FCID}_DEBUG}
+    CACHE STRING "Fortran compiler flags used for debug builds." FORCE)
+  set (CMAKE_Fortran_FLAGS_GARBLE ${FFLAGS_${FCID}_GARBLE}
+    CACHE STRING "Fortran compiler flags used for garble builds." FORCE)
+  set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO ${FFLAGS_${FCID}_RELWITHDEBINFO}
+    CACHE STRING "Fortran compiler flags used for release builds with debug info." FORCE)
+  set (CMAKE_Fortran_FLAGS_RELEASE ${FFLAGS_${FCID}_RELEASE}
+    CACHE STRING "Fortran compiler flags used for release builds." FORCE)
+  set (CMAKE_Fortran_FLAGS_FAST ${FFLAGS_${FCID}_FAST}
+    CACHE STRING "Fortran compiler flags used for fast release builds." FORCE)
+  set (CMAKE_Fortran_FLAGS_USER "TRUE"
+    CACHE INTERNAL "set to FALSE to reset to default Fortran flags" FORCE)
 endif ()
 if (EXPERT)
-        mark_as_advanced(CLEAR
-                CMAKE_Fortran_FLAGS_DEFAULT
-                CMAKE_Fortran_FLAGS_DEBUG
-                CMAKE_Fortran_FLAGS_GARBLE
-                CMAKE_Fortran_FLAGS_RELWITHDEBINFO
-                CMAKE_Fortran_FLAGS_RELEASE
-                CMAKE_Fortran_FLAGS_FAST
-                )
+  mark_as_advanced(CLEAR
+    CMAKE_Fortran_FLAGS_DEFAULT
+    CMAKE_Fortran_FLAGS_DEBUG
+    CMAKE_Fortran_FLAGS_GARBLE
+    CMAKE_Fortran_FLAGS_RELWITHDEBINFO
+    CMAKE_Fortran_FLAGS_RELEASE
+    CMAKE_Fortran_FLAGS_FAST
+    )
 else ()
-        mark_as_advanced(FORCE
-                CMAKE_Fortran_FLAGS_DEFAULT
-                CMAKE_Fortran_FLAGS_DEBUG
-                CMAKE_Fortran_FLAGS_GARBLE
-                CMAKE_Fortran_FLAGS_RELWITHDEBINFO
-                CMAKE_Fortran_FLAGS_RELEASE
-                CMAKE_Fortran_FLAGS_FAST
-                )
+  mark_as_advanced(FORCE
+    CMAKE_Fortran_FLAGS_DEFAULT
+    CMAKE_Fortran_FLAGS_DEBUG
+    CMAKE_Fortran_FLAGS_GARBLE
+    CMAKE_Fortran_FLAGS_RELWITHDEBINFO
+    CMAKE_Fortran_FLAGS_RELEASE
+    CMAKE_Fortran_FLAGS_FAST
+    )
 endif ()
 set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEFAULT}")
 
+if("${AUXILIARY}" STREQUAL "ON")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
+endif()
+
 if (NOT CMAKE_GENERATOR STREQUAL "Ninja")
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_PREPROCESS}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_PREPROCESS}")
 endif ()
 
 if (ADDRMODE EQUAL 64)
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ILP64}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ILP64}")
 endif ()
 
 if (OPENMP)
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_OPENMP}")
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_OPENMP}")
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_OPENMP}")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_OPENMP}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
 endif ()
 
 if (BOUNDS)
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_BOUNDS}")
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_BOUNDS}")
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_BOUNDS}")
-        add_definitions (-D_MALLOC_INTERCEPT_)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_BOUNDS}")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_BOUNDS}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_BOUNDS}")
+  add_definitions (-D_MALLOC_INTERCEPT_)
 endif ()
 
 if(OPENACC)
@@ -696,40 +740,40 @@ if(CUSOLVERJ)
   set (ENV{CUSOLVERJ} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVERJ}")
 endif()
-      
+
 if(SINGLEP)
   set (ENV{SINGLEP} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DSINGLEP")
 endif()
-      
+
 if(MKL)
   set (ENV{MKL} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_MKL}")
 endif()
-      
+
 if(${PLATFORM} STREQUAL "PPC64")
-   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-   message("-- Added LINUX compile flag")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+  message("-- Added LINUX compile flag")
 endif()
 if(${PLATFORM} STREQUAL "LINUX64")
-   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-   message("-- Added LINUX compile flag")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+  message("-- Added LINUX compile flag")
 endif()
 if(${PLATFORM} STREQUAL "LINUX")
-   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-   message("-- Added LINUX compile flag")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+  message("-- Added LINUX compile flag")
 endif()
 
 # Allow user-specified modifications
 
 if (EXTRA_CXXFLAGS)
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CXXFLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CXXFLAGS}")
 endif ()
 if (EXTRA_CFLAGS)
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 endif ()
 if (EXTRA_FFLAGS)
-        set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${EXTRA_FFLAGS}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${EXTRA_FFLAGS}")
 endif ()
 
 # Process options                                                              #
@@ -737,7 +781,7 @@ endif ()
 # Install directory
 
 if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
-        set (CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_PREFIX}")
+  set (CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_PREFIX}")
 endif ()
 get_filename_component (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 
@@ -746,52 +790,54 @@ get_filename_component (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 # Special print statements
 
 if (DEBUGPRINT)
-        add_definitions (-D_DEBUG_)
+  add_definitions (-D_DEBUG_)
 endif ()
 if (DEBUGTRACE)
-        add_definitions (-D_DEBUG_TRACE_)
+  add_definitions (-D_DEBUG_TRACE_)
 endif ()
 
 # Parallel settings
 
 if (MPI)
-        message ("Configuring with MPI parallellization:")
+  message ("Configuring with MPI parallellization:")
 
-        find_package (MPI REQUIRED)
+  find_package (MPI REQUIRED)
 
-        add_definitions (-D_GRONOR_MPP_)
+  add_definitions (-D_GRONOR_MPP_)
 
-        include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
+  include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
 
-        link_directories(${MPI_Fortran_LIBRARIES})
+  link_directories(${MPI_Fortran_LIBRARIES})
 
-        message ("-- MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
-        message ("-- MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
-        message ("-- MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
-        message ("-- MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
-        message ("-- MPIEXEC: ${MPIEXEC}")
+  message ("-- MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
+  message ("-- MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
+  message ("-- MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
+  message ("-- MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
+  message ("-- MPIEXEC: ${MPIEXEC}")
 
-        execute_process (
-                COMMAND ${MPIEXEC} "--version"
-                OUTPUT_VARIABLE MPIEXEC_VERSION
-                ERROR_VARIABLE MPIEXEC_VERSION
-                )
-        if (MPIEXEC_VERSION MATCHES "OpenRTE")
-                set (MPI_IMPLEMENTATION "openmpi")
-        elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
-                set (MPI_IMPLEMENTATION "impi")
-        elseif (MPIEXEC_VERSION MATCHES "HYDRA")
-                set (MPI_IMPLEMENTATION "mpich")
-        elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
-                set (MPI_IMPLEMENTATION "openmpi")
-        elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
-                set (MPI_IMPLEMENTATION "openmpi")
-        else ()
-                message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
-        endif ()
-        message ("-- MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
+  execute_process (
+    COMMAND ${MPIEXEC} "--version"
+    OUTPUT_VARIABLE MPIEXEC_VERSION
+    ERROR_VARIABLE MPIEXEC_VERSION
+    )
+  if (MPIEXEC_VERSION MATCHES "OpenRTE")
+    set (MPI_IMPLEMENTATION "openmpi")
+  elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
+    set (MPI_IMPLEMENTATION "impi")
+  elseif (MPIEXEC_VERSION MATCHES "HYDRA")
+    set (MPI_IMPLEMENTATION "mpich")
+  elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
+    set (MPI_IMPLEMENTATION "openmpi")
+  elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
+    set (MPI_IMPLEMENTATION "openmpi")
+  elseif (MPIEXEC_VERSION MATCHES "slurm 20.02.6-1.20201123git821b81e9af.el8")
+    set (MPI_IMPLEMENTATION "openmpi")
+  else ()
+    message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
+  endif ()
+  message ("-- MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
 
-        list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
+  list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
 endif ()
 
 # BLAS/LAPACK settings
@@ -807,118 +853,118 @@ message ("Configuring linear algebra libraries:")
 
 set (MKLROOT "" CACHE PATH "MKL root directory.")
 if (MKL)
-        message ("-- Using Intel Math Kernel Library (MKL)")
+  message ("-- Using Intel Math Kernel Library (MKL)")
 
-        # quick bypass for 32bit, don't bother with it (for now?)
-        if (NOT ADDRMODE EQUAL 64)
-                message (FATAL_ERROR "Use of MKL for 32bit installation not implemented")
-        endif ()
+  # quick bypass for 32bit, don't bother with it (for now?)
+  if (NOT ADDRMODE EQUAL 64)
+    message (FATAL_ERROR "Use of MKL for 32bit installation not implemented")
+  endif ()
 
-        mark_as_advanced (CLEAR MKLROOT)
-        if (MKLROOT STREQUAL "")
-                set (MKLROOT $ENV{MKLROOT} CACHE PATH "MKL root directory." FORCE)
-                if (NOT MKLROOT)
-                        message (FATAL_ERROR
-                                "You must set environment variable MKLROOT, "
-                                "or specify -DMKLROOT=/path/to/mkl_root_dir "
-                                "when running cmake."
-                                )
-                endif ()
-        endif ()
-        # at this point, MKLROOT should be defined and not empty
-        message ("-- MKLROOT = ${MKLROOT}")
+  mark_as_advanced (CLEAR MKLROOT)
+  if (MKLROOT STREQUAL "")
+    set (MKLROOT $ENV{MKLROOT} CACHE PATH "MKL root directory." FORCE)
+    if (NOT MKLROOT)
+      message (FATAL_ERROR
+        "You must set environment variable MKLROOT, "
+        "or specify -DMKLROOT=/path/to/mkl_root_dir "
+        "when running cmake."
+        )
+    endif ()
+  endif ()
+  # at this point, MKLROOT should be defined and not empty
+  message ("-- MKLROOT = ${MKLROOT}")
 
-        # here we check if MKLROOT has changed after it was last used
-        # succesfully, if so then we need to reprocess the checks here.
-        if (NOT MKLROOT STREQUAL MKLROOT_LAST)
-                # reset MKL paths
-                set (MKL_INCLUDE_PATH "${MKLROOT}/include" CACHE PATH
-                        "location of MKL include files." FORCE)
-                if (ADDRMODE EQUAL 64)
-                        set (libpath "${MKLROOT}/lib/intel64")
-                elseif (ADDRMODE EQUAL 32)
-                        set (libpath "${MKLROOT}/lib/ia32")
-                endif ()
-                set (MKL_LIBRARY_PATH ${libpath} CACHE PATH
-                        "location of MKL libraries." FORCE)
-                # uncache variables
-                unset (LIBMKL_CORE CACHE)
-                unset (LIBMKL_INTERFACE CACHE)
-                unset (LIBMKL_SEQUENTIAL CACHE)
-                unset (LIBMKL_THREADING CACHE)
-                unset (LIBMKL_SCALAPACK CACHE)
-                unset (LIBMKL_BLACS CACHE)
-                # cache last used MKLROOT
-                set (MKLROOT_LAST ${MKLROOT} CACHE INTERNAL "last value." FORCE)
-        endif ()
-        message ("-- MKL_INCLUDE_PATH = ${MKL_INCLUDE_PATH}")
-        message ("-- MKL_LIBRARY_PATH = ${MKL_LIBRARY_PATH}")
+  # here we check if MKLROOT has changed after it was last used
+  # succesfully, if so then we need to reprocess the checks here.
+  if (NOT MKLROOT STREQUAL MKLROOT_LAST)
+    # reset MKL paths
+    set (MKL_INCLUDE_PATH "${MKLROOT}/include" CACHE PATH
+      "location of MKL include files." FORCE)
+    if (ADDRMODE EQUAL 64)
+      set (libpath "${MKLROOT}/lib/intel64")
+    elseif (ADDRMODE EQUAL 32)
+      set (libpath "${MKLROOT}/lib/ia32")
+    endif ()
+    set (MKL_LIBRARY_PATH ${libpath} CACHE PATH
+      "location of MKL libraries." FORCE)
+    # uncache variables
+    unset (LIBMKL_CORE CACHE)
+    unset (LIBMKL_INTERFACE CACHE)
+    unset (LIBMKL_SEQUENTIAL CACHE)
+    unset (LIBMKL_THREADING CACHE)
+    unset (LIBMKL_SCALAPACK CACHE)
+    unset (LIBMKL_BLACS CACHE)
+    # cache last used MKLROOT
+    set (MKLROOT_LAST ${MKLROOT} CACHE INTERNAL "last value." FORCE)
+  endif ()
+  message ("-- MKL_INCLUDE_PATH = ${MKL_INCLUDE_PATH}")
+  message ("-- MKL_LIBRARY_PATH = ${MKL_LIBRARY_PATH}")
 
-        # core library
-        find_library (LIBMKL_CORE NAMES "mkl_core"
-                PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        # compiler-specific library interface
-        if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-                find_library (LIBMKL_INTERFACE NAMES "mkl_gf_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-                find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI") # apparently PGI uses this too
-                find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA") # apparently NVIDIA uses this too
-                find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        endif ()
-        # sequential/compiler-specific threading interface
-        find_library (LIBMKL_SEQUENTIAL NAMES "mkl_sequential"
-                PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-                set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_GNU_OPENMP}")
-                find_library (LIBMKL_THREADING NAMES "mkl_gnu_thread"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-                set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_Intel_OPENMP}")
-                find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        endif ()
-        # find scalapack/blacs for parallel lapack support
-        find_library (LIBMKL_SCALAPACK NAMES "mkl_scalapack_ilp64"
-                PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        if (MPI_IMPLEMENTATION STREQUAL "openmpi")
-                find_library (LIBMKL_BLACS NAMES "mkl_blacs_openmpi_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (MPI_IMPLEMENTATION STREQUAL "impi")
-                find_library (LIBMKL_BLACS NAMES "mkl_blacs_intelmpi_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        elseif (MPI_IMPLEMENTATION STREQUAL "mpich")
-                find_library (LIBMKL_BLACS NAMES "mkl_blacs_intelmpi_ilp64"
-                        PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-        endif ()
+  # core library
+  find_library (LIBMKL_CORE NAMES "mkl_core"
+    PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  # compiler-specific library interface
+  if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    find_library (LIBMKL_INTERFACE NAMES "mkl_gf_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI") # apparently PGI uses this too
+    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA") # apparently NVIDIA uses this too
+    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  endif ()
+  # sequential/compiler-specific threading interface
+  find_library (LIBMKL_SEQUENTIAL NAMES "mkl_sequential"
+    PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_GNU_OPENMP}")
+    find_library (LIBMKL_THREADING NAMES "mkl_gnu_thread"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_Intel_OPENMP}")
+    find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  endif ()
+  # find scalapack/blacs for parallel lapack support
+  find_library (LIBMKL_SCALAPACK NAMES "mkl_scalapack_ilp64"
+    PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  if (MPI_IMPLEMENTATION STREQUAL "openmpi")
+    find_library (LIBMKL_BLACS NAMES "mkl_blacs_openmpi_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (MPI_IMPLEMENTATION STREQUAL "impi")
+    find_library (LIBMKL_BLACS NAMES "mkl_blacs_intelmpi_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (MPI_IMPLEMENTATION STREQUAL "mpich")
+    find_library (LIBMKL_BLACS NAMES "mkl_blacs_intelmpi_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  endif ()
 
-        # generate actual library list with paths
-        if (MPI)
-                add_definitions (-DSCALAPACK)
-                list (APPEND MKL_LIBRARIES ${LIBMKL_SCALAPACK})
-        endif ()
-        list (APPEND MKL_LIBRARIES ${LIBMKL_INTERFACE})
-        list (APPEND MKL_LIBRARIES ${LIBMKL_CORE})
-        if (OPENMP)
-                set (CMAKE_EXE_LINKER_FLAGS ${LIBMKL_OMP_LINK_FLAGS})
-                list (APPEND MKL_LIBRARIES ${LIBMKL_THREADING})
-        else ()
-                list (APPEND MKL_LIBRARIES ${LIBMKL_SEQUENTIAL})
-        endif ()
-        if (MPI)
-                list (APPEND MKL_LIBRARIES ${LIBMKL_BLACS})
-        endif ()
+  # generate actual library list with paths
+  if (MPI)
+    add_definitions (-DSCALAPACK)
+    list (APPEND MKL_LIBRARIES ${LIBMKL_SCALAPACK})
+  endif ()
+  list (APPEND MKL_LIBRARIES ${LIBMKL_INTERFACE})
+  list (APPEND MKL_LIBRARIES ${LIBMKL_CORE})
+  if (OPENMP)
+    set (CMAKE_EXE_LINKER_FLAGS ${LIBMKL_OMP_LINK_FLAGS})
+    list (APPEND MKL_LIBRARIES ${LIBMKL_THREADING})
+  else ()
+    list (APPEND MKL_LIBRARIES ${LIBMKL_SEQUENTIAL})
+  endif ()
+  if (MPI)
+    list (APPEND MKL_LIBRARIES ${LIBMKL_BLACS})
+  endif ()
 
-        add_definitions (-D_MKL_)
-        include_directories (${MKL_INCLUDE_PATH})
-        set (LINALG_LIBRARIES ${MKL_LIBRARIES})
+  add_definitions (-D_MKL_)
+  include_directories (${MKL_INCLUDE_PATH})
+  set (LINALG_LIBRARIES ${MKL_LIBRARIES})
 else ()
-        mark_as_advanced(FORCE MKLROOT)
+  mark_as_advanced(FORCE MKLROOT)
 endif ()
 
 list (APPEND EXTERNAL_LIBRARIES ${LINALG_LIBRARIES})
@@ -929,11 +975,11 @@ message ("-- LINALG_LIBRARIES: ${LINALG_LIBRARIES}")
 
 set (MAIN_MOD_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/mod)
 if (SINGLE_MOD_DIR)
-        include_directories (${MAIN_MOD_DIR}/_single)
+  include_directories (${MAIN_MOD_DIR}/_single)
 else ()
-        include_directories (${MAIN_MOD_DIR})
-      endif ()
-      
+  include_directories (${MAIN_MOD_DIR})
+endif ()
+
 # launcher settings
 
 # The runtime can be controlled by the user through two variables:
@@ -951,21 +997,21 @@ set (RUNSCRIPT "$program $input" CACHE STRING "Command to launch scripts.")
 # Specify the launch command for a serial run
 
 if (NOT SER_LAUNCHER)
-        set (SER_LAUNCHER ""                CACHE STRING "Command to launch serial programs.")
+  set (SER_LAUNCHER ""                CACHE STRING "Command to launch serial programs.")
 else ()
-        set (SER_LAUNCHER "${SER_LAUNCHER}" CACHE STRING "Command to launch serial programs.")
+  set (SER_LAUNCHER "${SER_LAUNCHER}" CACHE STRING "Command to launch serial programs.")
 endif ()
 set (RUNBINARYSER "${SER_LAUNCHER} $program")
 
 # Specify the launch command for an MPI run
 
 if (MPI)
-        if (NOT MPI_LAUNCHER)
-                set (MPI_LAUNCHER "${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} $GRONOR_NPROCS ${MPIEXEC_PREFLAGS}" CACHE STRING "Command to launch MPI programs.")
-        endif ()
-        set (RUNBINARY "${MPI_LAUNCHER} $program")
+  if (NOT MPI_LAUNCHER)
+    set (MPI_LAUNCHER "${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} $GRONOR_NPROCS ${MPIEXEC_PREFLAGS}" CACHE STRING "Command to launch MPI programs.")
+  endif ()
+  set (RUNBINARY "${MPI_LAUNCHER} $program")
 else ()
-        set (RUNBINARY "${SER_LAUNCHER} $program")
+  set (RUNBINARY "${SER_LAUNCHER} $program")
 endif ()
 
 string (STRIP ${RUNSCRIPT} RUNSCRIPT)
@@ -981,15 +1027,15 @@ message ("-- RUNBINARYSER: ${RUNBINARYSER}")
 #message ("Build type: ${CMAKE_BUILD_TYPE}")
 #string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TARGET)
 if (NOT BUILD_TARGET STREQUAL "NONE")
-        message ("-- C compiler: ${CMAKE_C_COMPILER}")
-        message ("-- C compiler flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TARGET}}")
-        message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
-        message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BUILD_TARGET}}")
+  message ("-- C compiler: ${CMAKE_C_COMPILER}")
+  message ("-- C compiler flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TARGET}}")
+  message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+  message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BUILD_TARGET}}")
 else ()
-        message ("-- C compiler: ${CMAKE_C_COMPILER}")
-        message ("-- C compiler flags: ${CMAKE_C_FLAGS}")
-        message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
-        message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS}")
+  message ("-- C compiler: ${CMAKE_C_COMPILER}")
+  message ("-- C compiler flags: ${CMAKE_C_FLAGS}")
+  message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+  message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS}")
 endif ()
 get_directory_property(defs COMPILE_DEFINITIONS)
 message ("-- Definitions: ${defs}")
@@ -1018,29 +1064,29 @@ foreach (dir ${source_roots})
     list(REMOVE_ITEM dir_src "lapack") 
   endif()
   foreach (srcdir ${dir_src})
-#    message("Checking files in ${srcdir}")
+    #    message("Checking files in ${srcdir}")
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
     file (GLOB_RECURSE srcfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/*.F" "${fildir}/*.f" "${fildir}/*.c")
     file (GLOB_RECURSE prgfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/${srcdir}.F" "${fildir}/${srcdir}.f" "${fildir}/${srcdir}.c")
     foreach (prg ${prgfiles})
       list (REMOVE_ITEM srcfiles ${prg})
     endforeach(prg)
-#    message("Files found   : ${srcfiles}")
-#    message("Programs found: ${prgfiles}")
-#    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
+    #    message("Files found   : ${srcfiles}")
+    #    message("Programs found: ${prgfiles}")
+    #    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
     set (SRCDIRPATH ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
-#    message("Trying files in ${SRCDIRPATH}")
+    #    message("Trying files in ${SRCDIRPATH}")
     list (LENGTH srcfiles numsrc)
     list (LENGTH prgfiles numprg)
     message ("-- Source directory ${SRCDIRPATH}: ${numsrc} library files")
     if(numsrc GREATER 0)
-#      message ("Add library ${srcdir} : ${srcfiles}")
+#            message ("Add library ${srcdir} : ${srcfiles}")
       add_library(${srcdir} STATIC ${srcfiles})
       list(APPEND libraries ${srcdir})
       list(APPEND dir_libs ${srcdir})
     endif()
   endforeach(srcdir)
-#  list(APPEND source_dirs ${dir_src})
+  #  list(APPEND source_dirs ${dir_src})
 endforeach(dir)
 
 message("-- Libraries constructed: ${libraries}")
@@ -1048,6 +1094,8 @@ message("-- Libraries constructed: ${libraries}")
 foreach (dir ${dir_utils})
   list(REMOVE_ITEM dir_libs ${dir})
 endforeach(dir)
+
+
 foreach (dir ${dir_libs})
   add_dependencies(${dir} ${dir_utils})
   target_link_libraries (${dir} ${dir_utils})
@@ -1057,31 +1105,31 @@ endforeach(dir)
 #message("dir_utils: ${dir_utils}")
 #message("dir_libs : ${dir_libs}")
 
-
+message("Configuring program list:")
 
 foreach (dir ${source_roots})
   file (GLOB dir_src RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
   list(REMOVE_ITEM dir_src "config") 
   list(REMOVE_ITEM dir_src "include") 
   foreach (srcdir ${dir_src})
-#    message("Checking files in ${srcdir}")
+    #    message("Checking files in ${srcdir}")
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
     file (GLOB_RECURSE srcfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/*.F" "${fildir}/*.f" "${fildir}/*.c")
     file (GLOB_RECURSE prgfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/${srcdir}.F" "${fildir}/${srcdir}.f" "${fildir}/${srcdir}.c")
     foreach (prg ${prgfiles})
       list (REMOVE_ITEM srcfiles ${prg})
     endforeach(prg)
-#    message("Files found   : ${srcfiles}")
-#    message("Programs found: ${prgfiles}")
-#    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
+    #    message("Files found   : ${srcfiles}")
+    #    message("Programs found: ${prgfiles}")
+    #    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
     set (SRCDIRPATH ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
-#    message("Trying files in ${SRCDIRPATH}")
+    #    message("Trying files in ${SRCDIRPATH}")
     list (LENGTH srcfiles numsrc)
     list (LENGTH prgfiles numprg)
     message ("-- Source directory ${SRCDIRPATH}: ${numprg} program files")
     if(numprg GREATER 0)
-#      message ("Add library ${srcdir} : ${srcfiles}")
-#      add_dependencies(${scrdir} ${libraries})
+      #      message ("Add library ${srcdir} : ${srcfiles}")
+      #      add_dependencies(${scrdir} ${libraries})
       add_executable(${srcdir} ${prgfiles})
       message("-- Added executable ${srcdir} to ${prgfiles}")
       add_dependencies (${srcdir} ${libraries})
@@ -1090,7 +1138,7 @@ foreach (dir ${source_roots})
       list(APPEND dir_prgs ${srcdir})
     endif()
   endforeach(srcdir)
-#  list(APPEND source_dirs ${dir_src})
+  #  list(APPEND source_dirs ${dir_src})
 endforeach(dir)
 
 message("-- Programs constructed: ${programs}")
@@ -1103,14 +1151,14 @@ message("Configuring testing:")
 foreach (dir ${test_roots})
   file (GLOB dir_test RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
   foreach (testdir ${dir_test})
-#    message("Test Directory " ${testdir})
+    #    message("Test Directory " ${testdir})
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${testdir})
     file (GLOB_RECURSE testfiles RELATIVE "${fildir}" "${fildir}/*.run")
     foreach (test ${testfiles})
       string(REPLACE ".run" "" testroot ${test})
-#      message("PROJECT_SOURCE_DIR " ${PROJECT_SOURCE_DIR} )
-#      message("add_test NAME " ${testroot} )
-#      message("WORKING_DIRECTORY " ${fildir})
+      #      message("PROJECT_SOURCE_DIR " ${PROJECT_SOURCE_DIR} )
+      #      message("add_test NAME " ${testroot} )
+      #      message("WORKING_DIRECTORY " ${fildir})
       message("-- add_test " ${fildir} "/" ${testroot})
       add_test (NAME ${testroot} WORKING_DIRECTORY ${fildir} COMMAND python ${PROJECT_SOURCE_DIR}/scripts/test.py ${testroot})
     endforeach(test)
@@ -1148,7 +1196,7 @@ message ("-- Link directories: ${LINK_DIRECTORIES}")
 ##        file (GLOB dir_utils RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${dir}/[^.]*_util")
 
 #	message ("Testing ${PROJECT_SOURCE_DIR}/${dir}")
-	
+
 #        # programs are those that do not end in "_util"
 #        if (dir_utils)
 #                list (REMOVE_ITEM dir_progs ${dir_utils})

@@ -1,0 +1,41 @@
+&seward
+high cholesky
+basis set
+c.ano-s...3s2p1d.
+ C1     0.00000000     1.38614761     0.00000000 Angstrom
+ C2    -1.20044038     0.69307504     0.00000000 Angstrom
+ C3    -1.20044038    -0.69307504     0.00000000 Angstrom
+ C4     0.00000000    -1.38614761     0.00000000 Angstrom
+ C5     1.20044038    -0.69307504     0.00000000 Angstrom
+ C6     1.20044038     0.69307504     0.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H1     0.00000000     2.46169886     0.00000000 Angstrom
+ H2    -2.13189352     1.23085454     0.00000000 Angstrom
+ H3    -2.13189352    -1.23085454     0.00000000 Angstrom
+ H4     0.00000000    -2.46169886     0.00000000 Angstrom
+ H5     2.13189352    -1.23085454     0.00000000 Angstrom
+ H6     2.13189352     1.23085454     0.00000000 Angstrom
+ end of basis
+basis set
+c.ano-s...3s2p1d.
+ C7     0.00000000     1.38614761     4.00000000 Angstrom
+ C8    -1.20044038     0.69307504     4.00000000 Angstrom
+ C9    -1.20044038    -0.69307504     4.00000000 Angstrom
+ C10    0.00000000    -1.38614761     4.00000000 Angstrom
+ C11    1.20044038    -0.69307504     4.00000000 Angstrom
+ C12    1.20044038     0.69307504     4.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H7     0.00000000     2.46169886     4.00000000 Angstrom
+ H8    -2.13189352     1.23085454     4.00000000 Angstrom
+ H9    -2.13189352    -1.23085454     4.00000000 Angstrom
+ H10    0.00000000    -2.46169886     4.00000000 Angstrom
+ H11    2.13189352    -1.23085454     4.00000000 Angstrom
+ H12    2.13189352     1.23085454     4.00000000 Angstrom
+ end of basis
+
+oneonly
+>>> COPY $Project.RunFile $CurrDir/RUNFILE

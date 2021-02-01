@@ -1,0 +1,15 @@
+#!/usr/bin/tcsh
+setenv MOLCAS_NPROCS 58
+pymolcas -clean benzeneA.input > benzeneA.output
+pymolcas -clean benzeneD.input > benzeneD.output
+common_basis < benzeneCB.input
+touch TRAINT
+setenv MOLCAS_MEM 4096
+setenv MOLCAS_NPROCS 8
+pymolcas -clean benzeneM.input > benzeneM.output
+cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 > _CHMOT1
+rdcho 8
+rdtraint benzene
+mpirun -n 36 gronor benzene_test
+
+

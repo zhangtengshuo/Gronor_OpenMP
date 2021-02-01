@@ -1,0 +1,118 @@
+&seward
+high cholesky
+basis set
+c.ano-s...3s2p1d.
+ C1      0.65846445     0.00000000     0.00000000 Angstrom
+ C2     -0.65846445     0.00000000     0.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H1      1.22567994     0.91433827     0.00000000 Angstrom
+ H2     -1.22567994     0.91433827     0.00000000 Angstrom
+ H3      1.22567994    -0.91433827     0.00000000 Angstrom
+ H4     -1.22567994    -0.91433827     0.00000000 Angstrom
+ end of basis
+
+>>> COPY $Project.OneInt  $CurrDir/ONEINT1
+>>> COPY $Project.RunFile $CurrDir/RUNFIL1
+>>> COPY $Project.OneInt  $CurrDir/ONEINT2
+>>> COPY $Project.RunFile $CurrDir/RUNFIL2
+
+&scf
+
+&rasscf
+nactel
+ 2
+spin
+ 1
+inactive
+ 7
+ras2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_1
+>>> COPY vecdet.1        $CurrDir/ethene_001.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_1
+>>> COPY vecdet.1        $CurrDir/ethene_006.det
+
+
+&rasscf
+nactel
+ 2
+spin
+ 1
+inactive
+ 7
+ras2
+ 2
+CIRoot
+ 1 2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_2
+>>> COPY vecdet.2        $CurrDir/ethene_002.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_2
+>>> COPY vecdet.2        $CurrDir/ethene_007.det
+
+
+&rasscf
+nactel
+ 2
+spin
+ 3
+inactive
+ 7
+ras2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_3
+>>> COPY vecdet.1        $CurrDir/ethene_003.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_3
+>>> COPY vecdet.1        $CurrDir/ethene_008.det
+
+
+&rasscf
+nactel
+ 1
+spin
+ 2
+inactive
+ 7
+ras2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_4
+>>> COPY vecdet.1        $CurrDir/ethene_004.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_4
+>>> COPY vecdet.1        $CurrDir/ethene_009.det
+
+
+&rasscf
+nactel
+ 3
+spin
+ 2
+inactive
+ 7
+ras2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_5
+>>> COPY vecdet.1        $CurrDir/ethene_005.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_5
+>>> COPY vecdet.1        $CurrDir/ethene_010.det

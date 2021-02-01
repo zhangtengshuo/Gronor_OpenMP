@@ -1,0 +1,67 @@
+&seward
+high cholesky
+basis set
+c.ano-s...3s2p1d.
+ C1     0.00000000     1.38614761     0.00000000 Angstrom
+ C2    -1.20044038     0.69307504     0.00000000 Angstrom
+ C3    -1.20044038    -0.69307504     0.00000000 Angstrom
+ C4     0.00000000    -1.38614761     0.00000000 Angstrom
+ C5     1.20044038    -0.69307504     0.00000000 Angstrom
+ C6     1.20044038     0.69307504     0.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H1     0.00000000     2.46169886     0.00000000 Angstrom
+ H2    -2.13189352     1.23085454     0.00000000 Angstrom
+ H3    -2.13189352    -1.23085454     0.00000000 Angstrom
+ H4     0.00000000    -2.46169886     0.00000000 Angstrom
+ H5     2.13189352    -1.23085454     0.00000000 Angstrom
+ H6     2.13189352     1.23085454     0.00000000 Angstrom
+ end of basis
+basis set
+c.ano-s...3s2p1d.
+ C7     0.00000000     1.38614761     4.00000000 Angstrom
+ C8    -1.20044038     0.69307504     4.00000000 Angstrom
+ C9    -1.20044038    -0.69307504     4.00000000 Angstrom
+ C10    0.00000000    -1.38614761     4.00000000 Angstrom
+ C11    1.20044038    -0.69307504     4.00000000 Angstrom
+ C12    1.20044038     0.69307504     4.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H7     0.00000000     2.46169886     4.00000000 Angstrom
+ H8    -2.13189352     1.23085454     4.00000000 Angstrom
+ H9    -2.13189352    -1.23085454     4.00000000 Angstrom
+ H10    0.00000000    -2.46169886     4.00000000 Angstrom
+ H11    2.13189352    -1.23085454     4.00000000 Angstrom
+ H12    2.13189352     1.23085454     4.00000000 Angstrom
+ end of basis
+
+>>> COPY $CurrDir/COMMONORB INPORB
+
+&motra
+LumOrb
+frozen
+ 0
+deleted
+ 116
+ctonly
+kpq
+
+>>> COPY $Project.RunFile $CurrDir/RUNFILE
+>>> COPY $Project.OneInt  $CurrDir/ONEINT
+>>> COPY $Project.TraOne  $CurrDir/TRAONE
+>>> COPY $Project.ChVec1  $CurrDir/CHVEC1
+>>> COPY $Project.ChRed   $CurrDir/CHRED
+>>> COPY $Project.ChRst   $CurrDir/CHORST
+>>> COPY $Project.ChMap   $CurrDir/CHOMAP
+>>> COPY _CHMOT1          $CurrDir/_CHMOT0
+>>> COPY tmp_1/_CHMOT1    $CurrDir/_CHMOT2
+>>> COPY tmp_2/_CHMOT1    $CurrDir/_CHMOT3
+>>> COPY tmp_3/_CHMOT1    $CurrDir/_CHMOT4
+>>> COPY tmp_4/_CHMOT1    $CurrDir/_CHMOT5
+>>> COPY tmp_5/_CHMOT1    $CurrDir/_CHMOT6
+>>> COPY tmp_6/_CHMOT1    $CurrDir/_CHMOT7
+>>> COPY tmp_7/_CHMOT1    $CurrDir/_CHMOT8
+
+

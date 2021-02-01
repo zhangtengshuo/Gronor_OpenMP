@@ -1,0 +1,55 @@
+&seward
+high cholesky
+basis set
+c.ano-s...3s2p1d.
+ C1      0.65846445     0.00000000     0.00000000 Angstrom
+ C2     -0.65846445     0.00000000     0.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H1      1.22567994     0.91433827     0.00000000 Angstrom
+ H2     -1.22567994     0.91433827     0.00000000 Angstrom
+ H3      1.22567994    -0.91433827     0.00000000 Angstrom
+ H4     -1.22567994    -0.91433827     0.00000000 Angstrom
+ end of basis
+basis set
+c.ano-s...3s2p1d.
+ C3      0.65846445     0.00000000     4.00000000 Angstrom
+ C4     -0.65846445     0.00000000     4.00000000 Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H5      1.22567994     0.91433827     4.00000000 Angstrom
+ H6     -1.22567994     0.91433827     4.00000000 Angstrom
+ H7      1.22567994    -0.91433827     4.00000000 Angstrom
+ H8     -1.22567994    -0.91433827     4.00000000 Angstrom
+ end of basis
+
+>>> COPY $CurrDir/COMMONORB INPORB
+
+&motra
+LumOrb
+frozen
+ 0
+deleted
+  52
+ctonly
+kpq
+
+>>> COPY $Project.RunFile $CurrDir/RUNFILE
+>>> COPY $Project.OneInt  $CurrDir/ONEINT
+>>> COPY $Project.TraOne  $CurrDir/TRAONE
+>>> COPY $Project.ChVec1  $CurrDir/CHVEC1
+>>> COPY $Project.ChRed   $CurrDir/CHRED
+>>> COPY $Project.ChRst   $CurrDir/CHORST
+>>> COPY $Project.ChMap   $CurrDir/CHOMAP
+>>> COPY _CHMOT1          $CurrDir/_CHMOT0
+>>> COPY tmp_1/_CHMOT1    $CurrDir/_CHMOT2
+>>> COPY tmp_2/_CHMOT1    $CurrDir/_CHMOT3
+>>> COPY tmp_3/_CHMOT1    $CurrDir/_CHMOT4
+>>> COPY tmp_4/_CHMOT1    $CurrDir/_CHMOT5
+>>> COPY tmp_5/_CHMOT1    $CurrDir/_CHMOT6
+>>> COPY tmp_6/_CHMOT1    $CurrDir/_CHMOT7
+>>> COPY tmp_7/_CHMOT1    $CurrDir/_CHMOT8
+
+

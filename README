@@ -2,7 +2,7 @@ GronOR Non-Orthogonal Configuration Interaction
 
 Authors: T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN
 	 C. de Graaf, University Rovira i Virgili, Tarragona, Spain
-	 R. W. A. Havenith, University of Groningen, Groningen, Netherlands
+	 A. Sanchez, University Rovira i Virgili, Tarragona, Spain
 	 R. K. Kathir, University of Groningen, Groningen, Netherlands
 
 Please cite the following reference when publishing results obtained using GronOR:
@@ -26,9 +26,17 @@ The initial directory structure is as follows:
 
 gronor --- src            (source directory with sub-directories)
         |
+	-- aux            (auxiliary programs to interface with OpenMolcas)
+        |
 	-- include        (with a few include files)
+        |
+	-- examples       (example input files for full OpenMolcas/GronOR runs)
+        |
+	-- scripts        (scripts directorye)
 	|
 	-- CMakeLists.txt (the cmake build file)
+	|
+	-- CTestConfig.cmake (cmake script to setup automated testing)
 
 
 To build, do the following within the gronor directory;
@@ -40,15 +48,23 @@ To build, do the following within the gronor directory;
 
 This will expand the directory structure as follows:
 
-gronor --- src            (source directory with sub-directories)
+gronor --- src               (source directory with sub-directories)
         |
-	-- include        (with a few include files)
+	-- aux               (auxiliary programs to interface with OpenMolcas)
+        |
+	-- include           (with a few include files)
+        |
+	-- examples          (example input files for full OpenMolcas/GronOR runs)
+        |
+	-- scripts           (scripts directorye)
 	|
-	-- CMakeLists.txt (the cmake build file)
+	-- CMakeLists.txt    (the cmake build file)
 	|
-	-- build --- bin  (directory with the gronor binary)
+	-- CTestConfig.cmake (cmake script to setup automated testing)
+	|
+	-- build --- bin     (directory with the gronor binary)
 	          |
-		  -- lib  (directory with the gronor libraries)
+		  -- lib     (directory with the gronor libraries)
 		  |
 		  -- CMakeFiles  (cmake files created during build)
 

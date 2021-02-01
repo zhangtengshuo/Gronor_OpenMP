@@ -26,10 +26,12 @@
       real (kind=8)              :: fracMem
       real (kind=8), allocatable :: coeff(:),integral(:),coeff2(:)
 
+      integer  :: ip_Max,l_Max   ! to resolve a compilation issue
+
       character(len=10)          :: num_of_nodes
 
 #include "cholesky.fh"
-#include "choptr.fh"
+* #include "choptr.fh"
 #include "WrkSpc.fh"
 
       call get_command_argument(1,num_of_nodes)
@@ -53,6 +55,7 @@
       write(*,101) 'Number of integrals        : ',lpqrs
       write(*,*)
  101  format (a,i10)
+
       
       luTra = 50
       call daname(luTra,'TRAINT')
@@ -65,6 +68,9 @@
 * Initialize the whole Cholesky business (for this we need CHRED, CHVEC1, CHORST and CHOMAP)
       iRc = 0
       fracMem = 0.0
+* Due to compilation problems, this call was included
+      Call GetMem('CXI_MX1','Max ','Real',ip_Max,l_Max)
+* 
       call Cho_X_Init(iRc,fracMem)
       write(*,101) 'Number of Cholesky vectors : ',numCho(1)
 
@@ -95,6 +101,8 @@
       if ( nodes .ne. 1 ) then
         packages = int( totLength / (nodes * npq) )
         extra = ( totLength - packages * nodes * npq ) / npq
+*        write(*,*) 'totLength npq ',totLength,npq
+*        write(*,*) 'distribution over the nodes : ',packages,extra
         iCounter = 0
         do inode = 1, nodes
           iCounter2= inode
@@ -155,6 +163,7 @@
               end if
             end if
 *            if ( iBuf .eq. 1 ) then
+*              write(*,*) '2-el integrals of the first buffer'
 *              do j = 1, bufLength
 *                write(*,'(i8,F25.15)')j,integral(j)
 *              end do
@@ -170,7 +179,7 @@
 *        do j = 1, i
 *           write(*,'(i8,F25.15)')j,integral(j)
 *        end do
-        call ddafile(luTra,1,integral,bufLength,iad50)
+       call ddafile(luTra,1,integral,bufLength,iad50)
       end if
 
       call daclos(luTra)

@@ -8,10 +8,11 @@
 !!
   
 
-      subroutine gronor_gnome_molcas_input(lfnsym,lfnout,lfnarx,ipr)
+      subroutine gronor_gnome_molcas_input
       use gnome_data
+      use cidef
       implicit none
-      integer               :: lfnsym, lfnout, lfnarx, ipr
+*      integer               :: lfnsym, lfnout, lfnarx, ipr
       integer               :: i,l,iAtom
       integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO

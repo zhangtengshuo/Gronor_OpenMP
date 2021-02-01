@@ -104,18 +104,13 @@
                 iocc_tmp(k,j) = ioccm(k,j,istate)
               end do
              end do
-            call sminop2(cicoef_tmp,ci_mspin(1,offsetm+1),
+            call sminop(cicoef_tmp,ci_mspin(1,offsetm+1),
      &           iocc_tmp,
      &           occ_mspin(1,1,offsetm+1),
      &           idetm(istate),ndet_mspin(i,:),
      &           spin(i),nactm(istate),nci,maxnact,lfnout)
              deallocate(cicoef_tmp)
              deallocate(iocc_tmp)
-*            call sminop2(civm(1,ncombv(i,ibase)),ci_mspin(1,offsetm+1),
-*     &           ioccm(1:nactm(ncombv(i,ibase)),1,ncombv(i,ibase)),
-*     &           occ_mspin(1,1,offsetm+1),
-*     &           idetm(ncombv(i:,ibase)),ndet_mspin(i,:),
-*     &           spin(i),nactm(ncombv(i,ibase)),nci,lfnout)
             mspin(offsetm+1)=spin(i)
             do j=2,spin(i)+1
                mspin(offsetm+j)=mspin(offsetm+j-1)-2
@@ -160,9 +155,5 @@
         idetb(ibase) = cib
         maxcib = max(cib,maxcib)
       enddo
-c      write(lfnout,*)
-c      write(lfnout,'(2a,i10)')' Maximum number of determinants in ',
-c     &                         'MEBFs (maxcib) : ',maxcib
-c      flush(lfnout)
       return
       end subroutine gronor_determine_maxcib

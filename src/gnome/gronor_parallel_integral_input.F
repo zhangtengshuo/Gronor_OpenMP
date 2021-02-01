@@ -77,6 +77,7 @@
      &         /,' Two electron integral labels option on file ',t50,i16,
      &         /,' Two electron integral labels input option ',t50,i16)
         endif
+Coen: maybe here a check to be sure that mclab and labels are coherent
         
         allocate(s(nbas,nbas))
         allocate(t(int1))
@@ -98,6 +99,11 @@
           call gronor_read1(lfnone,v,intone)
         endif
 
+Coen: this part is not valid anymore.
+C     although we'll loose backward compatibility, we might 
+C     want to replace it with just "read(lfnone) int2"
+C     The number of small integrals can be written by rdtraint
+C     and retrieved here, if considered useful info
         read(lfnone,end=993) nt
         if (nt(2).eq.-1) read(lfnone) nt(2)
         int2=nt(2)
@@ -108,6 +114,8 @@
  1604     format(/,' Number of two electron integrals',t50,i16,
      &         /,' Number of non-zero two electron integrals',t50,i16,
      &         ' (',f6.2,'%)')
+Coen: There is no way to know how many integrals are non-zero here.
+
 #ifdef SINGLEP
           write(lfnout,605)
  605      format(' Integrals are used in single precision')
@@ -118,7 +126,6 @@
         endif
 
         read(lfnone,err=993) numfiles
-
       endif
 
 !     Broadcast dimensions and information from one-electron intergal file

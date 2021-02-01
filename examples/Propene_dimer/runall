@@ -1,0 +1,15 @@
+#!/usr/bin/tcsh
+setenv MOLCAS_NPROCS 58
+pymolcas -clean propeneA.input > propeneA.output
+pymolcas -clean propeneD.input > propeneD.output
+common_basis < propeneCB.input
+touch TRAINT
+setenv MOLCAS_MEM 4096
+setenv MOLCAS_NPROCS 8
+pymolcas -clean propeneM.input > propeneM.output
+cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 > _CHMOT1
+rdcho 8
+rdtraint propene
+mpirun -n 36 gronor propene_test
+
+

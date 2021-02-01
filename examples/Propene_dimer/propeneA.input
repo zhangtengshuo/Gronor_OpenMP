@@ -1,0 +1,121 @@
+&seward
+high cholesky
+basis set
+c.ano-s...3s2p1d.
+ C1       -0.09231051   -0.30029490    0.00000000   Angstrom
+ C2        2.42245725   -0.33287579    0.00000000   Angstrom
+ C3        4.09120303    1.99159083    0.00000000   Angstrom
+end of basis
+basis set
+h.ano-s...2s1p.
+ H1       -1.14691574    1.45123585    0.00000000   Angstrom
+ H2       -1.18145209   -2.02653933    0.00000000   Angstrom
+ H3        3.37938820   -2.14310410    0.00000000   Angstrom
+ H4        6.07823051    1.47490369    0.00000000   Angstrom
+ H5        3.74102556    3.15507629    1.66187238   Angstrom
+ H6        3.74102556    3.15507629   -1.66187238   Angstrom
+ end of basis
+
+>>> COPY $Project.OneInt  $CurrDir/ONEINT1
+>>> COPY $Project.RunFile $CurrDir/RUNFIL1
+>>> COPY $Project.OneInt  $CurrDir/ONEINT2
+>>> COPY $Project.RunFile $CurrDir/RUNFIL2
+
+&scf
+
+&rasscf
+nactel
+ 4
+spin
+ 1
+inactive
+ 10
+ras2
+ 4
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_1
+>>> COPY vecdet.1        $CurrDir/propene_001.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_1
+>>> COPY vecdet.1        $CurrDir/propene_006.det
+
+
+&rasscf
+nactel
+ 4
+spin
+ 1
+inactive
+ 10
+ras2
+ 4
+CIRoot
+ 1 2
+ 2
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_2
+>>> COPY vecdet.2        $CurrDir/propene_002.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_2
+>>> COPY vecdet.2        $CurrDir/propene_007.det
+
+
+&rasscf
+nactel
+ 4
+spin
+ 3
+inactive
+ 10
+ras2
+ 4
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_3
+>>> COPY vecdet.1        $CurrDir/propene_003.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_3
+>>> COPY vecdet.1        $CurrDir/propene_008.det
+
+
+&rasscf
+nactel
+ 3
+spin
+ 2
+inactive
+ 10
+ras2
+ 4
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_4
+>>> COPY vecdet.1        $CurrDir/propene_004.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_4
+>>> COPY vecdet.1        $CurrDir/propene_009.det
+
+
+&rasscf
+nactel
+ 5
+spin
+ 2
+inactive
+ 10
+ras2
+ 4
+prwf
+ 0
+prsd
+
+>>> COPY $Project.RasOrb $CurrDir/INPORB.1_5
+>>> COPY vecdet.1        $CurrDir/propene_005.det
+>>> COPY $Project.RasOrb $CurrDir/INPORB.2_5
+>>> COPY vecdet.1        $CurrDir/propene_010.det

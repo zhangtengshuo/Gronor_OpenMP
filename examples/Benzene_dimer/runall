@@ -9,7 +9,7 @@ setenv MOLCAS_NPROCS 8
 pymolcas -clean benzeneM.input > benzeneM.output
 cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 > _CHMOT1
 rdcho 8
-rdtraint benzene
+rdtraint < benzeneCB.input
 mpirun -n 36 gronor benzene_test
 
 

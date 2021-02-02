@@ -130,13 +130,6 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
 
 set (GRONOR_DIR ${CMAKE_CURRENT_LIST_DIR})
 
-#message ("TEST  ${MAIN_INCLUDE_DIR}")
-#message ("TEST  ${PROJECT_BINARY_DIR}")
-#message ("TEST  ${GRONOR_DIR}")
-#message ("TEST  ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
-
-configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${PROJECT_BINARY_DIR}/gronor_config.fh)
-
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${GRONOR_DIR})
   set (basedirs ${PROJECT_SOURCE_DIR})
 endif ()
@@ -199,10 +192,9 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 #message ("library output path is ${LIBRARY_OUTPUT_PATH}")
 #message ("executable output path is ${EXECUTABLE_OUTPUT_PATH}")
 
-set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/include)
+set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
 
-
-# configure_file (${GRONOR_DIR}/include/gronor_version.h.in ${PROJECT_BINARY_DIR}/gronor_version.fh)
+configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gronor_config.fh)
 
 foreach (BASE_DIR ${basedirs})
   if (EXISTS "${BASE_DIR}/src/include")

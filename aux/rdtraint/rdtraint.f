@@ -20,7 +20,6 @@
 
       implicit none
 
-
       integer, parameter                :: nToc = 64
       integer, parameter                :: nTraToc = 106
       integer, parameter                :: mxSym = 1, maxBfn = 10000
@@ -73,20 +72,18 @@
       character (len = 80), allocatable   :: filename_two_el(:)
       character (len = 132)             :: line,vectit
       character (len = 144)             :: Header
-      logical                           :: debug,empty,deep_debug
+      logical                           :: empty
 
-      integer, parameter   :: nTraRec = 27959
-*      integer, parameter   :: nTraRec = 20
+      integer              :: nTraRec, print_level
       integer, allocatable :: nRecs_onFile(:)
       integer, allocatable :: nInts_onFile(:)
-      integer  :: nFiles,iFile,onlastrecord,nlastrecords,totRecords,
-     &            iRec,nInts,onLastFile,stat
-      logical  :: write_labels
+      integer              :: nFiles,iFile
+      integer              :: onlastrecord,nlastrecords,totRecords
+      integer              :: iRec,nInts,onLastFile,stat
+      logical              :: write_labels
 
-      write_labels = .true.
-      debug = .false.
-      deep_debug = .false.
-      call get_command_argument(1,Project) 
+      call read_input(Project,print_level,write_labels,nTraRec,
+     &                                            almostZero)
 * open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
       nBas = 0
       call NameRun('RUNFILE')              ! ONEINT cannot be accessed without RUNFILE
@@ -121,7 +118,7 @@
           iCounter = iCounter + 1
         end do
       end do
-      if ( deep_debug ) then
+      if ( print_level .ge. 10 ) then
         write (*,*) 'AO basis overlap'
         do j = 1, nBas
           write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
@@ -183,7 +180,7 @@
      &                       * vec(k,m) * sAO(l,m)
             end do
           end do
-          if ( debug ) write(*,*) iCounter,s(iCounter)
+          if ( print_level .ge. 10 ) write(*,*) iCounter,s(iCounter)
           if ( mod(iCounter,int(nOrbtt/10)) .eq. 0 ) then
             b = 100.0*(float(iCounter))/float(nOrbtt)
             write(*,'(I3,A)') nint(b),'% done'
@@ -203,7 +200,7 @@
       iAd30 = iToc(3)
       call dDAFILE(luOne,2,kinInt,nOrbtt,iAd30)
 
-      if (debug) then
+      if (print_level .ge. 10 ) then
         write(*,*) 'S, V and T'
         do i = 1, nOrbtt
           write(*,'(i4,3F14.8)') i, s(i),fock(i),kinInt(i)
@@ -304,6 +301,11 @@
       end if
       write(*,*)' Number of integrals on last record :',
      &       onLastFile - (nRecs_onFile(nFiles)-1) * nTraBuf
+      if ( write_labels ) then
+        write(*,*) ' --- Integral labels are written ---'
+      else
+        write(*,*) ' --- Integral labels are not written ---'
+      end if 
       write(*,*)
 
 * set up a small array for generating the labels i, j, k and l label of the 2-el integrals
@@ -317,7 +319,7 @@
           kl(iCounter,2) = l
         end do
       end do
-      if ( debug ) then
+      if ( print_level .ge. 10 ) then
         write(*,*) 'lower triangle of the k-l labels'
         do l = 1, nOrbtt
           write(*,*) l,kl(l,1),kl(l,2)
@@ -330,12 +332,13 @@
       else
         RecordLength = ( ntraBuf + 2 ) * nrec
       end if
-      if ( debug ) write(*,*)'nrec and Record length:',nrec,recordLength
+      if ( print_level .ge. 10 ) then
+        write(*,*)'nrec and Record length:',nrec,recordLength
+      end if
       iCounter = 0
       ii_start = 1
       jj_start = 1
       ilast = 0
-      almostZero = 1e-10
       nonZeroInt = 0
       recordNumber = 0
       nInts = nTraBuf
@@ -368,10 +371,11 @@
                 labels((iCounter-1)*4+3) = k
                 labels((iCounter-1)*4+4) = l
                 traBuf(iCounter) = traBuf(iCounter)*scal(i,j,k,l)
-                if ( deep_debug ) write(*,'(5i4,F8.3,F12.6)')
+                if ( print_level .ge. 20 ) write(*,'(5i4,F8.3,F12.6)')
      &             iCounter,i,j,k,l,scal(i,j,k,l),traBuf(iCounter)
-                if (( debug ) .and. (iRec .eq. 1) .and. (iCounter .le.
-     &            10 )) write(*,'(4I4,F18.12)') i,j,k,l,traBuf(iCounter)
+                if (( print_level .ge. 10 ) .and. (iRec .eq. 1) .and. 
+     &                       (iCounter .le. 10 )) 
+     &                  write(*,'(4I4,F18.12)') i,j,k,l,traBuf(iCounter)
               else    
                 goto 59
               end if
@@ -486,3 +490,115 @@
 ! available through common blocks.
 
 
+      subroutine read_input(Project,print_level,write_labels,nTraRec,
+     &                                                      almostZero)
+      implicit none
+
+      integer, parameter                   :: nKeys = 5
+      integer                              :: iKey,jj
+      integer                              :: nTraRec
+      integer                              :: print_level,filesize
+      logical                              :: write_labels
+      logical                              :: all_ok=.true.
+      logical, dimension(nKeys)            :: hit = .false.
+      character (len = 80)                 :: Project 
+      character (len=4)                    :: key
+      character (len=4), dimension(nKeys)  :: keyword
+      character (len=132)                  :: line
+      real (kind=8)                        :: almostZero
+
+      data keyword /'PROJ','FILE','PRIN','WRIT','SMAL'/
+
+* * Keywords * * * * 
+*
+*      PROJect         : prefix for all filename generated by rdtraint
+*      FILEsize        : Maximum size in MBytes (approx) of the 2-el. integral files
+*      PRINT level     : x < 10 , standard
+*                        10 =< x < 20  extra (debug) info, e.g. overal AO basis and 1-el. integrals
+*                        x >= 20 all integrals are printed
+*      WRITe labels    : Integral labels will be written on the 2-el. integral file(s)
+*                      : Default is not to write the labels
+*      SMALl integrals : Threshold for considering an integral small,
+*                        for info only (all integrals are written to file)
+*
+*********************
+
+* defaults
+      Project      = project
+      filesize     = 2000           ! 2000 MByte (Approx)
+      print_level  = 1
+      write_labels = .false.
+      almostZero   = 1.0e-10
+       
+
+      do while (all_ok)
+        read(5,*,iostat=jj) line
+        key = adjustl(line)
+        call capitalize(key)
+        do iKey = 1, nKeys
+          if ( key .eq. keyword(iKey) ) hit(iKey) = .true.
+        end do
+        if (  jj .lt. 0 ) all_ok = .false.
+      end do
+
+
+      do iKey = 1, nKeys
+        if ( hit(iKey) ) then
+          select case(iKey)
+            case(1)
+              call locate('PROJ')
+              read(*,*) project
+              project = trim(project)
+            case(2)
+              call locate('FILE')
+              read(*,*) filesize 
+            case(3)
+              call locate('PRIN')
+              read(*,*) print_level
+            case(4)
+              call locate('WRIT')
+              write_labels = .true.
+            case(5)
+              call locate('SMAL')
+              read(*,*) almostZero
+          end select
+        end if
+      end do
+      if ( print_level .le. 0 ) print_level = 1
+      if ( almostZero .lt. 0 ) almostZero = -almostZero
+      filesize = filesize  * 1.0e6
+      if ( write_labels ) then
+        nTraRec = int(filesize / (2*8*9600) )
+      else
+        nTraRec = int(filesize / (8*9600) )
+      endif  
+      return
+      end subroutine read_input        
+
+
+
+      subroutine locate(string)
+      implicit none
+      character(4)   ::  string,string2
+      character(132) ::  line
+      rewind(5)
+ 40   read(5,*) line
+      string2=adjustl(line)
+      call capitalize(string2)
+      if (string2.ne.string) goto 40
+      return
+      end subroutine locate
+
+
+      subroutine capitalize(string)
+      implicit none
+      integer      :: i
+      character(*) string
+
+      do i = 1, len(string)
+        if (ichar(string(i:i)).gt.96) then
+          string(i:i) = char(ichar(string(i:i))-32)
+        endif
+      end do
+      return
+      end subroutine capitalize 

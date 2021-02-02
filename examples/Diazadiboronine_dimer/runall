@@ -9,5 +9,5 @@ setenv MOLCAS_NPROCS 10
 pymolcas -clean DADBM.input > DADBM.output
 cat _CHMOT0 _CHMOT2 _CHMOT3 _CHMOT4 _CHMOT5 _CHMOT6 _CHMOT7 _CHMOT8 _CHMOT9 _CHMOT10 > _CHMOT1
 rdcho 10
-rdtraint DADB
+rdtraint < DADBCB.input
 mpirun -n 32 gronor DADB_test

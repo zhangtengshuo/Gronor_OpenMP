@@ -3,6 +3,22 @@
 
 cmake_minimum_required (VERSION 3.11.00)
 
+# Define project name with associated languages
+
+message ("Detecting Programming Environment:")
+
+project (GronOR VERSION 21.04 LANGUAGES Fortran C CXX)
+
+# Set global session identifier
+
+set (ENV{CMAKE_SESSION} "GronOR")
+
+message ("Configuring session:")
+message ("-- Project: ${PROJECT_NAME}")
+message ("-- Version: ${PROJECT_VERSION}")
+
+configure_file(include/gronor_config.h.in gronor_config.fh)
+
 # Enforce out-of-source builds only
 
 set (CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -17,11 +33,8 @@ if ("${sourcedir}" STREQUAL "${binarydir}")
     "separate build directory and run cmake from there.")
 endif ()
 
-# Set global session identifier
 
-set (ENV{CMAKE_SESSION} "GronOR")
-
-message ("Session: $ENV{CMAKE_SESSION}")
+message ("-- Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
 
 message ("-- Source: ${CMAKE_SOURCE_DIR}")
 #message ("Binary dir is ${CMAKE_BINARY_DIR}")
@@ -91,9 +104,6 @@ option (CTEST "Enable CTest." OFF)
 option (SINGLEP "Enable single precision." OFF)
 
 
-# Define project name with associated languages
-
-project (GronOR Fortran C CXX)
 
 # Piz Daint specific stuff
 
@@ -239,7 +249,7 @@ endfunction ()
 
 # Detect system information
 
-message ("Detecting system info:")
+message ("Detecting system information:")
 
 # Operating system
 

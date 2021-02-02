@@ -11,6 +11,7 @@
 !     >           input errors)
 
 #include "tgt_guard.fh"
+#include "gronor_config.fh"
 
       subroutine gronor_main()
 
@@ -213,9 +214,10 @@ c     use cuda_functions
         flush(lfnday)
         call timer_start(99)
         
-        write(lfnout,600)
+        write(lfnout,600) _GRONOR_VERSION_MAJOR_,_GRONOR_VERSION_MINOR_
  600    format(/,
-     &       ' GronOR: Non-Orthogonal Configuration Interaction program',//,
+     &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
+     &       ' Version ',i2,'.',i2.2,//,
      &       4x,'T. P. Straatsma',t53,
      &       'C. de Graaf',t85,
      &       'R. W. A. Havenith and R. K. Kathir',/,

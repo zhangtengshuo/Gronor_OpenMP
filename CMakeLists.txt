@@ -143,18 +143,17 @@ endforeach ()
 
 set(AUXILIARY "ON")
 
-if("ENV{MOLCAS}" STREQUAL "")
+if(NOT DEFINED ENV{MOLCAS})
   set(AUXILIARY "")
 endif()
 
-if("ENV{MKLROOT}" STREQUAL "")
+if(NOT DEFINED ENV{MKLROOT})
   set(AUXILIARY "")
 endif()
 
-if("ENV{GA}" STREQUAL "")
+if(NOT DEFINED ENV{GA})
   set(AUXILIARY "")
 endif()
-
 
 if("${AUXILIARY}" STREQUAL "ON")
   message ("Configuring Molcas dependencies")
@@ -1058,7 +1057,10 @@ list(APPEND dir_utils "inp")
 foreach (dir ${source_roots})
   file (GLOB dir_src RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
   list(REMOVE_ITEM dir_src "config") 
-  list(REMOVE_ITEM dir_src "include") 
+  list(REMOVE_ITEM dir_src "include")
+  if("${AUXILIARY}" STREQUAL "")
+    list(REMOVE_ITEM dir_src "aux")
+  endif()
   if(MKL)
     list(REMOVE_ITEM dir_src "blas") 
     list(REMOVE_ITEM dir_src "lapack") 

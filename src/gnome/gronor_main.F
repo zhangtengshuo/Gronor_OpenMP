@@ -100,7 +100,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
-      integer :: li, ndtot, npl
+      integer :: li, ndtot, npl, nrg
       real(kind=8) :: p, q
 
 #ifdef USE_POSIXF
@@ -861,17 +861,17 @@ c        endif
       endif
       
       if(me.eq.master) then
-        l=0
+        nrg=0
         do j=1,numgrp
           do i=2,mgr+1
-            l=max(l,allgroups(j,i))
+            nrg=max(nrg,map2(allgroups(j,i)+1,4))
           enddo
         enddo
         k=5
-        if(l.lt.10000) k=4
-        if(l.lt.1000) k=3
-        if(l.lt.100) k=2
-        if(l.lt.10) k=1
+        if(nrg.lt.10000) k=4
+        if(nrg.lt.1000) k=3
+        if(nrg.lt.100) k=2
+        if(nrg.lt.10) k=1
         l=5
         if(np.lt.10000) l=4
         if(np.lt.1000) l=3
@@ -890,7 +890,7 @@ c        endif
           do while (k.le.l)
             if(mgr.gt.1) write(lfnout,634)
             do i=2,mgr+1                
-              if(nnodes.lt.10) then
+              if(nrg.lt.10) then
                 if(np.lt.10) then
                   write(lfnout,6611)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -912,7 +912,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.100) then
+              elseif(nrg.lt.100) then
                 if(np.lt.10) then
                   write(lfnout,6621)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -934,7 +934,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.1000) then
+              elseif(nrg.lt.1000) then
                 if(np.lt.10) then
                   write(lfnout,6631)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -956,7 +956,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.10000) then
+              elseif(nrg.lt.10000) then
                 if(np.lt.10) then
                   write(lfnout,6641)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -1039,7 +1039,7 @@ c        endif
  6654       format(5x,20(i5,':',i4,'  '))
  6655       format(5x,20(i5,':',i5,'  '))
             do i=2,mgr+1
-              if(nnodes.lt.10) then
+              if(nrg.lt.10) then
                 if(np.lt.10) then
                   write(lfnout,6611)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -1061,7 +1061,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.100) then
+              elseif(nrg.lt.100) then
                 if(np.lt.10) then
                   write(lfnout,6621)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -1083,7 +1083,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.1000) then
+              elseif(nrg.lt.1000) then
                 if(np.lt.10) then
                   write(lfnout,6631)
      &                 ((map2(allgroups(j,i)+1,4),
@@ -1105,7 +1105,7 @@ c        endif
      &                 ((map2(allgroups(j,i)+1,4),
      &                 allgroups(j,i)),j=k,l)
                 endif
-              elseif(nnodes.lt.10000) then
+              elseif(nrg.lt.10000) then
                 if(np.lt.10) then
                   write(lfnout,6641)
      &                 ((map2(allgroups(j,i)+1,4),

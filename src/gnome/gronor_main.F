@@ -861,11 +861,17 @@ c        endif
       endif
       
       if(me.eq.master) then
+        l=0
+        do j=1,numgrp
+          do i=2,mgr+1
+            l=max(l,allgroups(j,i))
+          enddo
+        enddo
         k=5
-        if(nnodes.lt.10000) k=4
-        if(nnodes.lt.1000) k=3
-        if(nnodes.lt.100) k=2
-        if(nnodes.lt.10) k=1
+        if(l.lt.10000) k=4
+        if(l.lt.1000) k=3
+        if(l.lt.100) k=2
+        if(l.lt.10) k=1
         l=5
         if(np.lt.10000) l=4
         if(np.lt.1000) l=3

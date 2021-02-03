@@ -1409,8 +1409,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &             ' mint2= ',mint2
               flush(lfndbg)
             endif            
-!     _ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv))
-!     _OMPTGT_($omp target data map(to:g,lab,ndx,t,v,ndxtv))
+!_ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv))
+!_OMPTGT_($omp target data map(to:g,lab,ndx,t,v,ndxtv))
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1418,8 +1418,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             call gronor_worker()
-!     _ACCTGT_($acc end data)
-!     _OMPTGT_($omp end target data)
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
           else
             lwork=10
             allocate(work(lwork))

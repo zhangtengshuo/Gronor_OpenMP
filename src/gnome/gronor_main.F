@@ -874,24 +874,15 @@ c        endif
         npl=100/(k+l+3)
         write(lfnout,630)
  630    format(//,' MPI Rank Assignments')
- 635    format(/,' Accelerated Groups')
- 633    format(/,' Non-Accelerated Groups')
+ 634        format(' ')
+ 635    format(/,' Accelerated Groups',/)
+ 633    format(/,' Non-Accelerated Groups',/)
         k=1
         l=min(k+npl,numacc)
         if(numacc.gt.0) then
           write(lfnout,635)
           do while (k.le.l)
-            write(lfnout,634)
-            write(lfnout,1631) (j,j=k,l)
- 634        format(' ')
- 1631       format(10x,8i16)
- 1633       format(10x,8(i14,'/',i1))
- 2633       format(10x,8(i13,'/',i2))
- 3633       format(10x,8(i12,'/',i3))
- 4633       format(10x,8(i11,'/',i4))
- 5633       format(10x,8(i8,'/',i7))
-            write(lfnout,1632) (' ------------',j=k,l)
- 1632       format(10x,8a16)
+            if(mgr.gt.1) write(lfnout,634)
             do i=2,mgr+1                
               if(nnodes.lt.10) then
                 if(np.lt.10) then
@@ -1016,8 +1007,6 @@ c        endif
           l=min(k+npl,numgrp)
           do while (k.le.l)
             if(mgr.gt.1) write(lfnout,634)
-c     write(lfnout,1631) (j,j=k,l)
-c     write(lfnout,1632) (' ------------',j=k,l)
  6611       format(5x,20(i1,':',i1,'  '))
  6612       format(5x,20(i1,':',i2,'  '))
  6613       format(5x,20(i1,':',i3,'  '))

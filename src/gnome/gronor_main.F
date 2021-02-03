@@ -100,7 +100,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
-      integer :: li, ndtot
+      integer :: li, ndtot, npl
       real(kind=8) :: p, q
 
 #ifdef USE_POSIXF
@@ -861,114 +861,304 @@ c        endif
       endif
       
       if(me.eq.master) then
+        k=5
+        if(nnodes.lt.10000) k=4
+        if(nnodes.lt.1000) k=3
+        if(nnodes.lt.100) k=2
+        if(nnodes.lt.10) k=1
+        l=5
+        if(np.lt.10000) l=4
+        if(np.lt.1000) l=3
+        if(np.lt.100) l=2
+        if(np.lt.10) l=1
+        npl=100/(k+l+3)
         write(lfnout,630)
  630    format(//,' MPI Rank Assignments')
  635    format(/,' Accelerated Groups')
-        if(ipr.lt.2) then
-          k=1
-          l=min(k+14,numacc)
-          if(numacc.gt.0) then
-            write(lfnout,635)
-            do while (k.le.l)
-              write(lfnout,634)
- 634          format(/)
-              write(lfnout,631) (j,j=k,l)
- 631          format(10x,15i8)
-              write(lfnout,632) (' ----',j=k,l)
- 632          format(10x,15a8)
-              do i=2,mgr+1
-                write(lfnout,631) (allgroups(j,i),j=k,l)
-              enddo
-              k=l+1
-              l=min(k+14,numacc)
-            enddo
+ 633    format(/,' Non-Accelerated Groups')
+        k=1
+        l=min(k+npl,numacc)
+        if(numacc.gt.0) then
+          write(lfnout,635)
+          do while (k.le.l)
             write(lfnout,634)
-          endif
-          if(numnon.gt.0) then
-            write(lfnout,633)
- 633        format(/,' Non-Accelerated Groups')
-            k=l+1
-            l=min(k+14,numgrp)
-            do while (k.le.l)
-              write(lfnout,634)
-              write(lfnout,631) (j,j=k,l)
-              write(lfnout,632) (' ----',j=k,l)
-              do i=2,mgr+1
-                write(lfnout,631) (allgroups(j,i),j=k,l)
-              enddo
-              k=l+1
-              l=min(k+14,numgrp)
-            enddo
-          endif
-        else
-          k=1
-          l=min(k+7,numacc)
-          if(numacc.gt.0) then
-            write(lfnout,635)
-            do while (k.le.l)
-              write(lfnout,634)
-              write(lfnout,1631) (j,j=k,l)
- 1631         format(10x,8i16)
- 1633         format(10x,8(i14,'/',i1))
- 2633         format(10x,8(i13,'/',i2))
- 3633         format(10x,8(i12,'/',i3))
- 4633         format(10x,8(i11,'/',i4))
- 5633         format(10x,8(i8,'/',i7))
-              write(lfnout,1632) (' ------------',j=k,l)
- 1632         format(10x,8a16)
-              do i=2,mgr+1
+            write(lfnout,1631) (j,j=k,l)
+ 634        format(' ')
+ 1631       format(10x,8i16)
+ 1633       format(10x,8(i14,'/',i1))
+ 2633       format(10x,8(i13,'/',i2))
+ 3633       format(10x,8(i12,'/',i3))
+ 4633       format(10x,8(i11,'/',i4))
+ 5633       format(10x,8(i8,'/',i7))
+            write(lfnout,1632) (' ------------',j=k,l)
+ 1632       format(10x,8a16)
+            do i=2,mgr+1                
+              if(nnodes.lt.10) then
                 if(np.lt.10) then
-                  write(lfnout,1633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6611)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnout,2633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6612)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnout,3633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6613)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnout,4633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6614)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 else
-                  write(lfnout,5633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6615)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 endif
-              enddo
-              k=l+1
-              l=min(k+7,numacc)
-            enddo
-            write(lfnout,634)
-          endif
-          if(numnon.gt.0) then
-            write(lfnout,633)
-            k=l+1
-            l=min(k+7,numgrp)
-            do while (k.le.l)
-              write(lfnout,634)
-              write(lfnout,1631) (j,j=k,l)
-              write(lfnout,1632) (' ------------',j=k,l)
-              do i=2,mgr+1
+              elseif(nnodes.lt.100) then
                 if(np.lt.10) then
-                  write(lfnout,1633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6621)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnout,2633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6622)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnout,3633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6623)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnout,4633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6624)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 else
-                  write(lfnout,5633) ((allgroups(j,i),
-     &                 map2(allgroups(j,i)+1,4)),j=k,l)
+                  write(lfnout,6625)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
                 endif
-              enddo
-              k=l+1
-              l=min(k+7,numgrp)
+              elseif(nnodes.lt.1000) then
+                if(np.lt.10) then
+                  write(lfnout,6631)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6632)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6633)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6634)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6635)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              elseif(nnodes.lt.10000) then
+                if(np.lt.10) then
+                  write(lfnout,6641)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6642)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6643)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6644)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6645)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              else
+                if(np.lt.10) then
+                  write(lfnout,6651)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6652)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6653)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6654)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6655)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              endif
             enddo
-          endif
+            k=l+1
+            l=min(k+npl,numacc)
+          enddo
+          write(lfnout,634)
+        endif
+        if(numnon.gt.0) then
+          write(lfnout,633)
+          k=l+1
+          l=min(k+npl,numgrp)
+          do while (k.le.l)
+            if(mgr.gt.1) write(lfnout,634)
+c     write(lfnout,1631) (j,j=k,l)
+c     write(lfnout,1632) (' ------------',j=k,l)
+ 6611       format(5x,20(i1,':',i1,'  '))
+ 6612       format(5x,20(i1,':',i2,'  '))
+ 6613       format(5x,20(i1,':',i3,'  '))
+ 6614       format(5x,20(i1,':',i4,'  '))
+ 6615       format(5x,20(i1,':',i5,'  '))
+ 6621       format(5x,20(i2,':',i1,'  '))
+ 6622       format(5x,20(i2,':',i2,'  '))
+ 6623       format(5x,20(i2,':',i3,'  '))
+ 6624       format(5x,20(i2,':',i4,'  '))
+ 6625       format(5x,20(i2,':',i5,'  '))
+ 6631       format(5x,20(i3,':',i1,'  '))
+ 6632       format(5x,20(i3,':',i2,'  '))
+ 6633       format(5x,20(i3,':',i3,'  '))
+ 6634       format(5x,20(i3,':',i4,'  '))
+ 6635       format(5x,20(i3,':',i5,'  '))
+ 6641       format(5x,20(i4,':',i1,'  '))
+ 6642       format(5x,20(i4,':',i2,'  '))
+ 6643       format(5x,20(i4,':',i3,'  '))
+ 6644       format(5x,20(i4,':',i4,'  '))
+ 6645       format(5x,20(i4,':',i5,'  '))
+ 6651       format(5x,20(i5,':',i1,'  '))
+ 6652       format(5x,20(i5,':',i2,'  '))
+ 6653       format(5x,20(i5,':',i3,'  '))
+ 6654       format(5x,20(i5,':',i4,'  '))
+ 6655       format(5x,20(i5,':',i5,'  '))
+            do i=2,mgr+1
+              if(nnodes.lt.10) then
+                if(np.lt.10) then
+                  write(lfnout,6611)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6612)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6613)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6614)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6615)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              elseif(nnodes.lt.100) then
+                if(np.lt.10) then
+                  write(lfnout,6621)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6622)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6623)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6624)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6625)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              elseif(nnodes.lt.1000) then
+                if(np.lt.10) then
+                  write(lfnout,6631)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6632)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6633)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6634)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6635)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              elseif(nnodes.lt.10000) then
+                if(np.lt.10) then
+                  write(lfnout,6641)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6642)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6643)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6644)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6645)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              else
+                if(np.lt.10) then
+                  write(lfnout,6651)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.100) then
+                  write(lfnout,6652)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.1000) then
+                  write(lfnout,6653)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                elseif(np.lt.10000) then
+                  write(lfnout,6654)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                else
+                  write(lfnout,6655)
+     &                 ((map2(allgroups(j,i)+1,4),
+     &                 allgroups(j,i)),j=k,l)
+                endif
+              endif
+            enddo
+            k=l+1
+            l=min(k+npl,numgrp)
+          enddo
         endif
       endif
 

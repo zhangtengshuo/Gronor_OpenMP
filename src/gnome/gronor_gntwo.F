@@ -477,7 +477,7 @@
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
@@ -492,22 +492,22 @@
 
 !     END ASSEMBLY ON GPU
       
-!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
 
-      do k=1,nbas
-        do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-          aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=ta(i,k)
-        enddo
-      enddo
+c      do k=1,nbas
+c        do i=1,nbas
+c          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+c          aaal(ibl,i,k)=aaa(i,k)
+c          aatl(ibl,i,k)=aat(i,k)
+c          ttl(ibl,i,k)=tt(i,k)
+c          tatl(ibl,i,k)=ta(i,k)
+c        enddo
+c      enddo
 
-!     END ASSEMBLY ON CPU
+c!     END ASSEMBLY ON CPU
 
       call timer_stop(30)
 
@@ -519,8 +519,8 @@
       
       if(ihc.eq.nhc) then
 
-!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
+c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
         etotb=0.0d0
         
@@ -762,7 +762,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
@@ -777,21 +777,21 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !     END ASSEMBLY ON GPU
       
-!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
-      do k=1,nbas
-        do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-          aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=ta(i,k)
-        enddo
-      enddo
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+c      do k=1,nbas
+c        do i=1,nbas
+c          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+c          aaal(ibl,i,k)=aaa(i,k)
+c          aatl(ibl,i,k)=aat(i,k)
+c          ttl(ibl,i,k)=tt(i,k)
+c          tatl(ibl,i,k)=ta(i,k)
+c        enddo
+c      enddo
 
-!     END ASSEMBLY ON CPU
+c!     END ASSEMBLY ON CPU
 
       call timer_stop(30)
 
@@ -803,8 +803,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       
       if(ihc.eq.nhc) then
 
-!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         

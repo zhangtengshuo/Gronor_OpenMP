@@ -240,6 +240,7 @@ ctps         do jbase=1,nbase
 
 !     Loop over the number of determinant pairs for the current base pair
 
+            call timer_start(95)
             do while(ndone.lt.ijend)
 
 !     Wait for a request for a task from any worker group
@@ -248,7 +249,6 @@ ctps         do jbase=1,nbase
                call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
      &              MPI_COMM_WORLD,status,ierr)
                call timer_stop(94)
-               call timer_start(95)
 
 !     Determine rank and group from which the request came
                
@@ -476,8 +476,6 @@ ctps                     do j=1,i
                ibuf(4)=min(ndone+nbatch,ijend)
                ndone=ibuf(4)
 
-               call timer_stop(95)
-
 !     Send buffer to requesting rank without waiting for completion of mpi
 
                call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
@@ -519,6 +517,8 @@ ctps     &              ntasks(ibase,jbase)=ntasks(ibase,jbase)+1
                lgroup(igrp,5)=1
                
             enddo
+
+            call timer_stop(95)
 
 !     At this point the while loop over the determinant pairs for base pair ibase jabase has completed
             
@@ -822,7 +822,7 @@ ccctps                  if(lgroup(i,5).eq.1) j=i
          enddo
       enddo
 
-!     At this point all outstaning tasks completed
+!     At this point all outstanding tasks completed
 
       call timer_stop(97)
 

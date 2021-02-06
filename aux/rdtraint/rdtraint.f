@@ -55,7 +55,7 @@
 
       real (kind=8), dimension(nTraBuf) :: integrals
 
-      real (kind=8), allocatable        :: s(:),sAO(:,:)
+      real (kind=8), allocatable        :: s(:),sAO(:,:),aux(:,:)
       real (kind=8), allocatable        :: vec(:,:)
       real (kind=8), allocatable        :: kinInt(:)
       real (kind=8), allocatable        :: fock(:)
@@ -171,14 +171,19 @@
       end do
       write(*,202) 'Start overlap MOs for ',nOrb,' orbitals'
  202  format(A,I6,A)
+      allocate( aux(nOrb,nBas))
+      do k = 1, nOrb
+        do l = 1, nBas
+          do m = 1, nBas
+            aux(k,l) = aux(k,l) + vec(k,m) * sAO(l,m)
+          end do
+        end do
+      end do
       do j = 1, nOrb
         do k = 1, j
           iCounter = iCounter + 1
           do l = 1, nBas
-            do m = 1, nBas
-              s(iCounter) = s(iCounter) + vec(j,l) 
-     &                       * vec(k,m) * sAO(l,m)
-            end do
+            s(iCounter) = s(iCounter) + vec(j,l) * aux(k,l)
           end do
           if ( print_level .ge. 10 ) write(*,*) iCounter,s(iCounter)
           if ( mod(iCounter,int(nOrbtt/10)) .eq. 0 ) then
@@ -187,7 +192,7 @@
           end if
         end do
       end do 
-      deallocate(dummy)
+      deallocate(dummy,aux)
       write(*,*) 
 
 * allocate memory and read one-electron integrals
@@ -373,8 +378,8 @@
                 traBuf(iCounter) = traBuf(iCounter)*scal(i,j,k,l)
                 if ( print_level .ge. 20 ) write(*,'(5i4,F8.3,F12.6)')
      &             iCounter,i,j,k,l,scal(i,j,k,l),traBuf(iCounter)
-                if (( print_level .ge. 10 ) .and. (iRec .eq. 1) .and. 
-     &                       (iCounter .le. 10 )) 
+                if (( print_level .ge. 10 ) .and. (print_level .lt. 20 )
+     &                .and. (iRec .eq. 1) .and. (iCounter .le. 10 )) 
      &                  write(*,'(4I4,F18.12)') i,j,k,l,traBuf(iCounter)
               else    
                 goto 59

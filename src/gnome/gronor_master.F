@@ -910,11 +910,17 @@ ccctps                  if(lgroup(i,5).eq.1) j=i
 
 !     Output the total singularites and wall clock times
 
+      call timer_stop(99)
       write(*,623) mdet,(nsingt(i),i=1,4),tsum,
-     &     dble(mgr)*tsum/dble(np-1)
+     &     dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
+     &     100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
       write(lfnout,623) mdet,(nsingt(i),i=1,4),tsum,
-     &     dble(mgr)*tsum/dble(np-1)
-  623 format(/,' Total',25x,2i14,2i12,i14,55x,2f12.1)
+     &     dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
+     &     100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
+ 623  format(/,' Total',25x,2i14,2i12,i14,55x,1f12.1,/,
+     &     /,' Total averaged per rank',t153,2f12.1,/,
+     &       ' Efficiency',t153,f12.1,' %')
+      call timer_start(99)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
       

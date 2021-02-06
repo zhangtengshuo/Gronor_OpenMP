@@ -1519,7 +1519,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
 
-      real (kind=8) :: e2n,tsn,gtemp,et
+      real (kind=8) :: e2n,tsn,gtemp,et, etemp
       real (kind=8) :: tcalc, twait
 
       real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
@@ -1633,8 +1633,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=1,nb0
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*sml(ibl,n,l)
      &               -aatl(ibl,n,i)*aaal(ibl,l,k)
      &               -ttl(ibl,n,i)*tatl(ibl,l,k)
@@ -1645,6 +1646,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -aaal(ibl,l,i)*aatl(ibl,n,k)
      &               -tatl(ibl,l,i)*ttl(ibl,n,k))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
 !$omp end do
 !$omp end parallel
@@ -1667,8 +1669,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=1,nb0
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*sml(ibl,n,l)
      &               -aatl(ibl,n,i)*aaal(ibl,l,k)
      &               -ttl(ibl,n,i)*tatl(ibl,l,k)
@@ -1680,7 +1683,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -tatl(ibl,l,i)*ttl(ibl,n,k))
               enddo
               do ibl=nhc-nb1+1,nhc
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &               +diagl(ibl,n)*csdiagl(ibl,l)
      &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -1706,6 +1709,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
      &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
           enddo
 !$omp end parallel do
@@ -1726,8 +1730,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=nhc-nb1+1,nhc
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &               +diagl(ibl,n)*csdiagl(ibl,l)
      &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -1753,6 +1758,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
      &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
           enddo
 !$omp end parallel do

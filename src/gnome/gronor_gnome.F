@@ -45,7 +45,6 @@
       etot=0.0d0
       ttest=0
 
-c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
       do idet=1,2
 
         if(idbg.ge.13) then
@@ -202,11 +201,17 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 
         if((icalc.eq.2.or.icalc.eq.0)) then
           call timer_start(22)
-          if(lbatch.gt.0) then
+          if(lbatch.lt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch(lfndbg,ihc,nhc)
             else
               call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
+            endif
+          elseif(lbatch.gt.0) then
+            if(labels.eq.0) then
+              call gronor_gntwo_batch2(lfndbg,ihc,nhc)
+            else
+              call gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
             endif
           else
             if(labels.eq.0) then
@@ -292,11 +297,17 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 
           if((icalc.eq.2.or.icalc.eq.0)) then
             call timer_start(22)
-            if(lbatch.gt.0) then
+            if(lbatch.lt.0) then
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
               else
                 call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
+              endif
+            elseif(lbatch.gt.0) then
+              if(labels.eq.0) then
+                call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+              else
+                call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
               endif
             else
               if(labels.eq.0) then
@@ -309,6 +320,6 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           endif
 
       endif
-      
+
       return
       end

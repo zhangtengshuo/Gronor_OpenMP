@@ -98,7 +98,7 @@
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
 
-      if(lbatch.gt.0) then
+      if(lbatch.lt.0) then
 c        allocate(diagl(nbatch,max(nelecs,nbas,mbasel)))
 c        allocate(bsdiagl(nbatch,max(nelecs,nbas,mbasel)))
 c        allocate(bdiagl(nbatch,max(nelecs,nbas,mbasel)))
@@ -108,7 +108,7 @@ c        allocate(ttl(nbatch,mbasel,max(mbasel,nveca)))
 c        allocate(aatl(nbatch,mbasel,max(mbasel,nveca)))
 c        allocate(aaal(nbatch,mbasel,max(mbasel,nveca)))
 c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
-        allocate(factor(nbatch),prefac(nbatch))
+        allocate(prefac(nbatch))
         allocate(diagl(nbatch,nbas))
         allocate(bsdiagl(nbatch,nbas))
         allocate(bdiagl(nbatch,nbas))
@@ -118,7 +118,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         allocate(aatl(nbatch,nbas,nbas))
         allocate(aaal(nbatch,nbas,nbas))
         allocate(tatl(nbatch,nbas,nbas))
-      else
+      elseif(lbatch.eq.0) then
         allocate(diagl(1,1))
         allocate(bsdiagl(1,1))
         allocate(bdiagl(1,1))
@@ -128,7 +128,24 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         allocate(aatl(1,1,1))
         allocate(aaal(1,1,1))
         allocate(tatl(1,1,1))
-        allocate(factor(1),prefac(1))
+        allocate(prefac(1))
+      else
+        allocate(prefac0(lbatch))
+        allocate(sm0(lbatch,nbas,nbas))
+        allocate(tt0(lbatch,nbas,nbas))
+        allocate(aat0(lbatch,nbas,nbas))
+        allocate(aaa0(lbatch,nbas,nbas))
+        allocate(tat0(lbatch,nbas,nbas))
+        allocate(prefac1(lbatch))
+        allocate(diag1(lbatch,nbas))
+        allocate(bsdiag1(lbatch,nbas))
+        allocate(bdiag1(lbatch,nbas))
+        allocate(csdiag1(lbatch,nbas))
+        allocate(sm1(lbatch,nbas,nbas))
+        allocate(tt1(lbatch,nbas,nbas))
+        allocate(aat1(lbatch,nbas,nbas))
+        allocate(aaa1(lbatch,nbas,nbas))
+        allocate(tat1(lbatch,nbas,nbas))
       endif
 
       allocate(w1(max(nelecs,nbas,mbasel)))
@@ -452,12 +469,17 @@ CTPS  Point for start of data
 
 CTPS  Point for end data
       
-      if(lbatch.gt.0) then
+      if(lbatch.lt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(factor,prefac)
+        deallocate(prefac)
+      elseif(lbatch.eq.0) then
+        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
+        deallocate(prefac)
       else
-        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(factor,prefac)
+        deallocate(tat0,aaa0,aat0,tt0,sm0)
+        deallocate(prefac0)
+        deallocate(tat1,aaa1,aat1,tt1,sm1,csdiag1,bdiag1,bsdiag1,diag1)
+        deallocate(prefac1)
       endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
       deallocate(aat,tt,sm)

@@ -181,15 +181,37 @@
 #ifdef SINGLEP
       real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
       real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-      real (kind=4), allocatable :: sml(:,:,:), factor(:), prefac(:)
+      real (kind=4), allocatable :: sml(:,:,:), prefac(:)
       real (kind=4), allocatable :: aaal(:,:,:),aatl(:,:,:)
       real (kind=4), allocatable :: ttl(:,:,:),tatl(:,:,:)
 #else
       real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
       real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-      real (kind=8), allocatable :: sml(:,:,:), factor(:), prefac(:)
+      real (kind=8), allocatable :: sml(:,:,:), prefac(:)
       real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
       real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
+#endif
+#ifdef SINGLEP
+      real (kind=4), allocatable :: sm0(:,:,:), prefac0(:)
+      real (kind=4), allocatable :: aaa0(:,:,:),aat0(:,:,:)
+      real (kind=4), allocatable :: tt0(:,:,:),tat0(:,:,:)
+#else
+      real (kind=8), allocatable :: sm0(:,:,:), prefac0(:)
+      real (kind=8), allocatable :: aaa0(:,:,:),aat0(:,:,:)
+      real (kind=8), allocatable :: tt0(:,:,:),tat0(:,:,:)
+#endif
+#ifdef SINGLEP
+      real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
+      real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
+      real (kind=4), allocatable :: sm1(:,:,:), prefac1(:)
+      real (kind=4), allocatable :: aaa1(:,:,:),aat1(:,:,:)
+      real (kind=4), allocatable :: tt1(:,:,:),tat1(:,:,:)
+#else
+      real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
+      real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
+      real (kind=8), allocatable :: sm1(:,:,:), prefac1(:)
+      real (kind=8), allocatable :: aaa1(:,:,:),aat1(:,:,:)
+      real (kind=8), allocatable :: tt1(:,:,:),tat1(:,:,:)
 #endif
 
       integer :: ising

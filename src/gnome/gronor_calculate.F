@@ -289,7 +289,7 @@
 !     hh contains the Hamiltonian matrix element
 !     ss contains the Overlap matrix element
 
-        if(lbatch.le.0) then
+        if(lbatch.eq.0) then
           if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
             if(icalc.eq.0) then
               if(mgr.le.1) then
@@ -320,10 +320,10 @@
         if(iamhead.eq.1) e1tot=e1tot+e1*fctr
 
         call timer_stop(5)
-        
+
       enddo
 
-      if(lbatch.ge.1) then
+      if(lbatch.ne.0) then
         if(iamhead.eq.1) then
           buffer(1)=e1tot+etotb
           buffer(2)=sstot
@@ -331,8 +331,10 @@
         else
           e2buff=e1tot+etotb
         endif
+
       endif
 
+      
 !     Upon return from gronor_calculate the head thread has the
 !     accumulated results from all threads in the group
       

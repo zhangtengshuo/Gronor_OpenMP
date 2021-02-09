@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 3.11.00)
 
 message ("Detecting Programming Environment:")
 
-project (GronOR VERSION 21.04 LANGUAGES Fortran C CXX)
+project (GronOR VERSION 21.00 LANGUAGES Fortran C CXX)
 
 # Set global session identifier
 

@@ -116,7 +116,7 @@
         endif
         
         if(inp_compare(.false.,'Batched',item)) then
-          lbatch=1
+          if(.not.inp_i(lbatch)) lbatch=-1
           goto 2
         endif
         

@@ -261,11 +261,12 @@
       call timer_stop(99)
       
       if(me.eq.master) then
-      write(lfnout,675) nalive+1,np
- 675  format(//,' At the end of the run ',i8,' of ',i8,
-     &     ' processes are still active')
+        write(lfnout,675) nalive+1,np
+ 675    format(//,' At the end of the run ',i8,' of ',i8,
+     &       ' processes are still active')
         if(ipr.ge.2) write(lfnout,615) 
-     &       timer_wall_total(94),timer_wall_total(95),
+     &       timer_wall_total(94),
+     &       timer_wall_total(95)-timer_wall_total(94),
      &       timer_wall_total(96),
      &       timer_wall_total(97)-timer_wall_total(96)
  615    format(//,

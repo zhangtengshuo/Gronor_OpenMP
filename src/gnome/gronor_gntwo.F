@@ -69,6 +69,8 @@
 
       if(ising.ge.3) return
       
+      call timer_start(30)
+      
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
@@ -83,8 +85,6 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-      call timer_start(30)
-      
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
@@ -242,6 +242,8 @@
 #endif
 
       if(ising.ge.3) return
+
+      call timer_start(30)
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
@@ -257,8 +259,6 @@
       tsn=0.0d0
       fourdet=4.0d0*deta
 
-      call timer_start(30)
-      
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do i=1,nbas 
@@ -425,69 +425,68 @@
       endif
       
       if(ising.lt.3) then
-
-      if(ising.eq.0) then
-        nb0=nb0+1
-        ibl=nb0        
-        prefac(ibl)=4.0d0*deta*fctr
-      else
-        ibl=nhc-nb1
-        nb1=nb1+1
-        prefac(ibl)=fctr
-      endif
-      factor(ibl)=fctr
-
-      if(iamhead.eq.1) sstot=sstot+factor(ibl)*deta
-
-      if(idbg.ge.13) write(lfndbg,600)
- 600  format(' Calculating two electron matrix element',/)
-
-      numint=mint2
-
-      if(ising.gt.1) e1=0.0d0
-      e2=0.0d0
-      ts=0.0d0
-      fourdet=4.0d0*deta
-
-      call timer_start(30)
-
-      if(ising.gt.0) then
+        
+        call timer_start(30)
+        
+        if(ising.eq.0) then
+          nb0=nb0+1
+          ibl=nb0        
+          prefac(ibl)=4.0d0*deta*fctr
+        else
+          ibl=nhc-nb1
+          nb1=nb1+1
+          prefac(ibl)=fctr
+        endif
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+        
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        if(ising.gt.0) then
 
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do)
-        do i=1,nbas
-          diagl(ibl,i)=diag(i)
-          bdiagl(ibl,i)=bdiag(i)
-          bsdiagl(ibl,i)=bsdiag(i)
-          csdiagl(ibl,i)=csdiag(i)
-        enddo
+          do i=1,nbas
+            diagl(ibl,i)=diag(i)
+            bdiagl(ibl,i)=bdiag(i)
+            bsdiagl(ibl,i)=bsdiag(i)
+            csdiagl(ibl,i)=csdiag(i)
+          enddo
 !_ACCTGT_($acc end kernels)
 
-      endif
+        endif
 !_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
-      do i=1,nbas 
-        do k=1,nbas 
-          tt(i,k)=ta(k,i)
-          aat(i,k)=aaa(k,i)
+        do i=1,nbas 
+          do k=1,nbas 
+            tt(i,k)=ta(k,i)
+            aat(i,k)=aaa(k,i)
+          enddo
         enddo
-      enddo
 !_ACCTGT_($acc end kernels)
 
 !     ASSEMBLE ARRAYS ON GPU
       
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
-      do k=1,nbas
-        do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-          aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
-          tatl(ibl,i,k)=ta(i,k)
+        do k=1,nbas
+          do i=1,nbas
+            sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+            aaal(ibl,i,k)=aaa(i,k)
+            aatl(ibl,i,k)=aat(i,k)
+            ttl(ibl,i,k)=tt(i,k)
+            tatl(ibl,i,k)=ta(i,k)
+          enddo
         enddo
-      enddo
 !_ACCTGT_($acc end kernels)
 
 !     END ASSEMBLY ON GPU
@@ -509,7 +508,7 @@ c      enddo
 
 c!     END ASSEMBLY ON CPU
 
-      call timer_stop(30)
+        call timer_stop(30)
 
       endif
 
@@ -553,65 +552,11 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 !_ACCTGT_($acc end kernels)
 
           call timer_stop(31)
+          
         endif
 
-c        if(nb0.gt.0.and.nb1.gt.0) then
-cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
-c          call timer_start(31)
-c
-c!_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
-c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
-c          do intg=1,numint
-c            i=lab(1,intg)
-c            k=lab(2,intg)
-c            l=lab(3,intg)
-c            n=lab(4,intg)
-c            do ibl=1,nb0
-c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
-c     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
-c     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
-c     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
-c     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
-c     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
-c     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
-c     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
-c     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
-c            enddo
-c            do ibl=nhc-nb1+1,nhc
-c              etotb=etotb+g(intg)*prefac(ibl)*
-c     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
-c     &             +diagl(ibl,n)*csdiagl(ibl,l)
-c     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
-c     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
-c     &             +(diagl(ibl,i)*csdiagl(ibl,k)
-c     &             +diagl(ibl,k)*csdiagl(ibl,i)
-c     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
-c     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
-c     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
-c     &             +aatl(ibl,l,k)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
-c     &             +aaal(ibl,n,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
-c     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
-c     &             +aatl(ibl,l,i)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
-c     &             +aaal(ibl,l,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
-c            enddo
-c          enddo
-c!_ACCTGT_($acc end kernels)
-c
-c          call timer_stop(31)
-c        endif
-        
-c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
+          
           call timer_start(34)
 
 !_ACCTGT_($acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac))
@@ -654,6 +599,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 !_ACCTGT_($acc end kernels)
     
           call timer_stop(34)
+          
         endif
         
 !_ACCTGT_($acc end data)
@@ -710,34 +656,30 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       endif
       
       if(ising.lt.3) then
-
-      if(ising.eq.0) then
-        nb0=nb0+1
-        ibl=nb0        
-        prefac(ibl)=4.0d0*deta*fctr
-      else
-        ibl=nhc-nb1
-        nb1=nb1+1
-        prefac(ibl)=fctr
-      endif
-      factor(ibl)=fctr
-
-      if(iamhead.eq.1) sstot=sstot+factor(ibl)*deta
-
-      if(idbg.ge.13) write(lfndbg,600)
- 600  format(' Calculating two electron matrix element',/)
-
-      numint=mint2
-
-      if(ising.gt.1) e1=0.0d0
-      e2=0.0d0
-      ts=0.0d0
-      fourdet=4.0d0*deta
-
-      call timer_start(30)
-
-      if(ising.gt.0) then
-
+        
+        call timer_start(30)
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+        
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        if(ising.eq.0) then
+          nb0=nb0+1
+          ibl=nb0        
+          prefac(ibl)=4.0d0*deta*fctr
+        else
+          ibl=nhc-nb1
+          nb1=nb1+1
+          prefac(ibl)=fctr
+          
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do)
@@ -749,27 +691,18 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         enddo
 !_ACCTGT_($acc end kernels)
 
-      endif
-!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
-!_OMPTGT_($omp target teams distribute parallel do collapse(2))
-      do i=1,nbas 
-        do k=1,nbas 
-          tt(i,k)=ta(k,i)
-          aat(i,k)=aaa(k,i)
-        enddo
-      enddo
-!_ACCTGT_($acc end kernels)
-
+        endif
+        
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
           aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
+          aatl(ibl,i,k)=aaa(k,i)
+          ttl(ibl,i,k)=ta(k,i)
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
@@ -777,21 +710,21 @@ c        if(nb0.le.0.and.nb1.gt.0) then
 
 !     END ASSEMBLY ON GPU
       
-c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
-c      do k=1,nbas
-c        do i=1,nbas
-c          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
-c          aaal(ibl,i,k)=aaa(i,k)
-c          aatl(ibl,i,k)=aat(i,k)
-c          ttl(ibl,i,k)=tt(i,k)
-c          tatl(ibl,i,k)=ta(i,k)
-c        enddo
-c      enddo
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+      do k=1,nbas
+        do i=1,nbas
+          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaal(ibl,i,k)=aaa(i,k)
+          aatl(ibl,i,k)=aaa(k,i)
+          ttl(ibl,i,k)=ta(k,i)
+          tatl(ibl,i,k)=ta(i,k)
+        enddo
+      enddo
 
-c!     END ASSEMBLY ON CPU
+!     END ASSEMBLY ON CPU
 
       call timer_stop(30)
 
@@ -803,15 +736,14 @@ c!     END ASSEMBLY ON CPU
       
       if(ihc.eq.nhc) then
 
-c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         
 !_ACCTGT_($acc data copyin(prefac))
 !_OMPTGT_($omp target data map(to:prefac))
         
-c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
           call timer_start(31)
 
@@ -846,66 +778,6 @@ c        if(nb0.gt.0.and.nb1.le.0) then
           call timer_stop(31)
         endif
 
-c        if(nb0.gt.0.and.nb1.gt.0) then
-cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
-c          call timer_start(31)
-c
-c       kl=nbas*(nbas+1)/2
-c       intg=0
-c!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
-c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
-c       do ii=intndx,jntndx
-c         do jj=ii,kl
-c           intg=ndx(ii)+jj
-c           i=lab(1,ii)
-c           k=lab(2,ii)
-c           l=lab(1,jj)
-c           n=lab(2,jj)
-c            do ibl=1,nb0
-c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
-c     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
-c     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
-c     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
-c     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
-c     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
-c     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
-c     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
-c     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
-c            enddo
-c            do ibl=nhc-nb1+1,nhc
-c              etotb=etotb+g(intg)*prefac(ibl)*
-c     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
-c     &             +diagl(ibl,n)*csdiagl(ibl,l)
-c     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
-c     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
-c     &             +(diagl(ibl,i)*csdiagl(ibl,k)
-c     &             +diagl(ibl,k)*csdiagl(ibl,i)
-c     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
-c     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
-c     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
-c     &             +aatl(ibl,l,k)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
-c     &             +aaal(ibl,n,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
-c     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
-c     &             +aatl(ibl,l,i)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
-c     &             +aaal(ibl,l,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
-c            enddo
-c          enddo
-c!_ACCTGT_($acc end kernels)
-c
-c          call timer_stop(31)
-c        endif
-        
-c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
           call timer_start(34)
 
@@ -958,6 +830,804 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         
 !_ACCTGT_($acc end data)
 !_OMPTGT_($omp end target data)
+      endif
+
+      call timer_stop(38)
+      
+      return
+      end
+
+      subroutine gronor_gntwo_batch_mlab_broken(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+
+      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+        etotb=0.0d0
+      endif
+      
+      if(ising.lt.3) then
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        call timer_start(30)
+        
+        if(ising.eq.0) then
+          nb0=nb0+1
+          prefac0(nb0)=4.0d0*deta*fctr
+          
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+          do k=1,nbas
+            do i=1,nbas
+              sml(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaal(nb0,i,k)=aaa(i,k)
+              aatl(nb0,i,k)=aaa(k,i)
+              ttl(nb0,i,k)=ta(k,i)
+              tatl(nb0,i,k)=ta(i,k)
+            enddo
+          enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa0(nb0,i,k)=aaa(i,k)
+c          aat0(nb0,i,k)=aaa(k,i)
+c          tt0(nb0,i,k)=ta(k,i)
+c          tat0(nb0,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+        else
+          nb1=nb1+1
+          prefac1(nb1)=fctr
+          
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+          do k=1,nbas
+            do i=1,nbas
+              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa1(nb1,i,k)=aaa(i,k)
+              aat1(nb1,i,k)=aaa(k,i)
+              tt1(nb1,i,k)=ta(k,i)
+              tat1(nb1,i,k)=ta(i,k)
+            enddo
+          enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa1(nb1,i,k)=aaa(i,k)
+c          aat1(nb1,i,k)=aaa(k,i)
+c          tt1(nb1,i,k)=ta(k,i)
+c          tat1(nb1,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+      
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
+          do i=1,nbas
+            diag1(nb1,i)=diag(i)
+            bdiag1(nb1,i)=bdiag(i)
+            bsdiag1(nb1,i)=bsdiag(i)
+            csdiag1(nb1,i)=csdiag(i)
+          enddo
+!_ACCTGT_($acc end kernels)
+
+        endif
+
+        call timer_stop(30)
+
+      endif
+
+      call timer_start(38)
+
+!     After the last element of a task the list of energies is generated
+      
+      if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.lbatch) then
+
+        call timer_start(31)
+
+c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+
+!_ACCTGT_($acc data copyin(prefac0))
+!_OMPTGT_($omp target data map(to:prefac0))
+
+        kl=nbas*(nbas+1)/2
+
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do ii=intndx,jntndx
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+            do ibl=1,nb0
+              etotb=etotb+g(intg)*
+     &             prefac(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l)
+     &             -aat0(ibl,n,i)*aaa0(ibl,l,k)
+     &             -tt0(ibl,n,i)*tat0(ibl,l,k)
+     &             -aaa0(ibl,n,i)*aat0(ibl,l,k)
+     &             -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
+     &             -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
+     &             -tat0(ibl,l,i)*tt0(ibl,n,k))
+            enddo
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
+!     Reset index in buffer to zero
+        nb0=0
+        
+        call timer_stop(31)
+        
+      endif
+
+      if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.lbatch) then
+        
+        call timer_start(34)
+        
+!_ACCTGT_($acc data copyin(prefac0))
+!_OMPTGT_($omp target data map(to:prefac0))
+
+        kl=nbas*(nbas+1)/2
+
+!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do ii=intndx,jntndx
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+            do ibl=1,nb1
+              etotb=etotb+g(intg)*prefac(ibl)*
+     &             (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
+     &             +diag1(ibl,n)*csdiag1(ibl,l)
+     &             +bdiag1(ibl,l)*bsdiag1(ibl,n)
+     &             +bdiag1(ibl,n)*bsdiag1(ibl,l))
+     &             +(diag1(ibl,i)*csdiag1(ibl,k)
+     &             +diag1(ibl,k)*csdiag1(ibl,i)
+     &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
+     &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
+     &             -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
+     &             +aat1(ibl,l,k)*diag1(ibl,n))
+     &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,k)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
+     &             +aaa1(ibl,n,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
+     &             +aat1(ibl,l,i)*diag1(ibl,n))
+     &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,i)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
+     &             +aaa1(ibl,l,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,l,k)*bdiag1(ibl,i)))
+            enddo
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+    
+!     Reset index into buffer
+        nb1=0
+
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
+        call timer_stop(34)
+        
+      endif
+
+      call timer_stop(38)
+      
+      return
+      end
+
+      subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+
+      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+      
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+        etotb=0.0d0
+      endif
+      
+      if(ising.lt.3) then
+        
+        call timer_start(30)
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+        
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        if(ising.eq.0) then
+          nb0=nb0+1
+          prefac0(nb0)=4.0d0*deta*fctr
+          
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+          do k=1,nbas
+            do i=1,nbas
+              sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa0(nb0,i,k)=aaa(i,k)
+              aat0(nb0,i,k)=aaa(k,i)
+              tt0(nb0,i,k)=ta(k,i)
+              tat0(nb0,i,k)=ta(i,k)
+            enddo
+          enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
+
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa0(nb0,i,k)=aaa(i,k)
+c          aat0(nb0,i,k)=aaa(k,i)
+c          tt0(nb0,i,k)=ta(k,i)
+c          tat0(nb0,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+        else
+          nb1=nb1+1
+          prefac1(nb1)=fctr
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+          do k=1,nbas
+            do i=1,nbas
+              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa1(nb1,i,k)=aaa(i,k)
+              aat1(nb1,i,k)=aaa(k,i)
+              tt1(nb1,i,k)=ta(k,i)
+              tat1(nb1,i,k)=ta(i,k)
+            enddo
+          enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt)) 
+
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa1(nb1,i,k)=aaa(i,k)
+c          aat1(nb1,i,k)=aaa(k,i)
+c          tt1(nb1,i,k)=ta(k,i)
+c          tat1(nb1,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+!_OMPTGT_($omp target teams distribute parallel do)
+          do i=1,nbas
+            diag1(nb1,i)=diag(i)
+            bdiag1(nb1,i)=bdiag(i)
+            bsdiag1(nb1,i)=bsdiag(i)
+            csdiag1(nb1,i)=csdiag(i)
+          enddo
+!_ACCTGT_($acc end kernels)
+
+        endif
+
+        call timer_stop(30)
+
+      endif
+      
+      call timer_start(38)
+
+!     After the last element of a task the list of energies is generated
+      
+      if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.lbatch) then
+        
+        call timer_start(31)
+
+c!_ACCTGT_($acc update device(tat0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
+        
+!_ACCTGT_($acc data copyin(prefac0))
+!_OMPTGT_($omp target data map(to:prefac0))
+
+!_ACCTGT_($acc kernels present(lab,g,sm0,aat0,aaa0,tt0,tat0,prefac0))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do intg=1,numint
+          i=lab(1,intg)
+          k=lab(2,intg)
+          l=lab(3,intg)
+          n=lab(4,intg)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+          do ibl=1,nb0
+            etotb=etotb+g(intg)*prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l)
+     &           -aat0(ibl,n,i)*aaa0(ibl,l,k)
+     &           -tt0(ibl,n,i)*tat0(ibl,l,k)
+     &           -aaa0(ibl,n,i)*aat0(ibl,l,k)
+     &           -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &           -aat0(ibl,l,i)*aaa0(ibl,n,k)
+     &           -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &           -aaa0(ibl,l,i)*aat0(ibl,n,k)
+     &           -tat0(ibl,l,i)*tt0(ibl,n,k))
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+        
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
+!     Reset index in buffer to zero
+        nb0=0
+        
+        call timer_stop(31)
+        
+      endif
+        
+      if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.lbatch) then
+        
+        call timer_start(34)
+
+c!_ACCTGT_($acc update device(tat1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
+        
+!_ACCTGT_($acc data copyin(prefac1))
+!_OMPTGT_($omp target data map(to:prefac1))
+
+!_ACCTGT_($acc kernels present(lab,g,sm1,aat1,aaa1,tt1,tat1,prefac1))
+!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do intg=1,numint
+          i=lab(1,intg) 
+          k=lab(2,intg) 
+          l=lab(3,intg) 
+          n=lab(4,intg)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+          do ibl=1,nb1
+            etotb=etotb+g(intg)*prefac1(ibl)*
+     &           (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
+     &           +diag1(ibl,n)*csdiag1(ibl,l)
+     &           +bdiag1(ibl,l)*bsdiag1(ibl,n)
+     &           +bdiag1(ibl,n)*bsdiag1(ibl,l))
+     &           +(diag1(ibl,i)*csdiag1(ibl,k)
+     &           +diag1(ibl,k)*csdiag1(ibl,i)
+     &           +bdiag1(ibl,i)*bsdiag1(ibl,k)
+     &           +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
+     &           -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
+     &           +aat1(ibl,l,k)*diag1(ibl,n))
+     &           -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
+     &           +tt1(ibl,l,k)*bdiag1(ibl,n))
+     &           -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
+     &           +aaa1(ibl,n,k)*diag1(ibl,i))
+     &           -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
+     &           +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &           -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
+     &           +aat1(ibl,l,i)*diag1(ibl,n))
+     &           -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
+     &           +tt1(ibl,l,i)*bdiag1(ibl,n))
+     &           -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
+     &           +aaa1(ibl,l,k)*diag1(ibl,i))
+     &           -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
+     &           +tat1(ibl,l,k)*bdiag1(ibl,i)))
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+    
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
+!     Reset index into buffer
+        nb1=0
+          
+        call timer_stop(34)
+      endif
+
+      call timer_stop(38)
+      
+      return
+      end
+
+      subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+
+      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+        etotb=0.0d0
+      endif
+      
+      if(ising.lt.3) then
+
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+        
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        call timer_start(30)
+
+        if(ising.eq.0) then
+          nb0=nb0+1      
+          prefac0(nb0)=4.0d0*deta*fctr
+          
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaa0,aat0,tt0,tat0,tt,aat,aaa,ta,sm0) copyin(nb0))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+      do k=1,nbas
+        do i=1,nbas
+          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaa0(nb0,i,k)=aaa(i,k)
+          aat0(nb0,i,k)=aaa(k,i)
+          tt0(nb0,i,k)=ta(k,i)
+          tat0(nb0,i,k)=ta(i,k)
+        enddo
+      enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa0(nb0,i,k)=aaa(i,k)
+c          aat0(nb0,i,k)=aaa(k,i)
+c          tt0(nb0,i,k)=ta(k,i)
+c          tat0(nb0,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+
+      else
+        nb1=nb1+1
+        prefac1(nb1)=fctr
+      
+!     ASSEMBLE ARRAYS ON GPU
+      
+!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,tat1,tt,aat,aaa,ta,sm1) copyin(nb1))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+      do k=1,nbas
+        do i=1,nbas
+          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaa1(nb1,i,k)=aaa(i,k)
+          aat1(nb1,i,k)=aaa(k,i)
+          tt1(nb1,i,k)=ta(k,i)
+          tat1(nb1,i,k)=ta(i,k)
+        enddo
+      enddo
+!_ACCTGT_($acc end kernels)
+
+!     END ASSEMBLY ON GPU
+      
+c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+      
+c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+c      do k=1,nbas
+c        do i=1,nbas
+c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa1(nb1,i,k)=aaa(i,k)
+c          aat1(nb1,i,k)=aaa(k,i)
+c          tt1(nb1,i,k)=ta(k,i)
+c          tat1(nb1,i,k)=ta(i,k)
+c        enddo
+c      enddo
+
+c!     END ASSEMBLY ON CPU
+
+!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do i=1,nbas
+          diag1(nb1,i)=diag(i)
+          bdiag1(nb1,i)=bdiag(i)
+          bsdiag1(nb1,i)=bsdiag(i)
+          csdiag1(nb1,i)=csdiag(i)
+        enddo
+!_ACCTGT_($acc end kernels)
+
+      endif
+
+      call timer_stop(30)
+
+      endif
+
+      call timer_start(38)
+
+!     After the last element of a task the list of energies is generated
+      
+      if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.lbatch) then
+        
+        call timer_start(31)
+
+c!_ACCTGT_($acc update device(tat0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0)) 
+
+!_ACCTGT_($acc data copyin(prefac0))
+!_OMPTGT_($omp target data map(to:prefac0))
+        
+        kl=nbas*(nbas+1)/2
+
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,tat0,prefac0))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do ii=intndx,jntndx
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+            do ibl=1,nb0
+              etotb=etotb+g(intg)*prefac0(ibl)*
+     &             (sm0(ibl,k,i)*sm0(ibl,n,l)
+     &             -aat0(ibl,n,i)*aaa0(ibl,l,k)
+     &             -tt0(ibl,n,i)*tat0(ibl,l,k)
+     &             -aaa0(ibl,n,i)*aat0(ibl,l,k)
+     &             -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
+     &             -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
+     &             -tat0(ibl,l,i)*tt0(ibl,n,k))
+            enddo
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+
+!     Reset index in buffer to zero
+        nb0=0
+        
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
+        call timer_stop(31)
+
+      endif
+
+      if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.lbatch) then
+        
+        call timer_start(34)
+        
+c!_ACCTGT_($acc update device(tat1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1)) 
+
+!_ACCTGT_($acc data copyin(prefac1))
+!_OMPTGT_($omp target data map(to:prefac1))
+
+        kl=nbas*(nbas+1)/2
+
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,tat1,prefac1))
+!_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1))
+!_OMPTGT_($omp target teams distribute parallel do)
+        do ii=intndx,jntndx
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+!_ACCTGT_($acc loop private(ibl) vector(32))
+            do ibl=1,nb1
+              etotb=etotb+g(intg)*prefac1(ibl)*
+     &             (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
+     &             +diag1(ibl,n)*csdiag1(ibl,l)
+     &             +bdiag1(ibl,l)*bsdiag1(ibl,n)
+     &             +bdiag1(ibl,n)*bsdiag1(ibl,l))
+     &             +(diag1(ibl,i)*csdiag1(ibl,k)
+     &             +diag1(ibl,k)*csdiag1(ibl,i)
+     &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
+     &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
+     &             -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
+     &             +aat1(ibl,l,k)*diag1(ibl,n))
+     &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,k)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
+     &             +aaa1(ibl,n,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
+     &             +aat1(ibl,l,i)*diag1(ibl,n))
+     &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,i)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
+     &             +aaa1(ibl,l,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,l,k)*bdiag1(ibl,i)))
+            enddo
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+    
+!     Reset index into buffer
+        nb1=0
+          
+        call timer_stop(34)
+          
+!_ACCTGT_($acc end data)
+!_OMPTGT_($omp end target data)
+
       endif
 
       call timer_stop(38)
@@ -1304,9 +1974,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         nb1=nb1+1
         prefac(ibl)=fctr
       endif
-      factor(ibl)=fctr
 
-      if(iamhead.eq.1) sstot=sstot+factor(ibl)*deta
+      if(iamhead.eq.1) sstot=sstot+fctr*deta
 
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
@@ -1497,7 +2166,6 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       return
       end
 
-
       subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
 
       use mpi
@@ -1519,7 +2187,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
       integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
       integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
 
-      real (kind=8) :: e2n,tsn,gtemp,et
+      real (kind=8) :: e2n,tsn,gtemp,et, etemp
       real (kind=8) :: tcalc, twait
 
       real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
@@ -1555,9 +2223,8 @@ c        if(nb0.le.0.and.nb1.gt.0) then
         nb1=nb1+1
         prefac(ibl)=fctr
       endif
-      factor(ibl)=fctr
 
-      if(iamhead.eq.1) sstot=sstot+factor(ibl)*deta
+      if(iamhead.eq.1) sstot=sstot+fctr*deta
 
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
@@ -1633,8 +2300,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=1,nb0
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*sml(ibl,n,l)
      &               -aatl(ibl,n,i)*aaal(ibl,l,k)
      &               -ttl(ibl,n,i)*tatl(ibl,l,k)
@@ -1645,6 +2313,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -aaal(ibl,l,i)*aatl(ibl,n,k)
      &               -tatl(ibl,l,i)*ttl(ibl,n,k))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
 !$omp end do
 !$omp end parallel
@@ -1667,8 +2336,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=1,nb0
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*sml(ibl,n,l)
      &               -aatl(ibl,n,i)*aaal(ibl,l,k)
      &               -ttl(ibl,n,i)*tatl(ibl,l,k)
@@ -1680,7 +2350,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -tatl(ibl,l,i)*ttl(ibl,n,k))
               enddo
               do ibl=nhc-nb1+1,nhc
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &               +diagl(ibl,n)*csdiagl(ibl,l)
      &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -1706,6 +2376,7 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
      &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
           enddo
 !$omp end parallel do
@@ -1726,8 +2397,9 @@ c        if(nb0.le.0.and.nb1.gt.0) then
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
+              etemp=0.0d0
               do ibl=nhc-nb1+1,nhc
-                etotb=etotb+g(intg)*prefac(ibl)*
+                etemp=etemp+prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
      &               +diagl(ibl,n)*csdiagl(ibl,l)
      &               +bdiagl(ibl,l)*bsdiagl(ibl,n)
@@ -1753,12 +2425,476 @@ c        if(nb0.le.0.and.nb1.gt.0) then
      &               -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
      &               +tatl(ibl,l,k)*bdiagl(ibl,i)))
               enddo
+              etotb=etotb+g(intg)*etemp
             enddo
           enddo
 !$omp end parallel do
           call timer_stop(35)
         endif
         
+      endif
+
+      return
+      end
+
+      subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+
+      real(kind=8) :: e2n,tsn,gtemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+      etotb=0.0d0
+      
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+      endif
+      
+      if(ising.lt.3) then
+
+      if(ising.eq.0) then
+        nb0=nb0+1
+        ibl=nb0        
+        prefac(ibl)=4.0d0*deta*fctr
+      else
+        ibl=nhc-nb1
+        nb1=nb1+1
+        prefac(ibl)=fctr
+      endif
+
+      if(iamhead.eq.1) sstot=sstot+fctr*deta
+
+      if(idbg.ge.13) write(lfndbg,600)
+ 600  format(' Calculating two electron matrix element',/)
+
+      numint=mint2
+
+      if(ising.gt.1) e1=0.0d0
+      e2=0.0d0
+      ts=0.0d0
+      fourdet=4.0d0*deta
+      call timer_start(30)
+
+      do i=1,nbas 
+        do k=1,nbas 
+          tt(i,k)=ta(k,i)
+          aat(i,k)=aaa(k,i)
+        enddo
+      enddo
+
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k)
+      do k=1,nbas
+        do i=1,nbas
+          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          aaal(ibl,i,k)=aaa(i,k)
+          aatl(ibl,i,k)=aat(i,k)
+          ttl(ibl,i,k)=tt(i,k)
+          tatl(ibl,i,k)=ta(i,k)
+        enddo
+      enddo
+!$omp end parallel do
+          
+      if(ising.gt.0) then
+
+!$omp parallel do
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
+!$omp& private(i)
+        do i=1,nbas
+          diagl(ibl,i)=diag(i)
+          bdiagl(ibl,i)=bdiag(i)
+          bsdiagl(ibl,i)=bsdiag(i)
+          csdiagl(ibl,i)=csdiag(i)
+        enddo
+!$omp end parallel do
+
+      endif
+      
+      call timer_stop(30)
+
+      endif
+      
+      call timer_start(38)
+
+!     After the last element of a task the list of energies is generated
+      
+      if(ihc.eq.nhc) then
+
+        call timer_start(38)
+        
+        if(nb0.gt.0.and.nb1.le.0) then
+          call timer_start(32)
+
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp& private(intg,i,k,l,n,ibl)
+          do intg=1,numint
+            i=lab(1,intg)
+            k=lab(2,intg)
+            l=lab(3,intg)
+            n=lab(4,intg)
+            do ibl=1,nb0
+              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
+     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
+     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
+     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
+     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
+     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
+     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
+     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
+            enddo
+          enddo
+!$omp end parallel do
+
+          call timer_stop(32)
+        endif
+
+        if(nb0.gt.0.and.nb1.gt.0) then
+          call timer_start(36)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp& private(intg,i,k,l,n,ibl)
+          do intg=1,numint
+            i=lab(1,intg)
+            k=lab(2,intg)
+            l=lab(3,intg)
+            n=lab(4,intg)
+            do ibl=1,nb0
+              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
+     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
+     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
+     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
+     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
+     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
+     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
+     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
+     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
+            enddo
+            do ibl=nhc-nb1+1,nhc
+              etotb=etotb+g(intg)*prefac(ibl)*
+     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+     &             +diagl(ibl,n)*csdiagl(ibl,l)
+     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
+     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &             +(diagl(ibl,i)*csdiagl(ibl,k)
+     &             +diagl(ibl,k)*csdiagl(ibl,i)
+     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+     &             +aatl(ibl,l,k)*diagl(ibl,n))
+     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+     &             +aaal(ibl,n,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
+     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+     &             +aatl(ibl,l,i)*diagl(ibl,n))
+     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+     &             +aaal(ibl,l,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
+            enddo
+          enddo
+!$omp end parallel do
+          call timer_stop(36)
+        endif
+        
+        if(nb0.le.0.and.nb1.gt.0) then
+          call timer_start(35)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp& private(intg,i,k,l,n,ibl)
+          do intg=1,numint
+            i=lab(1,intg) 
+            k=lab(2,intg) 
+            l=lab(3,intg) 
+            n=lab(4,intg)
+            do ibl=nhc-nb1+1,nhc
+              etotb=etotb+g(intg)*prefac(ibl)*
+     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
+     &             +diagl(ibl,n)*csdiagl(ibl,l)
+     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
+     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
+     &             +(diagl(ibl,i)*csdiagl(ibl,k)
+     &             +diagl(ibl,k)*csdiagl(ibl,i)
+     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
+     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
+     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
+     &             +aatl(ibl,l,k)*diagl(ibl,n))
+     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
+     &             +aaal(ibl,n,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
+     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
+     &             +aatl(ibl,l,i)*diagl(ibl,n))
+     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
+     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
+     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
+     &             +aaal(ibl,l,k)*diagl(ibl,i))
+     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
+     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
+            enddo
+          enddo
+!$omp end parallel do
+          call timer_stop(35)
+        endif
+        
+      endif
+
+      return
+      end
+
+      subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer (kind=4) :: ierr
+      integer :: lfndbg
+
+      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
+      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
+      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
+
+      real (kind=8) :: e2n,tsn,gtemp,et, etemp
+      real (kind=8) :: tcalc, twait
+
+      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+
+      real(kind=8), external :: timer_wall
+
+      character (len=1) :: ch
+
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+        etotb=0.0d0
+      endif
+      
+      if(ising.lt.3) then
+
+        call timer_start(30)
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+
+        numint=mint2
+
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+
+        if(ising.eq.0) then
+          nb0=nb0+1      
+          prefac0(nb0)=4.0d0*deta*fctr
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k)
+          do k=1,nbas
+            do i=1,nbas
+              sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa0(nb0,i,k)=aaa(i,k)
+              aat0(nb0,i,k)=aaa(k,i)
+              tt0(nb0,i,k)=ta(k,i)
+              tat0(nb0,i,k)=ta(i,k)
+            enddo
+          enddo
+!$omp end parallel do
+        else
+          nb1=nb1+1
+          prefac1(nb1)=fctr
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k)
+          do k=1,nbas
+            do i=1,nbas
+              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa1(nb1,i,k)=aaa(i,k)
+              aat1(nb1,i,k)=aaa(k,i)
+              tt1(nb1,i,k)=ta(k,i)
+              tat1(nb1,i,k)=ta(i,k)
+            enddo
+          enddo
+!$omp end parallel do
+
+!$omp parallel do
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
+!$omp& private(i)
+          do i=1,nbas
+            diag1(nb1,i)=diag(i)
+            bdiag1(nb1,i)=bdiag(i)
+            bsdiag1(nb1,i)=bsdiag(i)
+            csdiag1(nb1,i)=csdiag(i)
+          enddo
+!$omp end parallel do
+        endif
+        
+        call timer_stop(30)
+
+      endif
+      
+      call timer_start(38)
+
+!     After the last element of a task the list or when the buffer is full
+!     the energies are evaluated
+
+      if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.lbatch) then
+
+        call timer_start(32)
+
+        kl=nbas*(nbas+1)/2
+        do ii=intndx,jntndx
+!$omp parallel
+!$omp& shared(ii,sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp do reduction(+:etotb)
+!$omp& private(intg,jj,i,k,l,n,ibl)
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+            etemp=0.0d0
+            do ibl=1,nb0
+              etemp=etemp+prefac0(ibl)*
+     &             (sm0(ibl,k,i)*sm0(ibl,n,l)
+     &             -aat0(ibl,n,i)*aaa0(ibl,l,k)
+     &             -tt0(ibl,n,i)*tat0(ibl,l,k)
+     &             -aaa0(ibl,n,i)*aat0(ibl,l,k)
+     &             -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
+     &             -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
+     &             -tat0(ibl,l,i)*tt0(ibl,n,k))
+            enddo
+            etotb=etotb+g(intg)*etemp
+          enddo
+!$omp end do
+!$omp end parallel
+        enddo
+
+!     Reset index in buffer to zero
+        nb0=0
+
+        call timer_stop(32)
+        
+      endif
+
+      if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.lbatch) then
+        
+        call timer_start(35)
+        
+        kl=nbas*(nbas+1)/2
+        do ii=intndx,jntndx
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp& private(intg,i,k,l,n,ibl)
+          do jj=ii,kl
+            intg=ndx(ii)+jj
+            i=lab(1,ii)
+            k=lab(2,ii)
+            l=lab(1,jj)
+            n=lab(2,jj)
+            etemp=0.0d0
+            do ibl=1,nb1
+              etemp=etemp+prefac1(ibl)*
+     &             (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
+     &             +diag1(ibl,n)*csdiag1(ibl,l)
+     &             +bdiag1(ibl,l)*bsdiag1(ibl,n)
+     &             +bdiag1(ibl,n)*bsdiag1(ibl,l))
+     &             +(diag1(ibl,i)*csdiag1(ibl,k)
+     &             +diag1(ibl,k)*csdiag1(ibl,i)
+     &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
+     &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
+     &             -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
+     &             +aat1(ibl,l,k)*diag1(ibl,n))
+     &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,k)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
+     &             +aaa1(ibl,n,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
+     &             +aat1(ibl,l,i)*diag1(ibl,n))
+     &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,i)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
+     &             +aaa1(ibl,l,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
+     &             +tat1(ibl,l,k)*bdiag1(ibl,i)))
+            enddo
+            etotb=etotb+g(intg)*etemp
+          enddo
+!$omp end parallel do
+        enddo
+
+!     Reset index into buffer
+        nb1=0
+
+        call timer_stop(35)
+          
       endif
 
       return

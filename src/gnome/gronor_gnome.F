@@ -45,7 +45,6 @@
       etot=0.0d0
       ttest=0
 
-c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
       do idet=1,2
 
         if(idbg.ge.13) then
@@ -123,11 +122,14 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 !_ACCTGT_($acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
 !_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
 !_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
-        
+!_ACCTGT_($acc& create(sm0,aaa0,tt0,aat0,tat0))
+!_ACCTGT_($acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1,tat1))
 !_OMPTGT_($omp target data map(to:s,ta,va,vb,tat) map(alloc:tb,w1,w2,taa,u,w,ev))
 !_OMPTGT_($omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
-!_OMPTGT_($omp& map(alloc: diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)) 
-
+!_OMPTGT_($omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
+!_OMPTGT_($omp& map(alloc:sm0,aaa0,tt0,aat0,tat0))
+!_OMPTGT_($omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1,tat1)) 
+        
 !     Calculations of the overlap matrices
 
         call timer_start(14)
@@ -202,11 +204,17 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 
         if((icalc.eq.2.or.icalc.eq.0)) then
           call timer_start(22)
-          if(lbatch.gt.0) then
+          if(lbatch.lt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch(lfndbg,ihc,nhc)
             else
               call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
+            endif
+          elseif(lbatch.gt.0) then
+            if(labels.eq.0) then
+              call gronor_gntwo_batch2(lfndbg,ihc,nhc)
+            else
+              call gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
             endif
           else
             if(labels.eq.0) then
@@ -292,11 +300,17 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
 
           if((icalc.eq.2.or.icalc.eq.0)) then
             call timer_start(22)
-            if(lbatch.gt.0) then
+            if(lbatch.lt.0) then
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
               else
                 call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
+              endif
+            elseif(lbatch.gt.0) then
+              if(labels.eq.0) then
+                call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+              else
+                call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
               endif
             else
               if(labels.eq.0) then
@@ -309,6 +323,6 @@ c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
           endif
 
       endif
-      
+
       return
       end

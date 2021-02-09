@@ -2647,12 +2647,12 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         fourdet=4.0d0*deta
         call timer_start(30)
 
-        do i=1,nbas 
-          do k=1,nbas 
-            tt(i,k)=ta(k,i)
-            aat(i,k)=aaa(k,i)
-          enddo
-        enddo
+c        do i=1,nbas 
+c          do k=1,nbas 
+c            tt(i,k)=ta(k,i)
+c            aat(i,k)=aaa(k,i)
+c          enddo
+c        enddo
 
         if(ising.eq.0) then
           nb0=nb0+1      
@@ -2662,10 +2662,10 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 !$omp& private(i,k)
           do k=1,nbas
             do i=1,nbas
-              sm0(nb0,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+              sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa0(nb0,i,k)=aaa(i,k)
-              aat0(nb0,i,k)=aat(i,k)
-              tt0(nb0,i,k)=tt(i,k)
+              aat0(nb0,i,k)=aaa(k,i)
+              tt0(nb0,i,k)=ta(k,i)
               tat0(nb0,i,k)=ta(i,k)
             enddo
           enddo
@@ -2678,10 +2678,10 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 !$omp& private(i,k)
           do k=1,nbas
             do i=1,nbas
-              sm1(nb1,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa1(nb1,i,k)=aaa(i,k)
-              aat1(nb1,i,k)=aat(i,k)
-              tt1(nb1,i,k)=tt(i,k)
+              aat1(nb1,i,k)=aaa(k,i)
+              tt1(nb1,i,k)=ta(k,i)
               tat1(nb1,i,k)=ta(i,k)
             enddo
           enddo

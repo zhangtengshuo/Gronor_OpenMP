@@ -1304,7 +1304,7 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,tat0,prefac0))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -1347,13 +1347,13 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
 c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
-!_ACCTGT_($acc data copyin(prefac0))
-!_OMPTGT_($omp target data map(to:prefac0))
+!_ACCTGT_($acc data copyin(prefac1))
+!_OMPTGT_($omp target data map(to:prefac1))
 
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
-!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,tat1,prefac1))
+!_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
           do jj=ii,kl

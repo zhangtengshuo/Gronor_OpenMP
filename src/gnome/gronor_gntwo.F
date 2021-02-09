@@ -1240,7 +1240,7 @@ c!     END ASSEMBLY ON CPU
       
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(nb1))
+!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,tat1,tt,aat,aaa,ta,sm1) copyin(nb1))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
@@ -1272,7 +1272,7 @@ c      enddo
 c!     END ASSEMBLY ON CPU
 
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
-!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(nb1))
+!_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1))
 !_OMPTGT_($omp target teams distribute parallel do)
         do i=1,nbas
           diag1(nb1,i)=diag(i)
@@ -1296,8 +1296,8 @@ c!     END ASSEMBLY ON CPU
         
         call timer_start(31)
 
-c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+c!_ACCTGT_($acc update device(tat0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0)) 
 
 !_ACCTGT_($acc data copyin(prefac0))
 !_OMPTGT_($omp target data map(to:prefac0))
@@ -1344,8 +1344,8 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         
         call timer_start(34)
         
-c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+c!_ACCTGT_($acc update device(tat1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1)) 
 
 !_ACCTGT_($acc data copyin(prefac1))
 !_OMPTGT_($omp target data map(to:prefac1))

@@ -656,33 +656,30 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
       endif
       
       if(ising.lt.3) then
-
-      if(ising.eq.0) then
-        nb0=nb0+1
-        ibl=nb0        
-        prefac(ibl)=4.0d0*deta*fctr
-      else
-        ibl=nhc-nb1
-        nb1=nb1+1
-        prefac(ibl)=fctr
-      endif
-
-      if(iamhead.eq.1) sstot=sstot+fctr*deta
-
-      if(idbg.ge.13) write(lfndbg,600)
- 600  format(' Calculating two electron matrix element',/)
-
-      numint=mint2
-
-      if(ising.gt.1) e1=0.0d0
-      e2=0.0d0
-      ts=0.0d0
-      fourdet=4.0d0*deta
-
-      call timer_start(30)
-
-      if(ising.gt.0) then
-
+        
+        call timer_start(30)
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+        
+        if(idbg.ge.13) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+        
+        numint=mint2
+        
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+        
+        if(ising.eq.0) then
+          nb0=nb0+1
+          ibl=nb0        
+          prefac(ibl)=4.0d0*deta*fctr
+        else
+          ibl=nhc-nb1
+          nb1=nb1+1
+          prefac(ibl)=fctr
+          
 !_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do)
@@ -694,27 +691,18 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         enddo
 !_ACCTGT_($acc end kernels)
 
-      endif
-!_ACCTGT_($acc kernels present(aat,aaa,tt,ta))
-!_OMPTGT_($omp target teams distribute parallel do collapse(2))
-      do i=1,nbas 
-        do k=1,nbas 
-          tt(i,k)=ta(k,i)
-          aat(i,k)=aaa(k,i)
-        enddo
-      enddo
-!_ACCTGT_($acc end kernels)
-
+        endif
+        
 !     ASSEMBLE ARRAYS ON GPU
       
 !_ACCTGT_($acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
           aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
+          aatl(ibl,i,k)=aaa(k,i)
+          ttl(ibl,i,k)=ta(k,i)
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
@@ -728,10 +716,10 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 !_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
       do k=1,nbas
         do i=1,nbas
-          sml(ibl,i,k)=aat(i,k)+aaa(i,k)+tt(i,k)+ta(i,k)
+          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
           aaal(ibl,i,k)=aaa(i,k)
-          aatl(ibl,i,k)=aat(i,k)
-          ttl(ibl,i,k)=tt(i,k)
+          aatl(ibl,i,k)=aaa(k,i)
+          ttl(ibl,i,k)=ta(k,i)
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
@@ -756,7 +744,6 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 !_ACCTGT_($acc data copyin(prefac))
 !_OMPTGT_($omp target data map(to:prefac))
         
-c        if(nb0.gt.0.and.nb1.le.0) then
         if(nb0.gt.0) then
           call timer_start(31)
 
@@ -791,66 +778,6 @@ c        if(nb0.gt.0.and.nb1.le.0) then
           call timer_stop(31)
         endif
 
-c        if(nb0.gt.0.and.nb1.gt.0) then
-cc        if(nb0.gt.0.and.nb1.gt.0.and.1.eq.2) then
-c          call timer_start(31)
-c
-c       kl=nbas*(nbas+1)/2
-c       intg=0
-c!_ACCTGT_($acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac))
-c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
-c       do ii=intndx,jntndx
-c         do jj=ii,kl
-c           intg=ndx(ii)+jj
-c           i=lab(1,ii)
-c           k=lab(2,ii)
-c           l=lab(1,jj)
-c           n=lab(2,jj)
-c            do ibl=1,nb0
-c              etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
-c     &             -aatl(ibl,n,i)*aaal(ibl,l,k)
-c     &             -ttl(ibl,n,i)*tatl(ibl,l,k)
-c     &             -aaal(ibl,n,i)*aatl(ibl,l,k)
-c     &             -tatl(ibl,n,i)*ttl(ibl,l,k)
-c     &             -aatl(ibl,l,i)*aaal(ibl,n,k)
-c     &             -ttl(ibl,l,i)*tatl(ibl,n,k)
-c     &             -aaal(ibl,l,i)*aatl(ibl,n,k)
-c     &             -tatl(ibl,l,i)*ttl(ibl,n,k))
-c            enddo
-c            do ibl=nhc-nb1+1,nhc
-c              etotb=etotb+g(intg)*prefac(ibl)*
-c     &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
-c     &             +diagl(ibl,n)*csdiagl(ibl,l)
-c     &             +bdiagl(ibl,l)*bsdiagl(ibl,n)
-c     &             +bdiagl(ibl,n)*bsdiagl(ibl,l))
-c     &             +(diagl(ibl,i)*csdiagl(ibl,k)
-c     &             +diagl(ibl,k)*csdiagl(ibl,i)
-c     &             +bdiagl(ibl,i)*bsdiagl(ibl,k)
-c     &             +bdiagl(ibl,k)*bsdiagl(ibl,i))*sml(ibl,n,l)
-c     &             -csdiagl(ibl,i)*(aatl(ibl,n,k)*diagl(ibl,l)
-c     &             +aatl(ibl,l,k)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,i)*(ttl(ibl,n,k)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,k)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,l)*(aaal(ibl,n,i)*diagl(ibl,k)
-c     &             +aaal(ibl,n,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,l)*(tatl(ibl,n,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,n,k)*bdiagl(ibl,i))
-c     &             -csdiagl(ibl,k)*(aatl(ibl,n,i)*diagl(ibl,l)
-c     &             +aatl(ibl,l,i)*diagl(ibl,n))
-c     &             -bsdiagl(ibl,k)*(ttl(ibl,n,i)*bdiagl(ibl,l)
-c     &             +ttl(ibl,l,i)*bdiagl(ibl,n))
-c     &             -csdiagl(ibl,n)*(aaal(ibl,l,i)*diagl(ibl,k)
-c     &             +aaal(ibl,l,k)*diagl(ibl,i))
-c     &             -bsdiagl(ibl,n)*(tatl(ibl,l,i)*bdiagl(ibl,k)
-c     &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
-c            enddo
-c          enddo
-c!_ACCTGT_($acc end kernels)
-c
-c          call timer_stop(31)
-c        endif
-        
-c        if(nb0.le.0.and.nb1.gt.0) then
         if(nb1.gt.0) then
           call timer_start(34)
 

@@ -1,16 +1,29 @@
+!     This file is part of the GronOR software
 
-!     > @brief
-!     ! Reading integral fiels in parallel mode
-!     !
-!     ! @author  T. P. Straatsma, ORNL
-!     ! @date    2020
-!     !
-!     ! Integrals are read in parallel by all ranks the first worker group. 
-!     ! If worker groups have only one rank, one rank is doing the reading of integrals.
-!     ! After the integrals are read, an MPI broadcast copies them to the corresponding ranks in other worker groups.
-!     !
-!     ! The integrals may be read from multiple files, with or witjout integral labels. If used without labels, the
-!     ! canonical order as defined by OpenMolcas is assumed.
+!     GronOR is free software, and can be used, re-distributed and/or modified under
+!     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+!     Any use of the software has to be in compliance with this license. Unless required
+!     by applicable law or agreed to in writing, software distributed under the license
+!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     either express or implied.
+!     See the license for the specific language governing permissions and limitations
+!     under the license.
+
+!     GronOR is copyright of the University of Groningen
+      
+!> @brief
+!! Reading integral fiels in parallel mode
+!!
+!! @author  T. P. Straatsma, ORNL
+!! @date    2020
+!!
+!! Integrals are read in parallel by all ranks the first worker group. 
+!! If worker groups have only one rank, one rank is doing the reading of integrals.
+!! After the integrals are read, an MPI broadcast copies them to the corresponding
+!! ranks in other worker groups.
+!!
+!! The integrals may be read from multiple files, with or witjout integral labels.
+!! If used without labels, the canonical order as defined by OpenMolcas is assumed.
       
       subroutine gronor_parallel_integral_input()
 

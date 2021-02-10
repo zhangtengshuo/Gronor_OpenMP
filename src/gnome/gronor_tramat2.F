@@ -228,17 +228,6 @@
 
 !_ACCTGT_($acc end kernels)
 
-cccc!_ACCTGT_($acc update host(ta,w2))
-
-c        write(*,'(a,i5)') 'TA tramat2 '
-c        do k=1,min(5,nbas)
-c          write(*,'(10f12.6)') (ta(i,k),i=1,nbas)
-c        enddo
-c        write(*,'(a,i5)') 'W2 tramat'
-c        do k=1,min(5,nbas)
-c          write(*,'(10f12.6)') (w2(i,k),i=1,nbas)
-c        enddo
-
       return
       end
 

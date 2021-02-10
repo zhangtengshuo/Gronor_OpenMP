@@ -98,26 +98,17 @@
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
 
-      if(lbatch.lt.0) then
-c        allocate(diagl(nbatch,max(nelecs,nbas,mbasel)))
-c        allocate(bsdiagl(nbatch,max(nelecs,nbas,mbasel)))
-c        allocate(bdiagl(nbatch,max(nelecs,nbas,mbasel)))
-c        allocate(csdiagl(nbatch,max(nelecs,nbas,mbasel)))
-c        allocate(sml(nbatch,mbasel,max(mbasel,nveca)))
-c        allocate(ttl(nbatch,mbasel,max(mbasel,nveca)))
-c        allocate(aatl(nbatch,mbasel,max(mbasel,nveca)))
-c        allocate(aaal(nbatch,mbasel,max(mbasel,nveca)))
-c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
-        allocate(prefac(nbatch))
-        allocate(diagl(nbatch,nbas))
-        allocate(bsdiagl(nbatch,nbas))
-        allocate(bdiagl(nbatch,nbas))
-        allocate(csdiagl(nbatch,nbas))
-        allocate(sml(nbatch,nbas,nbas))
-        allocate(ttl(nbatch,nbas,nbas))
-        allocate(aatl(nbatch,nbas,nbas))
-        allocate(aaal(nbatch,nbas,nbas))
-        allocate(tatl(nbatch,nbas,nbas))
+      if(nbatch.lt.0) then
+        allocate(prefac(ntask))
+        allocate(diagl(ntask,nbas))
+        allocate(bsdiagl(ntask,nbas))
+        allocate(bdiagl(ntask,nbas))
+        allocate(csdiagl(ntask,nbas))
+        allocate(sml(ntask,nbas,nbas))
+        allocate(ttl(ntask,nbas,nbas))
+        allocate(aatl(ntask,nbas,nbas))
+        allocate(aaal(ntask,nbas,nbas))
+        allocate(tatl(ntask,nbas,nbas))
         allocate(prefac0(1))
         allocate(sm0(1,1,1))
         allocate(tt0(1,1,1))
@@ -134,7 +125,7 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         allocate(aat1(1,1,1))
         allocate(aaa1(1,1,1))
         allocate(tat1(1,1,1))
-      elseif(lbatch.eq.0) then
+      elseif(nbatch.eq.0) then
         allocate(diagl(1,1))
         allocate(bsdiagl(1,1))
         allocate(bdiagl(1,1))
@@ -162,22 +153,22 @@ c        allocate(tatl(nbatch,mbasel,max(mbasel,nveca)))
         allocate(aaa1(1,1,1))
         allocate(tat1(1,1,1))
       else
-        allocate(prefac0(lbatch))
-        allocate(sm0(lbatch,nbas,nbas))
-        allocate(tt0(lbatch,nbas,nbas))
-        allocate(aat0(lbatch,nbas,nbas))
-        allocate(aaa0(lbatch,nbas,nbas))
-        allocate(tat0(lbatch,nbas,nbas))
-        allocate(prefac1(lbatch))
-        allocate(diag1(lbatch,nbas))
-        allocate(bsdiag1(lbatch,nbas))
-        allocate(bdiag1(lbatch,nbas))
-        allocate(csdiag1(lbatch,nbas))
-        allocate(sm1(lbatch,nbas,nbas))
-        allocate(tt1(lbatch,nbas,nbas))
-        allocate(aat1(lbatch,nbas,nbas))
-        allocate(aaa1(lbatch,nbas,nbas))
-        allocate(tat1(lbatch,nbas,nbas))
+        allocate(prefac0(nbatch))
+        allocate(sm0(nbatch,nbas,nbas))
+        allocate(tt0(nbatch,nbas,nbas))
+        allocate(aat0(nbatch,nbas,nbas))
+        allocate(aaa0(nbatch,nbas,nbas))
+        allocate(tat0(nbatch,nbas,nbas))
+        allocate(prefac1(nbatch))
+        allocate(diag1(nbatch,nbas))
+        allocate(bsdiag1(nbatch,nbas))
+        allocate(bdiag1(nbatch,nbas))
+        allocate(csdiag1(nbatch,nbas))
+        allocate(sm1(nbatch,nbas,nbas))
+        allocate(tt1(nbatch,nbas,nbas))
+        allocate(aat1(nbatch,nbas,nbas))
+        allocate(aaa1(nbatch,nbas,nbas))
+        allocate(tat1(nbatch,nbas,nbas))
         allocate(diagl(1,1))
         allocate(bsdiagl(1,1))
         allocate(bdiagl(1,1))
@@ -479,7 +470,7 @@ CTPS  Point for start of data
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i10)') date(1:8),time(1:8),
      &        me,' Entering gronor_calculate with ',
-     &        ibase,jbase,idet,jdet,nbatch
+     &        ibase,jbase,idet,jdet,ntask
          flush(lfndbg)
         endif
         call timer_start(47)
@@ -511,10 +502,10 @@ CTPS  Point for start of data
 
 CTPS  Point for end data
       
-      if(lbatch.lt.0) then
+      if(nbatch.lt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(prefac)
-      elseif(lbatch.eq.0) then
+      elseif(nbatch.eq.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(prefac)
       else

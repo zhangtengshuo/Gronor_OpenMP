@@ -204,13 +204,13 @@
 
         if((icalc.eq.2.or.icalc.eq.0)) then
           call timer_start(22)
-          if(lbatch.lt.0) then
+          if(nbatch.lt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch(lfndbg,ihc,nhc)
             else
               call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
             endif
-          elseif(lbatch.gt.0) then
+          elseif(nbatch.gt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch2(lfndbg,ihc,nhc)
             else
@@ -300,13 +300,13 @@
 
           if((icalc.eq.2.or.icalc.eq.0)) then
             call timer_start(22)
-            if(lbatch.lt.0) then
+            if(nbatch.lt.0) then
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
               else
                 call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
               endif
-            elseif(lbatch.gt.0) then
+            elseif(nbatch.gt.0) then
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
               else

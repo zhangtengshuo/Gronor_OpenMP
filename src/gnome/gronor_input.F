@@ -100,23 +100,13 @@
           goto 2
         endif
         
-        if(inp_compare(.false.,'Load',item)) then
-          if(.not.inp_i(iload)) iload=1
-          goto 2
-        endif
-        
-        if(inp_compare(.false.,'Range',item)) then
-          if(.not.inp_i(nbatch)) nbatch=1
+        if(inp_compare(.false.,'Task',item)) then
+          if(.not.inp_i(ntask)) ntask=1
           goto 2
         endif
         
         if(inp_compare(.false.,'Batch',item)) then
-          if(.not.inp_i(nbatch)) nbatch=1
-          goto 2
-        endif
-        
-        if(inp_compare(.false.,'Batched',item)) then
-          if(.not.inp_i(lbatch)) lbatch=-1
+          if(.not.inp_i(nbatch)) nbatch=-1
           goto 2
         endif
         
@@ -200,11 +190,6 @@
           goto 2
         endif
         
-        if(inp_compare(.false.,'IntAdd',item)) then
-          if(.not.inp_i(intadd)) intadd=0
-          goto 2
-        endif
-        
         if(inp_compare(.false.,'Maxcib',item)) then
           if(.not.inp_i(inpcib)) inpcib=0
           goto 2
@@ -237,18 +222,6 @@
         
         if(inp_compare(.false.,'cpr',item)) then
           lcpr=.true.
-          goto 2
-        endif
-        
-        if(inp_compare(.false.,'QCprogram',item)) then
-          if(.not.inp_a(opt_inp)) opt_inp='symol'
-          if(inp_compare(.false.,'symol',opt_inp)) then
-            nqcp=1
-          else if(inp_compare(.false.,'gamess',opt_inp)) then
-            nqcp=2
-          else if(inp_compare(.false.,'molcas',opt_inp)) then
-            nqcp=3
-          end if
           goto 2
         endif
 

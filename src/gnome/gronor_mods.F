@@ -106,11 +106,11 @@
       implicit none
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
-      integer :: iload,nbatch,itest,ifault,isolver,jsolver,idevel,lbatch
+      integer :: ntask,itest,ifault,isolver,jsolver,idevel,nbatch
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
-      integer :: iday,idipole,itp4,ione,intadd,nummps,numomp,ixpert
+      integer :: iday,idipole,itp4,ione,nummps,numomp,ixpert
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
@@ -243,7 +243,7 @@
       integer (kind=4), allocatable :: ndx(:)
       integer, allocatable :: ig(:)
       integer (kind=4), allocatable :: ndxtv(:)
-      integer :: nqcp,mbuf
+      integer :: mbuf
       integer (kind=4), allocatable :: new_comm(:)
       integer (kind=4) :: new_group,grp_group
       integer, allocatable :: ntarget(:)

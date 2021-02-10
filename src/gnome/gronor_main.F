@@ -1,41 +1,54 @@
-!     > @brief
-!     ! Main driver for the GronOR application
-!     ! @author  Tjerk P. Straatsma, ORNL
-!     ! @author  Coen de Graaf, URV
-!     ! @date    2016
-!     >
-!     > @todo     Maybe we could take out some parts and put them in
-!     >           separate subroutines. A subroutine for reading the
-!     >           input would be nice (with some extra checks on 
-!     >           input errors)
+!     This file is part of the GronOR software
+
+!     GronOR is free software, and can be used, re-distributed and/or modified under
+!     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+!     Any use of the software has to be in compliance with this license. Unless required
+!     by applicable law or agreed to in writing, software distributed under the license
+!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     either express or implied.
+!     See the license for the specific language governing permissions and limitations
+!     under the license.
+
+!     GronOR is copyright of the University of Groningen
+
+!> @brief
+!! Main driver for the GronOR application
+!! @author  Tjerk P. Straatsma, ORNL
+!! @author  Coen de Graaf, URV
+!! @date    2016
+!>
+!> @todo     Maybe we could take out some parts and put them in
+!>           separate subroutines. A subroutine for reading the
+!>           input would be nice (with some extra checks on 
+!>           input errors)
 
 #include "tgt_guard.fh"
 #include "gronor_config.fh"
 
       subroutine gronor_main()
 
-!     >    Initialization of the calculation
-!     !
-!     !     The root name is read from the from the command line,
-!     !     and is used to generate all other filenames associated with the calculation.
-!     !
-!     !     <table>
-!     !     <caption id="multi_row">Files</caption>
-!     !     <tr><th>File name <th> File Description <th> String <th> Unit <th> Source
-!     !     <tr><td>\$(root).inp <td> input file <td> filinp <td> lfninp <td>
-!     !     <tr><td>\$(root).out <td> output file <td> filout <td> lfnout <td>
-!     !     <tr><td>\$(root).sym <td> symmetry of MOs for different sets,
-!     !                 coordinates, basis set <td> filsym <td> lfnsym <td> OpenMolcas Auxiliary
-!     !     <tr><td>\$(root)_nnn.civ <td> CI vectors, one for every nnn=1,mstates
-!     !                 <td> filciv <td> lfnciv <td> OpenMolcas Auxiliary
-!     !     <tr><td>\$(root)_nnn.vec <td> MO vectors, one for every nnn=1,mstates
-!     !                 <td> filvec <td> lfnvec
-!     !                 <td> OpenMolcas Auxiliary
-!     !     <tr><td>\$(root)_nnn.det <td> CI vectors and MO vectors, one for every nnn=1,mstates
-!     !                 These files are a replacement of civ and vec files <td> filvec <td> lfnvec
-!     !                 <td> OpenMolcas
-!     !     </table>
-!     !
+!>    Initialization of the calculation
+!!
+!!     The root name is read from the from the command line,
+!!     and is used to generate all other filenames associated with the calculation.
+!!
+!!     <table>
+!!     <caption id="multi_row">Files</caption>
+!!     <tr><th>File name <th> File Description <th> String <th> Unit <th> Source
+!!     <tr><td>\$(root).inp <td> input file <td> filinp <td> lfninp <td>
+!!     <tr><td>\$(root).out <td> output file <td> filout <td> lfnout <td>
+!!     <tr><td>\$(root).sym <td> symmetry of MOs for different sets,
+!!                 coordinates, basis set <td> filsym <td> lfnsym <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root)_nnn.civ <td> CI vectors, one for every nnn=1,mstates
+!!                 <td> filciv <td> lfnciv <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root)_nnn.vec <td> MO vectors, one for every nnn=1,mstates
+!!                 <td> filvec <td> lfnvec
+!!                 <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root)_nnn.det <td> CI vectors and MO vectors, one for every nnn=1,mstates
+!!                 These files are a replacement of civ and vec files <td> filvec <td> lfnvec
+!!                 <td> OpenMolcas
+!!     </table>
+!!
 
       use mpi
       use inp
@@ -301,23 +314,23 @@ c     use cuda_functions
  402    format('Nodes',i10,i10)
 
 !     >
-!     !    <table>
-!     !    <caption id="multi_row">Input derived variables</caption> 
-!     !    <tr><th> Variable <th> Description
-!     !    <tr><td> npg <td> number of processes per group (default is 1)
-!     !    <tr><td> nmol <td> number of molecules
-!     !    <tr><td> mstates <td> number of molecular states
-!     !    <tr><td> nbase <td> number of many-electron base (?)
-!     !    </table>
-!     !
-!     !    <table>
-!     !    <caption id="multi_row">Allocated arrays</caption>
-!     !    <tr><th> Variable <th> Description
-!     !    <tr><td> ncombv(nmol,nbase) <td> the combination
-!     !    <tr><td> nbasm(mstates) <td> number of one-electron basis functions per monomer/state
-!     !    <tr><td> inactm(mstates) <td> number of inactive orbitals per monomer/state
-!     !    <tr><td> idetm(mstates) <td> number of determinants per monomer/state
-!     !    </table>
+!!    <table>
+!!    <caption id="multi_row">Input derived variables</caption> 
+!!    <tr><th> Variable <th> Description
+!!    <tr><td> npg <td> number of processes per group (default is 1)
+!!    <tr><td> nmol <td> number of molecules
+!!    <tr><td> mstates <td> number of molecular states
+!!    <tr><td> nbase <td> number of many-electron base (?)
+!!    </table>
+!!
+!!    <table>
+!!    <caption id="multi_row">Allocated arrays</caption>
+!!    <tr><th> Variable <th> Description
+!!    <tr><td> ncombv(nmol,nbase) <td> the combination
+!!    <tr><td> nbasm(mstates) <td> number of one-electron basis functions per monomer/state
+!!    <tr><td> inactm(mstates) <td> number of inactive orbitals per monomer/state
+!!    <tr><td> idetm(mstates) <td> number of determinants per monomer/state
+!!    </table>
 
 !     
 !     Set defaults

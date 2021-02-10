@@ -103,6 +103,8 @@ c     use cuda_functions
       integer :: li, ndtot, npl, nrg
       real(kind=8) :: p, q
 
+      character (len=64) :: version_type
+
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
@@ -218,11 +220,19 @@ c     use cuda_functions
  702    format(a8,2x,a8,f12.3,a)
         flush(lfnday)
         call timer_start(99)
+
+        if(_GRONOR_VERSION_MINOR_.eq.0.or.
+     &       _GRONOR_VERSION_MINOR_.gt.12) then
+          version_type=" under active development"
+        else
+          version_type=" official release"
+        endif
         
-        write(lfnout,600) _GRONOR_VERSION_MAJOR_,_GRONOR_VERSION_MINOR_
+        write(lfnout,600) _GRONOR_VERSION_MAJOR_,
+     &       _GRONOR_VERSION_MINOR_,trim(version_type)
  600    format(/,
      &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
-     &       ' Version ',i2,'.',i2.2,//,
+     &       ' Version ',i2,'.',i2.2,a,//,
      &       4x,'T. P. Straatsma',t53,
      &       'C. de Graaf, and',t85,
      &       'R. Broer, and',/,

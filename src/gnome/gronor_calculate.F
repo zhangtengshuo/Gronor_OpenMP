@@ -289,7 +289,7 @@
 !     hh contains the Hamiltonian matrix element
 !     ss contains the Overlap matrix element
 
-        if(lbatch.eq.0) then
+        if(nbatch.eq.0) then
           if((icalc.eq.2.or.icalc.eq.0).and.ising.le.2) then
             if(icalc.eq.0) then
               if(mgr.le.1) then
@@ -323,7 +323,7 @@
 
       enddo
 
-      if(lbatch.ne.0) then
+      if(nbatch.ne.0) then
         if(iamhead.eq.1) then
           buffer(1)=e1tot+etotb
           buffer(2)=sstot

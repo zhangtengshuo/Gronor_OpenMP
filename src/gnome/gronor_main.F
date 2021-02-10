@@ -1,4 +1,3 @@
-
 !     > @brief
 !     ! Main driver for the GronOR application
 !     ! @author  Tjerk P. Straatsma, ORNL
@@ -234,8 +233,8 @@ c     use cuda_functions
      &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
      &       ' Version ',i2,'.',i2.2,a,//,
      &       4x,'T. P. Straatsma',t53,
-     &       'C. de Graaf, and',t85,
-     &       'R. Broer, and',/,
+     &       'C. de Graaf',t85,
+     &       'R. Broer',/,
      &       4x,t53,
      &       'A. Sanchez',t85,
      &       'R. K. Kathir',//,
@@ -340,15 +339,14 @@ c     use cuda_functions
 !     mstates will be set depending on Molecule input parameters
 
         mstates=0
-        iload=1
 
 !     Default batch size is 32
         
-        nbatch=32
+        ntask=32
 
 !     Desult is to process integrals for each task entry
 
-        lbatch=0
+        nbatch=0
 
 !     Default is to write a test file
         
@@ -366,7 +364,6 @@ c     use cuda_functions
         inslvr=0
         jnslvr=0
 
-        intadd=0
         naccel=-1
         ncols=7
         nummps=1
@@ -383,7 +380,6 @@ c     use cuda_functions
 #ifdef _OPENACC
         naccel=0
 #endif
-        nqcp=3
 
 !     Default print flag set to 2
         
@@ -412,7 +408,7 @@ c     use cuda_functions
           mgr=(np-1)/npg
         endif
 
-        if(lbatch.gt.nbatch) lbatch=nbatch
+        if(nbatch.gt.ntask) nbatch=ntask
         
 !     Unless the user is an expert let's check thresholds
         
@@ -458,8 +454,8 @@ c     use cuda_functions
  625      format(' Fault tolerance wait time',t40,i10,' sec',t60,
      &         'Over-subscription of accelerators (MPS)',t100,i10)
         endif
-        write(lfnout,626) itest,mgr,idevel,nmol,nbatch,mstates,
-     &       lbatch,nbase
+        write(lfnout,626) itest,mgr,idevel,nmol,ntask,mstates,
+     &       nbatch,nbase
  626    format(' Test option',t40,i10,t60,
      &       'Number of ranks per task group',t100,i10,/,
      &       ' Development option',t40,i10,t60,
@@ -481,7 +477,7 @@ c     use cuda_functions
         call gronor_gnome_molcas_input() ! OpenMolcas
         close(unit=lfnsym)
         
-c      else                      ! belonging to if (me.eq.master)
+c      else                      ! belonging to if(me.eq.master)
 c        lfnout=6
 c        write(filout,650) me
 c 650    format('gronor_',i5.5,'.dbg')
@@ -525,14 +521,14 @@ c        endif
           idum(20)=npg
           idum(21)=nnucl
           idum(22)=nbas
-          idum(23)=iload
-          idum(24)=nbatch
+          idum(23)=0
+          idum(24)=ntask
           idum(25)=mgr
           idum(26)=itest
           idum(27)=naccel
           idum(28)=inpcib
           idum(29)=ipro
-          idum(30)=intadd
+          idum(30)=0
           idum(31)=mpibuf
           idum(32)=idbg
           idum(33)=nummps
@@ -546,7 +542,7 @@ c        endif
           idum(41)=idevel
           idum(42)=iswsvj
           idum(43)=iswevj
-          idum(44)=lbatch
+          idum(44)=nbatch
           idum(45)=nspin
           idum(46)=labels
           
@@ -582,14 +578,14 @@ c        endif
         npg    =idum(20)
         nnucl  =idum(21)
         nbas   =idum(22)
-        iload  =idum(23)
-        nbatch =idum(24)
+
+        ntask =idum(24)
         mgr    =idum(25)
         itest  =idum(26)
         naccel =idum(27)
         inpcib =idum(28)
         ipro   =idum(29)
-        intadd =idum(30)
+
         mpibuf =idum(31)
         idbg   =idum(32)
         nummps =idum(33)
@@ -603,7 +599,7 @@ c        endif
         idevel =idum(41)
         iswsvj =idum(42)
         iswevj =idum(43)
-        lbatch =idum(44)
+        nbatch =idum(44)
         nspin  =idum(45)
         labels =idum(46)
         
@@ -674,8 +670,6 @@ c        endif
         corres =idum(19).eq.1
       endif
       if(np.gt.0) then
-        call MPI_Bcast(nqcp,1,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
         call MPI_Bcast(civm,maxci*mstates,MPI_REAL8,master,
      &       MPI_COMM_WORLD,ierr)
         call MPI_Bcast(vecsm,maxvec*maxvec*mstates,MPI_REAL8,master,
@@ -720,7 +714,7 @@ c        endif
 
       allocate(ioccb(maxcib,nbase))
       allocate(civb(maxcib,nbase))
-      if (me.eq.master) then
+      if(me.eq.master) then
         write(lfnout,637) maxcib
  637    format(/,' Calculated value of maxcib is ',i10)
         flush(lfnout)
@@ -1212,7 +1206,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         
 #ifdef CUSOLVER
         cusolver_status = cusolverDnCreate(cusolver_handle)
-        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
 
 !     if(numdev.gt.1) then
@@ -1297,7 +1291,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ioccb(idet,i) = sort_occ(idet)
         enddo
         deallocate(sort_coef,sort_occ)
-        if ( max_coef .lt. abs(civb(1,i)) ) then
+        if(max_coef.lt.abs(civb(1,i))) then
           max_coef = abs(civb(1,i))
         endif
         
@@ -1328,7 +1322,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         civb_aux = 0.0
         occu_aux = 0
         do idet = 1, idetb(ibase)
-          if ( abs(civb(idet,ibase)) .gt. thres2 ) then
+          if(abs(civb(idet,ibase)).gt.thres2) then
             ndet_rev = ndet_rev + 1
             civb_aux(ndet_rev) = civb(idet,ibase)
             occu_aux(ndet_rev) = ioccb(idet,ibase)
@@ -1591,7 +1585,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       call timer_start(98)
-      if(me.eq.master.and.iload.eq.1) then
+      if(me.eq.master) then
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -1697,7 +1691,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
         call gronor_print_results(hbase,sbase,nbase)
-        if ( ncorr .eq. 1 ) then
+        if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
           hcorr = 0.0
           call gronor_correlation_energy(
@@ -1717,7 +1711,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
      &       iaslvr,jaslvr,inslvr,jnslvr,
-     &       nbatch,lbatch,nmol,nbase,mstates,thresh,
+     &       ntask,nbatch,nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
  801    format(a8,1x,a8,3f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)

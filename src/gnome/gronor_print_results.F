@@ -18,15 +18,11 @@
 !! @author  C. de Graaf, URV
 !! @date    2020
 !!
-!> @todo
-!>  Change the unformatted f75 file to formatted (with proper headers) 
-!>  and merge with f74, now written in gronor_main
-!>
 
       subroutine gronor_print_results(hbase,sbase,nbase)
       
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : filf75,lfnf75,lfnout,lfntst,lfnarx
+      use cidef           , only : lfnout,lfntst,lfnarx
 
       implicit none
 
@@ -102,13 +98,6 @@
         write(lfnout,*) ' '
         write(*,*) ' '
       enddo
-      
-      
-      open(unit=lfnf75,file=filf75,form='unformatted')
-      write(75)nbase
-      write(75)((hbase(j,i),i=1,j),j=1,nbase)
-      write(75)((sbase(j,i),i=1,j),j=1,nbase)
-      close(unit=lfnf75,status='keep')
       
       if(nbase.gt.1) then
         do i=2,nbase

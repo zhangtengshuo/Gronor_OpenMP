@@ -199,10 +199,6 @@ c     use cuda_functions
         lfnarx=22
         filrnk=string(1:inp_strlen(string))//'.rnk'
         lfnrnk=23
-        lfnf74=74
-        filf74=string(1:inp_strlen(string))//'.f74'
-        lfnf75=75
-        filf75=string(1:inp_strlen(string))//'.f75'
 
         open(unit=lfnout,file=filout(1:inp_strlen(filout)),
      &       form='formatted',status='unknown',err=996)
@@ -435,7 +431,6 @@ c     use cuda_functions
         
         if(nbatch.gt.ntask) nbatch=ntask
 
-        write(*,'(a,2i8)') "=========> ",ntask,nbatch
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then
@@ -1665,12 +1660,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       if(me.eq.master) then
         write(lfnout,674)
  674    format(//,' Hamiltonian Matrix unnormalised',/)
-        open(unit=lfnf74,file=filf74,form='unformatted',
-     &       status='unknown')
-        write(74)nbase
-        write(74)((hbase(j,i),i=1,j),j=1,nbase)
-        write(74)((sbase(j,i),i=1,j),j=1,nbase)
-        close(unit=lfnf74,status='keep')
 
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1

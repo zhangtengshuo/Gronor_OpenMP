@@ -357,10 +357,11 @@ c     use cuda_functions
         
         ntask=32
 
-!     Set ntask and nbatch to undefined
+!     Set ntask to undefined
+!         nbatch to 0 : every contribution separately calculated
 
         ntask=-1
-        nbatch=-1
+        nbatch=0
 
 !     Default is to write a test file
         

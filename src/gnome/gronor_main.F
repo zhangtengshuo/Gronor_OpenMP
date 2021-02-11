@@ -357,9 +357,10 @@ c     use cuda_functions
         
         ntask=32
 
-!     Desult is to process integrals for each task entry
+!     Set ntask and nbatch to undefined
 
-        nbatch=0
+        ntask=-1
+        nbatch=-1
 
 !     Default is to write a test file
         
@@ -421,6 +422,11 @@ c     use cuda_functions
           mgr=(np-1)/npg
         endif
 
+        if(ntask.eq.-1) then
+          if(nbatch.gt.0) ntask=nbatch
+          nbatch=0
+        endif
+        
         if(nbatch.gt.ntask) nbatch=ntask
         
 !     Unless the user is an expert let's check thresholds

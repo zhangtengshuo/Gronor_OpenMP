@@ -426,17 +426,16 @@ c     use cuda_functions
           if(nbatch.gt.0) then
             ntask=nbatch
           else
-            if(nbatch.eq.0) ntask=32
-            if(nbatch.lt.0) nbatch=0
+            ntask=32
           endif
           nbatch=0
         else
-          if(ntask.eq.0) ntask=32
-          if(nbatch.lt.0) nbatch=0
+          if(ntask.le.0) ntask=32
         endif
         
         if(nbatch.gt.ntask) nbatch=ntask
-        
+
+        write(*,'(a,2i8)') "=========> ",ntask,nbatch
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then

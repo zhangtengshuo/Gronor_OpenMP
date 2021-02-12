@@ -353,11 +353,10 @@ c     use cuda_functions
         
         ntask=32
 
-!     Set ntask to undefined
-!         nbatch to 0 : every contribution separately calculated
+!     Set ntask and nbatch to undefined
 
         ntask=-1
-        nbatch=0
+        nbatch=-1
 
 !     Default is to write a test file
         
@@ -420,12 +419,18 @@ c     use cuda_functions
         endif
 
         if(ntask.eq.-1) then
-          if(nbatch.gt.0) ntask=nbatch
+          if(nbatch.gt.0) then
+            ntask=nbatch
+          else
+            ntask=32
+          endif
           nbatch=0
+        else
+          if(ntask.le.0) ntask=32
         endif
         
         if(nbatch.gt.ntask) nbatch=ntask
-        
+
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then

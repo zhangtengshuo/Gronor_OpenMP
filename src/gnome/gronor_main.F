@@ -4,7 +4,7 @@
 !     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 !     Any use of the software has to be in compliance with this license. Unless required
 !     by applicable law or agreed to in writing, software distributed under the license
-!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     is distributed on an ‘as is’ basis, without warranties or conditions of any kind,
 !     either express or implied.
 !     See the license for the specific language governing permissions and limitations
 !     under the license.
@@ -724,6 +724,8 @@ c        endif
         enddo
       enddo
 
+      call timer_stop(2)
+      call timer_start(3)
 
       allocate(vecsb(nbasis,nbasis,nbase))
       allocate(inactb(nbase))
@@ -1280,6 +1282,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ' Number of basis functions (nbasis)',t40,i10)
         flush(lfnout)
       endif
+
+      call timer_stop(3)
+      call timer_start(7)
       
       if(me.eq.master) then
         call timer_stop(99)
@@ -1370,6 +1375,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       enddo
       deallocate(civb_aux,occu_aux)
 
+      call timer_stop(7)
+      call timer_start(8)
       
       if(me.eq.master) then
         call timer_stop(99)
@@ -1530,9 +1537,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       'Number of processes per group',t100,i10)
       endif
       
-      call timer_stop(2)
-      call timer_start(3)
-      
+
+      call timer_stop(8)
+      call timer_start(9)
+
 !     Read the integrals from lfnint
       
       call gronor_read_integrals()
@@ -1545,6 +1553,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnday)
         call timer_start(99)
       endif
+      
+      call timer_stop(9)
       
       if(me.eq.master.and.ipr.ge.0) then
 #ifdef SINGLEP
@@ -1570,9 +1580,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       t80,' Size of two-electron integrals',t115,f8.3,' GB')
       endif
       
-      call timer_stop(3)
-      call timer_start(4)
-      
       if(me.eq.master.and.ipr.ge.5) then
         write(lfnout,628) nbase,nbase*(nbase+1)/2
  628    format(' Number of base states',t50,i16,/,                       &
@@ -1587,6 +1594,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           numrecs(i)=0
         enddo
       endif
+
+      call timer_start(98)
       
       if(me.eq.master) then
         call timer_stop(99)
@@ -1605,7 +1614,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfndbg)
       endif
 
-      call timer_start(98)
       if(me.eq.master) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -1647,6 +1655,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           endif
         endif
       endif
+
       call timer_stop(98)
       
       if(idbg.gt.0) then
@@ -1752,7 +1761,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(lstdet,ndxdet)
 
-      call timer_stop(4)
       call timer_stop(1)
 
       if(me.eq.master) then

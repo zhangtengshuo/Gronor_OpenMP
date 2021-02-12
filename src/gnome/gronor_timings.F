@@ -4,7 +4,7 @@
 !     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 !     Any use of the software has to be in compliance with this license. Unless required
 !     by applicable law or agreed to in writing, software distributed under the license
-!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     is distributed on an ‘as is’ basis, without warranties or conditions of any kind,
 !     either express or implied.
 !     See the license for the specific language governing permissions and limitations
 !     under the license.
@@ -275,17 +275,31 @@
       if(me.eq.master) then
         write(lfnout,675) nalive+1,np
  675    format(//,' At the end of the run ',i8,' of ',i8,
-     &       ' processes are still active')
-        if(ipr.ge.2) write(lfnout,615) 
-     &       timer_wall_total(94),
-     &       timer_wall_total(95)-timer_wall_total(94),
-     &       timer_wall_total(96),
-     &       timer_wall_total(97)-timer_wall_total(96)
- 615    format(//,
-     &       ' Request  time on master',t55,f12.3,/,
-     &       ' Response time on master',t55,f12.3,/,
-     &       ' Requestf time on master',t55,f12.3,/,
-     &       ' Finalize time on master',t55,f12.3,/)
+     &       ' processes are still active',//,
+     &       ' Timings summary')
+        if(ipr.ge.2) then
+          write(lfnout,617) timer_wall_total(2),
+     &         timer_wall_total(3),
+     &         timer_wall_total(7),
+     &         timer_wall_total(8),
+     &         timer_wall_total(9)
+ 617      format(/,
+     &         ' Reading and distribution input',t55,f12.3,/,
+     &         ' Assignment of ranks',t55,f12.3,/,
+     &         ' Generation base states',t55,f12.3,/,
+     &         ' Generation matrix element list',t55,f12.3,/,
+     &         ' Reading and distribution of integrals',t55,f12.3)
+          write(lfnout,615) 
+     &         timer_wall_total(94),
+     &         timer_wall_total(95)-timer_wall_total(94),
+     &         timer_wall_total(96),
+     &         timer_wall_total(97)-timer_wall_total(96)
+ 615      format(/,
+     &         ' Request  time on master',t55,f12.3,/,
+     &         ' Response time on master',t55,f12.3,/,
+     &         ' Requestf time on master',t55,f12.3,/,
+     &         ' Finalize time on master',t55,f12.3)
+        endif
         write(lfnout,614) 
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99)

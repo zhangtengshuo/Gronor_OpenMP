@@ -199,6 +199,8 @@ c     use cuda_functions
         lfnarx=22
         filrnk=string(1:inp_strlen(string))//'.rnk'
         lfnrnk=23
+        filcml=string(1:inp_strlen(string))//'.cml'
+        lfncml=24
 
         open(unit=lfnout,file=filout(1:inp_strlen(filout)),
      &       form='formatted',status='unknown',err=996)
@@ -220,7 +222,7 @@ c     use cuda_functions
         
         open(unit=lfnrnk,file=filrnk(1:inp_strlen(filrnk)),
      &       form='formatted',status='unknown',err=996)
-
+        
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
@@ -1771,6 +1773,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnday)
         call timer_start(99)
       endif
+
+      if(me.eq.master) call gronor_cml()
 
       call gronor_timings(lfnout,lfnday)
 

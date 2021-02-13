@@ -83,10 +83,10 @@
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
       character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet
       character (len=255) :: filone,filtwo,fildat,fillog
-      character (len=255) :: filcpr,filarx,filrnk
+      character (len=255) :: filcpr,filarx,filrnk,filcml
       integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet
       integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat
-      integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk
+      integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs

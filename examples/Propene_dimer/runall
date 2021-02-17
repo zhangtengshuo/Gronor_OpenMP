@@ -8,7 +8,6 @@ setenv DELETED ` grep "Deleted orbitals in MOTRA" $PROJECT"CB.output" | awk '{pr
 touch TRAINT
 setenv MOLCAS_MEM 4096
 pymolcas -clean $PROJECT"M.input" > $PROJECT"M.output"
-mv _CHMOT0 _CHMOT1
 set i = 1
 while($i<$MOLCAS_NPROCS)
  @ i = $i + 1

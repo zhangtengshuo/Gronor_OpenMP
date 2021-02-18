@@ -50,9 +50,7 @@ kpq
 >>> COPY $Project.ChRst   $CurrDir/CHORST
 >>> COPY $Project.ChMap   $CurrDir/CHOMAP
 >>> COPY _CHMOT1 $CurrDir/_CHMOT1
->>> foreach L in (2 .. $MOLCAS_NPROCS )
->>> eval D = $L - 1
->>> COPY tmp_$D/_CHMOT1 $CurrDir/_CHMOT$L
+>>> eval NPROCS = $MOLCAS_NPROCS - 1
+>>> foreach L in (1 .. $NPROCS )
+>>> shell cat tmp_$L/_CHMOT1 >> $CurrDir/_CHMOT1
 >>> enddo
-
-

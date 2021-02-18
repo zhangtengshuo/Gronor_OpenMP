@@ -1,5 +1,5 @@
 #!/usr/bin/tcsh
-setenv MOLCAS_NPROCS 24
+setenv MOLCAS_NPROCS 12
 setenv PROJECT "propene"
 pymolcas -clean $PROJECT"A.input" > $PROJECT"A.output"
 pymolcas -clean $PROJECT"D.input" > $PROJECT"D.output"
@@ -7,14 +7,12 @@ common_basis < $PROJECT"CB.input" > $PROJECT"CB.output"
 setenv DELETED ` grep "Deleted orbitals in MOTRA" $PROJECT"CB.output" | awk '{print substr($0,42)}' `
 touch TRAINT
 setenv MOLCAS_MEM 4096
+setenv MOLCAS_NPROCS 12
 pymolcas -clean $PROJECT"M.input" > $PROJECT"M.output"
-set i = 1
-while($i<$MOLCAS_NPROCS)
- @ i = $i + 1
- cat "_CHMOT"$i >> _CHMOT1
- rm "_CHMOT"$i
-end
 rdcho $MOLCAS_NPROCS > $PROJECT"RD.output"
 rdtraint < $PROJECT"CB.input" > $PROJECT"RT.output"
 unsetenv DELETED
-mpirun -n 32 gronor $PROJECT"_test"
+mpirun -n 12 gronor $PROJECT"_test"
+
+
+

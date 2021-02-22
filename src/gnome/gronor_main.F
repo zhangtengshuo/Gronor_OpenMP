@@ -301,7 +301,7 @@ c     use cuda_functions
      &       'Symmetry file is',t92,a,/,
      &       ' Output file is',t25,a,t60,
      &       'One electron integral file is',t92,a,//,
-     &       ' CI vector file(s) are',t25,a,'_nnn.civ',t60,
+     &       ' CI vector file(s) are',t25,a,'_nnn.det',t60,
      &       'Available memory on device',t90,i20,/,
      &       ' MO vector file(s) are',t25,a,'_nnn.vec',t60,
      &       'Total memory on device',t90,i20,//)
@@ -483,9 +483,9 @@ c     use cuda_functions
      &       'Number of ranks per task group',t100,i10,/,
      &       ' Development option',t40,i10,t60,
      &       'Number of molecules (nmol)',t100,i10,/,
-     &       ' Batch size',t40,i10,t60,
+     &       ' Task size',t40,i10,t60,
      &       'Number of molecular states (mstates)',t100,i10,/,
-     &       ' Batched option',t40,i10,t60,
+     &       ' Batch size',t40,i10,t60,
      &       'Number of many-electron states (nbase)',t100,i10,/)
 
         write(lfnout,623) thresh_CI, thresh_SIN

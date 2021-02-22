@@ -121,6 +121,7 @@
       end
 
       subroutine seticlosed(iclosed,in,nclosed)
+      use cidist
       implicit none
       integer :: nclosed,in,iclosed(nclosed)
       integer :: mask,jj,i,mask1
@@ -134,9 +135,7 @@
        endif
       enddo
       if(jj.ne.nclosed) then
-       write(*,*) 'problem in seticlosed'
-       write(*,*) 'aborting'
-       stop
+        call errquit(me,9,"Problem in seticlosed")
       end if
       return
       end

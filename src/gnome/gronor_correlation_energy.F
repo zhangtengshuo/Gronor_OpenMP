@@ -41,6 +41,7 @@
      &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout
       use gnome_parameters, only :  ipr
+      use cidist
 
       implicit none
 
@@ -140,6 +141,9 @@
       end subroutine gronor_correlation_energy
 
       subroutine lowdin(lfnout,ipr,nbase,sbase,slow)
+
+      use cidist
+      
       implicit none
 
       integer, intent(in)        :: nbase,lfnout,ipr
@@ -163,7 +167,7 @@
       if ( info .ne. 0 ) then
         write(lfnout,*)'Something went wrong in dsyev in lowdin '
         write(lfnout,*) 'info = ',info
-        stop
+        call errquit(me,9,"Error in Lowdin dsyev")
       end if
       deallocate(work)
 

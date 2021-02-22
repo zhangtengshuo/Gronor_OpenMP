@@ -65,7 +65,7 @@
             write(lfnout,'(a,i3,2a,i3,a)') 'state ',i,
      &           'is not compatible with the spin ',
      &           'of the molecule (',nspin,')'
-            stop
+            call errquit(me,9,"Incompatible spin state")
           endif
         enddo
         return
@@ -81,7 +81,7 @@
             write(lfnout,'(a,i4)') 'Spin(1) = ',spinm(1)
             write(lfnout,'(a,i4)') 'Spin(2) = ',spinm(2)
             write(lfnout,'(a,i4)') 'cannot be coupled to ',nspin
-            stop
+            call errquit(me,9,"Incompatible spin state")
           end if
         end if
         cib = 0
@@ -157,7 +157,7 @@
           write(lfnout,1573) 'total spin = ',nspin+1
           write(lfnout,*) 'not possible'
           flush(lfnout)
-          stop
+          call errquit(me,9,"Incompatible spin state")
  1573     format(a,i4)
         endif
         if ( (me.eq.master) .and. (ipr .gt. 10) ) then

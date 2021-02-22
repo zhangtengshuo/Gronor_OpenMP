@@ -53,7 +53,8 @@
       
       nalfa=ntcla+nopala
       nalfab=ntclb+nopalb
-      if(nalfa.ne.nalfab) stop'i don''t know spin-flip operators'
+      if(nalfa.ne.nalfab)
+     &     call errquit(me,9,"Inconsistent number of electron spins")
       
       if(idbg.ge.14) write(lfndbg,602)
  602  format('  itypen icentn jtype jcent   icount      indbas     '
@@ -229,7 +230,8 @@
       
       nalfa=ntcla+nopala
       nalfab=ntclb+nopalb
-      if(nalfa.ne.nalfab) stop'i don''t know spin-flip operators'
+      if(nalfa.ne.nalfab)
+     &     call errquit(me,9,"Inconsistent number of electron spins")
       
       if(idbg.ge.14) write(lfndbg,602)
  602  format('  itypen icentn jtype jcent   icount      indbas     '

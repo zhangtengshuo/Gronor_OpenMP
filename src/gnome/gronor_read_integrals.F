@@ -443,9 +443,9 @@
 
       return
  993  write(lfnout,983) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,5,"Error in reading integrals")
  994  write(lfnout,984) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,5,"Error in reading integrals")
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)
       end

@@ -155,7 +155,8 @@
           nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
           nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
 
-          if(nelec(1).ne.nelec(2)) stop
+          if(nelec(1).ne.nelec(2))
+     &         call errquit(me,7,"Inconsistent number electrons")
 
           i=lstdet(ij+ioff,1)
           j=lstdet(ij+ioff,2)

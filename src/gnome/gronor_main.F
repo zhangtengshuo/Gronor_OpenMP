@@ -342,7 +342,7 @@ c     use cuda_functions
         if(np.lt.mgr+1) then
           write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &         ') cannot be supported by available ranks (',np,')'
-          call errquit()
+          call errquit(me,2,"Error in main")
         endif
 
         nmol=0
@@ -416,7 +416,7 @@ c     use cuda_functions
         call gronor_input()
         
         if(mgr.eq.0) then
-          if(npg.eq.0) call errquit()
+          if(npg.eq.0) call errquit(me,2,"Error in main")
           mgr=(np-1)/npg
         endif
 
@@ -445,7 +445,7 @@ c     use cuda_functions
         if(npg*mgr+1.gt.np) then
           write(lfnout,983)
  983      format(' Requested number of ranks exceeds available')
-          call errquit()
+          call errquit(me,2,"Error in main")
         endif
         
         allocate(nbasm(mstates))
@@ -854,7 +854,7 @@ c        endif
      &     MPI_COMM_WORLD,ierr)
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
-        call errquit()
+        call errquit(me,2,"Error in main")
       endif
       do i=1,numgrp
         do j=1,mgr
@@ -1817,17 +1817,17 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       
       return
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))
-      call errquit()
+      call errquit(me,2,"Error in main")
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
-      call errquit()
+      call errquit(me,2,"Error in main")
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit()
+      call errquit(me,2,"Error in main")
  996  write(lfnout,986) filout(1:inp_strlen(filout))
-      call errquit()
+      call errquit(me,2,"Error in main")
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit()
+      call errquit(me,2,"Error in main")
  998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call errquit()
+      call errquit(me,2,"Error in main")
  984  format('Unable to open debug file ',a)
  985  format('Unable to open symmetry file ',a)
  986  format('Unable to open output file ',a)

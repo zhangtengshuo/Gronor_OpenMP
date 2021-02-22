@@ -337,7 +337,7 @@ c!_OMPTGT_($omp end target)
       enddo
 !_ACCTGT_($acc end kernels)
 c!_OMPTGT_($omp end target)
-      if(cmax.le.0.01) stop 'no overlap between m.o.s'
+      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
       cnorm=thresh_SIN*cmax
       coef=idetuw
@@ -573,7 +573,7 @@ c!_OMPTGT_($omp end target)
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
 
-      if(cmax.le.0.01) stop 'no overlap between m.o.s'
+      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
       cnorm=thresh_SIN*cmax
       coef=idetuw

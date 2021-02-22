@@ -170,6 +170,6 @@
 
  999  write(lfnout,9999)
  9999 format('Error reading symmetry file')
-      stop
+      call errquit(me,9,"Error reading symmetry file")
       end
 

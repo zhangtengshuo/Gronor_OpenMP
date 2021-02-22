@@ -93,15 +93,18 @@
       ntesta=nveca+ntcla
       ntestb=nvecb+ntclb
       
-      if(ntesta.ne.ntestb) stop'the number of electrons are not equal'
+      if(ntesta.ne.ntestb)
+     &     call errquit(me,9,"Number of electrons is inconsistent")
       
       nelecs=ntesta
       n1bas=nbas*(nbas+1)/2
       nstdim=max(1,nelecs*nelecs,n1bas)
       mbasel=max(nelecs,nbas)
       
-      if(nveca.ne.ntcl(1)+ntop(1)) stop 'here1'
-      if(nvecb.ne.ntcl(2)+ntop(2)) stop 'here2'
+      if(nveca.ne.ntcl(1)+ntop(1)) 
+     &     call errquit(me,9,"Incompatible nveca")
+      if(nvecb.ne.ntcl(2)+ntop(2)) 
+     &     call errquit(me,9,"Incompatible nvecb")
       
       if(idbg.gt.10) then
         do idet=1,2

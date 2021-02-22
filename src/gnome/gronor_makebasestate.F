@@ -65,6 +65,7 @@
 
       subroutine gronor_make_basestate(ibase)
       use cidef
+      use cidist
       use gnome_data
       use gnome_parameters
       implicit none
@@ -103,7 +104,7 @@
          write(lfnout,*)' * * *  Error  * * *'
          write(lfnout,*)'Max. number of active orbitals: ',maxact
          write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
-         stop 'Too many active orbitals'
+         call errquit(me,9,"Too many active orbitals")
       endif
 
 * Combining the vectors of the fragments

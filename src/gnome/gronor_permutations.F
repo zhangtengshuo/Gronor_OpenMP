@@ -69,7 +69,7 @@
       if(ms.gt.0)then
          call alphastoend(occ2,nelec,nperm,ms)
       endif      
-      do i=1,nact-ms-1
+      do i=1,nelec-ms-1
          pos1=mod(i-1,2)
          if(occ2(i).eq.1)then
             spin=0

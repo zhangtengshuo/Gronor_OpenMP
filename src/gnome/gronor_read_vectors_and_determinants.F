@@ -31,18 +31,18 @@
 
       use inp
       use cidef
+      use cidist
       use gnome_parameters
 
       implicit none
 
-      integer                          :: i,j,k,l,istat,length
+      integer                          :: i,j,k,istat,length
       integer                          :: maxci_raw
-      integer           , allocatable  :: idet_raw(:),iocc_tmp(:)
+      integer           , allocatable  :: idet_raw(:)
       real      (kind=8)               :: sdum
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
-      character (len=255)              :: string
 
       maxci=0
       maxci_raw=0
@@ -91,8 +91,8 @@
           occ_string(j,i)=adjustl(occ_string(j,i))
         enddo                                    
         call remove_duplicates_fildet
-     &         (idet_raw(i),idetm(i),nactm(i),
-     &         civ_raw(:,i),occ_string(:,i),thresh_CI)
+     &       (idet_raw(i),idetm(i),civ_raw(:,i),
+     &       occ_string(:,i),thresh_CI)
         close(unit=lfndet)                        
         maxci=max(maxci,idetm(i))     
       enddo
@@ -114,6 +114,7 @@
             else
               write(lfnout,'(2A)') 'weird occupation in ',dumstr
               write(lfnout,'(A,I4,A,I4)')'determinant ',j, 'of state ',i
+              call errquit(me,9,"Inconsistent occupation")
               stop
             endif
           enddo
@@ -221,11 +222,11 @@
       return
 
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit()
+      call errquit(me,6,"Error reading determinants")
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit()
+      call errquit(me,6,"Error reading determinants")
  999  write(lfnout,989) fildet(1:inp_strlen(fildet))
-      call errquit()
+      call errquit(me,6,"Error reading determinants")
  985  format('Unable to open symmetry file ',a)
  987  format('Unable to open vects  file ',a)
  989  format('Unable to open vecdet file ',a)

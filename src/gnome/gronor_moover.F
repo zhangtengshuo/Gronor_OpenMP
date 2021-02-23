@@ -31,11 +31,9 @@
       
       implicit none
       
-      integer (kind=4) :: ierr
-      integer :: lfndbg
-      integer :: i, nopala, nopalb, nalfab, i1, i2
-      integer :: ict,j,ib,kb,iv,ie,ke,le,kk,ii,k,l,m1,k1
-      real (kind=8) :: sint, si, sum
+      integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
+      integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
+      real (kind=8) :: sum
       
       if(idbg.ge.13) write(lfndbg,601)
  601  format(/,' Calculation of the overlap matrix')
@@ -53,7 +51,8 @@
       
       nalfa=ntcla+nopala
       nalfab=ntclb+nopalb
-      if(nalfa.ne.nalfab) stop'i don''t know spin-flip operators'
+      if(nalfa.ne.nalfab)
+     &     call errquit(me,9,"Inconsistent number of electron spins")
       
       if(idbg.ge.14) write(lfndbg,602)
  602  format('  itypen icentn jtype jcent   icount      indbas     '
@@ -207,11 +206,9 @@
       
       implicit none
       
-      integer (kind=4) :: ierr
-      integer :: lfndbg
-      integer :: i, nopala, nopalb, nalfab, i1, i2
-      integer :: ict,j,ib,kb,iv,ie,ke,le,kk,ii,k,l,m1,k1
-      real (kind=8) :: sint, si, sum
+      integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
+      integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
+      real (kind=8) :: sum
       
       if(idbg.ge.13) write(lfndbg,601)
  601  format(/,' Calculation of the overlap matrix')
@@ -229,7 +226,8 @@
       
       nalfa=ntcla+nopala
       nalfab=ntclb+nopalb
-      if(nalfa.ne.nalfab) stop'i don''t know spin-flip operators'
+      if(nalfa.ne.nalfab)
+     &     call errquit(me,9,"Inconsistent number of electron spins")
       
       if(idbg.ge.14) write(lfndbg,602)
  602  format('  itypen icentn jtype jcent   icount      indbas     '

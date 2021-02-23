@@ -35,7 +35,6 @@
 
       integer :: i,j,k,node
       integer (kind=4) :: len, ierr
-      integer (kind=4) :: istat
 
       integer :: getcpucount
       external :: getcpucount
@@ -44,7 +43,6 @@
       character (len=20) :: string
       character (len=40) :: numeric
       character (len=128) :: value
-      integer::  cudaGetDeviceCount,jstat,iout
 
       integer (kind=8) :: lenv,statv
 

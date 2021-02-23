@@ -42,7 +42,7 @@
       integer,allocatable  :: mspin(:),ndet_mspin(:,:),occ_mspin(:,:,:)
       integer,allocatable  :: iocc_tmp(:,:)
 
-      real (kind = 8)               :: cg,prod,dnorm
+      real (kind = 8)               :: prod
       real (kind = 8), allocatable  :: ci_mspin(:,:)
       real (kind = 8), allocatable  :: cicoef_tmp(:)
 
@@ -65,7 +65,7 @@
             write(lfnout,'(a,i3,2a,i3,a)') 'state ',i,
      &           'is not compatible with the spin ',
      &           'of the molecule (',nspin,')'
-            stop
+            call errquit(me,9,"Incompatible spin state")
           endif
         enddo
         return
@@ -81,7 +81,7 @@
             write(lfnout,'(a,i4)') 'Spin(1) = ',spinm(1)
             write(lfnout,'(a,i4)') 'Spin(2) = ',spinm(2)
             write(lfnout,'(a,i4)') 'cannot be coupled to ',nspin
-            stop
+            call errquit(me,9,"Incompatible spin state")
           end if
         end if
         cib = 0
@@ -121,7 +121,7 @@
      &           iocc_tmp,
      &           occ_mspin(1,1,offsetm+1),
      &           idetm(istate),ndet_mspin(i,:),
-     &           spin(i),nactm(istate),nci,maxnact,lfnout)
+     &           spin(i),nactm(istate),nci,maxnact)
              deallocate(cicoef_tmp)
              deallocate(iocc_tmp)
             mspin(offsetm+1)=spin(i)
@@ -157,7 +157,7 @@
           write(lfnout,1573) 'total spin = ',nspin+1
           write(lfnout,*) 'not possible'
           flush(lfnout)
-          stop
+          call errquit(me,9,"Incompatible spin state")
  1573     format(a,i4)
         endif
         if ( (me.eq.master) .and. (ipr .gt. 10) ) then

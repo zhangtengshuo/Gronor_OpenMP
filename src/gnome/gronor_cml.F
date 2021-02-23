@@ -23,6 +23,8 @@
       use gnome_data
       use cidef
       use inp
+      use cidist
+
       implicit none
       character(len=2), external :: element
       real (kind=8), external :: atom_radius
@@ -81,6 +83,6 @@
  996  write(lfnout,986) filcml(1:inp_strlen(filcml))
  986  format('Unable to open file ',a)
       
-      call errquit()
+      call errquit(me,0,"Unable to open cml file")
       
       end subroutine gronor_cml

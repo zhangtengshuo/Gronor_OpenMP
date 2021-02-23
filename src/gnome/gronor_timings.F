@@ -33,21 +33,14 @@
 
       implicit none
 
-      integer :: lfnout,lfnday,i,j,ndone,idum
+      integer :: lfnout,lfnday,i,j,idum
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total
       integer :: timer_calls
 
-      logical :: flag
-      real (kind=8), allocatable :: timings(:,:), timingst(:,:)
-      real (kind=8), allocatable :: tdata(:)
-      integer (kind=4), allocatable :: isync(:)
-      integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE),nrem
-      integer (kind=4), allocatable :: ireq(:)
-!      real (kind=8),allocatable :: tdat(:,:)
-      real (kind=8),allocatable :: tdat(:)
-      integer (kind=4) :: nindx
-      logical (kind=4) :: odone
+      real (kind=8), allocatable :: timings(:,:),tdata(:),tdat(:)
+      integer (kind=4), allocatable :: isync(:),ireq(:)
+      integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       character (len=255) :: date,time
 
       if(itim.gt.0) then

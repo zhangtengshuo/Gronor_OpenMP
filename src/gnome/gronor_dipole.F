@@ -27,7 +27,7 @@
       integer :: lfndbg
 
       integer :: i,j
-      real (kind=8) :: x,y,z,aij,dx,dy,dz,sint,z1,xc,yc,zc,dtot
+      real (kind=8) :: x,y,z,aij,dx,dy,dz,z1,xc,yc,zc,dtot
 
       if(idbg.ge.13) write(lfndbg,600)
  600  format(' The dipole matrix elements will be calculated')
@@ -43,7 +43,6 @@
         if(ising.eq.0) aij=ta(i,j)*deta*2
         if(ising .gt. 0) aij=diag(i)*sdiag(j)
         if(abs(aij).ge.1.0e-12) then
-*         call shintc2(lfndbg,3,0,i,j,sint)
          dx=-1.0d0*dx*aij
          dy=-1.0d0*dy*aij
          dz=-1.0d0*dz*aij

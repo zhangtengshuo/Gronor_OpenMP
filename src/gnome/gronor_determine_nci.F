@@ -25,7 +25,7 @@
 
       implicit none
 
-      integer     :: i,j,k,pascal,ms
+      integer     :: pascal,ms
       integer     :: state,det,act,alpha
 
       integer,allocatable  :: spin(:)

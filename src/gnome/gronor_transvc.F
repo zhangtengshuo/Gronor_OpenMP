@@ -25,9 +25,7 @@
       use gnome_data
       use gnome_parameters
       implicit none
-      integer :: idet, m, n, n1, iop, ib, iv, lfndbg
-      integer :: k, ke, ks, i, is, ie, mstand, m1, nn, ns, ne, l
-      integer :: im, m2, ls,nd
+      integer :: idet,m,n1,iop,ib,iv,lfndbg,k,i,l,im,ls
       if(idbg.ge.17) write(lfndbg,601)
  601  format(/,' Determinant Irrep  Nclose  Nopen OccActive',/)
 

@@ -41,17 +41,17 @@
      &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout
       use gnome_parameters, only :  ipr
+      use cidist
 
       implicit none
 
 
-      integer                              :: i,j,k,l,m,n,info
+      integer                              :: i,j,info
       integer, intent(in)                  :: mstates,nbase,nmol,nwt
       integer, dimension(nbase)            :: ipiv
       integer, dimension(nmol,nbase)       :: ncombv
       real(kind=8), allocatable            :: work(:)
       real(kind=8), dimension(nbase,nbase) :: hbase,sbase,hcorr,slow,wgn
-      real(kind=8), dimension(nbase)       :: hev
       real(kind=8), dimension(nbase)       :: shft
       real(kind=8), dimension(mstates)     :: ecorr
 
@@ -140,10 +140,12 @@
       end subroutine gronor_correlation_energy
 
       subroutine lowdin(lfnout,ipr,nbase,sbase,slow)
+
+      use cidist
+      
       implicit none
 
       integer, intent(in)        :: nbase,lfnout,ipr
-      integer                    :: ipiv(nbase)
       integer                    :: info,i,j
 
       real(kind=8), intent(in)   :: sbase(nbase,nbase)
@@ -163,7 +165,7 @@
       if ( info .ne. 0 ) then
         write(lfnout,*)'Something went wrong in dsyev in lowdin '
         write(lfnout,*) 'info = ',info
-        stop
+        call errquit(me,9,"Error in Lowdin dsyev")
       end if
       deallocate(work)
 

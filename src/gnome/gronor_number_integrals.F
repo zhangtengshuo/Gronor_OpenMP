@@ -22,6 +22,7 @@
 
       use inp
       use cidef
+      use cidist
       use gnome_data
       use gnome_integrals
       use gnome_parameters
@@ -65,9 +66,9 @@
 
       return
  993  write(lfnout,983) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,3,"Error in number integrals")
  994  write(lfnout,984) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,3,"Error in number integrals")
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)
       end

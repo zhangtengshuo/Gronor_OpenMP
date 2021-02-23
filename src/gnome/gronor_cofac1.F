@@ -34,10 +34,13 @@
       implicit none
       integer :: lfndbg
       integer :: i,ierr,j,idetuw,k
-      real (kind=8) :: coef,td
+      real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
+      
+#ifdef CUSOLVER
       character (len=1), target :: jobu, jobvt
+#endif
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
@@ -337,7 +340,7 @@ c!_OMPTGT_($omp end target)
       enddo
 !_ACCTGT_($acc end kernels)
 c!_OMPTGT_($omp end target)
-      if(cmax.le.0.01) stop 'no overlap between m.o.s'
+      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
       cnorm=thresh_SIN*cmax
       coef=idetuw
@@ -456,7 +459,6 @@ c!_OMPTGT_($omp end target)
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
-      character (len=1), target :: jobu, jobvt
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
@@ -573,7 +575,7 @@ c!_OMPTGT_($omp end target)
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
 
-      if(cmax.le.0.01) stop 'no overlap between m.o.s'
+      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
       cnorm=thresh_SIN*cmax
       coef=idetuw

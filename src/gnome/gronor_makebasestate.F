@@ -65,29 +65,31 @@
 
       subroutine gronor_make_basestate(ibase)
       use cidef
+      use cidist
       use gnome_data
       use gnome_parameters
       implicit none
       
 
       integer              :: ibase,state1,state2
-      integer              :: i,j,k,kk,iact,jact,l
+      integer              :: i,j,k,kk,iact,jact
       integer              :: jstart,kstart
       integer              :: ndets,istate
-      integer              :: ms1,ms2,det,det1,det2
+      integer              :: ms1,ms2,det1,det2
       integer, external    :: perm_ab,isetsign4
-      integer, parameter   :: maxact = 32        ! because of the packing, maxact is limited to 32 (I guess)
+      
+!     Because of the packing, maxact is limited to 32 (I guess)
+      integer, parameter   :: maxact = 32
+      
       integer, allocatable :: spin(:)
-      integer, allocatable :: ndet_ms(:),ndet1_ms(:),ndet2_ms(:)
-      integer, allocatable :: occ_ms(:,:,:),occ1_ms(:,:,:),
-     &                                      occ2_ms(:,:,:)
+      integer, allocatable :: ndet1_ms(:),ndet2_ms(:)
+      integer, allocatable :: occ1_ms(:,:,:),occ2_ms(:,:,:)
       integer, allocatable :: iocc_tmp(:,:)
 
       logical              :: all_singlet
 
       real (kind = 8)              :: prod,dnorm
       real (kind = 8), external    :: clebsch_gordon
-      real (kind = 8), allocatable :: ci_ms(:,:)
       real (kind = 8), allocatable :: ci1_ms(:,:)
       real (kind = 8), allocatable :: ci2_ms(:,:)
       real (kind = 8), allocatable :: cicoef_tmp(:)
@@ -103,7 +105,7 @@
          write(lfnout,*)' * * *  Error  * * *'
          write(lfnout,*)'Max. number of active orbitals: ',maxact
          write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
-         stop 'Too many active orbitals'
+         call errquit(me,9,"Too many active orbitals")
       endif
 
 * Combining the vectors of the fragments
@@ -225,7 +227,7 @@
         end do
       end do
       call sminop(cicoef_tmp,ci1_ms,iocc_tmp,occ1_ms,idetm(istate),
-     &             ndet1_ms,spin(1),nactm(istate),nci,maxnact,lfnout) 
+     &             ndet1_ms,spin(1),nactm(istate),nci,maxnact) 
       deallocate(cicoef_tmp)
       deallocate(iocc_tmp)
 *   M_S of fragment 2
@@ -239,7 +241,7 @@
         end do
       end do
       call sminop(cicoef_tmp,ci2_ms,iocc_tmp,occ2_ms,idetm(istate),
-     &             ndet2_ms,spin(2),nactm(istate),nci,maxnact,lfnout)
+     &             ndet2_ms,spin(2),nactm(istate),nci,maxnact)
       deallocate(cicoef_tmp)
       deallocate(iocc_tmp)
 

@@ -35,21 +35,13 @@
       implicit none
 
       integer (kind=4) :: ierr
-      integer :: i,ie,im,is,ke,km,ks,le,lm,ne,ig0,j,ni,ng,nz
-      integer :: nm,ns,kl,k,ll,l,ls,nl,n,nn,igr,ngi,ngir
-      integer :: nmax,kbloc,mdum,itarget,noff
+      integer :: i,ig0,j,kl,k,n,nn,igr,ngi,mdum,ielem,jkoff
       integer, allocatable :: idum(:)
-      integer :: ielem,jkoff
-      real (kind=8) :: fik,fln,fikln
-      real (kind=8) :: sdum
       real (kind=8) :: b(510)
       integer :: status(MPI_STATUS_SIZE)
 
       integer :: kint, kintbatch, mint,nint,jint,lint
-      integer :: nacc, itoff,itnum
-      integer :: icol,ncol,irow,nrow
-      integer :: incint
-      integer :: nsmall
+      integer :: nacc
       integer :: ilast,ii,jj
       integer(kind=2)::ibuf(1020)
 
@@ -443,9 +435,9 @@
 
       return
  993  write(lfnout,983) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,5,"Error in reading integrals")
  994  write(lfnout,984) filint(1:inp_strlen(filint))
-      call errquit()
+      call errquit(me,5,"Error in reading integrals")
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)
       end

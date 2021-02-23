@@ -1,4 +1,3 @@
-
       subroutine tred2(nm,n,a,na1,na2,d,nd,e,ne,z,nz1,nz2)
 
       implicit none

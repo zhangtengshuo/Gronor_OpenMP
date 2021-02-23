@@ -18,7 +18,7 @@
       integer         :: occu(n)
       real (kind = 8) :: random
       real (kind = 8) :: pivot,aux1
-      integer         :: n,i,left,right,marker,aux2
+      integer         :: n,left,right,marker,aux2
 
       if (n .gt. 1) then
         call random_number(random)

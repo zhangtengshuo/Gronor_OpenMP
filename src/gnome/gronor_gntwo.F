@@ -49,25 +49,16 @@
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg
+      integer :: lfndbg,i,k,l,n,intg
 
-      integer :: iaf0,ial0,inf0,inl0,iaf1,ial1,inf1,inl1
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
 #ifdef SINGLEP
-      real (kind=4) :: e2t,e2nt,tst,tsnt
+      real (kind=4) :: e2t,tst
       real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 #else
-      real (kind=8) :: e2t,e2nt,tst,tsnt
+      real (kind=8) :: e2t,tst
       real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 #endif
@@ -223,25 +214,16 @@
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg
+      integer :: lfndbg,i,ii,jj,k,l,n,kl,intg
 
-      integer :: iaf0,ial0,inf0,inl0,iaf1,ial1,inf1,inl1
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
 #ifdef SINGLEP
-      real (kind=4) :: e2t,e2nt,tst,tsnt
+      real (kind=4) :: e2t,tst
       real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 #else
-      real (kind=8) :: e2t,e2nt,tst,tsnt
+      real (kind=8) :: e2t,tst
       real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 #endif
@@ -406,21 +388,11 @@
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+      real (kind=8) :: ts,fourdet
 
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-
-      real(kind=8), external :: timer_wall
+      real (kind=8), external :: timer_wall
 
       etotb=0.0d0
       
@@ -637,21 +609,11 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,ihc,nhc,ibl
 
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+      real (kind=8) :: ts,fourdet
 
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-
-      real(kind=8), external :: timer_wall
+      real (kind=8), external :: timer_wall
 
       etotb=0.0d0
       
@@ -863,19 +825,9 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real(kind=8) :: ts,fourdet
 
       real(kind=8), external :: timer_wall
 
@@ -1123,19 +1075,9 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,ihc,nhc,ibl
 
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real (kind=8) :: ts,fourdet
 
       real(kind=8), external :: timer_wall
 
@@ -1394,17 +1336,9 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,k,l,n,intg
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: sum2,ts,fourdet
       real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 
@@ -1531,17 +1465,13 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
       integer :: lfndbg
 
-      integer :: i,ii,jj,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg
+      integer :: i,ii,jj,k,l
+      integer :: n,kl
+      integer :: intg
 
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
+      real (kind=8) :: sum2,ts,fourdet
       real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
       real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
 
@@ -1678,19 +1608,9 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
-
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real (kind=8) :: ts,fourdet
 
       real(kind=8), external :: timer_wall
 
@@ -1925,23 +1845,11 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer :: lfndbg
+      integer :: lfndbg,i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
-
-      real (kind=8) :: e2n,tsn,gtemp,et, etemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real (kind=8) :: etemp,ts,fourdet
 
       real(kind=8), external :: timer_wall
-
-      character (len=1) :: ch
 
       etotb=0.0d0
       
@@ -2196,19 +2104,11 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
       integer :: lfndbg
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl
+      integer :: i,k,l,n,intg,ihc,nhc,ibl
 
-      real(kind=8) :: e2n,tsn,gtemp
-      real (kind=8) :: tcalc, twait
-
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real (kind=8) :: ts,fourdet
 
       real(kind=8), external :: timer_wall
 
@@ -2443,23 +2343,15 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       implicit none
 
-      integer (kind=4) :: ierr
       integer :: lfndbg
 
-      integer :: i,ii,k,l,status(MPI_STATUS_SIZE)
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl,nn,n2
-      integer :: nmax,kbloc,noff,intg,ihc,nhc,ibl,j,jj
+      integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj
 
-      real (kind=8) :: e2n,tsn,gtemp,et, etemp
-      real (kind=8) :: tcalc, twait
+      real (kind=8) :: etemp
 
-      real (kind=8) :: sum,sum1,sum2,fik,fln,fikln,gnn,ts,fourdet
-      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+      real (kind=8) :: ts,fourdet
 
       real(kind=8), external :: timer_wall
-
-      character (len=1) :: ch
 
 !     Copying arrays into batch arrays
 

@@ -12,11 +12,11 @@
 !     GronOR is copyright of the University of Groningen
 
       subroutine remove_duplicates_fildet
-     &     (ndetin,ndetout,nact,cicoef,occ,thresh_CI)
+     &     (ndetin,ndetout,cicoef,occ,thresh_CI)
       
       implicit none
       
-      integer      :: ndetin,ndetout,nact
+      integer      :: ndetin,ndetout
       integer      :: ndetaux
       integer      :: i,j
       real(kind=8) :: cicoef(ndetin)

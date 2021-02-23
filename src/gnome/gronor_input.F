@@ -29,7 +29,6 @@
 
       integer :: i,j
       character (len=255) :: item
-      character (len=255) :: opt_inp
       
       open(unit=lfninp,file=filinp,form='formatted',status='old',
      &     err=999)
@@ -45,29 +44,30 @@
  3      continue
 
         if(inp_compare(.false.,'Groups',item)) then
-          if(.not.inp_i(npg)) call errquit()
+          if(.not.inp_i(npg)) call errquit(me,1,"Input error")
           goto 2
         endif
 
         if(inp_compare(.false.,'Size',item)) then
-          if(.not.inp_i(mgr)) call errquit()
+          if(.not.inp_i(mgr)) call errquit(me,1,"Input error")
           npg=(np-1)/mgr
           if(np.lt.mgr+1) then
             write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &           ') cannot be supported by available ranks (',np,')'
-            call errquit()
+            call errquit(me,1,"Input error")
           endif
           goto 2
         endif
         
         if(inp_compare(.false.,'Molecules',item)) then
-          if(.not.inp_i(nmol)) call errquit()
-          if(.not.inp_i(nbase)) call errquit()
+          if(.not.inp_i(nmol)) call errquit(me,1,"Input error")
+          if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
           allocate(ncombv(nmol,nbase))
           do i=1,nmol
-            if(.not.inp_read()) call errquit()
+            if(.not.inp_read()) call errquit(me,1,"Input error")
             do j=1,nbase
-              if(.not.inp_i(ncombv(i,j))) call errquit()
+              if(.not.inp_i(ncombv(i,j)))
+     &             call errquit(me,1,"Input error")
               if(ncombv(i,j).eq.0) ncombv(i,j)=9
               mstates=max(mstates,ncombv(i,j))
             enddo
@@ -81,19 +81,19 @@
         endif
         
         if(inp_compare(.false.,'Spin',item)) then
-          if(.not.inp_i(nspin)) call errquit()
+          if(.not.inp_i(nspin)) call errquit(me,1,"Input error")
           nspin = nspin - 1
           goto 2
         endif
 
         if(inp_compare(.false.,'Threshold',item)) then
-          if(.not.inp_f(thresh)) call errquit()
+          if(.not.inp_f(thresh)) call errquit(me,1,"Input error")
           thresh_CI=thresh
           goto 2
         endif
 
         if(inp_compare(.false.,'Labels',item)) then
-          if(.not.inp_i(labels)) call errquit()
+          if(.not.inp_i(labels)) call errquit(me,1,"Input error")
           goto 2
         endif
         
@@ -213,7 +213,7 @@
         endif
         
         if(inp_compare(.false.,'MPIbuffer',item)) then
-          if(.not.inp_i(mpibuf)) call errquit()
+          if(.not.inp_i(mpibuf)) call errquit(me,1,"Input error")
           goto 2
         endif
         
@@ -262,6 +262,6 @@
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))
  989  format('Unable to open input file ',a)
       
-      call errquit()
+      call errquit(me,1,"Input error")
       
       end subroutine gronor_input

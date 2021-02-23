@@ -552,9 +552,9 @@ c
 c
       character*10 today,now
 c
-#if defined(LINUX)
-      character*26 string
-#endif
+c#if defined(LINUX)
+c      character*26 string
+c#endif
 #if defined(IBM)
       character*26 string
 #endif
@@ -1077,7 +1077,7 @@ c
       integer itrace(1000)
       common/trc/ntrace,strace,ttrace,itrace,lfntrc,md0,md1
 c
-      real*8 elaps,cputim
+      real*8 cputim
 c
       ntrace=0
       call rolex(strace,cputim)
@@ -1425,10 +1425,14 @@ c
       argos_zmat=.true.
       return
       end
+      
       subroutine tps_abort(message,id)
       implicit none
       character(*) :: message
       integer :: id
+
+      write(*,999) id,message
+ 999  format('Error code ',i,': ',a)
       stop
       return 
       end

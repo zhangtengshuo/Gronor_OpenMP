@@ -34,6 +34,7 @@
       end
 
       integer function iloop(ij,mode)
+      use cidist
       implicit none
       integer ij,mode,ni,nj
       integer :: ndeti,ndetj
@@ -61,7 +62,7 @@
       elseif(mode.eq.2) then
          iloop=nj
       else
-         stop 'wrong mode for iloop'
+        call errquit(me,9,"Wrong mode for iloop")
       endif
       return
       end

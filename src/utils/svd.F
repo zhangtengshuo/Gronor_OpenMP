@@ -1,4 +1,3 @@
-
       subroutine svd(nm,m,n,a,na1,na2,w,nw,matu,u,nu1,nu2,matv,
      & v,nv1,nv2,ierr,rv1,nrv)
 
@@ -10,7 +9,6 @@
       real (kind=8) :: c,f,g,h,s,x,y,z,scale,anorm
       real (kind=8) :: sqrt,abs,sign
       logical :: matu,matv
-      integer :: iw
 
 !     this subroutine is a translation of the algol procedure svd,
 !     num. math. 14, 403-420(1970) by golub and reinsch.

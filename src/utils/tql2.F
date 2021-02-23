@@ -1,4 +1,3 @@
-
       subroutine tql2(nm, n, d,nd, e,ne, z,nz1,nz2, ierr)
 
       implicit none

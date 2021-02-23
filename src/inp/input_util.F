@@ -1239,6 +1239,8 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 !     try to minimize the amount of output if all nodes 
 !     detect an error
 
+      write(*,999) icode,string
+ 999  format("Error code ",i,": ",a)
       stop
       return
       end

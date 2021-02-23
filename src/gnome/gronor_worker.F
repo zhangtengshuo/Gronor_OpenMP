@@ -38,12 +38,10 @@
       real(kind=8), external :: timer_wall_total, timer_wall
       
       integer :: ibase,jbase,idet,jdet,nidet,njdet
-      integer :: i,j,l2,n,k,ict
+      integer :: i,l2,n
       integer (kind=4) :: ireq,ierr
       integer :: ibuf(4)
-      real (kind=8) :: sint
       integer :: status(MPI_STATUS_SIZE)
-      integer :: nel2
       integer :: ipopcnt
 
       flush(lfnout)

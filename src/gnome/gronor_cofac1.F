@@ -34,10 +34,13 @@
       implicit none
       integer :: lfndbg
       integer :: i,ierr,j,idetuw,k
-      real (kind=8) :: coef,td
+      real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
+      
+#ifdef CUSOLVER
       character (len=1), target :: jobu, jobvt
+#endif
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
@@ -456,7 +459,6 @@ c!_OMPTGT_($omp end target)
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
-      character (len=1), target :: jobu, jobvt
       
       if(idbg.ge.13) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')

@@ -29,7 +29,6 @@
 
       integer :: i,j
       character (len=255) :: item
-      character (len=255) :: opt_inp
       
       open(unit=lfninp,file=filinp,form='formatted',status='old',
      &     err=999)

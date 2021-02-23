@@ -36,14 +36,13 @@
 
       implicit none
 
-      integer                          :: i,j,k,l,istat,length
+      integer                          :: i,j,k,istat,length
       integer                          :: maxci_raw
-      integer           , allocatable  :: idet_raw(:),iocc_tmp(:)
+      integer           , allocatable  :: idet_raw(:)
       real      (kind=8)               :: sdum
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
-      character (len=255)              :: string
 
       maxci=0
       maxci_raw=0
@@ -92,8 +91,8 @@
           occ_string(j,i)=adjustl(occ_string(j,i))
         enddo                                    
         call remove_duplicates_fildet
-     &         (idet_raw(i),idetm(i),nactm(i),
-     &         civ_raw(:,i),occ_string(:,i),thresh_CI)
+     &       (idet_raw(i),idetm(i),civ_raw(:,i),
+     &       occ_string(:,i),thresh_CI)
         close(unit=lfndet)                        
         maxci=max(maxci,idetm(i))     
       enddo

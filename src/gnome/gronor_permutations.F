@@ -109,9 +109,8 @@
       implicit none
 
       integer,intent(in)  :: nact,ms
-      integer             :: index,i
-      integer             :: nperm
-      integer             :: occ(nact),occ2(nact)
+      integer             :: index,i,nperm
+      integer             :: occ(nact)
       logical             :: permutation
       
       do i=nact-ms+1,nact

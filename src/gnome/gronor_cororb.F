@@ -19,11 +19,10 @@
 !! @date    2016
 !!
   
-      subroutine gronor_cororb(lfndbg)
+      subroutine gronor_cororb()
       use gnome_parameters
       use gnome_data
       implicit none
-      integer :: lfndbg
       integer :: i,j,k
 
       do i=1,nelecs

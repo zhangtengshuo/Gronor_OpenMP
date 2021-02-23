@@ -42,7 +42,7 @@
       integer,allocatable  :: mspin(:),ndet_mspin(:,:),occ_mspin(:,:,:)
       integer,allocatable  :: iocc_tmp(:,:)
 
-      real (kind = 8)               :: cg,prod,dnorm
+      real (kind = 8)               :: prod
       real (kind = 8), allocatable  :: ci_mspin(:,:)
       real (kind = 8), allocatable  :: cicoef_tmp(:)
 
@@ -121,7 +121,7 @@
      &           iocc_tmp,
      &           occ_mspin(1,1,offsetm+1),
      &           idetm(istate),ndet_mspin(i,:),
-     &           spin(i),nactm(istate),nci,maxnact,lfnout)
+     &           spin(i),nactm(istate),nci,maxnact)
              deallocate(cicoef_tmp)
              deallocate(iocc_tmp)
             mspin(offsetm+1)=spin(i)

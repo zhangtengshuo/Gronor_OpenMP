@@ -69,41 +69,22 @@ c     use cuda_functions
       
       implicit none
 
-      integer (kind=4) :: ierror,ierr,istat,icnt
-      integer :: iarg,i,j,idum(51),k,l,len,nn,ifac,imul,scounter
-      integer,allocatable :: iocc_tmp(:)
+      integer (kind=4) :: ierror,ierr
+      integer :: iarg,i,j,idum(51),k,l
       integer,allocatable :: jspinmol(:)
-      integer :: maxspinmul
-      integer :: mdum, node
-      real (kind=8) :: sdum,ctime,wtime,rmat(2),rmatt(2),rdum(5)
-      character (len=255) :: string, filnam, card
+      integer :: node
+      real (kind=8) :: rdum(5)
+      character (len=255) :: string
 
       real(kind=8), external :: timer_wall_total
       
-      integer :: l1
-      logical :: osame
-
       integer :: getcpucount
       external :: getcpucount
 
-      integer :: im,is,ie,km,ks,ke,lm,ls,le,nm,ns,ne,n,kl,ll,nl
-      integer :: nmax,kbloc
+      integer :: igr,numone,numtwo,maxgrp,nk,ii,il
+      integer (kind=4) :: new
 
-      integer :: igr, numone, numtwo
-      integer (kind=4) :: new,newme,newgrp,newrnk
-      integer :: maxcib1
-      real (kind=8), allocatable :: tc(:,:), hbt(:)
-
-      character (len=4) :: token
-
-      integer :: maxgrp
-      integer :: nk,ii,il,ik
-
-      integer :: ibase, jbase, ib, jb, l2, lnxt, lcur, ksr, ln, lsum
-      integer :: l3, l4, ltot, ndsum, ioff, nsr(4)
-      integer (kind=8), allocatable :: numd(:), ndxd(:), lstdet0(:,:)
-
-      integer jdet, kdet, kdetbatch, ldet, mdet, ndet
+      integer :: ibase,jbase,lnxt,lcur,ksr,nsr(4)
 
       integer                  :: idet,length,ndet_rev
       integer, allocatable     :: sort_occ(:),occu_aux(:)
@@ -112,8 +93,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
-      integer :: li, ndtot, npl, nrg
-      real(kind=8) :: p, q
+      integer :: ndtot,npl,nrg
 
       character (len=64) :: version_type
 

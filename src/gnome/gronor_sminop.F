@@ -17,15 +17,14 @@
 !! @date    October 2020
 
       subroutine sminop(cicoef_in,cicoef_out,occ_in,occ_out,
-     &     ndetin,ndetout,spin,nact,nci,maxnact,lfnout)      
+     &     ndetin,ndetout,spin,nact,nci,maxnact)      
       use gnome_parameters
       implicit none
       
       integer          :: nact,spin,ndetin,nci,maxnact
       integer          :: ndetout(spin+1),occ_in(nact,ndetin)      
       integer          :: occ_out(maxnact,nci,spin+1)  
-      integer          :: i,j,k,l,m,n,idup
-      integer          :: lfnout
+      integer          :: i,j,k,l,m,idup
       integer,allocatable :: checklist(:,:)
       real (kind=8)    :: cicoef_in(ndetin),dnorm
       real (kind=8)    :: cicoef_out(nci,spin+1)
@@ -51,7 +50,7 @@
                      enddo
                   enddo
                   call check_duplicate(checklist,occ_out(:,j,i-1),
-     &                 k,nact,ndetout(i),duplicated,idup,lfnout)
+     &                 k,nact,ndetout(i),duplicated,idup)
                   deallocate(checklist)
                   if(.not.duplicated)then
                      ndetout(i)=ndetout(i)+1                     

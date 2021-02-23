@@ -44,11 +44,11 @@
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
-      integer :: ib,jb,id1,id2,ii,jj,ig0,ihc,nhc,ibl
+      integer :: ib,jb,id1,id2,ii,ihc,nhc
 
-      integer :: i,ibv,idet,iin,ij,j,jin,k,l2,m,n,nck,nop,nvc,indxx
+      integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
       integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,index
-      logical :: osamij,osame
+      logical :: osame
       integer :: ipopcnt
       integer :: ntvc,ivc,ibas
 

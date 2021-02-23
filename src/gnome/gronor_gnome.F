@@ -31,18 +31,7 @@
 
       implicit none
 
-      integer :: lfndbg
-      real (kind=8) :: vecs1(nbasis,nbasis),vecs2(nbasis,nbasis)
-
-      integer :: nworv(2)
-      integer :: idet
-
-      character (len=25) :: idfmess, line
-
-      integer (kind=4) :: ierr
-      integer :: nwor, n, k, iv, ib, i, j, ihc, nhc
-
-      integer :: ntvc,ivc,ibas
+      integer :: lfndbg,idet,n,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
       if(idbg.ge.12) then
       write(lfndbg,600) nbasis
@@ -175,12 +164,12 @@
         
           if(corres) then
             call timer_start(16)
-            call gronor_cororb(lfndbg)
+            call gronor_cororb()
             call timer_stop(16)
           endif      
           
           call timer_start(17)
-          call gronor_tramat(lfndbg)
+          call gronor_tramat()
           call timer_stop(17)
           
           if(idipole.ne.0) then
@@ -272,12 +261,12 @@
 
           if(corres) then
             call timer_start(16)
-            call gronor_cororb(lfndbg)
+            call gronor_cororb()
             call timer_stop(16)
           endif
           
           call timer_start(17)
-          call gronor_tramat_omp(lfndbg)
+          call gronor_tramat_omp()
           call timer_stop(17)
           
           if(idipole.ne.0) then

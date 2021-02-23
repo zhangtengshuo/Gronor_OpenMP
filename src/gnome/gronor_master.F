@@ -40,8 +40,8 @@
 
       implicit none
 
-      integer :: ibase,jbase,nidet,njdet,mdet
-      integer :: l2,i,j,k,ij,n,ndone,nleft,nrb
+      integer :: ibase,jbase,mdet
+      integer :: l2,i,j,k,ndone,nleft,nrb
       integer (kind=4) :: ierr,ireq,iremote
       integer :: igrp, ltemp, last
       logical :: osame

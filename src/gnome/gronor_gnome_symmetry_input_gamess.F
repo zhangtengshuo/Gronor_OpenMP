@@ -20,32 +20,33 @@
 !!
   
       subroutine gronor_gnome_symmetry_input_gamess
-     & (lfnsym,lfnout,ipr)
+     &     (lfnsym,lfnout,ipr)
+      
       use cidist
       use gnome_data
+      
       implicit none
 
       integer :: lfnsym, lfnout, ipr
 
-      integer :: i, idum, k, ii, ic1, it1, j, im, icomb
+      integer :: i,ii,j
 ! rkk basis
       integer :: nsh(750)
       integer,parameter :: maxorb=4096,maxat=750,mxshel=2048
-
-        integer :: nat,nba,nshell,ns,i3,nsf,npf,nspf,ndf,nff,ngf
-        integer :: kss,nss,ks(maxat),iat,ns1,ns2,i1,i2,
-     &  ntype,intyp(maxorb),ityp,ig,ish,jshell(6),
-     &  kstart(mxshel),kng(mxshel),kmax(mxshel),kmin(mxshel)
-
-        real(kind=8) :: c1,c3
-        integer :: nfac
-
-        character*8 ylabel(6),ytemp(mxshel)
-        integer :: nynum(5)
-        character*8 yfunc(30)
-        data ntype/6/
-        data ylabel/'s','p','d','f','g','sp'/
-        data jshell/ 1 , 3 , 6 ,10 ,15,  4 /
+      
+      integer :: nat,nshell,i3,nsf,npf,nspf,ndf,nff,ngf
+      integer :: ks(maxat),iat,ns1,ns2,i1,i2,
+     &     ntype,intyp(maxorb),ityp,ish,jshell(6),
+     &     kstart(mxshel),kng(mxshel),kmax(mxshel),kmin(mxshel)
+      
+      integer :: nfac
+      
+      character*8 ylabel(6),ytemp(mxshel)
+      integer :: nynum(5)
+      
+      data ntype/6/
+      data ylabel/'s','p','d','f','g','sp'/
+      data jshell/ 1 , 3 , 6 ,10 ,15,  4 /
 ! ---
 
       write(lfnout,601)

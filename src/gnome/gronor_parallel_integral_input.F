@@ -37,29 +37,19 @@
 
       implicit none
 
-      integer (kind=4) :: ierr
-      integer (kind=4) :: nrecb4
-      integer :: nrecb
-      integer :: i,ie,im,is,ke,km,ks,le,lm,ne,ig0,j,ni,ng,nz
-      integer :: nm,ns,kl,k,ll,l,ls,nl,n,nn,igr,ngi,ngir
-      integer :: nmax,kbloc,mclab,itarget,noff
-      integer :: numfiles,nrecfil,nrectot,irecs(4),myrecs,myrec,myfile
-      integer :: nrfil,id,idfil,jdfil,nrec,ilast,ninttot
-      integer (kind=8), allocatable :: igrrecs(:,:), ifil(:,:)
-      integer :: nrecl
-      real (kind=8) :: sdum
+      integer (kind=4) :: ierr,nrecb4
+      integer :: nrecb,i,j,kl,k,n,nn,igr,ngi,mclab
+      integer :: numfiles,nrectot,ilast,ninttot,nrecl,ielem
+      integer (kind=8), allocatable :: ifil(:,:)
       real (kind=8),allocatable :: b(:)
       integer (kind=2),allocatable :: ibuf(:)
       integer :: kint, kintbatch, mint,nint,jint,lint
-      integer :: ielem,jkoff,nacc
 
-      integer (kind=8), allocatable :: indxr(:,:,:)
-      integer (kind=8) :: numigr,idi,idf,idr,igp,jdi,ii,jj,kk
+      integer (kind=8) :: numigr,idf,idr,ii,jj,kk
 
-      integer (kind=8) :: idri, idrf
-      integer (kind=8) :: idg, idgi, idgf
+      integer (kind=8) :: idri,idrf,idg,idgi,idgf
       integer (kind=8), allocatable :: ndxf(:,:)
-      integer (kind=8), allocatable :: nag(:), nig(:), nng(:)
+      integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
       
 !     Read the one-electron integral file on the master
       

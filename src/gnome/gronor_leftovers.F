@@ -24,12 +24,10 @@
 
       integer function isetsign4(jocc,nact)
       implicit none
-      integer :: nact
-      integer :: jocc(nact),iocca(32),ioccb(32)
-      integer :: iclosed(32)
-      integer, allocatable :: idet(:,:)
-      integer :: ia,ib,ibita,ibitb,is,kk,jj,j,i,k,jperm
-      integer :: nelec,icl,nclosed,index,nperm,ih1,ih2,na,nb,ialp,ih
+
+      integer :: jocc(nact),iocca(32),ioccb(32),iclosed(32)
+      integer :: nact,ia,ib,ibita,ibitb,is,j,i,jperm
+      integer :: icl,nclosed,nperm,na,nb,ih
       integer, external :: ibitset,ibitc
 
       isetsign4=0

@@ -1,8 +1,8 @@
       subroutine errquit(irank,icode,string)
       implicit none
-      character*(*) string
-      integer icode
-      integer irank
+      character*(*) :: string
+      integer :: icode
+      integer (kind=4) :: irank
 c     
 c     error termination 
 c     

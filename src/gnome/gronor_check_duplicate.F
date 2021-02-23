@@ -11,14 +11,13 @@
 
 !     GronOR is copyright of the University of Groningen
       
-      subroutine check_duplicate(list,det,korb,nact,ndetlist,dup,i_dup,
-     &     lfnout)
+      subroutine check_duplicate(list,det,korb,nact,ndetlist,dup,i_dup)
 
       implicit none
       
-      integer :: nact,ndetlist,i,j,korb
+      integer :: nact,ndetlist,i,korb
       integer :: list(nact,ndetlist),det(nact),newdet(nact)
-      integer :: i_dup,lfnout
+      integer :: i_dup
       logical :: dup
       do i=1,nact
          newdet(i)=det(i)

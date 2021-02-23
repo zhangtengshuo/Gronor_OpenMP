@@ -37,7 +37,7 @@
       implicit none
       integer :: lfndbg
 
-      integer :: i,j,k,ielem,jkoff,nn
+      integer :: j,k,ielem,jkoff,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
 
       nn=0
@@ -110,7 +110,7 @@
       implicit none
       integer :: lfndbg
 
-      integer :: i,j,k,ielem,jkoff,nn
+      integer :: j,k,ielem,jkoff,nn
       real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
 
       nn=0

@@ -21,7 +21,7 @@
 
 #include "tgt_guard.fh"
       
-      subroutine gronor_tramat(lfndbg)
+      subroutine gronor_tramat()
 
 !      This routine mutiplies the input-matrix (a)
 !       (which is positioned in a workmatrix (aa))
@@ -38,7 +38,6 @@
       use gnome_parameters
       use gnome_data
       implicit none
-      integer :: lfndbg
       integer :: i,j,k,kk,m1
       real (kind=8) :: sum
 
@@ -202,7 +201,7 @@
       return
       end
 
-      subroutine gronor_tramat_omp(lfndbg)
+      subroutine gronor_tramat_omp()
 
 !      This routine mutiplies the input-matrix (a)
 !       (which is positioned in a workmatrix (aa))
@@ -219,7 +218,6 @@
       use gnome_parameters
       use gnome_data
       implicit none
-      integer :: lfndbg
       integer :: i,j,k,kk,m1
       real (kind=8) :: sum
 

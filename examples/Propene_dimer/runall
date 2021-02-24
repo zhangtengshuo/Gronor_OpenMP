@@ -1,13 +1,12 @@
 #!/usr/bin/tcsh
-setenv MOLCAS_NPROCS 12
+setenv MOLCAS_NPROCS 32
 setenv PROJECT "propene"
 pymolcas -clean $PROJECT"A.input" > $PROJECT"A.output"
 pymolcas -clean $PROJECT"D.input" > $PROJECT"D.output"
 common_basis < $PROJECT"CB.input" > $PROJECT"CB.output"
-setenv DELETED ` grep "Deleted orbitals in MOTRA" $PROJECT"CB.output" | awk '{print substr($0,42)}' `
+setenv DELETED ` grep "Deleted orbitals in MOTRA" $PROJECT"CB.output" | cut -b42- `
 touch TRAINT
 setenv MOLCAS_MEM 4096
-setenv MOLCAS_NPROCS 12
 pymolcas -clean $PROJECT"M.input" > $PROJECT"M.output"
 rdcho $MOLCAS_NPROCS > $PROJECT"RD.output"
 rdtraint < $PROJECT"CB.input" > $PROJECT"RT.output"

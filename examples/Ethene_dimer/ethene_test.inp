@@ -1,10 +1,10 @@
-Molecules 2 7
+Molecules 2 1
   1  2  1  2  3  4  5
   6  6  7  7  8 10  9
 States 10
 Print 2
-Batch 32
-Batched
+Batch 2
+Batched 1
 Threshold 1e-4
 Progress 1
 Size 1

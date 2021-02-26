@@ -157,15 +157,15 @@ ctps         do jbase=1,nbase
          enddo
       enddo
       
-      if(ipr.ge.0) write(lfnout,618) mdet,numdet
-  618 format(' Number of determinant pairs',t50,i16,/,
+      if(ipr.ge.40) write(lfnout,601) mdet,numdet
+ 601  format(' Number of determinant pairs',t50,i16,/,
      &     ' Number of determinants above CI threshold',t50,i16)
       
-      if(ipr.gt.1) then
-         write(*,621)
-         write(lfnout,621)
+      if(ipr.gt.0) then
+         write(*,602)
+         write(lfnout,602)
       endif
-  621 format(//,' Calculation of Hamiltonian matrix elements',//,
+ 602  format(//,' Calculation of Hamiltonian matrix elements',//,
      &     '   Element       ------- Determinants -------',
      &     '          -------------- Singularities -------------',
      &     '        ----- Unnormalized -----   ',
@@ -208,24 +208,24 @@ ctps         do jbase=1,nbase
             
             fday(ibase,jbase)=dble(iday)
             
-            if(ipr.ge.8) then
-               write(lfnout,600) ibase,jbase
-  600          format(/,' Base state pair ',2i5)
-               write(lfnout,601) ndeti
-  601          format(/,' Left wavefunction has ',i8,
+            if(ipr.ge.40) then
+               write(lfnout,603) ibase,jbase
+ 603           format(/,' Base state pair ',2i5)
+               write(lfnout,604) ndeti
+ 604           format(/,' Left wavefunction has ',i8,
      &              ' determinants:',/)
                do i=1,ndeti
                   call unpack(ioccb(i,ibase),iocch,nacti)
-                  write(lfnout,602) i,civb(i,ibase),
+                  write(lfnout,605) i,civb(i,ibase),
      &                 (iocch(k),k=1,nacti)
-  602             format(i5,f25.15,35i3)
+ 605              format(i5,f25.15,35i3)
                enddo
-               write(lfnout,603) ndetj
-  603          format(//,' Right wavefunction has ',i8,
+               write(lfnout,606) ndetj
+ 606           format(//,' Right wavefunction has ',i8,
      &              ' determinants:',/)
                do i=1,ndetj
                   call unpack(ioccb(i,jbase),iocch,nactj)
-                  write(lfnout,602) i,civb(i,jbase),
+                  write(lfnout,605) i,civb(i,jbase),
      &                 (iocch(k),k=1,nactj)
                enddo
             endif
@@ -394,54 +394,54 @@ ctps                     do j=1,i
 
 !     Print information to output
 
-                           call swatch(date,time)                    
+                           call swatch(date,time) 
+                           if(i.eq.j) then
+                             ltemp=idetb(i)*(idetb(i)+1)/2
+                           else
+                             ltemp=idetb(i)*idetb(j)
+                           endif
+                           
+                           write(lfnarx,522) i,j,idetb(i),idetb(j),
+     &                          ltemp,
+     &                          (nsing(i,j,k),k=1,4),
+     &                          hbase(i,j),sbase(i,j)
+                           
                            if(ipr.ge.1) then
-                              if(i.eq.j) then
-                                 ltemp=idetb(i)*(idetb(i)+1)/2
-                              else
-                                 ltemp=idetb(i)*idetb(j)
-                              endif
-
-                              write(lfnarx,522) i,j,idetb(i),idetb(j),
-     &                             ltemp,
-     &                             (nsing(i,j,k),k=1,4),
-     &                             hbase(i,j),sbase(i,j)
-
-                              if(i.ne.j) then
-                                 write(*,1622) i,j,idetb(i),idetb(j),
-     &                                ltemp,
-     &                                (nsing(i,j,k),k=1,4),
-     &                                hbase(i,j),sbase(i,j),
-     &                                tbase(i,j),timer_wall_total(99)
-                                 write(lfnout,1622) i,j,idetb(i),
-     &                                idetb(j),ltemp,
-     &                                (nsing(i,j,k),k=1,4),
-     &                                hbase(i,j),sbase(i,j),
-     &                                tbase(i,j),timer_wall_total(99)
-                              else
-                                 write(*,622) i,j,idetb(i),idetb(j),
-     &                                ltemp,
-     &                                (nsing(i,j,k),k=1,4),
-     &                                hbase(i,j),sbase(i,j),
-     &                                hbase(i,j)/sbase(i,j),
-     &                                tbase(i,j),timer_wall_total(99)
-                                 write(lfnout,622) i,j,idetb(i),
-     &                                idetb(j),ltemp,
-     &                                (nsing(i,j,k),k=1,4),
-     &                                hbase(i,j),sbase(i,j),
-     &                                hbase(i,j)/sbase(i,j),
-     &                                tbase(i,j),timer_wall_total(99)
-                              endif
-                              flush(lfnout)
-  522                         format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
-  622                         format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
-     &                             f15.10,f20.10,2f12.1)
- 1622                         format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
-     &                             f15.10,20x,2f12.1)
+                             if(i.ne.j) then
+                               write(*,607) i,j,idetb(i),idetb(j),
+     &                              ltemp,
+     &                              (nsing(i,j,k),k=1,4),
+     &                              hbase(i,j),sbase(i,j),
+     &                              tbase(i,j),timer_wall_total(99)
+                               write(lfnout,607) i,j,idetb(i),
+     &                              idetb(j),ltemp,
+     &                              (nsing(i,j,k),k=1,4),
+     &                              hbase(i,j),sbase(i,j),
+     &                              tbase(i,j),timer_wall_total(99)
+                             else
+                               write(*,608) i,j,idetb(i),idetb(j),
+     &                              ltemp,
+     &                              (nsing(i,j,k),k=1,4),
+     &                              hbase(i,j),sbase(i,j),
+     &                              hbase(i,j)/sbase(i,j),
+     &                              tbase(i,j),timer_wall_total(99)
+                               write(lfnout,608) i,j,idetb(i),
+     &                              idetb(j),ltemp,
+     &                              (nsing(i,j,k),k=1,4),
+     &                              hbase(i,j),sbase(i,j),
+     &                              hbase(i,j)/sbase(i,j),
+     &                              tbase(i,j),timer_wall_total(99)
+                             endif
+                             flush(lfnout)
+ 522                         format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
+ 608                         format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
+     &                            f15.10,f20.10,2f12.1)
+ 607                         format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
+     &                            f15.10,20x,2f12.1)
                            endif
 
 !     Write entry in the checkpoint restart file
-
+                           
                            write(lfncpr) i,j,
      &                          hbase(i,j),sbase(i,j),tbase(i,j),
      &                          (nsing(i,j,k),k=1,4)
@@ -682,46 +682,47 @@ ctps               do j=1,i
                   if(ntasks(i,j).eq.0) then
                      call timer_stop(99)
                      call swatch(date,time)
-                     
-                     if(ipr.ge.1) then
-                        if(i.eq.j) then
-                           ltemp=idetb(i)*(idetb(i)+1)/2
-                        else
-                           ltemp=idetb(i)*idetb(j)
-                        endif
-                        write(lfnarx,522) i,j,idetb(i),idetb(j),ltemp,
-     &                       (nsing(i,j,k),k=1,4),
-     &                       hbase(i,j),sbase(i,j)
-                        if(i.ne.j) then
-                           write(*,1622) i,j,idetb(i),idetb(j),ltemp,
-     &                          (nsing(i,j,k),k=1,4),
-     &                          hbase(i,j),sbase(i,j),tbase(i,j),
-     &                          timer_wall_total(99)
-                           write(lfnout,1622) i,j,idetb(i),idetb(j),
-     &                          ltemp,
-     &                          (nsing(i,j,k),k=1,4),
-     &                          hbase(i,j),sbase(i,j),tbase(i,j),
-     &                          timer_wall_total(99)
-                        else
-                           write(*,622) i,j,idetb(i),idetb(j),ltemp,
-     &                          (nsing(i,j,k),k=1,4),
-     &                          hbase(i,j),sbase(i,j),
-     &                          hbase(i,j)/sbase(i,j),
-     &                          tbase(i,j),timer_wall_total(99)
-                           write(lfnout,622) i,j,idetb(i),idetb(j),
-     &                          ltemp,
-     &                          (nsing(i,j,k),k=1,4),
-     &                          hbase(i,j),sbase(i,j),
-     &                          hbase(i,j)/sbase(i,j),
-     &                          tbase(i,j),timer_wall_total(99)
-                        endif
-                        flush(lfnout)
+                     if(i.eq.j) then
+                       ltemp=idetb(i)*(idetb(i)+1)/2
+                     else
+                       ltemp=idetb(i)*idetb(j)
                      endif
+                     write(lfnarx,522) i,j,idetb(i),idetb(j),ltemp,
+     &                    (nsing(i,j,k),k=1,4),
+     &                    hbase(i,j),sbase(i,j)
+                     if(ipr.ge.1) then
+                       if(i.ne.j) then
+                         write(*,607) i,j,idetb(i),idetb(j),ltemp,
+     &                        (nsing(i,j,k),k=1,4),
+     &                        hbase(i,j),sbase(i,j),tbase(i,j),
+     &                        timer_wall_total(99)
+                         write(lfnout,607) i,j,idetb(i),idetb(j),
+     &                        ltemp,
+     &                        (nsing(i,j,k),k=1,4),
+     &                        hbase(i,j),sbase(i,j),tbase(i,j),
+     &                        timer_wall_total(99)
+                       else
+                         write(*,608) i,j,idetb(i),idetb(j),ltemp,
+     &                        (nsing(i,j,k),k=1,4),
+     &                        hbase(i,j),sbase(i,j),
+     &                        hbase(i,j)/sbase(i,j),
+     &                        tbase(i,j),timer_wall_total(99)
+                         write(lfnout,608) i,j,idetb(i),idetb(j),
+     &                        ltemp,
+     &                        (nsing(i,j,k),k=1,4),
+     &                        hbase(i,j),sbase(i,j),
+     &                        hbase(i,j)/sbase(i,j),
+     &                        tbase(i,j),timer_wall_total(99)
+                       endif
+                       flush(lfnout)
+                     endif
+                     
                      call swatch(date,time)
                      write(lfncpr) i,j,
      &                    hbase(i,j),sbase(i,j),tbase(i,j),
      &                    (nsing(i,j,k),k=1,4)
                      flush(lfncpr)
+                     
                      if(i.ne.j) then
                         write(lfnday,703) date(1:8),time(1:8),
      &                       timer_wall_total(99),
@@ -876,33 +877,33 @@ ccctps                  if(lgroup(i,5).eq.1) j=i
 
 !     Output of the un-normalized results
       
-      if(ipr.ge.3) then
-         write(lfnout,670)
-  670    format(//,' Hamiltonian Matrix Unnormalized',/)
+      if(ipr.ge.40) then
+         write(lfnout,609)
+ 609     format(//,' Hamiltonian Matrix Unnormalized',/)
          if(nbase.le.7) then
-            write(lfnout,671) (i,i=1,nbase)
-  671       format(6x,7(6x,i8,6x))
+            write(lfnout,610) (i,i=1,nbase)
+ 610        format(6x,7(6x,i8,6x))
          else
-            write(lfnout,1671) (i,i=1,nbase)
- 1671       format(6x,7(6x,i8,6x))
+            write(lfnout,611) (i,i=1,nbase)
+ 611        format(6x,7(6x,i8,6x))
          endif
          do j=1,nbase
             if(nbase.le.7) then
-               write(lfnout,672) j,(hbase(i,j),i=1,nbase)
-  672          format(i5,1x,7f20.10)
+               write(lfnout,612) j,(hbase(i,j),i=1,nbase)
+ 612           format(i5,1x,7f20.10)
             else
-               write(lfnout,1672) j,(hbase(i,j),i=1,nbase)
- 1672          format(i5,1x,7f20.10,/,(6x,7f20.10))
+               write(lfnout,613) j,(hbase(i,j),i=1,nbase)
+ 613           format(i5,1x,7f20.10,/,(6x,7f20.10))
             endif
          enddo
-         write(lfnout,673)
-  673    format(//,' Overlap Matrix Unnormalized',/)
-         write(lfnout,671) (i,i=1,nbase)
+         write(lfnout,614)
+ 614     format(//,' Overlap Matrix Unnormalized',/)
+         write(lfnout,610) (i,i=1,nbase)
          do j=1,nbase
             if(nbase.le.7) then
-               write(lfnout,672) j,(sbase(i,j),i=1,nbase)
+               write(lfnout,610) j,(sbase(i,j),i=1,nbase)
             else
-               write(lfnout,1672) j,(sbase(i,j),i=1,nbase)
+               write(lfnout,611) j,(sbase(i,j),i=1,nbase)
             endif
          enddo
       endif
@@ -923,15 +924,17 @@ ccctps                  if(lgroup(i,5).eq.1) j=i
 !     Output the total singularites and wall clock times
 
       call timer_stop(99)
-      write(*,623) mdet,(nsingt(i),i=1,4),tsum,
+      write(*,615) mdet,(nsingt(i),i=1,4),tsum,
      &     dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
      &     100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
-      write(lfnout,623) mdet,(nsingt(i),i=1,4),tsum,
-     &     dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
-     &     100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
- 623  format(/,' Total',25x,2i14,2i12,i14,55x,1f12.1,/,
+      if(ipr.gt.0) then
+        write(lfnout,615) mdet,(nsingt(i),i=1,4),tsum,
+     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
+     &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
+      endif
+ 615  format(/,' Total',25x,2i14,2i12,i14,55x,1f12.1,/,
      &     /,' Total averaged per rank',t153,2f12.1,/,
-     &       ' Task execution efficiency',t153,f12.1,' %')
+     &     ' Task execution efficiency',t153,f12.1,' %')
       call timer_start(99)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)

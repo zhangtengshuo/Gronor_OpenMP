@@ -21,24 +21,23 @@
   
 
       subroutine gronor_gnome_molcas_input
+      use gnome_parameters
       use gnome_data
       use cidef
       implicit none
-*      integer               :: lfnsym, lfnout, lfnarx, ipr
+
       integer               :: i,l,iAtom
       integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO
 
       read(lfnsym,*) text
 !     first line of $Project.sym is a dummy
+      
       read(lfnsym,'(a72)') name(1)
       read(lfnsym,'(a72)') name(2)
-      write(lfnout,*) ' '
-      write(lfnout,*) ' '
-      write(lfnout,*) ' OpenMolcas header from Seward (integral module)'
-      write(lfnout,*) name(1)
-      write(lfnout,*) name(2)
-      write(lfnout,*) ' '
+      if(ipr.gt.0) write(lfnout,601) name(1),name(2)
+ 601  format(/,' OpenMolcas header from Seward (integral module)',/,
+     &     a,/,a)
       flush(lfnout) 
       read(lfnsym,'(a17,i4)') text,nNucl
 
@@ -51,29 +50,32 @@
 
       read(lfnsym,*) text
       lAO = 's  p  d  f  g  h  i'
-      write(lfnout,625)
-     & 'Atom','x             y             z',
-     &     '          Znuc',lAO
-      write(lfnarx,624) nNucl
- 624  format('Atoms',i10)
-      write(lfnarx,625)
-     & 'Atom','x             y             z',
-     &     '          Znuc',lAO
- 625  format(6x,A,10x,2A,5x,A)
-      write(lfnout,*) ' '
+      
+      if(ipr.gt.0) write(lfnout,602) lAO
+
+      write(lfnarx,603) nNucl
+ 603  format('Atoms',i10)
+      write(lfnarx,602) lAO
+ 602  format(/,6x,'Atom',10x,'x',13x,'y',13x,'z',10x,
+     &     'Znuc',5x,a,/)
+
       do iAtom = 1, nNucl
         read(lfnsym,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
-        write(lfnout,626)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
+        if(ipr.gt.0)
+     &       write(lfnout,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
-        write(lfnarx,626)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
+        write(lfnarx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
-      end do
+      enddo
+      
       flush(lfnout)
- 626  format (I4,2x,A4,2x,3F14.8,2x,F7.2,3x,7I3)
+ 604  format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3)
+      
       deallocate( nCntr )
+      
       return
       end

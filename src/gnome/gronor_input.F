@@ -123,7 +123,23 @@
         endif
         
         if(inp_compare(.false.,'Print',item)) then
-          if(.not.inp_i(ipr)) ipr=1
+          ipr=20
+          if(.not.inp_a(item)) goto 1
+          if(inp_compare(.false.,'Low',item)) then
+            ipr=10
+            goto 2
+          elseif(inp_compare(.false.,'Medium',item)) then
+            ipr=20
+            goto 2
+          elseif(inp_compare(.false.,'High',item)) then
+            ipr=30
+            goto 2
+          elseif(inp_compare(.false.,'Debug',item)) then
+            ipr=40
+            goto 2
+          else
+            goto 3
+          endif
           goto 2
         endif
         

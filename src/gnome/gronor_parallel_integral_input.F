@@ -63,21 +63,18 @@
         endif
         if(mclab.eq.1) labels=1
 
-        if(ipr.ge.1) then
-          write(lfnout,1601) namint
+        if(ipr.gt.0) then
+          write(lfnout,601) namint
           flush(lfnout)
- 1601     format(/,' Integral file title: ',t25,a,/,t25,a)
-          write(lfnout,1602) nbas,intone,potnuc
- 1602     format(/,' Number of basis functions',t50,i16,
-     &         /,' Number of one electron integrals',t50,i16,
-     &         //,' Nuclear potential energy',t57,f20.10)
+ 601      format(/,' Integral file title: ',t25,a,/,t25,a)
+          write(lfnout,602) potnuc
+ 602      format(/,' Nuclear potential energy',t57,f20.10)
         endif
         int1=int1+(nbas*(nbas+1))/2
-        if(ipr.ge.1) then
-          write(lfnout,1603) intone,int1,mclab,labels
- 1603     format(/,' Number of one electron integrals',t50,i16,
-     &         /,' Number of calculated one electron integrals ',t50,i16,
-     &         /,' Two electron integral labels option on file ',t50,i16,
+        if(ipr.ge.30) then
+          write(lfnout,603) mclab,labels
+ 603      format(/,
+     &         ' Two electron integral labels option on file ',t50,i16,
      &         /,' Two electron integral labels input option ',t50,i16)
         endif
 Coen: maybe here a check to be sure that mclab and labels are coherent
@@ -107,27 +104,19 @@ C     although we'll loose backward compatibility, we might
 C     want to replace it with just "read(lfnone) int2"
 C     The number of small integrals can be written by rdtraint
 C     and retrieved here, if considered useful info
+        
         read(lfnone,end=993) nt
         if (nt(2).eq.-1) read(lfnone) nt(2)
         int2=nt(2)
 
-        if(ipr.ge.1) then
-          write(lfnout,1604) int1*(int1+1)/2,nt(2),
-     &         dble(200*nt(2))/dble(int1*(int1+1))
- 1604     format(/,' Number of two electron integrals',t50,i16,
-     &         /,' Number of non-zero two electron integrals',t50,i16,
-     &         ' (',f6.2,'%)')
-Coen: There is no way to know how many integrals are non-zero here.
-
 #ifdef SINGLEP
-          write(lfnout,605)
- 605      format(' Integrals are used in single precision')
+        if(ipr.ge.30) write(lfnout,605)
+ 605    format(' Integrals are used in single precision')
 #else
-          write(lfnout,606)
- 606      format(' Integrals are used in double precision')
+        if(ipr.ge.30) write(lfnout,606)
+ 606    format(' Integrals are used in double precision')
 #endif
-        endif
-
+        
         read(lfnone,err=993) numfiles
       endif
 
@@ -169,7 +158,7 @@ Coen: There is no way to know how many integrals are non-zero here.
           nrectot=nrectot+ifil(i,1)
           ninttot=ninttot+ifil(i,2)
         enddo
-        if(ipr.ge.3) then
+        if(ipr.ge.30) then
           write(lfnout,607)
           write(lfnout,608) (i,ifil(i,1),ifil(i,2),i=1,numfiles)
           write(lfnout,609) nrectot,ninttot
@@ -225,7 +214,7 @@ Coen: There is no way to know how many integrals are non-zero here.
         do j=2,mgr
           nng(j)=nag(j)-nag(j-1)
         enddo
-        if(ipr.ge.3) then
+        if(ipr.ge.20.and.mgr.gt.1) then
           write(lfnout,610)
  610      format(/,' Integrals divided by ranks in a group',/)
           write(lfnout,611) (nig(j),j=1,mgr)
@@ -270,7 +259,7 @@ Coen: There is no way to know how many integrals are non-zero here.
             endif
           enddo
         enddo
-        if(ipr.ge.3) then
+        if(ipr.ge.40) then
           write(lfnout,614)
  614      format(/,' Index into file buffers by ranks in a group',//,
      &         t12,' ------- Initial -------',
@@ -278,9 +267,9 @@ Coen: There is no way to know how many integrals are non-zero here.
      &         t12,' File   Record     Index',
      &         t50,' File   Record     Index',/)
           do j=1,mgr
-            write(lfnout,1615) j,ndxf(j,1),ndxf(j,3),ndxf(j,5),
+            write(lfnout,615) j,ndxf(j,1),ndxf(j,3),ndxf(j,5),
      &           ndxf(j,2),ndxf(j,4),ndxf(j,6)
- 1615       format(' Rank',i5,t12,i4,2i10,t50,i4,2i10)
+ 615        format(' Rank',i5,t12,i4,2i10,t50,i4,2i10)
           enddo
         endif
 

@@ -112,7 +112,7 @@
         write(lfnarx,666) nbase,ncols
  666    format('Coupl',2i10)
         write(*,676)
- 676    format(//,' Electronic Couplings',/)
+ 676    format(//,' Electronic Couplings (meV)',/)
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
         do k=1,nk
@@ -128,9 +128,9 @@
               write(*,672) 1
             else
               ik=min(j-1,il)
-              write(lfnout,672) j,(tc(j,i),i=ii,ik)
-              write(lfnarx,662) j,(tc(j,i),i=ii,ik)
-              write(*,672) j,(tc(j,i),i=ii,ik)
+              write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
+              write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
+              write(*,672) j,(27.2114d3*tc(j,i),i=ii,ik)
             endif
           enddo
           write(lfnout,*) ' '
@@ -157,45 +157,37 @@
           
         write(*,677)
         write(lfnout,677)
- 677    format(//,' NOCI energies and wave functions',/)
+ 677    format(//,' NOCI energies and wave functions (columns)',/)
 
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
-          
-          write(*,'(a,12i20)')'    State:',(i,i=ii,il)
-          write(*,678)'   Energy:    ', (hev(i),i=ii,il)
-          if(nbase.gt.1) then
-            write(*,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
-          endif
-          write(*,*) ' '
-          write(lfnout,'(a,12i20)')'     State:',(i,i=ii,il)
-          write(lfnout,678)'    Energy:   ', (hev(i),i=ii,il)
-          if(nbase.gt.1) then
-            write(lfnout,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
-          endif
-          write(lfnout,*) ' '
-          if(itest.eq.2) then
-            write(lfntst,677)
-            write(lfntst,'(a,12i20)')'     State:',(i,i=ii,il)
-            write(lfntst,1678)'    Energy:   ', (hev(i),i=ii,il)
-            if(nbase.gt.1) then
-              write(lfntst,678)' Relative:    ', (hev(i)-hev(1),i=ii,il)
-            endif
-            write(lfntst,*) ' '
-          endif
- 678      format((a,12f20.10),//)
- 1678     format((a,12f20.8),//)
+
+          write(lfnout,680) (i,i=ii,il)
+          write(*,680) (i,i=ii,il)
+ 680      format('          State:',t18,12(i15,5x))
+          write(lfnout,681) (hev(i),i=ii,il)
+          write(*,681) (hev(i),i=ii,il)
+ 681      format('    Energy (Eh):',t18,12f20.10)
+          write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+          write(*,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+ 682      format('  Relative (eV):',t18,12f20.10)
           token="MEBF"
           do j=1,nbase
-            write(*,679) token,j,(hsave(j,i),i=ii,il)
-            write(lfnout,679) token,j,(hsave(j,i),i=ii,il)
- 679        format(a4,1x,i5,4x,12f20.10)
+            if(j.eq.1) then
+              write(*,683) token,j,(hsave(j,i),i=ii,il)
+              write(lfnout,683) token,j,(hsave(j,i),i=ii,il)
+            else
+              write(*,684) token,j,(hsave(j,i),i=ii,il)
+              write(lfnout,684) token,j,(hsave(j,i),i=ii,il)
+            endif
+ 683        format(/,6x,a4,i5,t18,12f20.10)
+ 684        format(6x,a4,i5,t18,12f20.10)
             if(itest.eq.2) then
-              write(lfntst,1679) token,j,(hsave(j,i),i=ii,il)
- 1679         format(a4,1x,i5,4x,12f20.8)
+              write(lfntst,685) token,j,(hsave(j,i),i=ii,il)
+ 685          format(6x,a4,i5,t18,12f20.8)
             endif
             token="    "
           enddo

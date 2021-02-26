@@ -112,8 +112,10 @@
             elseif(dumstr(k:k).eq.'0') then
               ioccm(k,j,i)=0
             else
-              write(lfnout,'(2A)') 'weird occupation in ',dumstr
-              write(lfnout,'(A,I4,A,I4)')'determinant ',j, 'of state ',i
+              write(lfnout,601) dumstr
+ 601          format(' Weird occupation in ',a)
+              write(lfnout,602) j,i
+ 602          format(' Determinant ',i4,' of state ',i4)
               call errquit(me,9,"Inconsistent occupation")
               stop
             endif
@@ -151,59 +153,64 @@
 
 !     Finally, the output section
       
-      if(ipr.ge.1) then
-        write(lfnout,604)
- 604    format(/,' Dimensions',//,
+      if(ipr.ge.20) then
+        write(lfnout,603)
+ 603    format(/,' Dimensions',//,
      &     '  istate   ndetm   nactm  ninatm   nbasm   files',/)
         do i=1,mstates
           write(fildet,203) root(1:inp_strlen(root)),i
           write(filvec,201) root(1:inp_strlen(root)),i
-          write(lfnout,605) i,idetm(i),nactm(i),inactm(i),nbasm(i),
+          write(lfnout,604) i,idetm(i),nactm(i),inactm(i),nbasm(i),
      &              fildet(1:inp_strlen(fildet)),
      &              filvec(1:inp_strlen(filvec))
- 605      format(5i8,3x,a,', ',a) 
+ 604      format(5i8,3x,a,', ',a) 
         enddo
-        write(lfnout,606) maxci,maxnact,maxvec
- 606    format(8x,'  ------  ------',8x,'  ------',/,
+        write(lfnout,605) maxci,maxnact,maxvec
+ 605    format(8x,'  ------  ------',8x,'  ------',/,
      &     '    max:',i8,i8,8x,i8)
       endif
  201  format(a,'_',i3.3,'.vec')
  203  format(a,'_',i3.3,'.det')
 
-      write(lfnout,613) (i,i=1,nbase)
- 613  format(/,' Molecular states included in this calculation',//,
-     &      ' State        : ',20i4)
-      write(lfnout,624)
- 624  format(/)
-      do i=1,nmol
-        write(lfnout,617) i,(ncombv(i,j),j=1,nbase)
- 617    format(' Molecule',i4,' : ',20i4)
-      enddo
+      if(ipr.gt.0) then
+        write(lfnout,606) (i,i=1,nbase)
+ 606    format(/,' Molecular states included in this calculation',//,
+     &       ' State        : ',20i4)
+        do i=1,nmol
+          if(i.eq.1) then
+            write(lfnout,608) i,(ncombv(i,j),j=1,nbase)
+          else
+            write(lfnout,614) i,(ncombv(i,j),j=1,nbase)
+          endif
+ 608      format(/,' Fragment',i4,' : ',20i4)
+ 614      format(' Fragment',i4,' : ',20i4)
+        enddo
+      endif
 
-      if(ipr.ge.3) then
-        write(lfnout,607)
- 607    format(//,'  istate   idetm           ci coefficient')
+      if(ipr.ge.30) then
+        write(lfnout,609)
+ 609    format(//,'  istate   idetm           ci coefficient')
         do i=1,mstates
           do j=1,idetm(i)
             if(j.eq.1) then
-              write(lfnout,608) i,j,civm(j,i),
+              write(lfnout,610) i,j,civm(j,i),
      &             (ioccm(k,j,i),k=1,nactm(i))
- 608          format(/,2i8,f25.14,6x,32(i2,1x))
+ 610          format(/,2i8,f25.14,6x,32(i2,1x))
             else
-              write(lfnout,609) j,civm(j,i),
+              write(lfnout,611) j,civm(j,i),
      &             (ioccm(k,j,i),k=1,nactm(i))
- 609          format(8x,i8,f25.14,6x,32(i2,1x))
+ 611          format(8x,i8,f25.14,6x,32(i2,1x))
             endif
           enddo
-          if(ipr.ge.4) then
+          if(ipr.ge.40) then
             write(filvec,201) root(1:inp_strlen(root)),i
             length=inp_strlen(filvec)
-            write(lfnout,2002) filvec(1:length),nbasm(i)
- 2002       format(/,' Vector File ',a,//,
+            write(lfnout,612) filvec(1:length),nbasm(i)
+ 612        format(/,' Vector File ',a,//,
      &          ' Number of basis functions ',i8,/)
             do j=1,nbasm(i)
-              write(lfnout,2003) j,(vecsm(k,j,i),k=1,nbasm(i))
- 2003         format(i5,5f25.14,/,(5x,5f25.14))
+              write(lfnout,613) j,(vecsm(k,j,i),k=1,nbasm(i))
+ 613          format(i5,5f25.14,/,(5x,5f25.14))
             enddo
           endif
         enddo
@@ -216,8 +223,8 @@
       open(unit=lfnsym,file=filsym(1:length),form='formatted',
      &      status='old',err=995)
 
-      if(ipr.ge.3) write(lfnout,610) filsym(1:inp_strlen(filsym))
- 610  format(/,' System information read from ',a,/)
+      if(ipr.gt.0) write(lfnout,615) filsym(1:inp_strlen(filsym))
+ 615  format(/,' System information read from ',a)
 
       return
 

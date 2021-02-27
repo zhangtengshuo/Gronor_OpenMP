@@ -1253,8 +1253,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  612      format(' Accelerated ranks use CUSOLVER QR gesvd')
 #endif
 #ifdef CUSOLVERJ
-          if(iaslvr.eq.1) write(lfnout,612)
- 612      format(' Accelerated ranks use CUSOLVER QR gesvd')
+          if(iaslvr.eq.1) write(lfnout,642)
+ 642      format(' Accelerated ranks use CUSOLVER QR gesvd')
           if(iaslvr.eq.2) write(lfnout,613)
  613      format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
 #endif
@@ -1265,8 +1265,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  615      format(' Accelerated ranks use CUSOLVER QR syevd')
 #endif
 #ifdef CUSOLVERJ
-          if(jaslvr.eq.1) write(lfnout,615)
- 615      format(' Accelerated ranks use CUSOLVER QR syevd')
+          if(jaslvr.eq.1) write(lfnout,645)
+ 645      format(' Accelerated ranks use CUSOLVER QR syevd')
           if(jaslvr.eq.2) write(lfnout,616)
  616      format(' Accelerated ranks use CUSOLVER Jacobi syevj')
 #endif

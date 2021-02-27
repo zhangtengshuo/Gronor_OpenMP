@@ -92,7 +92,7 @@
         enddo                                    
         call remove_duplicates_fildet
      &       (idet_raw(i),idetm(i),civ_raw(:,i),
-     &       occ_string(:,i),thresh_CI)
+     &       occ_string(:,i),thresh)
         close(unit=lfndet)                        
         maxci=max(maxci,idetm(i))     
       enddo

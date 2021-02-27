@@ -27,12 +27,13 @@
       
       implicit none
 
-      integer :: i,j
+      integer :: i,j,im,ib
       character (len=255) :: item
+      integer, allocatable :: itemp(:,:)
       
       open(unit=lfninp,file=filinp,form='formatted',status='old',
      &     err=999)
-
+      
  1    continue
 
       if(inp_read()) then
@@ -59,20 +60,63 @@
           goto 2
         endif
         
-        if(inp_compare(.false.,'Molecules',item)) then
+        if(inp_compare(.false.,'Fragments',item)) then
           if(.not.inp_i(nmol)) call errquit(me,1,"Input error")
-          if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
-          allocate(ncombv(nmol,nbase))
-          do i=1,nmol
-            if(.not.inp_read()) call errquit(me,1,"Input error")
-            do j=1,nbase
-              if(.not.inp_i(ncombv(i,j)))
-     &             call errquit(me,1,"Input error")
-              if(ncombv(i,j).eq.0) ncombv(i,j)=9
-              mstates=max(mstates,ncombv(i,j))
-            enddo
-          enddo
           goto 2
+        endif
+        
+        if(inp_compare(.false.,'MEBFs',item)) then
+          if(nmol.gt.0) then
+            if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
+            if(nmol.eq.0) call errquit(me,1,
+     &           "Fragments should precede MEBFs in input")
+            allocate(ncombv(nmol,nbase))
+            do i=1,nmol
+              if(.not.inp_read()) call errquit(me,1,"Input error")
+              do j=1,nbase
+                if(.not.inp_i(ncombv(i,j)))
+     &               call errquit(me,1,"Input error")
+                if(ncombv(i,j).eq.0) ncombv(i,j)=9
+                mstates=max(mstates,ncombv(i,j))
+              enddo
+            enddo
+            goto 2
+          else
+            if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
+            allocate(itemp(25,nbase))
+            if(.not.inp_read()) call errquit(me,1,"Input error")
+ 4          continue
+            nmol=nmol+1
+            do j=1,nbase
+              if(.not.inp_i(itemp(nmol,j))) then
+                if(j.eq.1) then
+                  nmol=nmol-1
+                  allocate(ncombv(nmol,nbase))
+                  do im=1,nmol
+                    do ib=1,nbase
+                      ncombv(im,ib)=itemp(im,ib)
+                      if(ncombv(im,ib).eq.0) ncombv(im,ib)=9
+                      mstates=max(mstates,ncombv(im,ib))
+                    enddo
+                  enddo
+                  deallocate(itemp)
+                  goto 2
+                endif
+                call errquit(me,1,"Input error")
+              endif
+            enddo
+            if(inp_read()) goto 4
+            allocate(ncombv(nmol,nbase))
+            do im=1,nmol
+              do ib=1,nbase
+                ncombv(im,ib)=itemp(im,ib)
+                if(ncombv(im,ib).eq.0) ncombv(im,ib)=9
+                mstates=max(mstates,ncombv(im,ib))
+              enddo
+            enddo
+            deallocate(itemp)
+            goto 2            
+          endif
         endif
         
         if(inp_compare(.false.,'States',item)) then
@@ -88,7 +132,6 @@
 
         if(inp_compare(.false.,'Threshold',item)) then
           if(.not.inp_f(thresh)) call errquit(me,1,"Input error")
-          thresh_CI=thresh
           goto 2
         endif
 
@@ -99,11 +142,6 @@
         
         if(inp_compare(.false.,'Expert',item)) then
           if(.not.inp_i(ixpert)) ixpert=1
-          goto 2
-        endif
-        
-        if(inp_compare(.false.,'Thresh_CI',item)) then
-          if(.not.inp_f(thresh_CI)) thresh_CI=1.0d-10
           goto 2
         endif
         
@@ -118,7 +156,10 @@
         endif
         
         if(inp_compare(.false.,'Batch',item)) then
-          if(.not.inp_i(nbatch)) nbatch=-1
+          if(.not.inp_i(nbatch)) call errquit(me,1,"Input error Batch")
+          nbatcha=nbatch
+          if(.not.inp_i(nbatch)) then
+          endif
           goto 2
         endif
         
@@ -137,8 +178,11 @@
           elseif(inp_compare(.false.,'Debug',item)) then
             ipr=40
             goto 2
+          elseif(inp_compare(.false.,'None',item)) then
+            ipr=0
+            goto 2
           else
-            goto 3
+            call errquit(me,1,"Input error in Print")
           endif
           goto 2
         endif

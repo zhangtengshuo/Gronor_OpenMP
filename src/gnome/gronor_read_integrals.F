@@ -117,17 +117,10 @@
         write(lfnout,601) namint
         flush(lfnout)
   601   format(/,' Integral file title: ',t25,a,/,t25,a)
-        write(lfnout,602) nbas,intone,potnuc
-  602   format(/,' Number of basis functions',t50,i16,                    &
-     &  /,' Number of one electron integrals',t50,i16,                    &
-     &  //,' Nuclear potential energy',t57,f20.10)
+        write(lfnout,602) potnuc
+  602   format(/,' Nuclear potential energy',t57,f20.10)
        endif
        int1=(nbas*(nbas+1))/2
-       if(ipr.ge.1) then
-        write(lfnout,603) intone,int1
- 603    format(/,' Number of one electron integrals',t50,i16,             &
-     &  /,' Number of calculated one electron integrals ',t50,i16)
-       endif
        allocate(s(nbas,nbas))
        allocate(t(int1))
        allocate(v(int1))
@@ -152,11 +145,6 @@
        if (nt(2).eq.-1) read(lfnint) nt(2)
 
        if(ipr.ge.1) then
-        write(lfnout,604) int1*(int1+1)/2,nt(2),
-     &   dble(200*nt(2))/dble(int1*(int1+1))
- 604    format(/,' Number of two electron integrals',t50,i16,             &
-     &   /,' Number of non-zero two electron integrals',t50,i16,          &
-     &     ' (',f6.2,'%)')
 #ifdef SINGLEP
         write(lfnout,614)
  614    format(' Integrals are used in single precision')

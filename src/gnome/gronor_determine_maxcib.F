@@ -62,9 +62,9 @@
         do i = 1, mstates
           maxcib = max(maxcib,idetm(i))
           if(spinm(i) .ne. nspin) then
-            write(lfnout,'(a,i3,2a,i3,a)') 'state ',i,
-     &           'is not compatible with the spin ',
-     &           'of the molecule (',nspin,')'
+            write(lfnout,601) i,nspin
+ 601        format(' State ',i,' is incompatible with spin ',
+     &           'of molecule (',i,')')
             call errquit(me,9,"Incompatible spin state")
           endif
         enddo
@@ -76,11 +76,10 @@
           minspin = abs(spinm(ncombv(1,ibase)) - spinm(ncombv(2,ibase)))
           maxspin =     spinm(ncombv(1,ibase)) + spinm(ncombv(2,ibase))
           if (( maxspin .lt. nspin ) .or. ( minspin .gt. nspin)) then
-            write(lfnout,'(2a,i4)') 'spins of fragments not compatible',
-     &               ' with total spin in input for MEBF ',ibase
-            write(lfnout,'(a,i4)') 'Spin(1) = ',spinm(1)
-            write(lfnout,'(a,i4)') 'Spin(2) = ',spinm(2)
-            write(lfnout,'(a,i4)') 'cannot be coupled to ',nspin
+            write(lfnout,602) ibase,spinm(1),spinm(2),nspin
+ 602        format(' Spins of fragments incompatible with total spin',
+     &           ' for MEBF',i,/,' Spin(1) = ',i4,/,' Spin(2) = ',i4,/,
+     &           ' Cannot be coupled to ',i)
             call errquit(me,9,"Incompatible spin state")
           end if
         end if
@@ -152,19 +151,16 @@
           deallocate(mspin,ndet_mspin,ci_mspin,occ_mspin)
         endif
         if(cib .eq. 0) then 
-          write(lfnout,1573) '   spin(1) = ',spin(1)+1
-          write(lfnout,1573) '   spin(2) = ',spin(2)+1
-          write(lfnout,1573) 'total spin = ',nspin+1
-          write(lfnout,*) 'not possible'
+          write(lfnout,603) spin(1)+1,spin(2)+1,nspin+1
+ 603      format(' Spin(1) = ',i,/,' Spin(2) = ',i,/,
+     &         ' Total spin = ',i, ' is not possible')
           flush(lfnout)
           call errquit(me,9,"Incompatible spin state")
- 1573     format(a,i4)
         endif
-        if ( (me.eq.master) .and. (ipr .gt. 10) ) then
-          write(lfnout,*)
-          write(lfnout,'(a,i4,a,i10)') 
-     &         ' number of dets in MEBF ',ibase,' :',cib
-        endif
+
+        if ((me.eq.master).and.(ipr.ge.30)) write(lfnout,604) ibase,cib
+ 604      format(' Number of determinants in MEBF ',i4,' : ',i10)
+
         idetb(ibase) = cib
         maxcib = max(cib,maxcib)
       enddo

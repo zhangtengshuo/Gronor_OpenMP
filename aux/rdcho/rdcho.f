@@ -56,8 +56,10 @@
       write(*,*)
  101  format (a,i10)
 
-      
       luTra = 50
+* the code crashes if there is no TRAINT
+      open(luTra,file='TRAINT')
+      close(luTra)
       call daname(luTra,'TRAINT')
       iad50 = 0
       iTraToc = 0

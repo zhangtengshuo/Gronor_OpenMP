@@ -49,11 +49,11 @@
 
        if(me.eq.master) then
 
-         if(ifault.eq.0) then
-           nalive=npg*mgr
-         else
+!         if(ifault.eq.0) then
+!           nalive=npg*mgr
+!         else
            nalive=nalive*mgr
-         endif
+!         endif
          allocate(isync(nalive))
          allocate(ireq(nalive))
 !         allocate(tdat(68,nalive))
@@ -264,44 +264,54 @@
       endif
       
       call timer_stop(99)
-      
+
       if(me.eq.master) then
-        write(lfnout,675) nalive+1,np
- 675    format(//,' At the end of the run ',i8,' of ',i8,
-     &       ' processes are still active',//,
-     &       ' Timings summary')
-        if(ipr.ge.2) then
-          write(lfnout,617) timer_wall_total(2),
-     &         timer_wall_total(3),
-     &         timer_wall_total(7),
-     &         timer_wall_total(8),
-     &         timer_wall_total(9)
- 617      format(/,
-     &         ' Reading and distribution input',t55,f12.3,/,
-     &         ' Assignment of ranks',t55,f12.3,/,
-     &         ' Generation base states',t55,f12.3,/,
-     &         ' Generation matrix element list',t55,f12.3,/,
-     &         ' Reading and distribution of integrals',t55,f12.3)
-          write(lfnout,615) 
-     &         timer_wall_total(94),
-     &         timer_wall_total(95)-timer_wall_total(94),
-     &         timer_wall_total(96),
-     &         timer_wall_total(97)-timer_wall_total(96)
- 615      format(/,
-     &         ' Request  time on master',t55,f12.3,/,
-     &         ' Response time on master',t55,f12.3,/,
-     &         ' Requestf time on master',t55,f12.3,/,
-     &         ' Finalize time on master',t55,f12.3)
+        if(ipr.ge.40) then
+          write(lfnout,620) nalive+1
+ 620      format(/,' At the end of the run ',i8,' of ',i8,
+     &         ' processes are still active')
         endif
-        write(lfnout,614) 
-     &       timer_wall_total(99)-timer_wall_total(98),
-     &       timer_wall_total(98),timer_wall_total(99)
- 614    format(/,' Setup wall clock time on master',t55,f12.3,/,
-     &       ' Matrix element calculation wall clock time on master',
-     &       t55,f12.3,//,
-     &       ' Total execution wall clock time on master ',t55,f12.3)
-        write(*,616) timer_wall_total(99)
- 616    format(/,' Total execution wall clock time ',f12.3)
+        if(ipr.ge.20) then
+          write(lfnout,621)
+ 621      format(/,' Timings summary')
+          if(ipr.ge.2) then
+            write(lfnout,617) timer_wall_total(2),
+     &           timer_wall_total(3),
+     &           timer_wall_total(7),
+     &           timer_wall_total(8),
+     &           timer_wall_total(9)
+ 617        format(/,
+     &           ' Reading and distribution input',t55,f12.3,/,
+     &           ' Assignment of ranks',t55,f12.3,/,
+     &           ' Generation base states',t55,f12.3,/,
+     &           ' Generation matrix element list',t55,f12.3,/,
+     &           ' Reading and distribution of integrals',t55,f12.3)
+            write(lfnout,615) 
+     &           timer_wall_total(94),
+     &           timer_wall_total(95)-timer_wall_total(94),
+     &           timer_wall_total(96),
+     &           timer_wall_total(97)-timer_wall_total(96)
+ 615        format(/,
+     &           ' Request  time on master',t55,f12.3,/,
+     &           ' Response time on master',t55,f12.3,/,
+     &           ' Requestf time on master',t55,f12.3,/,
+     &           ' Finalize time on master',t55,f12.3)
+          endif
+          write(lfnout,614) 
+     &         timer_wall_total(99)-timer_wall_total(98),
+     &         timer_wall_total(98)
+ 614      format(/,' Setup wall clock time on master',t55,f12.3,/,
+     &         ' Matrix element calculation wall clock time on master',
+     &         t55,f12.3,/)
+        endif
+        
+        if(ipr.ge.0) then
+          write(lfnout,619) timer_wall_total(99)
+ 619      format(/,' Total execution wall clock time on master ',
+     &         t55,f12.3)
+          write(*,618) timer_wall_total(99)
+ 618      format(/,' Total execution wall clock time ',f12.3)
+        endif
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  Timings reported'

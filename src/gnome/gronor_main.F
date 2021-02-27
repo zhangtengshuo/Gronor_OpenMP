@@ -93,7 +93,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt
 
-      integer :: ndtot,npl,nrg
+      integer :: ndtot,npl,nrg,igb
 
       character (len=64) :: version_type
 
@@ -211,87 +211,9 @@ c     use cuda_functions
         flush(lfnday)
         call timer_start(99)
 
-        if(_GRONOR_VERSION_MINOR_.eq.0.or.
-     &       _GRONOR_VERSION_MINOR_.gt.12) then
-          version_type=" under active development"
-        else
-          version_type=" official release"
-        endif
-        
-        write(lfnout,600) _GRONOR_VERSION_MAJOR_,
-     &       _GRONOR_VERSION_MINOR_,trim(version_type)
- 600    format(/,
-     &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
-     &       ' Version ',i2,'.',i2.2,a,//,
-     &       4x,'T. P. Straatsma',t53,
-     &       'C. de Graaf',t85,
-     &       'R. Broer',/,
-     &       4x,t53,
-     &       'A. Sanchez',t85,
-     &       'R. K. Kathir',//,
-     &       4x,'National Center for Computational Sciences',t53,
-     &       'Quantum Chemistry Group',t85,
-     &       'Department of Theoretical Chemistry',/,
-     &       4x,'Oak Ridge National Laboratory',t53,
-     &       'University Rovira i Virgili',t85,
-     &       'University of Groningen',/,
-     &       4x,'Oak Ridge, Tennessee, USA',t53,
-     &       'Tarragona, Spain',t85,
-     &       'Groningen, the Netherlands',//,
-     &       4x,'Based on GNOME written by R. Broer-Braam, ',
-     &       'J. Th. van Montfort, and B. Vunderink',//,
-     &       4x,'Please cite the following reference when publishing ',
-     &       'results obtained using GronOR:',//,
-     &       4x,'T. P. Straatsma, R. Broer, S. Faraji,',
-     &       'R. W. A. Havenith, L. E. Aguilar Suarez, R. K. Kathir, ',
-     &       'M. Wibowo, and C.de Graaf',/,
-     &       4x,'"GronOR: Massively parallel and GPU-accelerated ',
-     &       'non-orthogonal configuration interaction for large ',
-     &       'molecular systems"',/,
-     &       4x,'Journal of Chemical Physics, 152 (2020), ',
-     &       'https://doi.org/10.1063/1.5141358',/)
-
-        write(lfnout,601) trim(user),getcpucount(),
-     &       trim(host),nnodes,
-     &       date(1:8),nrsets,
-     &       time(1:8),nrnsets,numdev,
-     &       np,np/nnodes,np/nrsets,
-     &       ncycls,num_threads,trim(command),trim(cwd),
-     &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
-     &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
-     &       root(1:inp_strlen(root)),memfre,
-     &       root(1:inp_strlen(root)),memtot
-
- 601    format(//,
-     &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
-     &       ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
-     &       ' Date',t30,a,t60,
-     &       'Number of resource sets',t100,i10,/,
-     &       ' Time',t30,a,t60,
-     &       'Number of resource sets per node',t100,i10,/,
-     &       t60,'Number of GPUs per resource set',t100,i10,/,
-     &       t60,'Number of MPI ranks',t100,i10,/,
-     &       t60,'Number of MPI ranks per node',t100,i10,/,
-     &       t60,'Number of MPI ranks per resource set',t100,i10,/,
-     &       t60,'Number of rank assignment cycles',t100,i10,/,
-     &       t60,'Number of OPENMP threads',t100,i10,//,
-     &       ' Command argument',t30,a,/,
-     &       ' Current working directory',t30,a,//,
-     &       ' Input file is',t25,a,t60,
-     &       'Symmetry file is',t92,a,/,
-     &       ' Output file is',t25,a,t60,
-     &       'One electron integral file is',t92,a,//,
-     &       ' CI vector file(s) are',t25,a,'_nnn.det',t60,
-     &       'Available memory on device',t90,i20,/,
-     &       ' MO vector file(s) are',t25,a,'_nnn.vec',t60,
-     &       'Total memory on device',t90,i20,//)
-
-        write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
- 401    format('*** ',a,' on ',a,' : ',a)
-        write(lfnarx,402) nnodes,np
- 402    format('Nodes',i10,i10)
-
-!     >
+!----------------------
+      
+!>
 !!    <table>
 !!    <caption id="multi_row">Input derived variables</caption> 
 !!    <tr><th> Variable <th> Description
@@ -340,9 +262,9 @@ c     use cuda_functions
         ntask=-1
         nbatch=-1
 
-!     Default is to write a test file
+!     Default is not to write a test file
         
-        itest=1
+        itest=0
 
         idevel=0
         ifault=1
@@ -373,13 +295,13 @@ c     use cuda_functions
         naccel=0
 #endif
 
-!     Default print flag set to 2
+!     Default print flag set to medium (20)
         
-        ipr=2
+        ipr=20
 
-!     Default is to turn timing on
+!     Default is not to turn timing on
 
-        itim=1
+        itim=0
 
         ipro=-1
         iday=10
@@ -420,12 +342,95 @@ c     use cuda_functions
           thresh_CI=min(thresh_CI,1.0d-05)
         endif
 
+!------------------------------
+
+        
+        if(_GRONOR_VERSION_MINOR_.eq.0.or.
+     &       _GRONOR_VERSION_MINOR_.gt.12) then
+          version_type=" under active development"
+        else
+          version_type=" official release"
+        endif
+        
+        if(ipr.gt.0) write(lfnout,600) _GRONOR_VERSION_MAJOR_,
+     &       _GRONOR_VERSION_MINOR_,trim(version_type)
+ 600    format(/,
+     &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
+     &       ' Version ',i2,'.',i2.2,a,//,
+     &       ' T. P. Straatsma',t50,'C. de Graaf',t82,'R. Broer',/,
+     &       t50,'A. Sanchez',t82,'R. K. Kathir',//,
+     &       ' National Center for Computational Sciences',t50,
+     &       'Quantum Chemistry Group',t82,
+     &       'Department of Theoretical Chemistry',/,
+     &       ' Oak Ridge National Laboratory',t50,
+     &       'University Rovira i Virgili',t82,
+     &       'University of Groningen',/,
+     &       ' Oak Ridge, Tennessee, USA',t50,
+     &       'Tarragona, Spain',t82,
+     &       'Groningen, the Netherlands',//,
+     &       ' Based on GNOME written by R. Broer-Braam, ',
+     &       'J. Th. van Montfort, and B. Vunderink',//,
+     &       ' Please cite the following reference when publishing ',
+     &       'results obtained using GronOR:',//,
+     &       ' T. P. Straatsma, R. Broer, S. Faraji,',
+     &       'R. W. A. Havenith, L. E. Aguilar Suarez, R. K. Kathir, ',
+     &       'M. Wibowo, and C.de Graaf',/,
+     &       ' "GronOR: Massively parallel and GPU-accelerated ',
+     &       'non-orthogonal configuration interaction for large ',
+     &       'molecular systems"',/,
+     &       ' Journal of Chemical Physics, 152 (2020), ',
+     &       'https://doi.org/10.1063/1.5141358',/)
+
+        if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
+     &       trim(host),nnodes,
+     &       date(1:8),nrsets,
+     &       time(1:8),nrnsets,numdev,
+     &       np,np/nnodes,np/nrsets,
+     &       ncycls,num_threads
+ 601    format(//,
+     &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
+     &       ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
+     &       ' Date',t30,a,t60,
+     &       'Number of resource sets',t100,i10,/,
+     &       ' Time',t30,a,t60,
+     &       'Number of resource sets per node',t100,i10,/,
+     &       t60,'Number of GPUs per resource set',t100,i10,/,
+     &       t60,'Number of MPI ranks',t100,i10,/,
+     &       t60,'Number of MPI ranks per node',t100,i10,/,
+     &       t60,'Number of MPI ranks per resource set',t100,i10,/,
+     &       t60,'Number of rank assignment cycles',t100,i10,/,
+     &       t60,'Number of OPENMP threads',t100,i10)
+        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602) memfre,memtot
+ 602    format(t60,'Available memory on device',t90,i20,/,
+     &       t60,'Total memory on device',t90,i20)
+        if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
+     &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
+     &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
+     &       root(1:inp_strlen(root)),
+     &       root(1:inp_strlen(root))
+ 603    format(/,' Command argument',t30,a,/,
+     &       ' Current working directory',t30,a,//,
+     &       ' Input file is',t25,a,t60,
+     &       'Symmetry file is',t92,a,/,
+     &       ' Output file is',t25,a,t60,
+     &       'One electron integral file is',t92,a,//,
+     &       ' CI vector file(s) are',t25,a,'_nnn.det',/
+     &       ' MO vector file(s) are',t25,a,'_nnn.vec')
+
+        write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
+ 401    format('*** ',a,' on ',a,' : ',a)
+        write(lfnarx,402) nnodes,np
+ 402    format('Nodes',i10,i10)
+
+
+!----------------------------
+  
+!----------------
+        
         call gronor_number_integrals(numone,numtwo)
         
         if(npg*mgr+1.gt.np) then
-          write(lfnout,983)
- 983      format(' Requested number of ranks exceeds available')
-          call errquit(me,2,"Error in main")
+          call errquit(me,2,"Requested ranks exceeds available")
         endif
         
         allocate(nbasm(mstates))
@@ -447,47 +452,43 @@ c     use cuda_functions
         ione=0
         bias=0.0d0
         corres=.false.
-        
-        if(ifault.eq.0) then
-          write(lfnout,627) nummps
- 627      format(' No fault tolerance',t60,'
-     &Over-subscription of accelerators (MPS)',t100,i10)
+
+        if(ipr.ge.30) then
+          write(lfnout,604) nmol,ifault,mstates,itest,nbase,idevel
+ 604      format(/,' Number of fragments',t40,i10,
+     &         t60,'Fault tolerance wait time',t100,i10,' sec',/
+     &         ' Number of fragment wave functions',t40,i10,
+     &         t60,'Test option',t100,i10,/,
+     &         ' Number of many-electron base states',t40,i10,
+     &         t60,'Development option',t100,i10)
         else
-          write(lfnout,625) ifault,nummps
- 625      format(' Fault tolerance wait time',t40,i10,' sec',t60,
-     &         'Over-subscription of accelerators (MPS)',t100,i10)
+          write(lfnout,605) nmol,mstates,nbase
+ 605      format(/,' Number of fragments',t40,i10,/,
+     &       ' Number of fragment wave functions',t40,i10,/,
+     &       ' Number of many-electron base states',t40,i10,/)
         endif
-        write(lfnout,626) itest,mgr,idevel,nmol,ntask,mstates,
-     &       nbatch,nbase
- 626    format(' Test option',t40,i10,t60,
-     &       'Number of ranks per task group',t100,i10,/,
-     &       ' Development option',t40,i10,t60,
-     &       'Number of molecules (nmol)',t100,i10,/,
-     &       ' Task size',t40,i10,t60,
-     &       'Number of molecular states (mstates)',t100,i10,/,
-     &       ' Batch size',t40,i10,t60,
-     &       'Number of many-electron states (nbase)',t100,i10,/)
+        if(ipr.ge.20) then
+          write(lfnout,606) ntask,mgr,nbatch,numomp
+ 606      format(' Task size',t40,i10,
+     &         t60,'Number of ranks per task',t100,i10,/,
+     &         ' Batch size',t40,i10,
+     &         t60,'Number of OpenMP threads per rank',t100,i10)
+          if(numdev.gt.0) write(lfnout,638) nummps
+ 638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
+        endif
 
-        write(lfnout,623) thresh_CI, thresh_SIN
- 623    format(' Threshold for CI coefficients',t40,1pe12.3,/,
-     &       ' Threshold for ISING',t40,1pe12.3,/)
+        if(ipr.gt.0) write(lfnout,607) thresh_CI
+ 607    format(/,' Threshold for expension coefficients',t40,1pe12.3)
+        if(ipr.ge.30) write(lfnout,608) thresh_SIN
+ 608    format(' Threshold for singularity',t40,1pe12.3,/)
 
-        write(lfnout,636) nspin+1
- 636    format(/,' Spin state (2S+1)',t40,i10,/)
+        if(ipr.gt.0) write(lfnout,609) nspin+1
+ 609    format(/,' Spin multiplicity (2S+1)',t40,i10)
         
         call gronor_read_vectors_and_determinants()
         
         call gronor_gnome_molcas_input() ! OpenMolcas
         close(unit=lfnsym)
-        
-c      else                      ! belonging to if(me.eq.master)
-c        lfnout=6
-c        write(filout,650) me
-c 650    format('gronor_',i5.5,'.dbg')
-c        if(ipr.ge.10) then
-c          open(unit=lfnout,file=filout(1:inp_strlen(filout)),
-c     &         form='formatted',status='unknown',err=996)
-c        endif
 
       endif
 
@@ -719,18 +720,6 @@ c        endif
 
       allocate(ioccb(maxcib,nbase))
       allocate(civb(maxcib,nbase))
-      if(me.eq.master) then
-        write(lfnout,637) maxcib
- 637    format(/,' Calculated value of maxcib is ',i10)
-        flush(lfnout)
-        call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,1704) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Maxcib calculated value is           ',maxcib
- 1704   format(a8,2x,a8,f12.3,a,i16)
-        flush(lfnday)
-        call timer_start(99)
-      endif
 
       ngr=(np-1)/mgr
 
@@ -894,17 +883,17 @@ c        endif
         if(np.lt.100) l=2
         if(np.lt.10) l=1
         npl=100/(k+l+3)
-        write(lfnrnk,630)
- 630    format(//,' MPI Rank Assignments')
- 634    format(' ')
- 635    format(/,' Accelerated Groups',/)
- 633    format(/,' Non-Accelerated Groups',/)
+        write(lfnrnk,730)
+ 730    format(//,' MPI Rank Assignments')
+ 734    format(' ')
+ 735    format(/,' Accelerated Groups',/)
+ 733    format(/,' Non-Accelerated Groups',/)
         k=1
         l=min(k+npl,numacc)
         if(numacc.gt.0) then
-          write(lfnrnk,635)
+          write(lfnrnk,735)
           do while (k.le.l)
-            if(mgr.gt.1) write(lfnrnk,634)
+            if(mgr.gt.1) write(lfnrnk,734)
             do i=2,mgr+1                
               if(nrg.lt.10) then
                 if(np.lt.10) then
@@ -1021,14 +1010,14 @@ c        endif
             k=l+1
             l=min(k+npl,numacc)
           enddo
-          write(lfnrnk,634)
+          write(lfnrnk,734)
         endif
         if(numnon.gt.0) then
-          write(lfnrnk,633)
+          write(lfnrnk,733)
           k=l+1
           l=min(k+npl,numgrp)
           do while (k.le.l)
-            if(mgr.gt.1) write(lfnrnk,634)
+            if(mgr.gt.1) write(lfnrnk,734)
  6611       format(5x,20(i1,':',i1,'  '))
  6612       format(5x,20(i1,':',i2,'  '))
  6613       format(5x,20(i1,':',i3,'  '))
@@ -1252,17 +1241,47 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       if(jnslvr.lt.0) jnslvr=0
       
       
-      if(me.eq.master) then
-        write(lfnout,622) iaslvr,jaslvr,inslvr,jnslvr,numomp
- 622    format(//,' Solver options accelerated',t40,2i5,/,
-     &       ' Solver options non-accelerated',t40,2i5,t60,
-     &       'Number of OpenMP threads per MPI (OMP)',t100,i10)
-        write(lfnout,611) nbase,nmol,nbasis
- 611    format(//,' Dimensions',//,
-     &       ' Number of states (nbase)',t40,i10,t60,
-     &       'Number of molecules (nmol)', t100,i10,/,
-     &       ' Number of basis functions (nbasis)',t40,i10)
-        flush(lfnout)
+      if(me.eq.master.and.ipr.ge.20) then
+        write(lfnout,610)
+ 610    format(/,' Linear algebra solvers',/)
+        if(numdev.gt.0) then
+          if(iaslvr.eq.0) write(lfnout,611)
+ 611      format(' Accelerated ranks use GronOR SVD on CPU')
+#ifdef CUSOLVER
+          if(iaslvr.eq.1) write(lfnout,612)
+ 612      format(' Accelerated ranks use CUSOLVER QR gesvd')
+#endif
+#ifdef CUSOLVERJ
+          if(iaslvr.eq.1) write(lfnout,612)
+ 612      format(' Accelerated ranks use CUSOLVER QR gesvd')
+          if(iaslvr.eq.2) write(lfnout,613)
+ 613      format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
+#endif
+          if(jaslvr.eq.0) write(lfnout,614)
+ 614      format(' Accelerated ranks use GronOR TRED2/TQL on CPU')
+#ifdef CUSOLVER
+          if(jaslvr.eq.1) write(lfnout,615)
+ 615      format(' Accelerated ranks use CUSOLVER QR syevd')
+#endif
+#ifdef CUSOLVERJ
+          if(jaslvr.eq.1) write(lfnout,615)
+ 615      format(' Accelerated ranks use CUSOLVER QR syevd')
+          if(jaslvr.eq.2) write(lfnout,616)
+ 616      format(' Accelerated ranks use CUSOLVER Jacobi syevj')
+#endif
+        endif
+        if(inslvr.eq.0) write(lfnout,617)
+ 617    format(' Non-accelerated ranks use GronOR SVD')
+#ifdef MKL
+        if(inslvr.eq.1) write(lfnout,618)
+ 618    format(' Non-accelerated ranks use MKL QR dgesvd')
+#endif
+        if(jnslvr.eq.0) write(lfnout,619)
+ 619    format(' Non-accelerated ranks use GronOR TRED2/TQL on CPU')
+#ifdef CUSOLVER
+        if(jnslvr.eq.1) write(lfnout,620)
+ 620    format(' Non-accelerated ranks use MKL QR dsyevd')
+#endif
       endif
 
       call timer_stop(3)
@@ -1301,12 +1320,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         deallocate(sort_coef,sort_occ)
         if(max_coef.lt.abs(civb(1,i))) then
           max_coef = abs(civb(1,i))
-        endif
-        
-        if(me.eq.master.and.ipr.ge.3) then
-          write(lfnout,612) i
- 612      format(/,' Base state',i4,' completed')
-          flush(lfnout)
         endif
         
         if(me.eq.master) then
@@ -1511,8 +1524,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       ngr=np/npg
       
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,618) np,numgrp,np-numgrp*mgr-1,mgr
- 618    format(/,' Process Distribution',//,
+        write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr
+ 621    format(/,' Process Distribution',//,
      &       ' Number of processes',t40,i10,t60,
      &       'Number of process groups',t100,i10,/,
      &       ' Number of idle processes',t40,i10,t60,
@@ -1551,23 +1564,70 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           rlab=0.0d0
           rndx=(dble(mlab*4)+dble(mlab*4))*1.0d-09
         endif
-        write(lfnout,614) nbas,rndx
-        write(lfnout,615) int1,rlab
-        write(lfnout,616) int2,rint
- 614    format(/,' Number of basisfunctions',t50,i16,
-     &       t80,' Size of index arrays',t115,f8.3,' GB')
- 615    format(' Number of one-electron integrals',t50,i16,
-     &       t80,' Size of integral labels',t115,f8.3,' GB')
- 616    format(' Number of two-electron integrals',t50,i16,
-     &       t80,' Size of two-electron integrals',t115,f8.3,' GB')
+        igb=1
+        if(max(rint,rlab,rndx).lt.1.0d0) then
+          igb=0
+          rint=rint*1024.0
+          rlab=rlab*1024.0
+          rndx=rndx*1024.0
+        endif
+        if(ipr.ge.20) then
+          if(labels.eq.0) then
+            if(igb.eq.1) then
+              write(lfnout,622) nbas,rndx
+              write(lfnout,623) int1,rlab
+              write(lfnout,624) int2,rint
+ 622          format(/,' Number of basisfunctions',t50,i16,t80,
+     &             ' Size of index arrays',t115,f8.3,' GB')
+ 623          format(' Number of one-electron integrals',t50,i16,t80,
+     &             ' Size of integral labels',t115,f8.3,' GB')
+ 624          format(' Number of two-electron integrals',t50,i16,t80,
+     &             ' Size of two-electron integrals',t115,f8.3,' GB')
+            else
+              write(lfnout,625) nbas,rndx
+              write(lfnout,626) int1,rlab
+              write(lfnout,627) int2,rint
+ 625          format(/,' Number of basisfunctions',t50,i16,t80,
+     &             ' Size of index arrays',t115,f8.3,' MB')
+ 626          format(' Number of one-electron integrals',t50,i16,t80,
+     &             ' Size of integral labels',t115,f8.3,' MB')
+ 627          format(' Number of two-electron integrals',t50,i16,t80,
+     &             ' Size of two-electron integrals',t115,f8.3,' MB')
+            endif
+          else
+            write(lfnout,628) nbas
+            write(lfnout,629) int1
+ 628        format(/,' Number of basisfunctions',t50,i16)
+ 629        format(' Number of one-electron integrals',t50,i16)
+            if(igb.eq.1) then
+              write(lfnout,624) int2,rint
+            else
+              write(lfnout,627) int2,rint
+            endif
+          endif
+        else
+          write(lfnout,628) nbas
+          write(lfnout,629) int1
+          write(lfnout,630) int2
+ 630      format(' Number of two-electron integrals',t50,i16)
+        endif
       endif
       
-      if(me.eq.master.and.ipr.ge.5) then
-        write(lfnout,628) nbase,nbase*(nbase+1)/2
- 628    format(' Number of base states',t50,i16,/,                       &
-     &       ' Number of base state elements',t50,i16)
+      if(me.eq.master.and.ipr.gt.0) then
+        write(lfnout,631) nbase,nbase*(nbase+1)/2
+ 631    format(' Number of base states',t50,i16,/,
+     &       ' Number of unique Hamiltonian matrix elements',t50,i16)
       endif
       
+      if(me.eq.master.and.ipr.ge.1) then
+#ifdef SINGLEP
+        write(lfnout,639)
+ 639    format(/,' Integrals are used in single precision')
+#else
+        write(lfnout,640)
+ 640    format(/,' Integrals are used in double precision')
+#endif
+      endif 
       if(me.eq.master) flush(lfnout)
       
       if(me.eq.master) then
@@ -1648,18 +1708,18 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfndbg,status='keep')
       endif
 
-      if(me.eq.master) then
-        write(lfnout,674)
- 674    format(//,' Hamiltonian Matrix unnormalised',/)
+      if(me.eq.master.and.ipr.ge.20) then
+        write(lfnout,632)
+ 632    format(//,' Hamiltonian Matrix unnormalized',/)
 
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
-          write(lfnout,671) (i,i=ii,il)
+          write(lfnout,633) (i,i=ii,il)
           do j=1,nbase
-            write(lfnout,672) j,(hbase(i,j),i=ii,il)
+            write(lfnout,634) j,(hbase(i,j),i=ii,il)
           enddo
           write(lfnout,*) ' '
         enddo
@@ -1669,13 +1729,13 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
-          write(lfnout,675)
- 675      format(//,' Overlap Matrix unnormalised',/)
-          write(lfnout,671) (i,i=ii,il)
- 671      format(6x,7(6x,i8,6x))
+          write(lfnout,635)
+ 635      format(//,' Overlap Matrix unnormalized',/)
+          write(lfnout,633) (i,i=ii,il)
+ 633      format(6x,7(6x,i8,6x))
           do j=1,nbase
-            write(lfnout,672) j,(sbase(i,j),i=ii,il)
- 672        format(i5,1x,10f20.10)
+            write(lfnout,634) j,(sbase(i,j),i=ii,il)
+ 634        format(i5,1x,10f20.10)
           enddo
           write(lfnout,*) ' '
         enddo
@@ -1702,9 +1762,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           hcorr = 0.0
           call gronor_correlation_energy(
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
-          write(lfnout,*)
-          write(lfnout,*)
-          write(lfnout,*) 'After applying a shift to the diagonal of H'
+          if(ipr.le.40) write(lfnout,636)
+ 636      format(//,'After applying a shift to the diagonal of H')
           call gronor_print_results(hcorr,sbase,nbase)
           deallocate( hcorr )
         endif
@@ -1781,9 +1840,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnarx,status='keep')
         
         call swatch(date,time)
-        write(*,602) trim(date),trim(time)
-        write(lfnout,602) trim(date),trim(time)
- 602    format(/,' Completion of run ',2a10,/)
+        write(*,637) trim(date),trim(time)
+        if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
+ 637    format(/,' Completion of run ',2a10,/)
         
         close(unit=lfnrnk,status='keep')
         close(unit=lfnout,status='keep')

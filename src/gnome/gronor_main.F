@@ -253,10 +253,6 @@ c     use cuda_functions
 
         mstates=0
 
-!     Default batch size is 32
-        
-        ntask=32
-
 !     Set ntask and nbatch to undefined
 
         ntask=-1
@@ -303,13 +299,12 @@ c     use cuda_functions
 
         itim=0
 
-        ipro=-1
+        ipro=0
         iday=10
         idbg=0
         nspin=0
         mpibuf=168435456
-        thresh=1.0d-10          ! What is the difference between thresh
-        thresh_CI=1.0d-5        !   and tresh_CI? Simplify?
+        thresh=1.0d-5
         thresh_SIN=1.0d-12
         tolsvj=1.0d-07
         tolevj=1.0d-07
@@ -328,18 +323,19 @@ c     use cuda_functions
           else
             ntask=32
           endif
-          nbatch=0
-        else
-          if(ntask.le.0) ntask=32
         endif
+
+        if(nbatch.eq.-1) nbatch=32
+        if(nbatcha.eq.-1) nbatcha=0
         
+        if(nbatcha.gt.ntask) nbatcha=ntask
         if(nbatch.gt.ntask) nbatch=ntask
 
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then
-          thresh=min(thresh,1.0d-05)
-          thresh_CI=min(thresh_CI,1.0d-05)
+          if(thresh.lt.1.0d-6) thresh=1.0d-6
+          if(thresh.gt.1.0d-4) thresh=1.0d-4
         endif
 
 !------------------------------
@@ -468,7 +464,7 @@ c     use cuda_functions
      &       ' Number of many-electron base states',t40,i10,/)
         endif
         if(ipr.ge.20) then
-          write(lfnout,606) ntask,mgr,nbatch,numomp
+          write(lfnout,606) ntask,mgr,max(1,nbatch),numomp
  606      format(' Task size',t40,i10,
      &         t60,'Number of ranks per task',t100,i10,/,
      &         ' Batch size',t40,i10,
@@ -477,7 +473,7 @@ c     use cuda_functions
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
         endif
 
-        if(ipr.gt.0) write(lfnout,607) thresh_CI
+        if(ipr.gt.0) write(lfnout,607) thresh
  607    format(/,' Threshold for expension coefficients',t40,1pe12.3)
         if(ipr.ge.30) write(lfnout,608) thresh_SIN
  608    format(' Threshold for singularity',t40,1pe12.3,/)
@@ -547,17 +543,18 @@ c     use cuda_functions
           idum(42)=iswsvj
           idum(43)=iswevj
           idum(44)=nbatch
-          idum(45)=nspin
-          idum(46)=labels
+          idum(45)=nbatcha
+          idum(46)=nspin
+          idum(47)=labels
           
           rdum(1)=thresh
-          rdum(2)=thresh_CI
+          rdum(2)=thresh
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
         endif
         
-        call MPI_Bcast(idum,46,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,47,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
@@ -604,8 +601,9 @@ c     use cuda_functions
         iswsvj =idum(42)
         iswevj =idum(43)
         nbatch =idum(44)
-        nspin  =idum(45)
-        labels =idum(46)
+        nbatcha=idum(45)
+        nspin  =idum(46)
+        labels =idum(47)
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -617,10 +615,12 @@ c     use cuda_functions
         endif
         
         thresh=rdum(1)
-        thresh_CI=rdum(2)
+        thresh=rdum(2)
         thresh_SIN=rdum(3)
         tolsvj=rdum(4)
         tolevj=rdum(5)
+
+        if(numdev.gt.0) nbatch=nbatcha
         
       endif
 
@@ -1334,7 +1334,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         
       enddo
 
-      thres2 = thresh_CI / max_coef
+      thres2 = thresh / max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
       do ibase = 1, nbase
@@ -1393,7 +1393,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             ndtot=ndtot+ndeti*(ndeti+1)/2
             do i=1,ndeti
               do j=i,ndeti
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
               enddo
             enddo
@@ -1401,7 +1401,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             ndtot=ndtot+ndeti*ndetj
             do i=1,ndeti
               do j=1,ndetj
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
               enddo
             enddo
@@ -1431,7 +1431,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           if(ibase.eq.jbase) then
             do i=1,ndeti
               do j=i,ndeti
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
                 lstdet(numdet,1)=i
                 lstdet(numdet,2)=j
@@ -1440,7 +1440,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           else
             do i=1,ndeti
               do j=1,ndetj
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh_CI) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
                 lstdet(numdet,1)=i
                 lstdet(numdet,2)=j
@@ -1776,7 +1776,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
      &       iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntask,nbatch,nmol,nbase,mstates,thresh,
+     &       ntask,max(1,nbatch),nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
  801    format(a8,1x,a8,3f12.3,4i7,3i3,4i2,i5,i2,3i5,e12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)

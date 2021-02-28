@@ -379,11 +379,7 @@
               if(ntasks(lgroup(igrp,1),lgroup(igrp,2)).eq.0) then
                 i=lgroup(igrp,1)
                 j=lgroup(igrp,2)
-                call timer_stop(99)
-                call swatch(date,time)
-                write(lfnday,777) date(1:8),time(1:8),
-     &               timer_wall_total(99),'  :  ',i,j,' signaled'
- 777            format(a8,2x,a8,f12.3,a,2i6,a)
+                
                 if(i.eq.j) then
                   ltemp=idetb(i)*(idetb(i)+1)/2
                 else
@@ -438,6 +434,7 @@
 
 !     Write completion message to dayfile
 
+                call timer_stop(99)
                 call swatch(date,time)
                 if(i.ne.j) then
                   write(lfnday,703) date(1:8),time(1:8),

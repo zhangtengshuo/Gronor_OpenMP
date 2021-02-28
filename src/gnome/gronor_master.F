@@ -391,6 +391,8 @@
      &               (nsing(i,j,k),k=1,4),
      &               hbase(i,j),sbase(i,j)
                 
+                call timer_stop(99)
+                
                 if(ipr.ge.1) then
                   if(i.ne.j) then
                     write(*,607) i,j,idetb(i),idetb(j),
@@ -434,7 +436,6 @@
 
 !     Write completion message to dayfile
 
-                call timer_stop(99)
                 call swatch(date,time)
                 if(i.ne.j) then
                   write(lfnday,703) date(1:8),time(1:8),

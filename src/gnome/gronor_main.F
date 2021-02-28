@@ -212,8 +212,6 @@ c     use cuda_functions
         flush(lfnday)
         call timer_start(99)
 
-!----------------------
-      
 !>
 !!    <table>
 !!    <caption id="multi_row">Input derived variables</caption> 
@@ -339,9 +337,6 @@ c     use cuda_functions
           if(thresh.gt.1.0d-4) thresh=1.0d-4
         endif
 
-!------------------------------
-
-        
         if(_GRONOR_VERSION_MINOR_.eq.0.or.
      &       _GRONOR_VERSION_MINOR_.gt.12) then
           version_type=" under active development"
@@ -419,11 +414,6 @@ c     use cuda_functions
         write(lfnarx,402) nnodes,np
  402    format('Nodes',i10,i10)
 
-
-!----------------------------
-  
-!----------------
-        
         call gronor_number_integrals(numone,numtwo)
         
         if(npg*mgr+1.gt.np) then

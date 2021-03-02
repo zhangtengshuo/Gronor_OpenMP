@@ -1265,7 +1265,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 #endif
         if(jnslvr.eq.0) write(lfnout,619)
  619    format(' Non-accelerated ranks use GronOR TRED2/TQL on CPU')
-#ifdef CUSOLVER
+#ifdef MKL
         if(jnslvr.eq.1) write(lfnout,620)
  620    format(' Non-accelerated ranks use MKL QR dsyevd')
 #endif

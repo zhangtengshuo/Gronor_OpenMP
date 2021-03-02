@@ -459,7 +459,7 @@ c     use cuda_functions
      &         max(1,nbatcha),max(1,nbatch),numomp
  606      format(' Task size',t40,i10,
      &         t60,'Number of ranks per task',t100,i10,/,
-     &         ' Batch size',t40,2i10,
+     &         ' Batch size',t40,i10,i6,
      &         t60,'Number of OpenMP threads per rank',t100,i10)
           if(numdev.gt.0) write(lfnout,638) nummps
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)

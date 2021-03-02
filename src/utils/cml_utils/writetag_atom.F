@@ -2,8 +2,10 @@
       implicit none
       integer  :: lfn,indent
       real(kind=8) :: x,y,z
+      character(len=132) fmt_1
       character(len=80) :: x3,y3,z3
-      character(len=10) :: id
+      character(len=*) :: id
+      character(len=4)  :: ts
       character(len=2)  :: element
       character(len=4), external :: t_spaces
 
@@ -22,7 +24,7 @@
         write(fmt_1,'(3a)')'(',trim(ts),',11a)'
       end if
       write(lfn,fmt=fmt_1)'<atom id="',trim(element),'" elementType="',
-     &  trim(element),'" x3="',trim(x3),'" y3="',trim(y3),'" z3=',
+     &  trim(element),'" x3="',trim(x3),'" y3="',trim(y3),'" z3="',
      &  trim(z3),'"/>"'
       
       end subroutine writetag_atom

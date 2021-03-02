@@ -7,6 +7,7 @@
       character(len=*)     :: charstring
 
       ts = t_spaces(indent)
+      charstring=adjustl(charstring)
       if (indent.eq.0) then
         fmt_1 = '(4a)'
         fmt_2 = '(5a)'

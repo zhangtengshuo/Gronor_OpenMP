@@ -1,7 +1,7 @@
       subroutine writetag_array_string(lfn,info,indent,sep,num,length)
       implicit none
       integer  :: lfn,indent,length,j
-      character(len=132) :: num(length)
+      character(len=*) :: num(length)
       character(len=1)     :: sep
       character(len=4)     :: ts,l,l1
       character(len=4), external :: t_spaces

@@ -22,7 +22,7 @@
       subroutine gronor_print_results(hbase,sbase,nbase)
       
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : lfnout,lfntst,lfnarx
+      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr
 
       implicit none
 
@@ -37,6 +37,12 @@
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
       character(len=4)              :: token
+*
+      character(len=132)            :: info_cml
+      character(len=20)             :: label
+      character(len=1)              :: sep
+      integer                       :: indent
+      logical                       :: scientific_format
 
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
@@ -193,7 +199,22 @@
           enddo
         enddo
       endif
-      
+
+*** Dumping the results in the cml file
+      label = 'propertyList'
+      indent= 3
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'property'
+      info_cml='dictRef="gr:Hamiltonian"'
+      call open_tag(lfncml,label,info_cml,4)
+      info_cml='units="nonsi:hartree"'
+      sep='|'
+      scientific_format=.true.
+      call writetag_matrix_real(lfncml,info_cml,5,sep,hbase,
+     &   size(hbase,1),size(hbase,2),scientific_format)
+      call close_tag(lfncml,label,4)
+ 
       return
       
       end subroutine gronor_print_results

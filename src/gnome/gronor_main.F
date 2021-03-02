@@ -96,6 +96,7 @@ c     use cuda_functions
 
       integer :: ndtot,npl,nrg,igb
 
+      character (len=5) :: version
       character (len=64) :: version_type
 
 #ifdef USE_POSIXF
@@ -203,6 +204,11 @@ c     use cuda_functions
         
         open(unit=lfnrnk,file=filrnk(1:inp_strlen(filrnk)),
      &       form='formatted',status='unknown',err=996)
+
+        open(unit=lfncml,file=filcml(1:inp_strlen(filcml)),
+     &       form='formatted',status='unknown',err=996)
+
+        call gronor_prelude_cml()
         
         call timer_stop(99)
         call swatch(date,time)
@@ -343,6 +349,8 @@ c     use cuda_functions
         else
           version_type=" official release"
         endif
+        write(version,'(i2,a,i2.2)')_GRONOR_VERSION_MAJOR_,'.',
+     &       _GRONOR_VERSION_MINOR_
         
         if(ipr.gt.0) write(lfnout,600) _GRONOR_VERSION_MAJOR_,
      &       _GRONOR_VERSION_MINOR_,trim(version_type)
@@ -477,12 +485,18 @@ c     use cuda_functions
         call gronor_gnome_molcas_input() ! OpenMolcas
         close(unit=lfnsym)
 
+        call gronor_env_cml(version,version_type)
+        call gronor_init_cml
+        call gronor_results_header_cml        ! this block is filled in gronor_print_results
+
       endif
 
       if(numdev.eq.0) then
         if(inslvr.lt.0) inslvr=iaslvr
         if(jnslvr.lt.0) jnslvr=jaslvr
       endif
+
+      
       
 !     Distribute input data to all processes
 
@@ -1812,7 +1826,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_start(99)
       endif
 
-      if(me.eq.master) call gronor_cml()
 
       call gronor_timings(lfnout,lfnday)
 
@@ -1837,6 +1850,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           close(unit=lfncpr,status='delete')
         endif
         close(unit=lfnarx,status='keep')
+        close(unit=lfncml,status='keep')
         
         call swatch(date,time)
         write(*,637) trim(date),trim(time)

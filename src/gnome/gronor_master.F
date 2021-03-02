@@ -424,7 +424,7 @@
 !     Write completion message to dayfile
 
                 call swatch(date,time)
-                if(i.ne.j) then
+                if(ibin.ne.jbin) then
                   write(lfnday,703) date(1:8),time(1:8),
      &                 timer_wall_total(99),
      &                 '  :  ',ibin,jbin,' completed, H,S   :',
@@ -689,7 +689,7 @@
      &           (nsing(ibin,jbin,k),k=1,4)
             flush(lfncpr)
             
-            if(i.ne.j) then
+            if(ibin.ne.jbin) then
               write(lfnday,703) date(1:8),time(1:8),
      &             timer_wall_total(99),
      &             '  :  ',ibin,jbin,' completed, H,S   :',

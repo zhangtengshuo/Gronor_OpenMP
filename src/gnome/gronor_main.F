@@ -466,7 +466,7 @@ c     use cuda_functions
         endif
 
         if(ipr.gt.0) write(lfnout,607) thresh
- 607    format(/,' Threshold for expension coefficients',t40,1pe12.3)
+ 607    format(/,' Threshold for expansion coefficients',t40,1pe12.3)
         if(ipr.ge.30) write(lfnout,608) thresh_SIN
  608    format(' Threshold for singularity',t40,1pe12.3,/)
 

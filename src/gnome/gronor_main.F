@@ -310,7 +310,7 @@ c     use cuda_functions
         lcpr=.false.
 
         call gronor_input()
-        
+
         if(mgr.eq.0) then
           if(npg.eq.0) call errquit(me,2,"Error in main")
           mgr=(np-1)/npg
@@ -835,7 +835,7 @@ c     use cuda_functions
         if(numdev.lt.0) numdev=0
       else
         myhead=master
-        numdev=0
+        numdev=-1
       endif
       
       mygroup=0
@@ -1231,12 +1231,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       if(jaslvr.lt.0) jaslvr=0
       if(inslvr.lt.0) inslvr=0
       if(jnslvr.lt.0) jnslvr=0
-      
-      
+
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)
  610    format(/,' Linear algebra solvers',/)
-        if(numdev.gt.0) then
+        if(numdev.ne.0) then
           if(iaslvr.eq.0) write(lfnout,611)
  611      format(' Accelerated ranks use GronOR SVD on CPU')
 #ifdef CUSOLVER
@@ -1244,8 +1243,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  612      format(' Accelerated ranks use CUSOLVER QR gesvd')
 #endif
 #ifdef CUSOLVERJ
-          if(iaslvr.eq.1) write(lfnout,642)
- 642      format(' Accelerated ranks use CUSOLVER QR gesvd')
           if(iaslvr.eq.2) write(lfnout,613)
  613      format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
 #endif
@@ -1256,8 +1253,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  615      format(' Accelerated ranks use CUSOLVER QR syevd')
 #endif
 #ifdef CUSOLVERJ
-          if(jaslvr.eq.1) write(lfnout,645)
- 645      format(' Accelerated ranks use CUSOLVER QR syevd')
           if(jaslvr.eq.2) write(lfnout,616)
  616      format(' Accelerated ranks use CUSOLVER Jacobi syevj')
 #endif
@@ -1275,6 +1270,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  620    format(' Non-accelerated ranks use MKL QR dsyevd')
 #endif
       endif
+      
+      if(me.eq.master) numdev=0
 
       call timer_stop(3)
       call timer_start(7)

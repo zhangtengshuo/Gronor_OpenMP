@@ -288,14 +288,20 @@
      &           ' Reading and distribution of integrals',t55,f12.3)
             write(lfnout,615) 
      &           timer_wall_total(94),
+     &           100.0d0*(timer_wall_total(94)/timer_wall_total(95)),
      &           timer_wall_total(95)-timer_wall_total(94),
+     &           100.0d0*(timer_wall_total(95)-timer_wall_total(94)/
+     &           timer_wall_total(95)),
      &           timer_wall_total(96),
-     &           timer_wall_total(97)-timer_wall_total(96)
+     &           100.0d0*(timer_wall_total(96)/timer_wall_total(97)),
+     &           timer_wall_total(97)-timer_wall_total(96),
+     &           100.0d0*(timer_wall_total(97)-timer_wall_total(96)/
+     &           timer_wall_total(97))
  615        format(/,
-     &           ' Request  time on master',t55,f12.3,/,
-     &           ' Response time on master',t55,f12.3,/,
-     &           ' Requestf time on master',t55,f12.3,/,
-     &           ' Finalize time on master',t55,f12.3)
+     &           ' Request  time on master',t55,f12.3,' (',f7.3,'%)',/,
+     &           ' Response time on master',t55,f12.3,' (',f7.3,'%)',/,
+     &           ' Requestf time on master',t55,f12.3,' (',f7.3,'%)',/,
+     &           ' Finalize time on master',t55,f12.3,' (',f7.3,'%)')
           endif
           write(lfnout,614) 
      &         timer_wall_total(99)-timer_wall_total(98),
@@ -319,7 +325,7 @@
         call swatch(date,time)
         write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
      &       nalive+1,np
- 703    format(a8,2x,a8,f12.3,' : Completion of job with',i8,' of ',
+ 703    format(a8,2x,a8,f12.3,'  :  Completion of job with',i8,' of ',
      &       i8,' processes still active')
         flush(lfnday)
       endif

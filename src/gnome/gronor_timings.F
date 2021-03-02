@@ -290,13 +290,13 @@
      &           timer_wall_total(94),
      &           100.0d0*(timer_wall_total(94)/timer_wall_total(95)),
      &           timer_wall_total(95)-timer_wall_total(94),
-     &           100.0d0*(timer_wall_total(95)-timer_wall_total(94)/
-     &           timer_wall_total(95)),
+     &           100.0d0*(timer_wall_total(95)-timer_wall_total(94))/
+     &           timer_wall_total(95),
      &           timer_wall_total(96),
      &           100.0d0*(timer_wall_total(96)/timer_wall_total(97)),
      &           timer_wall_total(97)-timer_wall_total(96),
-     &           100.0d0*(timer_wall_total(97)-timer_wall_total(96)/
-     &           timer_wall_total(97))
+     &           100.0d0*(timer_wall_total(97)-timer_wall_total(96))/
+     &           timer_wall_total(97)
  615        format(/,
      &           ' Request  time on master',t55,f12.3,' (',f7.3,'%)',/,
      &           ' Response time on master',t55,f12.3,' (',f7.3,'%)',/,

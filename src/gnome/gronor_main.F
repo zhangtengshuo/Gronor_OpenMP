@@ -1173,6 +1173,13 @@ c     use cuda_functions
         enddo
       endif
       
+!     if solvers were not specified use the default ones
+      
+      if(iaslvr.lt.0) iaslvr=0
+      if(jaslvr.lt.0) jaslvr=0
+      if(inslvr.lt.0) inslvr=0
+      if(jnslvr.lt.0) jnslvr=0
+      
       if(iamacc.eq.1) then
 
 !     only accelerated ranks need to set device
@@ -1203,8 +1210,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
 #endif
 
+        isolver=iaslvr
+        jsolver=jaslvr
         
       else
+
         
 !     only non-accelerated ranks will use OpenMP threads
 
@@ -1212,25 +1222,15 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
 !     if solvers were not specified use MKL solver for svd only
         
-        isolver=inslvr
-        jsolver=jnslvr
-        if(isolver.lt.0) isolver=1
-        if(jsolver.lt.0) jsolver=0
         if(inslvr.lt.0) inslvr=1
         if(jnslvr.lt.0) jnslvr=0
 
 #endif
+
+        isolver=inslvr
+        jsolver=jnslvr
         
       endif
-
-!     if solvers were not specified use the default ones
-      
-      if(isolver.lt.0) isolver=0
-      if(jsolver.lt.0) jsolver=0
-      if(iaslvr.lt.0) iaslvr=0
-      if(jaslvr.lt.0) jaslvr=0
-      if(inslvr.lt.0) inslvr=0
-      if(jnslvr.lt.0) jnslvr=0
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)

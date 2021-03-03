@@ -26,6 +26,7 @@
 #ifdef _OPENACC
       use openacc
       use cuda_functions
+c      use cuda_rt
 #endif
 #ifdef _OPENMP
       use omp_lib
@@ -34,7 +35,7 @@
       implicit none
 
       integer :: i,j,k,node
-      integer (kind=4) :: len, ierr
+      integer (kind=4) :: len, ierr, istat
 
       integer :: getcpucount
       external :: getcpucount
@@ -45,6 +46,8 @@
       character (len=128) :: value
 
       integer (kind=8) :: lenv,statv
+
+      type(c_ptr) :: cpfre, cptot
 
       string="HOME"
       call get_environment_variable(string,value,lenv,statv)
@@ -75,14 +78,16 @@
       
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-c      if(numdev.gt.1) then
-c       mydev=mod(me,numdev)
-c       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-c       cpfre=c_loc(memfre)
-c       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-c       memavail=memfre
-c      endif
+      if(numdev.gt.1) then
+c     mydev=mod(me,numdev)
+c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+#ifdef CUDA
+        cpfre=c_loc(memfre)
+        cptot=c_loc(memtot)
+        istat=cudaMemGetInfo(cpfre,cptot)
+#endif
+        memavail=memfre
+      endif
 #endif
 #ifdef _OL_OMP_
       numdev=omp_get_num_devices()
@@ -96,6 +101,18 @@ c      endif
 
       call MPI_get_processor_name(nodename, len, ierr)
 
+!     Trim the JFZ Juwels Booster node name
+      if(nodename(1:3).eq.'jwb') then
+        nodename(1:4)=nodename(4:7)
+        len=4
+      endif
+
+!     Trim the CSCS Piz Daint node name
+      if(nodename(1:3).eq.'nid') then
+        nodename(1:5)=nodename(4:8)
+        len=5
+      endif
+      
       j=1
       i=1
 
@@ -225,6 +242,12 @@ c      endif
 
       deallocate(map1)
 
+!     node counts the number ranks consequtive nodeids
+!     usually this is the number of nodes in a system
+!     on systems (Summit) with round-robin assignment to multiple
+!     resource sets per node this is the total number of resource sets
+!     nranks counts the number or ranks per resource set
+
       node=1
       map2(1,5)=1
       nranks=1
@@ -240,6 +263,8 @@ c      endif
        endif
       enddo
 
+!     nnodes counts the number of nodes
+      
       nnodes=1
       do i=2,np
        k=0
@@ -249,6 +274,7 @@ c      endif
        if(k.eq.0) nnodes=nnodes+1
       enddo
 
+      
       ncycls=node/nnodes
       nrsets=np/ncycls
       nranks=ncycls*nranks

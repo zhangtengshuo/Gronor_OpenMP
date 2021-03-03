@@ -40,7 +40,7 @@
 
       implicit none
 
-      integer :: ibase,jbase,mdet
+      integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,ndone,nleft,nrb
       integer (kind=4) :: ierr,ireq,iremote
       integer :: igrp, ltemp, last
@@ -286,16 +286,19 @@
             
             if(lgroup(igrp,5).ne.0) then
 
+              ibin=lgroup(igrp,1)
+              jbin=lgroup(igrp,2)
+                
 !     Determine the number of determinants completed for the base pair in ndets
 !     Determine the percent complete for the base pair in pnrb
 
-              ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &             ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
+              ndets(ibin,jbin,2)=
+     &             ndets(ibin,jbin,2)+
      &             lgroup(igrp,4)-lgroup(igrp,3)+1
-              pnrb(lgroup(igrp,1),lgroup(igrp,2))=
-     &             dble(100*ndets(lgroup(igrp,1),
-     &             lgroup(igrp,2),2))/
-     &             ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+              pnrb(ibin,jbin)=
+     &             dble(100*ndets(ibin,
+     &             jbin,2))/
+     &             ndets(ibin,jbin,1)
 
 !     Write entry to progress file
 
@@ -307,7 +310,7 @@
      &               iloop(lgroup(igrp,3),1),
      &               iloop(lgroup(igrp,3),2),
      &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &               pnrb(lgroup(igrp,1),lgroup(igrp,2)),
+     &               pnrb(ibin,jbin),
      &               buffer(1),buffer(2),(int(buffer(j)),j=4,8)
  680            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
      &               3i6,i12,f8.3,'% ',2e16.8,5i8)
@@ -320,27 +323,27 @@
      &               iloop(lgroup(igrp,3),1),
      &               iloop(lgroup(igrp,3),2),
      &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &               pnrb(lgroup(igrp,1),lgroup(igrp,2))
+     &               pnrb(ibin,jbin)
  681            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
      &               3i6,i12,f8.3,'% ')
                 flush(lfnpro)
               endif
               if(me.eq.master.and.
-     &             pnrb(lgroup(igrp,1),lgroup(igrp,2)).ge.
-     &             fday(lgroup(igrp,1),lgroup(igrp,2))) then
+     &             pnrb(ibin,jbin).ge.
+     &             fday(ibin,jbin)) then
                 call timer_stop(99)
                 call swatch(date,time)
                 write(lfnday,702) date(1:8),time(1:8),
      &               timer_wall_total(99),
-     &               '  :  ',lgroup(igrp,1),
-     &               lgroup(igrp,2),' at ',
-     &               pnrb(lgroup(igrp,1),lgroup(igrp,2)),'%'
+     &               '  :  ',ibin,
+     &               jbin,' at ',
+     &               pnrb(ibin,jbin),'%'
  702            format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a)
                 flush(lfnday)
                 call timer_start(99)
-                fday(lgroup(igrp,1),lgroup(igrp,2))=
-     &               fday(lgroup(igrp,1),
-     &               lgroup(igrp,2))+dble(iday)
+                fday(ibin,jbin)=
+     &               fday(ibin,
+     &               jbin)+dble(iday)
               endif
               
 !     Count the number of tasks completed by the remote rank in numrecs
@@ -349,75 +352,59 @@
               
 !     Accumulate the returned contributions in buffer
               
-              hbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &             hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
-              sbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &             sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
-              tbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &             tbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(3)
-              nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
-     &             nsing(lgroup(igrp,1),
-     &             lgroup(igrp,2),1)+int(buffer(4))
-              nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &             nsing(lgroup(igrp,1),
-     &             lgroup(igrp,2),2)+int(buffer(5))
-              nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
-     &             nsing(lgroup(igrp,1),
-     &             lgroup(igrp,2),3)+int(buffer(6))
-              nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
-     &             nsing(lgroup(igrp,1),
-     &             lgroup(igrp,2),4)+int(buffer(7))
-              nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
-     &             nsing(lgroup(igrp,1),
-     &             lgroup(igrp,2),5)+int(buffer(8))
+              hbase(ibin,jbin)=hbase(ibin,jbin)+buffer(1)
+              sbase(ibin,jbin)=sbase(ibin,jbin)+buffer(2)
+              tbase(ibin,jbin)=tbase(ibin,jbin)+buffer(3)
+              nsing(ibin,jbin,1)=nsing(ibin,jbin,1)+int(buffer(4))
+              nsing(ibin,jbin,2)=nsing(ibin,jbin,2)+int(buffer(5))
+              nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
+              nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
+              nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
 
 !     Decrement the tasks still to be done for base pair
               
-              ntasks(lgroup(igrp,1),lgroup(igrp,2))=
-     &             ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+              ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
 
-              if(ntasks(lgroup(igrp,1),lgroup(igrp,2)).eq.0) then
-                i=lgroup(igrp,1)
-                j=lgroup(igrp,2)
+              if(ntasks(ibin,jbin).eq.0.and.
+     &             (ibin.ne.ibase.or.jbin.ne.jbase)) then
                 
-                if(i.eq.j) then
-                  ltemp=idetb(i)*(idetb(i)+1)/2
+                if(ibin.eq.jbin) then
+                  ltemp=idetb(ibin)*(idetb(ibin)+1)/2
                 else
-                  ltemp=idetb(i)*idetb(j)
+                  ltemp=idetb(ibin)*idetb(jbin)
                 endif
                 
-                write(lfnarx,522) i,j,idetb(i),idetb(j),
-     &               ltemp,
-     &               (nsing(i,j,k),k=1,4),
-     &               hbase(i,j),sbase(i,j)
+                write(lfnarx,522) ibin,jbin,idetb(ibin),idetb(jbin),
+     &               ltemp,(nsing(ibin,jbin,k),k=1,4),
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
                 
                 call timer_stop(99)
                 
                 if(ipr.ge.1) then
-                  if(i.ne.j) then
-                    write(*,607) i,j,idetb(i),idetb(j),
+                  if(ibin.ne.jbin) then
+                    write(*,607) ibin,jbin,idetb(ibin),idetb(jbin),
      &                   ltemp,
-     &                   (nsing(i,j,k),k=1,4),
-     &                   hbase(i,j),sbase(i,j),
-     &                   tbase(i,j),timer_wall_total(99)
-                    write(lfnout,607) i,j,idetb(i),
-     &                   idetb(j),ltemp,
-     &                   (nsing(i,j,k),k=1,4),
-     &                   hbase(i,j),sbase(i,j),
-     &                   tbase(i,j),timer_wall_total(99)
+     &                   (nsing(ibin,jbin,k),k=1,4),
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   tbase(ibin,jbin),timer_wall_total(99)
+                    write(lfnout,607) ibin,jbin,idetb(ibin),
+     &                   idetb(jbin),ltemp,
+     &                   (nsing(ibin,jbin,k),k=1,4),
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   tbase(ibin,jbin),timer_wall_total(99)
                   else
-                    write(*,608) i,j,idetb(i),idetb(j),
+                    write(*,608) ibin,jbin,idetb(ibin),idetb(jbin),
      &                   ltemp,
-     &                   (nsing(i,j,k),k=1,4),
-     &                   hbase(i,j),sbase(i,j),
-     &                   hbase(i,j)/sbase(i,j),
-     &                   tbase(i,j),timer_wall_total(99)
-                    write(lfnout,608) i,j,idetb(i),
-     &                   idetb(j),ltemp,
-     &                   (nsing(i,j,k),k=1,4),
-     &                   hbase(i,j),sbase(i,j),
-     &                   hbase(i,j)/sbase(i,j),
-     &                   tbase(i,j),timer_wall_total(99)
+     &                   (nsing(ibin,jbin,k),k=1,4),
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                   tbase(ibin,jbin),timer_wall_total(99)
+                    write(lfnout,608) ibin,jbin,idetb(ibin),
+     &                   idetb(jbin),ltemp,
+     &                   (nsing(ibin,jbin,k),k=1,4),
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                   tbase(ibin,jbin),timer_wall_total(99)
                   endif
                   flush(lfnout)
  522              format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
@@ -429,25 +416,25 @@
 
 !     Write entry in the checkpoint restart file
                 
-                write(lfncpr) i,j,
-     &               hbase(i,j),sbase(i,j),tbase(i,j),
-     &               (nsing(i,j,k),k=1,4)
+                write(lfncpr) ibin,jbin,
+     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
+     &               (nsing(ibin,jbin,k),k=1,4)
                 flush(lfncpr)
 
 !     Write completion message to dayfile
 
                 call swatch(date,time)
-                if(i.ne.j) then
+                if(ibin.ne.jbin) then
                   write(lfnday,703) date(1:8),time(1:8),
      &                 timer_wall_total(99),
-     &                 '  :  ',i,j,' completed, H,S   :',
-     &                 hbase(i,j),sbase(i,j)
+     &                 '  :  ',ibin,jbin,' completed, H,S   :',
+     &                 hbase(ibin,jbin),sbase(ibin,jbin)
                 else
                   write(lfnday,703) date(1:8),time(1:8),
      &                 timer_wall_total(99),
-     &                 '  :  ',i,j,' completed, H,S,H*:',
-     &                 hbase(i,j),sbase(i,j),
-     &                 hbase(i,j)/sbase(i,j)
+     &                 '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+     &                 hbase(ibin,jbin)/sbase(ibin,jbin)
                 endif
  703            format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
                 flush(lfnday)
@@ -455,7 +442,7 @@
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
                 
-                ntasks(i,j)=-2
+                ntasks(ibin,jbin)=-2
               endif
               
 !     Reset the task information for the group from which request came
@@ -465,7 +452,7 @@
               enddo
 
 !     Loop over all base pairs to check if all tasks have been completed
-!     This will be the case if ntasks(i,j) is zero
+!     This will be the case if ntasks(ibin,jbin) is zero
 
             endif
 
@@ -570,8 +557,8 @@
 
         iremote=status(MPI_SOURCE)
         igrp=map2(iremote+1,3)
-        ibase=lgroup(igrp,1)
-        jbase=lgroup(igrp,2)
+        ibin=lgroup(igrp,1)
+        jbin=lgroup(igrp,2)
 
 !     Flag this group as still active
 
@@ -590,11 +577,11 @@
 !     Determine the number of determinants completed for the base pair in ndets
 !     Determine the percent complete for the base pair in pnrb
 
-          ndets(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &         ndets(lgroup(igrp,1),lgroup(igrp,2),2)+
+          ndets(ibin,jbin,2)=
+     &         ndets(ibin,jbin,2)+
      &         lgroup(igrp,4)-lgroup(igrp,3)+1
-          pnrb=dble(100*ndets(lgroup(igrp,1),lgroup(igrp,2),2))/
-     &         ndets(lgroup(igrp,1),lgroup(igrp,2),1)
+          pnrb=dble(100*ndets(ibin,jbin,2))/
+     &         ndets(ibin,jbin,1)
 
 !     Write entry to progress file
           
@@ -604,7 +591,7 @@
      &           iremote,igrp,(lgroup(igrp,j),j=1,4),
      &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &           pnrb(lgroup(igrp,1),lgroup(igrp,2)),
+     &           pnrb(ibin,jbin),
      &           buffer(1),buffer(2),(int(buffer(j)),j=4,8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
@@ -613,25 +600,25 @@
      &           iremote,igrp,(lgroup(igrp,j),j=1,4),
      &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
      &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &           pnrb(lgroup(igrp,1),lgroup(igrp,2))
+     &           pnrb(ibin,jbin)
             flush(lfnpro)
           endif
           
 !     Write entry to dayfile
           
           if(me.eq.master.and.
-     &         pnrb(lgroup(igrp,1),lgroup(igrp,2)).ge.
-     &         fday(lgroup(igrp,1),lgroup(igrp,2))) then
+     &         pnrb(ibin,jbin).ge.
+     &         fday(ibin,jbin)) then
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,702) date(1:8),time(1:8),
      &           timer_wall_total(99),
-     &           '  :  ',lgroup(igrp,1),lgroup(igrp,2),' at ',
-     &           pnrb(lgroup(igrp,1),lgroup(igrp,2)),'%'
+     &           '  :  ',ibin,jbin,' at ',
+     &           pnrb(ibin,jbin),'%'
             flush(lfnday)
             call timer_start(99)
-            fday(lgroup(igrp,1),lgroup(igrp,2))=
-     &           fday(lgroup(igrp,1),lgroup(igrp,2))+dble(iday)
+            fday(ibin,jbin)=
+     &           fday(ibin,jbin)+dble(iday)
           endif
         endif
         
@@ -642,96 +629,84 @@
           
 !     Accumulate the returned contributions in buffer
           
-          hbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &         hbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(1)
-          sbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &         sbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(2)
-          tbase(lgroup(igrp,1),lgroup(igrp,2))=
-     &         tbase(lgroup(igrp,1),lgroup(igrp,2))+buffer(3)
-          nsing(lgroup(igrp,1),lgroup(igrp,2),1)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),1)+int(buffer(4))
-          nsing(lgroup(igrp,1),lgroup(igrp,2),2)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),2)+int(buffer(5))
-          nsing(lgroup(igrp,1),lgroup(igrp,2),3)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),3)+int(buffer(6))
-          nsing(lgroup(igrp,1),lgroup(igrp,2),4)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),4)+int(buffer(7))
-          nsing(lgroup(igrp,1),lgroup(igrp,2),5)=
-     &         nsing(lgroup(igrp,1),lgroup(igrp,2),5)+int(buffer(8))
+          hbase(ibin,jbin)=hbase(ibin,jbin)+buffer(1)
+          sbase(ibin,jbin)=sbase(ibin,jbin)+buffer(2)
+          tbase(ibin,jbin)=tbase(ibin,jbin)+buffer(3)
+          nsing(ibin,jbin,1)=nsing(ibin,jbin,1)+int(buffer(4))
+          nsing(ibin,jbin,2)=nsing(ibin,jbin,2)+int(buffer(5))
+          nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
+          nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
+          nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
 
 !     Decrement the tasks still to be done for base pair
           
-          ntasks(lgroup(igrp,1),lgroup(igrp,2))=
-     &         ntasks(lgroup(igrp,1),lgroup(igrp,2))-1
+          ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
 
 !     Loop over all base pairs to check if all tasks have been completed
 !     This will be the case if ntasks(i,j) is zero
 
-          i=lgroup(igrp,1)
-          j=lgroup(igrp,2)
-
-          if(ntasks(i,j).eq.0) then
+          if(ntasks(ibin,jbin).eq.0) then
             call timer_stop(99)
             call swatch(date,time)
-            if(i.eq.j) then
-              ltemp=idetb(i)*(idetb(i)+1)/2
+            if(ibin.eq.jbin) then
+              ltemp=idetb(ibin)*(idetb(ibin)+1)/2
             else
-              ltemp=idetb(i)*idetb(j)
+              ltemp=idetb(ibin)*idetb(jbin)
             endif
-            write(lfnarx,522) i,j,idetb(i),idetb(j),ltemp,
-     &           (nsing(i,j,k),k=1,4),
-     &           hbase(i,j),sbase(i,j)
+            write(lfnarx,522) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
+     &           (nsing(ibin,jbin,k),k=1,4),
+     &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
               if(i.ne.j) then
-                write(*,607) i,j,idetb(i),idetb(j),ltemp,
-     &               (nsing(i,j,k),k=1,4),
-     &               hbase(i,j),sbase(i,j),tbase(i,j),
+                write(*,607) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
+     &               (nsing(ibin,jbin,k),k=1,4),
+     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
      &               timer_wall_total(99)
-                write(lfnout,607) i,j,idetb(i),idetb(j),
+                write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
      &               ltemp,
-     &               (nsing(i,j,k),k=1,4),
-     &               hbase(i,j),sbase(i,j),tbase(i,j),
+     &               (nsing(ibin,jbin,k),k=1,4),
+     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
      &               timer_wall_total(99)
               else
-                write(*,608) i,j,idetb(i),idetb(j),ltemp,
-     &               (nsing(i,j,k),k=1,4),
-     &               hbase(i,j),sbase(i,j),
-     &               hbase(i,j)/sbase(i,j),
-     &               tbase(i,j),timer_wall_total(99)
-                write(lfnout,608) i,j,idetb(i),idetb(j),
+                write(*,608) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
+     &               (nsing(ibin,jbin,k),k=1,4),
+     &               hbase(ibin,jbin),sbase(ibin,jbin),
+     &               hbase(ibin,jbin)/sbase(ibin,jbin),
+     &               tbase(ibin,jbin),timer_wall_total(99)
+                write(lfnout,608) ibin,jbin,idetb(ibin),idetb(jbin),
      &               ltemp,
-     &               (nsing(i,j,k),k=1,4),
-     &               hbase(i,j),sbase(i,j),
-     &               hbase(i,j)/sbase(i,j),
-     &               tbase(i,j),timer_wall_total(99)
+     &               (nsing(ibin,jbin,k),k=1,4),
+     &               hbase(ibin,jbin),sbase(ibin,jbin),
+     &               hbase(ibin,jbin)/sbase(ibin,jbin),
+     &               tbase(ibin,jbin),timer_wall_total(99)
               endif
               flush(lfnout)
             endif
             
             call swatch(date,time)
-            write(lfncpr) i,j,
-     &           hbase(i,j),sbase(i,j),tbase(i,j),
-     &           (nsing(i,j,k),k=1,4)
+            write(lfncpr) ibin,jbin,
+     &           hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
+     &           (nsing(ibin,jbin,k),k=1,4)
             flush(lfncpr)
             
-            if(i.ne.j) then
+            if(ibin.ne.jbin) then
               write(lfnday,703) date(1:8),time(1:8),
      &             timer_wall_total(99),
-     &             '  :  ',i,j,' completed, H,S   :',
-     &             hbase(i,j),sbase(i,j)
+     &             '  :  ',ibin,jbin,' completed, H,S   :',
+     &             hbase(ibin,jbin),sbase(ibin,jbin)
             else
               write(lfnday,703) date(1:8),time(1:8),
      &             timer_wall_total(99),
-     &             '  :  ',i,j,' completed, H,S,H*:',
-     &             hbase(i,j),sbase(i,j),
-     &             hbase(i,j)/sbase(i,j)
+     &             '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &             hbase(ibin,jbin),sbase(ibin,jbin),
+     &             hbase(ibin,jbin)/sbase(ibin,jbin)
             endif
             flush(lfnday)
             call timer_start(99)
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
             
-            ntasks(i,j)=-2
+            ntasks(ibin,jbin)=-2
           endif
           
 !     Remove duplicates that have already been sent

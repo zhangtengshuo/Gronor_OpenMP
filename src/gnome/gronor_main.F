@@ -392,9 +392,10 @@ c     use cuda_functions
      &       t60,'Number of MPI ranks per resource set',t100,i10,/,
      &       t60,'Number of rank assignment cycles',t100,i10,/,
      &       t60,'Number of OPENMP threads',t100,i10)
-        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602) memfre,memtot
- 602    format(t60,'Available memory on device',t90,i20,/,
-     &       t60,'Total memory on device',t90,i20)
+        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602)
+     &       dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
+ 602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
+     &       t60,'Total memory on device',t90,f24.3,' GB')
         if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
      &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
      &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),

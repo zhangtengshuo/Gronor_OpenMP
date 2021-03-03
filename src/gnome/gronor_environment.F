@@ -26,6 +26,7 @@
 #ifdef _OPENACC
       use openacc
       use cuda_functions
+c      use cuda_rt
 #endif
 #ifdef _OPENMP
       use omp_lib
@@ -34,7 +35,7 @@
       implicit none
 
       integer :: i,j,k,node
-      integer (kind=4) :: len, ierr
+      integer (kind=4) :: len, ierr, istat
 
       integer :: getcpucount
       external :: getcpucount
@@ -45,6 +46,8 @@
       character (len=128) :: value
 
       integer (kind=8) :: lenv,statv
+
+      type(c_ptr) :: cpfre, cptot
 
       string="HOME"
       call get_environment_variable(string,value,lenv,statv)

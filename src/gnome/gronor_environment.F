@@ -96,6 +96,18 @@ c      endif
 
       call MPI_get_processor_name(nodename, len, ierr)
 
+!     Trim the JFZ Juwels Booster node name
+      if(nodename(1:3).eq.'jwb') then
+        nodename(1:4)=nodename(4:7)
+        len=4
+      endif
+
+!     Trim the CSCS Piz Daint node name
+      if(nodename(1:3).eq.'nid') then
+        nodename(1:5)=nodename(4:8)
+        len=5
+      endif
+      
       j=1
       i=1
 
@@ -225,6 +237,12 @@ c      endif
 
       deallocate(map1)
 
+!     node counts the number ranks consequtive nodeids
+!     usually this is the number of nodes in a system
+!     on systems (Summit) with round-robin assignment to multiple
+!     resource sets per node this is the total number of resource sets
+!     nranks counts the number or ranks per resource set
+
       node=1
       map2(1,5)=1
       nranks=1
@@ -240,6 +258,8 @@ c      endif
        endif
       enddo
 
+!     nnodes counts the number of nodes
+      
       nnodes=1
       do i=2,np
        k=0
@@ -249,6 +269,7 @@ c      endif
        if(k.eq.0) nnodes=nnodes+1
       enddo
 
+      
       ncycls=node/nnodes
       nrsets=np/ncycls
       nranks=ncycls*nranks

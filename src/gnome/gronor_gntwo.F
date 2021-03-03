@@ -1859,7 +1859,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
 !     nb0 : number of singularity 0 elements
 !     nb1 : number of singularity 1 or 2 elements
-      
+
       if(ihc.eq.1) then
         nb0=0
         nb1=0
@@ -2345,7 +2345,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       integer :: lfndbg
 
-      integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj
+      integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj,igg
 
       real (kind=8) :: etemp
 
@@ -2392,9 +2392,9 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
             do i=1,nbas
               sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa0(nb0,i,k)=aaa(i,k)
-              aat0(nb0,i,k)=aaa(k,i)
+c              aat0(nb0,i,k)=aaa(k,i)
               tt0(nb0,i,k)=ta(k,i)
-              tat0(nb0,i,k)=ta(i,k)
+c              tat0(nb0,i,k)=ta(i,k)
             enddo
           enddo
 !$omp end parallel do
@@ -2408,9 +2408,9 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
             do i=1,nbas
               sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa1(nb1,i,k)=aaa(i,k)
-              aat1(nb1,i,k)=aaa(k,i)
+c              aat1(nb1,i,k)=aaa(k,i)
               tt1(nb1,i,k)=ta(k,i)
-              tat1(nb1,i,k)=ta(i,k)
+c              tat1(nb1,i,k)=ta(i,k)
             enddo
           enddo
 !$omp end parallel do
@@ -2442,28 +2442,32 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
         kl=nbas*(nbas+1)/2
         do ii=intndx,jntndx
+          igg=ndx(ii)
+          i=lab(1,ii)
+          k=lab(2,ii)
 !$omp parallel
-!$omp& shared(ii,sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp& shared(igg,i,k,ii,sm0,aaa0,tt0,g,lab,nb0,prefac)
 !$omp do reduction(+:etotb)
-!$omp& private(intg,jj,i,k,l,n,ibl)
+!$omp& private(intg,jj,l,n,ibl)
           do jj=ii,kl
-            intg=ndx(ii)+jj
-            i=lab(1,ii)
-            k=lab(2,ii)
+            intg=igg+jj
             l=lab(1,jj)
             n=lab(2,jj)
             etemp=0.0d0
             do ibl=1,nb0
               etemp=etemp+prefac0(ibl)*
      &             (sm0(ibl,k,i)*sm0(ibl,n,l)
-     &             -aat0(ibl,n,i)*aaa0(ibl,l,k)
-     &             -tt0(ibl,n,i)*tat0(ibl,l,k)
-     &             -aaa0(ibl,n,i)*aat0(ibl,l,k)
-     &             -tat0(ibl,n,i)*tt0(ibl,l,k)
-     &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
-     &             -tt0(ibl,l,i)*tat0(ibl,n,k)
-     &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
-     &             -tat0(ibl,l,i)*tt0(ibl,n,k))
+     &             -aaa0(ibl,i,n)*aaa0(ibl,l,k)
+     &             -aaa0(ibl,n,i)*aaa0(ibl,k,l)
+     &             -aaa0(ibl,i,l)*aaa0(ibl,n,k)
+     &             -aaa0(ibl,l,i)*aaa0(ibl,k,n))
+            enddo
+            do ibl=1,nb0
+              etemp=etemp+prefac0(ibl)*
+     &            (-tt0(ibl,i,n)*tt0(ibl,l,k)
+     &             -tt0(ibl,n,i)*tt0(ibl,k,l)
+     &             -tt0(ibl,i,l)*tt0(ibl,n,k)
+     &             -tt0(ibl,l,i)*tt0(ibl,k,n))
             enddo
             etotb=etotb+g(intg)*etemp
           enddo
@@ -2484,14 +2488,15 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
         
         kl=nbas*(nbas+1)/2
         do ii=intndx,jntndx
+          igg=ndx(ii)
+          i=lab(1,ii)
+          k=lab(2,ii)
 !$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
-!$omp& private(intg,i,k,l,n,ibl)
+!$omp& shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac)
+!$omp& private(intg,l,n,ibl)
           do jj=ii,kl
-            intg=ndx(ii)+jj
-            i=lab(1,ii)
-            k=lab(2,ii)
+            intg=igg+jj
             l=lab(1,jj)
             n=lab(2,jj)
             etemp=0.0d0
@@ -2505,22 +2510,22 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
      &             +diag1(ibl,k)*csdiag1(ibl,i)
      &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
      &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
-     &             -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
-     &             +aat1(ibl,l,k)*diag1(ibl,n))
+     &             -csdiag1(ibl,i)*(aaa1(ibl,k,n)*diag1(ibl,l)
+     &             +aaa1(ibl,k,l)*diag1(ibl,n))
      &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
      &             +tt1(ibl,l,k)*bdiag1(ibl,n))
      &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
      &             +aaa1(ibl,n,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
-     &             +tat1(ibl,n,k)*bdiag1(ibl,i))
-     &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
-     &             +aat1(ibl,l,i)*diag1(ibl,n))
+     &             -bsdiag1(ibl,l)*(tt1(ibl,i,n)*bdiag1(ibl,k)
+     &             +tt1(ibl,k,n)*bdiag1(ibl,i))
+     &             -csdiag1(ibl,k)*(aaa1(ibl,i,n)*diag1(ibl,l)
+     &             +aaa1(ibl,i,l)*diag1(ibl,n))
      &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
      &             +tt1(ibl,l,i)*bdiag1(ibl,n))
      &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
      &             +aaa1(ibl,l,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
-     &             +tat1(ibl,l,k)*bdiag1(ibl,i)))
+     &             -bsdiag1(ibl,n)*(tt1(ibl,i,l)*bdiag1(ibl,k)
+     &             +tt1(ibl,k,l)*bdiag1(ibl,i)))
             enddo
             etotb=etotb+g(intg)*etemp
           enddo

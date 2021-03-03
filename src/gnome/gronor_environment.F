@@ -75,14 +75,16 @@
       
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-c      if(numdev.gt.1) then
-c       mydev=mod(me,numdev)
-c       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-c       cpfre=c_loc(memfre)
-c       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-c       memavail=memfre
-c      endif
+      if(numdev.gt.1) then
+c     mydev=mod(me,numdev)
+c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+#ifdef CUDA
+        cpfre=c_loc(memfre)
+        cptot=c_loc(memtot)
+        istat=cudaMemGetInfo(cpfre,cptot)
+#endif
+        memavail=memfre
+      endif
 #endif
 #ifdef _OL_OMP_
       numdev=omp_get_num_devices()

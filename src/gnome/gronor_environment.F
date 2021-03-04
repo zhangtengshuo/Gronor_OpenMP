@@ -242,7 +242,7 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
 
       deallocate(map1)
 
-!     node counts the number ranks consequtive nodeids
+!     node counts the number ranks consecutive node-ids
 !     usually this is the number of nodes in a system
 !     on systems (Summit) with round-robin assignment to multiple
 !     resource sets per node this is the total number of resource sets
@@ -274,6 +274,31 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
        if(k.eq.0) nnodes=nnodes+1
       enddo
 
+!     ncycls is the number of times blocks of consecutive ranks
+!     are assigned to the same node
+
+!     nrsets is the number of ranks in each block of consecutively
+!     assigned ranks, which on Summit would be the number of resource sets
+
+!     For example, for 48 ranks on three nodes with 4 resource sets per node,
+!     assigned in round-robin fashion:
+
+!     Node:         0              1              2
+!     RSet:    0  1  2  3     0  1  2  3     0  1  2  3
+
+!     Ranks:   0  1  2  3     4  5  6  7     8  9 10 11
+!     Ranks:  12 13 14 15    16 17 18 19    20 21 22 23
+!     Ranks:  24 25 26 27    28 29 30 31    32 33 34 35
+!     Ranks:  36 37 38 39    40 41 42 43    44 45 46 47
+
+!     np is the total number of ranks: 48
+!     node counts the number of blocks with consecutive ranks: 12
+!     nnodes counts the number nodes with assigned ranks: 3
+!     ncycls is the number of 'Ranks' rows: 12 / 3 = 4
+!     nrsets is the total number of resource sets: 48 / 4 = 12
+!     nranks is the number of ranks in concecutive block: 4
+!     nranks is reset to the total number of ranks per node: 4 * 4 = 16
+!     nrnsets is the number of resource sets per node: 12 / 3 = 4
       
       ncycls=node/nnodes
       nrsets=np/ncycls

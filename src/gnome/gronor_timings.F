@@ -315,8 +315,6 @@
           write(lfnout,619) timer_wall_total(99)
  619      format(/,' Total execution wall clock time on master ',
      &         t55,f12.3)
-          write(*,618) timer_wall_total(99)
- 618      format(/,' Total execution wall clock time ',f12.3)
         endif
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),

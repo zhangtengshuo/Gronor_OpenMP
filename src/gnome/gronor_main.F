@@ -1858,7 +1858,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfncml,status='keep')
         
         call swatch(date,time)
-        write(*,637) trim(date),trim(time)
         if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
  637    format(/,' Completion of run ',2a10,/)
         

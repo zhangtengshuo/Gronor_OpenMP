@@ -160,7 +160,6 @@
      &     ' Number of determinants above CI threshold',t50,i16)
       
       if(ipr.gt.0) then
-        write(*,602)
         write(lfnout,602)
       endif
  602  format(//,' Calculation of Hamiltonian matrix elements',//,
@@ -382,23 +381,12 @@
                 
                 if(ipr.ge.1) then
                   if(ibin.ne.jbin) then
-                    write(*,607) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                   ltemp,
-     &                   (nsing(ibin,jbin,k),k=1,4),
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
-     &                   tbase(ibin,jbin),timer_wall_total(99)
                     write(lfnout,607) ibin,jbin,idetb(ibin),
      &                   idetb(jbin),ltemp,
      &                   (nsing(ibin,jbin,k),k=1,4),
      &                   hbase(ibin,jbin),sbase(ibin,jbin),
      &                   tbase(ibin,jbin),timer_wall_total(99)
                   else
-                    write(*,608) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                   ltemp,
-     &                   (nsing(ibin,jbin,k),k=1,4),
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
-     &                   hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                   tbase(ibin,jbin),timer_wall_total(99)
                     write(lfnout,608) ibin,jbin,idetb(ibin),
      &                   idetb(jbin),ltemp,
      &                   (nsing(ibin,jbin,k),k=1,4),
@@ -658,21 +646,12 @@
      &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
               if(i.ne.j) then
-                write(*,607) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
-     &               (nsing(ibin,jbin,k),k=1,4),
-     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
-     &               timer_wall_total(99)
                 write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
      &               ltemp,
      &               (nsing(ibin,jbin,k),k=1,4),
      &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
      &               timer_wall_total(99)
               else
-                write(*,608) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
-     &               (nsing(ibin,jbin,k),k=1,4),
-     &               hbase(ibin,jbin),sbase(ibin,jbin),
-     &               hbase(ibin,jbin)/sbase(ibin,jbin),
-     &               tbase(ibin,jbin),timer_wall_total(99)
                 write(lfnout,608) ibin,jbin,idetb(ibin),idetb(jbin),
      &               ltemp,
      &               (nsing(ibin,jbin,k),k=1,4),
@@ -887,9 +866,6 @@
 !     Output the total singularites and wall clock times
 
       call timer_stop(99)
-      write(*,615) mdet,(nsingt(i),i=1,4),tsum,
-     &     dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
-     &     100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
       if(ipr.gt.0) then
         write(lfnout,615) mdet,(nsingt(i),i=1,4),tsum,
      &       dble(mgr)*tsum/dble(np-1),timer_wall_total(99),

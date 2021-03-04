@@ -47,7 +47,6 @@
 
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
-      write(*,670)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
       do k=1,nk
@@ -56,7 +55,6 @@
         write(lfnout,670)
         write(lfntst,670)
  670    format(//,' Hamiltonian Matrix',/)
-        write(*,671) (i,i=ii,il)
         if (.not.mebfLabels) then
           write(lfnout,671) (i,i=ii,il)
         else
@@ -69,7 +67,6 @@
  6711   format(7x,a,7(9x,a6,5x))
  6712   format(8a)
         do j=1,nbase
-          write(*,672) j,(hbase(i,j),i=ii,il)
           if (.not.mebfLabels) then
             write(lfnout,672) j,(hbase(i,j),i=ii,il)
           else
@@ -87,11 +84,9 @@
  1672     format(i5,1x,10f20.8)
         enddo
         write(lfnout,*) ' '
-        write(*,*) ' '
       enddo
       write(lfnarx,663) nbase,ncols
  663  format('Overl',2i10)
-      write(*,673)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
       do k=1,nk
@@ -100,7 +95,6 @@
         write(lfnout,673)
         write(lfntst,673)
  673    format(//,' Overlap Matrix',/)
-        write(*,671) (i,i=ii,il)
         if (.not.mebfLabels) then
           write(lfnout,671) (i,i=ii,il)
         else
@@ -110,7 +104,6 @@
         write(lfntst,671) (i,i=ii,il)
         write(lfnarx,671) (i,i=ii,il)
         do j=1,nbase
-          write(*,672) j,(sbase(i,j),i=ii,il)
           if (.not.mebfLabels) then
             write(lfnout,672) j,(sbase(i,j),i=ii,il)
           else
@@ -124,7 +117,6 @@
           write(lfntst,1672) j,(hbt(i),i=ii,il)
         enddo
         write(lfnout,*) ' '
-        write(*,*) ' '
       enddo
       
       if(nbase.gt.1) then
@@ -139,7 +131,6 @@
         write(lfnout,676)
         write(lfnarx,666) nbase,ncols
  666    format('Coupl',2i10)
-        write(*,676)
  676    format(//,' Electronic Couplings (meV)',/)
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -154,7 +145,6 @@
      &                     ('--------------------',i=ii,il)
           end if
           write(lfnarx,671) (i,i=ii,il)
-          write(*,671) (i,i=ii,il)
           do j=1,nbase
             if(j.eq.1) then
               if (.not.mebfLabels) then
@@ -163,7 +153,6 @@
                 write(lfnout,6721) mebfLabel(1),' |'
               end if
               write(lfnarx,662) 1
-              write(*,672) 1
             else
               ik=min(j-1,il)
               if (.not.mebfLabels) then
@@ -173,11 +162,9 @@
      &                             (27.2114d3*tc(j,i),i=ii,ik)
               end if
               write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
-              write(*,672) j,(27.2114d3*tc(j,i),i=ii,ik)
             endif
           enddo
           write(lfnout,*) ' '
-          write(*,*) ' '
         enddo
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
@@ -198,7 +185,6 @@
 ! a transpose(hsave) might be needed
 ! printing takes care of it now: hsave(j,i) instead of hsave(i,j)
           
-        write(*,677)
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions (columns)',/)
 
@@ -209,25 +195,20 @@
           il=min(nbase,k*ncols)
 
           write(lfnout,680) (i,i=ii,il)
-          write(*,680) (i,i=ii,il)
  680      format('          State:',t18,12(i15,5x))
           write(lfnout,681) (hev(i),i=ii,il)
-          write(*,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
-          write(*,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
           token="MEBF:"
           do j=1,nbase
             if(j.eq.1) then
-              write(*,683)token,j,(hsave(j,i),i=ii,il)
               if (.not.mebfLabels) then
                 write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
               else
                 write(lfnout,685)token,mebfLabel(j),(hsave(j,i),i=ii,il)
               end if
             else
-              write(*,684) token,j,(hsave(j,i),i=ii,il)
               if (.not.mebfLabels) then
                 write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
               else

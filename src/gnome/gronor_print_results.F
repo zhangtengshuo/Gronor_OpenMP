@@ -338,7 +338,7 @@
 *3. Electronic couplings
       do i=1,size(tc,1)
         do j=1,size(tc,2)
-          tc(i,j)=tc(i,j)*27.2114d0
+          tc(i,j)=tc(i,j)*27211.4d0
         end do
       end do
       info_cml = 'dictRef="gr:elCoupling"'

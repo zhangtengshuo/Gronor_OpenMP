@@ -293,3 +293,20 @@
 
       end subroutine gronor_results_header_cml
  
+
+      subroutine gronor_close_all_tags_cml
+      use cidef
+
+      implicit none
+      integer              :: indent
+      character(len=20)    :: label
+
+      label='module'
+      indent = 2
+      call close_tag(lfncml,label,indent)
+      indent = 1
+      call close_tag(lfncml,label,indent)
+      indent = 0
+      call close_tag(lfncml,label,indent)
+
+      end subroutine gronor_close_all_tags_cml

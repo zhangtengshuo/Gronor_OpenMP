@@ -1772,6 +1772,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           call gronor_print_results(hcorr,sbase,nbase)
           deallocate( hcorr )
         endif
+
+* Close the cml file after closing the remaining open tags
+        call gronor_close_all_tags_cml
+        close(unit=lfncml,status='keep')
+*
         inquire(file=fillog(1:inp_strlen(fillog)),exist=EXIST)
         open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
      &       form='formatted',status='unknown',access='append',err=993)

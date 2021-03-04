@@ -274,13 +274,15 @@
       call writetag_matrix_real(lfncml,info_cml,6,sep,hbase,
      &   size(hbase,1),size(hbase,2),scientific_format)
       call close_tag(lfncml,label,5)
-      info_cml='dictRef="gr:Overlap"'
-      indent = 5
-      call open_tag(lfncml,label,info_cml,indent) 
-      info='empty'
-      call writetag_matrix_real(lfncml,info_cml,6,sep,sbase,
-     &   size(hbase,1),size(hbase,2),scientific_format)
-      call close_tag(lfncml,label,5)
+      if (ncorr.ne.1) then
+        info_cml='dictRef="gr:Overlap"'
+        indent = 5
+        call open_tag(lfncml,label,info_cml,indent) 
+        info='empty'
+        call writetag_matrix_real(lfncml,info_cml,6,sep,sbase,
+     &     size(hbase,1),size(hbase,2),scientific_format)
+        call close_tag(lfncml,label,5)
+      end if
       label = 'propertyList'
       indent= 4
       call close_tag(lfncml,label,indent)
@@ -303,9 +305,25 @@
         call open_tag(lfncml,label,info_cml,6)
         info_cml = 'dictRef="gr:rootNumber"'
         call writetag_scalar_integer(lfncml,info_cml,7,i)
-        info_cml = 'dictRef="gr:nociEnergy"'
+        if (ncorr.eq.1) then
+          if (nwt.eq.1) then
+            info_cml = 'dictRef="gr:nociEnergy" id="GNshifted"'
+          else
+            info_cml = 'dictRef="gr:nociEnergy" id="shifted"'
+          end if
+        else
+          info_cml = 'dictRef="gr:nociEnergy" id="standard"'
+        end if
         call writetag_scalar_real(lfncml,info_cml,7,hev(i),.false.)
-        info_cml = 'dictRef="gr:mebfCoeff"'
+        if (ncorr.eq.1) then
+          if (nwt.eq.1) then
+            info_cml = 'dictRef="gr:mebfCoeff" id="GNshifted"'
+          else
+            info_cml = 'dictRef="gr:mebfCoeff" id="shifted"'
+          end if
+        else
+          info_cml = 'dictRef="gr:mebfCoeff" id="standard"'
+        end if
         call writetag_array_real(lfncml,info_cml,7,sep,hsave(i,:),
      &              size(hsave,2),.true.)
         call close_tag(lfncml,label,6)
@@ -318,6 +336,11 @@
       indent = 3
       call close_tag(lfncml,label,indent)
 *3. Electronic couplings
+      do i=1,size(tc,1)
+        do j=1,size(tc,2)
+          tc(i,j)=tc(i,j)*27.2114d0
+        end do
+      end do
       info_cml = 'dictRef="gr:elCoupling"'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'propertyList'
@@ -325,7 +348,15 @@
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'property'
-      info_cml='dictRef="gr:mebfCoupling" id="standard"'
+      if (ncorr.eq.1) then
+        if (nwt.eq.1) then
+          info_cml = 'dictRef="gr:mebfCoupling" id="GNshifted"'
+        else
+          info_cml = 'dictRef="gr:mebfCoupling" id="shifted"'
+        end if    
+      else 
+        info_cml = 'dictRef="gr:mebfCoupling" id="standard"'
+      end if
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="nonsi:meV"'
       call writetag_matrix_real(lfncml,info_cml,6,sep,tc,
@@ -338,14 +369,6 @@
       label='module'
       indent = 3
       call close_tag(lfncml,label,indent)
-*. Close the remaining module blocks
-      indent = 2
-      call close_tag(lfncml,label,indent)
-      indent = 1
-      call close_tag(lfncml,label,indent)
-      indent = 0
-      call close_tag(lfncml,label,indent)
-      close(unit=lfncml,status='keep')
       return
       
       end subroutine gronor_print_results

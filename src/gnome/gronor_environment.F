@@ -26,6 +26,7 @@
 #ifdef _OPENACC
       use openacc
       use cuda_functions
+c      use cuda_rt
 #endif
 #ifdef _OPENMP
       use omp_lib
@@ -34,7 +35,7 @@
       implicit none
 
       integer :: i,j,k,node
-      integer (kind=4) :: len, ierr
+      integer (kind=4) :: len, ierr, istat
 
       integer :: getcpucount
       external :: getcpucount
@@ -45,6 +46,8 @@
       character (len=128) :: value
 
       integer (kind=8) :: lenv,statv
+
+      type(c_ptr) :: cpfre, cptot
 
       string="HOME"
       call get_environment_variable(string,value,lenv,statv)
@@ -75,14 +78,16 @@
       
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-c      if(numdev.gt.1) then
-c       mydev=mod(me,numdev)
-c       call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-c       cpfre=c_loc(memfre)
-c       cptot=c_loc(memtot)
-c       istat=cudaMemGetInfo(cpfre,cptot)
-c       memavail=memfre
-c      endif
+      if(numdev.gt.1) then
+c     mydev=mod(me,numdev)
+c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+#ifdef CUDA
+        cpfre=c_loc(memfre)
+        cptot=c_loc(memtot)
+        istat=cudaMemGetInfo(cpfre,cptot)
+#endif
+        memavail=memfre
+      endif
 #endif
 #ifdef _OL_OMP_
       numdev=omp_get_num_devices()
@@ -96,6 +101,18 @@ c      endif
 
       call MPI_get_processor_name(nodename, len, ierr)
 
+!     Trim the JFZ Juwels Booster node name
+      if(nodename(1:3).eq.'jwb') then
+        nodename(1:4)=nodename(4:7)
+        len=4
+      endif
+
+!     Trim the CSCS Piz Daint node name
+      if(nodename(1:3).eq.'nid') then
+        nodename(1:5)=nodename(4:8)
+        len=5
+      endif
+      
       j=1
       i=1
 
@@ -225,6 +242,12 @@ c      endif
 
       deallocate(map1)
 
+!     node counts the number ranks consecutive node-ids
+!     usually this is the number of nodes in a system
+!     on systems (Summit) with round-robin assignment to multiple
+!     resource sets per node this is the total number of resource sets
+!     nranks counts the number or ranks per resource set
+
       node=1
       map2(1,5)=1
       nranks=1
@@ -240,6 +263,8 @@ c      endif
        endif
       enddo
 
+!     nnodes counts the number of nodes
+      
       nnodes=1
       do i=2,np
        k=0
@@ -249,6 +274,62 @@ c      endif
        if(k.eq.0) nnodes=nnodes+1
       enddo
 
+!     ncycls is the number of times blocks of consecutive ranks
+!     are assigned to the same node
+
+!     nrsets is the number of ranks in each block of consecutively
+!     assigned ranks, which on Summit would be the number of resource sets
+
+!     For example, for 48 ranks on three nodes with 4 resource sets per node,
+!     assigned in round-robin fashion:
+
+!     Node:         0              1              2
+!     RSet:    0  1  2  3     0  1  2  3     0  1  2  3
+
+!     Ranks:   0  1  2  3     4  5  6  7     8  9 10 11
+!     Ranks:  12 13 14 15    16 17 18 19    20 21 22 23
+!     Ranks:  24 25 26 27    28 29 30 31    32 33 34 35
+!     Ranks:  36 37 38 39    40 41 42 43    44 45 46 47
+
+!     np is the total number of ranks: 48
+!     node counts the number of blocks with consecutive ranks: 12
+!     nnodes counts the number nodes with assigned ranks: 3
+!     ncycls is the number of 'Ranks' rows: 12 / 3 = 4
+!     nrsets is the total number of resource sets: 48 / 4 = 12
+!     nranks is the number of ranks in concecutive block: 4
+!     nranks is reset to the total number of ranks per node: 4 * 4 = 16
+!     nrnsets is the number of resource sets per node: 12 / 3 = 4
+
+!     For example, for 12 ranks on a two node system without resource sets:
+
+!     Node:           0                      1
+
+!     Ranks:  0  1  2  3  4  5       6  7  8  9 10 11
+
+!     np is the total number of ranks: 12
+!     node counts the number of blocks with consecutive ranks: 2
+!     nnodes counts the number nodes with assigned ranks: 2
+!     ncycls is the number of 'Ranks' rows: 2 / 2 = 1
+!     nrsets is the total number of resource sets: 12 / 1 = 12
+!     nranks is the number of ranks in concecutive block: 6
+!     nranks is reset to the total number of ranks per node: 1 * 6 = 6
+!     nrnsets is the number of resource sets per node: 12 / 2 = 6
+      
+!     For example, for 8 ranks on single node system such as a workstation or laptop:
+
+!     Node:           0
+
+!     Ranks:  0  1  2  3  4  5  6  7
+
+!     np is the total number of ranks: 8
+!     node counts the number of blocks with consecutive ranks: 1
+!     nnodes counts the number nodes with assigned ranks: 1
+!     ncycls is the number of 'Ranks' rows: 1 / 1 = 1
+!     nrsets is the total number of resource sets: 8 / 1 = 8
+!     nranks is the number of ranks in concecutive block: 8
+!     nranks is reset to the total number of ranks per node: 1 * 8 = 8
+!     nrnsets is the number of resource sets per node: 8 / 1 = 8
+      
       ncycls=node/nnodes
       nrsets=np/ncycls
       nranks=ncycls*nranks

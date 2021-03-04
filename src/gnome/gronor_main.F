@@ -308,6 +308,7 @@ c     use cuda_functions
         iday=10
         idbg=0
         nspin=0
+        ncorr=0
         mpibuf=168435456
         thresh=1.0d-5
         thresh_SIN=1.0d-12
@@ -316,7 +317,7 @@ c     use cuda_functions
         lcpr=.false.
 
         call gronor_input()
-        
+
         if(mgr.eq.0) then
           if(npg.eq.0) call errquit(me,2,"Error in main")
           mgr=(np-1)/npg
@@ -400,9 +401,10 @@ c     use cuda_functions
      &       t60,'Number of MPI ranks per resource set',t100,i10,/,
      &       t60,'Number of rank assignment cycles',t100,i10,/,
      &       t60,'Number of OPENMP threads',t100,i10)
-        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602) memfre,memtot
- 602    format(t60,'Available memory on device',t90,i20,/,
-     &       t60,'Total memory on device',t90,i20)
+        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602)
+     &       dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
+ 602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
+     &       t60,'Total memory on device',t90,f24.3,' GB')
         if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
      &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
      &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
@@ -463,17 +465,18 @@ c     use cuda_functions
      &       ' Number of many-electron base states',t40,i10,/)
         endif
         if(ipr.ge.20) then
-          write(lfnout,606) ntask,mgr,max(1,nbatch),numomp
+          write(lfnout,606) ntask,mgr,
+     &         max(1,nbatcha),max(1,nbatch),numomp
  606      format(' Task size',t40,i10,
      &         t60,'Number of ranks per task',t100,i10,/,
-     &         ' Batch size',t40,i10,
+     &         ' Batch size',t40,i10,i6,
      &         t60,'Number of OpenMP threads per rank',t100,i10)
           if(numdev.gt.0) write(lfnout,638) nummps
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
         endif
 
         if(ipr.gt.0) write(lfnout,607) thresh
- 607    format(/,' Threshold for expension coefficients',t40,1pe12.3)
+ 607    format(/,' Threshold for expansion coefficients',t40,1pe12.3)
         if(ipr.ge.30) write(lfnout,608) thresh_SIN
  608    format(' Threshold for singularity',t40,1pe12.3,/)
 
@@ -848,7 +851,7 @@ c     use cuda_functions
         if(numdev.lt.0) numdev=0
       else
         myhead=master
-        numdev=0
+        numdev=-1
       endif
       
       mygroup=0
@@ -1186,6 +1189,13 @@ c     use cuda_functions
         enddo
       endif
       
+!     if solvers were not specified use the default ones
+      
+      if(iaslvr.lt.0) iaslvr=0
+      if(jaslvr.lt.0) jaslvr=0
+      if(inslvr.lt.0) inslvr=0
+      if(jnslvr.lt.0) jnslvr=0
+      
       if(iamacc.eq.1) then
 
 !     only accelerated ranks need to set device
@@ -1216,8 +1226,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
 #endif
 
+        isolver=iaslvr
+        jsolver=jaslvr
         
       else
+
         
 !     only non-accelerated ranks will use OpenMP threads
 
@@ -1225,31 +1238,20 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
 !     if solvers were not specified use MKL solver for svd only
         
-        isolver=inslvr
-        jsolver=jnslvr
-        if(isolver.lt.0) isolver=1
-        if(jsolver.lt.0) jsolver=0
         if(inslvr.lt.0) inslvr=1
         if(jnslvr.lt.0) jnslvr=0
 
 #endif
+
+        isolver=inslvr
+        jsolver=jnslvr
         
       endif
 
-!     if solvers were not specified use the default ones
-      
-      if(isolver.lt.0) isolver=0
-      if(jsolver.lt.0) jsolver=0
-      if(iaslvr.lt.0) iaslvr=0
-      if(jaslvr.lt.0) jaslvr=0
-      if(inslvr.lt.0) inslvr=0
-      if(jnslvr.lt.0) jnslvr=0
-      
-      
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)
  610    format(/,' Linear algebra solvers',/)
-        if(numdev.gt.0) then
+        if(numdev.ne.0) then
           if(iaslvr.eq.0) write(lfnout,611)
  611      format(' Accelerated ranks use GronOR SVD on CPU')
 #ifdef CUSOLVER
@@ -1257,8 +1259,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  612      format(' Accelerated ranks use CUSOLVER QR gesvd')
 #endif
 #ifdef CUSOLVERJ
-          if(iaslvr.eq.1) write(lfnout,642)
- 642      format(' Accelerated ranks use CUSOLVER QR gesvd')
           if(iaslvr.eq.2) write(lfnout,613)
  613      format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
 #endif
@@ -1269,8 +1269,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  615      format(' Accelerated ranks use CUSOLVER QR syevd')
 #endif
 #ifdef CUSOLVERJ
-          if(jaslvr.eq.1) write(lfnout,645)
- 645      format(' Accelerated ranks use CUSOLVER QR syevd')
           if(jaslvr.eq.2) write(lfnout,616)
  616      format(' Accelerated ranks use CUSOLVER Jacobi syevj')
 #endif
@@ -1283,11 +1281,13 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 #endif
         if(jnslvr.eq.0) write(lfnout,619)
  619    format(' Non-accelerated ranks use GronOR TRED2/TQL on CPU')
-#ifdef CUSOLVER
+#ifdef MKL
         if(jnslvr.eq.1) write(lfnout,620)
  620    format(' Non-accelerated ranks use MKL QR dsyevd')
 #endif
       endif
+      
+      if(me.eq.master) numdev=0
 
       call timer_stop(3)
       call timer_start(7)
@@ -1624,7 +1624,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ' Number of unique Hamiltonian matrix elements',t50,i16)
       endif
       
-      if(me.eq.master.and.ipr.ge.1) then
+      if(me.eq.master.and.ipr.ge.30) then
 #ifdef SINGLEP
         write(lfnout,639)
  639    format(/,' Integrals are used in single precision')

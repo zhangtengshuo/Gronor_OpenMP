@@ -1,18 +1,5 @@
-      module input_data
-      implicit none
-      integer   :: nbase,nstates,extraDim,nBlocks
-      integer   :: reduced_extraDim
-      integer, allocatable  :: ncombv(:,:),dimens(:),blocks(:,:)
-      integer,allocatable  :: ovlp_mebfs(:)
-      real (kind=8), allocatable   :: ecorr(:)
-      real (kind=8), allocatable   :: h(:,:),s(:,:)
-      character(len=80)     :: project
-      logical :: extra,dressed_coupling
-      end module input_data
-
-
       program shiftH
-      use input_data
+      use input_data2
 
       implicit none
       real( kind = 8 ), allocatable :: H_ortho(:,:),H_shift(:,:),
@@ -350,7 +337,7 @@
 
 
       subroutine superNOCI
-      use input_data
+      use input_data2
       implicit none
 
       integer                      :: i,j,k,l,info,lwork,jj
@@ -489,7 +476,7 @@
 
 
       subroutine readin
-      use input_data
+      use input_data2
       implicit none
 
       integer,parameter    :: nKeys = 7

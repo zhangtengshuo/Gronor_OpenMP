@@ -1610,7 +1610,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       ' Number of unique Hamiltonian matrix elements',t50,i16)
       endif
       
-      if(me.eq.master.and.ipr.ge.1) then
+      if(me.eq.master.and.ipr.ge.30) then
 #ifdef SINGLEP
         write(lfnout,639)
  639    format(/,' Integrals are used in single precision')

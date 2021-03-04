@@ -56,28 +56,29 @@
 !     Filling idetm, inactm,nactm and determine the maximum dets and active orbitals.
 !     For reading from vecdet a raw value is calculated as duplicates are still to be removed
 
+      allocate(nFrozen(mstates))
+      allocate(fragLabel(mstates))
       do i=1,mstates
         write(fildet,203) root(1:inp_strlen(root)),i
         length=inp_strlen(fildet)
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
-        read(lfndet,*) inactm(i)
+        read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i)
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
-        idet_raw(i)=1
-        do 
-          read(lfndet,*,iostat=istat)
-          if(istat .ne. 0) then
-            rewind(lfndet)
-            exit
-          else
-            idet_raw(i)=idet_raw(i) + 1
-          endif
-        enddo 
-        close(unit=lfndet)
         maxci_raw=max(maxci_raw,idet_raw(i))
         maxnact=max(maxnact,nactm(i))
+        inactm(i) = inactm(i) - nFrozen(i)
       enddo
+      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
+        mebfLabels = .false.
+      else
+        mebfLabels = .true.
+        allocate(mebfLabel(nbase))
+        do j = 1,nbase
+          write(mebfLabel(j),'(3a2)')(fragLabel(ncombv(k,j)),k=1,nmol)
+        end do
+      end if
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates

@@ -214,7 +214,7 @@
       sep='|'
       call writetag_array_string(lfncml,info_cml,5,sep,namint,2)
       call close_tag(lfncml,label,4)
-* we need to carry over the charge from OpenMolcas in the sym file
+* we need to calcuate the charge of the system: sum(znuc) - (nelec + 2*nFrozen)
 *      info_cml='dictRef="cc:charge"'
 *      call open_tag(lfncml,label,info_cml,4)
 *      info_cml='units="nonsi:elementary_charge"'
@@ -249,12 +249,11 @@
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,4)
       sep =' '
-* same as for the charge, might be carried over from Molcas
-*      info_cml='dictRef="gr:frozen"'
-*      call open_tag(lfncml,label,info_cml,4)
-*      info_cml='empty'
-*      call writetag_array_integer(lfncml,info_cml,5,sep,frozb,mstates)
-*      call close_tag(lfncml,label,4)
+      info_cml='dictRef="gr:frozen"'
+      call open_tag(lfncml,label,info_cml,4)
+      info_cml='empty'
+      call writetag_array_integer(lfncml,info_cml,5,sep,nFrozen,mstates)
+      call close_tag(lfncml,label,4)
       info_cml='dictRef="gr:inactive"'
       call open_tag(lfncml,label,info_cml,4)
       info_cml='empty'

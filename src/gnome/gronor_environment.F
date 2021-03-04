@@ -299,6 +299,36 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
 !     nranks is the number of ranks in concecutive block: 4
 !     nranks is reset to the total number of ranks per node: 4 * 4 = 16
 !     nrnsets is the number of resource sets per node: 12 / 3 = 4
+
+!     For example, for 12 ranks on a two node system without resource sets:
+
+!     Node:           0                      1
+
+!     Ranks:  0  1  2  3  4  5       6  7  8  9 10 11
+
+!     np is the total number of ranks: 12
+!     node counts the number of blocks with consecutive ranks: 2
+!     nnodes counts the number nodes with assigned ranks: 2
+!     ncycls is the number of 'Ranks' rows: 2 / 2 = 1
+!     nrsets is the total number of resource sets: 12 / 1 = 12
+!     nranks is the number of ranks in concecutive block: 6
+!     nranks is reset to the total number of ranks per node: 1 * 6 = 6
+!     nrnsets is the number of resource sets per node: 12 / 2 = 6
+      
+!     For example, for 8 ranks on single node system such as a workstation or laptop:
+
+!     Node:           0
+
+!     Ranks:  0  1  2  3  4  5  6  7
+
+!     np is the total number of ranks: 8
+!     node counts the number of blocks with consecutive ranks: 1
+!     nnodes counts the number nodes with assigned ranks: 1
+!     ncycls is the number of 'Ranks' rows: 1 / 1 = 1
+!     nrsets is the total number of resource sets: 8 / 1 = 8
+!     nranks is the number of ranks in concecutive block: 8
+!     nranks is reset to the total number of ranks per node: 1 * 8 = 8
+!     nrnsets is the number of resource sets per node: 8 / 1 = 8
       
       ncycls=node/nnodes
       nrsets=np/ncycls

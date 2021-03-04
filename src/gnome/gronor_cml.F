@@ -53,7 +53,7 @@
       write(lfncml,'(a)') trim(info_cml)
       info_cml = '  xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  convention="convention:compchem>"'
+      info_cml = '  convention="convention:compchem">'
       write(lfncml,'(a)') trim(info_cml)
 
       return

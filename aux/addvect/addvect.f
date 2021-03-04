@@ -38,31 +38,6 @@
 * do the job (or any other standard compiler), no need for linking.     *
 *                                                                       *
 *************************************************************************
-      module fileInfo
-      implicit none
-      character(len=80)     :: title
-      character(len=25)     :: vecfile1,vecfile2
-      end module
-
-      module genInfo
-      implicit none
-      integer,allocatable    :: nBas(:)
-      integer,allocatable    :: nOcc(:)
-      integer                :: nIrrep,mxBas,totOrb
-      end module
-
-      module decisions
-      implicit none
-      logical                :: add,symmetry_is_lowered
-      end module
-
-      module coefficients
-      implicit none
-      real(kind=8),allocatable  :: coeff(:,:,:)
-      end module
-      
-* -- End of modules ----
-
       program main
       use decisions
       implicit none

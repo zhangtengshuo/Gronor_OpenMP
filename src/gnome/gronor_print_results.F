@@ -23,7 +23,7 @@
       
       use gnome_parameters, only : itest,ncols
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,
-     &                             mebfLabel,mebfLabels
+     &                             nwt,mebfLabel,mebfLabels
 
       implicit none
 
@@ -248,20 +248,104 @@
       endif
 
 *** Dumping the results in the cml file
+* 1. NOCI matrices
+      label = 'module'
+      indent = 3 
+      info_cml = 'dictRef="gr:matrices" id="normalized"'
+      call open_tag(lfncml,label,info_cml,indent)
       label = 'propertyList'
-      indent= 3
+      indent= 4
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'property'
-      info_cml='dictRef="gr:Hamiltonian"'
-      call open_tag(lfncml,label,info_cml,4)
+      if (ncorr.eq.1) then
+        if (nwt.eq.1) then
+          info_cml='dictRef="gr:Hamiltonian" id="GNshifted"'
+        else
+          info_cml='dictRef="gr:Hamiltonian" id="shifted"'
+        end if
+      else
+        info_cml='dictRef="gr:Hamiltonian" id="standard"'
+      end if
+      call open_tag(lfncml,label,info_cml,5)
       info_cml='units="nonsi:hartree"'
       sep='|'
       scientific_format=.true.
-      call writetag_matrix_real(lfncml,info_cml,5,sep,hbase,
+      call writetag_matrix_real(lfncml,info_cml,6,sep,hbase,
      &   size(hbase,1),size(hbase,2),scientific_format)
+      call close_tag(lfncml,label,5)
+      info_cml='dictRef="gr:Overlap"'
+      indent = 5
+      call open_tag(lfncml,label,info_cml,indent) 
+      info='empty'
+      call writetag_matrix_real(lfncml,info_cml,6,sep,sbase,
+     &   size(hbase,1),size(hbase,2),scientific_format)
+      call close_tag(lfncml,label,5)
+      label = 'propertyList'
+      indent= 4
+      call close_tag(lfncml,label,indent)
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
+* 2. NOCI wf and energy
+      info_cml = 'dictRef="gr:nociStates"'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'propertyList'
+      indent= 4
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      do i = 1, nbase
+        label = 'module'
+        info_cml = 'dictRef="gr:nociroot"'
+        call open_tag(lfncml,label,info_cml,5)
+        label = 'property'
+        info_cml='empty'
+        call open_tag(lfncml,label,info_cml,6)
+        info_cml = 'dictRef="gr:rootNumber"'
+        call writetag_scalar_integer(lfncml,info_cml,7,i)
+        info_cml = 'dictRef="gr:nociEnergy"'
+        call writetag_scalar_real(lfncml,info_cml,7,hev(i),.false.)
+        info_cml = 'dictRef="gr:mebfCoeff"'
+        call writetag_array_real(lfncml,info_cml,7,sep,hsave(i,:),
+     &              size(hsave,2),.true.)
+        call close_tag(lfncml,label,6)
+        label = 'module'
+        call close_tag(lfncml,label,5)
+      end do
+      label = 'propertyList'
       call close_tag(lfncml,label,4)
- 
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
+*3. Electronic couplings
+      info_cml = 'dictRef="gr:elCoupling"'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'propertyList'
+      indent= 4
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'property'
+      info_cml='dictRef="gr:mebfCoupling" id="standard"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='units="nonsi:meV"'
+      call writetag_matrix_real(lfncml,info_cml,6,sep,tc,
+     &  size(tc,1),size(tc,2),.false.)
+      label = 'property'
+      call close_tag(lfncml,label,5)
+      label = 'propertyList'
+      indent= 4
+      call close_tag(lfncml,label,indent)
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
+*. Close the remaining module blocks
+      indent = 2
+      call close_tag(lfncml,label,indent)
+      indent = 1
+      call close_tag(lfncml,label,indent)
+      indent = 0
+      call close_tag(lfncml,label,indent)
+      close(unit=lfncml,status='keep')
       return
       
       end subroutine gronor_print_results

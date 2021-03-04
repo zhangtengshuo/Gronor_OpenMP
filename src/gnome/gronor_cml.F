@@ -288,7 +288,7 @@
       character(len=20)    :: label
 
       label = 'module'
-      info_cml ='dictRef="cc:calculation" id="matrix_elements"'
+      info_cml ='dictRef="cc:calculation" id="NOCI"'
       call open_tag(lfncml,label,info_cml,2)
 
       end subroutine gronor_results_header_cml

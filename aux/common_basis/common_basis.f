@@ -7,13 +7,15 @@
 
       module input_data
       implicit none
-      integer,parameter           :: maxFrag = 99
-      integer                     :: nFragments
-      integer,dimension(maxFrag)  :: nFrozen,nVec
-      real(kind=8)                :: threshold
-      logical                     :: extra_info,all_epsilons
-      logical                     :: debug,noAvgCore
-      character (len=20)          :: project
+      integer,parameter             :: maxFrag = 99
+      integer                       :: nFragments
+      integer,dimension(maxFrag)    :: nFrozen,nVec
+      real(kind=8)                  :: threshold
+      logical                       :: extra_info,all_epsilons
+      logical                       :: debug,noAvgCore
+      logical                       :: fragLabels
+      character (len=2),allocatable :: fragLabel(:)
+      character (len=20)            :: project
       end module input_data
 
 * ========= E N D   O F   M O D U L E S =========================================
@@ -71,6 +73,9 @@
       write(12,'(I8)') nBas
       write(12,'(I8)') nBas
       write(12,'(A4)') '#ORB'
+
+* Adding number of ders , fragment labels and changing the number of inactives (if frozen.ne.0)
+      call addInfo_on_detFiles()
 
       superBasis = 0.0
       frozenOrbs = 0.0
@@ -179,6 +184,13 @@
       deallocate( frozenOrbs )
       deallocate( frzFragOrb )
       deallocate( sDiag      )
+      
+      if (.not.fragLabels) then
+        write(*,*)
+        write(*,'(a)')  'Note that fragment labels were not provided.'
+        write(*,'(2a)') 'Fragment labels are optional, but',
+     &             ' strongly recommended.'
+      end if
 
       end program common_MO
 
@@ -225,6 +237,7 @@
 
       real(kind=8) :: dummy
 
+      character (len=3)               :: suffix
       character (len=25)              :: vecFileName
       character (len=20)              :: base
       character (len=12)              :: oneintName
@@ -372,8 +385,9 @@
       do j = 1, iFrag - 1
         startVec = startVec + nVec(j)
       end do
+      suffix='vec'
       do iVec = 1, nVec(iFrag)
-        call getVecFilename(iVec+startVec,vecFilename,base)
+        call getVecFilename(iVec+startVec,vecFilename,base,suffix)
         open(36,file=vecFilename)
         vec = 0.0
         call read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
@@ -424,7 +438,7 @@
       use input_data
       implicit none
 
-      integer, parameter                   :: nKeys = 8
+      integer, parameter                   :: nKeys = 9
       integer                              :: jj,iKey,iFrag
 
       character (len=4)                    :: key
@@ -435,7 +449,7 @@
       logical, dimension(nkeys)            :: hit = .false.
 
       data keyword /'THRE','FRAG','PROJ','EXTR','ALLE','FROZ',
-     &              'NOAV','DEBU'/
+     &              'NOAV','DEBU','LABE'/
 
 * Defaults
       threshold    = 1.0e-6
@@ -446,6 +460,7 @@
       all_epsilons = .false.
       debug        = .false.
       noAvgCore    = .false.
+      fragLabels   = .false.
 
       do while (all_ok)
         read(5,*,iostat=jj) line
@@ -489,6 +504,11 @@
               noAvgCore = .true.
             case(8)
               debug = .true.
+            case(9)
+              call locate('LABE')
+              fragLabels=.true.
+              allocate(fragLabel(sum(nVec)))
+              read(*,*) (fragLabel(jj),jj=1,sum(nVec))
           end select
         end if
       end do
@@ -728,13 +748,14 @@
 
 * ===============================================================================
 
-      subroutine getVecFilename(iVec,filename,base)
+      subroutine getVecFilename(iVec,filename,base,suffix)
       implicit none
       integer,intent(in)              :: iVec
+      character (len=3),intent(in)    :: suffix
       character (len=20),intent(in)   :: base
       character (len=25),intent(out)  :: filename
 
-      write(filename,'(A,I0.3,A)') trim(base),iVec,'.vec'
+      write(filename,'(A,I0.3,2A)') trim(base),iVec,'.',suffix
       filename = trim(filename)
       return
       end subroutine getVecFilename
@@ -776,7 +797,7 @@
       write(*,'(2A,I4)')'List of all eigenvalues of the MO overlap',
      &           ' matrix of fragment ',i
       do j = 1, n
-        write(*,'(I5,E20.8)') j,a(j)
+        write(*,'(I5,E20.12)') j,a(j)
       end do
       return
       end subroutine printepsilons
@@ -926,3 +947,56 @@
 
 * ===============================================================================
 
+
+      subroutine addInfo_on_detFiles
+      use input_data
+      implicit none
+
+      integer :: idet,ndet,inactm,i,j,iVec,istat
+      real(kind=8),allocatable  :: coeff(:)
+      character(len=3)      :: suffix
+      character(len=25)     :: detFilename
+      character (len=255), allocatable :: occ(:)
+
+      suffix = 'det'
+      iVec = 0
+      do i = 1, nFragments
+        do j = 1, nVec(i)
+          ndet = 0
+          iVec = iVec + 1
+          call getVecFilename(iVec,detFilename,project,suffix)     
+          open(37,file=detFilename,status='old')
+          read(37,*) inactm
+          do
+            read(37,*,iostat=istat)
+            if (istat .ne. 0) then
+              rewind(37)
+              exit
+            else
+              ndet = ndet + 1
+            endif
+          enddo
+          allocate(coeff(ndet))
+          allocate(occ(ndet))
+          read(37,*)
+          do idet = 1, ndet
+            read(37,*) coeff(idet),occ(idet)
+          end do
+          rewind(37)
+          if (fragLabels) then
+            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec)
+          else
+            write(37,1600) inactm,nFrozen(i),ndet,'no_label'
+          end if
+          do idet = 1, ndet
+            write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
+          end do
+          close(37)
+          deallocate(coeff,occ)
+        end do
+ 1600 format(2i5,i12,4x,a)
+      end do
+     
+      end subroutine addInfo_on_detFiles
+
+* ===============================================================================

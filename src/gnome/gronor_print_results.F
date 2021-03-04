@@ -22,7 +22,8 @@
       subroutine gronor_print_results(hbase,sbase,nbase)
       
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : lfnout,lfntst,lfnarx
+      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,
+     &                             nwt,mebfLabel,mebfLabels
 
       implicit none
 
@@ -36,7 +37,13 @@
       real(kind=8)                  :: ssave(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
-      character(len=4)              :: token
+      character(len=5)              :: token
+*
+      character(len=132)            :: info_cml
+      character(len=20)             :: label
+      character(len=1)              :: sep
+      integer                       :: indent
+      logical                       :: scientific_format
 
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
@@ -50,15 +57,27 @@
         write(lfntst,670)
  670    format(//,' Hamiltonian Matrix',/)
         write(*,671) (i,i=ii,il)
-        write(lfnout,671) (i,i=ii,il)
+        if (.not.mebfLabels) then
+          write(lfnout,671) (i,i=ii,il)
+        else
+          write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
+          write(lfnout,6712)'-------|',('--------------------',i=ii,il)
+        end if
         write(lfntst,671) (i,i=ii,il)
         write(lfnarx,671) (i,i=ii,il)
  671    format(6x,7(6x,i8,6x))
+ 6711   format(7x,a,7(9x,a6,5x))
+ 6712   format(8a)
         do j=1,nbase
           write(*,672) j,(hbase(i,j),i=ii,il)
-          write(lfnout,672) j,(hbase(i,j),i=ii,il)
+          if (.not.mebfLabels) then
+            write(lfnout,672) j,(hbase(i,j),i=ii,il)
+          else
+            write(lfnout,6721) mebfLabel(j),' |',(hbase(i,j),i=ii,il)
+          end if
           write(lfnarx,662) j,(hbase(i,j),i=ii,il)
  672      format(i5,1x,10f20.10)
+ 6721     format(a6,a2,10f20.10)
  662      format(i5,1x,10e20.13)
           do i=ii,il
             hbt(i)=hbase(i,j)
@@ -82,12 +101,21 @@
         write(lfntst,673)
  673    format(//,' Overlap Matrix',/)
         write(*,671) (i,i=ii,il)
-        write(lfnout,671) (i,i=ii,il)
+        if (.not.mebfLabels) then
+          write(lfnout,671) (i,i=ii,il)
+        else
+          write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
+          write(lfnout,6712)'-------|',('--------------------',i=ii,il)
+        end if
         write(lfntst,671) (i,i=ii,il)
         write(lfnarx,671) (i,i=ii,il)
         do j=1,nbase
           write(*,672) j,(sbase(i,j),i=ii,il)
-          write(lfnout,672) j,(sbase(i,j),i=ii,il)
+          if (.not.mebfLabels) then
+            write(lfnout,672) j,(sbase(i,j),i=ii,il)
+          else
+            write(lfnout,6721) mebfLabel(j),' |',(sbase(i,j),i=ii,il)
+          end if
           write(lfnarx,662) j,(sbase(i,j),i=ii,il)
           do i=ii,il
             hbt(i)=sbase(i,j)
@@ -118,17 +146,32 @@
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
-          write(lfnout,671) (i,i=ii,il)
+          if (.not.mebfLabels) then
+            write(lfnout,671) (i,i=ii,il)
+          else
+            write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
+            write(lfnout,6712)'-------|',
+     &                     ('--------------------',i=ii,il)
+          end if
           write(lfnarx,671) (i,i=ii,il)
           write(*,671) (i,i=ii,il)
           do j=1,nbase
             if(j.eq.1) then
-              write(lfnout,672) 1
+              if (.not.mebfLabels) then
+                write(lfnout,672) 1
+              else
+                write(lfnout,6721) mebfLabel(1),' |'
+              end if
               write(lfnarx,662) 1
               write(*,672) 1
             else
               ik=min(j-1,il)
-              write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
+              if (.not.mebfLabels) then
+                write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
+              else
+                write(lfnout,6721) mebfLabel(j),' |',
+     &                             (27.2114d3*tc(j,i),i=ii,ik)
+              end if
               write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
               write(*,672) j,(27.2114d3*tc(j,i),i=ii,ik)
             endif
@@ -174,26 +217,158 @@
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
           write(*,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
-          token="MEBF"
+          token="MEBF:"
           do j=1,nbase
             if(j.eq.1) then
-              write(*,683) token,j,(hsave(j,i),i=ii,il)
-              write(lfnout,683) token,j,(hsave(j,i),i=ii,il)
+              write(*,683)token,j,(hsave(j,i),i=ii,il)
+              if (.not.mebfLabels) then
+                write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
+              else
+                write(lfnout,685)token,mebfLabel(j),(hsave(j,i),i=ii,il)
+              end if
             else
               write(*,684) token,j,(hsave(j,i),i=ii,il)
-              write(lfnout,684) token,j,(hsave(j,i),i=ii,il)
+              if (.not.mebfLabels) then
+                write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
+              else
+                write(lfnout,686)token,mebfLabel(j),(hsave(j,i),i=ii,il)
+              end if
             endif
- 683        format(/,6x,a4,i5,t18,12f20.10)
- 684        format(6x,a4,i5,t18,12f20.10)
+ 683        format(/,4x,a5,i5,t18,12f20.10)
+ 684        format(4x,a5,i5,t18,12f20.10)
+ 685        format(/,4x,a5,1x,a4,t18,12f20.10)
+ 686        format(4x,a5,1x,a4,t18,12f20.10)
             if(itest.eq.2) then
-              write(lfntst,685) token,j,(hsave(j,i),i=ii,il)
- 685          format(6x,a4,i5,t18,12f20.8)
+              write(lfntst,687) token,j,(hsave(j,i),i=ii,il)
+ 687          format(6x,a4,i5,t18,12f20.8)
             endif
             token="    "
           enddo
         enddo
       endif
-      
+
+*** Dumping the results in the cml file
+* 1. NOCI matrices
+      label = 'module'
+      indent = 3 
+      info_cml = 'dictRef="gr:matrices" id="normalized"'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'propertyList'
+      indent= 4
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'property'
+      if (ncorr.eq.1) then
+        if (nwt.eq.1) then
+          info_cml='dictRef="gr:Hamiltonian" id="GNshifted"'
+        else
+          info_cml='dictRef="gr:Hamiltonian" id="shifted"'
+        end if
+      else
+        info_cml='dictRef="gr:Hamiltonian" id="standard"'
+      end if
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='units="nonsi:hartree"'
+      sep='|'
+      scientific_format=.true.
+      call writetag_matrix_real(lfncml,info_cml,6,sep,hbase,
+     &   size(hbase,1),size(hbase,2),scientific_format)
+      call close_tag(lfncml,label,5)
+      if (ncorr.ne.1) then
+        info_cml='dictRef="gr:Overlap"'
+        indent = 5
+        call open_tag(lfncml,label,info_cml,indent) 
+        info='empty'
+        call writetag_matrix_real(lfncml,info_cml,6,sep,sbase,
+     &     size(hbase,1),size(hbase,2),scientific_format)
+        call close_tag(lfncml,label,5)
+      end if
+      label = 'propertyList'
+      indent= 4
+      call close_tag(lfncml,label,indent)
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
+* 2. NOCI wf and energy
+      info_cml = 'dictRef="gr:nociStates"'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'propertyList'
+      indent= 4
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      do i = 1, nbase
+        label = 'module'
+        info_cml = 'dictRef="gr:nociroot"'
+        call open_tag(lfncml,label,info_cml,5)
+        label = 'property'
+        info_cml='empty'
+        call open_tag(lfncml,label,info_cml,6)
+        info_cml = 'dictRef="gr:rootNumber"'
+        call writetag_scalar_integer(lfncml,info_cml,7,i)
+        if (ncorr.eq.1) then
+          if (nwt.eq.1) then
+            info_cml = 'dictRef="gr:nociEnergy" id="GNshifted"'
+          else
+            info_cml = 'dictRef="gr:nociEnergy" id="shifted"'
+          end if
+        else
+          info_cml = 'dictRef="gr:nociEnergy" id="standard"'
+        end if
+        call writetag_scalar_real(lfncml,info_cml,7,hev(i),.false.)
+        if (ncorr.eq.1) then
+          if (nwt.eq.1) then
+            info_cml = 'dictRef="gr:mebfCoeff" id="GNshifted"'
+          else
+            info_cml = 'dictRef="gr:mebfCoeff" id="shifted"'
+          end if
+        else
+          info_cml = 'dictRef="gr:mebfCoeff" id="standard"'
+        end if
+        call writetag_array_real(lfncml,info_cml,7,sep,hsave(i,:),
+     &              size(hsave,2),.true.)
+        call close_tag(lfncml,label,6)
+        label = 'module'
+        call close_tag(lfncml,label,5)
+      end do
+      label = 'propertyList'
+      call close_tag(lfncml,label,4)
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
+*3. Electronic couplings
+      do i=1,size(tc,1)
+        do j=1,size(tc,2)
+          tc(i,j)=tc(i,j)*27.2114d0
+        end do
+      end do
+      info_cml = 'dictRef="gr:elCoupling"'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'propertyList'
+      indent= 4
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      label = 'property'
+      if (ncorr.eq.1) then
+        if (nwt.eq.1) then
+          info_cml = 'dictRef="gr:mebfCoupling" id="GNshifted"'
+        else
+          info_cml = 'dictRef="gr:mebfCoupling" id="shifted"'
+        end if    
+      else 
+        info_cml = 'dictRef="gr:mebfCoupling" id="standard"'
+      end if
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='units="nonsi:meV"'
+      call writetag_matrix_real(lfncml,info_cml,6,sep,tc,
+     &  size(tc,1),size(tc,2),.false.)
+      label = 'property'
+      call close_tag(lfncml,label,5)
+      label = 'propertyList'
+      indent= 4
+      call close_tag(lfncml,label,indent)
+      label='module'
+      indent = 3
+      call close_tag(lfncml,label,indent)
       return
       
       end subroutine gronor_print_results

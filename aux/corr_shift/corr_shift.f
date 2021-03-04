@@ -298,12 +298,17 @@
       write(*,*) 'Gallup-Norbeck weights:'
       write(*,671) (i,i =1,nbase)
       do i = 1, nbase
-        write(*,672)i,wgn(i,:)
+        if (nbase.gt.7) then
+          write(*,672)i,wgn(i,:)
+        else
+          write(*,673)i,wgn(i,:)
+        end if
       end do
       write(*,*)
       write(*,*)
  671  format(6x,7(6x,i8,6x))
  672  format(i5,1x,7f20.10,/,(6x,7f20.10))
+ 673  format(i5,1x,7f20.10)
       return
       end subroutine gnweight
 
@@ -317,11 +322,16 @@
       write(*,*)
       write(*,671) (i,i =1,n)
       do i = 1, n
-        write(*,672)i,m(i,:)
+        if (n.gt.7) then
+          write(*,672)i,m(i,:)
+        else
+          write(*,673)i,m(i,:)
+        end if
       end do
       write(*,*)
  671  format(6x,7(6x,i8,6x))
  672  format(i5,1x,7f20.10,/,(6x,7f20.10))
+ 673  format(i5,1x,7f20.10)
       return
       end subroutine print_Ham
 

@@ -74,7 +74,6 @@
       
       flush(lfnout)
  604  format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3)
-      
       deallocate( nCntr )
       
       return

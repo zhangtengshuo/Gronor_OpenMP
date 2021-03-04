@@ -13,6 +13,8 @@
       real(kind=8)                :: threshold
       logical                     :: extra_info,all_epsilons
       logical                     :: debug,noAvgCore
+      logical                     :: fragLabels
+      character (len=2),allocatable :: fragLabel(:)
       character (len=20)          :: project
       end module input_data
 

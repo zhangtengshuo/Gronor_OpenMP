@@ -1,23 +1,3 @@
-      module histo_data
-      implicit none
-      integer                     :: maxbin
-      integer,dimension(30)       :: freq
-      end module histo_data
-
-
-      module input_data
-      implicit none
-      integer,parameter           :: maxFrag = 99
-      integer                     :: nFragments
-      integer,dimension(maxFrag)  :: nFrozen,nVec
-      real(kind=8)                :: threshold
-      logical                     :: extra_info,all_epsilons
-      logical                     :: debug,noAvgCore
-      character (len=20)          :: project
-      end module input_data
-
-* ========= E N D   O F   M O D U L E S =========================================
-
       program common_MO
       use histo_data
       use input_data

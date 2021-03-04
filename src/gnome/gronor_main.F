@@ -302,6 +302,7 @@ c     use cuda_functions
         iday=10
         idbg=0
         nspin=0
+        ncorr=0
         mpibuf=168435456
         thresh=1.0d-5
         thresh_SIN=1.0d-12

@@ -1,5 +1,5 @@
       subroutine writetag_matrix_real(lfn,info,indent,sep,
-     &                           num,row,col,scientific_format)
+     &                           num,row,col,numfmt)
       implicit none
       integer  :: lfn,indent,i,j,k,col,row
       real(kind=8) :: num(row,col)
@@ -7,14 +7,9 @@
       character(len=1)     :: sep
       character(len=4)     :: rc,ts,r,c
       character(len=4), external :: t_spaces
-      character(len=132)   :: info,fmt_1,fmt_2
-      logical :: scientific_format
+      character(len=132)   :: info,fmt_1,fmt_2,numfmt
 
-      if (scientific_format) then
-        fmt_2 = '(e25.15)'
-      else
-        fmt_2 = '(f25.15)'
-      end if
+      write(fmt_2,'(3a)')'(',trim(adjustl(numfmt)),')'
       k = 0
       do i = 1, row
         do j = 1, col

@@ -25,6 +25,6 @@
       end if
       write(lfn,fmt=fmt_1)'<atom id="',trim(element),'" elementType="',
      &  trim(element),'" x3="',trim(x3),'" y3="',trim(y3),'" z3="',
-     &  trim(z3),'"/>"'
+     &  trim(z3),'"/>'
       
       end subroutine writetag_atom

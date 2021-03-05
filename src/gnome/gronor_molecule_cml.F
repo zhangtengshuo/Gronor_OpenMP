@@ -1,42 +1,83 @@
-      subroutine gronor_molecule_cml()
+      subroutine gronor_molecule_cml(indent)
       use cidef
       use gnome_data
-
 
       implicit none
       character(len=2), external :: element
       real (kind=8), external :: atom_radius
-      integer :: indent,i,j,numi,numj
-      character(len=132)  :: info_cml
-      character(len=20)   :: label
-      character(len=4)    :: id,id1,id2
+      integer :: indent,i,j,numi,numj,nDiffEl
+      integer,allocatable :: stoichio(:)
+      character(len=132)  :: info_cml,concise
+      character(len=80)   :: label,fmt_1,fmt_2
+      character(len=4)    :: id,id1,id2,dummy
       character(len=2)    :: element_name
+      character(len=2),allocatable  :: molFormula(:)
       character(len=1)    :: bond_order
       real(kind=8)        :: distance
       real(kind=8),parameter  :: c=0.529177249d0
+      logical :: new
 
-      indent = 3
       label = 'molecule'
       info_cml = 'id="molgeom"'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 4
+      indent = indent + 1
       label = 'atomArray'
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 5
+      indent = indent + 1
       do i = 1, nnucl
         id = trim(centn(i))
         element_name = element(int(znuc(i)))
         call writetag_atom(lfncml,indent,id,element_name,c*xcord(i),
      &                        c*ycord(i),c*zcord(i))
       end do 
-      indent = 4
+      indent = indent - 1
       label = 'atomArray'
+      call close_tag(lfncml,label,indent)
+      allocate(molFormula(nnucl))
+      allocate(stoichio(nnucl))
+      molFormula = ''
+      stoichio = 0
+      nDiffEl = 1
+      molFormula(nDiffEl) = element(int(znuc(1)))
+      stoichio(nDiffEl) = 1
+      do i = 2, nnucl
+        new = .true.
+        j = 1
+        do while ((new).and.(j.le.nDiffEl))
+          if (element(int(znuc(i))).eq.molFormula(j)) then
+            stoichio(j) = stoichio(j) + 1
+            new = .false.
+          end if
+          j = j + 1 
+        end do
+        if (new) then
+          nDiffEl = nDiffEl + 1
+          molFormula(nDiffEl) = element(int(znuc(i)))
+          stoichio(nDiffEl) = 1
+        end if
+      end do
+      write(dummy,'(i4)')nDiffEl
+      dummy=adjustl(dummy)
+      write(fmt_1,'(2a)')trim(dummy),'(a,i3)'
+      write(fmt_2,'(3a)')'(',trim(adjustl(fmt_1)),')'
+      write(concise,fmt=fmt_2)(molFormula(i),stoichio(i),i=1,nDiffEl)
+      label = 'formula'
+      write(info_cml,'(3a)')'concise="',trim(concise),'"'
+      call open_tag(lfncml,label,info_cml,indent) 
+      write(fmt_1,'(6a)')'(a,',trim(dummy),'(a2,1x)',
+     &    ',a,',trim(dummy),'(f5.1),a)'
+      write(info_cml,fmt=fmt_1)'elementType="',
+     &  (molFormula(i),i=1,nDiffEl),
+     &  '" count="',(float(stoichio(i)),i=1,nDiffEl),'"'
+      label = 'atomArray'
+      call write_simpletag(lfncml,label,info_cml,indent+1)
+      label = 'formula'
       call close_tag(lfncml,label,indent)
       label = 'bondArray'
       info_cml='empty'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 5
+      indent = indent + 1
       do i = 1, nnucl-1
         numi = int(znuc(i))
         do j = i+1, nnucl
@@ -51,12 +92,14 @@
           endif
         enddo
       enddo
-      indent=4
+      indent = indent - 1
       call close_tag(lfncml,label,indent)
-      indent = 3
+      indent = indent - 1
       label = 'molecule'
       call close_tag(lfncml,label,indent)
 
+      deallocate(molFormula)
+      deallocate(stoichio)
       return
       end subroutine gronor_molecule_cml
 

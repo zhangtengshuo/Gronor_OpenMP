@@ -16,6 +16,6 @@
         write(fmt_1,'(3a)')'(',trim(ts),',7a)'
       end if
       write(lfn,fmt=fmt_1)'<bond atomRefs2="',trim(id1),' ',trim(id2),
-     &  '" order="',bond_order,'"/>"'
+     &  '" order="',bond_order,'"/>'
       
       end subroutine writetag_bond

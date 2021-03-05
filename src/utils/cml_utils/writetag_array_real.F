@@ -1,5 +1,5 @@
       subroutine writetag_array_real(lfn,info,indent,sep,num,length,
-     &                 scientific_format)
+     &                 numfmt)
       implicit none
       integer  :: lfn,indent,length,j
       real(kind=8) :: num(length)
@@ -7,14 +7,9 @@
       character(len=1)     :: sep
       character(len=4)     :: ts,l,l1
       character(len=4), external :: t_spaces
-      character(len=132)   :: info,fmt_1,fmt_2
-      logical  :: scientific_format
+      character(len=132)   :: info,fmt_1,fmt_2,numfmt
 
-      if (scientific_format) then
-        fmt_2 = '(e25.15)'
-      else
-        fmt_2 = '(f25.15)'
-      end if
+      write(fmt_2,'(3a)')'(',trim(adjustl(numfmt)),')'
       do j = 1, length
         write(num2(j),fmt=fmt_2)num(j)
         num2(j) = adjustl(num2(j))

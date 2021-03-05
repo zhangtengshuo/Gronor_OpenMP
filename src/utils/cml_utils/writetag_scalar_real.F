@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes an opening and closing tag for a real
+!>    <scalar dataType="xsd:double" info > real </scalar>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_scalar_real(lfn,info,indent,num,
      &                      numfmt)
       implicit none

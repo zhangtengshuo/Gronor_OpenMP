@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes a closing tag </label>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>
+!>  @date
+!>    March 2021
+!>
+
       subroutine close_tag(lfn,label,indent)
       implicit none
       integer  :: lfn,indent

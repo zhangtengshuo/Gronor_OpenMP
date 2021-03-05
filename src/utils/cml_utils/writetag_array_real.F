@@ -1,3 +1,14 @@
+!>  @brief
+!>    Writes an opening and closing tag for an array of reals
+!>    of length 'length', values are separated by 'sep'
+!>    <array dataType="xsd:double" info > array of reals </array>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!>
       subroutine writetag_array_real(lfn,info,indent,sep,num,length,
      &                 numfmt)
       implicit none

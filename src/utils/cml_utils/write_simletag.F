@@ -1,3 +1,12 @@
+!>  @brief
+!>    Writes a 'standalone' tag <label info />
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>
+!>  @date
+!>    March 2021
+!>
       subroutine write_simpletag(lfn,label,info,indent)
       implicit none
       integer  :: lfn,indent

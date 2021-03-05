@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes an opening and closing tag for an integer
+!>    <scalar dataType="xsd:integer" info > integer </scalar>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_scalar_integer(lfn,info,indent,num)
       implicit none
       integer  :: lfn,num,indent

@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes a tag to specify a bond between two atoms
+!>    <bond atomRefs2=" " order=" "/>
+!>    
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_bond(lfn,indent,id1,id2,bond_order)
       implicit none
       integer  :: lfn,indent

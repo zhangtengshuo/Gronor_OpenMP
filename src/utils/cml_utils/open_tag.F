@@ -1,3 +1,12 @@
+!>  @brief
+!>    Writes an opening tag <label info>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>
+!>  @date
+!>    March 2021
+!>
       subroutine open_tag(lfn,label,info,indent)
       implicit none
       integer  :: lfn,indent

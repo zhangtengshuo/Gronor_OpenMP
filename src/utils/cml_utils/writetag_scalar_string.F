@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes an opening and closing tag for a string
+!>    <scalar dataType="xsd:string" info > string </scalar>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_scalar_string(lfn,info,indent,charstring)
       implicit none
       integer  :: lfn,indent

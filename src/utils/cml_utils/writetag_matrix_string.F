@@ -1,3 +1,14 @@
+!>  @brief
+!>    Writes an opening and closing tag for a matrix of strings
+!>    of dimension 'row' x 'col', values are separated by 'sep'
+!>    <matrix dataType="xsd:string" info columns=" " rows=" "> matrix of strings </matrix>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_matrix_string(lfn,info,indent,sep,
      &                                              num,row,col)
       implicit none

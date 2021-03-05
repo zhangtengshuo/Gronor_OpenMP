@@ -1,3 +1,12 @@
+!>  @brief
+!>    Creates the format states for indentation: t4,t8,t12, etc.
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>
+!>  @date
+!>    March 2021
+!>
       character(len=4) function t_spaces(indent)
       implicit none
       integer :: indent,spaces,i

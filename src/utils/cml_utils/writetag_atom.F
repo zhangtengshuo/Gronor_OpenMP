@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes a tag to specify an atom
+!>    <atom id=" " elementType=" " x3=" " y3=" " z3=" "/>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!>
       subroutine writetag_atom(lfn,indent,id,element,x,y,z)
       implicit none
       integer  :: lfn,indent

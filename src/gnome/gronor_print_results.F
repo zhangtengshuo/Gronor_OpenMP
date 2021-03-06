@@ -39,11 +39,10 @@
       real(kind=8),allocatable      :: work(:)
       character(len=5)              :: token
 *
-      character(len=132)            :: info_cml
+      character(len=132)            :: info_cml,fmt_1
       character(len=20)             :: label
       character(len=1)              :: sep
       integer                       :: indent
-      logical                       :: scientific_format
 
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
@@ -231,11 +230,11 @@
 *** Dumping the results in the cml file
 * 1. NOCI matrices
       label = 'module'
-      indent = 3 
+      indent = 4 
       info_cml = 'dictRef="gr:matrices" id="normalized"'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'propertyList'
-      indent= 4
+      indent= 5
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'property'
@@ -248,54 +247,62 @@
       else
         info_cml='dictRef="gr:Hamiltonian" id="standard"'
       end if
-      call open_tag(lfncml,label,info_cml,5)
+      call open_tag(lfncml,label,info_cml,6)
       info_cml='units="nonsi:hartree"'
       sep='|'
-      scientific_format=.true.
-      call writetag_matrix_real(lfncml,info_cml,6,sep,hbase,
-     &   size(hbase,1),size(hbase,2),scientific_format)
-      call close_tag(lfncml,label,5)
+      fmt_1='f20.10'
+      call writetag_matrix_real(lfncml,info_cml,7,sep,hbase,
+     &   size(hbase,1),size(hbase,2),fmt_1)
+      call close_tag(lfncml,label,6)
       if (ncorr.ne.1) then
         info_cml='dictRef="gr:Overlap"'
-        indent = 5
+        indent = 6
         call open_tag(lfncml,label,info_cml,indent) 
         info='empty'
-        call writetag_matrix_real(lfncml,info_cml,6,sep,sbase,
-     &     size(hbase,1),size(hbase,2),scientific_format)
-        call close_tag(lfncml,label,5)
+        call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,
+     &     size(hbase,1),size(hbase,2),fmt_1)
+        call close_tag(lfncml,label,6)
       end if
       label = 'propertyList'
-      indent= 4
+      indent= 5
       call close_tag(lfncml,label,indent)
       label='module'
-      indent = 3
+      indent = 4
       call close_tag(lfncml,label,indent)
 * 2. NOCI wf and energy
+      indent = 4
+      label = 'module'
       info_cml = 'dictRef="gr:nociStates"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'propertyList'
-      indent= 4
-      info_cml = 'empty'
-      call open_tag(lfncml,label,info_cml,indent)
       do i = 1, nbase
-        label = 'module'
+        indent= 5
         info_cml = 'dictRef="gr:nociroot"'
-        call open_tag(lfncml,label,info_cml,5)
+        call open_tag(lfncml,label,info_cml,indent)
+        label = 'propertyList'
+        info_cml = 'empty'
+        call open_tag(lfncml,label,info_cml,6)
         label = 'property'
         info_cml='empty'
-        call open_tag(lfncml,label,info_cml,6)
+        call open_tag(lfncml,label,info_cml,7)
         info_cml = 'dictRef="gr:rootNumber"'
-        call writetag_scalar_integer(lfncml,info_cml,7,i)
+        call writetag_scalar_integer(lfncml,info_cml,8,i)
+        call close_tag(lfncml,label,7)
         if (ncorr.eq.1) then
           if (nwt.eq.1) then
-            info_cml = 'dictRef="gr:nociEnergy" id="GNshifted"'
+            info_cml = 'dictRef="gr:nociEnergy" id="GNshifted"'//
+     & ' units="nonsi:hartree"'
           else
-            info_cml = 'dictRef="gr:nociEnergy" id="shifted"'
+            info_cml = 'dictRef="gr:nociEnergy" id="shifted"'//
+     & ' units="nonsi:hartree"'
           end if
         else
-          info_cml = 'dictRef="gr:nociEnergy" id="standard"'
+          info_cml = 'dictRef="gr:nociEnergy" id="standard"'//
+     & ' units="nonsi:hartree"'
         end if
-        call writetag_scalar_real(lfncml,info_cml,7,hev(i),.false.)
+        call open_tag(lfncml,label,info_cml,7)
+        fmt_1='f16.8'
+        call writetag_scalar_real(lfncml,info_cml,8,hev(i),fmt_1)
+        call close_tag(lfncml,label,7)
         if (ncorr.eq.1) then
           if (nwt.eq.1) then
             info_cml = 'dictRef="gr:mebfCoeff" id="GNshifted"'
@@ -305,16 +312,17 @@
         else
           info_cml = 'dictRef="gr:mebfCoeff" id="standard"'
         end if
-        call writetag_array_real(lfncml,info_cml,7,sep,hsave(i,:),
-     &              size(hsave,2),.true.)
+        call open_tag(lfncml,label,info_cml,7)
+        fmt_1 = 'f20.10'
+        call writetag_array_real(lfncml,info_cml,8,sep,hsave(i,:),
+     &              size(hsave,2),fmt_1)
+        call close_tag(lfncml,label,7)
+        label = 'propertyList'
         call close_tag(lfncml,label,6)
         label = 'module'
         call close_tag(lfncml,label,5)
       end do
-      label = 'propertyList'
-      call close_tag(lfncml,label,4)
-      label='module'
-      indent = 3
+      indent = 4
       call close_tag(lfncml,label,indent)
 *3. Electronic couplings
       do i=1,size(tc,1)
@@ -322,10 +330,11 @@
           tc(i,j)=tc(i,j)*27211.4d0
         end do
       end do
+      indent = 4
       info_cml = 'dictRef="gr:elCoupling"'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'propertyList'
-      indent= 4
+      indent= 5
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'property'
@@ -338,17 +347,18 @@
       else 
         info_cml = 'dictRef="gr:mebfCoupling" id="standard"'
       end if
-      call open_tag(lfncml,label,info_cml,5)
+      call open_tag(lfncml,label,info_cml,6)
       info_cml='units="nonsi:meV"'
-      call writetag_matrix_real(lfncml,info_cml,6,sep,tc,
-     &  size(tc,1),size(tc,2),.false.)
+      fmt_1='f12.4'
+      call writetag_matrix_real(lfncml,info_cml,7,sep,tc,
+     &  size(tc,1),size(tc,2),fmt_1)
       label = 'property'
-      call close_tag(lfncml,label,5)
+      call close_tag(lfncml,label,6)
       label = 'propertyList'
-      indent= 4
+      indent= 5
       call close_tag(lfncml,label,indent)
       label='module'
-      indent = 3
+      indent = 4
       call close_tag(lfncml,label,indent)
       return
       

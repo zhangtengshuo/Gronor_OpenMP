@@ -1,3 +1,14 @@
+!>  @brief
+!>    Writes an opening and closing tag for a matrix of integers
+!>    of dimension 'row' x 'col', values are separated by 'sep'
+!>    <matrix dataType="xsd:integer" info columns=" " rows=" "> matrix of integers </matrix>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!>
       subroutine writetag_matrix_integer(lfn,info,indent,sep,
      &                                               num,row,col)
       implicit none

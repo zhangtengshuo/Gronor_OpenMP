@@ -1773,10 +1773,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           deallocate( hcorr )
         endif
 
-* Close the cml file after closing the remaining open tags
-        call gronor_close_all_tags_cml
-        close(unit=lfncml,status='keep')
-*
         inquire(file=fillog(1:inp_strlen(fillog)),exist=EXIST)
         open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
      &       form='formatted',status='unknown',access='append',err=993)
@@ -1801,6 +1797,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         if(nbase.gt.1) then
           write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)
         endif
+* Close the cml file after closing the remaining open tags
+        call gronor_finalize_cml
+        close(unit=lfncml,status='keep')
+*
  803    format(5x,8f20.10)
         write(lfnlog,804)
  804    format(' ')

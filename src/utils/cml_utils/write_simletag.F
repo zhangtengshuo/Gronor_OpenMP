@@ -1,5 +1,5 @@
 !>  @brief
-!>    Writes an opening tag <label info>
+!>    Writes a 'standalone' tag <label info />
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
@@ -7,7 +7,7 @@
 !>  @date
 !>    March 2021
 !>
-      subroutine open_tag(lfn,label,info,indent)
+      subroutine write_simpletag(lfn,label,info,indent)
       implicit none
       integer  :: lfn,indent
       character(len=4)     :: ts
@@ -24,9 +24,9 @@
         write(fmt_2,'(3a)')'(',trim(ts),',2a,1x,2a)'
       end if
       if (info(1:5).eq.'empty') then
-        write(lfn,fmt=fmt_1) '<',trim(label),'>'
+        write(lfn,fmt=fmt_1) '<',trim(label),'/>'
       else
-        write(lfn,fmt=fmt_2) '<',trim(label),trim(info),'>'
+        write(lfn,fmt=fmt_2) '<',trim(label),trim(info),'/>'
       end if
 
-      end subroutine open_tag
+      end subroutine write_simpletag

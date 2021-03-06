@@ -1,3 +1,14 @@
+!>  @brief
+!>    Writes an opening and closing tag for an array of strings
+!>    of length 'length', values are separated by 'sep'
+!>    <array dataType="xsd:string" info> array of strings </array>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!>
       subroutine writetag_array_string(lfn,info,indent,sep,num,length)
       implicit none
       integer  :: lfn,indent,length,j

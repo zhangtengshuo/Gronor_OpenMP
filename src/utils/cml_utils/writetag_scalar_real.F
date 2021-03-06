@@ -1,19 +1,25 @@
+!>  @brief
+!>    Writes an opening and closing tag for a real
+!>    <scalar dataType="xsd:double" info > real </scalar>
+!>
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_scalar_real(lfn,info,indent,num,
-     &                      scientific_format)
+     &                      numfmt)
       implicit none
       integer  :: lfn,indent
       real(kind=8) :: num
       character(len=80)  :: num2
       character(len=4)  :: ts
       character(len=4), external :: t_spaces
-      character(len=132)   :: info,fmt_1,fmt_2,fmt_3
+      character(len=132)   :: info,fmt_1,fmt_2,fmt_3,numfmt
       logical  :: scientific_format
 
-      if (scientific_format) then
-        fmt_3 = '(e25.15)'
-      else
-        fmt_3 = '(f25.15)'
-      end if
+      write(fmt_3,'(3a)')'(',trim(adjustl(numfmt)),')'
       write(num2,fmt=fmt_3)num
       num2=adjustl(num2)
       ts = t_spaces(indent)

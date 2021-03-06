@@ -1,3 +1,13 @@
+!>  @brief
+!>    Writes a tag to specify a bond between two atoms
+!>    <bond atomRefs2=" " order=" "/>
+!>    
+!>  @authors
+!>    Coen de Graaf (URV, Tarragona)
+!>    
+!>  @date
+!>    March 2021
+!> 
       subroutine writetag_bond(lfn,indent,id1,id2,bond_order)
       implicit none
       integer  :: lfn,indent
@@ -16,6 +26,6 @@
         write(fmt_1,'(3a)')'(',trim(ts),',7a)'
       end if
       write(lfn,fmt=fmt_1)'<bond atomRefs2="',trim(id1),' ',trim(id2),
-     &  '" order="',bond_order,'"/>"'
+     &  '" order="',bond_order,'"/>'
       
       end subroutine writetag_bond

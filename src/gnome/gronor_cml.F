@@ -267,13 +267,15 @@
       call writetag_matrix_integer(lfncml,info_cml,6,sep,ncombv,
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,5)
-      info_cml='dicRef="gr:mebfLabels"'
-      call open_tag(lfncml,label,info_cml,5)
-      info_cml='empty'
-      sep='|'
-      call writetag_array_string(lfncml,info_cml,6,sep,mebfLabel,
-     &   size(mebfLabel))
-      call close_tag(lfncml,label,5)
+      if (mebfLabels) then
+        info_cml='dicRef="gr:mebfLabels"'
+        call open_tag(lfncml,label,info_cml,5)
+        info_cml='empty'
+        sep='|'
+        call writetag_array_string(lfncml,info_cml,6,sep,mebfLabel,
+     &     size(mebfLabel))
+        call close_tag(lfncml,label,5)
+      end if
       sep =' '
       info_cml='dictRef="gr:frozen"'
       call open_tag(lfncml,label,info_cml,5)

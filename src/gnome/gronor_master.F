@@ -424,7 +424,7 @@
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
      &                 hbase(ibin,jbin)/sbase(ibin,jbin)
                 endif
- 703            format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
+ 703            format(a8,2x,a8,f12.3,a,2i6,a,3e20.12)
                 flush(lfnday)
                 call timer_start(99)
 

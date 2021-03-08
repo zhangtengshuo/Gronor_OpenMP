@@ -70,6 +70,7 @@
         write(lfnarx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
      &                   l=1,7)
+        zNucTot = zNucTot + zNuc(iAtom)
       enddo
       
       flush(lfnout)

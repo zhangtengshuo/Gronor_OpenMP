@@ -69,6 +69,7 @@
         maxci_raw=max(maxci_raw,idet_raw(i))
         maxnact=max(maxnact,nactm(i))
         inactm(i) = inactm(i) - nFrozen(i)
+        close(lfndet)
       enddo
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
         mebfLabels = .false.

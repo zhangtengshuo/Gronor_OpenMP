@@ -68,7 +68,7 @@
 
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
-!     nsingt(k) sums the singularities over the entire Hamiltonain matrix
+!     nsingt(k) sums the singularities over the entire Hamiltonian matrix
       
       do i=1,5
         nsingt(i)=0
@@ -91,7 +91,7 @@
 
 !     Initialize the results matrices to zero
 
-!     hbase(i,j)   collects the Hamiltonain matrix results for basestate combination i j
+!     hbase(i,j)   collects the Hamiltonian matrix results for basestate combination i j
 !     sbase(i,j)   collects the overlap matrix results for basestate combination i j
 !     tbase(i,j)   collects the wall clock time spent basestate combination i j
 !     ntasks(i,j)  contains the task status for base state combination i j
@@ -165,13 +165,13 @@
  602  format(//,' Calculation of Hamiltonian matrix elements',//,
      &     '   Element       ------- Determinants -------',
      &     '          -------------- Singularities -------------',
-     &     '        ----- Unnormalized -----   ',
-     &     '         Normalized ',
+     &     '    ------- Unnormalized -------   ',
+     &     '          Normalized ',
      &     '  Wall Clock  Wall Clock',/
      &     '  idet jdet      left     right         pairs',
      &     '          none           1           2            3+',
-     &     '        Hamiltonian      Overlap   ',
-     &     '        Hamiltonian ',
+     &     '    Hamiltonian          Overlap   ',
+     &     '         Hamiltonian ',
      &     '        Cost        Time',/)
 
       write(lfnarx,521) nbase
@@ -336,8 +336,9 @@
      &               timer_wall_total(99),
      &               '  :  ',ibin,
      &               jbin,' at ',
-     &               pnrb(ibin,jbin),'%'
- 702            format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a)
+     &               pnrb(ibin,jbin),'% ( ',
+     &               ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
+ 702            format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a,i10,a,i10,a)
                 flush(lfnday)
                 call timer_start(99)
                 fday(ibin,jbin)=
@@ -396,10 +397,10 @@
                   endif
                   flush(lfnout)
  522              format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
- 608              format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
-     &                 f15.10,f20.10,2f12.1)
- 607              format(1x,2i5,2i10,2i14,2i12,i14,f20.10,
-     &                 f15.10,20x,2f12.1)
+ 608              format(1x,2i5,2i10,2i14,2i12,i14,e18.10,
+     &                 e18.10,f20.10,2f12.1)
+ 607              format(1x,2i5,2i10,2i14,2i12,i14,e18.10,
+     &                 e18.10,20x,2f12.1)
                 endif
 
 !     Write entry in the checkpoint restart file
@@ -602,7 +603,8 @@
             write(lfnday,702) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibin,jbin,' at ',
-     &           pnrb(ibin,jbin),'%'
+     &           pnrb(ibin,jbin),'% (',
+     &           ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
             flush(lfnday)
             call timer_start(99)
             fday(ibin,jbin)=
@@ -645,7 +647,7 @@
      &           (nsing(ibin,jbin,k),k=1,4),
      &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
-              if(i.ne.j) then
+              if(ibin.ne.jbin) then
                 write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
      &               ltemp,
      &               (nsing(ibin,jbin,k),k=1,4),
@@ -871,9 +873,9 @@
      &       dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
      &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
       endif
- 615  format(/,' Total',25x,2i14,2i12,i14,55x,1f12.1,/,
-     &     /,' Total averaged per rank',t153,2f12.1,/,
-     &     ' Task execution efficiency',t153,f12.1,' %')
+ 615  format(/,' Total',25x,2i14,2i12,i14,56x,1f12.1,/,
+     &     /,' Total averaged per rank',t154,2f12.1,/,
+     &     ' Task execution efficiency',t154,f12.1,' %')
       call timer_start(99)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)

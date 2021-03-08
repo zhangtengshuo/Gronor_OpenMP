@@ -153,7 +153,7 @@
       integer :: nopen(2),  iocopen(100,2)                  
 
       character (len=80) :: text, name(2), namint(2)
-      real (kind=8) :: potnuc
+      real (kind=8) :: potnuc,zNucTot
       character (len=4), allocatable :: centn(:)
       real (kind=8), allocatable :: xcord(:), ycord(:), zcord(:)
       real (kind=8), allocatable :: znuc(:)

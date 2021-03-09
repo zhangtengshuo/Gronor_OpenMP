@@ -425,7 +425,7 @@
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
      &                 hbase(ibin,jbin)/sbase(ibin,jbin)
                 endif
- 703            format(a8,2x,a8,f12.3,a,2i6,a,3e20.12)
+ 703            format(a8,2x,a8,f12.3,a,2i6,a,2e20.12,f20.10)
                 flush(lfnday)
                 call timer_start(99)
 
@@ -603,7 +603,7 @@
             write(lfnday,702) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibin,jbin,' at ',
-     &           pnrb(ibin,jbin),'% (',
+     &           pnrb(ibin,jbin),'% ( ',
      &           ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
             flush(lfnday)
             call timer_start(99)

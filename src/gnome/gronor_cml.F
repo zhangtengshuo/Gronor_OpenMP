@@ -180,7 +180,7 @@
       character(len=1)    :: sep
       character(len=20)   :: label,method,pointgroup,wavefunctionType
       character(len=132)  :: info_cml,fmt_1
-      integer             :: indent
+      integer             :: indent,charge,i
 
 * block 2, job specifics
 
@@ -227,13 +227,16 @@
       sep='|'
       call writetag_array_string(lfncml,info_cml,6,sep,namint,2)
       call close_tag(lfncml,label,5)
-* we need to calcuate the charge of the system: sum(znuc) - (nelec + 2*nFrozen)
-*      info_cml='dictRef="cc:charge"'
-*      call open_tag(lfncml,label,info_cml,4)
-*      info_cml='units="nonsi:elementary_charge"'
-*      fmt_1 = 'f10.4'
-*      call writetag_scalar_real(lfncml,info_cml,5,charge,fmt_1)
-*      call close_tag(lfncml,label,4)
+      charge = zNucTot
+      do i = 1, nmol
+        charge = charge - nElectrons(ncombv(i,1))
+      end do
+      info_cml='dictRef="cc:charge"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='units="nonsi:elementary_charge"'
+      fmt_1 = 'f10.4'
+      call writetag_scalar_real(lfncml,info_cml,6,charge,fmt_1)
+      call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:spinMultiplicity"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'

@@ -381,19 +381,37 @@
                 call timer_stop(99)
                 
                 if(ipr.ge.1) then
-                  if(ibin.ne.jbin) then
-                    write(lfnout,607) ibin,jbin,idetb(ibin),
-     &                   idetb(jbin),ltemp,
-     &                   (nsing(ibin,jbin,k),k=1,4),
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
-     &                   tbase(ibin,jbin),timer_wall_total(99)
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+     &                 dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                    if(ibin.ne.jbin) then
+                      write(lfnout,607) ibin,jbin,idetb(ibin),
+     &                     idetb(jbin),ltemp,
+     &                     (nsing(ibin,jbin,k),k=1,4),
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+     &                     tbase(ibin,jbin),timer_wall_total(99)
+                    else
+                      write(lfnout,608) ibin,jbin,idetb(ibin),
+     &                     idetb(jbin),ltemp,
+     &                     (nsing(ibin,jbin,k),k=1,4),
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+     &                     hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                     tbase(ibin,jbin),timer_wall_total(99)
+                    endif
                   else
-                    write(lfnout,608) ibin,jbin,idetb(ibin),
-     &                   idetb(jbin),ltemp,
-     &                   (nsing(ibin,jbin,k),k=1,4),
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
-     &                   hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                   tbase(ibin,jbin),timer_wall_total(99)
+                    if(ibin.ne.jbin) then
+                      write(lfnout,617) ibin,jbin,idetb(ibin),
+     &                     idetb(jbin),ltemp,
+     &                     (nsing(ibin,jbin,k),k=1,4),
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+     &                     tbase(ibin,jbin),timer_wall_total(99)
+                    else
+                      write(lfnout,618) ibin,jbin,idetb(ibin),
+     &                     idetb(jbin),ltemp,
+     &                     (nsing(ibin,jbin,k),k=1,4),
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+     &                     hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                     tbase(ibin,jbin),timer_wall_total(99)
+                    endif
                   endif
                   flush(lfnout)
  522              format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
@@ -401,6 +419,10 @@
      &                 e18.10,f20.10,2f12.1)
  607              format(1x,2i5,2i10,2i14,2i12,i14,e18.10,
      &                 e18.10,20x,2f12.1)
+ 618              format(1x,2i5,2i10,2i14,2i12,i14,f18.10,
+     &                 f18.10,f20.10,2f12.1)
+ 617              format(1x,2i5,2i10,2i14,2i12,i14,f18.10,
+     &                 f18.10,20x,2f12.1)
                 endif
 
 !     Write entry in the checkpoint restart file
@@ -664,19 +686,33 @@
      &           (nsing(ibin,jbin,k),k=1,4),
      &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
-              if(ibin.ne.jbin) then
-                write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
-     &               ltemp,
-     &               (nsing(ibin,jbin,k),k=1,4),
-     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
-     &               timer_wall_total(99)
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+     &             dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                if(ibin.ne.jbin) then
+                  write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
+     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+     &                 tbase(ibin,jbin),timer_wall_total(99)
+                else
+                  write(lfnout,608) ibin,jbin,idetb(ibin),idetb(jbin),
+     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+     &                 hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                 tbase(ibin,jbin),timer_wall_total(99)
+                endif
               else
-                write(lfnout,608) ibin,jbin,idetb(ibin),idetb(jbin),
-     &               ltemp,
-     &               (nsing(ibin,jbin,k),k=1,4),
-     &               hbase(ibin,jbin),sbase(ibin,jbin),
-     &               hbase(ibin,jbin)/sbase(ibin,jbin),
-     &               tbase(ibin,jbin),timer_wall_total(99)
+                if(ibin.ne.jbin) then
+                  write(lfnout,617) ibin,jbin,idetb(ibin),idetb(jbin),
+     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+     &                 tbase(ibin,jbin),timer_wall_total(99)
+                else
+                  write(lfnout,618) ibin,jbin,idetb(ibin),idetb(jbin),
+     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+     &                 hbase(ibin,jbin)/sbase(ibin,jbin),
+     &                 tbase(ibin,jbin),timer_wall_total(99)
+                endif
               endif
               flush(lfnout)
             endif

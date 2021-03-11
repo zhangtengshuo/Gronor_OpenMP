@@ -1804,7 +1804,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       iaslvr,jaslvr,inslvr,jnslvr,
      &       ntask,max(1,nbatch),nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,3f12.3,4i7,3i4,4i2,i5,i5,3i5,e12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,3f12.3,4i7,3i4,4i2,i5,i5,3i5,1pe12.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
           write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)

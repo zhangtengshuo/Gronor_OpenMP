@@ -234,14 +234,15 @@
             write(lfnday,802) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibase,jbase,' started   ',
-     &           ndeti,ndetj,nbdet(ibase,jbase),c2sum(ibase,jbase)
+     &           c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
           else
-            write(lfnday,802) date(1:8),time(1:8),
+            write(lfnday,803) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibase,jbase,
      &           ' read from checkpoint restart'
           endif
- 802      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
+ 802      format(a8,2x,a8,f12.3,a,2i6,a,f12.6,1x,3i12)
+ 803      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
           flush(lfnday)
           call timer_start(99)
           
@@ -415,10 +416,10 @@
                   endif
                   flush(lfnout)
  522              format(1x,2i5,2i10,2i14,2i12,i14,2e20.13)
- 608              format(1x,2i5,2i10,2i14,2i12,i14,e18.10,
-     &                 e18.10,f20.10,2f12.1)
- 607              format(1x,2i5,2i10,2i14,2i12,i14,e18.10,
-     &                 e18.10,20x,2f12.1)
+ 608              format(1x,2i5,2i10,2i14,2i12,i14,1pe18.10,
+     &                 1pe18.10,f20.10,2f12.1)
+ 607              format(1x,2i5,2i10,2i14,2i12,i14,1pe18.10,
+     &                 1pe18.10,20x,2f12.1)
  618              format(1x,2i5,2i10,2i14,2i12,i14,f18.10,
      &                 f18.10,f20.10,2f12.1)
  617              format(1x,2i5,2i10,2i14,2i12,i14,f18.10,

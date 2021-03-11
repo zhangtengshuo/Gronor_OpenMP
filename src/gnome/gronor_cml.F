@@ -271,7 +271,7 @@
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,5)
       if (mebfLabels) then
-        info_cml='dicRef="gr:mebfLabels"'
+        info_cml='dictRef="gr:mebfLabels"'
         call open_tag(lfncml,label,info_cml,5)
         info_cml='empty'
         sep='|'
@@ -356,7 +356,7 @@
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="cc.wallTime"'
       call open_tag(lfncml,label,info_cml,5)
-      info_cml='units=si:"s"'
+      info_cml='units="si:s"'
       fmt_1='f12.3'
       call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
      &                                fmt_1)

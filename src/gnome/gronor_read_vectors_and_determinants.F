@@ -79,11 +79,11 @@
       else
         mebfLabels = .true.
         allocate(mebfLabel(nbase))
-        write(lfnout,*) 'MEBF       sum of fragment energies'
+        write(lfnout,'(a)') '  MEBF       sum of fragment energies'
         do j = 1,nbase
           write(mebfLabel(j),'(3a2)')(fragLabel(ncombv(k,j)),k=1,nmol)
-          write(lfnout,*)mebflabel(j),fragEner(ncombv(1,j))
-     &                                    +fragEner(ncombv(2,j))
+          write(lfnout,'(a6,t12,f22.12)')mebflabel(j),
+     &                 fragEner(ncombv(1,j)) + fragEner(ncombv(2,j))
         end do
         write(lfnout,*)
       end if

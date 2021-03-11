@@ -92,9 +92,9 @@ c     use cuda_functions
       real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
       real(kind=8)             :: thres2,max_coef
 
-      real (kind=8) :: rint,rlab,rndx,rh,rs,rt
+      real (kind=8) :: rint,rlab,rndx,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb
+      integer :: ndtot,npl,nrg,igb,ibd
 
       character (len=5) :: version
       character (len=64) :: version_type
@@ -1387,6 +1387,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnday)
         call timer_start(99)
       endif
+
+      allocate(c2sum(nbase,nbase),nbdet(nbase,nbase))
       
       numdet=0
       ndtot=0
@@ -1394,12 +1396,16 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         do jbase=1,ibase
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
+          ibd=0
+          c2s=0.0d0
           if(ibase.eq.jbase) then
             ndtot=ndtot+ndeti*(ndeti+1)/2
             do i=1,ndeti
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
+                ibd=ibd+1
+                c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
               enddo
             enddo
           else
@@ -1408,9 +1414,15 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               do j=1,ndetj
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
+                ibd=ibd+1
+                c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
               enddo
             enddo
           endif
+          nbdet(ibase,jbase)=ibd
+          nbdet(jbase,ibase)=ibd
+          c2sum(ibase,jbase)=c2s
+          c2sum(jbase,ibase)=c2s
         enddo
       enddo
 
@@ -1820,6 +1832,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(lstdet,ndxdet)
 
+      deallocate(c2sum,nbdet)
+      
       call timer_stop(1)
 
       if(me.eq.master) then

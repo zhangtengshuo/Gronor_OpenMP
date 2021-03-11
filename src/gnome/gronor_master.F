@@ -233,15 +233,15 @@
           if(ntasks(ibase,jbase).ne.-2) then
             write(lfnday,802) date(1:8),time(1:8),
      &           timer_wall_total(99),
-     &           '  :  ',ibase,jbase,' started, dimensions ',
-     &           ndeti,ndetj
+     &           '  :  ',ibase,jbase,' started   ',
+     &           ndeti,ndetj,nbdet(ibase,jbase),c2sum(ibase,jbase)
           else
             write(lfnday,802) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibase,jbase,
      &           ' read from checkpoint restart'
           endif
- 802      format(a8,2x,a8,f12.3,a,2i6,a,2i12)
+ 802      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
           flush(lfnday)
           call timer_start(99)
           
@@ -413,19 +413,36 @@
 !     Write completion message to dayfile
 
                 call swatch(date,time)
-                if(ibin.ne.jbin) then
-                  write(lfnday,703) date(1:8),time(1:8),
-     &                 timer_wall_total(99),
-     &                 '  :  ',ibin,jbin,' completed, H,S   :',
-     &                 hbase(ibin,jbin),sbase(ibin,jbin)
+                if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+     &               dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                  if(ibin.ne.jbin) then
+                    write(lfnday,703) date(1:8),time(1:8),
+     &                   timer_wall_total(99),
+     &                   '  :  ',ibin,jbin,' completed, H,S   :',
+     &                   hbase(ibin,jbin),sbase(ibin,jbin)
+                  else
+                    write(lfnday,703) date(1:8),time(1:8),
+     &                   timer_wall_total(99),
+     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   hbase(ibin,jbin)/sbase(ibin,jbin)
+                  endif
                 else
-                  write(lfnday,703) date(1:8),time(1:8),
-     &                 timer_wall_total(99),
-     &                 '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),
-     &                 hbase(ibin,jbin)/sbase(ibin,jbin)
+                  if(ibin.ne.jbin) then
+                    write(lfnday,704) date(1:8),time(1:8),
+     &                   timer_wall_total(99),
+     &                   '  :  ',ibin,jbin,' completed, H,S   :',
+     &                   hbase(ibin,jbin),sbase(ibin,jbin)
+                  else
+                    write(lfnday,704) date(1:8),time(1:8),
+     &                   timer_wall_total(99),
+     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+     &                   hbase(ibin,jbin)/sbase(ibin,jbin)
+                  endif
                 endif
  703            format(a8,2x,a8,f12.3,a,2i6,a,3e20.12)
+ 704            format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
                 flush(lfnday)
                 call timer_start(99)
 
@@ -670,17 +687,33 @@
      &           (nsing(ibin,jbin,k),k=1,4)
             flush(lfncpr)
             
-            if(ibin.ne.jbin) then
-              write(lfnday,703) date(1:8),time(1:8),
-     &             timer_wall_total(99),
-     &             '  :  ',ibin,jbin,' completed, H,S   :',
-     &             hbase(ibin,jbin),sbase(ibin,jbin)
+            if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+     &           dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+              if(ibin.ne.jbin) then
+                write(lfnday,703) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibin,jbin,' completed, H,S   :',
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
+              else
+                write(lfnday,703) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &               hbase(ibin,jbin),sbase(ibin,jbin),
+     &               hbase(ibin,jbin)/sbase(ibin,jbin)
+              endif
             else
-              write(lfnday,703) date(1:8),time(1:8),
-     &             timer_wall_total(99),
-     &             '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &             hbase(ibin,jbin),sbase(ibin,jbin),
-     &             hbase(ibin,jbin)/sbase(ibin,jbin)
+              if(ibin.ne.jbin) then
+                write(lfnday,704) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibin,jbin,' completed, H,S   :',
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
+              else
+                write(lfnday,704) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibin,jbin,' completed, H,S,H*:',
+     &               hbase(ibin,jbin),sbase(ibin,jbin),
+     &               hbase(ibin,jbin)/sbase(ibin,jbin)
+              endif
             endif
             flush(lfnday)
             call timer_start(99)

@@ -242,6 +242,9 @@
 
       integer (kind=8) :: numdet
       integer (kind=8), allocatable :: ndxdet(:,:), lstdet(:,:)
+
+      real (kind=8), allocatable :: c2sum(:,:)
+      integer (kind=8), allocatable :: nbdet(:,:)
       
       end module gnome_data
 

@@ -234,14 +234,15 @@
             write(lfnday,802) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibase,jbase,' started   ',
-     &           ndeti,ndetj,nbdet(ibase,jbase),c2sum(ibase,jbase)
+     &           c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
           else
-            write(lfnday,802) date(1:8),time(1:8),
+            write(lfnday,803) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibase,jbase,
      &           ' read from checkpoint restart'
           endif
- 802      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
+ 802      format(a8,2x,a8,f12.3,a,2i6,a,f12.6,3i12)
+ 803      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
           flush(lfnday)
           call timer_start(99)
           

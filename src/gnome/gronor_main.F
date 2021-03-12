@@ -1405,7 +1405,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
                 numdet=numdet+1
                 ibd=ibd+1
-                c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
+                if(i.eq.j) then
+                  c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
+                else
+                  c2s=c2s+2.0*(civb(i,ibase)*civb(j,jbase))**2
+                endif
               enddo
             enddo
           else

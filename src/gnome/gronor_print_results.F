@@ -119,6 +119,7 @@
       enddo
       
       if(nbase.gt.1) then
+        tc = 0.0
         do i=2,nbase
           do j=1,i-1
             tc(i,j)=(hbase(i,j)
@@ -284,16 +285,16 @@
           info_cml = 'empty'
           call open_tag(lfncml,label,info_cml,6)
           label = 'property'
-          info_cml='empty'
-          call open_tag(lfncml,label,info_cml,7)
           info_cml = 'dictRef="gr:rootNumber"'
+          call open_tag(lfncml,label,info_cml,7)
+          info_cml='empty'
           call writetag_scalar_integer(lfncml,info_cml,8,i)
           call close_tag(lfncml,label,7)
           info_cml = 'dictRef="gr:nociEnergy" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1='f16.8'
-          info_cml2 = trim(info_cml)//' units="nonsi:hartree"'
-          call writetag_scalar_real(lfncml,info_cml2,8,hev(i),fmt_1)
+          info_cml = 'units="nonsi:hartree"'
+          call writetag_scalar_real(lfncml,info_cml,8,hev(i),fmt_1)
           call close_tag(lfncml,label,7)
           info_cml = 'dictRef="gr:nociRelEnergy" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
@@ -315,7 +316,7 @@
         end do
         indent = 4
         call close_tag(lfncml,label,indent)
-*3. Electronic couplings (only when thre is more than one MEBF)
+*3. Electronic couplings (only when there is more than one MEBF)
         do i=1,size(tc,1)
           do j=1,size(tc,2)
             tc(i,j)=tc(i,j)*27211.4d0

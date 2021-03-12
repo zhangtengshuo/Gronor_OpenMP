@@ -259,6 +259,11 @@
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,nmol)
       call close_tag(lfncml,label,5)
+      info_cml='dictRef="gr:nFragFunctions"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='empty'
+      call writetag_scalar_integer(lfncml,info_cml,6,maxval(ncombv))
+      call close_tag(lfncml,label,5)
       info_cml='dictRef="gr:nMEBFs"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
@@ -299,6 +304,13 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_array_integer(lfncml,info_cml,6,sep,idetm,mstates)
+      call close_tag(lfncml,label,5)
+      label='parameterList'
+      call close_tag(lfncml,label,4)
+      info_cml='dictRef="gr:fragBasisFunctions"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='empty'
+      call writetag_array_integer(lfncml,info_cml,6,sep,nbasm,mstates)
       call close_tag(lfncml,label,5)
       label='parameterList'
       call close_tag(lfncml,label,4)
@@ -354,7 +366,7 @@
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,stopDate)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc.wallTime"'
+      info_cml = 'dictRef="cc:wallTime"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="si:s"'
       fmt_1='f12.3'

@@ -5,9 +5,9 @@
       implicit none
       character(len=2), external :: element
       real (kind=8), external :: atom_radius
-      integer :: indent,i,j,numi,numj,nDiffEl
+      integer :: indent,i,j,l,numi,numj,nDiffEl
       integer,allocatable :: stoichio(:)
-      character(len=132)  :: info_cml,concise
+      character(len=132)  :: info_cml,concise,info_cml2,info_cml3
       character(len=80)   :: label,fmt_1,fmt_2
       character(len=4)    :: id,id1,id2,dummy
       character(len=2)    :: element_name
@@ -16,6 +16,12 @@
       real(kind=8)        :: distance
       real(kind=8),parameter  :: c=0.529177249d0
       logical :: new
+      character (len=1), dimension(7)  :: lMoment
+      character (len=4), dimension(7)  :: dumstr
+      character (len=28)               :: basis_str
+
+      data lMoment /'s','p','d','f','g','h','i'/
+
 
       label = 'molecule'
       info_cml = 'id="molgeom"'
@@ -93,6 +99,28 @@
         enddo
       enddo
       indent = indent - 1
+      call close_tag(lfncml,label,indent)
+      indent = indent - 1
+      label = 'molecule'
+      call close_tag(lfncml,label,indent)
+      label = 'molecule'
+      info_cml = 'id="basis_set"'
+      call open_tag(lfncml,label,info_cml,indent)
+      indent= indent + 1
+      label = 'atomArray'
+      info_cml = 'empty'
+      call open_tag(lfncml,label,info_cml,indent)
+      indent = indent + 1
+      label = 'atom'
+      do i = 1, nnucl
+        info_cml = 'id="'//trim(centn(i))//'"'
+        info_cml2 = info_cml//' array dataType="xsd:integer"'
+        info_cml3 = info_cml2//' dictRef="gr:contracted"'
+        call write_simpletag(lfncml,label,info_cml3,indent)
+      end do
+      indent= indent - 1
+      label = 'atomArray'
+      info_cml = 'empty'
       call close_tag(lfncml,label,indent)
       indent = indent - 1
       label = 'molecule'

@@ -114,6 +114,7 @@
       character(len=8),allocatable  :: fragLabel(:)
       character(len=4),allocatable  :: mebfLabel(:)
       logical                       :: mebfLabels
+      integer, allocatable  :: nCntr(:,:)
       
       end module cidef
 

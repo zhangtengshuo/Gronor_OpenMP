@@ -142,7 +142,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,
-     &                                  nrsets-nummps*numdev)
+     &                          max(0,nrsets-nummps*numdev))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numAccRanks"'
       call open_tag(lfncml,label,info_cml,5)

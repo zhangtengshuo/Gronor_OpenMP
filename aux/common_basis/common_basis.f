@@ -134,7 +134,6 @@
           thrs = thrs / 10
         end do
       end if
-      
 * write the final MO basis of the supermolecule to a file
       do j = 1, totalFrozen
         write(12,'(A9,2I5)')'* ORBITAL',j
@@ -398,7 +397,6 @@
         end do
         close(36)
       end do
-
       deallocate( work       )
       deallocate( eigenValues)
       deallocate( basis      )
@@ -818,16 +816,24 @@
       integer                    :: luOne
 
       real(kind=8),intent(inout) :: frozenOrbs (nBas       ,nBas       )
-      real(kind=8)               :: sAO        (nBas       ,nBas       )
-      real(kind=8)               :: sMO        (totalFrozen,totalFrozen)
-      real(kind=8)               :: aMatrix    (totalFrozen,nBas       )
-      real(kind=8)               :: eigenValues(totalFrozen            )
-      real(kind=8)               :: work       (4 * totalFrozen        )
-      real(kind=8)               :: orbs_debug (totalFrozen,nBas       )
+      real(kind=8),allocatable   :: sAO        (:,:)
+      real(kind=8),allocatable   :: sMO        (:,:)
+      real(kind=8),allocatable   :: aMatrix    (:,:)
+      real(kind=8),allocatable   :: eigenValues(:)
+      real(kind=8),allocatable   :: work       (:)
+      real(kind=8),allocatable   :: orbs_debug (:,:)
 
       character (len=12)         :: oneintName
 
       lwork = 4 * totalFrozen
+
+
+      allocate( sAO        (nBas       ,nBas)        )
+      allocate( sMO        (totalFrozen,totalFrozen) )
+      allocate( aMatrix    (totalFrozen,nBas)        )
+      allocate( eigenValues(totalFrozen)             )
+      allocate( work       (lwork)                   )
+      allocate( orbs_debug (totalFrozen,nBas)        )
 
       do j = 1, totalFrozen
         do k = 1, nBas
@@ -876,6 +882,12 @@
         end do
         call calculate_sMO(orbs_debug,sMO,sAO,totalFrozen,nBas)
       end if
+      deallocate( sAO        )
+      deallocate( sMO        )
+      deallocate( aMatrix    )
+      deallocate( eigenValues)
+      deallocate( work       )
+      deallocate( orbs_debug )
 
       return
       end subroutine ortho_frozen

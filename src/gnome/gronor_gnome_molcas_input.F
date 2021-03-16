@@ -27,7 +27,7 @@
       implicit none
 
       integer               :: i,l,iAtom
-      integer, allocatable  :: nCntr(:,:)
+*      integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO
 
       read(lfnsym,*) text
@@ -75,7 +75,7 @@
       
       flush(lfnout)
  604  format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3)
-      deallocate( nCntr )
+*      deallocate( nCntr )
       
       return
       end

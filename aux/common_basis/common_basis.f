@@ -14,7 +14,7 @@
       real(kind=8),allocatable  :: frzFragOrb(:,:)                 ! average frozen orbitals of one fragment
       real(kind=8),allocatable  :: sDiag     (:)
       real(kind=8),allocatable  :: occNu     (:)
-      real                      :: thrs
+      real(kind=8)              :: thrs
 
       character (len=12)         :: oneintName,runfileName
 
@@ -52,8 +52,6 @@
       write(12,'(I8)') nBas
       write(12,'(A4)') '#ORB'
 
-* Adding number of ders , fragment labels and changing the number of inactives (if frozen.ne.0)
-      call addInfo_on_detFiles()
 
       superBasis = 0.0
       frozenOrbs = 0.0
@@ -105,6 +103,9 @@
         call ortho_frozen(frozenOrbs,totalFrozen,nBas)
       end if
 
+* Adding number of dets , fragment labels and changing the number of inactives (if frozen.ne.0)
+      call addInfo_on_detFiles()
+
       write(*,'(A,I4)') 'Final number of orbitals in MO basis    : ',
      &                       startOrb
       write(*,'(A,I4)') 'Sum of the number of AO basis functions : ',
@@ -133,7 +134,6 @@
           thrs = thrs / 10
         end do
       end if
-      
 * write the final MO basis of the supermolecule to a file
       do j = 1, totalFrozen
         write(12,'(A9,2I5)')'* ORBITAL',j
@@ -397,7 +397,6 @@
         end do
         close(36)
       end do
-
       deallocate( work       )
       deallocate( eigenValues)
       deallocate( basis      )
@@ -414,9 +413,10 @@
 
       subroutine readin
       use input_data
+      use fragment_data
       implicit none
 
-      integer, parameter                   :: nKeys = 9
+      integer, parameter                   :: nKeys = 10
       integer                              :: jj,iKey,iFrag
 
       character (len=4)                    :: key
@@ -427,7 +427,7 @@
       logical, dimension(nkeys)            :: hit = .false.
 
       data keyword /'THRE','FRAG','PROJ','EXTR','ALLE','FROZ',
-     &              'NOAV','DEBU','LABE'/
+     &              'NOAV','DEBU','LABE','ENER'/
 
 * Defaults
       threshold    = 1.0e-6
@@ -467,6 +467,7 @@
                 stop
               end if
               read(*,*) (nVec(iFrag), iFrag = 1, nFragments)
+              allocate( nElectrons(nFragments,maxval(nVec)) )
             case(3)
               call locate('PROJ')
               read(*,*) project
@@ -487,6 +488,9 @@
               fragLabels=.true.
               allocate(fragLabel(sum(nVec)))
               read(*,*) (fragLabel(jj),jj=1,sum(nVec))
+            case(10)
+              energy_on_INPORB = .true.
+              allocate( ener(nFragments,maxval(nVec)) )
           end select
         end if
       end do
@@ -517,7 +521,8 @@
 * ===============================================================================
 
       subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
-      use input_data, only : nFrozen
+      use input_data, only : nFrozen,energy_on_INPORB
+      use fragment_data
 * read the different vector files of fragment iFrag 
 * get the number of inactive and active orbitals from the vector file * (#INDEX)
 *
@@ -533,10 +538,11 @@
 
       real(kind=8),intent(out)              :: frzVec(nFrozen(iFrag),n)
       real(kind=8),intent(out)              :: vec(n,n)
+      real(kind=8)                          :: occ(n)
 
       character (len=6)                     :: mark
       character (len=12)                    :: filename,base
-      character (len=132)                   :: line
+      character (len=132)                   :: line,dummy
       character (len = 1 )                  :: orbLabel(n)
 
       base = 'INPORB.'
@@ -572,7 +578,25 @@
         read(35,'(A132)') line
         read(35,'(5E22.14)') (vec(j,k),k=1,n)
       end do
-
+      if (energy_on_INPORB) then
+        rewind(35)
+        mark = '#INFO'
+ 48     read(35,'(A132)') line
+        if (line(1:5).ne.mark) goto 48
+        read(35,'(A132)') line
+        if (line(10:34).ne.'natural orbitals for root') then
+          energy_on_INPORB = .false.
+        else
+          read(line,'(a48,f22.12)')dummy,ener(iFrag,ivec)
+        end if
+      end if
+      rewind(35)
+      mark = '#OCC'
+ 49   read(35,'(A132)') line
+      if (line(1:4).ne.mark) goto 49
+      read(35,*) line
+      read(35,'(5e22.14)')(occ(j),j=1,n)
+      nElectrons(iFrag,ivec) = nint(sum(occ))
       close(35)
       return
       end subroutine read_vec
@@ -792,16 +816,24 @@
       integer                    :: luOne
 
       real(kind=8),intent(inout) :: frozenOrbs (nBas       ,nBas       )
-      real(kind=8)               :: sAO        (nBas       ,nBas       )
-      real(kind=8)               :: sMO        (totalFrozen,totalFrozen)
-      real(kind=8)               :: aMatrix    (totalFrozen,nBas       )
-      real(kind=8)               :: eigenValues(totalFrozen            )
-      real(kind=8)               :: work       (4 * totalFrozen        )
-      real(kind=8)               :: orbs_debug (totalFrozen,nBas       )
+      real(kind=8),allocatable   :: sAO        (:,:)
+      real(kind=8),allocatable   :: sMO        (:,:)
+      real(kind=8),allocatable   :: aMatrix    (:,:)
+      real(kind=8),allocatable   :: eigenValues(:)
+      real(kind=8),allocatable   :: work       (:)
+      real(kind=8),allocatable   :: orbs_debug (:,:)
 
       character (len=12)         :: oneintName
 
       lwork = 4 * totalFrozen
+
+
+      allocate( sAO        (nBas       ,nBas)        )
+      allocate( sMO        (totalFrozen,totalFrozen) )
+      allocate( aMatrix    (totalFrozen,nBas)        )
+      allocate( eigenValues(totalFrozen)             )
+      allocate( work       (lwork)                   )
+      allocate( orbs_debug (totalFrozen,nBas)        )
 
       do j = 1, totalFrozen
         do k = 1, nBas
@@ -850,6 +882,12 @@
         end do
         call calculate_sMO(orbs_debug,sMO,sAO,totalFrozen,nBas)
       end if
+      deallocate( sAO        )
+      deallocate( sMO        )
+      deallocate( aMatrix    )
+      deallocate( eigenValues)
+      deallocate( work       )
+      deallocate( orbs_debug )
 
       return
       end subroutine ortho_frozen
@@ -928,6 +966,7 @@
 
       subroutine addInfo_on_detFiles
       use input_data
+      use fragment_data
       implicit none
 
       integer :: idet,ndet,inactm,i,j,iVec,istat
@@ -961,10 +1000,18 @@
             read(37,*) coeff(idet),occ(idet)
           end do
           rewind(37)
-          if (fragLabels) then
-            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec)
+          if (fragLabels.and.energy_on_INPORB) then
+            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
+     &                                       ener(i,j),nElectrons(i,j)
+          elseif (fragLabels) then
+            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),0.0,
+     &                     nElectrons(i,j)
+          elseif (energy_on_INPORB) then
+            write(37,1600) inactm,nFrozen(i),ndet,'no_label',ener(i,j),
+     &                     nElectrons(i,j)
           else
-            write(37,1600) inactm,nFrozen(i),ndet,'no_label'
+            write(37,1600) inactm,nFrozen(i),ndet,'no_label',0.0,
+     &                     nElectrons(i,j)
           end if
           do idet = 1, ndet
             write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
@@ -972,7 +1019,7 @@
           close(37)
           deallocate(coeff,occ)
         end do
- 1600 format(2i5,i12,4x,a)
+ 1600 format(2i5,i12,4x,a,4x,f22.12,i5)
       end do
      
       end subroutine addInfo_on_detFiles

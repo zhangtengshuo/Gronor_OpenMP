@@ -142,7 +142,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,
-     &                                  nrsets-nummps*numdev)
+     &                          max(0,nrsets-nummps*numdev))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numAccRanks"'
       call open_tag(lfncml,label,info_cml,5)
@@ -180,7 +180,7 @@
       character(len=1)    :: sep
       character(len=20)   :: label,method,pointgroup,wavefunctionType
       character(len=132)  :: info_cml,fmt_1
-      integer             :: indent
+      integer             :: indent,charge,i
 
 * block 2, job specifics
 
@@ -227,13 +227,16 @@
       sep='|'
       call writetag_array_string(lfncml,info_cml,6,sep,namint,2)
       call close_tag(lfncml,label,5)
-* we need to calcuate the charge of the system: sum(znuc) - (nelec + 2*nFrozen)
-*      info_cml='dictRef="cc:charge"'
-*      call open_tag(lfncml,label,info_cml,4)
-*      info_cml='units="nonsi:elementary_charge"'
-*      fmt_1 = 'f10.4'
-*      call writetag_scalar_real(lfncml,info_cml,5,charge,fmt_1)
-*      call close_tag(lfncml,label,4)
+      charge = zNucTot
+      do i = 1, nmol
+        charge = charge - nElectrons(ncombv(i,1))
+      end do
+      info_cml='dictRef="cc:charge"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='units="nonsi:elementary_charge"'
+      fmt_1 = 'f10.4'
+      call writetag_scalar_real(lfncml,info_cml,6,charge,fmt_1)
+      call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:spinMultiplicity"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
@@ -256,6 +259,11 @@
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,nmol)
       call close_tag(lfncml,label,5)
+      info_cml='dictRef="gr:nFragFunctions"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='empty'
+      call writetag_scalar_integer(lfncml,info_cml,6,maxval(ncombv))
+      call close_tag(lfncml,label,5)
       info_cml='dictRef="gr:nMEBFs"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
@@ -268,7 +276,7 @@
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,5)
       if (mebfLabels) then
-        info_cml='dicRef="gr:mebfLabels"'
+        info_cml='dictRef="gr:mebfLabels"'
         call open_tag(lfncml,label,info_cml,5)
         info_cml='empty'
         sep='|'
@@ -296,6 +304,13 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_array_integer(lfncml,info_cml,6,sep,idetm,mstates)
+      call close_tag(lfncml,label,5)
+      label='parameterList'
+      call close_tag(lfncml,label,4)
+      info_cml='dictRef="gr:fragBasisFunctions"'
+      call open_tag(lfncml,label,info_cml,5)
+      info_cml='empty'
+      call writetag_array_integer(lfncml,info_cml,6,sep,nbasm,mstates)
       call close_tag(lfncml,label,5)
       label='parameterList'
       call close_tag(lfncml,label,4)
@@ -351,9 +366,9 @@
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,stopDate)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc.wallTime"'
+      info_cml = 'dictRef="cc:wallTime"'
       call open_tag(lfncml,label,info_cml,5)
-      info_cml='units=si:"s"'
+      info_cml='units="si:s"'
       fmt_1='f12.3'
       call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
      &                                fmt_1)

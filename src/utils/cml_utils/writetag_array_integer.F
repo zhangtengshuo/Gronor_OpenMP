@@ -35,7 +35,7 @@
       else
         write(fmt_1,'(5a)')'(',trim(ts),',5a,',trim(adjustl(l1)),'a)'
       end if
-      write(lfn,fmt=fmt_1)'<array dataType="xsd:integer"',trim(info),
+      write(lfn,fmt=fmt_1)'<array dataType="xsd:integer" ',trim(info),
      &  ' size="',trim(adjustl(l)),'">',
      &  (trim(num2(j)),sep,j=1,length-1),trim(num2(length)),'</array>'
       

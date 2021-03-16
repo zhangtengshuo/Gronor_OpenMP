@@ -96,7 +96,8 @@
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
       integer, allocatable :: inactm(:), idetm(:), spinm(:), nFrozen(:)
-      real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:)
+      integer, allocatable :: nElectrons(:)
+      real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:), fragEner(:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
@@ -113,6 +114,7 @@
       character(len=8),allocatable  :: fragLabel(:)
       character(len=4),allocatable  :: mebfLabel(:)
       logical                       :: mebfLabels
+      integer, allocatable  :: nCntr(:,:)
       
       end module cidef
 

@@ -864,6 +864,15 @@
 
 !     At this point all outstanding tasks completed
 
+      call timer_stop(99)
+      call swatch(date,time)
+      write(lfnday,706) date(1:8),time(1:8),
+     &     timer_wall_total(99),
+     &     '  :  Completed all tasks'
+ 706  format(a8,2x,a8,f12.3,a)
+      flush(lfnday)
+      call timer_start(99)
+      
       call timer_stop(97)
 
 !     Count the number of groups that are still active in nalive
@@ -965,4 +974,3 @@
       
       return
       end
-      

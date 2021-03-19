@@ -1,4 +1,3 @@
-
 # Global CMakeLists.txt for building GronOR using cmake
 
 cmake_minimum_required (VERSION 3.11.00)

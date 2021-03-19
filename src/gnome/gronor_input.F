@@ -114,6 +114,15 @@
                 mstates=max(mstates,ncombv(im,ib))
               enddo
             enddo
+            allocate(ostate(mstates))
+            do i=1,mstates
+              ostate(i)=.false.
+            enddo
+            do j=1,nbase
+              do i=1,nmol
+                ostate(itemp(i,j))=.true.
+              enddo
+            enddo
             deallocate(itemp)
             goto 2            
           endif

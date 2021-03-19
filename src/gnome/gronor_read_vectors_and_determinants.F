@@ -171,14 +171,16 @@
      &       '       istate   ndetm   nactm  ninatm   nbasm',
      &       '  nelecs               energy     files',/)
         do i=1,mstates
-          write(fildet,203) root(1:inp_strlen(root)),i
-          write(filvec,201) root(1:inp_strlen(root)),i
-          write(lfnout,604) i,fragLabel(i),
-     &         idetm(i),nactm(i),inactm(i),nbasm(i),
-     &         nElectrons(i),fragEner(i),
-     &              fildet(1:inp_strlen(fildet)),
-     &              filvec(1:inp_strlen(filvec))
- 604      format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a) 
+          if(ostate(i)) then
+            write(fildet,203) root(1:inp_strlen(root)),i
+            write(filvec,201) root(1:inp_strlen(root)),i
+            write(lfnout,604) i,fragLabel(i),
+     &           idetm(i),nactm(i),inactm(i),nbasm(i),
+     &           nElectrons(i),fragEner(i),
+     &           fildet(1:inp_strlen(fildet)),
+     &           filvec(1:inp_strlen(filvec))
+ 604        format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a)
+          endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec
  605    format(13x,' ------  ------',8x,'  ------',/,

@@ -4,7 +4,7 @@
 !     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 !     Any use of the software has to be in compliance with this license. Unless required
 !     by applicable law or agreed to in writing, software distributed under the license
-!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     is distributed on an ‘as is’ basis, without warranties or conditions of any kind,
 !     either express or implied.
 !     See the license for the specific language governing permissions and limitations
 !     under the license.
@@ -44,7 +44,7 @@
       integer :: l2,i,j,k,ndone,nleft,nrb
       integer (kind=4) :: ierr,ireq,iremote
       integer :: igrp, ltemp, last
-      logical :: osame
+      logical :: osame,ofirst
 
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
@@ -66,6 +66,8 @@
       allocate(pnrb(nbase,nbase))
       allocate(fday(nbase,nbase))
 
+      ofirst=.true.
+      
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
 !     nsingt(k) sums the singularities over the entire Hamiltonian matrix
@@ -267,6 +269,17 @@
      &           MPI_COMM_WORLD,status,ierr)
             call timer_stop(94)
 
+            if(ofirst) then
+              ofirst=.false.
+              call timer_stop(99)
+              call swatch(date,time)
+              write(lfnday,705) date(1:8),time(1:8),
+     &             timer_wall_total(99),
+     &             '  :  Start of first task'
+ 705          format(a8,2x,a8,f12.3,a)
+              flush(lfnday)
+              call timer_start(99)
+            endif
 !     Determine rank and group from which the request came
             
             iremote=status(MPI_SOURCE)
@@ -851,6 +864,15 @@
 
 !     At this point all outstanding tasks completed
 
+      call timer_stop(99)
+      call swatch(date,time)
+      write(lfnday,706) date(1:8),time(1:8),
+     &     timer_wall_total(99),
+     &     '  :  Completed all tasks'
+ 706  format(a8,2x,a8,f12.3,a)
+      flush(lfnday)
+      call timer_start(99)
+      
       call timer_stop(97)
 
 !     Count the number of groups that are still active in nalive
@@ -952,4 +974,3 @@
       
       return
       end
-      

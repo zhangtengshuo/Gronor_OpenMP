@@ -8,6 +8,10 @@
 * the first four are present in the scratch dir of the molcas job as
 *    $Project.ChRed, $Project.ChVec1, $Project.ChRst, $Project.ChMap
 *
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
       implicit none
 
       integer                    :: iVrs,nVrs,iRc,luChVec,idisk
@@ -25,6 +29,9 @@
 
       real (kind=8)              :: fracMem
       real (kind=8), allocatable :: coeff(:),integral(:),coeff2(:)
+
+      integer :: numint,nthreads,mythread
+      integer, allocatable :: ndx(:)
 
       integer  :: ip_Max,l_Max   ! to resolve a compilation issue
 
@@ -137,8 +144,61 @@
 *        end do
 *        write(*,*) 
 *      end if
-* Reconstruction of the integrals
-      allocate( integral(bufLength) )
+*     Reconstruction of the integrals
+
+      numint=npq*(npq+1)/2
+      allocate(ndx(npq))
+      i=0
+      do ipq=1,npq
+        ndx(ipq)=i
+        i=i+npq-ipq+1
+      enddo
+      allocate(integral(numint))
+!$omp parallel private(nthreads,mythread,ipq,i,irs,iOffset,j,i1,i2,iVec)
+!$omp& shared(integral,npq,nTransCho)
+      nthreads=omp_get_num_threads()
+      mythread=omp_get_thread_num()
+      do ipq=1,npq
+        if(mod(ipq,nthreads).eq.mythread) then
+          i=ndx(ipq)
+          do irs=ipq,npq
+            i=i+1
+            integral(i)=0
+            iOffset=0
+            do iVec=1,nTransCho
+              do j=1,length(iVec)
+                i1=(ipq-1)*numCho(1)+iOffset+j
+                i2=(irs-1)*numCho(1)+iOffset+j
+                integral(i)=integral(i)+coeff(i1)*coeff(i2)
+              enddo
+              iOffset=iOffset+length(iVec)
+            enddo
+          enddo
+        endif
+      enddo
+!$omp end parallel
+      deallocate(ndx)
+      i=1
+      iBuf=0
+      do while(numint.gt.0)
+        j=min(bufLength,numint)
+        call ddafile(luTra,1,integral(i),j,iad50)
+        i=i+j
+        numint=numint-j
+        iBuf=iBuf+1
+        if(nBuf.ge.10) then
+          if(mod(iBuf,int(nBuf/10)).eq.0 ) then
+            write(*,'(A,I8,A,I8)') 'Writing buffer ',iBuf,
+     &           ' of ',nBuf
+          endif
+        endif
+      enddo
+        write (*,'(A,I4,A)') 'Writing the last buffer with ',
+     &                          j,' integrals'
+      deallocate(integral)
+
+      goto 9999
+      allocate(integral(bufLength) )
       i = 0
       iBuf = 0
       do ipq = 1, npq
@@ -183,9 +243,11 @@
 *        end do
        call ddafile(luTra,1,integral,bufLength,iad50)
       end if
+      deallocate( integral )
+ 9999 continue
 
       call daclos(luTra)
       deallocate( length )
       deallocate( coeff )
-      deallocate( integral )
+c      deallocate( integral )
       end program read_cholesky

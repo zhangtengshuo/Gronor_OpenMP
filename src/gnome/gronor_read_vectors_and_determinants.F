@@ -79,14 +79,17 @@
       else
         mebfLabels = .true.
         allocate(mebfLabel(nbase))
-        write(lfnout,'(a)') '  MEBF       sum of fragment energies'
+        write(lfnout,607) '  MEBF       Sum of fragment energies'
+ 607    format(/,a,/)
         do j = 1,nbase
-          write(mebfLabel(j),'(3a2)')(fragLabel(ncombv(k,j)),k=1,nmol)
-          write(lfnout,'(a6,t12,f22.12)')mebflabel(j),
-     &                 fragEner(ncombv(1,j)) + fragEner(ncombv(2,j))
-        end do
-        write(lfnout,*)
-      end if
+          write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
+ 616      format(3a2)
+          write(lfnout,617) mebflabel(j),
+     &         fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+ 617      format(a6,t12,f22.12)
+        enddo
+      endif
+      
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates
@@ -165,18 +168,21 @@
       if(ipr.ge.20) then
         write(lfnout,603)
  603    format(/,' Dimensions',//,
-     &     '  istate   ndetm   nactm  ninatm   nbasm   files',/)
+     &       '       istate   ndetm   nactm  ninatm   nbasm',
+     &       '  nelecs               energy     files',/)
         do i=1,mstates
           write(fildet,203) root(1:inp_strlen(root)),i
           write(filvec,201) root(1:inp_strlen(root)),i
-          write(lfnout,604) i,idetm(i),nactm(i),inactm(i),nbasm(i),
+          write(lfnout,604) i,fragLabel(i),
+     &         idetm(i),nactm(i),inactm(i),nbasm(i),
+     &         nElectrons(i),fragEner(i),
      &              fildet(1:inp_strlen(fildet)),
      &              filvec(1:inp_strlen(filvec))
- 604      format(5i8,3x,a,', ',a) 
+ 604      format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a) 
         enddo
         write(lfnout,605) maxci,maxnact,maxvec
- 605    format(8x,'  ------  ------',8x,'  ------',/,
-     &     '    max:',i8,i8,8x,i8)
+ 605    format(13x,' ------  ------',8x,'  ------',/,
+     &     '        max:',i8,i8,8x,i8)
       endif
  201  format(a,'_',i3.3,'.vec')
  203  format(a,'_',i3.3,'.det')

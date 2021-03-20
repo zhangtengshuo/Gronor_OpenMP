@@ -43,6 +43,7 @@
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
+      logical :: ostate
 
       maxci=0
       maxci_raw=0
@@ -171,7 +172,13 @@
      &       '       istate   ndetm   nactm  ninatm   nbasm',
      &       '  nelecs               energy     files',/)
         do i=1,mstates
-          if(ostate(i)) then
+          ostate=.false.
+          do j=1,nbase
+            do k=1,nmol
+              if(ncombv(k,j).eq.i) ostate=.true.
+            enddo
+          enddo
+          if(ostate) then
             write(fildet,203) root(1:inp_strlen(root)),i
             write(filvec,201) root(1:inp_strlen(root)),i
             write(lfnout,604) i,fragLabel(i),

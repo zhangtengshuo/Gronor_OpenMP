@@ -1838,7 +1838,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(c2sum,nbdet)
 
-      deallocate(ostate)
+      if(allocated(ostate)) deallocate(ostate)
       
       call timer_stop(1)
 

@@ -102,7 +102,7 @@
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
       real (kind=8), allocatable :: hev(:)
-      logical, allocatable :: bpdone(:,:), ostate(:)
+      logical, allocatable :: bpdone(:,:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
 

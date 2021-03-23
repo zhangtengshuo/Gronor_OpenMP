@@ -158,13 +158,18 @@ C     and retrieved here, if considered useful info
           nrectot=nrectot+ifil(i,1)
           ninttot=ninttot+ifil(i,2)
         enddo
-        if(ipr.ge.30) then
+        if(ipr.ge.2) then
           write(lfnout,607)
-          write(lfnout,608) (i,ifil(i,1),ifil(i,2),i=1,numfiles)
+          do i=1,numfiles
+            write(filtwo,'(a,a,i3.3,a)')
+     &           root(1:inp_strlen(root)),'_',i,'.two'
+            write(lfnout,608) i,ifil(i,1),ifil(i,2),trim(filtwo)
+          enddo
           write(lfnout,609) nrectot,ninttot
  607      format(/,' Dimensions on two-electron integral files',//,
-     &         ' File     Number Records    Number Integrals',/)
- 608      format(i4,5x,i12,i20)
+     &         ' File     Number Records    Number Integrals'
+     &         '     Filename',/)
+ 608      format(i4,5x,i12,i20,8x,a)
  609      format(11x,'----------',10x,'----------',/,
      &         ' Total   ',i12,i20)
         endif

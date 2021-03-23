@@ -479,9 +479,9 @@ CTPS  Point for start of data
        if(ibase.ne.0) then
         if(idbg.gt.2) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,4i10)') date(1:8),time(1:8),
+         write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
      &        me,' Entering gronor_calculate with ',
-     &        ibase,jbase,idet,jdet,ntask
+     &        ibase,jbase,idet,jdet,ntask,nbatch
          flush(lfndbg)
         endif
         call timer_start(47)

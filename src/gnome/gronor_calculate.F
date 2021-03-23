@@ -60,7 +60,7 @@
       ndetj=idetb(jb)
       nacti=nactb(ib)
       nactj=nactb(jb)
-      if(idbg.ge.10) then
+      if(idbg.ge.50) then
         write(lfndbg,600) ib,jb,id1,id2
  600    format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
         write(lfndbg,601) ndeti

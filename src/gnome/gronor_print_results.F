@@ -186,7 +186,7 @@
 ! printing takes care of it now: hsave(j,i) instead of hsave(i,j)
           
         write(lfnout,677)
- 677    format(//,' NOCI energies and wave functions (columns)',/)
+ 677    format(//,' NOCI energies and wave functions')
 
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -195,7 +195,7 @@
           il=min(nbase,k*ncols)
 
           write(lfnout,680) (i,i=ii,il)
- 680      format('          State:',t18,12(i15,5x))
+ 680      format(/,'          State:',t18,12(i15,5x))
           write(lfnout,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)

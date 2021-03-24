@@ -73,7 +73,7 @@ c     use cuda_functions
       integer :: iarg,i,j,idum(51),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
-      real (kind=8) :: rdum(5)
+      real (kind=8) :: rdum(6)
       character (len=255) :: string
       logical exist
 
@@ -317,7 +317,7 @@ c     use cuda_functions
         lcpr=.false.
 
         call gronor_input()
-
+        print*,'sthresh',sthresh
         if(mgr.eq.0) then
           if(npg.eq.0) call errquit(me,2,"Error in main")
           mgr=(np-1)/npg
@@ -482,7 +482,7 @@ c     use cuda_functions
 
         if(ipr.gt.0) write(lfnout,609) nspin+1
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
-        
+        if(ipr.gt.0) write(lfnout,*)'Theshold det pair overlap',sthresh
         call gronor_read_vectors_and_determinants()
         
         call gronor_gnome_molcas_input() ! OpenMolcas
@@ -554,16 +554,17 @@ c     use cuda_functions
           idum(45)=nbatcha
           idum(46)=nspin
           idum(47)=labels
-          
+          idum(48)=idmat
           rdum(1)=thresh
           rdum(2)=thresh
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
+          rdum(6)=sthresh
         endif
         
-        call MPI_Bcast(idum,47,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,48,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
         mstates=idum(2)
@@ -612,7 +613,8 @@ c     use cuda_functions
         nbatcha=idum(45)
         nspin  =idum(46)
         labels =idum(47)
-        
+        idmat  =idum(48)
+
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
@@ -627,7 +629,7 @@ c     use cuda_functions
         thresh_SIN=rdum(3)
         tolsvj=rdum(4)
         tolevj=rdum(5)
-
+        sthresh=rdum(6)
         if(numdev.gt.0) nbatch=nbatcha
         
       endif
@@ -1676,7 +1678,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &       (map2(me+1,i),i=1,5)
         flush(lfndbg)
       endif
-
+            
       if(me.eq.master) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -1709,16 +1711,22 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               flush(lfndbg)
             endif
             call gronor_worker()
+            
 !_ACCTGT_($acc end data)
 !_OMPTGT_($omp end target data)
           else
             lwork=10
             allocate(work(lwork))
             call gronor_worker()
+            write(lfndbg,*)'me',me,tauCI10_counter,tauS_counter
           endif
         endif
+      endif      
+      
+      if(me.eq.master)then
+        write(lfnout,*)'det. pairs discarded by tauS:'
+        write(lfnout,*)tauS_counter,'/',tauCI10_counter
       endif
-
       call timer_stop(98)
       
       if(idbg.gt.0) then
@@ -1823,7 +1831,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnlog,status='keep')
         call timer_start(99)
       endif
-
+* Density matrix calculation part
+      if(idmat.gt.0)then
+        ltri=(nbasis+1)*nbasis/2
+        write(lfnout,*)'Enter density matrix calculation'
+      endif
       deallocate(t,v,ndxtv)
       deallocate(lab,ndx,ig,g)
       deallocate(jspinmol)
@@ -1837,7 +1849,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(lstdet,ndxdet)
 
       deallocate(c2sum,nbdet)
-
+      
       call timer_stop(1)
 
       if(me.eq.master) then

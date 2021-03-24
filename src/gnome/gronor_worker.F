@@ -49,7 +49,6 @@
       l2=0
       mnact=0
       mvec=0
-      
       do ibase=1,nbase
        do jbase=1,ibase
         nidet=idetb(ibase)
@@ -367,7 +366,7 @@
 #endif  
       endif
 
-      do i=1,10
+      do i=1,8
        buffer(i)=0.0d0
       enddo
 
@@ -386,7 +385,7 @@
 !     If head thread signal master thread to start sending tasks
 
       if(iamhead.eq.1) then
-       call MPI_iSend(buffer,10,MPI_REAL8,master,1,
+       call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      & MPI_COMM_WORLD,ireq,ierr)
        if(idbg.gt.0) then
         call swatch(date,time)
@@ -480,9 +479,9 @@ CTPS  Point for start of data
        if(ibase.ne.0) then
         if(idbg.gt.2) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,4i10)') date(1:8),time(1:8),
+         write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
      &        me,' Entering gronor_calculate with ',
-     &        ibase,jbase,idet,jdet,ntask
+     &        ibase,jbase,idet,jdet,ntask,nbatch
          flush(lfndbg)
         endif
         call timer_start(47)
@@ -497,7 +496,7 @@ CTPS  Point for start of data
         endif
        call timer_start(48)
         if(iamhead.eq.1) then
-         call MPI_iSend(buffer,10,MPI_REAL8,master,1,
+         call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      &   MPI_COMM_WORLD,ireq,ierr)
          if(idbg.gt.2) then
           call swatch(date,time)

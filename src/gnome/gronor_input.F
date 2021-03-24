@@ -135,6 +135,11 @@
           goto 2
         endif
 
+        if(inp_compare(.false.,'sthresh',item)) then
+          if(.not.inp_f(sthresh)) sthresh=0.0d0
+          goto 2
+        endif                
+
         if(inp_compare(.false.,'Labels',item)) then
           if(.not.inp_i(labels)) call errquit(me,1,"Input error")
           goto 2
@@ -305,7 +310,11 @@
           end do
           goto 2
         end if
-        
+
+        if(inp_compare(.false.,'Dmat',item)) then
+          if(.not.inp_i(idmat)) idmat=0          
+          goto 2
+        endif
 *     Use Gallup-Norbeck weights? Yes, nwt=1; No, nwt .ne. 1
         if (inp_compare(.false.,'GNWeights',item)) then
           if(.not.inp_i(nwt)) nwt = 0

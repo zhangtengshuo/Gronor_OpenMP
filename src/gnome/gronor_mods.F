@@ -116,6 +116,21 @@
       logical                       :: mebfLabels
       integer, allocatable  :: nCntr(:,:)
       
+      integer      :: idmat,ltri,actblock
+      integer,allocatable      :: occ1(:),occ2(:)
+      real(kind=8),allocatable :: wf(:,:) ! wavefunctions
+      real(kind=8),allocatable :: smocb(:,:,:,:) ! mo overlap in common basis
+      real(kind=8),allocatable :: smocba(:,:),smocbb(:,:) ! a-a, b-b overlap matrices
+      real(kind=8),allocatable :: dmatmebf(:,:,:,:) ! mebf pair contribution to dmat
+      real(kind=8),allocatable :: dmatcb(:,:,:,:) ! dmat in common basis
+      real(kind=8),allocatable :: dmatab(:,:,:,:) ! dmat in atomic basis
+      real(kind=8),allocatable :: commonorb(:,:)  ! common basis orbitals in atomic basis
+      real(kind=8),allocatable :: dmatbuffer(:) ! buffer for the dmat calculation
+      real(kind=8),allocatable :: Wdmat(:,:),Admat(:,:)
+      real(kind=8),allocatable :: Ualpha(:,:),Ubeta(:,:)
+      real(kind=8),allocatable :: Valpha(:,:),Vbeta(:,:)
+      real(kind=8),allocatable :: eva(:),evb(:)
+      
       end module cidef
 
       module gnome_parameters
@@ -124,6 +139,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: itest,ifault,isolver,jsolver,idevel
+      integer :: tauCI10_counter,tauS_counter      
       integer :: ntask,nbatch,nbatcha
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
@@ -132,7 +148,7 @@
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
-      real (kind=8) :: thresh,thresh_SIN
+      real (kind=8) :: thresh,sthresh,thresh_SIN
       real (kind=8) :: tolsvj,tolevj
 
       logical :: corres
@@ -240,7 +256,7 @@
       real (kind=8), allocatable :: work(:)
       integer (kind=8) :: lwrk, lwork, info
 
-      real (kind=8) :: buffer(8)
+      real (kind=8) :: buffer(10)
 
       integer (kind=8) :: numdet
       integer (kind=8), allocatable :: ndxdet(:,:), lstdet(:,:)

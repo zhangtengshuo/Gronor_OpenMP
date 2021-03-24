@@ -168,7 +168,7 @@ C     and retrieved here, if considered useful info
           write(lfnout,609) nrectot,ninttot
  607      format(/,' Dimensions on two-electron integral files',//,
      &         ' File     Number Records    Number Integrals'
-     &         '     Filename',/)
+     &         '     Filename(s)',/)
  608      format(i4,5x,i12,i20,8x,a)
  609      format(11x,'----------',10x,'----------',/,
      &         ' Total   ',i12,i20)

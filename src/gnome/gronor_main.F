@@ -1174,7 +1174,7 @@ c     use cuda_functions
       if(me.eq.master) then
         write(lfnrnk,6666) (i-1,(map2(i,j),j=1,5),i=1,np)
  6666   format(//,' Rank map',//,
-     &       ' Rank NumDev NumThrd Group Node ???',//,
+     &       '    Rank  NumDev NumThrd   Group    Node     Act',//,
      &       (6i8))
       endif
       

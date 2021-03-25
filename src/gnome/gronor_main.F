@@ -1172,6 +1172,11 @@ c     use cuda_functions
       endif
 
       if(me.eq.master) then
+        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,5),i=1,np)
+ 6666   format(//,' Rank map',//,(6i8))
+      endif
+      
+      if(me.eq.master) then
         flush(lfnout)
         flush(lfnrnk)
       endif

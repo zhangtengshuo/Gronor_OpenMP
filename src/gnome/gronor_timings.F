@@ -305,10 +305,14 @@
           endif
           write(lfnout,614) 
      &         timer_wall_total(99)-timer_wall_total(98),
-     &         timer_wall_total(98)
- 614      format(/,' Setup wall clock time on master',t55,f12.3,/,
+     &         100d0*(timer_wall_total(99)-timer_wall_total(98))/
+     &         timer_wall_total(99),
+     &         timer_wall_total(98),
+     &         100d0*timer_wall_total(98)/timer_wall_total(99)
+ 614      format(/,' Setup wall clock time on master',t55,f12.3,
+     &         ' (',f7.3,'%)',/,
      &         ' Matrix element calculation wall clock time on master',
-     &         t55,f12.3,/)
+     &         t55,f12.3,' (',f7.3,'%)',/)
         endif
         
         if(ipr.ge.0) then

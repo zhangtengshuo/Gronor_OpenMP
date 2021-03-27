@@ -1668,15 +1668,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
       if(me.ne.master) call timer_start(98)
       
-      if(me.eq.master) then
-        call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Start Hamiltonian calculation'
-        flush(lfnday)
-        call timer_start(99)
-      endif
-      
       if(idbg.gt.0) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,1x,a,10i5)') date(1:8),time(1:8),

@@ -277,7 +277,10 @@
               call swatch(date,time)
               write(lfnday,705) date(1:8),time(1:8),
      &             timer_wall_total(99),
-     &             '  :  Integral distribution on workers completed'
+     &             '  :  Integral distribution completed'
+              write(lfnday,705) date(1:8),time(1:8),
+     &             timer_wall_total(99),
+     &       '  :  Start Hamiltonian calculation'
               if(ntasks(ibase,jbase).ne.-2) then
                 write(lfnday,802) date(1:8),time(1:8),
      &               timer_wall_total(99),

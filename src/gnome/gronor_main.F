@@ -1573,7 +1573,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Integrals read and distributed'
+     &       '  :  Integrals read from file'
         flush(lfnday)
         call timer_start(99)
       endif
@@ -1666,7 +1666,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         enddo
       endif
 
-      call timer_start(98)
+      if(me.ne.master) call timer_start(98)
       
       if(me.eq.master) then
         call timer_stop(99)

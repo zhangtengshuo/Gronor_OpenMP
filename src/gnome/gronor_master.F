@@ -232,16 +232,18 @@
           
           call swatch(date,time)
           call timer_stop(99)
-          if(ntasks(ibase,jbase).ne.-2) then
-            write(lfnday,802) date(1:8),time(1:8),
-     &           timer_wall_total(99),
-     &           '  :  ',ibase,jbase,' started   ',
-     &           c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
-          else
-            write(lfnday,803) date(1:8),time(1:8),
-     &           timer_wall_total(99),
-     &           '  :  ',ibase,jbase,
-     &           ' read from checkpoint restart'
+          if(.not.ofirst) then
+            if(ntasks(ibase,jbase).ne.-2) then
+              write(lfnday,802) date(1:8),time(1:8),
+     &             timer_wall_total(99),
+     &             '  :  ',ibase,jbase,' started   ',
+     &             c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
+            else
+              write(lfnday,803) date(1:8),time(1:8),
+     &             timer_wall_total(99),
+     &             '  :  ',ibase,jbase,
+     &             ' read from checkpoint restart'
+            endif
           endif
  802      format(a8,2x,a8,f12.3,a,2i6,a,f12.6,1x,3i12)
  803      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
@@ -275,10 +277,22 @@
               call swatch(date,time)
               write(lfnday,705) date(1:8),time(1:8),
      &             timer_wall_total(99),
-     &             '  :  Start of first task'
+     &             '  :  Integral distribution on workers completed'
+              if(ntasks(ibase,jbase).ne.-2) then
+                write(lfnday,802) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibase,jbase,' started   ',
+     &               c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
+              else
+                write(lfnday,803) date(1:8),time(1:8),
+     &               timer_wall_total(99),
+     &               '  :  ',ibase,jbase,
+     &               ' read from checkpoint restart'
+              endif
  705          format(a8,2x,a8,f12.3,a)
               flush(lfnday)
               call timer_start(99)
+              call timer_start(98)
             endif
 !     Determine rank and group from which the request came
             
@@ -656,7 +670,7 @@
             write(lfnday,702) date(1:8),time(1:8),
      &           timer_wall_total(99),
      &           '  :  ',ibin,jbin,' at ',
-     &           pnrb(ibin,jbin),'% (',
+     &           pnrb(ibin,jbin),'% ( ',
      &           ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
             flush(lfnday)
             call timer_start(99)

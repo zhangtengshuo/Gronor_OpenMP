@@ -1172,6 +1172,13 @@ c     use cuda_functions
       endif
 
       if(me.eq.master) then
+        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,5),i=1,np)
+ 6666   format(//,' Rank map',//,
+     &       '    Rank  NumDev NumThrd   Group    Node     Act',//,
+     &       (6i8))
+      endif
+      
+      if(me.eq.master) then
         flush(lfnout)
         flush(lfnrnk)
       endif
@@ -1566,7 +1573,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  Integrals read and distributed'
+     &       '  :  Integrals read from file'
         flush(lfnday)
         call timer_start(99)
       endif
@@ -1659,7 +1666,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         enddo
       endif
 
-      call timer_start(98)
+      if(me.ne.master) call timer_start(98)
       
       if(me.eq.master) then
         call timer_stop(99)

@@ -409,6 +409,7 @@
      &               ltemp,(nsing(ibin,jbin,k),k=1,4),
      &               hbase(ibin,jbin),sbase(ibin,jbin)
                 
+                call timer_stop(98)
                 call timer_stop(99)
                 
                 if(ipr.ge.1) then
@@ -419,14 +420,14 @@
      &                     idetb(jbin),ltemp,
      &                     (nsing(ibin,jbin,k),k=1,4),
      &                     hbase(ibin,jbin),sbase(ibin,jbin),
-     &                     tbase(ibin,jbin),timer_wall_total(99)
+     &                     tbase(ibin,jbin),timer_wall_total(98)
                     else
                       write(lfnout,608) ibin,jbin,idetb(ibin),
      &                     idetb(jbin),ltemp,
      &                     (nsing(ibin,jbin,k),k=1,4),
      &                     hbase(ibin,jbin),sbase(ibin,jbin),
      &                     hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                     tbase(ibin,jbin),timer_wall_total(99)
+     &                     tbase(ibin,jbin),timer_wall_total(98)
                     endif
                   else
                     if(ibin.ne.jbin) then
@@ -434,14 +435,14 @@
      &                     idetb(jbin),ltemp,
      &                     (nsing(ibin,jbin,k),k=1,4),
      &                     hbase(ibin,jbin),sbase(ibin,jbin),
-     &                     tbase(ibin,jbin),timer_wall_total(99)
+     &                     tbase(ibin,jbin),timer_wall_total(98)
                     else
                       write(lfnout,618) ibin,jbin,idetb(ibin),
      &                     idetb(jbin),ltemp,
      &                     (nsing(ibin,jbin,k),k=1,4),
      &                     hbase(ibin,jbin),sbase(ibin,jbin),
      &                     hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                     tbase(ibin,jbin),timer_wall_total(99)
+     &                     tbase(ibin,jbin),timer_wall_total(98)
                     endif
                   endif
                   flush(lfnout)
@@ -497,6 +498,7 @@
  703            format(a8,2x,a8,f12.3,a,2i6,a,3e20.12)
  704            format(a8,2x,a8,f12.3,a,2i6,a,3f20.10)
                 flush(lfnday)
+                call timer_start(98)
                 call timer_start(99)
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
@@ -976,15 +978,17 @@
 
 !     Output the total singularites and wall clock times
 
+      call timer_stop(98)
       call timer_stop(99)
       if(ipr.gt.0) then
         write(lfnout,615) mdet,(nsingt(i),i=1,4),tsum,
-     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(99),
-     &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(99)
+     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),
+     &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
       endif
  615  format(/,' Total',25x,2i14,2i12,i14,56x,1f12.1,/,
      &     /,' Total averaged per rank',t154,2f12.1,/,
      &     ' Task execution efficiency',t154,f12.1,' %')
+      call timer_start(98)
       call timer_start(99)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)

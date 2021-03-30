@@ -387,13 +387,13 @@
       if(iamhead.eq.1) then
        call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      & MPI_COMM_WORLD,ireq,ierr)
-       if(idbg.gt.0) then
+       if(idbg.gt.20) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
      &      ' Head signalled master'
         flush(lfndbg)
        endif
-       if(idbg.gt.2) then
+       if(idbg.gt.30) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &     me,' sent buffer to',master
@@ -415,7 +415,7 @@ CTPS  Point for start of data
 
         call MPI_Recv(ibuf,4,MPI_INTEGER8,master,2,
      &  MPI_COMM_WORLD,status,ierr)
-        if(idbg.gt.2) then
+        if(idbg.gt.30) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' received task from ',master
@@ -430,7 +430,7 @@ CTPS  Point for start of data
 
           call MPI_iSend(ibuf,4,MPI_INTEGER8,thisgroup(i+2),15,
      &                  MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.2) then
+         if(idbg.gt.30) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &       me,' sent task to group rank ',thisgroup(i+2)
@@ -444,7 +444,7 @@ CTPS  Point for start of data
 
 !      Receive task from head thread
 
-        if(idbg.gt.2) then
+        if(idbg.gt.30) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' waiting for task from head rank ',thisgroup(2)
@@ -452,7 +452,7 @@ CTPS  Point for start of data
         endif
         call MPI_Recv(ibuf,4,MPI_INTEGER8,thisgroup(2),15,
      &  MPI_COMM_WORLD,status,ierr)
-        if(idbg.gt.2) then
+        if(idbg.gt.30) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' received task from head rank ',thisgroup(2)
@@ -463,7 +463,7 @@ CTPS  Point for start of data
 
        call timer_stop(39)
        
-       if(idbg.gt.0) then
+       if(idbg.gt.10) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
      &        me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
@@ -477,7 +477,7 @@ CTPS  Point for start of data
 
        call timer_start(46)
        if(ibase.ne.0) then
-        if(idbg.gt.2) then
+        if(idbg.gt.30) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
      &        me,' Entering gronor_calculate with ',
@@ -488,7 +488,7 @@ CTPS  Point for start of data
         call gronor_calculate(ibase,jbase,idet,jdet)
         call timer_stop(47)
         buffer(3)=timer_wall(47)
-        if(idbg.gt.2) then
+        if(idbg.gt.30) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
      &      me,' Returned from gronor_calculate '
@@ -498,7 +498,7 @@ CTPS  Point for start of data
         if(iamhead.eq.1) then
          call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      &   MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.2) then
+         if(idbg.gt.30) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &       me,' sent results to master ',master

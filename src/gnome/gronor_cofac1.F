@@ -42,7 +42,7 @@
       character (len=1), target :: jobu, jobvt
 #endif
       
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.20) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
 
       call timer_start(41)
@@ -210,7 +210,7 @@
 
       call timer_stop(41)
 
-      if(idbg.ge.12) write(lfndbg,601) (ev(i),i=1,nelecs)
+      if(idbg.ge.30) write(lfndbg,601) (ev(i),i=1,nelecs)
  601  format(//,' Eigenvalues of diagonalized overlap matrix:',
      & //,(3x,6e20.12))
 
@@ -460,7 +460,7 @@ c!_OMPTGT_($omp end target)
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
       
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.20) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
 
       call timer_start(41)
@@ -517,7 +517,7 @@ c!_OMPTGT_($omp end target)
 
       call timer_stop(41)
 
-      if(idbg.ge.12) write(lfndbg,601) (ev(i),i=1,nelecs)
+      if(idbg.ge.30) write(lfndbg,601) (ev(i),i=1,nelecs)
  601  format(//,' Eigenvalues of diagonalized overlap matrix:',
      & //,(3x,6e20.12))
 

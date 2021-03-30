@@ -415,7 +415,7 @@ CTPS  Point for start of data
 
         call MPI_Recv(ibuf,4,MPI_INTEGER8,master,2,
      &  MPI_COMM_WORLD,status,ierr)
-        if(idbg.gt.30) then
+        if(idbg.gt.10) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' received task from ',master
@@ -430,7 +430,7 @@ CTPS  Point for start of data
 
           call MPI_iSend(ibuf,4,MPI_INTEGER8,thisgroup(i+2),15,
      &                  MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.30) then
+         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &       me,' sent task to group rank ',thisgroup(i+2)
@@ -452,7 +452,7 @@ CTPS  Point for start of data
         endif
         call MPI_Recv(ibuf,4,MPI_INTEGER8,thisgroup(2),15,
      &  MPI_COMM_WORLD,status,ierr)
-        if(idbg.gt.30) then
+        if(idbg.gt.10) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' received task from head rank ',thisgroup(2)
@@ -498,7 +498,7 @@ CTPS  Point for start of data
         if(iamhead.eq.1) then
          call MPI_iSend(buffer,8,MPI_REAL8,master,1,
      &   MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.30) then
+         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &       me,' sent results to master ',master

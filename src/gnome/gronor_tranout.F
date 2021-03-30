@@ -30,14 +30,14 @@
 
       ntvc=ntcl(idet)+ntop(idet)
 
-      if(idbg.ge.15)
+      if(idbg.ge.25)
      &  write(lfndbg,601)  ntcl(idet),ntop(idet),
      &                     (ioccn(i,idet),i=1,ntop(idet))
  601  format(/,' Tranout: nclose:',i3,',nopen:',i3,',ocopen:',20i4)
       if(idbg.ge.13) write(lfndbg,602)
  602  format(/,' M.O.''s transformed and ordered')
 
-      if(idbg.gt.13) then
+      if(idbg.gt.23) then
        write(lfndbg,603)
  603   format(/,' closed shell M.O.''s',/)
        do ivc=1,ntvc

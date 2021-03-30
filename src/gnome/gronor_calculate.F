@@ -272,7 +272,7 @@
             endif
           enddo
 
-          if(idbg.ge.11) then
+          if(idbg.ge.51) then
             do idet=1,2
               ntvc=ntcl(idet)+ntop(idet)
               write(lfndbg,1603) ntvc
@@ -357,7 +357,7 @@
           do ii=1,mgr-1
             call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
      &           MPI_COMM_WORLD,status,ierr)
-            if(idbg.gt.3) then
+            if(idbg.gt.30) then
               iremote=status(MPI_SOURCE)
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
@@ -370,7 +370,7 @@
           call MPI_iSend(e2buff,1,MPI_REAL8,thisgroup(2),5,
      &         MPI_COMM_WORLD,ireq,ierr)
 
-          if(idbg.gt.3) then
+          if(idbg.gt.30) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
      &           me,' sent e2buf to',thisgroup(2)

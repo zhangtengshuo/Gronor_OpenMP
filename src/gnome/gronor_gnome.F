@@ -95,7 +95,7 @@
       if(nvecb.ne.ntcl(2)+ntop(2)) 
      &     call errquit(me,9,"Incompatible nvecb")
       
-      if(idbg.gt.10) then
+      if(idbg.gt.30) then
         do idet=1,2
           ntvc=ntcl(idet)+ntop(idet)
           write(lfndbg,1603) ntvc

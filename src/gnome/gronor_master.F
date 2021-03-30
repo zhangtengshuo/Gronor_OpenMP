@@ -306,8 +306,8 @@
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,7i7)')
      &             date(1:8),time(1:8),
-     &             master,' received buffer from',iremote,igrp,
-     &             (lgroup(igrp,i),i=1,5)
+     &             master,' received buffer from',
+     &             iremote,igrp,(lgroup(igrp,i),i=1,5)
               flush(lfndbg)
             endif
 
@@ -545,8 +545,9 @@
 
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,6i5)')
-     &             date(1:8),time(1:8),master,' sent ibuf to',
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')
+     &             date(1:8),time(1:8),
+     &             master,' sent ibuf to        ',
      &             iremote,igrp,(ibuf(i),i=1,4)
               flush(lfndbg)
             endif
@@ -834,7 +835,7 @@
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &             master,' sent duplicate ibuf to',iremote
+     &             master,' sent duplicate ibuf to   ',iremote
               flush(lfndbg)
             endif
 

@@ -302,7 +302,7 @@
             iremote=status(MPI_SOURCE)
             igrp=map2(iremote+1,3)
             
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,7i7)')
      &             date(1:8),time(1:8),
@@ -543,7 +543,7 @@
 
 !     Debug message
 
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,6i5)')
      &             date(1:8),time(1:8),master,' sent ibuf to',
@@ -624,7 +624,7 @@
 !     Flag this group as still active
 
         lactive(igrp)=1
-        if(idbg.gt.20) then
+        if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &         master,' received last buffer from',iremote
@@ -831,7 +831,7 @@
 
 !     Debug message
 
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &             master,' sent duplicate ibuf to',iremote
@@ -913,7 +913,7 @@
         
         call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &       MPI_COMM_WORLD,ireq,ierr)
-        if(idbg.gt.20) then
+        if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &         master,' sent return to',iremote

@@ -317,7 +317,7 @@
               endif
             endif
           endif
-          if(idbg.ge.11) then
+          if(idbg.ge.12) then
             call swatch(date,time)
             write(lfndbg,651) date(1:8),time(1:8),ij,i,j,hh,ss
  651        format(a,1x,a,' Calculated values from gronor_gnome ',3i7,

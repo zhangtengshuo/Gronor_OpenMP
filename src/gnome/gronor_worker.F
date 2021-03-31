@@ -417,8 +417,8 @@ CTPS  Point for start of data
      &  MPI_COMM_WORLD,status,ierr)
         if(idbg.gt.10) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &      me,' received task from ',master
+         write(lfndbg,'(a,1x,a,i5,a,5i7)') date(1:8),time(1:8),
+     &      me,' received task from ',master,(ibuf(i),i=1,4)
          flush(lfndbg)
         endif
 
@@ -500,7 +500,7 @@ CTPS  Point for start of data
      &   MPI_COMM_WORLD,ireq,ierr)
          if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+          write(lfndbg,'(a,1x,a,i5,a,2i7)') date(1:8),time(1:8),
      &       me,' sent results to master ',master
           flush(lfndbg)
          endif

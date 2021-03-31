@@ -33,7 +33,7 @@
 
       implicit none
 
-      integer :: lfnout,lfnday,i,j,idum
+      integer (kind=8) :: lfnout,lfnday,i,j,idum
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total
       integer :: timer_calls
@@ -250,11 +250,11 @@
          idum=1
          do i=1,nalive
            if (isync(i).ne.-1)
-     &          call MPI_iSend(idum,1,MPI_INTEGER,isync(i),12,
+     &          call MPI_iSend(idum,1,MPI_INTEGER8,isync(i),12,
      &          MPI_COMM_WORLD,ireq,ierr)
          enddo
        else
-         call MPI_Recv(idum,1,MPI_INTEGER,master,12,MPI_COMM_WORLD,
+         call MPI_Recv(idum,1,MPI_INTEGER8,master,12,MPI_COMM_WORLD,
      &        status,ierr)
        endif
        

@@ -42,7 +42,7 @@
       character (len=1), target :: jobu, jobvt
 #endif
       
-      if(idbg.ge.20) write(lfndbg,600)
+      if(idbg.ge.30) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
 
       call timer_start(41)
@@ -460,7 +460,7 @@ c!_OMPTGT_($omp end target)
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
       
-      if(idbg.ge.20) write(lfndbg,600)
+      if(idbg.ge.30) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')
 
       call timer_start(41)

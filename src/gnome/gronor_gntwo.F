@@ -74,7 +74,7 @@
       
       call timer_start(30)
       
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
 !      numint=ig(mod(me,mgr)+1)
@@ -424,7 +424,7 @@
         
         if(iamhead.eq.1) sstot=sstot+fctr*deta
         
-        if(idbg.ge.13) write(lfndbg,600)
+        if(idbg.ge.50) write(lfndbg,600)
  600    format(' Calculating two electron matrix element',/)
         
         numint=mint2
@@ -635,7 +635,7 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         
         if(iamhead.eq.1) sstot=sstot+fctr*deta
         
-        if(idbg.ge.13) write(lfndbg,600)
+        if(idbg.ge.50) write(lfndbg,600)
  600    format(' Calculating two electron matrix element',/)
         
         numint=mint2
@@ -851,7 +851,7 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
         
         if(iamhead.eq.1) sstot=sstot+fctr*deta
         
-        if(idbg.ge.13) write(lfndbg,600)
+        if(idbg.ge.50) write(lfndbg,600)
  600    format(' Calculating two electron matrix element',/)
         
         numint=mint2
@@ -1098,7 +1098,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
         if(iamhead.eq.1) sstot=sstot+fctr*deta
         
-        if(idbg.ge.13) write(lfndbg,600)
+        if(idbg.ge.50) write(lfndbg,600)
  600    format(' Calculating two electron matrix element',/)
         
         numint=mint2
@@ -1346,7 +1346,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       if(ising.ge.3) return
       
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
       numint=mint2
@@ -1479,7 +1479,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       if(ising.ge.3) return
       
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
       numint=mint2
@@ -1642,7 +1642,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       if(iamhead.eq.1) sstot=sstot+fctr*deta
 
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
       numint=mint2
@@ -1879,7 +1879,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       if(iamhead.eq.1) sstot=sstot+fctr*deta
 
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
       numint=mint2
@@ -2140,7 +2140,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
 
       if(iamhead.eq.1) sstot=sstot+fctr*deta
 
-      if(idbg.ge.13) write(lfndbg,600)
+      if(idbg.ge.50) write(lfndbg,600)
  600  format(' Calculating two electron matrix element',/)
 
       numint=mint2
@@ -2372,7 +2372,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
         
         if(iamhead.eq.1) sstot=sstot+fctr*deta
 
-        if(idbg.ge.13) write(lfndbg,600)
+        if(idbg.ge.50) write(lfndbg,600)
  600    format(' Calculating two electron matrix element',/)
 
         numint=mint2

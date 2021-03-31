@@ -33,7 +33,7 @@
 
       integer :: lfndbg,idet,n,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
-      if(idbg.ge.12) then
+      if(idbg.ge.20) then
       write(lfndbg,600) nbasis
  600  format(/,' Number of basis functions is',t45,i8)
       write(lfndbg,603) nelec(1)
@@ -48,7 +48,7 @@
 
       do idet=1,2
 
-        if(idbg.ge.13) then
+        if(idbg.ge.20) then
           write(lfndbg,604) idet
  604      format(/,' Transformation of MO set',i8,/)
           write(lfndbg,605) n,(ioccup(k,idet),k=1,nact(idet))
@@ -67,7 +67,7 @@
         call gronor_tranout(lfndbg,idet)
         call timer_stop(13)
 
-        if(idbg.ge.14) write(lfndbg,606) idet
+        if(idbg.ge.20) write(lfndbg,606) idet
  606    format(/,' Construction of M.O.set',i2,' completed')
 
       enddo
@@ -95,7 +95,7 @@
       if(nvecb.ne.ntcl(2)+ntop(2)) 
      &     call errquit(me,9,"Incompatible nvecb")
       
-      if(idbg.gt.30) then
+      if(idbg.gt.40) then
         do idet=1,2
           ntvc=ntcl(idet)+ntop(idet)
           write(lfndbg,1603) ntvc
@@ -147,7 +147,7 @@
         call gronor_cofac1(lfndbg)
         call timer_stop(15)
         
-        if(idbg.ge.12) then
+        if(idbg.ge.20) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
           if(ising.eq.2) write(lfndbg,611)
@@ -178,7 +178,7 @@
             call timer_stop(18)
           endif
 
-          if(idbg.ge.13) then
+          if(idbg.ge.30) then
             if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
  613        format(' No calculation of two-electron matrix elements',i4)
           endif
@@ -250,7 +250,7 @@
         call gronor_cofac1_omp(lfndbg)
         call timer_stop(15)
         
-        if(idbg.ge.12) then
+        if(idbg.ge.30) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
           if(ising.eq.2) write(lfndbg,611)
@@ -275,7 +275,7 @@
             call timer_stop(18)
           endif
           
-          if(idbg.ge.13) then
+          if(idbg.ge.30) then
             if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
           endif
           

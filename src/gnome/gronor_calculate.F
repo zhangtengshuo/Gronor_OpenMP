@@ -107,7 +107,7 @@
       do ij=id1,id2
         call timer_start(5)
         
-        if(idbg.ge.10)
+        if(idbg.ge.50)
      &       write(lfndbg,608) ij, iloop(ij,1),iloop(ij,2)
  608    format(//,
      &       25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,
@@ -192,7 +192,7 @@
             iocopen(k,2)=iocch(k)
           enddo
 
-          if(idbg.ge.10) then
+          if(idbg.ge.40) then
             write(lfndbg,610)
  610        format(//,' Active orbital occupation',/)
             write(lfndbg,611) (ioccup(k,1),k=1,nact(1))
@@ -272,7 +272,7 @@
             endif
           enddo
 
-          if(idbg.ge.51) then
+          if(idbg.ge.60) then
             do idet=1,2
               ntvc=ntcl(idet)+ntop(idet)
               write(lfndbg,1603) ntvc
@@ -287,14 +287,14 @@
             enddo
           endif
 
-          if(idbg.ge.15) write(lfndbg,618) ij,i,j
+          if(idbg.ge.40) write(lfndbg,618) ij,i,j
  618      format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
           call timer_start(6)
           call gronor_gnome(lfndbg,ihc,nhc)
           call timer_stop(6)
 
-          if(idbg.ge.15) write(lfndbg,619) ij,i,j
+          if(idbg.ge.40) write(lfndbg,619) ij,i,j
  619      format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
 
         endif
@@ -318,10 +318,9 @@
             endif
           endif
           if(idbg.ge.11) then
-            write(lfndbg,651) me,iamhead,hh,ss
- 651        format(' Calculated values from gronor_gnome ',2i5,/,
-     &           ' hh    ',f20.10,/,
-     &           ' ss    ',f20.10)
+            write(lfndbg,651) ij,i,j,hh,ss
+ 651        format(' Calculated values from gronor_gnome ',3i7,
+     &           '  H:',f20.10,'  S:',f20.10)
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
@@ -357,7 +356,7 @@
           do ii=1,mgr-1
             call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
      &           MPI_COMM_WORLD,status,ierr)
-            if(idbg.gt.30) then
+            if(idbg.gt.10) then
               iremote=status(MPI_SOURCE)
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
@@ -370,7 +369,7 @@
           call MPI_iSend(e2buff,1,MPI_REAL8,thisgroup(2),5,
      &         MPI_COMM_WORLD,ireq,ierr)
 
-          if(idbg.gt.30) then
+          if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
      &           me,' sent e2buf to',thisgroup(2)

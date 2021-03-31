@@ -395,8 +395,8 @@
        endif
        if(idbg.gt.10) then
         call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &     me,' sent buffer to',master
+        write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),
+     &     me,' sent buffer   ',master
         flush(lfndbg)
        endif
       endif
@@ -418,7 +418,7 @@ CTPS  Point for start of data
         if(idbg.gt.10) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,5i7)') date(1:8),time(1:8),
-     &      me,' received task from ',master,(ibuf(i),i=1,4)
+     &      me,' received task ',master,(ibuf(i),i=1,4)
          flush(lfndbg)
         endif
 
@@ -463,7 +463,7 @@ CTPS  Point for start of data
 
        call timer_stop(39)
        
-       if(idbg.gt.10) then
+       if(idbg.gt.15) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
      &        me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
@@ -501,7 +501,7 @@ CTPS  Point for start of data
          if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,2i7)') date(1:8),time(1:8),
-     &       me,' sent results to master ',master
+     &       me,' sent results  ',master
           flush(lfndbg)
          endif
         endif

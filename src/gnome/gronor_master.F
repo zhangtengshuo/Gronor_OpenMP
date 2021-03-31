@@ -531,6 +531,15 @@
             ibuf(4)=min(ndone+ntask,ijend)
             ndone=ibuf(4)
 
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')
+     &             date(1:8),time(1:8),
+     &             master,' prep ibuf to        ',
+     &             iremote,igrp,(ibuf(i),i=1,4)
+              flush(lfndbg)
+            endif
+            
 !     Send buffer to requesting rank without waiting for completion of mpi
 
             call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,

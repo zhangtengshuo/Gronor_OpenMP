@@ -403,9 +403,9 @@
 
 CTPS  Point for start of data
 
-      ibase=-1
+      ibase=1
 
-      do while(ibase.ne.0)
+      do while(ibase.gt.0)
 
        call timer_start(39)
 
@@ -477,35 +477,35 @@ CTPS  Point for start of data
 
        call timer_start(46)
        if(ibase.ne.0) then
-        if(idbg.gt.30) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
-     &        me,' Entering gronor_calculate with ',
-     &        ibase,jbase,idet,jdet,ntask,nbatch
-         flush(lfndbg)
-        endif
-        call timer_start(47)
-        call gronor_calculate(ibase,jbase,idet,jdet)
-        call timer_stop(47)
-        buffer(3)=timer_wall(47)
-        if(idbg.gt.30) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
-     &      me,' Returned from gronor_calculate '
-         flush(lfndbg)
-        endif
-       call timer_start(48)
-        if(iamhead.eq.1) then
-         call MPI_iSend(buffer,8,MPI_REAL8,master,1,
-     &   MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,2i7)') date(1:8),time(1:8),
-     &       me,' sent results  ',master
-          flush(lfndbg)
+         if(idbg.gt.30) then
+           call swatch(date,time)
+           write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
+     &          me,' Entering gronor_calculate with ',
+     &          ibase,jbase,idet,jdet,ntask,nbatch
+           flush(lfndbg)
          endif
-        endif
-       call timer_stop(48)
+         call timer_start(47)
+         call gronor_calculate(ibase,jbase,idet,jdet)
+         call timer_stop(47)
+         buffer(3)=timer_wall(47)
+         if(idbg.gt.30) then
+           call swatch(date,time)
+           write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
+     &          me,' Returned from gronor_calculate '
+           flush(lfndbg)
+         endif
+         call timer_start(48)
+         if(iamhead.eq.1) then
+           call MPI_iSend(buffer,8,MPI_REAL8,master,1,
+     &          MPI_COMM_WORLD,ireq,ierr)
+           if(idbg.gt.10) then
+             call swatch(date,time)
+             write(lfndbg,'(a,1x,a,i5,a,2i7)') date(1:8),time(1:8),
+     &            me,' sent results  ',master
+             flush(lfndbg)
+           endif
+         endif
+         call timer_stop(48)
        endif
        call timer_stop(46)
 

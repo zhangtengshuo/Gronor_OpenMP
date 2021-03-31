@@ -914,9 +914,9 @@
 !     Signal worker processes to return from gronor_master
       
       ibuf(1)=0
-      ibuf(2)=0
-      ibuf(3)=0
-      ibuf(4)=0
+      ibuf(2)=-1
+      ibuf(3)=-1
+      ibuf(4)=-1
       do i=1,npg
         
         iremote=allgroups(i,2)

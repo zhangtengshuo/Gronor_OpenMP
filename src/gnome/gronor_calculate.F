@@ -318,8 +318,9 @@
             endif
           endif
           if(idbg.ge.11) then
-            write(lfndbg,651) ij,i,j,hh,ss
- 651        format(' Calculated values from gronor_gnome ',3i7,
+            call swatch(date,time)
+            write(lfndbg,651) date(1:8),time(1:8),ij,i,j,hh,ss
+ 651        format(a,1x,a,' Calculated values from gronor_gnome ',3i7,
      &           '  H:',f20.10,'  S:',f20.10)
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
@@ -346,7 +347,6 @@
 
       endif
 
-      
 !     Upon return from gronor_calculate the head thread has the
 !     accumulated results from all threads in the group
       
@@ -356,8 +356,8 @@
           do ii=1,mgr-1
             call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
      &           MPI_COMM_WORLD,status,ierr)
+            iremote=status(MPI_SOURCE)
             if(idbg.gt.10) then
-              iremote=status(MPI_SOURCE)
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
      &             me,' received e2buf from',iremote

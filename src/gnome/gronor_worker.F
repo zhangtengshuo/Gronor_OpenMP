@@ -414,11 +414,12 @@ CTPS  Point for start of data
 !     Receive next task from master on head thread
 
         call MPI_Recv(ibuf,4,MPI_INTEGER8,master,2,
-     &  MPI_COMM_WORLD,status,ierr)
+     &        MPI_COMM_WORLD,status,ierr)
+        
         if(idbg.gt.10) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,5i7)') date(1:8),time(1:8),
-     &      me,' received task ',master,(ibuf(i),i=1,4)
+         write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
+     &      me,' received task ',master,(ibuf(i),i=1,4),status,ierr
          flush(lfndbg)
         endif
 

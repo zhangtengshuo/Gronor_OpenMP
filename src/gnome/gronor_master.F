@@ -826,6 +826,9 @@ c          ibuf(4)=0
           enddo
 
           if(j.gt.0) then
+
+            call MPI_Wait(ireq,status,ierr)
+            
             do i=1,4
               ibuf(i)=lgroup(j,i)
             enddo
@@ -909,14 +912,15 @@ c          ibuf(4)=0
       
 !     Signal worker processes to return from gronor_master
       
+      call MPI_Wait(ireq,status,ierr)
+      
       ibuf(1)=0
       ibuf(2)=-1
       ibuf(3)=-1
       ibuf(4)=-1
-      do i=1,npg
-        
+
+      do i=1,npg  
         iremote=allgroups(i,2)
-        
         call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &       MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then

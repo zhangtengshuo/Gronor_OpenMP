@@ -43,7 +43,8 @@
       integer :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
       integer :: ipopcnt
-
+      real (kind=8) :: rbuf(8)
+      
       flush(lfnout)
 
       l2=0
@@ -367,7 +368,7 @@
       endif
 
       do i=1,8
-       buffer(i)=0.0d0
+       rbuf(i)=0.0d0
       enddo
 
       if(idbg.gt.0) then
@@ -385,7 +386,7 @@
 !     If head thread signal master thread to start sending tasks
 
       if(iamhead.eq.1) then
-       call MPI_iSend(buffer,8,MPI_REAL8,master,1,
+       call MPI_iSend(rbuf,8,MPI_REAL8,master,1,
      & MPI_COMM_WORLD,ireq,ierr)
        if(idbg.gt.20) then
         call swatch(date,time)
@@ -485,7 +486,6 @@ CTPS  Point for start of data
      &          ibase,jbase,idet,jdet,ntask,nbatch
            flush(lfndbg)
          endif
-         call MPI_Wait(ireq,status,ierr)
          call timer_start(47)
          call gronor_calculate(ibase,jbase,idet,jdet)
          call timer_stop(47)
@@ -498,7 +498,11 @@ CTPS  Point for start of data
          endif
          call timer_start(48)
          if(iamhead.eq.1) then
-           call MPI_iSend(buffer,8,MPI_REAL8,master,1,
+           call MPI_Wait(ireq,status,ierr)
+           do i=1,8
+             rbuf(i)=buffer(i)
+           enddo
+           call MPI_iSend(rbuf,8,MPI_REAL8,master,1,
      &          MPI_COMM_WORLD,ireq,ierr)
            if(idbg.gt.10) then
              call swatch(date,time)
@@ -513,8 +517,6 @@ CTPS  Point for start of data
 
       enddo
 
-CTPS  Point for end data
-      
       if(nbatch.lt.0) then
         deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(prefac)

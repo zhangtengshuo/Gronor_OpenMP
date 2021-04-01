@@ -530,9 +530,9 @@ c          ibuf(4)=0
             
             if(idbg.gt.10) then
               call swatch(date,time)
-              if(.not.ofirst) write(lfndbg,'(a,1x,a,i5,a,7i7)')
+              if(.not.ofirst) write(lfndbg,'(a,1x,a,i5,a,l1)')
      &             date(1:8),time(1:8),
-     &             master,' MPI_Wait '
+     &             master,' MPI_Wait ',ofirst
             endif
             
             ibuf(1)=ibase

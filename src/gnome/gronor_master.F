@@ -43,7 +43,7 @@
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,ndone,nleft,nrb
       integer :: igrp, ltemp, last
-      logical :: osame,ofirst
+      logical :: osame,ofirst,owait
 
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
@@ -68,6 +68,7 @@
       allocate(fday(nbase,nbase))
 
       ofirst=.true.
+      owait=.false.
       
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
@@ -526,14 +527,7 @@ c          ibuf(4)=0
 
 !     ndone becomes the last index of the determinant pairs that have been put in a task
 
-!            if(.not.ofirst) call MPI_Wait(ireq,status,ierr)
-            
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              if(.not.ofirst) write(lfndbg,'(a,1x,a,i5,a,l1)')
-     &             date(1:8),time(1:8),
-     &             master,' MPI_Wait ',ofirst
-            endif
+            if(owait) call MPI_Wait(ireq,status,ierr)
             
             ibuf(1)=ibase
             ibuf(2)=jbase
@@ -541,19 +535,11 @@ c          ibuf(4)=0
             ibuf(4)=min(ndone+ntask,ijend)
             ndone=ibuf(4)
 
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,7i7)')
-     &             date(1:8),time(1:8),
-     &             master,' prep ibuf to        ',
-     &             iremote,igrp,(ibuf(i),i=1,4)
-              flush(lfndbg)
-            endif
-            
 !     Send buffer to requesting rank without waiting for completion of mpi
 
             call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &           MPI_COMM_WORLD,ireq,ierr)
+            owait=.true.
 
 !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 

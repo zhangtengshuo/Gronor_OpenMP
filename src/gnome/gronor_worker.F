@@ -485,7 +485,7 @@ CTPS  Point for start of data
      &          ibase,jbase,idet,jdet,ntask,nbatch
            flush(lfndbg)
          endif
-!         call MPI_Wait(ireq,status,ierr)
+         call MPI_Wait(ireq,status,ierr)
          call timer_start(47)
          call gronor_calculate(ibase,jbase,idet,jdet)
          call timer_stop(47)

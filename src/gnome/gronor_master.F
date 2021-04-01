@@ -42,7 +42,6 @@
 
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,ndone,nleft,nrb
-      integer (kind=4) :: ierr,ireq,iremote
       integer :: igrp, ltemp, last
       logical :: osame,ofirst
 
@@ -51,6 +50,8 @@
 
       integer :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
+      
+      integer (kind=4) :: ierr,ireq,iremote
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
       real(kind=8), external :: timer_wall_total
@@ -252,10 +253,10 @@
           
           nrb=0
           ndone=0
-          ibuf(1)=0
-          ibuf(2)=0
-          ibuf(3)=0
-          ibuf(4)=0
+c          ibuf(1)=0
+c          ibuf(2)=0
+c          ibuf(3)=0
+c          ibuf(4)=0
 
           if(ntasks(ibase,jbase).eq.-2) ndone=ijend
 
@@ -525,6 +526,8 @@
 
 !     ndone becomes the last index of the determinant pairs that have been put in a task
 
+!            if(.not.ofirst) call MPI_Wait(ireq,status,ierr)
+            
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)

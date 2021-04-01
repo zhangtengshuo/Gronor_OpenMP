@@ -528,6 +528,13 @@ c          ibuf(4)=0
 
 !            if(.not.ofirst) call MPI_Wait(ireq,status,ierr)
             
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')
+     &             date(1:8),time(1:8),
+     &             master,' MPI_Wait '
+            endif
+            
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)

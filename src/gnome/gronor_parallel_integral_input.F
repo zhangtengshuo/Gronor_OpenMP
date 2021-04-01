@@ -395,6 +395,13 @@ C     and retrieved here, if considered useful info
      &             new_comm(igr),ierr)
             endif
 
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,130) date(1:8),time(1:8),jint
+ 130          format(a,1x,a,1x,' Integrals broadcasted for batch ',i5)
+              flush(lfndbg)
+            endif
+
             nint=nint+lint
             mint=mint-lint
           enddo
@@ -410,7 +417,6 @@ C     and retrieved here, if considered useful info
         endif
       endif
 
-      
 !     Calculate the integral index needed for openacc processing
 
       allocate(ndxtv(nbas))

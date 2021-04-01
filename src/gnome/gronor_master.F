@@ -42,15 +42,16 @@
 
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,ndone,nleft,nrb
-      integer (kind=4) :: ierr,ireq,iremote
       integer :: igrp, ltemp, last
-      logical :: osame,ofirst
+      logical :: osame,ofirst,owait
 
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
       integer :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
+      
+      integer (kind=4) :: ierr,ireq,iremote
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
       real(kind=8), external :: timer_wall_total
@@ -67,6 +68,7 @@
       allocate(fday(nbase,nbase))
 
       ofirst=.true.
+      owait=.false.
       
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
@@ -252,10 +254,10 @@
           
           nrb=0
           ndone=0
-          ibuf(1)=0
-          ibuf(2)=0
-          ibuf(3)=0
-          ibuf(4)=0
+c          ibuf(1)=0
+c          ibuf(2)=0
+c          ibuf(3)=0
+c          ibuf(4)=0
 
           if(ntasks(ibase,jbase).eq.-2) ndone=ijend
 
@@ -302,12 +304,12 @@
             iremote=status(MPI_SOURCE)
             igrp=map2(iremote+1,3)
             
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,7i7)')
      &             date(1:8),time(1:8),
-     &             master,' received buffer from',iremote,igrp,
-     &             (lgroup(igrp,i),i=1,5)
+     &             master,' received buffer from',
+     &             iremote,igrp,(lgroup(igrp,i),i=1,5)
               flush(lfndbg)
             endif
 
@@ -525,6 +527,8 @@
 
 !     ndone becomes the last index of the determinant pairs that have been put in a task
 
+            if(owait) call MPI_Wait(ireq,status,ierr)
+            
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)
@@ -535,6 +539,7 @@
 
             call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &           MPI_COMM_WORLD,ireq,ierr)
+            owait=.true.
 
 !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
@@ -543,10 +548,11 @@
 
 !     Debug message
 
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,6i5)')
-     &             date(1:8),time(1:8),master,' sent ibuf to',
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')
+     &             date(1:8),time(1:8),
+     &             master,' sent ibuf to        ',
      &             iremote,igrp,(ibuf(i),i=1,4)
               flush(lfndbg)
             endif
@@ -624,7 +630,7 @@
 !     Flag this group as still active
 
         lactive(igrp)=1
-        if(idbg.gt.20) then
+        if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &         master,' received last buffer from',iremote
@@ -831,10 +837,10 @@
 
 !     Debug message
 
-            if(idbg.gt.20) then
+            if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &             master,' sent duplicate ibuf to',iremote
+     &             master,' sent duplicate ibuf to   ',iremote
               flush(lfndbg)
             endif
 
@@ -904,16 +910,16 @@
 !     Signal worker processes to return from gronor_master
       
       ibuf(1)=0
-      ibuf(2)=0
-      ibuf(3)=0
-      ibuf(4)=0
+      ibuf(2)=-1
+      ibuf(3)=-1
+      ibuf(4)=-1
       do i=1,npg
         
         iremote=allgroups(i,2)
         
         call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
      &       MPI_COMM_WORLD,ireq,ierr)
-        if(idbg.gt.20) then
+        if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &         master,' sent return to',iremote

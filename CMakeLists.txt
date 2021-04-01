@@ -1,6 +1,6 @@
 # Global CMakeLists.txt for building GronOR using cmake
 
-cmake_minimum_required (VERSION 3.11.00)
+cmake_minimum_required (VERSION 3.10.00)
 
 # Define project name with associated languages
 

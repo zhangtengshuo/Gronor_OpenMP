@@ -542,8 +542,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
-            call MPI_iSend(1,ipbuf(iremote+1),4,MPI_INTEGER8,iremote,2,
-     &           MPI_COMM_WORLD,ireq,ierr)
+            call MPI_iSend(1,ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
 !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair

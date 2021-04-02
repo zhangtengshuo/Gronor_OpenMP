@@ -60,7 +60,7 @@
       integer :: iamhead, iamacc, iamactive
       integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
       integer, allocatable :: thisgroup(:), allgroups(:,:), allheads(:)
-      integer, allocatable :: numrecs(:)
+      integer, allocatable :: numrecs(:), ipbuf(:,:)
 
 !     OpenMP distribution
 

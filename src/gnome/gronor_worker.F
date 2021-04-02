@@ -496,7 +496,7 @@
          endif
          call timer_start(48)
          if(iamhead.eq.1) then
-           call MPI_Wait(ireq,status,ierr)
+c           call MPI_Wait(ireq,status,ierr)
            do i=1,8
              rbuf(i)=buffer(i)
            enddo

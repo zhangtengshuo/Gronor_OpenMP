@@ -48,7 +48,7 @@
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
-      integer :: ibuf(4),nsingt(5)
+      integer (kind=8) :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
       
       integer (kind=4) :: ierr,ireq,iremote
@@ -542,7 +542,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
-            call MPI_iSend(1,ipbuf(1,iremote+1),4,MPI_INTEGER8,
+            
+            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
      &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
@@ -844,8 +845,9 @@ c            call MPI_Wait(ireq,status,ierr)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
-            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,iremote,2,
-     &           MPI_COMM_WORLD,ireq,ierr)
+            
+            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
 
@@ -930,12 +932,14 @@ c      call MPI_Wait(ireq,status,ierr)
 
       do i=1,npg  
         iremote=allgroups(i,2)
+        
         ipbuf(1,iremote+1)=ibuf(1)
         ipbuf(2,iremote+1)=ibuf(2)
         ipbuf(3,iremote+1)=ibuf(3)
         ipbuf(4,iremote+1)=ibuf(4)
-        call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,iremote,2,
-     &       MPI_COMM_WORLD,ireq,ierr)
+            
+        call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &       iremote,2,MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),

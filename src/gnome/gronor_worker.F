@@ -402,8 +402,6 @@
        endif
       endif
 
-CTPS  Point for start of data
-
       ibase=1
 
       do while(ibase.gt.0)
@@ -452,7 +450,7 @@ CTPS  Point for start of data
      &      me,' waiting for task from head rank ',thisgroup(2)
          flush(lfndbg)
         endif
-        call MPI_Recv(ibuf,4,MPI_INTEGER8,thisgroup(2),2,
+        call MPI_Recv(ibuf,4,MPI_INTEGER8,thisgroup(2),15,
      &  MPI_COMM_WORLD,status,ierr)
         if(idbg.gt.10) then
          call swatch(date,time)

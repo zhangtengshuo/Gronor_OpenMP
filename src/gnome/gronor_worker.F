@@ -40,7 +40,7 @@
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,l2,n
       integer (kind=4) :: ireq,ierr
-      integer :: ibuf(4)
+      integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
       integer :: ipopcnt
       real (kind=8) :: rbuf(8)

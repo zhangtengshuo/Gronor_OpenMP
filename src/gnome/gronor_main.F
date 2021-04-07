@@ -1220,7 +1220,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             call swatch(date,time)
             write(lfndbg,1301) date(1:8),time(1:8),
      &           ' set device to ',mydev,' of ',numdev
- 1301       format(a,1x,a,1x,a,a,i3,a,i3)
+ 1301       format(a,1x,a,1x,a,i3,a,i3)
           endif
         endif
 #endif

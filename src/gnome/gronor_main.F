@@ -94,7 +94,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb,ibd
+      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib
 
       character (len=5) :: version
       character (len=64) :: version_type
@@ -1350,7 +1350,25 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           flush(lfnday)
           call timer_start(99)
         endif
-        
+
+        if(idbg.gt.50) then
+          ndeti=idetb(i)
+          nacti=nactb(i)
+          write(lfndbg,1601) i,ndeti
+ 1601     format(/,' Basestate ',i4,' wavefunction has ',i8,
+     &         ' determinants:',/)
+          do ib=1,ndeti
+            write(lfndbg,1602) ib,civb(i,ib),(ioccb(k,ib),k=1,nacti)
+ 1602       format(i5,f15.5,32i3)
+          enddo
+          write(lfndbg,1603) i,0,nbas
+ 1603     format(/,' Basestate ',i4,' vector ',2i8)
+          do ivc=1,10
+            write(lfndbg,1604) '(',ivc,')',
+     &           (vecsb(ivc,ibas,i),ibas=1,nbas)
+ 1604       format(a2,i3,a1,(t9,10f12.8))
+          enddo
+        endif
       enddo
 
       thres2 = thresh / max_coef

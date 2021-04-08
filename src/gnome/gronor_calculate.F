@@ -217,6 +217,15 @@
           nvc=0
           indxx=ib
           do idet=1,2
+            ncl=nclose(idet)
+            nop=nopen(idet)
+            do iv=1,ncl+nop
+              do k=1,nbas
+                vec(iv,k,idet)=0.0d0
+              enddo
+            enddo
+          enddo
+          do idet=1,2
 
             if(idet.eq.2) indxx=jb
             index=0

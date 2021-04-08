@@ -1400,9 +1400,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             write(lfndbg,1602) ib,civb(ib,i),(iocch(k),k=1,nacti)
  1602       format(i5,f15.5,32i3)
           enddo
-          write(lfndbg,1603) i,nacti,nbas
+          write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
  1603     format(/,' Basestate ',i4,' vector ',2i8)
-          do ivc=1,nacti
+          do ivc=1,nactb(i)+inactb(i)
             write(lfndbg,1604) '(',ivc,')',
      &           (vecsb(ibas,ivc,i),ibas=1,nbas)
  1604       format(a2,i3,a1,(t9,10f12.8))

@@ -182,6 +182,15 @@
 
 #else
       
+      if(idbg.ge.30) then
+        write(lfndbg,1601)
+ 1601   format(//,' SVD input matrix:',/)
+        do j=1,nelecs
+          write(lfndbg,1602) (ta(i,j),i=1,nelecs)
+ 1602     format((3x,6e20.12))
+        enddo
+      endif
+      
 !_ACCTGT_($acc update host (ta))
 !_OMPTGT_($omp target update from(ta))      
       call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),

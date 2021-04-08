@@ -59,18 +59,16 @@
  602  format(/,6x,'Atom',10x,'x',13x,'y',13x,'z',10x,
      &     'Znuc',5x,a,/)
 
+      zNucTot=0.0d0
       do iAtom = 1, nNucl
         read(lfnsym,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
-     &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
-     &                   l=1,7)
+     &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         if(ipr.gt.0)
      &       write(lfnout,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
-     &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
-     &                   l=1,7)
+     &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         write(lfnarx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),
-     &                   zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),
-     &                   l=1,7)
-        zNucTot = zNucTot + zNuc(iAtom)
+     &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
+        zNucTot=zNucTot+zNuc(iAtom)
       enddo
       
       flush(lfnout)

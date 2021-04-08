@@ -1358,7 +1358,8 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  1601     format(/,' Basestate ',i4,' wavefunction has ',i8,
      &         ' determinants:',/)
           do ib=1,ndeti
-            write(lfndbg,1602) ib,civb(i,ib),(ioccb(k,ib),k=1,nacti)
+            call unpack(ioccb(i,ib),iocch,nacti)
+            write(lfndbg,1602) ib,civb(i,ib),(iocch(k),k=1,nacti)
  1602       format(i5,f15.5,32i3)
           enddo
           write(lfndbg,1603) i,0,nbas
@@ -1368,6 +1369,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &           (vecsb(ivc,ibas,i),ibas=1,nbas)
  1604       format(a2,i3,a1,(t9,10f12.8))
           enddo
+          flush(lfndbg)
         endif
       enddo
 

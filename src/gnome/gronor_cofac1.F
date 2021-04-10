@@ -47,6 +47,16 @@
 
       call timer_start(41)
 
+      if(idbg.ge.90) then
+!_ACCTGT_($acc update host (ta))
+        write(lfndbg,1601) nelecs,nelecs,mbasel
+ 1601   format(//,' SVD input matrix:',3i6,/)
+        do j=1,nelecs
+          write(lfndbg,1602) (ta(i,j),i=1,nelecs)
+ 1602     format((3x,6e20.12))
+        enddo
+      endif
+      
 #ifdef CUSOLVER
 
        ndim=nelecs
@@ -210,7 +220,7 @@
 
       call timer_stop(41)
 
-      if(idbg.ge.30) write(lfndbg,601) (ev(i),i=1,nelecs)
+      if(idbg.ge.90) write(lfndbg,601) (ev(i),i=1,nelecs)
  601  format(//,' Eigenvalues of diagonalized overlap matrix:',
      & //,(3x,6e20.12))
 
@@ -465,6 +475,15 @@ c!_OMPTGT_($omp end target)
 
       call timer_start(41)
 
+      if(idbg.ge.90) then
+        write(lfndbg,1601) nelecs,nelecs,mbasel
+ 1601   format(//,' SVD input matrix:',3i6,/)
+        do j=1,nelecs
+          write(lfndbg,1602) (ta(i,j),i=1,nelecs)
+ 1602     format((3x,6e20.12))
+        enddo
+      endif
+      
 #ifdef MKL
 
       if(isolver.eq.1) then
@@ -517,7 +536,7 @@ c!_OMPTGT_($omp end target)
 
       call timer_stop(41)
 
-      if(idbg.ge.30) write(lfndbg,601) (ev(i),i=1,nelecs)
+      if(idbg.ge.90) write(lfndbg,601) (ev(i),i=1,nelecs)
  601  format(//,' Eigenvalues of diagonalized overlap matrix:',
      & //,(3x,6e20.12))
 

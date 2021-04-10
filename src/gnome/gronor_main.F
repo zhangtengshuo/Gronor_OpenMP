@@ -1630,7 +1630,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           rndx=rndx*1024.0
           rlst=rlst*1024.0
         endif
-        if(ipr.ge.20) then
+        if(ipr.ge.3) then
           if(labels.eq.0) then
             if(igb.eq.1) then
               write(lfnout,622) nbas,rndx

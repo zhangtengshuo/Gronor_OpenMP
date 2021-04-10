@@ -1644,7 +1644,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  624          format(' Number of two-electron integrals',t50,i16,t80,
      &             ' Size of two-electron integrals',t115,f8.3,' GB')
  641          format(' Number of determinant pairs',t50,i16,t80,
-     &             ' Size of dterminant pair list',t115,f8.3,' GB')
+     &             ' Size of determinant pair list',t115,f8.3,' GB')
             else
               write(lfnout,625) nbas,rndx
               write(lfnout,626) int1,rlab

@@ -1623,7 +1623,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         endif
         rlst=dble(2*8*numdet)*1.073741824d-9
         igb=1
-        if(max(rint,rlab,rndx).lt.1.0d0) then
+        if(max(rint,rlab,rndx,rlst).lt.1.0d0) then
           igb=0
           rint=rint*1024.0
           rlab=rlab*1024.0
@@ -1657,7 +1657,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  627          format(' Number of two-electron integrals',t50,i16,t80,
      &             ' Size of two-electron integrals',t115,f8.3,' MB')
  642          format(' Number of determinant pairs',t50,i16,t80,
-     &             ' Size of dterminant pair list',t115,f8.3,' MB')
+     &             ' Size of determinant pair list',t115,f8.3,' MB')
             endif
           else
             write(lfnout,628) nbas

@@ -1666,8 +1666,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  629        format(' Number of one-electron integrals',t50,i16)
             if(igb.eq.1) then
               write(lfnout,624) int2,rint
+              write(lfnout,641) numdet,rlst
             else
               write(lfnout,627) int2,rint
+              write(lfnout,642) numdet,rlst
             endif
           endif
         else

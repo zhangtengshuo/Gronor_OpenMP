@@ -165,6 +165,7 @@
         
         if(inp_compare(.false.,'Print',item)) then
           ipr=20
+          if(inp_i(ipr)) goto 2
           if(.not.inp_a(item)) goto 1
           if(inp_compare(.false.,'Low',item)) then
             ipr=10

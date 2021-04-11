@@ -48,7 +48,7 @@
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
-      integer :: ibuf(4),nsingt(5)
+      integer (kind=8) :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
       
       integer (kind=4) :: ierr,ireq,iremote
@@ -66,6 +66,7 @@
       allocate(ndets(nbase,nbase,2))
       allocate(pnrb(nbase,nbase))
       allocate(fday(nbase,nbase))
+      allocate(ipbuf(4,np))
 
       ofirst=.true.
       owait=.false.
@@ -527,7 +528,7 @@ c          ibuf(4)=0
 
 !     ndone becomes the last index of the determinant pairs that have been put in a task
 
-            if(owait) call MPI_Wait(ireq,status,ierr)
+c            if(owait) call MPI_Wait(ireq,status,ierr)
             
             ibuf(1)=ibase
             ibuf(2)=jbase
@@ -537,8 +538,13 @@ c          ibuf(4)=0
 
 !     Send buffer to requesting rank without waiting for completion of mpi
 
-            call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
-     &           MPI_COMM_WORLD,ireq,ierr)
+            ipbuf(1,iremote+1)=ibuf(1)
+            ipbuf(2,iremote+1)=ibuf(2)
+            ipbuf(3,iremote+1)=ibuf(3)
+            ipbuf(4,iremote+1)=ibuf(4)
+            
+            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
 !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
@@ -827,7 +833,7 @@ c          ibuf(4)=0
 
           if(j.gt.0) then
 
-            call MPI_Wait(ireq,status,ierr)
+c            call MPI_Wait(ireq,status,ierr)
             
             do i=1,4
               ibuf(i)=lgroup(j,i)
@@ -835,8 +841,13 @@ c          ibuf(4)=0
 
 !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
 
-            call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
-     &           MPI_COMM_WORLD,ireq,ierr)
+            ipbuf(1,iremote+1)=ibuf(1)
+            ipbuf(2,iremote+1)=ibuf(2)
+            ipbuf(3,iremote+1)=ibuf(3)
+            ipbuf(4,iremote+1)=ibuf(4)
+            
+            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
 
@@ -912,7 +923,7 @@ c          ibuf(4)=0
       
 !     Signal worker processes to return from gronor_master
       
-      call MPI_Wait(ireq,status,ierr)
+c      call MPI_Wait(ireq,status,ierr)
       
       ibuf(1)=0
       ibuf(2)=-1
@@ -921,8 +932,14 @@ c          ibuf(4)=0
 
       do i=1,npg  
         iremote=allgroups(i,2)
-        call MPI_iSend(ibuf,4,MPI_INTEGER8,iremote,2,
-     &       MPI_COMM_WORLD,ireq,ierr)
+        
+        ipbuf(1,iremote+1)=ibuf(1)
+        ipbuf(2,iremote+1)=ibuf(2)
+        ipbuf(3,iremote+1)=ibuf(3)
+        ipbuf(4,iremote+1)=ibuf(4)
+            
+        call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+     &       iremote,2,MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
@@ -1001,7 +1018,7 @@ c          ibuf(4)=0
       call timer_start(98)
       call timer_start(99)
       
-      deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets)
+      deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf)
       
       return
       end

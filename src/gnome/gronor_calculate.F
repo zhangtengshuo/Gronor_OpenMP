@@ -65,11 +65,22 @@
  600    format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
         write(lfndbg,601) ndeti
  601    format(/,' Left wavefunction has ',i8,' determinants:',/)
-        do i=1,ndeti
-          call unpack(ioccb(i,ib),iocch,nacti)
-          write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
- 602      format(i5,f15.5,32i3)
-        enddo
+        if(idbg.gt.90) then
+          do i=1,ndeti
+            call unpack(ioccb(i,ib),iocch,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+ 602        format(i5,f15.5,32i3)
+          enddo
+        else
+          do i=1,min(ndeti,10)
+            call unpack(ioccb(i,ib),iocch,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+          enddo
+          do i=max(11,ndeti-10),ndeti
+            call unpack(ioccb(i,ib),iocch,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+          enddo
+        endif
         write(lfndbg,603) ndetj
  603    format(//,' Right wavefunction has ',i8,' determinants:',/)
         do i=1,ndetj
@@ -205,6 +216,15 @@
           nop=0
           nvc=0
           indxx=ib
+          do idet=1,2
+            ncl=nclose(idet)
+            nop=nopen(idet)
+            do iv=1,ncl+nop
+              do k=1,nbas
+                vec(iv,k,idet)=0.0d0
+              enddo
+            enddo
+          enddo
           do idet=1,2
 
             if(idet.eq.2) indxx=jb

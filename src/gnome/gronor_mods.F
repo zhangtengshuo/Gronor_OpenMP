@@ -61,6 +61,7 @@
       integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
       integer, allocatable :: thisgroup(:), allgroups(:,:), allheads(:)
       integer, allocatable :: numrecs(:)
+      integer (kind=8), allocatable :: ipbuf(:,:)
 
 !     OpenMP distribution
 

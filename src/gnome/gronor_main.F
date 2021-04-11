@@ -92,9 +92,9 @@ c     use cuda_functions
       real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
       real(kind=8)             :: thres2,max_coef
 
-      real (kind=8) :: rint,rlab,rndx,rh,rs,rt,c2s
+      real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb,ibd
+      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib
 
       character (len=5) :: version
       character (len=64) :: version_type
@@ -1216,6 +1216,12 @@ c     use cuda_functions
           cptot=c_loc(memtot)
 c     istat=cudaMemGetInfo(cpfre,cptot)
           memavail=memfre
+          if(idbg.gt.0) then
+            call swatch(date,time)
+            write(lfndbg,1301) date(1:8),time(1:8),
+     &           ' Device set to ',mydev,' of ',numdev
+ 1301       format(a,1x,a,1x,a,i3,a,i3)
+          endif
         endif
 #endif
         
@@ -1344,7 +1350,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           flush(lfnday)
           call timer_start(99)
         endif
-        
       enddo
 
       thres2 = thresh / max_coef
@@ -1383,6 +1388,29 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       enddo
       deallocate(civb_aux,occu_aux)
 
+      do i=1,nbase
+        if(idbg.gt.50) then
+          ndeti=idetb(i)
+          nacti=nactb(i)
+          write(lfndbg,1601) i,ndeti
+ 1601     format(/,' Basestate ',i4,' wavefunction has ',i8,
+     &         ' determinants:',/)
+          do ib=1,ndeti
+            call unpack(ioccb(ib,i),iocch,nacti)
+            write(lfndbg,1602) ib,civb(ib,i),(iocch(k),k=1,nacti)
+ 1602       format(i5,f15.5,32i3)
+          enddo
+          write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
+ 1603     format(/,' Basestate ',i4,' vector ',2i8)
+          do ivc=1,nactb(i)+inactb(i)
+            write(lfndbg,1604) '(',ivc,')',
+     &           (vecsb(ibas,ivc,i),ibas=1,nbas)
+ 1604       format(a2,i3,a1,(t9,10f12.8))
+          enddo
+          flush(lfndbg)
+        endif
+      enddo
+      
       call timer_stop(7)
       call timer_start(8)
       
@@ -1582,46 +1610,54 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       
       if(me.eq.master.and.ipr.ge.0) then
 #ifdef SINGLEP
-        rint=dble(4*int2)*1.0d-9
+        rint=dble(4*int2)*1.073741824d-9
 #else
-        rint=dble(8*int2)*1.0d-9
+        rint=dble(8*int2)*1.073741824d-9
 #endif
         if(labels.eq.0) then
-          rlab=dble(8*int2)*1.0d-9
+          rlab=dble(8*int2)*1.073741824d-9
           rndx=0.0d0
         else
           rlab=0.0d0
-          rndx=(dble(mlab*4)+dble(mlab*4))*1.0d-09
+          rndx=(dble(mlab*4)+dble(mlab*4))*1.073741824d-09
         endif
+        rlst=dble(2*8*numdet)*1.073741824d-9
         igb=1
-        if(max(rint,rlab,rndx).lt.1.0d0) then
+        if(max(rint,rlab,rndx,rlst).lt.1.0d0) then
           igb=0
           rint=rint*1024.0
           rlab=rlab*1024.0
           rndx=rndx*1024.0
+          rlst=rlst*1024.0
         endif
-        if(ipr.ge.20) then
+        if(ipr.ge.3) then
           if(labels.eq.0) then
             if(igb.eq.1) then
               write(lfnout,622) nbas,rndx
               write(lfnout,623) int1,rlab
               write(lfnout,624) int2,rint
+              write(lfnout,641) numdet,rlst
  622          format(/,' Number of basisfunctions',t50,i16,t80,
      &             ' Size of index arrays',t115,f8.3,' GB')
  623          format(' Number of one-electron integrals',t50,i16,t80,
      &             ' Size of integral labels',t115,f8.3,' GB')
  624          format(' Number of two-electron integrals',t50,i16,t80,
      &             ' Size of two-electron integrals',t115,f8.3,' GB')
+ 641          format(' Number of determinant pairs',t50,i16,t80,
+     &             ' Size of determinant pair list',t115,f8.3,' GB')
             else
               write(lfnout,625) nbas,rndx
               write(lfnout,626) int1,rlab
               write(lfnout,627) int2,rint
+              write(lfnout,642) numdet,rlst
  625          format(/,' Number of basisfunctions',t50,i16,t80,
      &             ' Size of index arrays',t115,f8.3,' MB')
  626          format(' Number of one-electron integrals',t50,i16,t80,
      &             ' Size of integral labels',t115,f8.3,' MB')
  627          format(' Number of two-electron integrals',t50,i16,t80,
      &             ' Size of two-electron integrals',t115,f8.3,' MB')
+ 642          format(' Number of determinant pairs',t50,i16,t80,
+     &             ' Size of determinant pair list',t115,f8.3,' MB')
             endif
           else
             write(lfnout,628) nbas
@@ -1630,8 +1666,10 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  629        format(' Number of one-electron integrals',t50,i16)
             if(igb.eq.1) then
               write(lfnout,624) int2,rint
+              write(lfnout,641) numdet,rlst
             else
               write(lfnout,627) int2,rint
+              write(lfnout,642) numdet,rlst
             endif
           endif
         else

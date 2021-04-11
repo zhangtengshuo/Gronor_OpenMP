@@ -51,8 +51,8 @@
         if(idbg.ge.20) then
           write(lfndbg,604) idet
  604      format(/,' Transformation of MO set',i8,/)
-          write(lfndbg,605) n,(ioccup(k,idet),k=1,nact(idet))
- 605      format(' Active orbital occupation in symrep',i4,' : ',32i3)
+          write(lfndbg,605) (ioccup(k,idet),k=1,nact(idet))
+ 605      format(' Active orbital occupation : ',32i3)
         endif
         
         call timer_start(11)
@@ -103,9 +103,11 @@
           do ivc=1,ntvc
             if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
  1604       format(/,' Open shell M.O.'' s:')
-            write(lfndbg,1605)  ' (',ivc,')',
-     &           (vec(ivc,ibas,idet),ibas=1,nbas)
- 1605       format(a2,i3,a1,(t9,10f12.8))
+            if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
+              write(lfndbg,1605)  ' (',ivc,')',
+     &             (vec(ivc,ibas,idet),ibas=1,nbas)
+ 1605         format(a2,i3,a1,(t9,10f12.8))
+            endif
           enddo
         enddo
       endif

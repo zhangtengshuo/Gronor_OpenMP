@@ -42,7 +42,7 @@
 
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,ndone,nleft,nrb
-      integer :: igrp, ltemp, last
+      integer :: igrp, ltemp, last, nthdet
       logical :: osame,ofirst,owait
 
       real (kind=8) :: tsum
@@ -78,6 +78,7 @@
       do i=1,5
         nsingt(i)=0
       enddo
+      nthdet=0
       tsum=0.0d0
 
 !     Contributions to H(i,j) are sent as tasks to groups and tracked in lgroup:
@@ -738,6 +739,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 !     This will be the case if ntasks(i,j) is zero
 
           if(ntasks(ibin,jbin).eq.0) then
+            call timer_stop(98)
             call timer_stop(99)
             call swatch(date,time)
             if(ibin.eq.jbin) then
@@ -745,36 +747,55 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             else
               ltemp=idetb(ibin)*idetb(jbin)
             endif
-            write(lfnarx,522) ibin,jbin,idetb(ibin),idetb(jbin),ltemp,
-     &           (nsing(ibin,jbin,k),k=1,4),
+                write(lfnarx,522) ibin,jbin,
+     &           adjustl(mebfLabel(ibin)),
+     &           adjustr(mebfLabel(jbin)),
+     &           idetb(ibin),idetb(jbin),
+     &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),
      &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
               if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
      &             dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                 if(ibin.ne.jbin) then
-                  write(lfnout,607) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+                  write(lfnout,607) ibin,jbin,
+     &                 adjustl(mebfLabel(ibin)),
+     &                 adjustr(mebfLabel(jbin)),
+     &                 idetb(ibin),idetb(jbin),
+     &                 ltemp,nbdet(ibin,jbin),
+     &                 (nsing(ibin,jbin,k),k=1,4),
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
-     &                 tbase(ibin,jbin),timer_wall_total(99)
+     &                 tbase(ibin,jbin),timer_wall_total(98)
                 else
-                  write(lfnout,608) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+                  write(lfnout,608) ibin,jbin,
+     &                 adjustl(mebfLabel(ibin)),
+     &                 adjustr(mebfLabel(jbin)),
+     &                 idetb(ibin),idetb(jbin),
+     &                 ltemp,nbdet(ibin,jbin),
+     &                 (nsing(ibin,jbin,k),k=1,4),
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
      &                 hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                 tbase(ibin,jbin),timer_wall_total(99)
+     &                 tbase(ibin,jbin),timer_wall_total(98)
                 endif
               else
                 if(ibin.ne.jbin) then
-                  write(lfnout,617) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+                  write(lfnout,617) ibin,jbin,
+     &                 adjustl(mebfLabel(ibin)),
+     &                 adjustr(mebfLabel(jbin)),
+     &                 idetb(ibin),idetb(jbin),
+     &                 ltemp,nbdet(ibin,jbin),
+     &                 (nsing(ibin,jbin,k),k=1,4),
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
-     &                 tbase(ibin,jbin),timer_wall_total(99)
+     &                 tbase(ibin,jbin),timer_wall_total(98)
                 else
-                  write(lfnout,618) ibin,jbin,idetb(ibin),idetb(jbin),
-     &                 ltemp,(nsing(ibin,jbin,k),k=1,4),
+                  write(lfnout,618) ibin,jbin,
+     &                 adjustl(mebfLabel(ibin)),
+     &                 adjustr(mebfLabel(jbin)),
+     &                 idetb(ibin),idetb(jbin),
+     &                 ltemp,nbdet(ibin,jbin),
+     &                 (nsing(ibin,jbin,k),k=1,4),
      &                 hbase(ibin,jbin),sbase(ibin,jbin),
      &                 hbase(ibin,jbin)/sbase(ibin,jbin),
-     &                 tbase(ibin,jbin),timer_wall_total(99)
+     &                 tbase(ibin,jbin),timer_wall_total(98)
                 endif
               endif
               flush(lfnout)
@@ -815,6 +836,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
               endif
             endif
             flush(lfnday)
+            call timer_start(98)
             call timer_start(99)
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
@@ -1018,6 +1040,7 @@ c      call MPI_Wait(ireq,status,ierr)
         enddo
         do j=1,i
           tsum=tsum+tbase(i,j)
+          nthdet=nthdet+nbdet(i,j)
         enddo
       enddo
 
@@ -1026,13 +1049,13 @@ c      call MPI_Wait(ireq,status,ierr)
       call timer_stop(98)
       call timer_stop(99)
       if(ipr.gt.0) then
-        write(lfnout,615) mdet,(nsingt(i),i=1,4),tsum,
+        write(lfnout,615) mdet,nthdet,(nsingt(i),i=1,4),tsum,
      &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),
      &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
       endif
- 615  format(/,' Total',25x,2i14,2i12,i14,56x,1f12.1,/,
-     &     /,' Total averaged per rank',t154,2f12.1,/,
-     &     ' Task execution efficiency',t154,f12.1,' %')
+ 615  format(/,' Total',40x,3i14,2i12,i14,56x,1f12.1,/,
+     &     /,' Total averaged per rank',t183,2f12.1,/,
+     &     ' Task execution efficiency',t183,f12.1,' %')
       call timer_start(98)
       call timer_start(99)
       

@@ -4,7 +4,7 @@
 !     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 !     Any use of the software has to be in compliance with this license. Unless required
 !     by applicable law or agreed to in writing, software distributed under the license
-!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     is distributed on an ‘as is’ basis, without warranties or conditions of any kind,
 !     either express or implied.
 !     See the license for the specific language governing permissions and limitations
 !     under the license.
@@ -12,7 +12,7 @@
 !     GronOR is copyright of the University of Groningen
       
 !> @brief
-!! Reading integral fiels in parallel mode
+!! Reading integral files in parallel mode
 !!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2020
@@ -38,12 +38,13 @@
       implicit none
 
       integer (kind=4) :: ierr,nrecb4
-      integer :: nrecb,i,j,kl,k,n,nn,igr,ngi,mclab
-      integer :: numfiles,nrectot,ilast,ninttot,nrecl,ielem
+      integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,mclab
+      integer (kind=8) :: numfiles,nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
-      real (kind=8),allocatable :: b(:)
-      integer (kind=2),allocatable :: ibuf(:)
-      integer :: kint, kintbatch, mint,nint,jint,lint
+      real (kind=8), allocatable :: b(:)
+      integer (kind=2), allocatable :: ibuf(:)
+      integer (kind=8), allocatable :: ijbuf(:,:)
+      integer :: kint,kintbatch,mint,nint,jint,lint,jbuf(6)
 
       integer (kind=8) :: numigr,idf,idr,ii,jj,kk
 
@@ -120,17 +121,25 @@ C     and retrieved here, if considered useful info
         read(lfnone,err=993) numfiles
       endif
 
+      jbuf(1)=int1
+      jbuf(2)=int2
+      jbuf(3)=mclab
+      jbuf(4)=labels
+      jbuf(5)=numfiles
+      jbuf(6)=mbuf
+      
 !     Broadcast dimensions and information from one-electron intergal file
       
-      call MPI_Bcast(int1,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(int2,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(jbuf,6,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(mclab,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(labels,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(numfiles,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(mbuf,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(potnuc,1,MPI_REAL8,master,
-     &     MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(potnuc,1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+
+      int1=jbuf(1)
+      int2=jbuf(2)
+      mclab=jbuf(3)
+      labels=jbuf(4)
+      numfiles=jbuf(5)
+      mbuf=jbuf(6)
 
 !     Allocate memory for the overlap and one-electron integrals
 
@@ -146,7 +155,6 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
 
-      
       allocate(ifil(numfiles,2))
       
       if(me.eq.master) then
@@ -280,8 +288,32 @@ C     and retrieved here, if considered useful info
 
       endif
 
-      call MPI_Bcast(ndxf,6*mgr,MPI_INTEGER8,master,
+      allocate(ijbuf(mgr,8))
+
+      do j=1,6
+        do i=1,mgr
+          ijbuf(i,j)=ndxf(i,j)
+        enddo
+      enddo
+      do i=1,mgr
+        ijbuf(i,7)=nig(i)
+        ijbuf(i,8)=nng(i)
+      enddo
+     
+      call MPI_Bcast(ijbuf,8*mgr,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
+      
+      do j=1,6
+        do i=1,mgr
+          ndxf(i,j)=ijbuf(i,j)
+        enddo
+      enddo
+      do i=1,mgr
+        nig(i)=ijbuf(i,7)
+        nng(i)=ijbuf(i,8)
+      enddo
+      
+      deallocate(ijbuf)
 
 !     Determine the correct record length of the integral files
       
@@ -293,10 +325,6 @@ C     and retrieved here, if considered useful info
         nrecl=(mbuf+2)*nrecb
       endif
       
-      call MPI_Bcast(nig,mgr,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(nng,mgr,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
 
       if(igr.gt.0) mint2=nng(igr)
       

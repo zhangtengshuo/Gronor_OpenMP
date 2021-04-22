@@ -267,10 +267,14 @@
       integer (kind=4), allocatable :: ndxtv(:)
       integer :: mbuf
       integer (kind=4), allocatable :: new_comm(:)
+      integer (kind=4), allocatable :: new_comm1(:)
+      integer (kind=4), allocatable :: new_comm2(:,:)
       integer (kind=4) :: new_group,grp_group
       integer, allocatable :: ntarget(:)
 
-      integer (kind=8) :: labels, mlab
+      integer (kind=8) :: labels,mlab,icomm1
+
+      logical :: lcomm1
 
       end module gnome_integrals
 

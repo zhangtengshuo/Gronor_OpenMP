@@ -45,12 +45,14 @@
       integer (kind=2),allocatable :: ibuf(:)
       integer :: kint, kintbatch, mint,nint,jint,lint
 
-      integer (kind=8) :: numigr,idf,idr,ii,jj,kk
+      integer (kind=8) :: numigr,idf,idr,ii,jj,kk,inode
 
       integer (kind=8) :: idri,idrf,idg,idgi,idgf
       integer (kind=8), allocatable :: ndxf(:,:)
       integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
-      
+
+      inode=map2(me+1,6)
+
 !     Read the one-electron integral file on the master
       
       if(me.eq.master) then
@@ -372,7 +374,7 @@ C     and retrieved here, if considered useful info
       if(igr.gt.1) intndx=nig(igr-1)+1
       if(igr.lt.mgr) jntndx=nig(igr)
       
-!     Distribute integrals and labels if more tha one group
+!     Distribute integrals and labels if more than one group
 
       if(numgrp.gt.1) then
         if(igr.ge.1) then
@@ -384,12 +386,30 @@ C     and retrieved here, if considered useful info
           nint=1
           do jint=1,kintbatch
             lint=min(mint,kint)
-
+            if(itest.eq.0) then
 #ifdef SINGLEP
-            call MPI_Bcast(g(nint),lint,MPI_REAL4,0,new_comm(igr),ierr)
+              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &             new_comm(igr),ierr)
 #else
-            call MPI_Bcast(g(nint),lint,MPI_REAL8,0,new_comm(igr),ierr)
+              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             new_comm(igr),ierr)
 #endif
+            else
+#ifdef SINGLEP
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &             new_comm1(igr),ierr)
+              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &             new_comm2(igr,inode),ierr)
+              
+#else
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             new_comm1(igr),ierr)
+              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             new_comm2(igr,inode),ierr)
+#endif
+            endif
             if(labels.eq.0) then
               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
      &             new_comm(igr),ierr)

@@ -21,6 +21,7 @@
       subroutine gronor_environment()
  
       use mpi
+      use inp
       use cidist
 
 #ifdef _OPENACC
@@ -99,9 +100,11 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
 
       if(me.eq.master) num_threads=0
 
-      allocate(map1(np,5),map2(np,5))
+      allocate(map1(np,6),map2(np,6))
 
-      call MPI_get_processor_name(nodename, len, ierr)
+!     call MPI_get_processor_name(nodename, len, ierr)
+      call hostnm(nodename)
+      len=inp_strlen(nodename)
 
 !     Trim the JFZ Juwels Booster node name
       if(nodename(1:3).eq.'jwb') then
@@ -238,12 +241,20 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
       map1(me+1,3)=0
       map1(me+1,4)=node
       map1(me+1,5)=0
+      map1(me+1,6)=0
 
-      call MPI_AllReduce(map1,map2,5*np,MPI_INTEGER8,MPI_SUM,
+      call MPI_AllReduce(map1,map2,4*np,MPI_INTEGER8,MPI_SUM,
      & MPI_COMM_WORLD,ierr)
 
       deallocate(map1)
 
+!      map2(me+1,1) : number of acc devices
+!      map2(me+1,2) : number of omp threads
+!      map2(me+1,3) : group
+!      map2(me+1,4) : resource set
+!      map2(me+1,5) : 0
+!      map2(me+1,6) : node
+      
 !     node counts the number ranks consecutive node-ids
 !     usually this is the number of nodes in a system
 !     on systems (Summit) with round-robin assignment to multiple
@@ -268,12 +279,19 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
 !     nnodes counts the number of nodes
       
       nnodes=1
+      map2(1,6)=1
       do i=2,np
        k=0
        do j=1,i-1
-        if(map2(i,4).eq.map2(j,4)) k=k+1
+         if(map2(i,4).eq.map2(j,4)) then
+           k=k+1
+           map2(i,6)=map2(j,6)
+         endif
        enddo
-       if(k.eq.0) nnodes=nnodes+1
+       if(k.eq.0) then
+         nnodes=nnodes+1
+         map2(i,6)=nnodes
+       endif
       enddo
 
 !     ncycls is the number of times blocks of consecutive ranks

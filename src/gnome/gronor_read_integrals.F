@@ -50,21 +50,57 @@
 
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)
 
-      allocate(new_comm(mgr))
+      allocate(new_comm(mgr),new_comm1(mgr),new_comm2(mgr,nnodes))
 
       allocate(ranks_list(numgrp))
 
+!     Create communicators for each first, second, etc rank from each group
+      
       do i=1,mgr
        do j=1,numgrp
          ranks_list(j)=allgroups(j,i+1)
        enddo
-
        call MPI_Group_Incl(group_world,int(numgrp,kind=4),
      & ranks_list,new_group,ierr)
        call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
      &                      new_comm(i),ierr)
       enddo
 
+!     Create communicators for each first, second, etc rank from each first group per node
+
+      lcomm1=.false.
+      do i=1,mgr
+        n=0
+        do j=1,numgrp
+          if(map2(allgroups(j,i+1)+1,6).eq.n+1) then
+            n=n+1
+            ranks_list(n)=allgroups(j,i+1)
+            if(me.eq.allgroups(j,i+1)) lcomm1=.true.
+          endif
+        enddo
+        call MPI_Group_Incl(group_world,int(n,kind=4),
+     &       ranks_list,new_group,ierr)
+        call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &       new_comm1(i),ierr)
+      enddo
+
+!     Create communicators for each first, second, etc rank from groups on the same node
+      
+      do i=1,mgr
+        do n=1,nnodes
+          k=0
+          do j=1,numgrp
+            if(map2(allgroups(j,i+1)+1,6).eq.n) then
+              k=k+1
+              ranks_list(k)=allgroups(j,i+1)
+            endif
+          enddo
+          call MPI_Group_Incl(group_world,int(k,kind=4),
+     &         ranks_list,new_group,ierr)
+          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &         new_comm2(i,n),ierr)
+        enddo
+      enddo
       deallocate(ranks_list)
 
       allocate(ranks_list(mgr))
@@ -387,7 +423,7 @@
 
       close(unit=lfnint,status='keep')
 
-      deallocate(new_comm)
+      deallocate(new_comm,new_comm1,new_comm2)
 
 !     Scaling of the one electron integrals
 

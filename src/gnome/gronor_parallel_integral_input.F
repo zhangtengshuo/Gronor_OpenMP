@@ -57,7 +57,9 @@
 !     Read the one-electron integral file on the master
 
       if(me.eq.master) then
-        rewind(lfnone)
+        open(unit=lfnone,file=filone,form='unformatted',status='old',
+     &       err=994)
+c     rewind(lfnone)
         mclab=0
         read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
         if(mclab.eq.1) labels=1
@@ -460,6 +462,8 @@ C     and retrieved here, if considered useful info
         t(ielem)=0.5d0*t(ielem)
         v(ielem)=0.5d0*v(ielem)       
       enddo
+      
+      flush(lfnout)
       
       return
       

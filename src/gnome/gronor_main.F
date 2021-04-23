@@ -91,6 +91,7 @@ c     use cuda_functions
       integer, allocatable     :: sort_occ(:),occu_aux(:)
       real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
       real(kind=8)             :: thres2,max_coef
+      integer, allocatable     :: nbuf(:,:)
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
@@ -656,7 +657,7 @@ c     use cuda_functions
       
       nacc0=naccel
       nacc1=naccel
-      
+
       if(me.ne.master) then
         nmol   =idum(1)
         mstates=idum(2)
@@ -687,6 +688,14 @@ c     use cuda_functions
         itp4   =idum(17)
         corres =idum(19).eq.1
       endif
+
+      allocate(nbuf(mstates,4))
+      do i=1,mstates
+        nbuf(i,1)=nbasm(i)
+        nbuf(i,2)=nactm(i)
+        nbuf(i,3)=inactm(i)
+        nbuf(i,4)=idetm(i)
+      enddo
       if(np.gt.0) then
         call MPI_Bcast(civm,maxci*mstates,MPI_REAL8,master,
      &       MPI_COMM_WORLD,ierr)
@@ -696,15 +705,16 @@ c     use cuda_functions
      &       MPI_COMM_WORLD,ierr)
         call MPI_Bcast(ncombv,nmol*nbase,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nbasm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nactm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(inactm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(idetm,mstates,MPI_INTEGER8,master,
+        call MPI_Bcast(nbuf,4*mstates,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
       endif
+      do i=1,mstates
+        nbasm(i)=nbuf(i,1)
+        nactm(i)=nbuf(i,2)
+        inactm(i)=nbuf(i,3)
+        idetm(i)=nbuf(i,4)
+      enddo
+      deallocate(nbuf)
       
       nbasis=0
       mactb=0
@@ -738,8 +748,6 @@ c     use cuda_functions
       ngr=(np-1)/mgr
 
       allocate(ranks_heads(ngr+1))
-
-      master=np-1
 
       if(ncycls.gt.1) then
         j=0
@@ -778,63 +786,55 @@ c     use cuda_functions
           if(i-1.eq.master) map2(i,5)=0
         enddo
       endif
+
+      numacc=0
+      numnon=0
+      do i=1,np
+        if(i-1.eq.master) map2(i,5)=0
+        if(map2(i,5).gt.0) numacc=numacc+1
+        if(map2(i,5).lt.0) numnon=numnon+1
+      enddo
+      numacc=numacc/mgr
+      numnon=numnon/mgr
+      maxgrp=numacc+numnon
       
-      if(me.eq.master) then
-        numacc=0
-        numnon=0
-        do i=1,np
-          if(i-1.eq.master) map2(i,5)=0
-          if(map2(i,5).gt.0) numacc=numacc+1
-          if(map2(i,5).lt.0) numnon=numnon+1
-        enddo
-        numacc=numacc/mgr
-        numnon=numnon/mgr
-        maxgrp=numacc+numnon
-      endif
-      call MPI_Bcast(maxgrp,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       allocate(thisgroup(mgr+1))
       allocate(allgroups(maxgrp+1,mgr+1))
       allocate(allheads(maxgrp+1))
-      if(me.eq.master) then
-        numgrp=0
-        igr=0
-        do i=1,np
-          if(map2(i,5).gt.0) then
-            if(igr.eq.0) numgrp=numgrp+1
-            igr=igr+1
-            allgroups(numgrp,1)=map2(i,5)
-            allgroups(numgrp,igr+1)=i-1
-            if(igr.eq.mgr) igr=0
-          endif
-        enddo
+      
+      numgrp=0
+      igr=0
+      do i=1,np
+        if(map2(i,5).gt.0) then
+          if(igr.eq.0) numgrp=numgrp+1
+          igr=igr+1
+          allgroups(numgrp,1)=map2(i,5)
+          allgroups(numgrp,igr+1)=i-1
+          if(igr.eq.mgr) igr=0
+        endif
+      enddo
 
-        if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
-        igr=0
-        do i=1,np
-          if(map2(i,5).lt.0) then
-            if(igr.eq.0) numgrp=numgrp+1
-            igr=igr+1
-            allgroups(numgrp,1)=map2(i,5)
-            allgroups(numgrp,igr+1)=i-1
-            if(igr.eq.mgr) igr=0
-          endif
-        enddo
+      if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      igr=0
+      do i=1,np
+        if(map2(i,5).lt.0) then
+          if(igr.eq.0) numgrp=numgrp+1
+          igr=igr+1
+          allgroups(numgrp,1)=map2(i,5)
+          allgroups(numgrp,igr+1)=i-1
+          if(igr.eq.mgr) igr=0
+        endif
+      enddo
 
-        if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
-        do i=1,numgrp
-          allheads(i)=allgroups(i,2)
-          do j=1,mgr
-            map2(allgroups(i,j+1)+1,3)=i
-          enddo
+      if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      do i=1,numgrp
+        allheads(i)=allgroups(i,2)
+        do j=1,mgr
+          map2(allgroups(i,j+1)+1,3)=i
         enddo
-        allheads(numgrp+1)=master
-      endif
-      call MPI_Bcast(numgrp,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(map2,5*np,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(allgroups,int((maxgrp+1)*(mgr+1),kind=4),
-     &     MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(allheads,int(maxgrp,kind=4),MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
+      enddo
+      allheads(numgrp+1)=master
+      
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
         call errquit(me,2,"Error in main")
@@ -1512,13 +1512,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ndxdet(ibase,jbase)=numdet
         enddo
       enddo
-
-!     Following Bcasts should not be necessary, but added for safety
-
-!     call MPI_Bcast(ndxdet,nbase*nbase,MPI_INTEGER8,master,
-!     &     MPI_COMM_WORLD,ierr)
-!     call MPI_Bcast(lstdet,numdet*2,MPI_INTEGER8,master,
-!     &     MPI_COMM_WORLD,ierr)
 
       if(me.ne.master) then
         lnxt=0

@@ -458,9 +458,6 @@ C     and retrieved here, if considered useful info
             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
      &           new_comm(igr),ierr)
           endif
-          
-          call MPI_Bcast(intndx,1,MPI_INTEGER8,0,new_comm(igr),ierr)
-          call MPI_Bcast(jntndx,1,MPI_INTEGER8,0,new_comm(igr),ierr)
 
         endif
       endif

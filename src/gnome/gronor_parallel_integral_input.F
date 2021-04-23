@@ -52,6 +52,8 @@
       integer (kind=8), allocatable :: ndxf(:,:)
       integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
 
+      call daytag(20)
+      
       inode=map2(me+1,6)
 
 !     Read the one-electron integral file on the master
@@ -114,6 +116,8 @@ C     and retrieved here, if considered useful info
         read(lfnone,err=993) numfiles
       endif
 
+      call daytag(21)
+
 !     Allocate memory for the overlap and one-electron integrals
 
       if(me.ne.master) then
@@ -128,6 +132,9 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
 
+
+      call daytag(22)
+      
       allocate(ifil(numfiles,2))
       
       if(me.eq.master) then
@@ -159,6 +166,8 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(ifil,2*numfiles,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
 
+
+      call daytag(23)
       
 !     Determine id of rank within its group
 
@@ -261,6 +270,8 @@ C     and retrieved here, if considered useful info
 
       endif
 
+      call daytag(24)
+      
       allocate(ijbuf(mgr,8))
 
       do j=1,6
@@ -285,6 +296,8 @@ C     and retrieved here, if considered useful info
         nig(i)=ijbuf(i,7)
         nng(i)=ijbuf(i,8)
       enddo
+      
+      call daytag(25)
       
       deallocate(ijbuf)
 
@@ -368,6 +381,8 @@ C     and retrieved here, if considered useful info
         endif
       endif
 
+      call daytag(26)
+
       intndx=1
       jntndx=mlab
       if(igr.gt.1) intndx=nig(igr-1)+1
@@ -433,6 +448,8 @@ C     and retrieved here, if considered useful info
         endif
       endif
 
+      call daytag(27)
+
 !     Calculate the integral index needed for openacc processing
 
       allocate(ndxtv(nbas))
@@ -465,6 +482,8 @@ C     and retrieved here, if considered useful info
       
       flush(lfnout)
       
+      call daytag(29)
+      
       return
       
  993  write(lfnout,983) filone(1:inp_strlen(filone))
@@ -479,4 +498,27 @@ C     and retrieved here, if considered useful info
       call errquit(me,4,"Error in reading integrals")
  985  format('Error reading two electron integral file ',a)
  986  format('Unable to open two electron integral file ',a)
+      end
+
+      subroutine daytag(itag)
+
+      use cidef
+      use cidist
+      
+      implicit none
+
+      integer :: itag
+      real(kind=8), external :: timer_wall_total
+
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+     &       '  :  Tag ',itag
+ 702    format(a8,2x,a8,f12.3,a,i5)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+
+      return
       end

@@ -73,7 +73,7 @@ c     use cuda_functions
       integer :: iarg,i,j,idum(51),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
-      real (kind=8) :: rdum(5)
+      real (kind=8) :: rdum(6)
       character (len=255) :: string
       logical exist
 
@@ -446,7 +446,6 @@ c     use cuda_functions
         ipvec=0
         idipole=0
         itp4=0
-        ione=0
         bias=0.0d0
         corres=.false.
 
@@ -524,20 +523,20 @@ c     use cuda_functions
           idum(15)=ins2
           idum(16)=ipvec
           idum(17)=itp4
-          idum(18)=ione
+          idum(18)=numfiles
           idum(19)=0
           if(corres) idum(19)=1
           idum(20)=npg
           idum(21)=nnucl
           idum(22)=nbas
-          idum(23)=0
+          idum(23)=mclab
           idum(24)=ntask
           idum(25)=mgr
           idum(26)=itest
           idum(27)=naccel
           idum(28)=inpcib
           idum(29)=ipro
-          idum(30)=0
+          idum(30)=int2
           idum(31)=mpibuf
           idum(32)=idbg
           idum(33)=nummps
@@ -555,16 +554,19 @@ c     use cuda_functions
           idum(45)=nbatcha
           idum(46)=nspin
           idum(47)=labels
+          idum(48)=mbuf
           
           rdum(1)=thresh
           rdum(2)=thresh
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
+          rdum(6)=potnuc
         endif
         
-        call MPI_Bcast(idum,47,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,48,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
         mstates=idum(2)
@@ -583,19 +585,19 @@ c     use cuda_functions
         ins2   =idum(15)
         ipvec  =idum(16)
         itp4   =idum(17)
-        ione   =idum(18)
+        numfiles=idum(18)
         corres =idum(19).eq.1
         npg    =idum(20)
         nnucl  =idum(21)
         nbas   =idum(22)
-
+        mclab  =idum(23)
         ntask =idum(24)
         mgr    =idum(25)
         itest  =idum(26)
         naccel =idum(27)
         inpcib =idum(28)
         ipro   =idum(29)
-
+        int2   =idum(30)
         mpibuf =idum(31)
         idbg   =idum(32)
         nummps =idum(33)
@@ -613,6 +615,9 @@ c     use cuda_functions
         nbatcha=idum(45)
         nspin  =idum(46)
         labels =idum(47)
+        mbuf   =idum(48)
+        
+        int1=(nbas*(nbas+1))/2
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -628,6 +633,7 @@ c     use cuda_functions
         thresh_SIN=rdum(3)
         tolsvj=rdum(4)
         tolevj=rdum(5)
+        potnuc=rdum(6)
 
         if(numdev.gt.0) nbatch=nbatcha
         
@@ -679,7 +685,6 @@ c     use cuda_functions
         ins2   =idum(15)
         ipvec  =idum(16)
         itp4   =idum(17)
-        ione   =idum(18)
         corres =idum(19).eq.1
       endif
       if(np.gt.0) then

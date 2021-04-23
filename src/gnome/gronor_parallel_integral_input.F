@@ -38,8 +38,8 @@
       implicit none
 
       integer (kind=4) :: ierr,nrecb4
-      integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,mclab
-      integer (kind=8) :: numfiles,nrectot,ilast,ninttot,nrecl,ielem
+      integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
+      integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
       real (kind=8), allocatable :: b(:)
       integer (kind=2), allocatable :: ibuf(:)
@@ -55,15 +55,11 @@
       inode=map2(me+1,6)
 
 !     Read the one-electron integral file on the master
-      
+
       if(me.eq.master) then
         rewind(lfnone)
         mclab=0
-        if(ione.eq.0) then
-          read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
-        else
-          read(lfnone,err=993) namint,nbas,intone,potnuc
-        endif
+        read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
         if(mclab.eq.1) labels=1
 
         if(ipr.gt.0) then
@@ -73,7 +69,7 @@
           write(lfnout,602) potnuc
  602      format(/,' Nuclear potential energy',t57,f20.10)
         endif
-        int1=int1+(nbas*(nbas+1))/2
+        int1=(nbas*(nbas+1))/2
         if(ipr.ge.30) then
           write(lfnout,603) mclab,labels
  603      format(/,
@@ -86,21 +82,14 @@ Coen: maybe here a check to be sure that mclab and labels are coherent
         allocate(t(int1))
         allocate(v(int1))
         
-        if(ione.eq.0) then
-          read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
-          do i=1,nbas
-            do j=1,i
-              s(i,j)=s(j,i)
-            end do
+        read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
+        do i=1,nbas
+          do j=1,i
+            s(i,j)=s(j,i)
           end do
-          read(lfnone,err=993) (t(i),i=1,int1)
-          read(lfnone,err=993) (v(i),i=1,int1)
-        else
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,v,intone)
-        endif
+        end do
+        read(lfnone,err=993) (t(i),i=1,int1)
+        read(lfnone,err=993) (v(i),i=1,int1)
 
 Coen: this part is not valid anymore.
 C     although we'll loose backward compatibility, we might 
@@ -122,26 +111,6 @@ C     and retrieved here, if considered useful info
         
         read(lfnone,err=993) numfiles
       endif
-
-      jbuf(1)=int1
-      jbuf(2)=int2
-      jbuf(3)=mclab
-      jbuf(4)=labels
-      jbuf(5)=numfiles
-      jbuf(6)=mbuf
-      
-!     Broadcast dimensions and information from one-electron intergal file
-      
-      call MPI_Bcast(jbuf,6,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(potnuc,1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-
-      int1=jbuf(1)
-      int2=jbuf(2)
-      mclab=jbuf(3)
-      labels=jbuf(4)
-      numfiles=jbuf(5)
-      mbuf=jbuf(6)
 
 !     Allocate memory for the overlap and one-electron integrals
 

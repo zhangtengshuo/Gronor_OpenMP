@@ -144,11 +144,7 @@
 
       if(me.eq.master) then
        rewind(lfnint)
-       if(ione.eq.0) then
-        read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mdum
-       else
-        read(lfnint,err=993) namint,nbas,intone,potnuc
-       endif
+       read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mdum
        if(ipr.ge.1) then
         write(lfnout,601) namint
         flush(lfnout)
@@ -160,21 +156,16 @@
        allocate(s(nbas,nbas))
        allocate(t(int1))
        allocate(v(int1))
-       if(ione.eq.0) then                                            !  Next simplification: restrict ione to 0 
-        read(lfnint,err=993) ((s(i,j),i=1,j),j=1,nbas)
-        do i=1,nbas
+
+       read(lfnint,err=993) ((s(i,j),i=1,j),j=1,nbas)
+       do i=1,nbas
          do j=1,i
            s(i,j)=s(j,i)
          end do
-        end do
-        read(lfnint,err=993) (t(i),i=1,int1)
-        read(lfnint,err=993) (v(i),i=1,int1)
-       else
-        call gronor_read1(lfnint,t,intone)
-        call gronor_read1(lfnint,t,intone)
-        call gronor_read1(lfnint,t,intone)
-        call gronor_read1(lfnint,v,intone)
-       endif
+       end do
+       read(lfnint,err=993) (t(i),i=1,int1)
+       read(lfnint,err=993) (v(i),i=1,int1)
+
        int2=0
        read(lfnint,end=993) nt
 

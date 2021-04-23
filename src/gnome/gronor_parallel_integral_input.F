@@ -425,8 +425,16 @@ C     and retrieved here, if considered useful info
 #endif
             endif
             if(labels.eq.0) then
-              call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &             new_comm(igr),ierr)
+              if(itest.eq.0) then
+                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &               new_comm(igr),ierr)
+              else
+                if(lcomm1.and.nnodes.gt.1)
+     &               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &               new_comm1(igr),ierr)
+                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &               new_comm2(igr,inode),ierr)
+              endif
             endif
 
             if(idbg.gt.10) then
@@ -441,8 +449,16 @@ C     and retrieved here, if considered useful info
           enddo
 
           if(labels.eq.1) then
-            call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
-     &           new_comm(igr),ierr)
+            if(itest.eq.0) then
+              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             new_comm(igr),ierr)
+            else
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             new_comm1(igr),ierr)
+              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             new_comm2(igr,inode),ierr)
+            endif
           endif
 
         endif

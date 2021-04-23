@@ -48,65 +48,72 @@
       allocate(ig(mgr))
       allocate(ntarget(mgr))
 
-      call daytag(10)
+      call daytag(100)
       
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)
 
-      call daytag(11)
+      call daytag(10)
       
       allocate(new_comm(mgr),new_comm1(mgr),new_comm2(mgr,nnodes))
 
       allocate(ranks_list(numgrp))
 
 !     Create communicators for each first, second, etc rank from each group
-      
-      do i=1,mgr
-       do j=1,numgrp
-         ranks_list(j)=allgroups(j,i+1)
-       enddo
-       call MPI_Group_Incl(group_world,int(numgrp,kind=4),
-     & ranks_list,new_group,ierr)
-       call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
-     &                      new_comm(i),ierr)
-      enddo
+
+      call daytag(11)
+      if(itest.eq.0) then
+        do i=1,mgr
+          do j=1,numgrp
+            ranks_list(j)=allgroups(j,i+1)
+          enddo
+          call MPI_Group_Incl(group_world,int(numgrp,kind=4),
+     &         ranks_list,new_group,ierr)
+          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &         new_comm(i),ierr)
+        enddo
+      endif
 
       call daytag(12)
 !     Create communicators for each first, second, etc rank from each first group per node
 
-      lcomm1=.false.
-      do i=1,mgr
-        n=0
-        do j=1,numgrp
-          if(map2(allgroups(j,i+1)+1,6).eq.n+1) then
-            n=n+1
-            ranks_list(n)=allgroups(j,i+1)
-            if(me.eq.allgroups(j,i+1)) lcomm1=.true.
-          endif
+      if(itest.gt.0) then
+        lcomm1=.false.
+        do i=1,mgr
+          n=0
+          do j=1,numgrp
+            if(map2(allgroups(j,i+1)+1,6).eq.n+1) then
+              n=n+1
+              ranks_list(n)=allgroups(j,i+1)
+              if(me.eq.allgroups(j,i+1)) lcomm1=.true.
+            endif
+          enddo
+          call MPI_Group_Incl(group_world,int(n,kind=4),
+     &         ranks_list,new_group,ierr)
+          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &         new_comm1(i),ierr)
         enddo
-        call MPI_Group_Incl(group_world,int(n,kind=4),
-     &       ranks_list,new_group,ierr)
-        call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
-     &       new_comm1(i),ierr)
-      enddo
+      endif
 
       call daytag(13)
 !     Create communicators for each first, second, etc rank from groups on the same node
       
-      do i=1,mgr
-        do n=1,nnodes
-          k=0
-          do j=1,numgrp
-            if(map2(allgroups(j,i+1)+1,6).eq.n) then
-              k=k+1
-              ranks_list(k)=allgroups(j,i+1)
-            endif
+      if(itest.gt.0) then
+        do i=1,mgr
+          do n=1,nnodes
+            k=0
+            do j=1,numgrp
+              if(map2(allgroups(j,i+1)+1,6).eq.n) then
+                k=k+1
+                ranks_list(k)=allgroups(j,i+1)
+              endif
+            enddo
+            call MPI_Group_Incl(group_world,int(k,kind=4),
+     &           ranks_list,new_group,ierr)
+            call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &           new_comm2(i,n),ierr)
           enddo
-          call MPI_Group_Incl(group_world,int(k,kind=4),
-     &         ranks_list,new_group,ierr)
-          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
-     &         new_comm2(i,n),ierr)
         enddo
-      enddo
+      endif
       deallocate(ranks_list)
 
       call daytag(14)

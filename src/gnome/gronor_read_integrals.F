@@ -47,6 +47,8 @@
 
       allocate(ig(mgr))
       allocate(ntarget(mgr))
+
+      mynode=map2(me+1,6)
       
       if(me.eq.master) then
         write(lfnrnk,110)

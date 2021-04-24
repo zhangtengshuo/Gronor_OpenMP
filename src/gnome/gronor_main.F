@@ -869,6 +869,7 @@ c     use cuda_functions
       enddo
       ranks_heads(numgrp+1)=master
       
+      
       new=-1
       
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)

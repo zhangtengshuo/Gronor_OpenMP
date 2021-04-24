@@ -49,7 +49,6 @@
       integer (kind=4) :: me, np, master
       integer (kind=4) :: numdev, mydev
       integer (kind=4) :: group_batch, group_heads, group_world
-      integer (kind=4), allocatable :: grp_comm(:)
       integer (kind=4), allocatable :: ranks_list(:), ranks_heads(:)
 
       integer :: nnodes,nrsets,nranks,ncycls,nrnsets

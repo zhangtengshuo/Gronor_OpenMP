@@ -117,26 +117,10 @@
       deallocate(ranks_list)
 
       call daytag(14)
-      allocate(ranks_list(mgr))
-      allocate(grp_comm(numgrp))
-
-      do i=1,numgrp
-       do j=1,mgr
-        ranks_list(j)=allgroups(i,j+1)
-       enddo
-
-       call MPI_Group_Incl(group_world,int(mgr,kind=4),
-     &  ranks_list,grp_group,ierr)
-       call MPI_Comm_Create(MPI_COMM_WORLD,grp_group,
-     &                      grp_comm(i),ierr)
-      enddo
-
-      deallocate(ranks_list)
-      call daytag(15)
 
       call gronor_parallel_integral_input()
 
-      call daytag(16)
+      call daytag(15)
       return
  993  write(lfnout,983) filint(1:inp_strlen(filint))
       call errquit(me,5,"Error in reading integrals")

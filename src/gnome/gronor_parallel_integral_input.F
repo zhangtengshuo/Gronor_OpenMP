@@ -400,7 +400,7 @@ C     and retrieved here, if considered useful info
           nint=1
           do jint=1,kintbatch
             lint=min(mint,kint)
-            if(itest.eq.-1) then
+            if(itest.eq.0) then
 #ifdef SINGLEP
               call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
      &             new_comm(igr),ierr)
@@ -425,7 +425,7 @@ C     and retrieved here, if considered useful info
 #endif
             endif
             if(labels.eq.0) then
-              if(itest.eq.-1) then
+              if(itest.eq.0) then
                 call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
      &               new_comm(igr),ierr)
               else
@@ -449,7 +449,7 @@ C     and retrieved here, if considered useful info
           enddo
 
           if(labels.eq.1) then
-            if(itest.eq.-1) then
+            if(itest.eq.0) then
               call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
      &             new_comm(igr),ierr)
             else

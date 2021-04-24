@@ -61,7 +61,7 @@
 !     Create communicators for each first, second, etc rank from each group
 
       call daytag(11)
-      if(itest.eq.-1) then
+      if(itest.eq.0) then
         do i=1,mgr
           do j=1,numgrp
             ranks_list(j)=allgroups(j,i+1)
@@ -76,7 +76,7 @@
       call daytag(12)
 !     Create communicators for each first, second, etc rank from each first group per node
 
-      if(itest.eq.0) then
+      if(itest.ne.0) then
         lcomm1=.false.
         do i=1,mgr
           n=0
@@ -97,7 +97,7 @@
       call daytag(13)
 !     Create communicators for each first, second, etc rank from groups on the same node
       
-      if(itest.eq.0) then
+      if(itest.ne.0) then
         do i=1,mgr
           do n=1,nnodes
             k=0

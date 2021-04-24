@@ -42,7 +42,7 @@
 
       integer :: kint, kintbatch, mint,nint,jint,lint
       integer :: nacc
-      integer :: ilast,ii,jj
+      integer :: ilast,ii,jj,myigr
       integer(kind=2)::ibuf(1020)
 
       allocate(ig(mgr))
@@ -64,6 +64,13 @@
  113      format(i4,' : ',20i5)
         enddo
       endif
+
+      myigr=0
+      do i=1,numgrp
+        do j=1,mgr
+          if(allgroups(i,j+1).eq.me) myigr=j
+        enddo
+      enddo
       
       call daytag(100)
       
@@ -115,21 +122,42 @@
 !     Create communicators for each first, second, etc rank from groups on the same node
       
       if(itest.ne.0) then
-        do i=1,mgr
-          do n=1,nnodes
-            k=0
-            do j=1,numgrp
-              if(map2(allgroups(j,i+1)+1,6).eq.n) then
-                k=k+1
-                ranks_list(k)=allgroups(j,i+1)
-              endif
+
+        if(itest.eq.1) then
+          do i=1,mgr
+            do n=1,nnodes
+              k=0
+              do j=1,numgrp
+                if(map2(allgroups(j,i+1)+1,6).eq.n) then
+                  k=k+1
+                  ranks_list(k)=allgroups(j,i+1)
+                endif
+              enddo
+              call MPI_Group_Incl(group_world,int(k,kind=4),
+     &             ranks_list,new_group,ierr)
+              call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+     &             new_comm2(i,n),ierr)
             enddo
-            call MPI_Group_Incl(group_world,int(k,kind=4),
-     &           ranks_list,new_group,ierr)
-            call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
-     &           new_comm2(i,n),ierr)
           enddo
-        enddo
+          
+        else
+          numgrn=0
+          if(mygroup.gt.0) then
+            do i=1,numgrp
+              if(map2(allgroups(i,myigr+1)+1,6).eq.mynode)
+     &             numgrn=numgrn+1
+            enddo
+          endif
+          allocate(igrn(numgrn))
+          numgrn=0
+          do i=1,numgrp
+            if(map2(allgroups(i,myigr+1)+1,6).eq.mynode) then
+              numgrn=numgrn+1
+              igrn(numgrn)=allgroups(i,myigr+1)
+            endif
+          enddo
+        endif
+
       endif
       deallocate(ranks_list)
 

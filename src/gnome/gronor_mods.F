@@ -60,7 +60,7 @@
       integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
       integer, allocatable :: thisgroup(:), allgroups(:,:), allheads(:)
       integer, allocatable :: numrecs(:)
-      integer (kind=8), allocatable :: ipbuf(:,:),igrn(:)
+      integer (kind=8), allocatable :: ipbuf(:,:)
 
 
 !     OpenMP distribution
@@ -72,6 +72,7 @@
 !     Accelerator data
 
       integer (kind=8), target :: memfre, memtot, memavail
+      integer (kind=4), allocatable :: igrn(:)
 
       end module cidist
 

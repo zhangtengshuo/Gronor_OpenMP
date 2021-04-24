@@ -51,7 +51,7 @@
       integer (kind=8) :: idri,idrf,idg,idgi,idgf
       integer (kind=8), allocatable :: ndxf(:,:)
       integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
-
+      integer (kind=4) :: status(MPI_STATUS_SIZE)
       call daytag(20)
       
       inode=map2(me+1,6)
@@ -413,15 +413,42 @@ C     and retrieved here, if considered useful info
               if(lcomm1.and.nnodes.gt.1)
      &             call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
      &             new_comm1(igr),ierr)
-              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
-     &             new_comm2(igr,inode),ierr)
-              
+              if(itest.eq.1) then
+                call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &               new_comm2(igr,inode),ierr) 
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(g(nint),lint,MPI_REAL4,igrn(i),20,
+     &                     MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(g(nint),lint,MPI_REAL4,igrn(1),20,
+     &                   MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif 
 #else
               if(lcomm1.and.nnodes.gt.1)
      &             call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
      &             new_comm1(igr),ierr)
-              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
-     &             new_comm2(igr,inode),ierr)
+              if(itest.eq.1) then
+                call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &               new_comm2(igr,inode),ierr)
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(g(nint),lint,MPI_REAL8,igrn(i),20,
+     &                     MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(g(nint),lint,MPI_REAL8,igrn(1),20,
+     &                   MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif
 #endif
             endif
             if(labels.eq.0) then
@@ -432,8 +459,22 @@ C     and retrieved here, if considered useful info
                 if(lcomm1.and.nnodes.gt.1)
      &               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
      &               new_comm1(igr),ierr)
-                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &               new_comm2(igr,inode),ierr)
+                if(itest.eq.1) then
+                  call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &                 new_comm2(igr,inode),ierr)
+                else
+                  if(numgrn.gt.1) then
+                    if(igrn(1).eq.me) then
+                      do i=2,numgrn
+                        call MPI_iSend(lab(1,nint),4*lint,MPI_INTEGER2,
+     &                       igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                      enddo
+                    else
+                      call MPI_Recv(lab(1,nint),4*lint,MPI_INTEGER2,
+     &                     igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                    endif
+                  endif
+                endif
               endif
             endif
 
@@ -456,8 +497,22 @@ C     and retrieved here, if considered useful info
               if(lcomm1.and.nnodes.gt.1)
      &             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
      &             new_comm1(igr),ierr)
-              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
-     &             new_comm2(igr,inode),ierr)
+              if(itest.eq.1) then
+                call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &               new_comm2(igr,inode),ierr)
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(lab(1,1),2*mlab,MPI_INTEGER2,
+     &                     igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(lab(1,1),2*mlab,MPI_INTEGER2,
+     &                   igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif
             endif
           endif
 

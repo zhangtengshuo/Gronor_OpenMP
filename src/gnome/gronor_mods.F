@@ -53,14 +53,14 @@
 
       integer :: nnodes,nrsets,nranks,ncycls,nrnsets
 
-      integer :: numacc, numnon, numgrp
+      integer :: numacc,numnon,numgrp,numgrn
       integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive
       integer :: mynode,mygroup,myhead,ime,mpibuf
       integer :: iamhead, iamacc, iamactive
       integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
       integer, allocatable :: thisgroup(:), allgroups(:,:), allheads(:)
       integer, allocatable :: numrecs(:)
-      integer (kind=8), allocatable :: ipbuf(:,:)
+      integer (kind=8), allocatable :: ipbuf(:,:),igrn(:)
 
 
 !     OpenMP distribution

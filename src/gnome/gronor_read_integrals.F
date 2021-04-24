@@ -47,7 +47,22 @@
 
       allocate(ig(mgr))
       allocate(ntarget(mgr))
-
+      
+      if(me.eq.master) then
+        write(lfnrnk,110)
+ 110    format(/,' Allgroups',/)
+        do i=1,numgrp
+          write(lfnrnk,111) i,(allgroups(i,j),j=1,mgr+1)
+ 111      format(i4,' : ',20i5)
+        enddo
+        write(lfnrnk,112)
+ 112    format(/,' Map2',/)
+        do i=1,np
+          write(lfnrnk,113) i,(map2(i,j),j=1,6)
+ 113      format(i4,' : ',20i5)
+        enddo
+      endif
+      
       call daytag(100)
       
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)

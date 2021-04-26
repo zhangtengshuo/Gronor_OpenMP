@@ -117,11 +117,11 @@
           if (nCntr(i,l).ne.0) lmax = l
         end do
         sep = '|'
-        info_cml = 'dictRef=gr:shells"'
+        info_cml = 'dictRef="gr:shells"'
         call writetag_array_string(lfncml,info_cml,indent,sep,
      &                  lMoment,lmax)
         sep = ' '
-        info_cml = 'dictRef=gr:contractedFunctions"'
+        info_cml = 'dictRef="gr:contractedFunctions"'
         call writetag_array_integer(lfncml,info_cml,indent,sep,
      &                  nCntr(i,:),lmax)
         indent = indent - 1

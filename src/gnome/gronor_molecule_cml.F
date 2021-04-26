@@ -102,7 +102,7 @@
       label = 'molecule'
       call close_tag(lfncml,label,indent)
       label = 'module'
-      info_cml = 'dictRef="gr:AtomicBasisSet"'
+      info_cml = 'dictRef="gr:atomicBasisSet"'
       call open_tag(lfncml,label,info_cml,indent)
       indent = indent + 1
       do i = 1, nnucl

@@ -248,7 +248,7 @@
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'property'
-      info_cml='dictRef="gr:Hamiltonian" '//trim(id)
+      info_cml='dictRef="gr:hamiltonian" '//trim(id)
       call open_tag(lfncml,label,info_cml,6)
       info_cml='units="nonsi:hartree"'
       sep='|'
@@ -257,7 +257,7 @@
      &   size(hbase,1),size(hbase,2),fmt_1)
       call close_tag(lfncml,label,6)
       if (ncorr.ne.1) then
-        info_cml='dictRef="gr:Overlap"'
+        info_cml='dictRef="gr:overlap"'
         indent = 6
         call open_tag(lfncml,label,info_cml,indent) 
         info='empty'
@@ -299,7 +299,7 @@
           info_cml = 'dictRef="gr:nociRelEnergy" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1='f12.4'
-          info_cml2 = trim(info_cml)//' units="nonsi:eV"'
+          info_cml2 = trim(info_cml)//' units="nonsi:electronvolt"'
           call writetag_scalar_real(lfncml,info_cml2,8,(hev(i)-hev(1))
      &                                                   *27.2114,fmt_1)
           call close_tag(lfncml,label,7)

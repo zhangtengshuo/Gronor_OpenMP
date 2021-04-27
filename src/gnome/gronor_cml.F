@@ -352,11 +352,11 @@
       indent = 3
       info_cml = 'dictRef="cc:finalization"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameterList'
+      label = 'propertyList'
       indent = 4
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameter'
+      label = 'property'
       call swatch(date,time)
       stopDate = date(1:8)//'  '//time(1:8)
       info_cml = 'dictRef="cc:jobdatetime.end"'
@@ -371,7 +371,7 @@
       call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
      &                                fmt_1)
       call close_tag(lfncml,label,5)
-      label = 'parameterList'
+      label = 'propertyList'
       call close_tag(lfncml,label,4)
       label='module'
       indent = 3

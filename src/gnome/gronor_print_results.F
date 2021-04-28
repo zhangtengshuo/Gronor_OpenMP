@@ -332,7 +332,7 @@
         label = 'property'
         info_cml = 'dictRef="gr:mebfCoupling" '//trim(id)
         call open_tag(lfncml,label,info_cml,6)
-        info_cml='units="nonsi:meV"'
+        info_cml='units="nonsi2:meV"'
         fmt_1='f12.4'
         call writetag_matrix_real(lfncml,info_cml,7,sep,tc,
      &              size(tc,1),size(tc,2),fmt_1)

@@ -1535,8 +1535,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call timer_start(99)
       endif
       
-      call daytag(1)
-      
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
       allocate(nsing(nbase,nbase,5))
       allocate(bpdone(nbase,nbase))
@@ -1575,8 +1573,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
  299    continue
       endif
       
-      call daytag(2)
-      
 !     Define the process groups
       
       if(npg.le.0) npg=1
@@ -1598,9 +1594,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 
 !     Read the integrals from lfnint
       
-      call daytag(3)
       call gronor_read_integrals()
-      call daytag(4)
       
       if(me.eq.master) then
         call timer_stop(99)

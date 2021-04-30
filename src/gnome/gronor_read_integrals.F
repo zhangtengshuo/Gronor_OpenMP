@@ -72,19 +72,14 @@
         enddo
       enddo
       
-      call daytag(100)
-      
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)
 
-      call daytag(10)
-      
       allocate(new_comm(mgr),new_comm1(mgr),new_comm2(mgr,nnodes))
 
       allocate(ranks_list(numgrp))
 
 !     Create communicators for each first, second, etc rank from each group
 
-      call daytag(11)
       if(itest.eq.0) then
         do i=1,mgr
           do j=1,numgrp
@@ -97,7 +92,6 @@
         enddo
       endif
 
-      call daytag(12)
 !     Create communicators for each first, second, etc rank from each first group per node
 
       if(itest.ne.0) then
@@ -118,7 +112,6 @@
         enddo
       endif
 
-      call daytag(13)
 !     Create communicators for each first, second, etc rank from groups on the same node
       
       if(itest.ne.0) then
@@ -161,11 +154,8 @@
       endif
       deallocate(ranks_list)
 
-      call daytag(14)
-
       call gronor_parallel_integral_input()
 
-      call daytag(15)
       return
  993  write(lfnout,983) filint(1:inp_strlen(filint))
       call errquit(me,5,"Error in reading integrals")

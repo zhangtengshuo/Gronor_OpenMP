@@ -66,7 +66,7 @@
         length=inp_strlen(fildet)
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
-        read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
+        read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
      &                 fragEner(i),nElectrons(i)
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
@@ -75,11 +75,17 @@
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo
+ 1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
+      write(lfnout,*)'-',fragLabel(1),'-'
+      allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
         mebfLabels = .false.
+        do j = 1, nbase
+          write(mebfLabel(j),618) j
+        end do
+ 618  format(i4)
       else
         mebfLabels = .true.
-        allocate(mebfLabel(nbase))
         write(lfnout,607) '  MEBF       Sum of fragment energies'
  607    format(/,a,/)
         do j = 1,nbase
@@ -90,6 +96,9 @@
  617      format(a6,t12,f22.12)
         enddo
       endif
+      write(lfnout,*) mebfLabels
+      write(lfnout,*) '-',mebfLabel(1),'-'
+      flush(lfnout)
       
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet

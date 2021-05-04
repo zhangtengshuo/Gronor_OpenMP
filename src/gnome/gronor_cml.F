@@ -189,7 +189,6 @@
       wavefunctionType = 'NOCI'
 * some day we might want to add 'Properties' as a new method
      
-
       label = 'module'
       indent = 3
       info_cml = 'dictRef="cc:initialization" id="jobInitialization"'

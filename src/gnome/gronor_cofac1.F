@@ -82,16 +82,20 @@
       call timer_start(42)
       
 !_ACCTGT_($acc kernels present(temp,u,w,ta))
+!_ACCTGT_($acc loop collapse(2))
       do i=1,nelecs
         do j=1,nelecs
           temp(i,j)=w(j,i)
         enddo
       enddo
+!_ACCTGT_($acc loop collapse(2))
       do i=1,nelecs
         do j=1,nelecs
           w(i,j)=temp(i,j)
         enddo
       enddo
+!_ACCTGT_($acc end kernels)
+!_ACCTGT_($acc parallel loop gang present(temp,u,w,ta))
       do i=1,nelecs
 !_ACCTGT_($acc loop vector)
         do j=1,i
@@ -104,7 +108,7 @@
           ta(j,i)=coef
         enddo
       enddo
-!_ACCTGT_($acc end kernels)
+!_ACCTGT_($acc end parallel loop)
 
       call timer_stop(42)
       
@@ -140,7 +144,7 @@
 
         call timer_start(42)
      
-!_ACCTGT_($acc kernels present(u,w,ta))
+!_ACCTGT_($acc parallel loop gang present(temp,u,w,ta))
         do i=1,nelecs
 !_ACCTGT_($acc loop vector)
           do j=1,i
@@ -153,7 +157,7 @@
             ta(j,i)=coef
           enddo
         enddo
-!_ACCTGT_($acc end kernels)
+!_ACCTGT_($acc end parallel loop)
 
         call timer_stop(42)
         
@@ -172,7 +176,7 @@
        
        call timer_start(42)
        
-!_ACCTGT_($acc kernels present(u,w,ta))
+!_ACCTGT_($acc parallel loop gang present(u,w,ta))
 !_OMPTGT_($omp target teams distribute parallel do private(coef))
        do i=1,nelecs
          do j=1,i
@@ -184,7 +188,7 @@
            ta(j,i)=coef
          enddo
        enddo
-!_ACCTGT_($acc end kernels)
+!_ACCTGT_($acc end parallel loop)
 !_OMPTGT_($omp end target)
        call timer_stop(42)
        
@@ -359,7 +363,7 @@ c!_OMPTGT_($omp end target)
       deta=0.0d0
 
 !_ACCTGT_($acc update host(ev))
-!_OMPTGT_($omp target update from(ev))    
+!_OMPTGT_($omp target update from(ev))
 
       do i=1,nelecs
         coefu=ev(i)
@@ -384,7 +388,7 @@ c!_OMPTGT_($omp end target)
           ising=0
 
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(coefu))
-!_ACCTGT_($acc kernels present(ta,u,w,ev))
+!_ACCTGT_($acc parallel loop gang collapse(2) present(ta,u,w,ev))
           do i=1,nelecs
             do j=1,nelecs
               coefu=0.0d0
@@ -394,7 +398,7 @@ c!_OMPTGT_($omp end target)
               ta(i,j)=coefu*0.5d0
             enddo
           enddo
-!_ACCTGT_($acc end kernels)
+!_ACCTGT_($acc end parallel loop)
           call timer_stop(44)
           return
           ising=1

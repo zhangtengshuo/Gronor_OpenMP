@@ -136,6 +136,7 @@
 
       if(nalfa.ne.0) then
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
+!_ACCTGT_($acc loop collapse(2))
        do i=1,nalfa
         do j=1,nbas
          sum=0.0d0
@@ -147,6 +148,7 @@
         enddo
       enddo
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
         do j=1,nbas
         do i=1,nalfa
          ta(i,j)=w2(i,j)
@@ -189,10 +191,11 @@
 
       if(nalfa.ne.0) then
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
+!_ACCTGT_($acc loop collapse(2))
        do j=1,nbas
         do i=1,nbas
          sum=0.0
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+ta(k,j)*va(k,i)
          enddo
@@ -203,18 +206,19 @@
 
       if(nalfa.ne.nelecs) then
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
+!_ACCTGT_($acc loop collapse(2))
        do j=1,nbas
         do i=1,nbas
          sum=0.0d0
          if(ntcla.ne.0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+ta(kk,j)*va(k,i)
           enddo
          endif
          if(nalfa.ne.nveca) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
           do k=m1,nveca
            kk=k+ntcla
            sum=sum+ta(kk,j)*va(k,i)
@@ -224,6 +228,7 @@
         enddo
        enddo
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=w2(i,j)
@@ -231,6 +236,7 @@
        enddo
       else
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
        do j=1,nbas
         do i=1,nbas
          ta(i,j)=0.0d0

@@ -80,7 +80,7 @@
 
 !     Create communicators for each first, second, etc rank from each group
 
-      if(itest.eq.0) then
+      if(idist.eq.0) then
         do i=1,mgr
           do j=1,numgrp
             ranks_list(j)=allgroups(j,i+1)
@@ -94,7 +94,7 @@
 
 !     Create communicators for each first, second, etc rank from each first group per node
 
-      if(itest.ne.0) then
+      if(idist.ne.0) then
         lcomm1=.false.
         do i=1,mgr
           n=0
@@ -114,9 +114,9 @@
 
 !     Create communicators for each first, second, etc rank from groups on the same node
       
-      if(itest.ne.0) then
+      if(idist.ne.0) then
 
-        if(itest.eq.1) then
+        if(idist.eq.1) then
           do i=1,mgr
             do n=1,nnodes
               k=0

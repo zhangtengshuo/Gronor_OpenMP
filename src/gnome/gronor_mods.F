@@ -125,7 +125,7 @@
       implicit none
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
-      integer :: itest,ifault,isolver,jsolver,idevel
+      integer :: itest,ifault,isolver,jsolver,idevel,idist
       integer :: ntask,nbatch,nbatcha
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj

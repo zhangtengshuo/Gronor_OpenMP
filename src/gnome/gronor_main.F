@@ -268,6 +268,15 @@ c     use cuda_functions
         
         itest=0
 
+!     Distribution of integrals
+!     0 : MPI_Bcast to all ranks (default)
+!     1 : MPI_Bcats to all nodes, followed by MPI_Bcast to ranks within nodes
+!     2 : MPI_Bcast to all nodes, followed by MPI_iSend/MPI_Recv to ranks within nodes
+        
+        idist=0
+!        if(nnodes.ge.128.and.nnodes.le.2048.and.np/nnodes.gt.mgr)
+!     &       idist=2
+
         idevel=0
         ifault=1
 
@@ -451,13 +460,15 @@ c     use cuda_functions
         corres=.false.
 
         if(ipr.ge.30) then
-          write(lfnout,604) nmol,ifault,mstates,itest,nbase,idevel
+          write(lfnout,604) nmol,ifault,mstates,itest,nbase,
+     &         idevel,idist
  604      format(/,' Number of fragments',t40,i10,
      &         t60,'Fault tolerance wait time',t100,i10,' sec',/
      &         ' Number of fragment wave functions',t40,i10,
      &         t60,'Test option',t100,i10,/,
      &         ' Number of many-electron base states',t40,i10,
-     &         t60,'Development option',t100,i10)
+     &         t60,'Development option',t100,i10,/,
+     &         t60,'Distribution option',t100,i10)
         else
           write(lfnout,605) nmol,mstates,nbase
  605      format(/,' Number of fragments',t40,i10,/,
@@ -556,6 +567,7 @@ c     use cuda_functions
           idum(46)=nspin
           idum(47)=labels
           idum(48)=mbuf
+          idum(49)=idist
           
           rdum(1)=thresh
           rdum(2)=thresh
@@ -565,7 +577,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        call MPI_Bcast(idum,48,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,49,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
         call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
         
@@ -617,6 +629,7 @@ c     use cuda_functions
         nspin  =idum(46)
         labels =idum(47)
         mbuf   =idum(48)
+        idist  =idum(49)
         
         int1=(nbas*(nbas+1))/2
         

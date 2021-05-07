@@ -258,6 +258,11 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'Distribution',item)) then
+          if(.not.inp_i(idist)) idist=0
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'Development',item)) then
           if(.not.inp_i(idevel)) idevel=0
           goto 2

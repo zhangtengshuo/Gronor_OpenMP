@@ -40,27 +40,24 @@
      & err=994)
  1995 continue
       rewind(lfnint)
-      if(ione.eq.0) then
-       read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mdum
-      else
-       read(lfnint,err=993) namint,nbas,intone,potnuc
-      endif
-      if(ione.eq.0) then
-       read(lfnint,err=993) sdum
-       read(lfnint,err=993) sdum
-       read(lfnint,err=993) sdum
-      else
-       call gronor_read0(lfnint,intone)
-       call gronor_read0(lfnint,intone)
-       call gronor_read0(lfnint,intone)
-       call gronor_read0(lfnint,intone)
-      endif
+      read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mclab
+      if(mclab.eq.1) labels=1
+      
+      read(lfnint,err=993) sdum
+      read(lfnint,err=993) sdum
+      read(lfnint,err=993) sdum
+      
       int2=0
       read(lfnint,end=993) nt
-
+      if(nt(2).eq.-1) read(lfnint) nt(2)
+      read(lfnint,err=993) numfiles
+      
       numone=nt(1)
       numtwo=nt(2)
 
+      int1=(nbas*(nbas+1))/2
+      int2=numtwo
+      
       rewind(unit=lfnint)
       close(unit=lfnint)
 

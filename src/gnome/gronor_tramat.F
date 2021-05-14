@@ -45,6 +45,7 @@
 
 !_ACCTGT_($acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
       do i=1,nelecs
        do j=1,nelecs
         taa(j,i)=ta(j,i)
@@ -91,16 +92,17 @@
 !     calculation of an intermediate array (w)
 
 !_OMPTGT_($omp target teams distribute parallel do private(sum))
+!_ACCTGT_($acc loop collapse(2))
       do j=1,nelecs
        do i=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+va(k,i)*taa(k,j)
          enddo
          if(ntcla .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
            sum=sum+va(k,i)*taa(kk,j)
@@ -108,7 +110,7 @@
          endif
         endif
         if(nalfa .ne. nveca) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
           sum=sum+va(k,i)*taa(kk,j)
@@ -120,6 +122,7 @@
 
 !     put w in the work-matrix (aa)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
       do j=1,nelecs
        do i=1,nbas
         taa(i,j)=w2(i,j)
@@ -128,16 +131,17 @@
 
 !     calculation of the final matrix aa
 !_OMPTGT_($omp target teams distribute parallel do collapse(2) private(sum))
+!_ACCTGT_($acc loop collapse(2))
       do i=1,nbas
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+taa(i,k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+taa(i,kk)*vb(k,j)
@@ -157,6 +161,7 @@
 
 !     put w back in the work-matrix aa
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
+!_ACCTGT_($acc loop collapse(2))
       do j=1,nbas
        do i=1,nbas
         taa(i,j)=w2(i,j)
@@ -169,12 +174,12 @@
        do j=1,nbas
         sum=0.0d0
         if(nalfa .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+sdiag(k)*vb(k,j)
          enddo
          if(ntclb .ne. 0) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
            sum=sum+sdiag(kk)*vb(k,j)
@@ -182,7 +187,7 @@
          endif
         endif
         if(nalfa .ne. nvecb) then
-!_ACCTGT_($acc loop reduction(+:sum))
+!_ACCTGT_($acc loop seq reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
           sum=sum+sdiag(kk)*vb(k,j)

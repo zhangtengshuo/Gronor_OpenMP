@@ -73,7 +73,7 @@ c     use cuda_functions
       integer :: iarg,i,j,idum(51),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
-      real (kind=8) :: rdum(5)
+      real (kind=8) :: rdum(6)
       character (len=255) :: string
       logical exist
 
@@ -91,6 +91,7 @@ c     use cuda_functions
       integer, allocatable     :: sort_occ(:),occu_aux(:)
       real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
       real(kind=8)             :: thres2,max_coef
+      integer, allocatable     :: nbuf(:,:)
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
@@ -266,6 +267,15 @@ c     use cuda_functions
 !     Default is not to write a test file
         
         itest=0
+
+!     Distribution of integrals
+!     0 : MPI_Bcast to all ranks (default)
+!     1 : MPI_Bcats to all nodes, followed by MPI_Bcast to ranks within nodes
+!     2 : MPI_Bcast to all nodes, followed by MPI_iSend/MPI_Recv to ranks within nodes
+        
+        idist=0
+!        if(nnodes.ge.128.and.nnodes.le.2048.and.np/nnodes.gt.mgr)
+!     &       idist=2
 
         idevel=0
         ifault=1
@@ -446,18 +456,19 @@ c     use cuda_functions
         ipvec=0
         idipole=0
         itp4=0
-        ione=0
         bias=0.0d0
         corres=.false.
 
         if(ipr.ge.30) then
-          write(lfnout,604) nmol,ifault,mstates,itest,nbase,idevel
+          write(lfnout,604) nmol,ifault,mstates,itest,nbase,
+     &         idevel,idist
  604      format(/,' Number of fragments',t40,i10,
      &         t60,'Fault tolerance wait time',t100,i10,' sec',/
      &         ' Number of fragment wave functions',t40,i10,
      &         t60,'Test option',t100,i10,/,
      &         ' Number of many-electron base states',t40,i10,
-     &         t60,'Development option',t100,i10)
+     &         t60,'Development option',t100,i10,/,
+     &         t60,'Distribution option',t100,i10)
         else
           write(lfnout,605) nmol,mstates,nbase
  605      format(/,' Number of fragments',t40,i10,/,
@@ -524,20 +535,20 @@ c     use cuda_functions
           idum(15)=ins2
           idum(16)=ipvec
           idum(17)=itp4
-          idum(18)=ione
+          idum(18)=numfiles
           idum(19)=0
           if(corres) idum(19)=1
           idum(20)=npg
           idum(21)=nnucl
           idum(22)=nbas
-          idum(23)=0
+          idum(23)=mclab
           idum(24)=ntask
           idum(25)=mgr
           idum(26)=itest
           idum(27)=naccel
           idum(28)=inpcib
           idum(29)=ipro
-          idum(30)=0
+          idum(30)=int2
           idum(31)=mpibuf
           idum(32)=idbg
           idum(33)=nummps
@@ -555,16 +566,20 @@ c     use cuda_functions
           idum(45)=nbatcha
           idum(46)=nspin
           idum(47)=labels
+          idum(48)=mbuf
+          idum(49)=idist
           
           rdum(1)=thresh
           rdum(2)=thresh
           rdum(3)=thresh_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
+          rdum(6)=potnuc
         endif
         
-        call MPI_Bcast(idum,47,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,5,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(idum,49,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
         mstates=idum(2)
@@ -583,19 +598,19 @@ c     use cuda_functions
         ins2   =idum(15)
         ipvec  =idum(16)
         itp4   =idum(17)
-        ione   =idum(18)
+        numfiles=idum(18)
         corres =idum(19).eq.1
         npg    =idum(20)
         nnucl  =idum(21)
         nbas   =idum(22)
-
+        mclab  =idum(23)
         ntask =idum(24)
         mgr    =idum(25)
         itest  =idum(26)
         naccel =idum(27)
         inpcib =idum(28)
         ipro   =idum(29)
-
+        int2   =idum(30)
         mpibuf =idum(31)
         idbg   =idum(32)
         nummps =idum(33)
@@ -613,6 +628,10 @@ c     use cuda_functions
         nbatcha=idum(45)
         nspin  =idum(46)
         labels =idum(47)
+        mbuf   =idum(48)
+        idist  =idum(49)
+        
+        int1=(nbas*(nbas+1))/2
         
         if(me.eq.master) then
           call timer_stop(99)
@@ -628,6 +647,7 @@ c     use cuda_functions
         thresh_SIN=rdum(3)
         tolsvj=rdum(4)
         tolevj=rdum(5)
+        potnuc=rdum(6)
 
         if(numdev.gt.0) nbatch=nbatcha
         
@@ -650,7 +670,7 @@ c     use cuda_functions
       
       nacc0=naccel
       nacc1=naccel
-      
+
       if(me.ne.master) then
         nmol   =idum(1)
         mstates=idum(2)
@@ -679,9 +699,16 @@ c     use cuda_functions
         ins2   =idum(15)
         ipvec  =idum(16)
         itp4   =idum(17)
-        ione   =idum(18)
         corres =idum(19).eq.1
       endif
+
+      allocate(nbuf(mstates,4))
+      do i=1,mstates
+        nbuf(i,1)=nbasm(i)
+        nbuf(i,2)=nactm(i)
+        nbuf(i,3)=inactm(i)
+        nbuf(i,4)=idetm(i)
+      enddo
       if(np.gt.0) then
         call MPI_Bcast(civm,maxci*mstates,MPI_REAL8,master,
      &       MPI_COMM_WORLD,ierr)
@@ -691,15 +718,16 @@ c     use cuda_functions
      &       MPI_COMM_WORLD,ierr)
         call MPI_Bcast(ncombv,nmol*nbase,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nbasm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nactm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(inactm,mstates,MPI_INTEGER8,master,
-     &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(idetm,mstates,MPI_INTEGER8,master,
+        call MPI_Bcast(nbuf,4*mstates,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
       endif
+      do i=1,mstates
+        nbasm(i)=nbuf(i,1)
+        nactm(i)=nbuf(i,2)
+        inactm(i)=nbuf(i,3)
+        idetm(i)=nbuf(i,4)
+      enddo
+      deallocate(nbuf)
       
       nbasis=0
       mactb=0
@@ -733,8 +761,6 @@ c     use cuda_functions
       ngr=(np-1)/mgr
 
       allocate(ranks_heads(ngr+1))
-
-      master=np-1
 
       if(ncycls.gt.1) then
         j=0
@@ -773,63 +799,55 @@ c     use cuda_functions
           if(i-1.eq.master) map2(i,5)=0
         enddo
       endif
+
+      numacc=0
+      numnon=0
+      do i=1,np
+        if(i-1.eq.master) map2(i,5)=0
+        if(map2(i,5).gt.0) numacc=numacc+1
+        if(map2(i,5).lt.0) numnon=numnon+1
+      enddo
+      numacc=numacc/mgr
+      numnon=numnon/mgr
+      maxgrp=numacc+numnon
       
-      if(me.eq.master) then
-        numacc=0
-        numnon=0
-        do i=1,np
-          if(i-1.eq.master) map2(i,5)=0
-          if(map2(i,5).gt.0) numacc=numacc+1
-          if(map2(i,5).lt.0) numnon=numnon+1
-        enddo
-        numacc=numacc/mgr
-        numnon=numnon/mgr
-        maxgrp=numacc+numnon
-      endif
-      call MPI_Bcast(maxgrp,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
       allocate(thisgroup(mgr+1))
       allocate(allgroups(maxgrp+1,mgr+1))
       allocate(allheads(maxgrp+1))
-      if(me.eq.master) then
-        numgrp=0
-        igr=0
-        do i=1,np
-          if(map2(i,5).gt.0) then
-            if(igr.eq.0) numgrp=numgrp+1
-            igr=igr+1
-            allgroups(numgrp,1)=map2(i,5)
-            allgroups(numgrp,igr+1)=i-1
-            if(igr.eq.mgr) igr=0
-          endif
-        enddo
+      
+      numgrp=0
+      igr=0
+      do i=1,np
+        if(map2(i,5).gt.0) then
+          if(igr.eq.0) numgrp=numgrp+1
+          igr=igr+1
+          allgroups(numgrp,1)=map2(i,5)
+          allgroups(numgrp,igr+1)=i-1
+          if(igr.eq.mgr) igr=0
+        endif
+      enddo
 
-        if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
-        igr=0
-        do i=1,np
-          if(map2(i,5).lt.0) then
-            if(igr.eq.0) numgrp=numgrp+1
-            igr=igr+1
-            allgroups(numgrp,1)=map2(i,5)
-            allgroups(numgrp,igr+1)=i-1
-            if(igr.eq.mgr) igr=0
-          endif
-        enddo
+      if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      igr=0
+      do i=1,np
+        if(map2(i,5).lt.0) then
+          if(igr.eq.0) numgrp=numgrp+1
+          igr=igr+1
+          allgroups(numgrp,1)=map2(i,5)
+          allgroups(numgrp,igr+1)=i-1
+          if(igr.eq.mgr) igr=0
+        endif
+      enddo
 
-        if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
-        do i=1,numgrp
-          allheads(i)=allgroups(i,2)
-          do j=1,mgr
-            map2(allgroups(i,j+1)+1,3)=i
-          enddo
+      if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      do i=1,numgrp
+        allheads(i)=allgroups(i,2)
+        do j=1,mgr
+          map2(allgroups(i,j+1)+1,3)=i
         enddo
-        allheads(numgrp+1)=master
-      endif
-      call MPI_Bcast(numgrp,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(map2,5*np,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(allgroups,int((maxgrp+1)*(mgr+1),kind=4),
-     &     MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(allheads,int(maxgrp,kind=4),MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
+      enddo
+      allheads(numgrp+1)=master
+      
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
         call errquit(me,2,"Error in main")
@@ -863,6 +881,7 @@ c     use cuda_functions
         enddo
       enddo
       ranks_heads(numgrp+1)=master
+      
       
       new=-1
       
@@ -1172,10 +1191,10 @@ c     use cuda_functions
       endif
 
       if(me.eq.master) then
-        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,5),i=1,np)
+        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,6),i=1,np)
  6666   format(//,' Rank map',//,
-     &       '    Rank  NumDev NumThrd   Group    Node     Act',//,
-     &       (6i8))
+     &       '    Rank  NumDev NumThrd   Group',
+     &       '    RSet     Act    Node',//,(7i8))
       endif
       
       if(me.eq.master) then
@@ -1507,13 +1526,6 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           ndxdet(ibase,jbase)=numdet
         enddo
       enddo
-
-!     Following Bcasts should not be necessary, but added for safety
-
-!     call MPI_Bcast(ndxdet,nbase*nbase,MPI_INTEGER8,master,
-!     &     MPI_COMM_WORLD,ierr)
-!     call MPI_Bcast(lstdet,numdet*2,MPI_INTEGER8,master,
-!     &     MPI_COMM_WORLD,ierr)
 
       if(me.ne.master) then
         lnxt=0

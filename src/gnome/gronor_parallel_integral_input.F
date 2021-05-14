@@ -4,7 +4,7 @@
 !     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 !     Any use of the software has to be in compliance with this license. Unless required
 !     by applicable law or agreed to in writing, software distributed under the license
-!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     is distributed on an ‘as is’ basis, without warranties or conditions of any kind,
 !     either express or implied.
 !     See the license for the specific language governing permissions and limitations
 !     under the license.
@@ -12,7 +12,7 @@
 !     GronOR is copyright of the University of Groningen
       
 !> @brief
-!! Reading integral fiels in parallel mode
+!! Reading integral files in parallel mode
 !!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2020
@@ -38,29 +38,31 @@
       implicit none
 
       integer (kind=4) :: ierr,nrecb4
-      integer :: nrecb,i,j,kl,k,n,nn,igr,ngi,mclab
-      integer :: numfiles,nrectot,ilast,ninttot,nrecl,ielem
+      integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
+      integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
-      real (kind=8),allocatable :: b(:)
-      integer (kind=2),allocatable :: ibuf(:)
-      integer :: kint, kintbatch, mint,nint,jint,lint
+      real (kind=8), allocatable :: b(:)
+      integer (kind=2), allocatable :: ibuf(:)
+      integer (kind=8), allocatable :: ijbuf(:,:)
+      integer :: kint,kintbatch,mint,nint,jint,lint,jbuf(6)
 
-      integer (kind=8) :: numigr,idf,idr,ii,jj,kk
+      integer (kind=8) :: numigr,idf,idr,ii,jj,kk,inode
 
       integer (kind=8) :: idri,idrf,idg,idgi,idgf
       integer (kind=8), allocatable :: ndxf(:,:)
       integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
+      integer (kind=4) :: status(MPI_STATUS_SIZE)
       
+      inode=map2(me+1,6)
+
 !     Read the one-electron integral file on the master
-      
+
       if(me.eq.master) then
-        rewind(lfnone)
+        open(unit=lfnone,file=filone,form='unformatted',status='old',
+     &       err=994)
+c     rewind(lfnone)
         mclab=0
-        if(ione.eq.0) then
-          read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
-        else
-          read(lfnone,err=993) namint,nbas,intone,potnuc
-        endif
+        read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
         if(mclab.eq.1) labels=1
 
         if(ipr.gt.0) then
@@ -70,7 +72,7 @@
           write(lfnout,602) potnuc
  602      format(/,' Nuclear potential energy',t57,f20.10)
         endif
-        int1=int1+(nbas*(nbas+1))/2
+        int1=(nbas*(nbas+1))/2
         if(ipr.ge.30) then
           write(lfnout,603) mclab,labels
  603      format(/,
@@ -83,21 +85,14 @@ Coen: maybe here a check to be sure that mclab and labels are coherent
         allocate(t(int1))
         allocate(v(int1))
         
-        if(ione.eq.0) then
-          read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
-          do i=1,nbas
-            do j=1,i
-              s(i,j)=s(j,i)
-            end do
+        read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
+        do i=1,nbas
+          do j=1,i
+            s(i,j)=s(j,i)
           end do
-          read(lfnone,err=993) (t(i),i=1,int1)
-          read(lfnone,err=993) (v(i),i=1,int1)
-        else
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,t,intone)
-          call gronor_read1(lfnone,v,intone)
-        endif
+        end do
+        read(lfnone,err=993) (t(i),i=1,int1)
+        read(lfnone,err=993) (v(i),i=1,int1)
 
 Coen: this part is not valid anymore.
 C     although we'll loose backward compatibility, we might 
@@ -120,18 +115,6 @@ C     and retrieved here, if considered useful info
         read(lfnone,err=993) numfiles
       endif
 
-!     Broadcast dimensions and information from one-electron intergal file
-      
-      call MPI_Bcast(int1,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(int2,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(mclab,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(labels,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(numfiles,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(mbuf,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(potnuc,1,MPI_REAL8,master,
-     &     MPI_COMM_WORLD,ierr)
-
 !     Allocate memory for the overlap and one-electron integrals
 
       if(me.ne.master) then
@@ -146,7 +129,6 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
 
-      
       allocate(ifil(numfiles,2))
       
       if(me.eq.master) then
@@ -178,7 +160,6 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(ifil,2*numfiles,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
 
-      
 !     Determine id of rank within its group
 
       igr=0
@@ -280,8 +261,32 @@ C     and retrieved here, if considered useful info
 
       endif
 
-      call MPI_Bcast(ndxf,6*mgr,MPI_INTEGER8,master,
+      allocate(ijbuf(mgr,8))
+
+      do j=1,6
+        do i=1,mgr
+          ijbuf(i,j)=ndxf(i,j)
+        enddo
+      enddo
+      do i=1,mgr
+        ijbuf(i,7)=nig(i)
+        ijbuf(i,8)=nng(i)
+      enddo
+     
+      call MPI_Bcast(ijbuf,8*mgr,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
+      
+      do j=1,6
+        do i=1,mgr
+          ndxf(i,j)=ijbuf(i,j)
+        enddo
+      enddo
+      do i=1,mgr
+        nig(i)=ijbuf(i,7)
+        nng(i)=ijbuf(i,8)
+      enddo
+      
+      deallocate(ijbuf)
 
 !     Determine the correct record length of the integral files
       
@@ -293,10 +298,6 @@ C     and retrieved here, if considered useful info
         nrecl=(mbuf+2)*nrecb
       endif
       
-      call MPI_Bcast(nig,mgr,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(nng,mgr,MPI_INTEGER8,master,
-     &     MPI_COMM_WORLD,ierr)
 
       if(igr.gt.0) mint2=nng(igr)
       
@@ -372,7 +373,7 @@ C     and retrieved here, if considered useful info
       if(igr.gt.1) intndx=nig(igr-1)+1
       if(igr.lt.mgr) jntndx=nig(igr)
       
-!     Distribute integrals and labels if more tha one group
+!     Distribute integrals and labels if more than one group
 
       if(numgrp.gt.1) then
         if(igr.ge.1) then
@@ -384,15 +385,82 @@ C     and retrieved here, if considered useful info
           nint=1
           do jint=1,kintbatch
             lint=min(mint,kint)
-
+            if(idist.eq.0) then
 #ifdef SINGLEP
-            call MPI_Bcast(g(nint),lint,MPI_REAL4,0,new_comm(igr),ierr)
-#else
-            call MPI_Bcast(g(nint),lint,MPI_REAL8,0,new_comm(igr),ierr)
-#endif
-            if(labels.eq.0) then
-              call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
      &             new_comm(igr),ierr)
+#else
+              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             new_comm(igr),ierr)
+#endif
+            else
+#ifdef SINGLEP
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &             new_comm1(igr),ierr)
+              if(idist.eq.1) then
+                call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &               new_comm2(igr,inode),ierr) 
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(g(nint),lint,MPI_REAL4,igrn(i),20,
+     &                     MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(g(nint),lint,MPI_REAL4,igrn(1),20,
+     &                   MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif 
+#else
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             new_comm1(igr),ierr)
+              if(idist.eq.1) then
+                call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &               new_comm2(igr,inode),ierr)
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(g(nint),lint,MPI_REAL8,igrn(i),20,
+     &                     MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(g(nint),lint,MPI_REAL8,igrn(1),20,
+     &                   MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif
+#endif
+            endif
+            if(labels.eq.0) then
+              if(idist.eq.0) then
+                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &               new_comm(igr),ierr)
+              else
+                if(lcomm1.and.nnodes.gt.1)
+     &               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &               new_comm1(igr),ierr)
+                if(idist.eq.1) then
+                  call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
+     &                 new_comm2(igr,inode),ierr)
+                else
+                  if(numgrn.gt.1) then
+                    if(igrn(1).eq.me) then
+                      do i=2,numgrn
+                        call MPI_iSend(lab(1,nint),4*lint,MPI_INTEGER2,
+     &                       igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                      enddo
+                    else
+                      call MPI_Recv(lab(1,nint),4*lint,MPI_INTEGER2,
+     &                     igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                    endif
+                  endif
+                endif
+              endif
             endif
 
             if(idbg.gt.10) then
@@ -407,12 +475,31 @@ C     and retrieved here, if considered useful info
           enddo
 
           if(labels.eq.1) then
-            call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
-     &           new_comm(igr),ierr)
+            if(idist.eq.0) then
+              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             new_comm(igr),ierr)
+            else
+              if(lcomm1.and.nnodes.gt.1)
+     &             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             new_comm1(igr),ierr)
+              if(idist.eq.1) then
+                call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &               new_comm2(igr,inode),ierr)
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      call MPI_iSend(lab(1,1),2*mlab,MPI_INTEGER2,
+     &                     igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                    enddo
+                  else
+                    call MPI_Recv(lab(1,1),2*mlab,MPI_INTEGER2,
+     &                   igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif
+            endif
           endif
-          
-          call MPI_Bcast(intndx,1,MPI_INTEGER8,0,new_comm(igr),ierr)
-          call MPI_Bcast(jntndx,1,MPI_INTEGER8,0,new_comm(igr),ierr)
 
         endif
       endif
@@ -446,6 +533,8 @@ C     and retrieved here, if considered useful info
         t(ielem)=0.5d0*t(ielem)
         v(ielem)=0.5d0*v(ielem)       
       enddo
+      
+      flush(lfnout)
       
       return
       

@@ -62,7 +62,6 @@
       integer, allocatable :: numrecs(:)
       integer (kind=8), allocatable :: ipbuf(:,:)
 
-
 !     OpenMP distribution
 
 !     num_treads : number of threads set by environment OMP_NUM_THREADS
@@ -73,6 +72,10 @@
 
       integer (kind=8), target :: memfre, memtot, memavail
       integer (kind=4), allocatable :: igrn(:)
+
+#ifdef CUDA
+      type(c_ptr) :: cpfre, cptot
+#endif
 
       end module cidist
 

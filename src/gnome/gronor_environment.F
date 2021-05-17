@@ -48,9 +48,6 @@ c      use cuda_rt
 
       integer (kind=8) :: lenv,statv
 
-#ifdef CUDA
-      type(c_ptr) :: cpfre, cptot
-#endif
 
       string="HOME"
       call get_environment_variable(string,value,lenv,statv)

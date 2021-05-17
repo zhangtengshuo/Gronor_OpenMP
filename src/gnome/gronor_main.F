@@ -104,10 +104,6 @@ c     use cuda_functions
       integer*4 len4,ierr4
 #endif
 
-#ifdef _OPENACC
-      type(c_ptr) :: cpfre, cptot
-#endif
-      
       call timer_init()
 
       call timer_start(99)
@@ -1233,7 +1229,7 @@ c     use cuda_functions
           call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
-c     istat=cudaMemGetInfo(cpfre,cptot)
+          istat=cudaMemGetInfo(cpfre,cptot)
           memavail=memfre
           if(idbg.gt.0) then
             call swatch(date,time)
@@ -1251,11 +1247,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
 
-!     if(numdev.gt.1) then
-!     cpfre=c_loc(memfre)
-!     cptot=c_loc(memtot)
-!     istat=cudaMemGetInfo(cpfre,cptot)
-!     endif
+        if(numdev.gt.1) then
+          cpfre=c_loc(memfre)
+          cptot=c_loc(memtot)
+          istat=cudaMemGetInfo(cpfre,cptot)
+        endif
 
 #endif
 

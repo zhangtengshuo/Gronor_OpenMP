@@ -73,10 +73,6 @@
       integer (kind=8), target :: memfre, memtot, memavail
       integer (kind=4), allocatable :: igrn(:)
 
-#ifdef CUDA
-      type(c_ptr) :: cpfre, cptot
-#endif
-
       end module cidist
 
       module cidef

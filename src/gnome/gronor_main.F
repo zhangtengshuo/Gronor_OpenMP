@@ -103,6 +103,10 @@ c     use cuda_functions
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
+      
+#ifdef CUDA
+      type(c_ptr) :: cpfre, cptot
+#endif
 
       call timer_init()
 

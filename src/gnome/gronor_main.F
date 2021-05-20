@@ -1233,7 +1233,7 @@ c     use cuda_functions
           call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
-          istat=cudaMemGetInfo(cpfre,cptot)
+c          istat=cudaMemGetInfo(cpfre,cptot)
           memavail=memfre
           if(idbg.gt.0) then
             call swatch(date,time)
@@ -1254,7 +1254,7 @@ c     use cuda_functions
         if(numdev.gt.1) then
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
-          istat=cudaMemGetInfo(cpfre,cptot)
+c          istat=cudaMemGetInfo(cpfre,cptot)
         endif
 
 #endif
@@ -1847,17 +1847,18 @@ c     use cuda_functions
           write(lfnlog,800)
  800      format('  Date     Time         Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc MPS OMP Mgr ',
-     &         'Solvers Task Batch Frgm Base States Thresh  ',
+     &         'Dist Solvers Task Batch Frgm Base States Thresh  ',
      &         'User Jobname',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
-     &       iaslvr,jaslvr,inslvr,jnslvr,
+     &       idist,iaslvr,jaslvr,inslvr,jnslvr,
      &       ntask,max(1,nbatch),nmol,nbase,mstates,thresh,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,3f12.3,4i7,3i4,4i2,i5,i5,3i5,1pe12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,3f12.3,4i7,3i4,i5,4i2,i5,i5,3i5,1pe12.3,
+     &       1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
           write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)
@@ -1932,11 +1933,11 @@ c     use cuda_functions
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.nalive+1.ne.np) then
-        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-      else
+c      if(me.eq.master.and.nalive+1.ne.np) then
+c        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+c      else
         call mpi_finalize(ierr)
-      endif
+c      endif
       
       return
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))

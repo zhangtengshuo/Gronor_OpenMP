@@ -267,7 +267,7 @@
 
       if(me.eq.master) then
         if(ipr.ge.40) then
-          write(lfnout,620) nalive+1,np
+          write(lfnout,620) mgr*nalive+1,np
  620      format(/,' At the end of the run ',i8,' of ',i8,
      &         ' processes are still active')
         endif

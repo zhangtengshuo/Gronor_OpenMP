@@ -1940,9 +1940,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
 c      if(me.eq.master.and.nalive+1.ne.np) then
-c        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
 c      else
-        call mpi_finalize(ierr)
+c        call mpi_finalize(ierr)
 c      endif
       
       return

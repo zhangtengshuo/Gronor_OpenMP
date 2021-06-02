@@ -1549,6 +1549,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
+      allocate(hev(nbase))
       allocate(nsing(nbase,nbase,5))
       allocate(bpdone(nbase,nbase))
 
@@ -1826,7 +1827,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
-        call gronor_print_results(hbase,sbase,nbase)
+        call gronor_print_results(hbase,sbase,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
           hcorr = 0.0
@@ -1834,7 +1835,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
-          call gronor_print_results(hcorr,sbase,nbase)
+          call gronor_print_results(hcorr,sbase,nbase,hev)
           deallocate( hcorr )
         endif
 
@@ -1861,9 +1862,14 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
-          write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)
+          write(lfnlog,803)
+     &         (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
         endif
-* Close the cml file after closing the remaining open tags
+        write(lfnlog,803) (hev(i),i=1,nbase)
+*     Close the cml file after closing the remaining open tags
+        if(nbase.gt.1) then
+          write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
+        endif
         call gronor_finalize_cml
         close(unit=lfncml,status='keep')
 *
@@ -1882,7 +1888,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
 
-      deallocate(hbase,sbase,tbase,nsing,bpdone)
+      deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
 
       deallocate(lstdet,ndxdet)
 

@@ -19,7 +19,7 @@
 !! @date    2020
 !!
 
-      subroutine gronor_print_results(hbase,sbase,nbase)
+      subroutine gronor_print_results(hbase,sbase,nbase,hev)
       
       use gnome_parameters, only : itest,ncols
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,
@@ -38,12 +38,12 @@
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
       character(len=5)              :: token
-*
+
       character(len=132)            :: info_cml,info_cml2,fmt_1,id
       character(len=20)             :: label
       character(len=1)              :: sep
       integer                       :: indent
-
+      
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
       nk=nbase/ncols

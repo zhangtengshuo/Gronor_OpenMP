@@ -187,6 +187,8 @@
           
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions')
+        write(lfnarx,667) nbase,ncols
+ 667    format('NOCI ',2i10)
 
         nk=nbase/ncols
         if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -196,10 +198,15 @@
 
           write(lfnout,680) (i,i=ii,il)
  680      format(/,'          State:',t18,12(i15,5x))
+          write(lfnarx,668) (i,i=ii,il)
+ 668      format(7(6x,i8,6x))
           write(lfnout,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
+          write(lfnarx,669) (hev(i),i=ii,il)
+ 669      format(10f20.10)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
+          write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
           token="MEBF:"
           do j=1,nbase
             if(j.eq.1) then
@@ -345,6 +352,9 @@
         indent = 4
         call close_tag(lfncml,label,indent)
       end if
+
+      flush(lfnarx)
+      
       return
       
       end subroutine gronor_print_results

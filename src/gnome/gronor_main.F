@@ -428,11 +428,20 @@ c     use cuda_functions
      &       'One electron integral file is',t92,a,//,
      &       ' CI vector file(s) are',t25,a,'_nnn.det',/
      &       ' MO vector file(s) are',t25,a,'_nnn.vec')
-
-        write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
- 401    format('*** ',a,' on ',a,' : ',a)
-        write(lfnarx,402) nnodes,np
- 402    format('Nodes',i10,i10)
+        
+        call swatch(date,time)
+        write(lfnarx,401) trim(user)
+ 401    format('User ',a)
+        write(lfnarx,402) trim(date)
+ 402    format('Date ',a)
+        write(lfnarx,403) trim(time)
+ 403    format('Time ',a)
+        write(lfnarx,404) trim(host)
+ 404    format('Host ',a)
+        write(lfnarx,405) root(1:inp_strlen(root))
+ 405    format('Root ',a)
+        write(lfnarx,406) nnodes,np
+ 406    format('Nodes',i10,i10)
 
         call gronor_number_integrals(numone,numtwo)
         

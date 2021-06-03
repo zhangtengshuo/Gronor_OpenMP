@@ -1948,11 +1948,13 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-c      if(me.eq.master.and.nalive+1.ne.np) then
+      if(me.eq.master.and.nalive.ne.npg) then
+        ierror=0
+        ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-c      else
-c        call mpi_finalize(ierr)
-c      endif
+      else
+        call mpi_finalize(ierr)
+      endif
       
       return
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))

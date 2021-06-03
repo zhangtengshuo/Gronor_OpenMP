@@ -326,9 +326,9 @@
  702    format(a8,2x,a8,f12.3,a)
         call swatch(date,time)
         write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
-     &       nalive+1,np
+     &       nalive,npg
  703    format(a8,2x,a8,f12.3,'  :  Completion of job with',i8,' of ',
-     &       i8,' processes still active')
+     &       i8,' groups still active')
         flush(lfnday)
       endif
       

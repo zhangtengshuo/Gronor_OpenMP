@@ -203,7 +203,7 @@
           write(lfnout,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
           write(lfnarx,669) (hev(i),i=ii,il)
- 669      format(10f20.10)
+ 669      format(10e20.13)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
           write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)

@@ -12,7 +12,7 @@
 !     GronOR is copyright of the University of Groningen
 
       subroutine remove_duplicates_fildet
-     &     (ndetin,ndetout,cicoef,occ,thresh)
+     &     (ndetin,ndetout,cicoef,occ,tau_CI)
       
       implicit none
       
@@ -21,7 +21,7 @@
       integer      :: i,j
       real(kind=8) :: cicoef(ndetin)
       real(kind=8) :: ciaux(ndetin)
-      real(kind=8) :: thresh
+      real(kind=8) :: tau_CI
       character(len=255)    :: occ(ndetin)
       character(len=255)    :: occaux(ndetin)      
       
@@ -51,7 +51,7 @@
       ndetaux=ndetout
       ndetout=0      
       do i=1,ndetaux
-         if(dabs(ciaux(i)).ge.thresh)then
+         if(dabs(ciaux(i)).ge.tau_CI)then
             ndetout=ndetout+1
             cicoef(ndetout)=ciaux(i)
             occ(ndetout)=occaux(i)

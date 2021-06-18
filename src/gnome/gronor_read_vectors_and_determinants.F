@@ -67,7 +67,7 @@
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
         read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
-     &                 fragEner(i),nElectrons(i)
+     &                 fragEner(i),nElectrons(i),tau_MO
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
@@ -105,7 +105,7 @@
         enddo                                    
         call remove_duplicates_fildet
      &       (idet_raw(i),idetm(i),civ_raw(:,i),
-     &       occ_string(:,i),thresh)
+     &       occ_string(:,i),tau_CI)
         close(unit=lfndet)                        
         maxci=max(maxci,idetm(i))     
       enddo

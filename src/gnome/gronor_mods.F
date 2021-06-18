@@ -133,7 +133,7 @@
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
-      real (kind=8) :: thresh,thresh_SIN
+      real (kind=8) :: tau_MO,tau_CI,tau_SIN,thresh,thresh_SIN
       real (kind=8) :: tolsvj,tolevj
 
       logical :: corres

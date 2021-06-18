@@ -140,7 +140,7 @@
         hh=0.0d0
         ss=0.0d0
         
-        if(dabs(civb(i,ib)*civb(j,jb)).lt.thresh) then
+        if(dabs(civb(i,ib)*civb(j,jb)).lt.tau_CI) then
           ising=4
         else
           

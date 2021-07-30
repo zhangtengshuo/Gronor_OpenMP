@@ -171,13 +171,22 @@ if("${AUXILIARY}" STREQUAL "ON")
   message ("-- Found location GA: $ENV{GA}")
   message ("-- Found location MKL: $ENV{MKLROOT}")
 
+message ("Adding molcas dependent auxiliary programs")
   foreach (BASE_DIR ${basedirs})
-    file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")
+    file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/molcas*")
     list (SORT source_roots_tmp)
     list (APPEND source_roots ${source_roots_tmp})
   endforeach ()
 
 endif()
+
+message ("Adding auxiliary programs")
+foreach (BASE_DIR ${basedirs})
+  file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")
+  list (SORT source_roots_tmp)
+  list (APPEND source_roots ${source_roots_tmp})
+endforeach ()
+
 
 list (REVERSE basedirs)
 

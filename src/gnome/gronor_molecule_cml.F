@@ -102,7 +102,7 @@
       label = 'molecule'
       call close_tag(lfncml,label,indent)
       label = 'module'
-      info_cml = 'dictRef="gr:AtomicBasisSet"'
+      info_cml = 'dictRef="gr:atomicBasisSet"'
       call open_tag(lfncml,label,info_cml,indent)
       indent = indent + 1
       do i = 1, nnucl
@@ -117,11 +117,11 @@
           if (nCntr(i,l).ne.0) lmax = l
         end do
         sep = '|'
-        info_cml = 'dictRef=gr:shells"'
+        info_cml = 'dictRef="gr:shells"'
         call writetag_array_string(lfncml,info_cml,indent,sep,
      &                  lMoment,lmax)
         sep = ' '
-        info_cml = 'dictRef=gr:contractedFunctions"'
+        info_cml = 'dictRef="gr:contractedFunctions"'
         call writetag_array_integer(lfncml,info_cml,indent,sep,
      &                  nCntr(i,:),lmax)
         indent = indent - 1

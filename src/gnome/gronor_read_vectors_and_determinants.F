@@ -75,11 +75,16 @@
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo
+ 1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
+      allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
         mebfLabels = .false.
+        do j = 1, nbase
+          write(mebfLabel(j),618) j
+        end do
+ 618  format(i4)
       else
         mebfLabels = .true.
-        allocate(mebfLabel(nbase))
         write(lfnout,607) '  MEBF       Sum of fragment energies'
  607    format(/,a,/)
         do j = 1,nbase

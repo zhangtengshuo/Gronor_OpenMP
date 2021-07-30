@@ -2387,7 +2387,7 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
           prefac0(nb0)=4.0d0*deta*fctr
 !$omp parallel do
 !$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k)
+!$omp& private(i,k) collapse(2)
           do k=1,nbas
             do i=1,nbas
               sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
@@ -2403,7 +2403,7 @@ c              tat0(nb0,i,k)=ta(i,k)
           prefac1(nb1)=fctr
 !$omp parallel do
 !$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k)
+!$omp& private(i,k) collapse(2)
           do k=1,nbas
             do i=1,nbas
               sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
@@ -2460,11 +2460,8 @@ c              tat1(nb1,i,k)=ta(i,k)
      &             -aaa0(ibl,i,n)*aaa0(ibl,l,k)
      &             -aaa0(ibl,n,i)*aaa0(ibl,k,l)
      &             -aaa0(ibl,i,l)*aaa0(ibl,n,k)
-     &             -aaa0(ibl,l,i)*aaa0(ibl,k,n))
-            enddo
-            do ibl=1,nb0
-              etemp=etemp+prefac0(ibl)*
-     &            (-tt0(ibl,i,n)*tt0(ibl,l,k)
+     &             -aaa0(ibl,l,i)*aaa0(ibl,k,n)
+     &             -tt0(ibl,i,n)*tt0(ibl,l,k)
      &             -tt0(ibl,n,i)*tt0(ibl,k,l)
      &             -tt0(ibl,i,l)*tt0(ibl,n,k)
      &             -tt0(ibl,l,i)*tt0(ibl,k,n))

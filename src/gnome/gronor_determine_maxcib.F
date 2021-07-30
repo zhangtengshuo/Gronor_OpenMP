@@ -91,7 +91,7 @@
             do det2=1,idetm(ncombv(2,ibase))
               prod=civm(det1,ncombv(1,ibase)) *
      &                            civm(det2,ncombv(2,ibase))
-              if(abs(prod).gt.thresh) cib=cib+1
+              if(abs(prod).gt.tau_CI) cib=cib+1
             enddo
           enddo
         else
@@ -142,7 +142,7 @@
 *     &                         nspin/2.d0,nspin/2.d0)                ! the number of dets in the MEBF, but might
 *                    prod=dnorm*ci_mspin(det1,j)*ci_mspin(det2,k)   ! introduce some spin contamination
                     prod=ci_mspin(det1,j)*ci_mspin(det2,k+spin(1)+1)
-                    if (abs(prod).gt.thresh) cib=cib+1
+                    if (abs(prod).gt.tau_CI) cib=cib+1
                   enddo
                 enddo
               endif

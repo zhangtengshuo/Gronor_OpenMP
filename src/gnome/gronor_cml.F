@@ -245,7 +245,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       fmt_1='e8.3'
-      call writetag_scalar_real(lfncml,info_cml,6,thresh,fmt_1)
+      call writetag_scalar_real(lfncml,info_cml,6,tau_CI,fmt_1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:nuclearRepulsionEnergy"'
       call open_tag(lfncml,label,info_cml,5)

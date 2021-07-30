@@ -103,11 +103,11 @@ c     use cuda_functions
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
-
-#ifdef _OPENACC
+      
+#ifdef CUDA
       type(c_ptr) :: cpfre, cptot
 #endif
-      
+
       call timer_init()
 
       call timer_start(99)
@@ -320,8 +320,8 @@ c     use cuda_functions
         nspin=0
         ncorr=0
         mpibuf=168435456
-        thresh=1.0d-5
-        thresh_SIN=1.0d-12
+        tau_CI=1.0d-5
+        tau_SIN=1.0d-12
         tolsvj=1.0d-07
         tolevj=1.0d-07
         lcpr=.false.
@@ -350,8 +350,8 @@ c     use cuda_functions
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then
-          if(thresh.lt.1.0d-6) thresh=1.0d-6
-          if(thresh.gt.1.0d-4) thresh=1.0d-4
+          if(tau_CI.lt.1.0d-6) tau_CI=1.0d-6
+          if(tau_CI.gt.1.0d-4) tau_CI=1.0d-4
         endif
 
         if(_GRONOR_VERSION_MINOR_.eq.0.or.
@@ -428,11 +428,20 @@ c     use cuda_functions
      &       'One electron integral file is',t92,a,//,
      &       ' CI vector file(s) are',t25,a,'_nnn.det',/
      &       ' MO vector file(s) are',t25,a,'_nnn.vec')
-
-        write(lfnarx,401) trim(user),trim(host),root(1:inp_strlen(root))
- 401    format('*** ',a,' on ',a,' : ',a)
-        write(lfnarx,402) nnodes,np
- 402    format('Nodes',i10,i10)
+        
+        call swatch(date,time)
+        write(lfnarx,401) trim(user)
+ 401    format('User ',a)
+        write(lfnarx,402) trim(date)
+ 402    format('Date ',a)
+        write(lfnarx,403) trim(time)
+ 403    format('Time ',a)
+        write(lfnarx,404) trim(host)
+ 404    format('Host ',a)
+        write(lfnarx,405) root(1:inp_strlen(root))
+ 405    format('Root ',a)
+        write(lfnarx,406) nnodes,np
+ 406    format('Nodes',i10,i10)
 
         call gronor_number_integrals(numone,numtwo)
         
@@ -486,16 +495,18 @@ c     use cuda_functions
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
         endif
 
-        if(ipr.gt.0) write(lfnout,607) thresh
- 607    format(/,' Threshold product MEBF expansion coefficients ',
-     &       1pe10.3)
-        if(ipr.ge.30) write(lfnout,608) thresh_SIN
- 608    format(' Threshold for singularity',t40,1pe12.3,/)
+        call gronor_read_vectors_and_determinants()
+        
+        if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_SIN
+ 607    format(/,' Threshold common molecular orbital transformation ',
+     &       t55,1pe10.3,
+     &       /,' Threshold product MEBF expansion coefficients ',
+     &       t55,e10.3,
+     &       /,' Threshold determining singularities ',
+     &       t55,e10.3)
 
         if(ipr.gt.0) write(lfnout,609) nspin+1
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
-        
-        call gronor_read_vectors_and_determinants()
         
         call gronor_gnome_molcas_input() ! OpenMolcas
         close(unit=lfnsym)
@@ -569,9 +580,9 @@ c     use cuda_functions
           idum(48)=mbuf
           idum(49)=idist
           
-          rdum(1)=thresh
-          rdum(2)=thresh
-          rdum(3)=thresh_SIN
+          rdum(1)=tau_CI
+          rdum(2)=tau_CI
+          rdum(3)=tau_SIN
           rdum(4)=tolsvj
           rdum(5)=tolevj
           rdum(6)=potnuc
@@ -642,9 +653,9 @@ c     use cuda_functions
           call timer_start(99)
         endif
         
-        thresh=rdum(1)
-        thresh=rdum(2)
-        thresh_SIN=rdum(3)
+        tau_CI=rdum(1)
+        tau_CI=rdum(2)
+        tau_SIN=rdum(3)
         tolsvj=rdum(4)
         tolevj=rdum(5)
         potnuc=rdum(6)
@@ -1233,7 +1244,7 @@ c     use cuda_functions
           call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
-c     istat=cudaMemGetInfo(cpfre,cptot)
+c          istat=cudaMemGetInfo(cpfre,cptot)
           memavail=memfre
           if(idbg.gt.0) then
             call swatch(date,time)
@@ -1251,11 +1262,11 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
 
-!     if(numdev.gt.1) then
-!     cpfre=c_loc(memfre)
-!     cptot=c_loc(memtot)
-!     istat=cudaMemGetInfo(cpfre,cptot)
-!     endif
+        if(numdev.gt.1) then
+          cpfre=c_loc(memfre)
+          cptot=c_loc(memtot)
+c          istat=cudaMemGetInfo(cpfre,cptot)
+        endif
 
 #endif
 
@@ -1371,7 +1382,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         endif
       enddo
 
-      thres2 = thresh / max_coef
+      thres2 = tau_CI / max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
       do ibase = 1, nbase
@@ -1457,7 +1468,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             ndtot=ndtot+ndeti*(ndeti+1)/2
             do i=1,ndeti
               do j=i,ndeti
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
                 ibd=ibd+1
                 if(i.eq.j) then
@@ -1471,7 +1482,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
             ndtot=ndtot+ndeti*ndetj
             do i=1,ndeti
               do j=1,ndetj
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
                 ibd=ibd+1
                 c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
@@ -1507,7 +1518,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           if(ibase.eq.jbase) then
             do i=1,ndeti
               do j=i,ndeti
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
                 lstdet(numdet,1)=i
                 lstdet(numdet,2)=j
@@ -1516,7 +1527,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           else
             do i=1,ndeti
               do j=1,ndetj
-                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.thresh) exit
+                if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
                 lstdet(numdet,1)=i
                 lstdet(numdet,2)=j
@@ -1549,6 +1560,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
+      allocate(hev(nbase))
       allocate(nsing(nbase,nbase,5))
       allocate(bpdone(nbase,nbase))
 
@@ -1826,7 +1838,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
           hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
-        call gronor_print_results(hbase,sbase,nbase)
+        call gronor_print_results(hbase,sbase,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
           hcorr = 0.0
@@ -1834,7 +1846,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
-          call gronor_print_results(hcorr,sbase,nbase)
+          call gronor_print_results(hcorr,sbase,nbase,hev)
           deallocate( hcorr )
         endif
 
@@ -1845,24 +1857,36 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         call swatch(date,time)
         if(.not.exist) then
           write(lfnlog,800)
- 800      format('  Date     Time         Setup        Main       ',
-     &         'Total  Nodes  Ranks    Acc nonAcc MPS OMP Mgr ',
-     &         'Solvers Task Batch Frgm Base States Thresh  ',
-     &         'User Jobname',/)
+ 800      format(
+     &         80x,'         ',20x,'      S',/,
+     &         80x,'         ',20x,'F  B  t',/,
+     &         80x,'        D',20x,'r  a  a',/,
+     &         80x,'M  O  M i',20x,'g  s  t',/
+     &         80x,'P  M  g s',20x,'m  e  e',/,
+     &         '  Date     Time      Setup        Main       ',
+     &         'Total  Nodes  Ranks    Acc nonAcc  S  P  r t '
+     &         'Solvers Task Batch s  s  s  tau_MO    ',
+     &         'tau_CI   User Jobname',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
-     &       iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntask,max(1,nbatch),nmol,nbase,mstates,thresh,
+     &       idist,iaslvr,jaslvr,inslvr,jnslvr,
+     &       ntask,max(1,nbatch),nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,3f12.3,4i7,3i4,4i2,i5,i5,3i5,1pe12.3,1x,a,1x,a)
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,2i5,3i3,
+     &       1pe10.3,e10.3,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
-          write(lfnlog,803) (hbase(i,i)-hbase(1,1),i=1,nbase)
+          write(lfnlog,803)
+     &         (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
         endif
-* Close the cml file after closing the remaining open tags
+        write(lfnlog,803) (hev(i),i=1,nbase)
+*     Close the cml file after closing the remaining open tags
+        if(nbase.gt.1) then
+          write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
+        endif
         call gronor_finalize_cml
         close(unit=lfncml,status='keep')
 *
@@ -1881,7 +1905,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       deallocate(map2)
 
-      deallocate(hbase,sbase,tbase,nsing,bpdone)
+      deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
 
       deallocate(lstdet,ndxdet)
 
@@ -1932,7 +1956,9 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.nalive+1.ne.np) then
+      if(me.eq.master.and.nalive.ne.npg) then
+        ierror=0
+        ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
       else
         call mpi_finalize(ierr)

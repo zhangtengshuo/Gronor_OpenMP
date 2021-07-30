@@ -179,7 +179,7 @@
         do i = 1, idetm(state1)
           do j = 1, idetm(state2)
             prod = civm(i,state1) * civm(j,state2)
-            if ( abs(prod) .gt. thresh) then
+            if ( abs(prod) .gt. tau_CI) then
               k = k + 1
               civb(k,ibase) = prod
               kk = 0
@@ -258,7 +258,7 @@
      &                      ms1/2.d0,ms2/2.d0,
      &                      nspin/2.d0,nspin/2.d0)
                 prod = ci1_ms(det1,i)*ci2_ms(det2,j)
-                if (abs(prod) .gt. thresh) then
+                if (abs(prod) .gt. tau_CI) then
                   iocch = 0
                   k = k + 1
                   civb(k,ibase) = prod * dnorm

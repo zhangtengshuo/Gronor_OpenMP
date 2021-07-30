@@ -62,8 +62,7 @@
                   else                       
                      cicoef_out(idup,i)=cicoef_out(idup,i)+
      &                    cicoef_out(j,i-1)
-*                     if( abs(cicoef_out(idup,i)) .le. 1e-12 ) then
-                     if( abs(cicoef_out(idup,i)).le.thresh) then
+                     if( abs(cicoef_out(idup,i)).le.tau_CI) then
                         do l=idup,ndetout(i)
                            cicoef_out(l,i)=cicoef_out(l+1,i)
                            do m=1,nact

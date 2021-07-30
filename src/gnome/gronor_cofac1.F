@@ -356,7 +356,7 @@ c!_OMPTGT_($omp end target)
 c!_OMPTGT_($omp end target)
       if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
-      cnorm=thresh_SIN*cmax
+      cnorm=tau_SIN*cmax
       coef=idetuw
       nz1=0
       nz2=0
@@ -429,7 +429,7 @@ c!_OMPTGT_($omp end target)
         return
       endif
 
-      if(abs(coef).lt.thresh_SIN) then
+      if(abs(coef).lt.tau_SIN) then
         ising=3
       else
 !_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta))
@@ -600,7 +600,7 @@ c!_OMPTGT_($omp end target)
 
       if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
-      cnorm=thresh_SIN*cmax
+      cnorm=tau_SIN*cmax
       coef=idetuw
       nz1=0
       nz2=0
@@ -664,7 +664,7 @@ c!_OMPTGT_($omp end target)
         return
       endif
 
-      if(abs(coef).lt.thresh_SIN) then
+      if(abs(coef).lt.tau_SIN) then
         ising=3
       else
 

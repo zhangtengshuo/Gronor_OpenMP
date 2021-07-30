@@ -131,7 +131,7 @@
         endif
 
         if(inp_compare(.false.,'Threshold',item)) then
-          if(.not.inp_f(thresh)) call errquit(me,1,"Input error")
+          if(.not.inp_f(tau_CI)) call errquit(me,1,"Input error")
           goto 2
         endif
 
@@ -146,7 +146,7 @@
         endif
         
         if(inp_compare(.false.,'Thresh_SIN',item)) then
-          if(.not.inp_f(thresh_SIN)) thresh_SIN=1.0d-12
+          if(.not.inp_f(tau_SIN)) tau_SIN=1.0d-12
           goto 2
         endif
         

@@ -157,11 +157,11 @@
               if(nt.le.9) then
                 write(iunit,202) nam(j),nt,
      &               x(i)-shift(1),y(i)-shift(2),z(i)-shift(3)
- 202            format(a2,i1,' ',3f15.8)
+ 202            format(a2,i1,' ',3f15.8,' Angstrom')
               else
                 write(iunit,203) nam(j),nt,
      &               x(i)-shift(1),y(i)-shift(2),z(i)-shift(3)
- 203            format(a2,i2,3f15.8)
+ 203            format(a2,i2,3f15.8,' Angstrom')
               endif
             endif
           enddo

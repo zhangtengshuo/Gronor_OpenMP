@@ -189,7 +189,6 @@
       wavefunctionType = 'NOCI'
 * some day we might want to add 'Properties' as a new method
      
-
       label = 'module'
       indent = 3
       info_cml = 'dictRef="cc:initialization" id="jobInitialization"'
@@ -240,7 +239,7 @@
       info_cml='dictRef="cc:spinMultiplicity"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,nspin)
+      call writetag_scalar_integer(lfncml,info_cml,6,nspin+1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="gr:tauCI"'
       call open_tag(lfncml,label,info_cml,5)
@@ -305,8 +304,6 @@
       info_cml='empty'
       call writetag_array_integer(lfncml,info_cml,6,sep,idetm,mstates)
       call close_tag(lfncml,label,5)
-      label='parameterList'
-      call close_tag(lfncml,label,4)
       info_cml='dictRef="gr:fragBasisFunctions"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
@@ -354,11 +351,11 @@
       indent = 3
       info_cml = 'dictRef="cc:finalization"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameterList'
+      label = 'propertyList'
       indent = 4
       info_cml = 'empty'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameter'
+      label = 'property'
       call swatch(date,time)
       stopDate = date(1:8)//'  '//time(1:8)
       info_cml = 'dictRef="cc:jobdatetime.end"'
@@ -373,7 +370,7 @@
       call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
      &                                fmt_1)
       call close_tag(lfncml,label,5)
-      label = 'parameterList'
+      label = 'propertyList'
       call close_tag(lfncml,label,4)
       label='module'
       indent = 3

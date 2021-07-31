@@ -9,7 +9,7 @@
       character (len=20) :: basis(25),project
       integer :: iunit,junit
 
-      numa=11
+      numa=10
       
       elem(1)='H '
       elem(2)='B '
@@ -47,17 +47,17 @@
       nel(10)=35
       nel(11)=53
       
-      basis(1)="h.ano-s...2s1p.     "
-      basis(2)="b.ano-s...2s1p1d.   "
-      basis(3)="c.ano-s...2s1p1d.   "
-      basis(4)="n.ano-s...2s1p1d.   "
-      basis(5)="o.ano-s...2s1p1d.   "
-      basis(6)="f.ano-s...2s1p1d.   "
-      basis(7)="p.ano-s...2s1p1d.   "
-      basis(8)="s.ano-s...2s1p1d.   "
-      basis(9)="cl.ano-s...2s1p1d.  "
-      basis(10)="br.ano-s...2s1p1d.  "
-      basis(11)="i.ano-s...2s1p1d.   "
+      basis(1)="h.ano-s...3s2p.     "
+      basis(2)="b.ano-s...4s3p2d.   "
+      basis(3)="c.ano-s...4s3p2d.   "
+      basis(4)="n.ano-s...4s3p2d.   "
+      basis(5)="o.ano-s...4s3p2d.   "
+      basis(6)="f.ano-s...4s3p2d.   "
+      basis(7)="p.ano-s...5s4p3d.   "
+      basis(8)="s.ano-s...5s4p3d.   "
+      basis(9)="cl.ano-s...5s4p3d.  "
+      basis(10)="br.ano-s...6s5p4d.  "
+      basis(11)="i.ano-s...6s5p4d.   "
       
       print*,' Select project name:'
       read*,project
@@ -141,7 +141,7 @@
       open(unit=iunit,file=trim(project)//'_A.input')
       
       write(iunit,200)
- 200  format('&seward',/,'high choleski')
+ 200  format('&seward',/,'high cholesky')
       do j=1,numa
         nt=0
         do i=1,num
@@ -213,7 +213,7 @@
           do i=1,num
             if(atom(i).eq.elem(j)) then
               nt=nt+1
-              if(nt.le.9) then
+              if(nt=nt0.le.9) then
                 write(iunit,202) nam(j),nt+nt0,
      &               x(i)+shift(1),y(i)+shift(2),z(i)+shift(3)
               else

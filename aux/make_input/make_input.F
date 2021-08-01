@@ -213,7 +213,7 @@
           do i=1,num
             if(atom(i).eq.elem(j)) then
               nt=nt+1
-              if(nt=nt0.le.9) then
+              if(nt+nt0.le.9) then
                 write(iunit,202) nam(j),nt+nt0,
      &               x(i)+shift(1),y(i)+shift(2),z(i)+shift(3)
               else

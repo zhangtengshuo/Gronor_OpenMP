@@ -381,7 +381,7 @@
       
       close(unit=iunit)
       
-      open(unit=iunit,file='runall')
+      open(unit=iunit,file=trim(project)//'.run')
 
       write(iunit,213) trim(project)
  213  format('#!/usr/bin/tcsh',/,

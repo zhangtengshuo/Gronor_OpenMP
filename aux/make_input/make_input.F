@@ -3,7 +3,7 @@
       implicit none
 
       character (len=128) :: ofile,ifile,card,xfile
-      integer :: i,j,num,nt,nt0,ne,no,nelecs,nel(25),mol,numa
+      integer :: i,j,num,nt,nt0,ne,no,nelecs,nel(25),mol,mol2,numa
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: x(100),y(100),z(100),shift(3)
       character (len=20) :: basis(25),project
@@ -136,6 +136,7 @@
       enddo
 
       mol=1
+      mol2=2
 
       iunit=11
       open(unit=iunit,file=trim(project)//'_A.input')
@@ -173,13 +174,23 @@
  205  format(/,'>>> COPY $Project.OneInt  $CurrDir/ONEINT1',/,
      &     '>>> COPY $Project.RunFile $CurrDir/RUNFIL1',//,
      &     '&scf',/)
+      write(iunit,305)
+ 305  format(/,'>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/,
+     &     '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,
+     &     '&scf',/)
+      
       
       write(iunit,206) ne,1,(nelecs-ne)/2,no,mol,1,1,trim(project),1
  206  format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/,
      &     'inactive',/,i3,/,'ras2',/,i3,/,
      &     'prwf',/,'  0',/,'prsd',//,
      &     ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/,
-     &     '>>> COPY $Project.VecDet.',i1,
+     &     '>>> COPY vecdet.',i1,
+     &     ' $CurrDir/',a,'_',i3.3,'.det',/)
+      write(iunit,306) mol2,1,1,trim(project),6
+ 306  format(
+     &     ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/,
+     &     '>>> COPY vecdet.',i1,
      &     ' $CurrDir/',a,'_',i3.3,'.det',/)
       
       write(iunit,208) ne,1,(nelecs-ne)/2,no,mol,2,2,trim(project),2
@@ -188,12 +199,16 @@
      &     'CIRoot',/,'  1 2',/,'  2',/,
      &     'prwf',/,'  0',/,'prsd',//,
      &     '>>> COPY $Project.RasOrb.1 $CurrDir/INPORB.',i1,'_',i1,/,
-     &     '>>> COPY $Project.VecDet.',i1,
+     &     '>>> COPY vecdet.',i1,
      &     ' $CurrDir/',a,'_',i3.3,'.det',/)
+      write(iunit,306) mol2,2,2,trim(project),7
       
       write(iunit,206) ne,3,(nelecs-ne)/2,no,mol,3,1,trim(project),3
+      write(iunit,306) mol2,3,1,trim(project),8
       write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol,4,1,trim(project),4
+      write(iunit,306) mol2,4,1,trim(project),9
       write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol,5,1,trim(project),5
+      write(iunit,306) mol2,5,1,trim(project),10
 
       close(unit=iunit)
 

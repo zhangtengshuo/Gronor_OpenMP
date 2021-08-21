@@ -567,11 +567,11 @@
               'rdcho $MOLCAS_NPROCS',/, &
               'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
               'unsetenv DELETED',/, &
-              'mpirun -n 48 gronor $PROJECT"_test"')
+              'mpirun -n 48 gronor $PROJECT"_dimer"')
           
           close(unit=iunit)
           
-          open(unit=iunit,file=trim(project)//'_test.inp')
+          open(unit=iunit,file=trim(project)//'_dimer.inp')
 
           write(iunit,214)
  214      format('MEBFs 7',/, &

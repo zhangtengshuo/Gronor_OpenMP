@@ -97,6 +97,9 @@
 !     Set project name
         
         if(operation.eq.'P') then
+          do while(options(1:1).eq.' ')
+            options(1:254)=options(2:255)
+          enddo
           project=trim(options)
           write(*,6000) trim(project)
 6000      format(' Project name:',a)
@@ -106,6 +109,9 @@
 !     Read NWChem output file
         
         if(operation.eq.'N') then
+          do while(options(1:1).eq.' ')
+            options(1:254)=options(2:255)
+          enddo
           filnwo=trim(options)
           write(*,6001) trim(filnwo)
  6001     format(' NWChem file:',a)
@@ -144,6 +150,9 @@
 !     Read XYZ coordinate file
         
         if(operation.eq.'X') then
+          do while(options(1:1).eq.' ')
+            options(1:254)=options(2:255)
+          enddo
           filxyz=trim(options)
           write(*,6001) trim(filxyz)
  6002     format(' XYZ file:',a)
@@ -334,10 +343,10 @@
             endif
           enddo
           write(iunit,205)
- 205      format(/,'>>> COPY $Project.OneInt  $CurrDir/ONEINT1',/, &
+ 205      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT1',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL1')
           write(iunit,305)
- 305      format(/,'>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
+ 305      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
           write(iunit,206) ne,1,(nelecs-ne)/2,no,mol,1,1,trim(project),1

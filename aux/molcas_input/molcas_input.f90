@@ -10,7 +10,7 @@
       integer :: i,j,k,m,num,nt,nt0,ne,no,nelecs,nel(25),mol,mol2,numa
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: a,x1(100,3),x2(100,3),xc(3),v(3),w(3),angle,x(3),y(3)
-      character (len=20) :: basis(25),project
+      character (len=255) :: basis(25),project
       integer :: iunit,junit
       character (len=1) :: operation
       logical :: done
@@ -323,8 +323,8 @@
               if(atom(i).eq.elem(j)) nt=nt+1
             enddo
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
- 201          format('basis set',/,a20)
+              write(iunit,201) trim(basis(j))
+ 201          format('basis set',/,a)
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then
@@ -389,7 +389,7 @@
             enddo
             nt0=nt
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
+              write(iunit,201) trim(basis(j))
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then
@@ -427,7 +427,7 @@
               if(atom(i).eq.elem(j)) nt=nt+1
             enddo
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
+              write(iunit,201) trim(basis(j))
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then
@@ -450,7 +450,7 @@
             enddo
             nt0=nt
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
+              write(iunit,201) trim(basis(j))
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then
@@ -482,7 +482,7 @@
               if(atom(i).eq.elem(j)) nt=nt+1
             enddo
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
+              write(iunit,201) trim(basis(j))
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then
@@ -504,7 +504,7 @@
             enddo
             nt0=nt
             if(nt.gt.0) then
-              write(iunit,201) basis(j)
+              write(iunit,201) trim(basis(j))
               nt=0
               do i=1,num
                 if(atom(i).eq.elem(j)) then

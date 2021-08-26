@@ -4,7 +4,9 @@ cmake_minimum_required (VERSION 3.10.00)
 
 # Define project name with associated languages
 
-message ("Detecting Programming Environment:")
+message ("Programming Environment:")
+
+message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
 project (GronOR VERSION 21.00 LANGUAGES Fortran C CXX)
 
@@ -13,8 +15,8 @@ project (GronOR VERSION 21.00 LANGUAGES Fortran C CXX)
 set (ENV{CMAKE_SESSION} "GronOR")
 
 message ("Configuring session:")
-message ("-- Project: ${PROJECT_NAME}")
-message ("-- Version: ${PROJECT_VERSION}")
+message (STATUS "Project: ${PROJECT_NAME}")
+message (STATUS "Version: ${PROJECT_VERSION}")
 
 # Enforce out-of-source builds only
 
@@ -25,22 +27,21 @@ get_filename_component (sourcedir "${CMAKE_SOURCE_DIR}" REALPATH)
 get_filename_component (binarydir "${CMAKE_BINARY_DIR}" REALPATH)
 
 if ("${sourcedir}" STREQUAL "${binarydir}")
-  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
+  message (FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
     "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
     "separate build directory and run cmake from there.")
 endif ()
 
+message (STATUS "Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
 
-message ("-- Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
-
-message ("-- Source: ${CMAKE_SOURCE_DIR}")
-#message ("Binary dir is ${CMAKE_BINARY_DIR}")
+message (STATUS "Source directory: ${CMAKE_SOURCE_DIR}")
+message (STATUS "Binary directory: ${CMAKE_BINARY_DIR}")
 
 # Find required tools
 
 find_program (GIT "git")
 
-message ("-- Found git: ${GIT}")
+message (STATUS "Found git: ${GIT}")
 
 # Define GronOR compilation options
 
@@ -52,7 +53,7 @@ if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
     FORCE)
 endif ()
 
-message ("-- Build type: ${CMAKE_BUILD_TYPE}")
+message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithDebInfo Release Fast)
 
@@ -63,7 +64,7 @@ if (NOT DEFINED CMAKE_INSTALL_PREFIX)
     "Location where GronOR will be installed.")
 endif ()
 
-message("-- Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message (STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
 option (DEBUGPRINT "Enable excessive print statements for debugging." OFF)
 option (DEBUGTRACE "Enable tracing print statements for debugging." OFF)
@@ -100,19 +101,17 @@ option (NVBLAS "Enable NVidia BLAS library." OFF)
 option (CTEST "Enable CTest." OFF)
 option (SINGLEP "Enable single precision." OFF)
 
-
-
-# Piz Daint specific stuff
+# Set CUDA_HOME to ${CUDATOOLKIT_HOME} (Needed on e.g. Piz Daint)
 
 if("$ENV{CUDA_HOME}" STREQUAL "")
   if("$ENV{CUDATOOLKIT_HOME}" STREQUAL "")
-    message ("-- CUDA_HOME not set")
+    message (STATUS "CUDA_HOME not set")
   else()
     set(ENV{CUDA_HOME} $ENV{CUDATOOLKIT_HOME})
-    message ("-- CUDA_HOME set to CUDATOOLKIT_HOME: $ENV{CUDA_HOME}")
+    message (STATUS "CUDA_HOME set: $ENV{CUDA_HOME}")
   endif()
 else()
-  message ("-- CUDA_HOME found: $ENV{CUDA_HOME}")
+  message (STATUS "CUDA_HOME found: $ENV{CUDA_HOME}")
 endif()
 
 # Avoid using CXX compiler for linking
@@ -123,9 +122,9 @@ set (CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES FALSE)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
 
-#message ("Project source dir is ${PROJECT_SOURCE_DIR}")
-#message ("Project binary dir is ${PROJECT_BINARY_DIR}")
-#message ("CMake current list dir is ${CMAKE_CURRENT_LIST_DIR}")
+message (STATUS "Project source directory: ${PROJECT_SOURCE_DIR}")
+message (STATUS "Project binary directory: ${PROJECT_BINARY_DIR}")
+message (STATUS "CMAKE_CURRENT_LIST DIR: ${CMAKE_CURRENT_LIST_DIR}")
 
 set (GRONOR_DIR ${CMAKE_CURRENT_LIST_DIR})
 
@@ -144,7 +143,7 @@ foreach (BASE_DIR ${basedirs})
   list (APPEND test_roots ${test_roots_tmp})
 endforeach ()
 
-# message("Basedirs ${basedirs}")
+message (STATUS "Basedirs: ${basedirs}")
 
 # MolCas settings
 
@@ -164,20 +163,19 @@ endif()
 
 if("${AUXILIARY}" STREQUAL "ON")
   message ("Configuring Molcas dependencies")
-  string(REPLACE "/build" "" molcas_root $ENV{MOLCAS})
-  message ("-- Found location MolCas: ${molcas_root}")
+  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
+  message (STATUS "Found location MolCas: ${molcas_root}")
   include_directories ("${molcas_root}/src/Include")
-  message ("-- Added include directory: ${molcas_root}/src/Include")
-  message ("-- Found location GA: $ENV{GA}")
-  message ("-- Found location MKL: $ENV{MKLROOT}")
+  message (STATUS "Added include directory: ${molcas_root}/src/Include")
+  message (STATUS "Found location GA: $ENV{GA}")
+  message (STATUS "Found location MKL: $ENV{MKLROOT}")
 
-message ("Adding molcas dependent auxiliary programs")
+  message ("Adding molcas dependent auxiliary programs")
   foreach (BASE_DIR ${basedirs})
     file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/molcas*")
     list (SORT source_roots_tmp)
     list (APPEND source_roots ${source_roots_tmp})
   endforeach ()
-
 endif()
 
 message ("Adding auxiliary programs")
@@ -187,18 +185,10 @@ foreach (BASE_DIR ${basedirs})
   list (APPEND source_roots ${source_roots_tmp})
 endforeach ()
 
-
 list (REVERSE basedirs)
-
-#message ("basedirs is ${basedirs}")
-#message ("source_roots is ${source_roots}")
-#message ("test_roots is ${test_roots}")
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-
-#message ("library output path is ${LIBRARY_OUTPUT_PATH}")
-#message ("executable output path is ${EXECUTABLE_OUTPUT_PATH}")
 
 set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
 
@@ -211,8 +201,6 @@ foreach (BASE_DIR ${basedirs})
 endforeach ()
 
 include_directories (${MAIN_INCLUDE_DIR})
-
-#message ("main include dir is ${MAIN_INCLUDE_DIR}")
 
 # set function to find source directories
 
@@ -234,8 +222,6 @@ function (find_source name)
   else ()
     if (DEFINED found)
       set (${name}_src "${found}" PARENT_SCOPE)
-      #else ()
-      #        message (WARNING "${name} not found, expect trouble")
     endif ()
   endif ()
 endfunction ()
@@ -261,7 +247,7 @@ message ("Detecting system information:")
 
 set (OS ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
 
-message ("-- OS: ${OS}")
+message (STATUS "Operating System: ${OS}")
 
 # Address mode
 
@@ -272,7 +258,7 @@ else ()
   set (ADDRMODE 32)
 endif ()
 
-message ("-- ADDRMODE: ${ADDRMODE}")
+message (STATUS "Address Mode: ${ADDRMODE}")
 
 # Platform settings
 
@@ -305,18 +291,17 @@ endif ()
 if (NOT PLATFORM)
   message (FATAL_ERROR "unsupported platform")
 else ()
-  message ("-- PLATFORM: ${PLATFORM}")
+  message (STATUS "Platform: ${PLATFORM}")
 endif ()
 
 # GNU Compiler Collection (GCC)
+# =============================
 
-# defines __GNUC__
 # C++ compiler
-
 list (APPEND SUPPORTED_CXX_COMPILERS "GNU")
 set (CXXFLAGS_GNU_BASIC "")
 set (CXXFLAGS_GNU_OPENMP "-fopenmp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_GNU_DEBUG "-O0 -g -Wall")
 set (CXXFLAGS_GNU_GARBLE "-O2 -g -Wall")
 set (CXXFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
@@ -326,7 +311,7 @@ set (CXXFLAGS_GNU_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "GNU")
 set (CFLAGS_GNU_BASIC "-std=gnu99")
 set (CFLAGS_GNU_OPENMP "-fopenmp")
-# build targets
+# C build targets
 set (CFLAGS_GNU_DEBUG "-O0 -g -Wall")
 set (CFLAGS_GNU_GARBLE "-O2 -g -Wall")
 set (CFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
@@ -338,7 +323,7 @@ set (FFLAGS_GNU_BASIC "")
 set (FFLAGS_GNU_PREPROCESS "-cpp")
 set (FFLAGS_GNU_OPENMP "-fopenmp")
 set (FFLAGS_GNU_ILP64 "-fdefault-integer-8")
-# build targets
+# Fortran build targets
 set (FFLAGS_GNU_DEBUG "-O0 -g -Wall")
 set (FFLAGS_GNU_GARBLE "-O2 -g -Wall -finit-real=snan -finit-integer=730432726 -fno-unsafe-math-optimizations -frounding-math -fsignaling-nans")
 set (FFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
@@ -352,7 +337,6 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND
   set (FFLAGS_GNU_BASIC "${FFLAGS_GNU_BASIC} -fno-aggressive-loop-optimizations")
   set (FFLAGS_GNU_BOUNDS "-fsanitize=address -fno-omit-frame-pointer")
 endif ()
-
 # Add runtime checks
 # (No boundary checks because of the Work arrays)
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
@@ -364,13 +348,13 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 endif ()
 
 # LLVM C frontend (Clang)
+# =======================
 
-# defines __clang__
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Clang")
 set (CXXFLAGS_Clang_BASIC "-std=gnu99")
 set (CXXFLAGS_Clang_OPENMP "-fopenmp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_Clang_DEBUG "-O0 -g -Wall")
 set (CXXFLAGS_Clang_GARBLE "-O2 -g -Wall")
 set (CXXFLAGS_Clang_RELWITHDEBINFO "-O2 -g -Wall")
@@ -380,7 +364,7 @@ set (CXXFLAGS_Clang_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "Clang")
 set (CFLAGS_Clang_BASIC "-std=gnu99")
 set (CFLAGS_Clang_OPENMP "-fopenmp")
-# build targets
+# C build targets
 set (CFLAGS_Clang_DEBUG "-O0 -g -Wall")
 set (CFLAGS_Clang_GARBLE "-O2 -g -Wall")
 set (CFLAGS_Clang_RELWITHDEBINFO "-O2 -g -Wall")
@@ -388,13 +372,13 @@ set (CFLAGS_Clang_RELEASE "-O2")
 set (CFLAGS_Clang_FAST "-O2")
 
 # Intel C++/C/Fortran Compilers
+#==============================
 
-# defines __INTEL_COMPILER
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Intel")
 set (CXXFLAGS_Intel_BASIC "")
 set (CXXFLAGS_Intel_OPENMP "-qopenmp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_Intel_DEBUG "-debug -w3")
 set (CXXFLAGS_Intel_GARBLE "-O2 -debug -w3")
 set (CXXFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -w3")
@@ -404,7 +388,7 @@ set (CXXFLAGS_Intel_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "Intel")
 set (CFLAGS_Intel_BASIC "-std=gnu99")
 set (CFLAGS_Intel_OPENMP "-qopenmp")
-# build targets
+# C build targets
 set (CFLAGS_Intel_DEBUG "-debug -w3")
 set (CFLAGS_Intel_GARBLE "-O2 -debug -w3")
 set (CFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -w3")
@@ -417,13 +401,12 @@ set (FFLAGS_Intel_PREPROCESS "-fpp")
 set (FFLAGS_Intel_OPENMP "-qopenmp")
 set (FFLAGS_Intel_MKL "-DMKL")
 set (FFLAGS_Intel_ILP64 "-i8 -r8 -heap-arrays")
-# build targets
+# Fortran build targets
 set (FFLAGS_Intel_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations")
 set (FFLAGS_Intel_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check all,nobounds,noarg_temp_created")
 set (FFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
 set (FFLAGS_Intel_RELEASE "-O2 -traceback")
 set (FFLAGS_Intel_FAST "-fast")
-
 # Intel versions prior to 15 used -openmp
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
@@ -439,13 +422,13 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" AND
 endif ()
 
 # Portland Group (PGI) Compilers
+# ==============================
 
-# defines __PGI
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "PGI")
 set (CXXFLAGS_PGI_BASIC "-c99 -pgf90libs")
 set (CXXFLAGS_PGI_OPENMP "-mp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
 set (CXXFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
 set (CXXFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -455,7 +438,7 @@ set (CXXFLAGS_PGI_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "PGI")
 set (CFLAGS_PGI_BASIC "-c99 -pgf90libs")
 set (CFLAGS_PGI_OPENMP "-mp")
-# build targets
+# C build targets
 set (CFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
 set (CFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
 set (CFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -467,30 +450,31 @@ set (FFLAGS_PGI_BASIC "-Mbackslash")
 set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
 set (FFLAGS_PGI_OPENMP "-mp")
 set (FFLAGS_PGI_ILP64 "-i8")
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message ("-- Custom OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
-else()
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message ("-- Generic OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
-endif()
 set (FFLAGS_PGI_CUSOLVER "-DCUSOLVER -lcusolver")
 set (FFLAGS_PGI_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
-# build targets
+# Fortran build targets
 set (FFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELEASE "-O2")
 set (FFLAGS_PGI_FAST "-fast -fastsse")
+# Fortran accelerator flags
+if("$ENV{HOST}" MATCHES "daint")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
+else()
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
+endif()
 
 # NVIDIA Compilers
+# ================
 
-# defines __NVIDIA
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "NVIDIA")
 set (CXXFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
 set (CXXFLAGS_NVIDIA_OPENMP "-mp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
 set (CXXFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
 set (CXXFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -500,7 +484,7 @@ set (CXXFLAGS_NVIDIA_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "NVIDIA")
 set (CFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
 set (CFLAGS_NVIDIA_OPENMP "-mp")
-# build targets
+# C build targets
 set (CFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
 set (CFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
 set (CFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -515,21 +499,29 @@ set (FFLAGS_NVIDIA_ILP64 "-i8")
 set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc")
 set (FFLAGS_NVIDIA_CUSOLVER "-DCUSOLVER -lcusolver")
 set (FFLAGS_NVIDIA_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
-# build targets
+# Fortran build targets
 set (FFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELEASE "-O2")
 set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
+# Fortran accelerator flags
+if("$ENV{HOST}" MATCHES "daint")
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVIDIA_ACC}")
+else()
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVIDIA_ACC}")
+endif()
 
 # Cray Compilers
+# ==============
 
-# defines __Cray
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Cray")
 set (CXXFLAGS_Cray_BASIC "-c99 -pgf90libs")
 set (CXXFLAGS_Cray_OPENMP "-mp")
-# build targets
+# C++ build targets
 set (CXXFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
 set (CXXFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
 set (CXXFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -539,7 +531,7 @@ set (CXXFLAGS_Cray_FAST "-O2")
 list (APPEND SUPPORTED_C_COMPILERS "Cray")
 set (CFLAGS_Cray_BASIC "-c99 -pgf90libs")
 set (CFLAGS_Cray_OPENMP "-mp")
-# build targets
+# C build targets
 set (CFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
 set (CFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
 set (CFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
@@ -553,23 +545,21 @@ set (FFLAGS_Cray_OPENMP "-mp")
 set (FFLAGS_Cray_ILP64 "-i8")
 set (FFLAGS_Cray_ACC "-acc -Minfo=accel -Mcuda=rdc")
 set (FFLAGS_Cray_CUSOLVER "-DCUSOLVER -lcusolver")
-# build targets
+# Fortran build targets
 set (FFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_Cray_RELEASE "-O2")
 set (FFLAGS_Cray_FAST "-fast -fastsse")
 
-
-# C compiler
+# Test if using supported C compiler
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
   if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")
     set (CCID ${CMAKE_C_COMPILER_ID})
   endif ()
 endforeach ()
-
 if (NOT CCID)
-  message (FATAL_ERROR "unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
+  message (FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
 endif ()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
@@ -648,16 +638,15 @@ else ()
 endif ()
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEFAULT}")
 
-# Fortran compiler
+# Test if using supported Fortran compiler
 foreach (Fortran_COMPILER ${SUPPORTED_Fortran_COMPILERS})
   if (Fortran_COMPILER STREQUAL "${CMAKE_Fortran_COMPILER_ID}")
     set (FCID ${CMAKE_Fortran_COMPILER_ID})
-    #	  message ("-- Fortran compiler ID is ${FCID}")
+    #	  message (STATUS "Fortran compiler ID is ${FCID}")
   endif ()
 endforeach ()
-
 if (NOT FCID)
-  message (FATAL_ERROR "unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
+  message (FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
 endif ()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
@@ -697,6 +686,7 @@ else ()
     )
 endif ()
 set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEFAULT}")
+
 
 if("${AUXILIARY}" STREQUAL "ON")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
@@ -768,15 +758,15 @@ endif()
 
 if(${PLATFORM} STREQUAL "PPC64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message("-- Added LINUX compile flag")
+  message (STATUS "Added LINUX compile flag")
 endif()
 if(${PLATFORM} STREQUAL "LINUX64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message("-- Added LINUX compile flag")
+  message (STATUS "Added LINUX compile flag")
 endif()
 if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message("-- Added LINUX compile flag")
+  message (STATUS "Added LINUX compile flag")
 endif()
 
 # Allow user-specified modifications
@@ -800,7 +790,7 @@ if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
 endif ()
 get_filename_component (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 
-#message ("CMake install prefix is ${CMAKE_INSTALL_PREFIX}")
+message (STATUS "CMake install prefix: ${CMAKE_INSTALL_PREFIX}")
 
 # Special print statements
 
@@ -813,47 +803,48 @@ endif ()
 
 # Parallel settings
 
-if (MPI)
-  message ("Configuring with MPI parallellization:")
+message ("Configuring MPI parallellization:")
 
-  find_package (MPI REQUIRED)
+find_package (MPI REQUIRED)
 
-  add_definitions (-D_GRONOR_MPP_)
+add_definitions (-D_GRONOR_MPP_)
 
-  include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
+include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
 
-  link_directories(${MPI_Fortran_LIBRARIES})
+link_directories(${MPI_Fortran_LIBRARIES})
 
-  message ("-- MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
-  message ("-- MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
-  message ("-- MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
-  message ("-- MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
-  message ("-- MPIEXEC: ${MPIEXEC}")
+message (STATUS "MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
+message (STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
+message (STATUS "MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
+message (STATUS "MPI_Fortran_MODULE_DIR: ${MPI_Fortran_MODULE_DIR}")
+message (STATUS "MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
+message (STATUS "MPIEXEC: ${MPIEXEC}")
 
-  execute_process (
-    COMMAND ${MPIEXEC} "--version"
-    OUTPUT_VARIABLE MPIEXEC_VERSION
-    ERROR_VARIABLE MPIEXEC_VERSION
-    )
-  if (MPIEXEC_VERSION MATCHES "OpenRTE")
-    set (MPI_IMPLEMENTATION "openmpi")
-  elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
-    set (MPI_IMPLEMENTATION "impi")
-  elseif (MPIEXEC_VERSION MATCHES "HYDRA")
-    set (MPI_IMPLEMENTATION "mpich")
-  elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
-    set (MPI_IMPLEMENTATION "openmpi")
-  elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
-    set (MPI_IMPLEMENTATION "openmpi")
-  elseif (MPIEXEC_VERSION MATCHES "slurm 20.02.6-1.20201123git821b81e9af.el8")
-    set (MPI_IMPLEMENTATION "openmpi")
-  else ()
-    message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
-  endif ()
-  message ("-- MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
-
-  list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
+execute_process (
+  COMMAND ${MPIEXEC} "--version"
+  OUTPUT_VARIABLE MPIEXEC_VERSION
+  ERROR_VARIABLE MPIEXEC_VERSION
+  )
+if (MPIEXEC_VERSION MATCHES "OpenRTE")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
+  set (MPI_IMPLEMENTATION "impi")
+elseif (MPIEXEC_VERSION MATCHES "HYDRA")
+  set (MPI_IMPLEMENTATION "mpich")
+elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "slurm 20.02.6-1.20201123git821b81e9af.el8")
+  set (MPI_IMPLEMENTATION "openmpi")
+else ()
+  message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
 endif ()
+message (STATUS "MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
+
+list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
+message (STATUS "External libraries: ${EXTERNAL_LIBRARIES}")
+
 
 # BLAS/LAPACK settings
 #=====================
@@ -868,7 +859,7 @@ message ("Configuring linear algebra libraries:")
 
 set (MKLROOT "" CACHE PATH "MKL root directory.")
 if (MKL)
-  message ("-- Using Intel Math Kernel Library (MKL)")
+  message (STATUS "Using Intel Math Kernel Library (MKL)")
 
   # quick bypass for 32bit, don't bother with it (for now?)
   if (NOT ADDRMODE EQUAL 64)
@@ -887,7 +878,7 @@ if (MKL)
     endif ()
   endif ()
   # at this point, MKLROOT should be defined and not empty
-  message ("-- MKLROOT = ${MKLROOT}")
+  message (STATUS "MKLROOT = ${MKLROOT}")
 
   # here we check if MKLROOT has changed after it was last used
   # succesfully, if so then we need to reprocess the checks here.
@@ -912,8 +903,8 @@ if (MKL)
     # cache last used MKLROOT
     set (MKLROOT_LAST ${MKLROOT} CACHE INTERNAL "last value." FORCE)
   endif ()
-  message ("-- MKL_INCLUDE_PATH = ${MKL_INCLUDE_PATH}")
-  message ("-- MKL_LIBRARY_PATH = ${MKL_LIBRARY_PATH}")
+  message (STATUS "MKL_INCLUDE_PATH = ${MKL_INCLUDE_PATH}")
+  message (STATUS "MKL_LIBRARY_PATH = ${MKL_LIBRARY_PATH}")
 
   # core library
   find_library (LIBMKL_CORE NAMES "mkl_core"
@@ -984,7 +975,7 @@ endif ()
 
 list (APPEND EXTERNAL_LIBRARIES ${LINALG_LIBRARIES})
 
-message ("-- LINALG_LIBRARIES: ${LINALG_LIBRARIES}")
+message (STATUS "Linear Algebra Libraries: ${LINALG_LIBRARIES}")
 
 # global module directory
 
@@ -995,66 +986,29 @@ else ()
   include_directories (${MAIN_MOD_DIR})
 endif ()
 
-# launcher settings
-
-# The runtime can be controlled by the user through two variables:
-# SER_LAUNCHER: a command used to launch a serial program
-# MPI_LAUNCHER: a command used to launch an MPI program
-# Since these are advanced options, the user would typically modify
-# them in the CMakeCache.txt. However, they can also be activated
-# by other options for internal use, which is why their presence
-# is detected instead of just caching a default string.
-
-# Scripts are tricky, we don't want to set automatic wrappers
-
-set (RUNSCRIPT "$program $input" CACHE STRING "Command to launch scripts.")
-
-# Specify the launch command for a serial run
-
-if (NOT SER_LAUNCHER)
-  set (SER_LAUNCHER ""                CACHE STRING "Command to launch serial programs.")
-else ()
-  set (SER_LAUNCHER "${SER_LAUNCHER}" CACHE STRING "Command to launch serial programs.")
-endif ()
-set (RUNBINARYSER "${SER_LAUNCHER} $program")
-
-# Specify the launch command for an MPI run
-
-if (MPI)
-  if (NOT MPI_LAUNCHER)
-    set (MPI_LAUNCHER "${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} $GRONOR_NPROCS ${MPIEXEC_PREFLAGS}" CACHE STRING "Command to launch MPI programs.")
-  endif ()
-  set (RUNBINARY "${MPI_LAUNCHER} $program")
-else ()
-  set (RUNBINARY "${SER_LAUNCHER} $program")
-endif ()
-
-string (STRIP ${RUNSCRIPT} RUNSCRIPT)
-string (STRIP ${RUNBINARY} RUNBINARY)
-string (STRIP ${RUNBINARYSER} RUNBINARYSER)
-
-message ("-- RUNSCRIPT:    ${RUNSCRIPT}")
-message ("-- RUNBINARY:    ${RUNBINARY}")
-message ("-- RUNBINARYSER: ${RUNBINARYSER}")
-
 # Print summary
 
-#message ("Build type: ${CMAKE_BUILD_TYPE}")
-#string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TARGET)
+message ("Build Summary:")
+message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TARGET)
 if (NOT BUILD_TARGET STREQUAL "NONE")
-  message ("-- C compiler: ${CMAKE_C_COMPILER}")
-  message ("-- C compiler flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TARGET}}")
-  message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
-  message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BUILD_TARGET}}")
+  message (STATUS "C compiler: ${CMAKE_C_COMPILER}")
+  message (STATUS "C compiler flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TARGET}}")
+  message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+  message (STATUS "C++ compiler flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BUILD_TARGET}}")
+  message (STATUS "Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+  message (STATUS "Fortran compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BUILD_TARGET}}")
 else ()
-  message ("-- C compiler: ${CMAKE_C_COMPILER}")
-  message ("-- C compiler flags: ${CMAKE_C_FLAGS}")
-  message ("-- Fortran compiler: ${CMAKE_Fortran_COMPILER}")
-  message ("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS}")
+  message (STATUS "C compiler: ${CMAKE_C_COMPILER}")
+  message (STATUS "C compiler flags: ${CMAKE_C_FLAGS}")
+  message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+  message (STATUS "C++ compiler flags: ${CMAKE_CXX_FLAGS}")
+  message (STATUS "Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+  message (STATUS "Fortran compiler flags: ${CMAKE_Fortran_FLAGS}")
 endif ()
 get_directory_property(defs COMPILE_DEFINITIONS)
-message ("-- Definitions: ${defs}")
-message ("-- Debug definitions: ${DEBUG_DEFS}")
+message (STATUS "Definitions: ${defs}")
+message (STATUS "Debug definitions: ${DEBUG_DEFS}")
 
 if(MKL)
 else()
@@ -1068,7 +1022,7 @@ list(APPEND dir_utils "inp")
 
 # Make a list of source directories
 
-#message("Source_roots are ${source_roots}")
+message ("Configuring libraries list:")
 
 foreach (dir ${source_roots})
   file (GLOB dir_src RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
@@ -1082,459 +1036,85 @@ foreach (dir ${source_roots})
     list(REMOVE_ITEM dir_src "lapack") 
   endif()
   foreach (srcdir ${dir_src})
-    #    message("Checking files in ${srcdir}")
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
     file (GLOB_RECURSE srcfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/*.F" "${fildir}/*.f" "${fildir}/*.f90" "${fildir}/*.c")
     file (GLOB_RECURSE prgfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/${srcdir}.F" "${fildir}/${srcdir}.f" "${fildir}/${srcdir}.f90" "${fildir}/${srcdir}.c")
     foreach (prg ${prgfiles})
       list (REMOVE_ITEM srcfiles ${prg})
     endforeach(prg)
-    #    message("Files found   : ${srcfiles}")
-    #    message("Programs found: ${prgfiles}")
-    #    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
     set (SRCDIRPATH ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
-    #    message("Trying files in ${SRCDIRPATH}")
     list (LENGTH srcfiles numsrc)
     list (LENGTH prgfiles numprg)
-    message ("-- Source directory ${SRCDIRPATH}: ${numsrc} library files")
+    if(${numsrc} GREATER 0)
+      message (STATUS "Create library for ${SRCDIRPATH}: ${numsrc} library files")
+    endif()
     if(numsrc GREATER 0)
-#            message ("Add library ${srcdir} : ${srcfiles}")
       add_library(${srcdir} STATIC ${srcfiles})
       list(APPEND libraries ${srcdir})
       list(APPEND dir_libs ${srcdir})
     endif()
   endforeach(srcdir)
-  #  list(APPEND source_dirs ${dir_src})
 endforeach(dir)
 
-message("-- Libraries constructed: ${libraries}")
+message (STATUS "Libraries constructed: ${libraries}")
 
 foreach (dir ${dir_utils})
   list(REMOVE_ITEM dir_libs ${dir})
 endforeach(dir)
 
-
 foreach (dir ${dir_libs})
   add_dependencies(${dir} ${dir_utils})
   target_link_libraries (${dir} ${dir_utils})
-  message("-- Dependencies ${dir}: ${dir_utils}")
+  message (STATUS "Dependencies ${dir}: ${dir_utils}")
 endforeach(dir)
-#message("programs  constructed: ${programs}")
-#message("dir_utils: ${dir_utils}")
-#message("dir_libs : ${dir_libs}")
 
-message("Configuring program list:")
+message ("Configuring program list:")
 
 foreach (dir ${source_roots})
   file (GLOB dir_src RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
   list(REMOVE_ITEM dir_src "config") 
   list(REMOVE_ITEM dir_src "include") 
   foreach (srcdir ${dir_src})
-    #    message("Checking files in ${srcdir}")
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
     file (GLOB_RECURSE srcfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/*.F" "${fildir}/*.f" "${fildir}/*.f90" "${fildir}/*.c")
     file (GLOB_RECURSE prgfiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/${srcdir}.F" "${fildir}/${srcdir}.f" "${fildir}/${srcdir}.f90" "${fildir}/${srcdir}.c")
     foreach (prg ${prgfiles})
       list (REMOVE_ITEM srcfiles ${prg})
     endforeach(prg)
-    #    message("Files found   : ${srcfiles}")
-    #    message("Programs found: ${prgfiles}")
-    #    message("Trying ${PROJECT_SOURCE_DIR}/${dir}/${srcdir}")
     set (SRCDIRPATH ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
-    #    message("Trying files in ${SRCDIRPATH}")
     list (LENGTH srcfiles numsrc)
     list (LENGTH prgfiles numprg)
-    message ("-- Source directory ${SRCDIRPATH}: ${numprg} program files")
     if(numprg GREATER 0)
-      #      message ("Add library ${srcdir} : ${srcfiles}")
-      #      add_dependencies(${scrdir} ${libraries})
       add_executable(${srcdir} ${prgfiles})
-      message("-- Added executable ${srcdir} to ${prgfiles}")
+      message (STATUS "Create program executable ${srcdir} for ${prgfiles}")
       add_dependencies (${srcdir} ${libraries})
       target_link_libraries (${srcdir} ${libraries} ${EXTERNAL_LIBRARIES})
       list(APPEND programs ${srcdir})
       list(APPEND dir_prgs ${srcdir})
     endif()
   endforeach(srcdir)
-  #  list(APPEND source_dirs ${dir_src})
 endforeach(dir)
 
-message("-- Programs constructed: ${programs}")
+message (STATUS "Programs constructed: ${programs}")
 
 enable_testing()
 
 include(CTest)
 
-message("Configuring testing:")
+message ("Configuring testing:")
 foreach (dir ${test_roots})
   file (GLOB dir_test RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
   foreach (testdir ${dir_test})
-    #    message("Test Directory " ${testdir})
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${testdir})
     file (GLOB_RECURSE testfiles RELATIVE "${fildir}" "${fildir}/*.run")
     foreach (test ${testfiles})
       string(REPLACE ".run" "" testroot ${test})
-      #      message("PROJECT_SOURCE_DIR " ${PROJECT_SOURCE_DIR} )
-      #      message("add_test NAME " ${testroot} )
-      #      message("WORKING_DIRECTORY " ${fildir})
-      message("-- add_test " ${fildir} "/" ${testroot})
+      message (STATUS "Test included:" ${fildir} "/" ${testroot})
       add_test (NAME ${testroot} WORKING_DIRECTORY ${fildir} COMMAND python ${PROJECT_SOURCE_DIR}/scripts/test.py ${testroot})
     endforeach(test)
   endforeach(testdir)
 endforeach(dir)
 
-#foreach (prgm ${programs})
-#  add_dependencies (${prgm} ${libraries})
-#  message("-- Dependencies ${prgm}: ${libraries}")
-#  target_link_libraries (${prgm} ${libraries})
-#endforeach (prgm)
-
 message ("Finalization:")
 set (LINK_DIRECTORIES ${LIBRARY_OUTPUT_PATH})
-message ("-- Link directories: ${LINK_DIRECTORIES}")
-#message("Source directories are ${source_dirs}")
-
-#foreach (dir ${source_dirs})
-#  set (srcdir ${PROJECT_SOURCE_DIR}/src/
-#  file(GLOB sources RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${dir}/[^.]*")
-#endforeach(dir)
-#HIERO
-
-# Define all directories that contain utilities
-
-#list(APPEND dir_utils "blas")
-#list(APPEND dir_utils "lapack")
-#list(APPEND dir_utils "utils")
-
-# Autodiscover program and utility directories
-
-#foreach (dir ${source_roots})
-#        # find all files not starting with a dot
-#        file (GLOB dir_progs RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${dir}/[^.]*")
-##        file (GLOB dir_utils RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${dir}/[^.]*_util")
-
-#	message ("Testing ${PROJECT_SOURCE_DIR}/${dir}")
-
-#        # programs are those that do not end in "_util"
-#        if (dir_utils)
-#                list (REMOVE_ITEM dir_progs ${dir_utils})
-#        endif ()
-#        # and consider only directories not beginning with uppercase
-#        foreach (item ${dir_progs})
-#                if (NOT IS_DIRECTORY "${PROJECT_SOURCE_DIR}/${dir}/${item}")
-#                        list (REMOVE_ITEM dir_progs ${item})
-#                endif ()
-#                if (item MATCHES "^[A-Z]")
-#                        list (REMOVE_ITEM dir_progs ${item})
-#                endif ()
-#        endforeach ()
-##        foreach (item ${dir_utils})
-##                if (NOT IS_DIRECTORY "${PROJECT_SOURCE_DIR}/${dir}/${item}")
-##                        list (REMOVE_ITEM dir_utils ${item})
-##                endif ()
-##                if (item MATCHES "^[A-Z]")
-##                        list (REMOVE_ITEM dir_utils ${item})
-##                endif ()
-##        endforeach ()
-#list (APPEND utils ${dir_utils})
-#list (REMOVE_ITEM dir_progs "include")
-#list (APPEND progs ${dir_progs})
-#list (REMOVE_ITEM progs "include")
-#	message ("dir_progs is ${dir_progs}")
-#	message ("dir_utils is ${dir_utils}")
-#endforeach ()
-##list (REMOVE_DUPLICATES utils)
-#list (REMOVE_DUPLICATES progs)
-#list (REMOVE_ITEM dir_progs "include")
-#	message ("dir_progs is ${dir_progs}")
-
-
-# set the location of the sources for the utilities
-
-#foreach (util ${utils})
-#        find_source(${util})
-#        if (NOT DEFINED ${util}_src)
-#                list (REMOVE_ITEM utils ${util})
-#                message (WARNING "\"${util}\" not found in source directories, skipping")
-#        endif ()
-#endforeach ()
-
-# finally, sort the list
-
-#list (SORT utils)
-
-# set the location of the sources for the programs
-
-#foreach (prog ${progs})
-#        find_source(${prog})
-#        if (NOT DEFINED ${prog}_src)
-#                list (REMOVE_ITEM progs ${prog})
-#                message (WARNING "\"${prog}\" not found in source directories, skipping")
-#        endif ()
-#endforeach ()
-
-#message ("progs is ${progs}")
-
-# finally, sort the list
-
-#list (SORT progs)
-
-#message ("utils is ${utils}")
-#message ("progs is ${progs}")
-
-# Disable some warnings that are buggy or on code we don't want to modify
-
-#if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-#        set (netlib_nowarn_flags " -w")
-#        set (ext_nowarn_flags " -w")
-#elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-#        set (netlib_nowarn_flags " -w")
-#        set (ext_nowarn_flags " -w")
-#elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "SunPro")
-#        set (netlib_nowarn_flags " -erroff=%all")
-#        set (ext_nowarn_flags " -erroff=%all")
-#elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
-#        set (netlib_nowarn_flags " -Kieee -w")
-#        set (ext_nowarn_flags " -w")
-#elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NAG")
-#        set (netlib_nowarn_flags " -w")
-#        set (ext_nowarn_flags " -w")
-#endif ()
-
-# Blacklisted sources
-
-#if (DEFINED BLACKLIST)
-#        foreach (module ${BLACKLIST})
-#                file (GLOB source RELATIVE ${PROJECT_SOURCE_DIR}
-#                        ${${module}_src}/*.f
-#                        ${${module}_src}/*.f90
-#                        )
-#                set_property (
-#                        SOURCE ${source}
-#                        APPEND_STRING
-#                        PROPERTY
-#                        COMPILE_FLAGS " ${BLACKFLAGS}"
-#                        )
-#        endforeach ()
-#        message ("Blacklisting enables, someone doesn't like certain modules...")
-#        message ("-- modules: ${BLACKLIST}")
-#        message ("-- *additional* flags: ${BLACKFLAGS}")
-#endif ()
-
-# Build the utilities and the GronOR library
-
-#set (util "Modules")
-#file (GLOB source RELATIVE ${PROJECT_SOURCE_DIR} ${GRONOR_DIR}/src/${util}/*.f ${GRONOR_DIR}/src/${util}/*.f90)
-#message ("TEST SOURCE is ${source}")
-#add_library (mods_obj OBJECT ${source})
-#list (APPEND ALL_SOURCES ${source})
-#if (DEFINED ${util}_defs)
-#        set_target_properties (mods_obj PROPERTIES COMPILE_DEFINITIONS "${${util}_defs}")
-#endif ()
-#
-#     if (BUILD_SHARED_LIBS)
-#        set_target_properties (mods_obj PROPERTIES
-#                POSITION_INDEPENDENT_CODE "TRUE"
-#        )
-#endif ()
-#if (SINGLE_MOD_DIR)
-#        set_target_properties (mods_obj PROPERTIES
-#                Fortran_MODULE_DIRECTORY ${MAIN_MOD_DIR}/_single)
-#else ()
-#        set_target_properties (mods_obj PROPERTIES
-#                Fortran_MODULE_DIRECTORY ${MAIN_MOD_DIR})
-#endif ()
-#target_include_directories (mods_obj PRIVATE
-#        ${GRONOR_DIR}/src/${util}
-#        )
-#list (APPEND utils_obj mods_obj)
-#list (APPEND objlibs "$<TARGET_OBJECTS:mods_obj>")
-
-
-# now go through utility list
-
-#foreach (util ${utils})
-#  message("util is ${util}")
-#  message("Search ${PROJECT_SOURCE_DIR}/src/${util}")
-#  set (UTILS_DIR ${PROJECT_SOURCE_DIR}/src/${util})
-#  message("PROJECT_SOURCE_DIR/src is ${PROJECT_SOURCE_DIR}/${source_roots}/${util}")
-#  file (GLOB_RECURSE util_sources RELATIVE ${PROJECT_SOURCE_DIR} ${UTILS_DIR}/*.f ${UTILS_DIR}/*.F ${UTILS_DIR}/*.c)
-#  message("srcs is ${util_sources}")
-#  add_library(${util} SHARED ${util_sources})
-#endforeach(util)
-
-#foreach (util ${utils})
-#        file (GLOB source RELATIVE ${PROJECT_SOURCE_DIR} ${${util}_src}/*.f ${${util}_src}/*.f90 ${${util}_src}/*.c)
-#        list (APPEND ALL_SOURCES ${source})
-#        # ignore empty directories
-#        if (NOT "${source}" STREQUAL "")
-#                add_library (${util}_obj OBJECT ${source})
-#                if (SINGLE_MOD_DIR)
-#                        set (mod_dir ${MAIN_MOD_DIR}/_single)
-#                else ()
-#                        set (mod_dir ${MAIN_MOD_DIR}/${util})
-#                endif ()
-#                set_target_properties (${util}_obj PROPERTIES Fortran_MODULE_DIRECTORY ${mod_dir})
-#
-#                if (BUILD_SHARED_LIBS)
-#                        set_target_properties (${util}_obj PROPERTIES
-#                                POSITION_INDEPENDENT_CODE "TRUE")
-#                endif ()
-#
-#                # utility-specific compile definitions
-#                if (DEFINED ${util}_defs)
-#                        set_target_properties (${util}_obj PROPERTIES COMPILE_DEFINITIONS "${${util}_defs}")
-#                endif ()
-#                # utility-specific include directories
-#                list (APPEND ${util}_incs ${PROJECT_SOURCE_DIR}/${${util}_src} ${mod_dir})
-#                foreach (inc ${${util}_incs})
-#                        target_include_directories (${util}_obj PRIVATE ${inc})
-#                endforeach ()
-#
-#                add_dependencies (${util}_obj mods_obj)
-#
-#                list (APPEND utils_obj ${util}_obj)
-#                list (APPEND objlibs "$<TARGET_OBJECTS:${util}_obj>")
-#                #add_library (${util} $<TARGET_OBJECTS:${util}_obj>)
-#
-#                # if (EXISTS ${PROJECT_SOURCE_DIR}/${${util}_src}/custom.cmake)
-#                #         include(${PROJECT_SOURCE_DIR}/${${util}_src}/custom.cmake)
-#                # endif ()
-#        endif ()
-#endforeach (util)
-#
-## build an actual GronOR library
-#
-#add_library (gronor ${objlibs})
-#set (GRONOR_LIBRARIES "gronor")
-#if (BUILD_SHARED_LIBS)
-#        # flatten namespace on Mac OS X
-#        if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#                set_target_properties (molcas PROPERTIES
-#                        LINK_FLAGS "-Wl,-flat_namespace")
-#        endif ()
-#        # also create a static library!
-#        if (BUILD_STATIC_LIB)
-#                add_library (gronor_static STATIC ${objlibs})
-#                list (APPEND GRONOR_LIBRARIES "gronor_static")
-#        endif ()
-#endif ()
-#
-# if necessary, build BLAS/LAPACK
-#
-#if (LINALG STREQUAL "Internal")
-#        set (util "LinAlg_internal")
-#        if (NOT DEFINED ${util}_src)
-#                message (FATAL_ERROR "\"${util}\" not found in source directories")
-#        endif ()
-#        foreach (lib "lapack" "blas")
-#                set (source ${${util}_src}/${lib}.f)
-#                add_library (${lib} ${source})
-#                list (APPEND ALL_SOURCES ${source})
-#                list (APPEND ${util}_incs ${internal_linalg})
-#                foreach (inc ${${util}_incs})
-#                        target_include_directories (${lib} PRIVATE ${inc})
-#                endforeach ()
-#                if (BUILD_SHARED_LIBS)
-#                        set_target_properties (${lib} PROPERTIES
-#                                POSITION_INDEPENDENT_CODE "TRUE")
-#                endif ()
-#        endforeach ()
-#endif ()
-
-# Build the program modules
-
-
-#add_custom_target(only_objs DEPENDS ${utils_obj})
-
-#foreach (prog ${progs})
-#        file (GLOB source RELATIVE ${PROJECT_SOURCE_DIR} ${${prog}_src}/*.f ${${prog}_src}/*.f90 ${${prog}_src}/*.F90 ${${prog}_src}/*.c)
-#        list (APPEND ALL_SOURCES ${source})
-#        # ignore empty programs
-#        if ("${source}" STREQUAL "")
-#                list (REMOVE_ITEM progs ${prog})
-#        else ()
-#                # FIXME: the checks below remove any main.* file, which is needed in
-#                # order to be able to make a library out of the program sources. This
-#                # is required for supermodules.
-#                #------------------------------------------------------------------
-#                foreach (lext "f" "f90" "c")
-#                        if (EXISTS ${PROJECT_SOURCE_DIR}/${${prog}_src}/main.${lext})
-#                                list (REMOVE_ITEM source ${${prog}_src}/main.${lext})
-#                                set (${prog}_main ${${prog}_src}/main.${lext})
-#                        endif ()
-#                endforeach ()
-
-#                if (NOT "${source}" STREQUAL "")
-#                        add_library (${prog} OBJECT ${source})
-#                        if (SINGLE_MOD_DIR)
-#                                set (mod_dir ${MAIN_MOD_DIR}/_single)
-#                        else ()
-#                                set (mod_dir ${MAIN_MOD_DIR}/${prog})
-#                        endif ()
-#                        set_target_properties (${prog} PROPERTIES Fortran_MODULE_DIRECTORY ${mod_dir})
-
-#                        # programs in "proglib" have their libraries compiled as utils
-#                        if (BUILD_SHARED_LIBS AND ";${proglib};" MATCHES ";${prog};")
-#                                set_target_properties (${prog} PROPERTIES
-#                                        POSITION_INDEPENDENT_CODE "TRUE")
-#                        endif ()
-
-#                        # program-specific compile definitions
-#                        if (DEFINED ${prog}_defs)
-#                                set_target_properties (${prog} PROPERTIES COMPILE_DEFINITIONS "${${prog}_defs}")
-#                        endif ()
-#                        # program-specific include directories
-#                        list (APPEND ${prog}_incs ${PROJECT_SOURCE_DIR}/${${prog}_src} ${mod_dir})
-#                        foreach (inc ${${prog}_incs})
-#                                target_include_directories (${prog} PRIVATE ${inc})
-#                        endforeach ()
-
-#                        add_dependencies (${prog} ${utils_obj})
-#                        add_dependencies (only_objs ${prog})
-#                endif ()
-#        endif ()
-#endforeach ()
-
-## set file-specific flags
-#if (BOUNDS AND (${FFLAGS_GNU_BOUNDS} MATCHES "-fsanitize=address"))
-#        set_property(SOURCE ${rassi_src}/prprop.f APPEND_STRING PROPERTY COMPILE_FLAGS " --param=max-vartrack-size=120000000")
-#endif ()
-
-## set up proper RPATH for executables, use RUNPATH if on Linux
-#set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-#set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-#foreach (prog ${progs})
-#        # FIXME: Actual program target only depends on main file now, but if
-#        # supermodules are gone, the dependency should be on ${source} instead.
-#        #----------------------------------------------------------------------
-#        # programs in "proglib" have their library included in libmolcas
-#        if (TARGET ${prog} AND NOT ";${proglib};" MATCHES ";${prog};")
-#                list (APPEND ${prog}_deps $<TARGET_OBJECTS:${prog}>)
-#        endif ()
-#        add_executable (${prog}.exe ${${prog}_main} ${${prog}_deps})
-#        list (APPEND progs_exe ${prog}.exe)
-#        if (SINGLE_MOD_DIR)
-#                set_target_properties (${prog}.exe PROPERTIES
-#                        Fortran_MODULE_DIRECTORY ${MAIN_MOD_DIR}/_single)
-#        else ()
-#                set_target_properties (${prog}.exe PROPERTIES
-#                        Fortran_MODULE_DIRECTORY ${MAIN_MOD_DIR}/${prog})
-#        endif ()
-#        foreach (inc ${${prog}_incs})
-#                target_include_directories (${prog}.exe PRIVATE ${inc})
-#        endforeach ()
-
-#        target_link_libraries (${prog}.exe molcas)
-#        target_link_libraries (${prog}.exe ${EXTERNAL_LIBRARIES})
-#        if (EXTERNAL_PROJECTS)
-#                add_dependencies (${prog}.exe ${EXTERNAL_PROJECTS})
-#        endif ()
-
-#        if (CUBLAS)
-#                set_target_properties (${prog}.exe PROPERTIES LINKER_LANGUAGE "CXX")
-#        endif ()
-
-#        list (APPEND PROGRAM_EXECUTABLES ${prog}.exe)
-#endforeach (prog)
+message (STATUS "Link directories: ${LINK_DIRECTORIES}")

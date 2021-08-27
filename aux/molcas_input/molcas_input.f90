@@ -7,15 +7,18 @@
       character (len=255) :: filename, filinp, filout, filxyz, filnwo
       character (len=255) :: card, options
       character (len=128) :: ofile,ifile,xfile
-      integer :: i,j,k,m,num,nt,nt0,ne,no,nelecs,nel(25),mol,mol2,numa
+      integer :: i,j,k,m,num,nt,nt0,ne,no,nelecs,nel(25),mol1,mol2,numa
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: a,x1(100,3),x2(100,3),xc(3),v(3),w(3),angle,x(3),y(3)
       character (len=255) :: basis(25),project
-      integer :: iunit,junit
+      integer :: iunit,junit,nr
       character (len=1) :: operation
-      logical :: done
+      logical :: done,aonly,caspt2
 
       numa=10
+      nr=12
+      aonly=.false.
+      caspt2=.false.
       
       elem(1)='H '
       elem(2)='B '
@@ -65,7 +68,7 @@
       basis(10)="br.ano-s...6s5p4d.  "
       basis(11)="i.ano-s...6s5p4d.   "
 
-      mol=1
+      mol1=1
       mol2=2
       
       iarg=1
@@ -75,7 +78,10 @@
       lfnout=11
       lfnnwo=12
       lfnxyz=13
-      filinp=filename(1:index(filename,' ')-1)//'.min '
+!      filinp=filename(1:index(filename,' ')-1)//'.min '
+      project=trim(filename)
+      filnwo=filename(1:index(filename,' ')-1)//'.nwout '
+      filinp='molcas.min'
       
       open(unit=lfninp,file=filinp(1:index(filinp,' ')-1))
 
@@ -103,6 +109,16 @@
           project=trim(options)
           write(*,6000) trim(project)
 6000      format(' Project name:',a)
+          operation='&'
+        endif
+        
+        if(operation.eq.'p') then
+          write(*,6000) trim(project)
+          operation='&'
+        endif
+        
+        if(operation.eq.'D') then
+          caspt2=.true.
           operation='&'
         endif
 
@@ -147,6 +163,36 @@
           close(unit=lfnxyz)
         endif
         
+        if(operation.eq.'n') then
+          write(*,6001) trim(filnwo)
+          open(unit=lfnnwo,file=trim(filnwo))
+ 11        continue
+          read(lfnnwo,100,end=991) card
+          if(card(1:19).eq.' Output coordinates') then
+            num=0
+            read(lfnnwo,100) card
+            read(lfnnwo,100) card
+            read(lfnnwo,100) card
+ 21          continue
+            num=num+1
+            read(lfnnwo,101) i,atom(num),x1(num,1),x1(num,2),x1(num,3)
+            if(i.eq.0) goto 11
+            goto 21
+          else
+            goto 11
+          endif
+ 991       continue
+          close(unit=lfnnwo)
+          num=num-1
+          filxyz=filnwo(1:index(filnwo,'.nwout'))//'xyz'
+          open(unit=lfnxyz,file=filxyz)
+          write(lfnxyz,102) num
+          do i=1,num
+            write(lfnxyz,103) atom(i),x1(i,1),x1(i,2),x1(i,3)
+          enddo
+          close(unit=lfnxyz)
+        endif
+        
 !     Read XYZ coordinate file
         
         if(operation.eq.'X') then
@@ -166,7 +212,21 @@
           enddo
           close(unit=lfnxyz)
         endif
+        
+!     Set A only
 
+        if(operation.eq.'A') then
+          aonly=.true.
+          operation='&'
+        endif
+
+!     Set number of ranks
+
+        if(operation.eq.'r') then
+          read(options,*) nr
+          operation='&'
+        endif
+        
         if(operation.eq.'O') then
           do k=1,3
             xc(k)=0.0d0
@@ -216,7 +276,7 @@
         
 !     Determine number of electrons
         
-        if(operation.eq.'N'.or.operation.eq.'X'.or.operation.eq.'O') then
+        if(operation.eq.'N'.or.operation.eq.'n'.or.operation.eq.'X'.or.operation.eq.'O') then
           nelecs=0
           do j=1,numa
             do i=1,num
@@ -349,7 +409,7 @@
  305      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
-          write(iunit,206) ne,1,(nelecs-ne)/2,no,mol,1,1,trim(project),1
+          write(iunit,206) ne,1,(nelecs-ne)/2,no,mol1,1,1,trim(project),1
 206       format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
               'inactive',/,i3,/,'ras2',/,i3,/, &
               'prwf',/,'  0',/,'prsd',//, &
@@ -358,9 +418,12 @@
               ' $CurrDir/',a,'_',i3.3,'.det',/) 
           write(iunit,306) mol2,1,1,trim(project),6
 306       format(">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
-              '>>> COPY vecdet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
+              '>>> COPY vecdet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/) 
+          if(caspt2) write(iunit,219)
+219       format('&caspt2',/)
+229       format('&caspt2',/,'Multistate=  1  2',/)
           
-          write(iunit,208) ne,1,(nelecs-ne)/2,no,mol,2,2,trim(project),2
+          write(iunit,208) ne,1,(nelecs-ne)/2,no,mol1,2,2,trim(project),2
  208      format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
                'inactive',/,i3,/,'ras2',/,i3,/, &
                'CIRoot',/,'  1 2',/,'  2',/, &
@@ -368,17 +431,22 @@
                '>>> COPY $Project.RasOrb.1 $CurrDir/INPORB.',i1,'_',i1,/, &
                '>>> COPY vecdet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
           write(iunit,306) mol2,2,2,trim(project),7
+          if(caspt2) write(iunit,229)
           
-          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol,3,1,trim(project),3
+          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
           write(iunit,306) mol2,3,1,trim(project),8
-          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol,4,1,trim(project),4
+          if(caspt2) write(iunit,219)
+          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
           write(iunit,306) mol2,4,1,trim(project),9
-          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol,5,1,trim(project),5
+          if(caspt2) write(iunit,219)
+          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
           write(iunit,306) mol2,5,1,trim(project),10
+          if(caspt2) write(iunit,219)
+
 
           close(unit=iunit)
 
-          mol=2
+          mol2=2
           open(unit=iunit,file=trim(project)//'_B.input')
           
           write(iunit,200)
@@ -408,11 +476,11 @@
  209      format('>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
-          write(iunit,206) ne,1,(nelecs-ne)/2,no,mol,1,1,trim(project),6      
-          write(iunit,208) ne,1,(nelecs-ne)/2,no,mol,2,2,trim(project),7
-          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol,3,1,trim(project),8
-          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol,4,1,trim(project),9
-          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol,5,1,trim(project),10
+          write(iunit,206) ne,1,(nelecs-ne)/2,no,mol2,1,1,trim(project),6      
+          write(iunit,208) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
+          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
+          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
+          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
 
           close(unit=iunit)
 
@@ -550,9 +618,13 @@
           
           open(unit=iunit,file=trim(project)//'.run')
 
-          write(iunit,213) trim(project)
+          if(aonly) then
+            write(iunit,313) nr,trim(project),nr,nr
+          else
+            write(iunit,213) nr,trim(project),nr,nr
+          endif
  213      format('#!/usr/bin/tcsh',/, &
-              'setenv MOLCAS_NPROCS 48',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_A.input" > $PROJECT"_A.output"',/, &
               'pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
@@ -563,11 +635,28 @@
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
-              'setenv OMP_NUM_THREADS 12',/, &
-              'rdcho $MOLCAS_NPROCS',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
               'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
               'unsetenv DELETED',/, &
-              'mpirun -n 48 gronor $PROJECT"_dimer"')
+              'mpirun -n',i3,' gronor $PROJECT"_dimer"')
+ 313      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_A.input" > $PROJECT"_A.output"',/, &
+              '#pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
+              '#pymolcas -clean $PROJECT"_D.input" > $PROJECT"_D.output"',/, &
+              '#common_basis < $PROJECT"_CB.input" > $PROJECT"_CB.output"',/, &
+              '#setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              '#touch TRAINT',/, &
+              '#setenv MOLCAS_MEM 4096',/, &
+              '#pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
+              '#setenv OMP_NUM_THREADS ',i3,/, &
+              '#rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
+              '#rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
+              '#unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer"')
           
           close(unit=iunit)
           

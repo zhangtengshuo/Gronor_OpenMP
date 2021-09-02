@@ -458,14 +458,6 @@ set (FFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_PGI_RELEASE "-O2")
 set (FFLAGS_PGI_FAST "-fast -fastsse")
-# Fortran accelerator flags
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
-else()
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_PGI_ACC}")
-endif()
 
 # NVIDIA Compilers
 # ================
@@ -505,14 +497,6 @@ set (FFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELEASE "-O2")
 set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
-# Fortran accelerator flags
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVIDIA_ACC}")
-else()
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVIDIA_ACC}")
-endif()
 
 # NVHPC Compilers
 # ================
@@ -552,14 +536,6 @@ set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVHPC_RELEASE "-O2")
 set (FFLAGS_NVHPC_FAST "-fast -fastsse")
-# Fortran accelerator flags
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
-else()
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
-endif()
 
 # Cray Compilers
 # ==============
@@ -608,6 +584,19 @@ endforeach ()
 if (NOT CCID)
   message (FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
 endif ()
+
+# Fortran accelerator flags
+if("$ENV{HOST}" MATCHES "daint")
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+else()
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+endif()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_CXX_FLAGS_USER)

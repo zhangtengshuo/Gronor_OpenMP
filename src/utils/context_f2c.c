@@ -16,6 +16,7 @@ typedef int integer;		/* Equivalent C type to FORTRAN integer */
 #endif
 
 #define MAX_CLEN 4096
+
 #if (defined(CRAY) || defined(USE_FCD)) && !defined(__crayx1)
 static int fortchar_to_string(_fcd f, int flen, char *buf, 
 			      const int buflen)

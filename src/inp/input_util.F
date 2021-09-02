@@ -66,7 +66,8 @@
       subroutine inp_init(ir,iw)
       implicit none
 
-      integer (kind=8) :: ir, iw
+      integer (kind=8) :: ir
+      integer (kind=8) :: iw
 
       iread = ir
       iwrite = iw
@@ -176,7 +177,7 @@
 !     in inumb(i).
 
       character (len=1) :: xprev
-      integer (kind=8) :: lenja, i, k, mark, j, nbegin, nfini
+      integer (kind=8) :: lenja, i, k, mark, j, nbegin, nfini, iopt
       integer (kind=8) :: jwidth
       integer (kind=8) :: ncol(max_field)
       logical :: ois_ws            ! Inline funtion  
@@ -227,8 +228,9 @@
      &        (1:inp_strlen(include_file_name(include_level)))
          open(80+include_level,file=include_file_name(include_level),
      &        form='formatted', status='old', err=105)
-!         call inp_save_state()
-         call inp_init(80+include_level,6)
+!     call inp_save_state()
+         iopt=6
+         call inp_init(80+include_level,iopt)
          goto 1
       endif
 

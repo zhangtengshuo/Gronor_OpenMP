@@ -514,6 +514,53 @@ else()
   message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVIDIA_ACC}")
 endif()
 
+# NVHPC Compilers
+# ================
+
+# C++ compiler
+list (APPEND SUPPORTED_CXX_COMPILERS "NVHPC")
+set (CXXFLAGS_NVHPC_BASIC "-c99 -pgf90libs")
+set (CXXFLAGS_NVHPC_OPENMP "-mp")
+# C++ build targets
+set (CXXFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
+set (CXXFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_NVHPC_RELEASE "-O2")
+set (CXXFLAGS_NVHPC_FAST "-O2")
+# C compiler
+list (APPEND SUPPORTED_C_COMPILERS "NVHPC")
+set (CFLAGS_NVHPC_BASIC "-c99 -pgf90libs")
+set (CFLAGS_NVHPC_OPENMP "-mp")
+# C build targets
+set (CFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
+set (CFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
+set (CFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CFLAGS_NVHPC_RELEASE "-O2")
+set (CFLAGS_NVHPC_FAST "-O2")
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "NVHPC")
+set (FFLAGS_NVHPC_BASIC "-Mbackslash")
+set (FFLAGS_NVHPC_PREPROCESS "-Mpreprocess")
+set (FFLAGS_NVHPC_OPENMP "-mp")
+set (FFLAGS_NVHPC_ILP64 "-i8")
+set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc")
+set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -lcusolver")
+set (FFLAGS_NVHPC_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
+# Fortran build targets
+set (FFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
+set (FFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (FFLAGS_NVHPC_RELEASE "-O2")
+set (FFLAGS_NVHPC_FAST "-fast -fastsse")
+# Fortran accelerator flags
+if("$ENV{HOST}" MATCHES "daint")
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+else()
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+endif()
+
 # Cray Compilers
 # ==============
 

@@ -1242,7 +1242,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 !     detect an error
 
       write(*,999) icode,string
- 999  format("Error code ",i,": ",a)
+ 999  format("Error code ",i2,": ",a)
       stop
       return
       end

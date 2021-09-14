@@ -1432,7 +1432,7 @@ c
       integer :: id
 
       write(*,999) id,message
- 999  format('Error code ',i,': ',a)
+ 999  format('Error code ',i2,': ',a)
       stop
       return 
       end

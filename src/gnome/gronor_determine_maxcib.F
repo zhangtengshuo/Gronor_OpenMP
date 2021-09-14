@@ -63,8 +63,8 @@
           maxcib=max(maxcib,idetm(i))
           if(spinm(i).ne.nspin) then
             write(lfnout,601) i,nspin
- 601        format(' State ',i,' is incompatible with spin ',
-     &           'of molecule (',i,')')
+ 601        format(' State ',i2,' is incompatible with spin ',
+     &           'of molecule (',i2,')')
             call errquit(me,9,"Incompatible spin state")
           endif
         enddo
@@ -78,8 +78,8 @@
           if (( maxspin.lt.nspin ).or.( minspin.gt.nspin)) then
             write(lfnout,602) ibase,spinm(1),spinm(2),nspin
  602        format(' Spins of fragments incompatible with total spin',
-     &           ' for MEBF',i,/,' Spin(1) = ',i4,/,' Spin(2) = ',i4,/,
-     &           ' Cannot be coupled to ',i)
+     &           ' for MEBF',i2,/,' Spin(1) = ',i4,/,' Spin(2) = ',i4,/,
+     &           ' Cannot be coupled to ',i2)
             call errquit(me,9,"Incompatible spin state")
           end if
         end if
@@ -152,8 +152,8 @@
         endif
         if(cib.eq.0) then 
           write(lfnout,603) spin(1)+1,spin(2)+1,nspin+1
- 603      format(' Spin(1) = ',i,/,' Spin(2) = ',i,/,
-     &         ' Total spin = ',i, ' is not possible')
+ 603      format(' Spin(1) = ',i2,/,' Spin(2) = ',i2,/,
+     &         ' Total spin = ',i2, ' is not possible')
           flush(lfnout)
           call errquit(me,9,"Incompatible spin state")
         endif

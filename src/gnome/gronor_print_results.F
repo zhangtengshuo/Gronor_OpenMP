@@ -267,7 +267,7 @@
         info_cml='dictRef="gr:overlap"'
         indent = 6
         call open_tag(lfncml,label,info_cml,indent) 
-        info='empty'
+        info_cml='empty'
         call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,
      &     size(hbase,1),size(hbase,2),fmt_1)
         call close_tag(lfncml,label,6)

@@ -1,4 +1,4 @@
-        program commonbasis
+        program common_basis
         implicit none
 
         call transvecmain()
@@ -305,7 +305,11 @@
          lfnvec=12
 
          open(unit=lfnvec,file=filvec,action='readwrite')
-         write(lfnvec,'(I)') newbas
+         if(newbas.lt.10) then
+           write(lfnvec,'(i1)') newbas
+         else
+           write(lfnvec,'(i2)') newbas
+         endif
          do i=1,nocc(ist)
           write(lfnvec,'(4F18.14)') (vecnew(j,i,ist),j=1,newbas)
          enddo

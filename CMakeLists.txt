@@ -1,243 +1,19 @@
+
 # Global CMakeLists.txt for building GronOR using cmake
 
-cmake_minimum_required (VERSION 3.10.00)
+# Set minimum required for cmake
+#    Note: As of 3.13 changes in the behavior of option() under policy CMP0077
+
+cmake_minimum_required (VERSION 3.11.00)
 
 # Define project name with associated languages
 
 message ("Programming Environment:")
-
 message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
 project (GronOR VERSION 21.00 LANGUAGES Fortran C CXX)
 
 # Set global session identifier
-
-set (ENV{CMAKE_SESSION} "GronOR")
-
-message ("Configuring session:")
-message (STATUS "Project: ${PROJECT_NAME}")
-message (STATUS "Version: ${PROJECT_VERSION}")
-
-# Enforce out-of-source builds only
-
-set (CMAKE_DISABLE_SOURCE_CHANGES ON)
-set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-
-get_filename_component (sourcedir "${CMAKE_SOURCE_DIR}" REALPATH)
-get_filename_component (binarydir "${CMAKE_BINARY_DIR}" REALPATH)
-
-if ("${sourcedir}" STREQUAL "${binarydir}")
-  message (FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
-    "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
-    "separate build directory and run cmake from there.")
-endif ()
-
-message (STATUS "Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
-
-message (STATUS "Source directory: ${CMAKE_SOURCE_DIR}")
-message (STATUS "Binary directory: ${CMAKE_BINARY_DIR}")
-
-# Find required tools
-
-find_program (GIT "git")
-
-message (STATUS "Found git: ${GIT}")
-
-# Define GronOR compilation options
-
-# The build type, specifies the different optimization types.
-
-if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
-  set (CMAKE_BUILD_TYPE "Release" CACHE STRING
-    "Type of build, options are: None (CFLAGS/FFLAGS can be used), Debug, Garble, RelWithDebInfo, Release, Fast."
-    FORCE)
-endif ()
-
-message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
-set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithDebInfo Release Fast)
-
-# The place where GronOR is installed with make install.
-
-if (NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
-    "Location where GronOR will be installed.")
-endif ()
-
-message (STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
-
-option (DEBUGPRINT "Enable excessive print statements for debugging." OFF)
-option (DEBUGTRACE "Enable tracing print statements for debugging." OFF)
-
-set (DEBUG_DEFS_DESC "Additional debugging definitions.")
-
-if (DEFINED DEBUG_DEFS)
-  separate_arguments(DEBUG_DEFS)
-  set (DEBUG_DEFS "${DEBUG_DEFS}" CACHE STRING "${DEBUG_DEFS_DESC}" FORCE)
-else ()
-  set (DEBUG_DEFS "" CACHE STRING "${DEBUG_DEFS_DESC}")
-endif ()
-
-option (BUILD_SHARED_LIBS "Build dynamically-linked GronOR library." OFF)
-option (BUILD_STATIC_LIB "Build statically-linked GronOR library too." OFF)
-
-if (DEFINED BUILD_SHARED_LIBS)
-  mark_as_advanced (CLEAR BUILD_STATIC_LIB)
-else ()
-  mark_as_advanced (FORCE BUILD_STATIC_LIB)
-endif ()
-
-option (MPI "Enable MPI parallellization." ON)
-option (OPENACC "Enable OPENACC off-loading." OFF)
-option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
-option (OPENMP "Enable multi-threading." OFF)
-option (_OL_OMP_ "Enable OPENMP off-loading." OFF)
-option (CUSOLVER "Enable CUSOLVER library." OFF)
-option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
-option (MKL "Enable MKL library." OFF)
-option (CUDA "Enable CUDA Functions." OFF)
-option (CUBLAS "Enable CUDA BLAS library." OFF)
-option (NVBLAS "Enable NVidia BLAS library." OFF)
-option (CTEST "Enable CTest." OFF)
-option (SINGLEP "Enable single precision." OFF)
-
-# Set CUDA_HOME to ${CUDATOOLKIT_HOME} (Needed on e.g. Piz Daint)
-
-if("$ENV{CUDA_HOME}" STREQUAL "")
-  if("$ENV{CUDATOOLKIT_HOME}" STREQUAL "")
-    message (STATUS "CUDA_HOME not set")
-  else()
-    set(ENV{CUDA_HOME} $ENV{CUDATOOLKIT_HOME})
-    message (STATUS "CUDA_HOME set: $ENV{CUDA_HOME}")
-  endif()
-else()
-  message (STATUS "CUDA_HOME found: $ENV{CUDA_HOME}")
-endif()
-
-# Avoid using CXX compiler for linking
-
-set (CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES FALSE)
-
-# Set cmake module search paths
-
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
-
-message (STATUS "Project source directory: ${PROJECT_SOURCE_DIR}")
-message (STATUS "Project binary directory: ${PROJECT_BINARY_DIR}")
-message (STATUS "CMAKE_CURRENT_LIST DIR: ${CMAKE_CURRENT_LIST_DIR}")
-
-set (GRONOR_DIR ${CMAKE_CURRENT_LIST_DIR})
-
-if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${GRONOR_DIR})
-  set (basedirs ${PROJECT_SOURCE_DIR})
-endif ()
-
-list (APPEND basedirs ${GRONOR_DIR})
-
-foreach (BASE_DIR ${basedirs})
-  file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/src*")
-  list (SORT source_roots_tmp)
-  list (APPEND source_roots ${source_roots_tmp})
-  file (GLOB test_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/test*")
-  list (SORT test_roots_tmp)
-  list (APPEND test_roots ${test_roots_tmp})
-endforeach ()
-
-message (STATUS "Basedirs: ${basedirs}")
-
-# MolCas settings
-
-set(AUXILIARY "ON")
-
-if(NOT DEFINED ENV{MOLCAS})
-  set(AUXILIARY "")
-endif()
-
-if(NOT DEFINED ENV{MKLROOT})
-  set(AUXILIARY "")
-endif()
-
-if(NOT DEFINED ENV{GA})
-  set(AUXILIARY "")
-endif()
-
-if("${AUXILIARY}" STREQUAL "ON")
-  message ("Configuring Molcas dependencies")
-  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
-  message (STATUS "Found location MolCas: ${molcas_root}")
-  include_directories ("${molcas_root}/src/Include")
-  message (STATUS "Added include directory: ${molcas_root}/src/Include")
-  message (STATUS "Found location GA: $ENV{GA}")
-  message (STATUS "Found location MKL: $ENV{MKLROOT}")
-
-  message ("Adding molcas dependent auxiliary programs")
-  foreach (BASE_DIR ${basedirs})
-    file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/molcas*")
-    list (SORT source_roots_tmp)
-    list (APPEND source_roots ${source_roots_tmp})
-  endforeach ()
-endif()
-
-message ("Adding auxiliary programs")
-foreach (BASE_DIR ${basedirs})
-  file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")
-  list (SORT source_roots_tmp)
-  list (APPEND source_roots ${source_roots_tmp})
-endforeach ()
-
-list (REVERSE basedirs)
-
-set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-
-set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
-
-configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gronor_config.fh)
-
-foreach (BASE_DIR ${basedirs})
-  if (EXISTS "${BASE_DIR}/src/include")
-    include_directories (${BASE_DIR}/src/include)
-  endif ()
-endforeach ()
-
-include_directories (${MAIN_INCLUDE_DIR})
-
-# set function to find source directories
-
-function (find_source name)
-  foreach (src ${source_roots})
-    if (EXISTS ${PROJECT_SOURCE_DIR}/${src}/${name})
-      file (GLOB tmplist RELATIVE ${PROJECT_SOURCE_DIR}/${src}/${name} ${PROJECT_SOURCE_DIR}/${src}/${name}/*)
-      # ignore possible leftover files from previous configure+make
-      list (REMOVE_ITEM tmplist Makefile 00dependencies 00sources)
-      if (tmplist)
-        set (found "${src}/${name}")
-        break ()
-      endif ()
-    endif ()
-  endforeach ()
-  # do not overwrite existing definitions
-  if (DEFINED ${name}_src)
-    set (${name}_src "${${name}_src}" PARENT_SCOPE)
-  else ()
-    if (DEFINED found)
-      set (${name}_src "${found}" PARENT_SCOPE)
-    endif ()
-  endif ()
-endfunction ()
-
-# set function to insert list
-
-function (insert_before _list _item _new)
-  list (GET ${_item} 0 _first)
-  list (FIND ${_list} ${_first} _index)
-  if (_index GREATER -1)
-    list (INSERT ${_list} ${_index} ${_new})
-  else ()
-    list (APPEND ${_list} ${_new})
-  endif ()
-  set (${_list} ${${_list}} PARENT_SCOPE)
-endfunction ()
 
 # Detect system information
 
@@ -294,8 +70,290 @@ else ()
   message (STATUS "Platform: ${PLATFORM}")
 endif ()
 
+# General session configurataion
+
+set (ENV{CMAKE_SESSION} "GronOR")
+
+message ("Configuring session:")
+message (STATUS "Project: ${PROJECT_NAME}")
+message (STATUS "Version: ${PROJECT_VERSION}")
+message (STATUS "Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
+
+# Enforce out-of-source builds only
+
+set (CMAKE_DISABLE_SOURCE_CHANGES ON)
+set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+
+get_filename_component (sourcedir "${CMAKE_SOURCE_DIR}" REALPATH)
+get_filename_component (binarydir "${CMAKE_BINARY_DIR}" REALPATH)
+
+if ("${sourcedir}" STREQUAL "${binarydir}")
+  message (FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are not "
+    "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
+    "separate build directory and run cmake from there.")
+endif ()
+
+message (STATUS "Source directory: ${CMAKE_SOURCE_DIR}")
+message (STATUS "Binary directory: ${CMAKE_BINARY_DIR}")
+set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/CMakeFiles/mod")
+
+# Define GronOR compilation
+
+# The build type, specifies the different optimization types.
+
+if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
+  set (CMAKE_BUILD_TYPE "Release" CACHE STRING
+    "Type of possible builds are: None (CFLAGS/FFLAGS can be used), Debug, Garble, RelWithDebInfo, Release, Fast."
+    FORCE)
+endif ()
+
+message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithDebInfo Release Fast)
+
+# The place where GronOR is installed with make install.
+
+if (NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
+    "Location where GronOR will be installed.")
+endif ()
+
+message (STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+
+
+message ("Configuring MPI parallellization:")
+find_package (MPI REQUIRED)
+
+include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
+
+link_directories(${MPI_Fortran_LIBRARIES})
+
+message (STATUS "MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
+message (STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
+message (STATUS "MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
+message (STATUS "MPI_Fortran_MODULE_DIR: ${MPI_Fortran_MODULE_DIR}")
+message (STATUS "MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
+message (STATUS "MPIEXEC: ${MPIEXEC}")
+
+execute_process (
+  COMMAND ${MPIEXEC} "--version"
+  OUTPUT_VARIABLE MPIEXEC_VERSION
+  ERROR_VARIABLE MPIEXEC_VERSION
+  )
+if (MPIEXEC_VERSION MATCHES "OpenRTE")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
+  set (MPI_IMPLEMENTATION "impi")
+elseif (MPIEXEC_VERSION MATCHES "HYDRA")
+  set (MPI_IMPLEMENTATION "mpich")
+elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "slurm 20.02.6-1.20201123git821b81e9af.el8")
+  set (MPI_IMPLEMENTATION "openmpi")
+else ()
+  message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
+endif ()
+message (STATUS "MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
+
+
+# Find external packages, programs and libraries
+
+message ("External packages, programs and libraries:")
+
+# Set CUDA_HOME to ${CUDATOOLKIT_HOME} (Needed on e.g. Piz Daint)
+
+if("$ENV{CUDA_HOME}" STREQUAL "")
+  if(NOT "$ENV{CUDATOOLKIT_HOME}" STREQUAL "")
+    set(ENV{CUDA_HOME} $ENV{CUDATOOLKIT_HOME})
+  endif()
+  if(NOT "$ENV{CUDA_DIR}" STREQUAL "")
+    set(ENV{CUDA_HOME} $ENV{CUDA_DIR})
+  endif()
+endif()
+if(NOT DEFINED ENV{CUDA_HOME})
+  message (STATUS "Not found: cuda")
+else()
+  message (STATUS "Found cuda: $ENV{CUDA_HOME}")
+endif()
+
+find_program (GIT "git")
+message (STATUS "Found git: ${GIT}")
+
+set(MOLCAS "ON")
+
+if(NOT DEFINED ENV{MOLCAS})
+  set(MOLCAS "")
+  message (STATUS "Not found: molcas")
+else()
+  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
+  message (STATUS "Found Molcas: ${molcas_root}")
+endif()
+
+if(NOT DEFINED ENV{MKLROOT})
+  set(MOLCAS "")
+  message (STATUS "Not found: mkl")
+else()
+  message (STATUS "Found mkl: $ENV{MKLROOT}")
+endif()
+
+if(NOT DEFINED ENV{GA})
+  set(MOLCAS "")
+  message (STATUS "Not found: ga")
+else()
+  message (STATUS "Found ga: $ENV{GA}")
+endif()
+
+if (MOLCAS STREQUAL "")
+  unset(MOLCAS)
+endif()
+  
+if(DEFINED MOLCAS)
+  message (STATUS "Molcas dependent auxiliary programs will be compiled")
+  include_directories ("${molcas_root}/src/Include")
+  message (STATUS "Added include directory: ${molcas_root}/src/Include")
+else()
+  message (STATUS "Molcas dependent auxiliary programs will not be compiled")
+endif()
+
+
+# Set defaults for optional arguments to cmake
+#    Note: MPI is not optional and removed from options list
+
+option (OPENACC "Enable OPENACC off-loading." OFF)
+option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
+option (OPENMP "Enable multi-threading." OFF)
+option (_OL_OMP_ "Enable OPENMP off-loading." OFF)
+option (CUSOLVER "Enable CUSOLVER library." OFF)
+option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
+option (MKL "Enable MKL library." OFF)
+option (CUDA "Enable CUDA Functions." OFF)
+option (CUBLAS "Enable CUDA BLAS library." OFF)
+option (NVBLAS "Enable NVidia BLAS library." OFF)
+option (CTEST "Enable CTest." OFF)
+option (SINGLEP "Enable single precision." OFF)
+
+#     Note: build and debug options
+
+option (DEBUGPRINT "Enable excessive print statements for debugging." OFF)
+option (DEBUGTRACE "Enable tracing print statements for debugging." OFF)
+
+option (BUILD_SHARED_LIBS "Build dynamically-linked GronOR library." OFF)
+option (BUILD_STATIC_LIB "Build statically-linked GronOR library too." OFF)
+
+if (DEFINED BUILD_SHARED_LIBS)
+  mark_as_advanced (CLEAR BUILD_STATIC_LIB)
+else ()
+  mark_as_advanced (FORCE BUILD_STATIC_LIB)
+endif ()
+
+#      Note: Avoid using CXX compiler for linking
+
+set (CMAKE_CXX_LINKER_PREFERENCE_PROPAGATES FALSE)
+
+
+
+message ("Configuring base directories")
+  
+  # Set cmake module search paths
+
+message (STATUS "CMAKE_CURRENT_LIST DIR: ${CMAKE_CURRENT_LIST_DIR}")
+
+set (GRONOR_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${GRONOR_DIR})
+  set (basedirs ${PROJECT_SOURCE_DIR})
+endif ()
+list (APPEND basedirs ${GRONOR_DIR})
+
+message(STATUS "Base directories ${basedirs}")
+
+foreach (BASE_DIR ${basedirs})
+  file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/src*")
+  list (SORT source_roots_tmp)
+  list (APPEND source_roots ${source_roots_tmp})
+  file (GLOB test_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/test*")
+  list (SORT test_roots_tmp)
+  list (APPEND test_roots ${test_roots_tmp})
+endforeach ()
+
+if(DEFINED MOLCAS)
+  message (STATUS "Adding molcas dependent auxiliary programs")
+  foreach (BASE_DIR ${basedirs})
+    file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/molcas*")
+    list (SORT source_roots_tmp)
+    list (APPEND source_roots ${source_roots_tmp})
+  endforeach ()
+endif()
+
+message (STATUS "Adding auxiliary programs")
+foreach (BASE_DIR ${basedirs})
+  file (GLOB source_roots_tmp RELATIVE ${PROJECT_SOURCE_DIR} "${BASE_DIR}/aux*")
+  list (SORT source_roots_tmp)
+  list (APPEND source_roots ${source_roots_tmp})
+endforeach ()
+
+list (REVERSE basedirs)
+
+message (STATUS "Source root directories: ${source_roots}")
+message (STATUS "Test root directories: ${test_roots}")
+
+set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
+
+# Copy the gronor_config.h to the include directory after modifying the proper version number
+configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gronor_config.fh)
+
+# Add the include directories from each source base directory to compiler include path
+foreach (BASE_DIR ${basedirs})
+  if (EXISTS "${BASE_DIR}/src/include")
+    include_directories (${BASE_DIR}/src/include)
+  endif ()
+endforeach ()
+
+# Add the main include directoriy to compiler include path
+include_directories (${MAIN_INCLUDE_DIR})
+
+# Define a function to find source sub-directories
+function (find_source name)
+  foreach (src ${source_roots})
+    if (EXISTS ${PROJECT_SOURCE_DIR}/${src}/${name})
+      file (GLOB tmplist RELATIVE ${PROJECT_SOURCE_DIR}/${src}/${name} ${PROJECT_SOURCE_DIR}/${src}/${name}/*)
+      # ignore possible leftover files from previous configure+make
+      list (REMOVE_ITEM tmplist Makefile 00dependencies 00sources)
+      if (tmplist)
+        set (found "${src}/${name}")
+        break ()
+      endif ()
+    endif ()
+  endforeach ()
+  # do not overwrite existing definitions
+  if (DEFINED ${name}_src)
+    set (${name}_src "${${name}_src}" PARENT_SCOPE)
+  else ()
+    if (DEFINED found)
+      set (${name}_src "${found}" PARENT_SCOPE)
+    endif ()
+  endif ()
+endfunction ()
+
+# Define a function to insert list
+function (insert_before _list _item _new)
+  list (GET ${_item} 0 _first)
+  list (FIND ${_list} ${_first} _index)
+  if (_index GREATER -1)
+    list (INSERT ${_list} ${_index} ${_new})
+  else ()
+    list (APPEND ${_list} ${_new})
+  endif ()
+  set (${_list} ${${_list}} PARENT_SCOPE)
+endfunction ()
+
+# Generate a list of supported c, c++ and fortran compilers with definitions of compiler flags
+
 # GNU Compiler Collection (GCC)
-# =============================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "GNU")
@@ -348,7 +406,6 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 endif ()
 
 # LLVM C frontend (Clang)
-# =======================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Clang")
@@ -372,7 +429,6 @@ set (CFLAGS_Clang_RELEASE "-O2")
 set (CFLAGS_Clang_FAST "-O2")
 
 # Intel C++/C/Fortran Compilers
-#==============================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Intel")
@@ -422,7 +478,6 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" AND
 endif ()
 
 # Portland Group (PGI) Compilers
-# ==============================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "PGI")
@@ -460,7 +515,6 @@ set (FFLAGS_PGI_RELEASE "-O2")
 set (FFLAGS_PGI_FAST "-fast -fastsse")
 
 # NVIDIA Compilers
-# ================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "NVIDIA")
@@ -499,7 +553,6 @@ set (FFLAGS_NVIDIA_RELEASE "-O2")
 set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
 
 # NVHPC Compilers
-# ================
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "NVHPC")
@@ -538,7 +591,6 @@ set (FFLAGS_NVHPC_RELEASE "-O2")
 set (FFLAGS_NVHPC_FAST "-fast -fastsse")
 
 # Cray Compilers
-# ==============
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "Cray")
@@ -575,7 +627,44 @@ set (FFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_Cray_RELEASE "-O2")
 set (FFLAGS_Cray_FAST "-fast -fastsse")
 
-# Test if using supported C compiler
+# IBM XL Compilers
+
+# C++ compiler
+list (APPEND SUPPORTED_CXX_COMPILERS "IBM")
+set (CXXFLAGS_IBM_BASIC "-c99 -pgf90libs")
+set (CXXFLAGS_IBM_OPENMP "-mp")
+# C++ build targets
+set (CXXFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
+set (CXXFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CXXFLAGS_IBM_RELEASE "-O2")
+set (CXXFLAGS_IBM_FAST "-O2")
+# C compiler
+list (APPEND SUPPORTED_C_COMPILERS "IBM")
+set (CFLAGS_IBM_BASIC "-c99 -pgf90libs")
+set (CFLAGS_IBM_OPENMP "-mp")
+# C build targets
+set (CFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
+set (CFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
+set (CFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (CFLAGS_IBM_RELEASE "-O2")
+set (CFLAGS_IBM_FAST "-O2")
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "IBM")
+set (FFLAGS_IBM_BASIC "-Mbackslash")
+set (FFLAGS_IBM_PREPROCESS "-Mpreprocess")
+set (FFLAGS_IBM_OPENMP "-mp")
+set (FFLAGS_IBM_ILP64 "-i8")
+set (FFLAGS_IBM_ACC "-acc -Minfo=accel -Mcuda=rdc")
+set (FFLAGS_IBM_CUSOLVER "-DCUSOLVER -lcusolver")
+# Fortran build targets
+set (FFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
+set (FFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
+set (FFLAGS_IBM_RELEASE "-O2")
+set (FFLAGS_IBM_FAST "-fast -fastsse")
+
+# Test if a supported c compiler is used
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
   if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")
     set (CCID ${CMAKE_C_COMPILER_ID})
@@ -583,20 +672,36 @@ foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
 endforeach ()
 if (NOT CCID)
   message (FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER_ID}")
+else()
+  message (STATUS "C compiler used is supported: ${CMAKE_C_COMPILER_ID}") 
 endif ()
 
-# Fortran accelerator flags
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+# Test if a supported c++ compiler is used
+foreach (CXX_COMPILER ${SUPPORTED_CXX_COMPILERS})
+  if (CXX_COMPILER STREQUAL "${CMAKE_CXX_COMPILER_ID}")
+    set (CXXID ${CMAKE_CXX_COMPILER_ID})
+  endif ()
+endforeach ()
+if (NOT CXXID)
+  message (FATAL_ERROR "Unsupported C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
 else()
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
-endif()
+  message (STATUS "C++ compiler used is supported: ${CMAKE_CXX_COMPILER_ID}") 
+endif ()
+
+# Test if a supported Fortran compiler is used
+foreach (Fortran_COMPILER ${SUPPORTED_Fortran_COMPILERS})
+  if (Fortran_COMPILER STREQUAL "${CMAKE_Fortran_COMPILER_ID}")
+    set (FCID ${CMAKE_Fortran_COMPILER_ID})
+    #	  message (STATUS "Fortran compiler ID is ${FCID}")
+  endif ()
+endforeach ()
+if (NOT FCID)
+  message (FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
+else()
+  message (STATUS "Fortran compiler used is supported: ${CMAKE_Fortran_COMPILER_ID}") 
+endif ()
+
+# Change selected compiler defaults set by cmake
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_CXX_FLAGS_USER)
@@ -674,16 +779,6 @@ else ()
 endif ()
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEFAULT}")
 
-# Test if using supported Fortran compiler
-foreach (Fortran_COMPILER ${SUPPORTED_Fortran_COMPILERS})
-  if (Fortran_COMPILER STREQUAL "${CMAKE_Fortran_COMPILER_ID}")
-    set (FCID ${CMAKE_Fortran_COMPILER_ID})
-    #	  message (STATUS "Fortran compiler ID is ${FCID}")
-  endif ()
-endforeach ()
-if (NOT FCID)
-  message (FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
-endif ()
 
 # overwrite any CMake defaults (some are strange, so we set our own)
 if (NOT CMAKE_Fortran_FLAGS_USER)
@@ -724,11 +819,28 @@ endif ()
 set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEFAULT}")
 
 
-if("${AUXILIARY}" STREQUAL "ON")
+# Fortran accelerator flags
+if("$ENV{HOST}" MATCHES "daint")
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Custom OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+else()
+  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
+  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
+  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
+endif()
+
+# molcas dependent auxiliary programs need the molcas libraries
+if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()
+message(STATUS "External libraries defined: '${EXTERNAL_LIBRARIES}")
+
+# Define the appropriate compiler flags
 
 if (NOT CMAKE_GENERATOR STREQUAL "Ninja")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_PREPROCESS}")
@@ -796,10 +908,12 @@ if(${PLATFORM} STREQUAL "PPC64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
   message (STATUS "Added LINUX compile flag")
 endif()
+
 if(${PLATFORM} STREQUAL "LINUX64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
   message (STATUS "Added LINUX compile flag")
 endif()
+
 if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
   message (STATUS "Added LINUX compile flag")
@@ -816,8 +930,6 @@ endif ()
 if (EXTRA_FFLAGS)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${EXTRA_FFLAGS}")
 endif ()
-
-# Process options                                                              #
 
 # Install directory
 
@@ -838,45 +950,6 @@ if (DEBUGTRACE)
 endif ()
 
 # Parallel settings
-
-message ("Configuring MPI parallellization:")
-
-find_package (MPI REQUIRED)
-
-add_definitions (-D_GRONOR_MPP_)
-
-include_directories (${MPI_Fortran_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
-
-link_directories(${MPI_Fortran_LIBRARIES})
-
-message (STATUS "MPI_C_INCLUDE_PATH: ${MPI_C_INCLUDE_PATH}")
-message (STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
-message (STATUS "MPI_Fortran_INCLUDE_PATH: ${MPI_Fortran_INCLUDE_PATH}")
-message (STATUS "MPI_Fortran_MODULE_DIR: ${MPI_Fortran_MODULE_DIR}")
-message (STATUS "MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
-message (STATUS "MPIEXEC: ${MPIEXEC}")
-
-execute_process (
-  COMMAND ${MPIEXEC} "--version"
-  OUTPUT_VARIABLE MPIEXEC_VERSION
-  ERROR_VARIABLE MPIEXEC_VERSION
-  )
-if (MPIEXEC_VERSION MATCHES "OpenRTE")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
-  set (MPI_IMPLEMENTATION "impi")
-elseif (MPIEXEC_VERSION MATCHES "HYDRA")
-  set (MPI_IMPLEMENTATION "mpich")
-elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "slurm 20.02.6-1.20201123git821b81e9af.el8")
-  set (MPI_IMPLEMENTATION "openmpi")
-else ()
-  message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
-endif ()
-message (STATUS "MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
 
 list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
 message (STATUS "External libraries: ${EXTERNAL_LIBRARIES}")

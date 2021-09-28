@@ -128,6 +128,7 @@ C     and retrieved here, if considered useful info
       call MPI_Bcast(s,nbas*nbas,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(numfiles,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
 
       allocate(ifil(numfiles,2))
       

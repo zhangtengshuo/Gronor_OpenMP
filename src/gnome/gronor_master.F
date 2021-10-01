@@ -51,7 +51,7 @@
       integer (kind=8) :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
       
-      integer (kind=4) :: ierr,ireq,iremote
+      integer (kind=4) :: ierr,ireq,iremote,ncount,mpitag
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
       real(kind=8), external :: timer_wall_total
@@ -273,8 +273,10 @@ c          ibuf(4)=0
 !     Wait for a request for a task from any worker group
             
             call timer_start(94)
-            call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
-     &           MPI_COMM_WORLD,status,ierr)
+            ncount=8
+            mpitag=1
+            call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &           mpitag,MPI_COMM_WORLD,status,ierr)
             call timer_stop(94)
 
             if(ofirst) then
@@ -561,9 +563,10 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
-            
-            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
-     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
+            ncount=4
+            mpitag=2
+            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+     &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
 !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
@@ -641,8 +644,10 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 !     Wait for request from any remote rank
 
         call timer_start(96)
-        call MPI_Recv(buffer,8,MPI_REAL8,MPI_ANY_SOURCE,1,
-     &       MPI_COMM_WORLD,status,ierr)
+        ncount=8
+        mpitag=1
+        call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &       mpitag,MPI_COMM_WORLD,status,ierr)
         call timer_stop(96)
 
 !     Determine the rank, group and base pair of received request
@@ -885,9 +890,10 @@ c            call MPI_Wait(ireq,status,ierr)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
-            
-            call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
-     &           iremote,2,MPI_COMM_WORLD,ireq,ierr)
+            ncount=4
+            mpitag=2
+            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+     &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
 
@@ -977,9 +983,10 @@ c      call MPI_Wait(ireq,status,ierr)
         ipbuf(2,iremote+1)=ibuf(2)
         ipbuf(3,iremote+1)=ibuf(3)
         ipbuf(4,iremote+1)=ibuf(4)
-            
-        call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
-     &       iremote,2,MPI_COMM_WORLD,ireq,ierr)
+        ncount=4
+        mpitag=2
+        call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+     &       iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),

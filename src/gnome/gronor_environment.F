@@ -36,7 +36,7 @@ c      use cuda_rt
       implicit none
 
       integer :: i,j,k,node
-      integer (kind=4) :: len, ierr, istat
+      integer (kind=4) :: len, ierr, istat, ncount
 
       integer :: getcpucount
       external :: getcpucount
@@ -242,8 +242,8 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
       map1(me+1,4)=node
       map1(me+1,5)=0
       map1(me+1,6)=0
-
-      call MPI_AllReduce(map1,map2,4*np,MPI_INTEGER8,MPI_SUM,
+      ncount=4*np
+      call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER8,MPI_SUM,
      & MPI_COMM_WORLD,ierr)
 
       deallocate(map1)

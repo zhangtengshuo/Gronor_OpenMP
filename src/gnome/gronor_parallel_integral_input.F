@@ -37,7 +37,7 @@
 
       implicit none
 
-      integer (kind=4) :: ierr,nrecb4
+      integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
@@ -124,11 +124,15 @@ C     and retrieved here, if considered useful info
       endif
 
 !     Broadcast the overlap and one-electron integrals
-
-      call MPI_Bcast(s,nbas*nbas,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(numfiles,1,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+      ncount=nbas*nbas
+      call MPI_Bcast(s,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1
+      call MPI_Bcast(t,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1
+      call MPI_Bcast(v,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=1
+      call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,master,
+     &     MPI_COMM_WORLD,ierr)
 
       allocate(ifil(numfiles,2))
       
@@ -157,8 +161,8 @@ C     and retrieved here, if considered useful info
      &         ' Total   ',i12,i20)
         endif
       endif
-
-      call MPI_Bcast(ifil,2*numfiles,MPI_INTEGER8,master,
+      ncount=2*numfiles
+      call MPI_Bcast(ifil,ncount,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
 
 !     Determine id of rank within its group
@@ -273,8 +277,8 @@ C     and retrieved here, if considered useful info
         ijbuf(i,7)=nig(i)
         ijbuf(i,8)=nng(i)
       enddo
-     
-      call MPI_Bcast(ijbuf,8*mgr,MPI_INTEGER8,master,
+      ncount=8*mgr
+      call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,master,
      &     MPI_COMM_WORLD,ierr)
       
       do j=1,6
@@ -388,50 +392,73 @@ C     and retrieved here, if considered useful info
             lint=min(mint,kint)
             if(idist.eq.0) then
 #ifdef SINGLEP
-              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+              ncount=lint
+              mpitag=0
+              call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,
      &             new_comm(igr),ierr)
 #else
-              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+              ncount=lint
+              mpitag=0
+              call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,
      &             new_comm(igr),ierr)
 #endif
             else
 #ifdef SINGLEP
+              ncount=lint
+              mpitag=0
               if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+     &             call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,
      &             new_comm1(igr),ierr)
               if(idist.eq.1) then
-                call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+              ncount=lint
+              mpitag=0
+                call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,
      &               new_comm2(igr,inode),ierr) 
               else
                 if(numgrn.gt.1) then
                   if(igrn(1).eq.me) then
                     do i=2,numgrn
-                      call MPI_iSend(g(nint),lint,MPI_REAL4,igrn(i),20,
-     &                     MPI_COMM_WORLD,status,ierr)
+                      ncount=lint
+                      mpitag=20
+                      call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),
+     &                     mpitag,MPI_COMM_WORLD,status,ierr)
                     enddo
                   else
-                    call MPI_Recv(g(nint),lint,MPI_REAL4,igrn(1),20,
-     &                   MPI_COMM_WORLD,status,ierr)
+                    ncount=lint
+                    mpitag=20
+                    call MPI_Recv(g(nint),ncount,MPI_REAL4,igrn(1),
+     &                   mpitag,MPI_COMM_WORLD,status,ierr)
                   endif
                 endif
               endif 
 #else
+              ncount=lint
+              mpitag=0
               if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+     &             call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,
      &             new_comm1(igr),ierr)
               if(idist.eq.1) then
-                call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+                ncount=lint
+                mpitag=0
+                call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,
      &               new_comm2(igr,inode),ierr)
               else
                 if(numgrn.gt.1) then
                   if(igrn(1).eq.me) then
                     do i=2,numgrn
-                      call MPI_iSend(g(nint),lint,MPI_REAL8,igrn(i),20,
-     &                     MPI_COMM_WORLD,status,ierr)
+                      ncount=lint
+                      mpitag=20
+                      mpidest=igrn(i)
+                      call MPI_iSend(g(nint),ncount,MPI_REAL8,
+     &                     mpidest,
+     &                     mpitag,MPI_COMM_WORLD,mpireq,ierr)
                     enddo
                   else
-                    call MPI_Recv(g(nint),lint,MPI_REAL8,igrn(1),20,
-     &                   MPI_COMM_WORLD,status,ierr)
+                    ncount=lint
+                    mpitag=20
+                    mpidest=igrn(1)
+                    call MPI_Recv(g(nint),ncount,MPI_REAL8,mpidest,
+     &                   mpitag,MPI_COMM_WORLD,status,ierr)
                   endif
                 endif
               endif
@@ -439,25 +466,37 @@ C     and retrieved here, if considered useful info
             endif
             if(labels.eq.0) then
               if(idist.eq.0) then
-                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &               new_comm(igr),ierr)
+              ncount=4*lint
+              mpitag=0
+                call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,
+     &               mpitag,new_comm(igr),ierr)
               else
+                ncount=4*lint
+                mpitag=0
                 if(lcomm1.and.nnodes.gt.1)
-     &               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &               new_comm1(igr),ierr)
+     &               call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,
+     &               mpitag,new_comm1(igr),ierr)
                 if(idist.eq.1) then
-                  call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &                 new_comm2(igr,inode),ierr)
+                    ncount=4*lint
+                    mpitag=0
+                  call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,
+     &                 mpitag,new_comm2(igr,inode),ierr)
                 else
                   if(numgrn.gt.1) then
                     if(igrn(1).eq.me) then
                       do i=2,numgrn
-                        call MPI_iSend(lab(1,nint),4*lint,MPI_INTEGER2,
-     &                       igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                    ncount=4*lint
+                    mpitag=21
+                    mpidest=igrn(i)
+                        call MPI_iSend(lab(1,nint),ncount,MPI_INTEGER2,
+     &                       mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
                       enddo
                     else
-                      call MPI_Recv(lab(1,nint),4*lint,MPI_INTEGER2,
-     &                     igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                      ncount=4*lint
+                      mpitag=21
+                      mpidest=igrn(1)
+                      call MPI_Recv(lab(1,nint),ncount,MPI_INTEGER2,
+     &                     mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
                     endif
                   endif
                 endif
@@ -477,25 +516,37 @@ C     and retrieved here, if considered useful info
 
           if(labels.eq.1) then
             if(idist.eq.0) then
-              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+              ncount=2*mlab
+              mpitag=0
+              call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,
      &             new_comm(igr),ierr)
             else
+              ncount=2*mlab
+              mpitag=0
               if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+     &             call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,
      &             new_comm1(igr),ierr)
               if(idist.eq.1) then
-                call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+                ncount=2*mlab
+                mpitag=0
+                call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,
      &               new_comm2(igr,inode),ierr)
               else
                 if(numgrn.gt.1) then
                   if(igrn(1).eq.me) then
                     do i=2,numgrn
-                      call MPI_iSend(lab(1,1),2*mlab,MPI_INTEGER2,
-     &                     igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                      ncount=2*mlab
+                      mpitag=21
+                      mpidest=igrn(i)
+                      call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2,
+     &                     mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
                     enddo
                   else
-                    call MPI_Recv(lab(1,1),2*mlab,MPI_INTEGER2,
-     &                   igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                    ncount=2*mlab
+                    mpitag=21
+                    mpidest=igrn(1)
+                    call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2,
+     &                   mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
                   endif
                 endif
               endif

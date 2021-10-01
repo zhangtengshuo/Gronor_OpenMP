@@ -39,7 +39,7 @@
       
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,l2,n
-      integer (kind=4) :: ireq,ierr
+      integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
       integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
       integer :: ipopcnt
@@ -386,7 +386,9 @@
 !     If head thread signal master thread to start sending tasks
 
       if(iamhead.eq.1) then
-       call MPI_iSend(rbuf,8,MPI_REAL8,master,1,
+        ncount=8
+        mpitag=1
+       call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
      & MPI_COMM_WORLD,ireq,ierr)
        if(idbg.gt.20) then
         call swatch(date,time)
@@ -411,8 +413,9 @@
        if(iamhead.eq.1) then
 
 !     Receive next task from master on head thread
-
-        call MPI_Recv(ibuf,4,MPI_INTEGER8,master,2,
+         ncount=4
+         mpitag=2
+        call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,
      &        MPI_COMM_WORLD,status,ierr)
         
         if(idbg.gt.10) then
@@ -427,8 +430,10 @@
         if(mgr.gt.1) then
 
          do i=1,mgr-1
-
-          call MPI_iSend(ibuf,4,MPI_INTEGER8,thisgroup(i+2),15,
+           ncount=4
+           mpidest=thisgroup(i+2)
+           mpitag=15
+          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
      &                  MPI_COMM_WORLD,ireq,ierr)
          if(idbg.gt.10) then
           call swatch(date,time)
@@ -449,8 +454,11 @@
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
      &      me,' waiting for task from head rank ',thisgroup(2)
          flush(lfndbg)
-        endif
-        call MPI_Recv(ibuf,4,MPI_INTEGER8,thisgroup(2),15,
+       endif
+       ncount=4
+       mpidest=thisgroup(2)
+       mpitag=15
+        call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
      &  MPI_COMM_WORLD,status,ierr)
         if(idbg.gt.10) then
          call swatch(date,time)
@@ -500,7 +508,9 @@ c           call MPI_Wait(ireq,status,ierr)
            do i=1,8
              rbuf(i)=buffer(i)
            enddo
-           call MPI_iSend(rbuf,8,MPI_REAL8,master,1,
+           ncount=8
+           mpitag=1
+           call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
      &          MPI_COMM_WORLD,ireq,ierr)
            if(idbg.gt.10) then
              call swatch(date,time)

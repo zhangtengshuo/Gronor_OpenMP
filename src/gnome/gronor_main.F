@@ -69,7 +69,7 @@ c     use cuda_functions
       
       implicit none
 
-      integer (kind=4) :: ierror,ierr
+      integer (kind=4) :: ierror,ierr,ncount
       integer :: iarg,i,j,idum(51),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
@@ -588,9 +588,15 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        call MPI_Bcast(idum,49,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+        ncount=49
+        call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
+     &       MPI_COMM_WORLD,ierr)
+        ncount=6
+        call MPI_Bcast(rdum,ncount,MPI_REAL8,master,
+     &       MPI_COMM_WORLD,ierr)
+        ncount=255
+        call MPI_Bcast(root,ncount,MPI_CHAR,master,
+     &       MPI_COMM_WORLD,ierr)
         
         nmol   =idum(1)
         mstates=idum(2)
@@ -721,15 +727,20 @@ c     use cuda_functions
         nbuf(i,4)=idetm(i)
       enddo
       if(np.gt.0) then
-        call MPI_Bcast(civm,maxci*mstates,MPI_REAL8,master,
+        ncount=maxci*mstates
+        call MPI_Bcast(civm,ncount,MPI_REAL8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(vecsm,maxvec*maxvec*mstates,MPI_REAL8,master,
+        ncount=maxvec*maxvec*mstates
+        call MPI_Bcast(vecsm,ncount,MPI_REAL8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(ioccm,maxnact*maxci*mstates,MPI_INTEGER8,master,
+        ncount=maxnact*maxci*mstates
+        call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(ncombv,nmol*nbase,MPI_INTEGER8,master,
+        ncount=nmol*nbase
+        call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nbuf,4*mstates,MPI_INTEGER8,master,
+        ncount=4*mstates
+        call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
       endif
       do i=1,mstates

@@ -41,6 +41,7 @@
       real (kind=8), allocatable :: timings(:,:),tdata(:),tdat(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
+      integer (kind=4) :: ncount,mpitag,mpidest,mpireq
       character (len=255) :: date,time
 
       if(itim.gt.0) then
@@ -81,8 +82,10 @@
          timings(me+1,68)=dble(memavail)
 
          do i=1,nalive
-           call MPI_Recv(tdat,68,MPI_REAL8,MPI_ANY_SOURCE,11,
-     &           MPI_COMM_WORLD,status,ierr)
+           ncount=68
+           mpitag=11
+           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &           mpitag,MPI_COMM_WORLD,status,ierr)
            iremote=status(MPI_SOURCE)
            isync(i)=iremote
            do j=1,68
@@ -119,8 +122,10 @@
          tdata(66)=dble(nacc0)
          tdata(67)=dble(nacc1)
          tdata(68)=dble(memavail)
-         call MPI_Send(tdata,68,MPI_REAL8,master,11,
-     &        MPI_COMM_WORLD,ierr)
+         ncount=68
+         mpitag=11
+         call MPI_Send(tdata,ncount,MPI_REAL8,master,
+     &        mpitag,MPI_COMM_WORLD,ierr)
        endif
        
        if(me.eq.master) then
@@ -249,13 +254,19 @@
        if(me.eq.master) then
          idum=1
          do i=1,nalive
+           ncount=1
+           mpitag=12
+           mpidest=isync(i)
            if (isync(i).ne.-1)
-     &          call MPI_iSend(idum,1,MPI_INTEGER8,isync(i),12,
-     &          MPI_COMM_WORLD,ireq,ierr)
+     &          call MPI_iSend(idum,ncount,MPI_INTEGER8,mpidest,
+     &          mpitag,MPI_COMM_WORLD,mpireq,ierr)
+           ireq(i)=mpireq
          enddo
        else
-         call MPI_Recv(idum,1,MPI_INTEGER8,master,12,MPI_COMM_WORLD,
-     &        status,ierr)
+         ncount=1
+         mpitag=12
+         call MPI_Recv(idum,ncount,MPI_INTEGER8,master,
+     &        mpitag,MPI_COMM_WORLD,status,ierr)
        endif
        
        deallocate(tdata,timings)

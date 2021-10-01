@@ -44,6 +44,7 @@
 
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
+      integer (kind=4) :: ncount,mpitag,mpidest
       integer :: ib,jb,id1,id2,ii,ihc,nhc
 
       integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
@@ -374,8 +375,10 @@
       if(mgr.gt.1) then
         if(iamhead.eq.1) then
           do ii=1,mgr-1
-            call MPI_Recv(e2summ,1,MPI_REAL8,MPI_ANY_SOURCE,5,
-     &           MPI_COMM_WORLD,status,ierr)
+            ncount=1
+            mpitag=5
+            call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &           mpitag,MPI_COMM_WORLD,status,ierr)
             iremote=status(MPI_SOURCE)
             if(idbg.gt.10) then
               call swatch(date,time)
@@ -386,8 +389,11 @@
             e2buff=e2buff+e2summ
           enddo
         else
-          call MPI_iSend(e2buff,1,MPI_REAL8,thisgroup(2),5,
-     &         MPI_COMM_WORLD,ireq,ierr)
+          ncount=1
+          mpitag=5
+          mpidest=thisgroup(2)
+          call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,
+     &         mpitag,MPI_COMM_WORLD,ireq,ierr)
 
           if(idbg.gt.10) then
             call swatch(date,time)

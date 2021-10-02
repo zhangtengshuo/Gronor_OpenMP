@@ -401,7 +401,7 @@
         integer(c_int), value  :: econ
         integer(c_int), value  :: m,n,lda,ldu,ldv
         integer(c_int)         :: lwork
-        real(c_double), device :: a(*),s(*),u(*),v(*)
+        real(c_double)         :: a(:,:),s(:),u(:,:),v(:,:)
         type(gesvdjInfo)       :: info
         end function cusolverDnDgesvdj_bufferSize
       end interface
@@ -418,7 +418,7 @@
         type(cusolverDnHandle), value :: cusolver_Hndl
         integer(c_int), value  :: jobz
         integer(c_int), value  :: econ,m,n,lda,ldu,ldv
-        real(c_double), device :: a(*),s(*),u(*),v(*),work(*)
+        real(c_double)         :: a(:,:),s(:),u(:,:),v(:,:),work(:)
         integer(c_int)         :: lwork
         integer(c_int)         :: devinfo
         type(gesvdjInfo)       :: info
@@ -494,7 +494,7 @@
         integer(c_int), value  :: uplo
         integer(c_int), value  :: n,lda
         integer(c_int)         :: lwork
-        real(c_double), device :: a(*),v(*)
+        real(c_double)         :: a(:,:),v(:)
         type(syevjInfo)       :: info
         end function cusolverDnDsyevj_bufferSize
       end interface
@@ -512,7 +512,7 @@
         integer(c_int), value  :: jobz
         integer(c_int), value  :: uplo
         integer(c_int), value  :: n,lda
-        real(c_double), device :: a(*),v(*),work(*)
+        real(c_double)         :: a(:,:),v(:),work(:)
         integer(c_int)         :: lwork
         integer(c_int)         :: devinfo
         type(syevjInfo)       :: info

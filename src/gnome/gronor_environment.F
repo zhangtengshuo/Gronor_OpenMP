@@ -87,7 +87,7 @@ c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
 #ifdef CUDA
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
-        istat=cudaMemGetInfo(cpfre,cptot)
+c        istat=cudaMemGetInfo(cpfre,cptot)
 #endif
         memavail=memfre
       endif

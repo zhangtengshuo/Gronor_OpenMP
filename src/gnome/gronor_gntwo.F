@@ -186,7 +186,7 @@
       if(numdev.gt.1) then
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
-        istat=cudaMemGetInfo(cpfre,cptot)
+c        istat=cudaMemGetInfo(cpfre,cptot)
         memavail=min(memfre,memavail)
       endif
 #endif
@@ -361,7 +361,7 @@
       if(numdev.gt.1) then
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
-        istat=cudaMemGetInfo(cpfre,cptot)
+c        istat=cudaMemGetInfo(cpfre,cptot)
         memavail=min(memfre,memavail)
       endif
 #endif

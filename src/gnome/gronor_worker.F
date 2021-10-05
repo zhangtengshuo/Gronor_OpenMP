@@ -459,7 +459,7 @@
        mpidest=thisgroup(2)
        mpitag=15
         call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
-     &  MPI_COMM_WORLD,status,ierr)
+     &      MPI_COMM_WORLD,status,ierr)
         if(idbg.gt.10) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),

@@ -565,7 +565,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ipbuf(4,iremote+1)=ibuf(4)
             ncount=4
             mpitag=2
-            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+
+            call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
      &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
@@ -892,7 +893,8 @@ c            call MPI_Wait(ireq,status,ierr)
             ipbuf(4,iremote+1)=ibuf(4)
             ncount=4
             mpitag=2
-            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+
+            call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
      &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
@@ -985,7 +987,8 @@ c      call MPI_Wait(ireq,status,ierr)
         ipbuf(4,iremote+1)=ibuf(4)
         ncount=4
         mpitag=2
-        call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+
+        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
      &       iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)

@@ -48,7 +48,7 @@
       integer :: ib,jb,id1,id2,ii,ihc,nhc
 
       integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
-      integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,index
+      integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,indexv
       logical :: osame
       integer :: ipopcnt
       integer :: ntvc,ivc,ibas
@@ -229,7 +229,7 @@
           do idet=1,2
 
             if(idet.eq.2) indxx=jb
-            index=0
+            indexv=0
 
             iv=1
             ncl=nclose(idet)
@@ -277,13 +277,13 @@
                   iv=iv+1
                 else
                   do ibv=1,nb
-                    vec(index+m,ibv,idet)=vecsb(ibv,iv,indxx)
+                    vec(indexv+m,ibv,idet)=vecsb(ibv,iv,indxx)
                   enddo
                   iv=iv+1
                 endif
               enddo
 
-              index=index+ncleff+nopeff
+              indexv=indexv+ncleff+nopeff
               nclose(idet)=ncleff
               nopen(idet)=nopeff
               do k=1,nopen(idet)

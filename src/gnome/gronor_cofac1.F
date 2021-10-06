@@ -72,7 +72,7 @@
 !_ACCTGT_($acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork))
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
      &      ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
-     &      worksize,rwork,dev_info_d)
+     &      lwork1,rwork,dev_info_d)
 !_ACCTGT_($acc end host_data)
 !_ACCTGT_($acc wait)
 
@@ -128,7 +128,7 @@
         cusolver_status=cusolverDnDgesvdj
      &       (cusolver_handle,jobz,econ,
      &       ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
-     &       worksize,dev_info_d,gesvdj_params)
+     &       lwork1,dev_info_d,gesvdj_params)
         
 !_ACCTGT_($acc end host_data)
 
@@ -249,7 +249,7 @@
 !_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &       ndim,ta,mdim,diag,workspace_d,worksize2,dev_info_d)
+     &       ndim,ta,mdim,diag,workspace_d,lwork2,dev_info_d)
 !_ACCTGT_($acc end host_data)
 !_ACCTGT_($acc wait)
 
@@ -280,7 +280,7 @@
 !_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevj
      &       (cusolver_handle, jobz, uplo, ndim,ta,mdim,diag,
-     &       workspace_d,worksize2,dev_info_d,syevj_params)
+     &       workspace_d,lwork2,dev_info_d,syevj_params)
 !_ACCTGT_($acc end host_data)
 
         cusolver_status=cudaDeviceSynchronize()
@@ -496,7 +496,7 @@ c!_OMPTGT_($omp end target)
         mdim=mbasel
 
         call dgesvd('All','All',ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,
-     &       workspace_d,worksize,ierr)
+     &       workspace_d,lwork1,ierr)
         
         do i=1,nelecs
           do j=1,nelecs
@@ -557,8 +557,8 @@ c!_OMPTGT_($omp end target)
         mdim=mbasel
 
         call dsyevd('N','U',ndim,ta,mdim,diag,
-     &       workspace_d,worksize,
-     &       workspace_i,worksizei,ierr)
+     &       workspace_d,lwork1,
+     &       workspace_i,lworki,ierr)
 
 !        stop 'No correctly working MKL evd yet'
 

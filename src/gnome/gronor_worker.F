@@ -208,8 +208,8 @@
 
         ndim=nelecs
         mdim=mbasel
-        worksize=0
-        worksize2=0
+        lwork1=0
+        lwork2=0
 
 #ifdef CUSOLVERJ
         if(isolver.eq.1) then
@@ -218,7 +218,7 @@
        
 !_ACCTGT_($acc host_data use_device(ta))
           cusolver_status = cusolverDnDgesvd_bufferSize
-     &         (cusolver_handle,ndim,ndim,worksize)
+     &         (cusolver_handle,ndim,ndim,lwork1)
 !_ACCTGT_($acc end host_data)
 
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
@@ -254,7 +254,7 @@
 
           cusolver_status = cusolverDnDgesvdj_bufferSize
      &         (cusolver_handle,jobz,econ,
-     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,worksize,
+     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,
      &         gesvdj_params)
         
 !_ACCTGT_($acc end host_data)
@@ -276,7 +276,7 @@
           cusolver_status = cusolverDnDsyevd_bufferSize
      &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &         CUBLAS_FILL_MODE_LOWER,
-     &         ndim,ta,mdim,w,worksize2)
+     &         ndim,ta,mdim,w,lwork2)
 !_ACCTGT_($acc end host_data)
 
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
@@ -316,7 +316,7 @@
   
           cusolver_status = cusolverDnDsyevj_bufferSize
      &         (cusolver_handle,jobz,uplo,
-     &         ndim,ta,mdim,ev,worksize2,
+     &         ndim,ta,mdim,ev,lwork2,
      &         syevj_params)
         
 !_ACCTGT_($acc end host_data)
@@ -330,9 +330,9 @@
         endif
 #endif
       
-        worksize=max(worksize,worksize2)
+        lwork1=max(lwork1,lwork2)
         
-        allocate(workspace_d(worksize))
+        allocate(workspace_d(lwork1))
         allocate(rwork(nelecs))
 
 #endif
@@ -340,30 +340,30 @@
 #ifdef MKL
         ndim=nelecs
         mdim=mbasel
-        worksize=-1
-        worksize2=-1
-        worksizei=-1
+        lwork1=-1
+        lwork2=-1
+        lworki=-1
         if(isolver.eq.1) then
           allocate(workspace_d(2448))
           call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
-     &         workspace_d,worksize,ierr)
-          worksize=int(workspace_d(1))
+     &         workspace_d,lwork1,ierr)
+          lwork1=int(workspace_d(1))
           deallocate(workspace_d)
         endif
         if(jsolver.eq.1) then
           allocate(workspace_d(2448))
           allocate(workspace_i(2448))
-          call dsyevd('N','U',ndim,a,ndim,w,workspace_d,worksize2,
-     &         workspace_i,worksizei,ierr)
-          worksize2=int(workspace_d(1))
-          worksizei=int(workspace_i(1))
+          call dsyevd('N','U',ndim,a,ndim,w,workspace_d,lwork2,
+     &         workspace_i,lworki,ierr)
+          lwork2=int(workspace_d(1))
+          lworki=int(workspace_i(1))
           deallocate(workspace_d)
           deallocate(workspace_i)
         endif
-        worksize=max(8,worksize,worksize2)
-        worksizei=max(8,worksizei)
-        allocate(workspace_d(worksize))
-        allocate(workspace_i(worksizei))
+        lwork1=max(8,lwork1,lwork2)
+        lworki=max(8,lworki)
+        allocate(workspace_d(lwork1))
+        allocate(workspace_i(lworki))
 #endif  
       endif
 

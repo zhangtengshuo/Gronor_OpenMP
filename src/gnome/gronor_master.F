@@ -978,7 +978,7 @@ c      call MPI_Wait(ireq,status,ierr)
         ipbuf(3,iremote+1)=ibuf(3)
         ipbuf(4,iremote+1)=ibuf(4)
             
-        call MPI_iSend(ipbuf(1,iremote+1),4,MPI_INTEGER8,
+        call MPI_iSend(ibuf,4,MPI_INTEGER8,
      &       iremote,2,MPI_COMM_WORLD,ireq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)

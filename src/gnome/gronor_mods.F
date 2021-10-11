@@ -149,7 +149,6 @@
 
       integer :: nnucl,nbas,numint,numfiles
 
-
       integer :: nelec(2),ntcl(2),ntop(2)
       integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb
       integer :: nclose(2)
@@ -397,12 +396,12 @@
         import cusolverDnHandle
         import gesvdjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        integer(c_int), value  :: jobz
-        integer(c_int), value  :: econ
-        integer(c_int), value  :: m,n,lda,ldu,ldv
-        integer(c_int)         :: lwork
-        real(c_double)         :: a(:,:),s(:),u(:,:),v(:,:)
-        type(gesvdjInfo)       :: info
+        integer(c_int), value    :: jobz
+        integer(c_int), value    :: econ
+        integer(c_int), value    :: m,n,lda,ldu,ldv
+        integer(c_int)           :: lwork
+        real(c_double), device   :: a(:,:),s(:),u(:,:),v(:,:)
+        type(gesvdjInfo)         :: info
         end function cusolverDnDgesvdj_bufferSize
       end interface
       
@@ -416,12 +415,12 @@
         import cusolverDnHandle
         import gesvdjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        integer(c_int), value  :: jobz
-        integer(c_int), value  :: econ,m,n,lda,ldu,ldv
-        real(c_double)         :: a(:,:),s(:),u(:,:),v(:,:),work(:)
-        integer(c_int)         :: lwork
-        integer(c_int)         :: devinfo
-        type(gesvdjInfo)       :: info
+        integer(c_int), value   :: jobz
+        integer(c_int), value   :: econ,m,n,lda,ldu,ldv
+        real(c_double), device  :: a(:,:),s(:),u(:,:),v(:,:),work(:)
+        integer(c_int)          :: lwork
+        integer(c_int)          :: devinfo
+        type(gesvdjInfo)        :: info
         end function cusolverDnDgesvdj
       end interface
       
@@ -439,7 +438,7 @@
      &       bind(C,name='cusolverDnXsyevjSetTolerance')
         use iso_c_binding
         import syevjInfo
-        type(syevjInfo)       :: info
+        type(syevjInfo)        :: info
         real(c_double), value  :: tolerance
         end function cusolverDnXsyevjSetTolerance
       end interface
@@ -451,7 +450,7 @@
         use iso_c_binding
         import syevjInfo
         type(syevjInfo)       :: info
-        integer(c_int),value   :: max_sweeps
+        integer(c_int),value  :: max_sweeps
         end function cusolverDnXsyevjSetMaxSweeps
       end interface
       
@@ -463,7 +462,7 @@
         import cusolverDnHandle
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        type(syevjInfo)              :: info
+        type(syevjInfo)               :: info
         integer(c_int)                :: executed_sweeps
         end function cusolverDnXsyevjGetSweeps
       end interface
@@ -476,7 +475,7 @@
         import cusolverDnHandle
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        type(syevjInfo)              :: info
+        type(syevjInfo)               :: info
         real(c_double)                :: residual
         end function cusolverDnXsyevjGetResidual
       end interface
@@ -490,12 +489,12 @@
         import cusolverDnHandle
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        integer(c_int), value  :: jobz
-        integer(c_int), value  :: uplo
-        integer(c_int), value  :: n,lda
-        integer(c_int)         :: lwork
-        real(c_double)         :: a(:,:),v(:)
-        type(syevjInfo)       :: info
+        integer(c_int), value         :: jobz
+        integer(c_int), value         :: uplo
+        integer(c_int), value         :: n,lda
+        integer(c_int)                :: lwork
+        real(c_double) , device       :: a(:,:),v(:)
+        type(syevjInfo)               :: info
         end function cusolverDnDsyevj_bufferSize
       end interface
       
@@ -509,13 +508,13 @@
         import cusolverDnHandle
         import syevjInfo
         type(cusolverDnHandle), value :: cusolver_Hndl
-        integer(c_int), value  :: jobz
-        integer(c_int), value  :: uplo
-        integer(c_int), value  :: n,lda
-        real(c_double)         :: a(:,:),v(:),work(:)
-        integer(c_int)         :: lwork
-        integer(c_int)         :: devinfo
-        type(syevjInfo)       :: info
+        integer(c_int), value   :: jobz
+        integer(c_int), value   :: uplo
+        integer(c_int), value   :: n,lda
+        real(c_double), device  :: a(:,:),v(:),work(:)
+        integer(c_int)          :: lwork
+        integer(c_int)          :: devinfo
+        type(syevjInfo)         :: info
         end function cusolverDnDsyevj
       end interface
 #endif

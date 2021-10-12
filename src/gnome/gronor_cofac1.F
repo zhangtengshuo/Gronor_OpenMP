@@ -483,7 +483,7 @@ c!_OMPTGT_($omp end target)
         write(lfndbg,1601) nelecs,nelecs,mbasel
  1601   format(//,' SVD input matrix:',3i6,/)
         do j=1,nelecs
-          write(lfndbg,1602) (ta(i,j),i=1,nelecs)
+          write(lfndbg,1602) (a(i,j),i=1,nelecs)
  1602     format((3x,6e20.12))
         enddo
       endif
@@ -493,24 +493,23 @@ c!_OMPTGT_($omp end target)
       if(isolver.eq.1) then
 
         ndim=nelecs
-        mdim=mbasel
 
-        call dgesvd('All','All',ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,
+        call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
      &       workspace_d,lwork1,ierr)
         
         do i=1,nelecs
           do j=1,nelecs
-            a(i,j)=w(i,j)
+            temp(i,j)=w(i,j)
           enddo
         enddo
         do i=1,nelecs
           do j=1,nelecs
-            w(j,i)=a(i,j)
+            w(j,i)=temp(i,j)
           enddo
         enddo
       else
       
-        call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
+        call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &       ierr,sdiag,nelecs)
         
@@ -518,7 +517,7 @@ c!_OMPTGT_($omp end target)
 
 #else
       
-      call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
+      call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &     ierr,sdiag,nelecs)
       
@@ -532,7 +531,7 @@ c!_OMPTGT_($omp end target)
           do k=1,nelecs
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
-          ta(i,j)=coef
+          a(i,j)=coef
         enddo
       enddo
       
@@ -554,9 +553,8 @@ c!_OMPTGT_($omp end target)
       if(jsolver.eq.1) then
 
         ndim=nelecs
-        mdim=mbasel
 
-        call dsyevd('N','U',ndim,ta,mdim,diag,
+        call dsyevd('N','U',ndim,a,nelecs,diag,
      &       workspace_d,lwork1,
      &       workspace_i,lworki,ierr)
 
@@ -564,18 +562,18 @@ c!_OMPTGT_($omp end target)
 
       else
 
-        call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
-     &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
+        call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,
+     &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
         
-        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
-     &       max(mbasel,nveca),ierr)
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,a,nelecs,
+     &       nelecs,ierr)
       endif
 #else
-      call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
-     &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
+      call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,nelecs,
+     &     sdiag,nelecs,a,nelecs,nelecs)
 
-      call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
-     &     max(mbasel,nveca),ierr)
+      call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,a,nelecs,
+     &     nelecs,ierr)
 #endif
       
       call timer_stop(43)

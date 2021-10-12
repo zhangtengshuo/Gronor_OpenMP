@@ -190,6 +190,7 @@
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
+          a(i1,i2)=ta(i1,i2)
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -339,6 +340,7 @@
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
+          a(i1,i2)=ta(i1,i2)
         enddo
       enddo
 

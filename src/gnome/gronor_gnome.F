@@ -125,12 +125,12 @@
 
       if(iamacc.gt.0) then
         
-!_ACCTGT_($acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
+!_ACCTGT_($acc data copyin(s,a,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
 !_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
 !_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
 !_ACCTGT_($acc& create(sm0,aaa0,tt0,aat0,tat0))
 !_ACCTGT_($acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1,tat1))
-!_OMPTGT_($omp target data map(to:s,ta,va,vb,tat) map(alloc:tb,w1,w2,taa,u,w,ev))
+!_OMPTGT_($omp target data map(to:s,a,ta,va,vb,tat) map(alloc:tb,w1,w2,taa,u,w,ev))
 !_OMPTGT_($omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
 !_OMPTGT_($omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
 !_OMPTGT_($omp& map(alloc:sm0,aaa0,tt0,aat0,tat0))

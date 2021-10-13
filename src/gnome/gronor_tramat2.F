@@ -35,11 +35,19 @@
 
       integer :: i,j,k,kk,m1
       real (kind=8) :: sum
+      real (kind=8) :: aaamax,tamax
+      real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
 
       if(idbg.ge.13) write(lfndbg,600) 
  600  format(/,' Cofactor matrix transform to symmetry functions')
 
 !_ACCTGT_($acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2))
+
+      do j=1,nbas
+        diag(j)=0.0d0
+        bdiag(j)=0.0d0
+        bsdiag(j)=0.0d0
+      enddo
 
       if(ising .ne. 0.) then
 
@@ -246,6 +254,39 @@
 
 !_ACCTGT_($acc end kernels)
 
+      if(idbg.gt.90) then
+!_ACCTGT_($acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag))
+
+        write(lfndbg,1601) nbas,nelecs
+ 1601   format(//,' diag:',3i6,/)
+        do i=1,nbas
+          write(lfndbg,1602) diag(i),bdiag(i),bsdiag(i),
+     &         csdiag(i),sdiag(i)
+        enddo
+ 1602    format((3x,6e20.12))
+         tamax=0.0d0
+         aaamax=0.0d0
+         diagmax=0.0d0
+         bdiagmax=0.0d0
+         bsdiagmax=0.0d0
+         csdiagmax=0.0d0
+         sdiagmax=0.0d0
+         do j=1,nbas
+           diagmax=max(diagmax,diag(j))
+           bdiagmax=max(bdiagmax,bdiag(j))
+           bsdiagmax=max(bsdiagmax,bsdiag(j))
+           csdiagmax=max(csdiagmax,csdiag(j))
+           sdiagmax=max(sdiagmax,sdiag(j))
+          do i=1,nbas
+            tamax=max(tamax,ta(i,j))
+            aaamax=max(aaamax,aaa(i,j))
+          enddo
+        enddo
+        write(lfndbg,'(a,7f16.5)') 'Max=',tamax,aaamax,
+     &       diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+        flush(lfndbg)
+      endif
+      
       return
       end
 

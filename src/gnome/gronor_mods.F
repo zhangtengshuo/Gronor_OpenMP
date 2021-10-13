@@ -125,7 +125,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: itest,ifault,isolver,jsolver,idevel,idist
-      integer :: ntask,nbatch,nbatcha
+      integer :: ntask,nbatch,nbatcha,ndbg,mdbg
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
@@ -136,6 +136,7 @@
       real (kind=8) :: tau_MO,tau_CI,tau_SIN,thresh,thresh_SIN
       real (kind=8) :: tolsvj,tolevj
 
+      logical :: odbg
       logical :: corres
 
       end module gnome_parameters

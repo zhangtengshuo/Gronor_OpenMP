@@ -47,14 +47,22 @@
 
       call timer_start(41)
 
+!_ACCTGT_($acc kernels present(sdiag))
+      do i=1,nelecs
+        sdiag(i)=0.0d0
+      enddo
+!_ACCTGT_($acc end kernels)
+
+
       if(idbg.ge.90) then
-!_ACCTGT_($acc update host (ta))
+!_ACCTGT_($acc update host (a))
         write(lfndbg,1601) nelecs,nelecs,mbasel
  1601   format(//,' SVD input matrix:',3i6,/)
         do j=1,nelecs
-          write(lfndbg,1602) (ta(i,j),i=1,nelecs)
+          write(lfndbg,1602) (a(i,j),i=1,nelecs)
  1602     format((3x,6e20.12))
         enddo
+        flush(lfndbg)
       endif
       
 #ifdef CUSOLVER
@@ -69,9 +77,9 @@
 
 !_ACCTGT_($acc data copy(dev_info_d) create(temp,workspace_d,rwork))
        
-!_ACCTGT_($acc host_data use_device(ta,ev,u,w,dev_info_d,workspace_d,rwork))
+!_ACCTGT_($acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork))
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,
-     &      ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
+     &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,
      &      lwork1,rwork,dev_info_d)
 !_ACCTGT_($acc end host_data)
 !_ACCTGT_($acc wait)
@@ -95,7 +103,7 @@
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
-!_ACCTGT_($acc parallel loop gang present(temp,u,w,ta))
+!_ACCTGT_($acc parallel loop gang present(temp,u,w,a))
       do i=1,nelecs
 !_ACCTGT_($acc loop vector)
         do j=1,i
@@ -104,8 +112,8 @@
           do k=1,nelecs
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
-          ta(i,j)=coef
-          ta(j,i)=coef
+          a(i,j)=coef
+          a(j,i)=coef
         enddo
       enddo
 !_ACCTGT_($acc end parallel loop)
@@ -123,11 +131,11 @@
 !_ACCTGT_($acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp))
 
 !_ACCTGT_($acc host_data)
-!_ACCTGT_($acc& use_device(ta,ev,u,w,dev_info_d,workspace_d))
+!_ACCTGT_($acc& use_device(a,ev,u,w,dev_info_d,workspace_d))
 
         cusolver_status=cusolverDnDgesvdj
      &       (cusolver_handle,jobz,econ,
-     &       ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,workspace_d,
+     &       ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,
      &       lwork1,dev_info_d,gesvdj_params)
         
 !_ACCTGT_($acc end host_data)
@@ -144,7 +152,7 @@
 
         call timer_start(42)
      
-!_ACCTGT_($acc parallel loop gang present(temp,u,w,ta))
+!_ACCTGT_($acc parallel loop gang present(temp,u,w,a))
         do i=1,nelecs
 !_ACCTGT_($acc loop vector)
           do j=1,i
@@ -153,8 +161,8 @@
             do k=1,nelecs
               coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
             enddo
-            ta(i,j)=coef
-            ta(j,i)=coef
+            a(i,j)=coef
+            a(j,i)=coef
           enddo
         enddo
 !_ACCTGT_($acc end parallel loop)
@@ -166,9 +174,9 @@
       else
 #endif
 
-!_ACCTGT_($acc update host (ta))
-!_OMPTGT_($omp target update from(ta))
-        call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
+!_ACCTGT_($acc update host (a))
+!_OMPTGT_($omp target update from(a))
+        call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &       ierr,sdiag,nelecs)
 !_ACCTGT_($acc update device (ev,u,w))
@@ -176,7 +184,7 @@
        
        call timer_start(42)
        
-!_ACCTGT_($acc parallel loop gang present(u,w,ta))
+!_ACCTGT_($acc parallel loop gang present(u,w,a))
 !_OMPTGT_($omp target teams distribute parallel do private(coef))
        do i=1,nelecs
          do j=1,i
@@ -184,8 +192,8 @@
            do k=1,nelecs
              coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
            enddo
-           ta(i,j)=coef
-           ta(j,i)=coef
+           a(i,j)=coef
+           a(j,i)=coef
          enddo
        enddo
 !_ACCTGT_($acc end parallel loop)
@@ -196,16 +204,16 @@
 
 #else
       
-!_ACCTGT_($acc update host (ta))
-!_OMPTGT_($omp target update from(ta))      
-      call svd(nelecs,nelecs,nelecs,ta,mbasel,max(mbasel,nveca),
+!_ACCTGT_($acc update host (a))
+!_OMPTGT_($omp target update from(a))      
+      call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
      &     ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
      &     ierr,sdiag,nelecs)      
 !_ACCTGT_($acc update device (ev,u,w))
 !_OMPTGT_($omp target update to(ev,u,w))     
       call timer_start(42)
       
-!_ACCTGT_($acc kernels present(u,w,ta))
+!_ACCTGT_($acc kernels present(u,w,a))
 !_OMPTGT_($omp target teams distribute parallel do private(coef))
       do i=1,nelecs
         do j=1,i
@@ -213,8 +221,8 @@
           do k=1,nelecs
             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
           enddo
-          ta(i,j)=coef
-          ta(j,i)=coef
+          a(i,j)=coef
+          a(j,i)=coef
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -224,9 +232,28 @@
 
       call timer_stop(41)
 
-      if(idbg.ge.90) write(lfndbg,601) (ev(i),i=1,nelecs)
- 601  format(//,' Eigenvalues of diagonalized overlap matrix:',
-     & //,(3x,6e20.12))
+      if(idbg.ge.90) then
+!_ACCTGT_($acc update host (u,w,a,ev))
+        write(lfndbg,601) (ev(i),i=1,nelecs)
+ 601    format(//,' Eigenvalues of diagonalized overlap matrix:',
+     &       //,(3x,6e20.12))
+        write(lfndbg,1603) nelecs,nelecs,mbasel
+ 1603   format(//,' Matrix u:',3i6,/)
+        do j=1,nelecs
+          write(lfndbg,1602) (u(i,j),i=1,nelecs)
+        enddo
+        write(lfndbg,1604) nelecs,nelecs,mbasel
+ 1604   format(//,' Matrix w:',3i6,/)
+        do j=1,nelecs
+          write(lfndbg,1602) (w(i,j),i=1,nelecs)
+        enddo
+        write(lfndbg,1605) nelecs,nelecs,mbasel
+ 1605   format(//,' Coefficient matrix:',3i6,/)
+        do j=1,nelecs
+          write(lfndbg,1602) (a(i,j),i=1,nelecs)
+        enddo
+        flush(lfndbg)
+      endif
 
 !     Calculation of det(uw) , by determination of the number
 !     of eigenvalues -2 of " a=uw+tranposed(uw) "
@@ -246,10 +273,10 @@
         call timer_start(43)
 
 !_ACCTGT_($acc wait)
-!_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
+!_ACCTGT_($acc host_data use_device(a,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
-     &       ndim,ta,mdim,diag,workspace_d,lwork2,dev_info_d)
+     &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
 !_ACCTGT_($acc end host_data)
 !_ACCTGT_($acc wait)
 
@@ -277,9 +304,9 @@
 
 !_ACCTGT_($acc data copy(dev_info_d,syevj_params) create(workspace_d))
 
-!_ACCTGT_($acc host_data use_device(ta,diag,dev_info_d,workspace_d))
+!_ACCTGT_($acc host_data use_device(a,diag,dev_info_d,workspace_d))
         cusolver_status = cusolverDnDsyevj
-     &       (cusolver_handle, jobz, uplo, ndim,ta,mdim,diag,
+     &       (cusolver_handle, jobz, uplo, ndim,a,ndim,diag,
      &       workspace_d,lwork2,dev_info_d,syevj_params)
 !_ACCTGT_($acc end host_data)
 
@@ -301,34 +328,35 @@
 #endif
       else
 
-!_ACCTGT_($acc update host (ta))
-!_OMPTGT_($omp target update from(ta))
+!_ACCTGT_($acc update host (a))
+!_OMPTGT_($omp target update from(a))
         call timer_start(43)
-        call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,
-     &       nelecs,sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
-     &       max(mbasel,nveca),ierr)
+        call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,
+     &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,
+     &       a,nelecs,nelecs,ierr)
         call timer_stop(43)
-!_ACCTGT_($acc update device (ta,diag,sdiag))
-!_OMPTGT_($omp target update to(ta,diag,sdiag))
+!_ACCTGT_($acc update device (a,diag,sdiag))
+!_OMPTGT_($omp target update to(a,diag,sdiag))
       endif
        
 !_ACCTGT_($acc end data)
 
 #else
       
-!_ACCTGT_($acc update host (ta))
-!_OMPTGT_($omp target update from(ta))
+!_ACCTGT_($acc update host (a))
+!_OMPTGT_($omp target update from(a))
       call timer_start(43)
-      call tred2(nelecs,nelecs,ta,mbasel,max(mbasel,nveca),diag,nelecs,
-     &     sdiag,nelecs,ta,mbasel,max(mbasel,nveca))
-      call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,ta,mbasel,
-     &     max(mbasel,nveca),ierr)
+        call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,
+     &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,
+     &       a,nelecs,nelecs,ierr)
       call timer_stop(43)
-!_ACCTGT_($acc update device (ta,diag,sdiag))
-!_OMPTGT_($omp target update to(ta,diag,sdiag))
+!_ACCTGT_($acc update device (a,diag,sdiag))
+!_OMPTGT_($omp target update to(a,diag,sdiag))
 
 #endif
+      
       
       call timer_start(44)
 !_ACCTGT_($acc kernels present(diag))
@@ -356,6 +384,15 @@ c!_OMPTGT_($omp end target)
 c!_OMPTGT_($omp end target)
       if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
+      if(idbg.ge.90) then
+!_ACCTGT_($acc update host (diag,cdiag,csdiag,sdiag))
+        write(lfndbg,604)
+     &       (diag(i),cdiag(i),csdiag(i),sdiag(i),i=1,nelecs)
+ 604    format(//,' Diagonals:',
+     &       //,(3x,4e20.12))
+        flush(lfndbg)
+      endif
+      
       cnorm=tau_SIN*cmax
       coef=idetuw
       nz1=0

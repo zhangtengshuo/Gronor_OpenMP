@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 
 module use /home/qq/coen/modules
 module load compilers/nvmpi

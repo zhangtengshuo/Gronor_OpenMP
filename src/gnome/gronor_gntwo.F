@@ -654,16 +654,16 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
           nb1=nb1+1
           prefac(ibl)=fctr
           
-!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
-!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
-!_OMPTGT_($omp target teams distribute parallel do)
-        do i=1,nbas
-          diagl(ibl,i)=diag(i)
-          bdiagl(ibl,i)=bdiag(i)
-          bsdiagl(ibl,i)=bsdiag(i)
-          csdiagl(ibl,i)=csdiag(i)
-        enddo
-!_ACCTGT_($acc end kernels)
+c!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
+c!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
+c!_OMPTGT_($omp target teams distribute parallel do)
+c        do i=1,nbas
+c          diagl(ibl,i)=diag(i)
+c          bdiagl(ibl,i)=bdiag(i)
+c          bsdiagl(ibl,i)=bsdiag(i)
+c          csdiagl(ibl,i)=csdiag(i)
+c        enddo
+c!_ACCTGT_($acc end kernels)
 
         endif
         
@@ -684,21 +684,21 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
 
 !     END ASSEMBLY ON GPU
       
-c!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
+!     ASSEMBLE ARRAYS ON CPU AFTER UPDATING ta,aaa,aat,tt
       
-c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
-c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
-c      do k=1,nbas
-c        do i=1,nbas
-c          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-c          aaal(ibl,i,k)=aaa(i,k)
-c          aatl(ibl,i,k)=aaa(k,i)
-c          ttl(ibl,i,k)=ta(k,i)
-c          tatl(ibl,i,k)=ta(i,k)
-c        enddo
-c      enddo
+!_ACCTGT_($acc update self(ta,aaa,aat,tt))
+!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
+      do k=1,nbas
+        do i=1,nbas
+          sml(ibl,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaal(ibl,i,k)=aaa(i,k)
+          aatl(ibl,i,k)=aaa(k,i)
+          ttl(ibl,i,k)=ta(k,i)
+          tatl(ibl,i,k)=ta(i,k)
+        enddo
+      enddo
 
-c!     END ASSEMBLY ON CPU
+!     END ASSEMBLY ON CPU
 
       call timer_stop(30)
 
@@ -710,8 +710,8 @@ c!     END ASSEMBLY ON CPU
       
       if(ihc.eq.nhc) then
 
-c!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
-c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
+!_ACCTGT_($acc update device(tatl,aaal,aatl,ttl,sml))
+!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml)) 
 
         etotb=0.0d0
         

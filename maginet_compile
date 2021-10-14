@@ -1,0 +1,14 @@
+!#/bin/bash
+
+module use /home/qq/coen/modules
+module load compilers/nvmpi
+
+export PATH=/home/programes/qq/cmake-3.18/bin:$PATH
+export CUDA_MPS_PIPE_DIRECTORY=/home/tps/tps/log
+export CUDA_MPS_LOG_DIRECTORY=/home/tps/tps/logrm -rf build
+
+mkdir build
+cd build
+cmake FC=mpif90 CC=mpicc -DMPI=ON -DOPENACC=ON -DCUDA=ON -DCUSOLVER=ON -DCUSOLVERJ=ON ../
+
+make -j 12

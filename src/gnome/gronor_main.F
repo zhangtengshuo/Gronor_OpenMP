@@ -1936,6 +1936,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
 
       call gronor_timings(lfnout,lfnday)
+      flush(lfnout)
+      flush(lfnday)
 
       if(me.eq.master) deallocate(numrecs)
 
@@ -1963,6 +1965,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         call swatch(date,time)
         if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
  637    format(/,' Completion of run ',2a10,/)
+
+        flush(lfnout)
         
         close(unit=lfnrnk,status='keep')
         close(unit=lfnout,status='keep')

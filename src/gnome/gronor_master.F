@@ -566,7 +566,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ncount=4
             mpitag=2
 
-            call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
      &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
@@ -894,7 +894,7 @@ c            call MPI_Wait(ireq,status,ierr)
             ncount=4
             mpitag=2
 
-            call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
      &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
@@ -1068,6 +1068,9 @@ c      call MPI_Wait(ireq,status,ierr)
      &     ' Task execution efficiency',t183,f12.1,' %')
       call timer_start(98)
       call timer_start(99)
+
+      flush(lfnout)
+      flush(lfnday)
       
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf)
       

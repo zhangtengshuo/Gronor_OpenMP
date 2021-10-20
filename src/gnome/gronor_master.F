@@ -51,7 +51,7 @@
       integer (kind=8) :: ibuf(4),nsingt(5)
       integer, allocatable :: lgroup(:,:), lactive(:)
       
-      integer (kind=4) :: ierr,ireq,iremote,ncount,mpitag
+      integer (kind=4) :: ierr,ireq,ireq2,ireq9,iremote,ncount,mpitag
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
       real(kind=8), external :: timer_wall_total
@@ -80,6 +80,8 @@
       enddo
       nthdet=0
       tsum=0.0d0
+      tmax=0.0d0
+      numtasks=0
 
 !     Contributions to H(i,j) are sent as tasks to groups and tracked in lgroup:
 
@@ -399,6 +401,11 @@ c          ibuf(4)=0
               nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
               nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
               nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
+
+!     Total number of completed tasks and maximum time for a completed task
+
+              numtasks=numtasks+1
+              tmax=max(tmax,buffer(3))
 
 !     Decrement the tasks still to be done for base pair
               
@@ -886,8 +893,9 @@ c            call MPI_Wait(ireq,status,ierr)
             enddo
 
 !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
+!     On the receiving worker rank a check for sign of first element indicates a duplicate 
 
-            ipbuf(1,iremote+1)=ibuf(1)
+            ipbuf(1,iremote+1)=-ibuf(1)
             ipbuf(2,iremote+1)=ibuf(2)
             ipbuf(3,iremote+1)=ibuf(3)
             ipbuf(4,iremote+1)=ibuf(4)
@@ -971,8 +979,6 @@ c            call MPI_Wait(ireq,status,ierr)
       
 !     Signal worker processes to return from gronor_master
       
-c      call MPI_Wait(ireq,status,ierr)
-      
       ibuf(1)=0
       ibuf(2)=-1
       ibuf(3)=-1
@@ -985,11 +991,19 @@ c      call MPI_Wait(ireq,status,ierr)
         ipbuf(2,iremote+1)=ibuf(2)
         ipbuf(3,iremote+1)=ibuf(3)
         ipbuf(4,iremote+1)=ibuf(4)
+
+        ncount=4
+        mpitag=99
+
+        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+     &       iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+
         ncount=4
         mpitag=2
 
         call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
-     &       iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+     &       iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
+
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),

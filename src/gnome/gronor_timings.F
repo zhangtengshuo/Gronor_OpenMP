@@ -286,17 +286,22 @@
           write(lfnout,621)
  621      format(/,' Timings summary')
           if(ipr.ge.2) then
-            write(lfnout,617) timer_wall_total(2),
+            write(lfnout,617) numtasks,
+     &           int(dble(numtasks)/timer_wall_total(98)),
+     &           timer_wall_total(2),
      &           timer_wall_total(3),
      &           timer_wall_total(7),
      &           timer_wall_total(8),
-     &           timer_wall_total(9)
+     &           timer_wall_total(9), tmax
  617        format(/,
+     &           ' Total number of tasks',t43,i20,/,
+     &           ' Number of tasks per second',t43,i20,//,
      &           ' Reading and distribution input',t55,f12.3,/,
      &           ' Assignment of ranks',t55,f12.3,/,
      &           ' Generation base states',t55,f12.3,/,
      &           ' Generation matrix element list',t55,f12.3,/,
-     &           ' Reading and distribution of integrals',t55,f12.3)
+     &           ' Reading and distribution of integrals',t55,f12.3,/,
+     &           ' Maximum task execution time',t55,f12.3)
             write(lfnout,615) 
      &           timer_wall_total(94),
      &           100.0d0*(timer_wall_total(94)/timer_wall_total(95)),
@@ -323,7 +328,7 @@
  614      format(/,' Setup wall clock time on master',t55,f12.3,
      &         ' (',f7.3,'%)',/,
      &         ' Matrix element calculation wall clock time on master',
-     &         t55,f12.3,' (',f7.3,'%)',/)
+     &         t55,f12.3,' (',f7.3,'%)')
         endif
         
         if(ipr.ge.0) then

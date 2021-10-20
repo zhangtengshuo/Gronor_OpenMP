@@ -33,12 +33,9 @@
 
       integer :: lfndbg,idet,n,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
-      if(idbg.ge.20) then
-      write(lfndbg,600) nbasis
- 600  format(/,' Number of basis functions is',t45,i8)
-      write(lfndbg,603) nelec(1)
- 603  format(' Number of electrons is',t45,i8)
-      endif
+      logical (kind=4) :: flag
+      integer (kind=4) :: ierr,status(MPI_STATUS_SIZE)
+
 
       e1=0.0d0
       e2=0.0d0
@@ -46,6 +43,21 @@
       etot=0.0d0
       ttest=0
 
+!     If duplicate check for terminate signal
+      
+      if(odupl) then
+        call MPI_Test(itreq,flag,status,ierr)
+        oterm=flag
+        if(oterm) return
+      endif
+      
+      if(idbg.ge.20) then
+      write(lfndbg,600) nbasis
+ 600  format(/,' Number of basis functions is',t45,i8)
+      write(lfndbg,603) nelec(1)
+ 603  format(' Number of electrons is',t45,i8)
+      endif
+      
       do idet=1,2
 
         if(idbg.ge.20) then

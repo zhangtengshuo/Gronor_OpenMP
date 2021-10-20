@@ -44,9 +44,13 @@
       integer (kind=4) :: status(MPI_STATUS_SIZE)
       integer :: ipopcnt
       real (kind=8) :: rbuf(8)
+
+      logical (kind=4) :: flag
       
       flush(lfnout)
 
+      otreq=.false.
+      
       l2=0
       mnact=0
       mvec=0
@@ -408,120 +412,146 @@
 
       do while(ibase.gt.0)
 
-       call timer_start(39)
+        call timer_start(39)
 
-       if(iamhead.eq.1) then
+        if(iamhead.eq.1) then
 
 !     Receive next task from master on head thread
-         ncount=4
-         mpitag=2
-        call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,
-     &        MPI_COMM_WORLD,status,ierr)
-        
-        if(idbg.gt.10) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
-     &      me,' received task ',master,(ibuf(i),i=1,4),ierr
-         flush(lfndbg)
-        endif
+          ncount=4
+          mpitag=2
+          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,
+     &         MPI_COMM_WORLD,status,ierr)
+          
+          if(idbg.gt.10) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
+     &           me,' received task ',master,(ibuf(i),i=1,4),ierr
+            flush(lfndbg)
+          endif
 
 !     Send task to other worker threads in the same group as current head thread
 
-        if(mgr.gt.1) then
+          if(mgr.gt.1) then
 
-         do i=1,mgr-1
-           ncount=4
-           mpidest=thisgroup(i+2)
-           mpitag=15
-          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
-     &                  MPI_COMM_WORLD,ireq,ierr)
-         if(idbg.gt.10) then
+            do i=1,mgr-1
+              ncount=4
+              mpidest=thisgroup(i+2)
+              mpitag=15
+              call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
+     &             MPI_COMM_WORLD,ireq,ierr)
+              if(idbg.gt.10) then
+                call swatch(date,time)
+                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+     &               me,' sent task to group rank ',thisgroup(i+2)
+                flush(lfndbg)
+              endif
+
+            enddo
+          endif
+
+        else
+
+!     Receive task from head thread
+
+          if(idbg.gt.30) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+     &           me,' waiting for task from head rank ',thisgroup(2)
+            flush(lfndbg)
+          endif
+          ncount=4
+          mpidest=thisgroup(2)
+          mpitag=15
+          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
+     &         MPI_COMM_WORLD,status,ierr)
+          if(idbg.gt.10) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+     &           me,' received task from head rank ',thisgroup(2)
+            flush(lfndbg)
+          endif
+
+        endif
+
+!     Check if this is a duplicate
+
+        oterm=.false.
+        odupl=ibuf(1).lt.0
+        ibuf(1)=iabs(ibuf(1))
+        if(odupl) then
+          ncount=4
+          mpitag=99
+          if(.not.otreq) then
+            call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,
+     &           mpitag,MPI_COMM_WORLD,itreq,ierr)
+c            write(*,'(i5,a,i10,3(1x,l1))')
+c     &           me,' Dup Recv  ',itreq,otreq,oterm
+            otreq=.true.
+          endif
+          call MPI_Test(itreq,flag,status,ierr)
+c          write(*,'(i5,a,i10,3(1x,l1))')
+c     &         me,' Duplicate ',itreq,otreq,oterm,flag
+        else
+c          write(*,'(i5,a,2i10,3(1x,l1))')
+c     &         me,' Singular  ',ibuf(1)
+        endif
+
+        call timer_stop(39)
+        
+        if(idbg.gt.15) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &       me,' sent task to group rank ',thisgroup(i+2)
+          write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
+     &         me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
           flush(lfndbg)
-         endif
-
-         enddo
         endif
+        
+        ibase=ibuf(1)
+        jbase=ibuf(2)
+        idet=ibuf(3)
+        jdet=ibuf(4)
 
-       else
-
-!      Receive task from head thread
-
-        if(idbg.gt.30) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &      me,' waiting for task from head rank ',thisgroup(2)
-         flush(lfndbg)
-       endif
-       ncount=4
-       mpidest=thisgroup(2)
-       mpitag=15
-        call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
-     &      MPI_COMM_WORLD,status,ierr)
-        if(idbg.gt.10) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &      me,' received task from head rank ',thisgroup(2)
-         flush(lfndbg)
+        call timer_start(46)
+        if(ibase.ne.0.and..not.oterm) then
+          if(idbg.gt.30) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
+     &           me,' Entering gronor_calculate with ',
+     &           ibase,jbase,idet,jdet,ntask,nbatch
+            flush(lfndbg)
+          endif
+          call timer_start(47)
+          call gronor_calculate(ibase,jbase,idet,jdet)
+          call timer_stop(47)
+          
+          if(oterm) return
+          
+          buffer(3)=timer_wall(47)
+          if(idbg.gt.30) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
+     &           me,' Returned from gronor_calculate '
+            flush(lfndbg)
+          endif
+          call timer_start(48)
+          if(iamhead.eq.1) then
+c     call MPI_Wait(ireq,status,ierr)
+            do i=1,8
+              rbuf(i)=buffer(i)
+            enddo
+            ncount=8
+            mpitag=1
+            call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
+     &           MPI_COMM_WORLD,ireq,ierr)
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
+     &             me,' sent results  ',master,(ibuf(i),i=1,4)
+              flush(lfndbg)
+            endif
+          endif
+          call timer_stop(48)
         endif
-
-       endif
-
-       call timer_stop(39)
-       
-       if(idbg.gt.15) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
-     &        me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
-         flush(lfndbg)
-       endif
-       
-       ibase=ibuf(1)
-       jbase=ibuf(2)
-       idet=ibuf(3)
-       jdet=ibuf(4)
-
-       call timer_start(46)
-       if(ibase.ne.0) then
-         if(idbg.gt.30) then
-           call swatch(date,time)
-           write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
-     &          me,' Entering gronor_calculate with ',
-     &          ibase,jbase,idet,jdet,ntask,nbatch
-           flush(lfndbg)
-         endif
-         call timer_start(47)
-         call gronor_calculate(ibase,jbase,idet,jdet)
-         call timer_stop(47)
-         buffer(3)=timer_wall(47)
-         if(idbg.gt.30) then
-           call swatch(date,time)
-           write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
-     &          me,' Returned from gronor_calculate '
-           flush(lfndbg)
-         endif
-         call timer_start(48)
-         if(iamhead.eq.1) then
-c           call MPI_Wait(ireq,status,ierr)
-           do i=1,8
-             rbuf(i)=buffer(i)
-           enddo
-           ncount=8
-           mpitag=1
-           call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
-     &          MPI_COMM_WORLD,ireq,ierr)
-           if(idbg.gt.10) then
-             call swatch(date,time)
-             write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
-     &            me,' sent results  ',master,(ibuf(i),i=1,4)
-             flush(lfndbg)
-           endif
-         endif
-         call timer_stop(48)
-       endif
-       call timer_stop(46)
+        call timer_stop(46)
 
       enddo
 

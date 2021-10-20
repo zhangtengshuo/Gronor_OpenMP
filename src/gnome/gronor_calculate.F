@@ -315,6 +315,8 @@
           call gronor_gnome(lfndbg,ihc,nhc)
           call timer_stop(6)
 
+          if(oterm) return
+
           if(idbg.ge.40) write(lfndbg,619) ij,i,j
  619      format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
 

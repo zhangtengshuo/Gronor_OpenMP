@@ -135,8 +135,12 @@
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
       real (kind=8) :: tau_MO,tau_CI,tau_SIN,thresh,thresh_SIN
       real (kind=8) :: tolsvj,tolevj
+      integer :: numtasks
+      real (kind=8) :: tmax
 
-      logical :: odbg
+      integer (kind=4) :: itreq
+      integer (kind=8) :: irbuf(4)
+      logical :: odbg,odupl,oterm,otreq
       logical :: corres
 
       end module gnome_parameters

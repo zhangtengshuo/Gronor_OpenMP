@@ -1,0 +1,16 @@
+#!/bin/tcsh
+
+module load cmake intelmpi gronor
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+unsetenv MPI_ROOT
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENMP=ON ../
+
+make -j 24

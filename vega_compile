@@ -1,0 +1,20 @@
+#!/usr/bin/bash
+
+module load CMake
+module load nvidia/nvhpc/21.9
+module load openmpi/4.0.5.2
+module load openmpi/gnu/4.0.5.2
+module load CUDA
+module list
+
+export FC=mpifort
+export CC=mpicc
+export CXX=mpic++
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENACC=ON -DCUSOLVERJ=ON ../
+
+make -j 12

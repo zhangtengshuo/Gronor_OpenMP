@@ -131,12 +131,13 @@
       info_cml = 'dictRef="cc:numProc"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,getcpucount())
+      call writetag_scalar_integer(lfncml,info_cml,6,
+     &     int8(getcpucount()))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numProcGPU"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,numdev)
+      call writetag_scalar_integer(lfncml,info_cml,6,int8(numdev))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numRanks"'
       call open_tag(lfncml,label,info_cml,5)
@@ -234,7 +235,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="nonsi:elementary_charge"'
       fmt_1 = 'f10.4'
-      call writetag_scalar_real(lfncml,info_cml,6,charge,fmt_1)
+      call writetag_scalar_real(lfncml,info_cml,6,dble(charge),fmt_1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:spinMultiplicity"'
       call open_tag(lfncml,label,info_cml,5)

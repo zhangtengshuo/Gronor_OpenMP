@@ -1940,8 +1940,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
          
       endif
 
-
-      call gronor_timings(lfnout,lfnday)
+      call gronor_timings(lfnout,lfnday,lfntim)
 
       if(me.eq.master) then
         flush(lfnout)

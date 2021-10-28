@@ -25,7 +25,7 @@
 !! ranks. This is not an error!
 !!
  
-      subroutine gronor_timings(lfnout,lfnday)
+      subroutine gronor_timings(lfnout,lfnday,lfntim)
 
       use mpi
       use cidist
@@ -33,7 +33,7 @@
 
       implicit none
 
-      integer (kind=8) :: lfnout,lfnday,i,j,idum
+      integer (kind=8) :: lfnout,lfnday,lfntim,i,j,idum
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total
       integer :: timer_calls
@@ -129,7 +129,12 @@
        endif
        
        if(me.eq.master) then
-         
+
+         write(lfntim,500) np,68
+ 500     format(2i10)
+         write(lfntim,501) ((timings(j,i),i=1,68),j=1,np)
+ 501     format(10f12.3)
+
          write(lfnout,600)
  600     format(/,' Wallclock Timing Analysis Main Program',/)
          write(lfnout,601)

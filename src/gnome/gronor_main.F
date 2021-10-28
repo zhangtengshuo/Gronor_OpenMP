@@ -184,6 +184,8 @@ c     use cuda_functions
         lfnrnk=23
         filcml=string(1:inp_strlen(string))//'.cml'
         lfncml=24
+        filtim=string(1:inp_strlen(string))//'.tim'
+        lfntim=25
 
         open(unit=lfnout,file=filout(1:inp_strlen(filout)),
      &       form='formatted',status='unknown',err=996)
@@ -1932,13 +1934,21 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       '  :  End of Hamiltonian calculation'
         flush(lfnday)
         call timer_start(99)
+        
+        open(unit=lfntim,file=filtim(1:inp_strlen(filtim)),
+     &       form='formatted',status='unknown',err=992)
+         
       endif
 
 
       call gronor_timings(lfnout,lfnday)
-      flush(lfnout)
-      flush(lfnday)
 
+      if(me.eq.master) then
+        flush(lfnout)
+        flush(lfnday)
+        flush(lfntim)
+      endif
+      
       if(me.eq.master) deallocate(numrecs)
 
       close(unit=lfndbg,status='keep')
@@ -1961,6 +1971,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         endif
         close(unit=lfnarx,status='keep')
         close(unit=lfncml,status='keep')
+        if(itim.eq.0) then
+          close(unit=lfntim,status='delete')
+        else
+          close(unit=lfntim,status='keep')
+        endif
         
         call swatch(date,time)
         if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
@@ -1981,6 +1996,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       return
+ 992  write(lfnout,983) filtim(1:inp_strlen(filtim))
+      call errquit(me,2,"Error in main")
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))
       call errquit(me,2,"Error in main")
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
@@ -1993,6 +2010,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call errquit(me,2,"Error in main")
  998  write(lfnout,988) filciv(1:inp_strlen(filciv))
       call errquit(me,2,"Error in main")
+ 983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
  985  format('Unable to open symmetry file ',a)
  986  format('Unable to open output file ',a)

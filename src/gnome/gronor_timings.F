@@ -38,10 +38,12 @@
       real (kind=8) :: timer_wall_total
       integer :: timer_calls
 
-      real (kind=8), allocatable :: timings(:,:),tdata(:),tdat(:)
+      real (kind=8), allocatable :: timings(:,:)
+      real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
+      integer (kind=8) :: nrecav
       character (len=255) :: date,time
 
       if(itim.gt.0) then
@@ -50,15 +52,11 @@
 
        if(me.eq.master) then
 
-!         if(ifault.eq.0) then
-!           nalive=npg*mgr
-!         else
-           nalive=nalive*mgr
-!         endif
+         nalive=nalive*mgr
+
          allocate(isync(nalive))
          allocate(ireq(nalive))
-!         allocate(tdat(68,nalive))
-         allocate(tdat(68))
+         allocate(tdat(68),taver(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -92,25 +90,9 @@
              timings(iremote+1,j)=tdat(j)
            enddo
          enddo
-!         do i=1,nalive
-!           call MPI_IRecv(tdat(1,i),68,MPI_REAL8,MPI_ANY_SOURCE,11,
-!     &          MPI_COMM_WORLD,ireq(i),ierr)
-!         enddo
-!         call sleep(ifault)
-!         do i=1,nalive
-!           nrem=nalive
-!           call MPI_Testany(nrem,ireq,nindx,odone,status,ierr)
-!           if (odone) then
-!             iremote=status(MPI_SOURCE)
-!             isync(i)=iremote
-!             do j=1,68
-!               timings(iremote+1,j)=tdat(j,nindx)
-!             enddo
-!           else
-!           endif
-!         enddo
-!     elseif(iamactive.eq.1) then
-       else 
+
+       else
+         
          do j=1,60
            tdata(j)=timer_wall_total(j)
          enddo
@@ -130,10 +112,19 @@
        
        if(me.eq.master) then
 
+         do i=1,68
+           taver(i)=0.0d0
+           do j=1,nalive
+             taver(i)=taver(i)+timings(isync(j)+1,i)
+           enddo
+           taver(i)=taver(i)/dble(nalive)
+         enddo
+         
          write(lfntim,500) np,68
  500     format(2i10)
          write(lfntim,501) ((timings(j,i),i=1,68),j=1,np)
  501     format(10f12.3)
+         write(lfntim,501) (taver(j),j=1,68)
 
          write(lfnout,600)
  600     format(/,' Wallclock Timing Analysis Main Program',/)
@@ -154,12 +145,13 @@
              write(lfnout,602) i-1,(timings(i,j),j=1,4)
            else
              write(lfnout,602) i-1,(timings(i,j),j=1,6),
-     &            int(timings(i,46)),
-     &            int(timings(i,68))
-!             ,(timings(i,j),j=46,49)
+     &            int(timings(i,46)),int(timings(i,68))
  602         format(1x,i5,6f12.3,i12,i16,4f12.3)
            endif
          enddo
+         write(lfnout,622) (taver(j),j=1,6),
+     &        int(taver(46)),int(taver(68))
+ 622     format(1x,105('-'),/,' Avrg ',6f12.3,i12,i16,4f12.3)
          
          flush(lfnout)
          
@@ -188,6 +180,8 @@
  605         format(1x,i5,12f12.3)
            endif
          enddo
+         write(lfnout,625) (taver(j),j=11,22)
+ 625     format(1x,149('-'),/,' Avrg ',12f12.3)
          
          flush(lfnout)
          
@@ -205,9 +199,11 @@
          do i=1,np
            if(i-1.ne.master) then
              write(lfnout,608) i-1,(timings(i,j),j=41,44)
- 608         format(1x,i5,12f12.3)
+ 608         format(1x,i5,4f12.3)
            endif
          enddo
+         write(lfnout,628) (taver(j),j=41,44)
+ 628     format(1x,53('-'),/,' Avrg ',12f12.3)
          
          flush(lfnout)
          
@@ -235,6 +231,11 @@
  611         format(1x,i5,9f12.3)
            endif
          enddo
+         write(lfnout,631) (taver(j),j=30,36),
+     &            taver(39),taver(37)
+ 631     format(1x,113('-'),/,' Avrg ',9f12.3)
+         
+         flush(lfnout)
          
          write(lfnout,612)
  612     format(//,'  Proc',
@@ -253,6 +254,18 @@
  613         format(1x,i5,5i12)
            endif
          enddo
+         nrecav=0
+         do i=1,np
+           if(i-1.ne.master) nrecav=nrecav+numrecs(i)
+         enddo
+         nrecav=int(dble(nrecav)/dble(nalive-1))
+         write(lfnout,633) nrecav,
+     &        int(taver(62))+int(taver(63)),
+     &        int(taver(64))+int(taver(65)),
+     &        int(taver(66)),int(taver(67))
+ 633     format(1x,65('-'),/,' Avrg ',5i12)
+         
+         flush(lfnout)
          
        endif
        
@@ -275,7 +288,7 @@
        endif
        
        deallocate(tdata,timings)
-       if(me.eq.master) deallocate(tdat,ireq,isync)
+       if(me.eq.master) deallocate(tdat,taver,ireq,isync)
        
       endif
       

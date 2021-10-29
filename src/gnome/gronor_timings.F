@@ -39,7 +39,7 @@
       integer :: timer_calls
 
       real (kind=8), allocatable :: timings(:,:)
-      real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
+      real (kind=8), allocatable :: tdata(:),tdat(:,:),taver(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
@@ -56,7 +56,7 @@
 
          allocate(isync(nalive))
          allocate(ireq(nalive))
-         allocate(tdat(68),taver(68))
+         allocate(tdat(nalive,68),taver(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -82,12 +82,12 @@
          do i=1,nalive
            ncount=68
            mpitag=11
-           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+           call MPI_Recv(tdat(i,1),ncount,MPI_REAL8,MPI_ANY_SOURCE,
      &           mpitag,MPI_COMM_WORLD,status,ierr)
            iremote=status(MPI_SOURCE)
            isync(i)=iremote
            do j=1,68
-             timings(iremote+1,j)=tdat(j)
+             timings(iremote+1,j)=tdat(i,j)
            enddo
          enddo
 

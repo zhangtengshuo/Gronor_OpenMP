@@ -152,7 +152,7 @@
            endif
          enddo
          write(lfnout,622) taver(1),taver(2),taver(9),taver(4),
-     &        taver(5),taver(6),int(taver(46)),int(taver(68))
+     &        taver(5),taver(6),int(taver(61)),int(taver(68))
  622     format(1x,105('-'),/,' Avrg ',6f12.3,i12,i16,4f12.3)
          
          flush(lfnout)

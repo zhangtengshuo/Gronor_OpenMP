@@ -1742,6 +1742,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       if(me.ne.master) call timer_start(98)
+      call timer_start(4)
       
       if(idbg.gt.0) then
         call swatch(date,time)
@@ -1793,6 +1794,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         endif
       endif
 
+      call timer_stop(4)
       call timer_stop(98)
       
       if(idbg.gt.0) then

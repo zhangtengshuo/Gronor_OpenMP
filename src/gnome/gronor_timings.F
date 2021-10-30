@@ -39,7 +39,7 @@
       integer :: timer_calls
 
       real (kind=8), allocatable :: timings(:,:)
-      real (kind=8), allocatable :: tdata(:),tdat(:,:),taver(:)
+      real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
@@ -56,7 +56,7 @@
 
          allocate(isync(nalive))
          allocate(ireq(nalive))
-         allocate(tdat(nalive,68),taver(68))
+         allocate(tdat(68),taver(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -82,12 +82,12 @@
          do i=1,nalive
            ncount=68
            mpitag=11
-           call MPI_Recv(tdat(i,1),ncount,MPI_REAL8,MPI_ANY_SOURCE,
+           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
      &           mpitag,MPI_COMM_WORLD,status,ierr)
            iremote=status(MPI_SOURCE)
            isync(i)=iremote
            do j=1,68
-             timings(iremote+1,j)=tdat(i,j)
+             timings(iremote+1,j)=tdat(j)
            enddo
          enddo
 
@@ -142,15 +142,17 @@
          flush(lfnout)
          do i=1,np
            if(i-1.eq.master) then
-             write(lfnout,602) i-1,(timings(i,j),j=1,4)
+             write(lfnout,602) i-1,timings(i,1),timings(i,2),
+     &            timings(i,9),timings(i,4)
            else
-             write(lfnout,602) i-1,(timings(i,j),j=1,6),
+             write(lfnout,602) i-1,timings(i,1),timings(i,2),
+     &            timings(i,9),timings(i,4),timings(i,5),timings(i,6),
      &            int(timings(i,46)),int(timings(i,68))
  602         format(1x,i5,6f12.3,i12,i16,4f12.3)
            endif
          enddo
-         write(lfnout,622) (taver(j),j=1,6),
-     &        int(taver(46)),int(taver(68))
+         write(lfnout,622) taver(1),taver(2),taver(9),taver(4),
+     &        taver(5),taver(6),int(taver(46)),int(taver(68))
  622     format(1x,105('-'),/,' Avrg ',6f12.3,i12,i16,4f12.3)
          
          flush(lfnout)

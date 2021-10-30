@@ -70,7 +70,7 @@
          do j=1,60
            timings(me+1,j)=timer_wall_total(j)
          enddo
-         timings(me+1,61)=dble(timer_calls(5))
+         timings(me+1,61)=dble(timer_calls(6))
          timings(me+1,62)=dble(timer_calls(31))
          timings(me+1,63)=dble(timer_calls(32))
          timings(me+1,64)=dble(timer_calls(34))
@@ -96,7 +96,7 @@
          do j=1,60
            tdata(j)=timer_wall_total(j)
          enddo
-         tdata(61)=dble(timer_calls(5))
+         tdata(61)=dble(timer_calls(6))
          tdata(62)=dble(timer_calls(31))
          tdata(63)=dble(timer_calls(32))
          tdata(64)=dble(timer_calls(34))
@@ -147,7 +147,7 @@
            else
              write(lfnout,602) i-1,timings(i,1),timings(i,2),
      &            timings(i,9),timings(i,4),timings(i,5),timings(i,6),
-     &            int(timings(i,46)),int(timings(i,68))
+     &            int(timings(i,61)),int(timings(i,68))
  602         format(1x,i5,6f12.3,i12,i16,4f12.3)
            endif
          enddo

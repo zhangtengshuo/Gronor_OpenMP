@@ -39,7 +39,7 @@
       integer :: timer_calls
 
       real (kind=8), allocatable :: timings(:,:)
-      real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
+      real (kind=8), allocatable :: tdata(:),tdat(:,:),taver(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
@@ -56,7 +56,7 @@
 
          allocate(isync(nalive))
          allocate(ireq(nalive))
-         allocate(tdat(68),taver(68))
+         allocate(tdat(68,nalive),taver(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -79,15 +79,29 @@
          timings(me+1,67)=dble(nacc1)
          timings(me+1,68)=dble(memavail)
 
+c         do i=1,nalive
+c           ncount=68
+c           mpitag=11
+c           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+c     &           mpitag,MPI_COMM_WORLD,status,ierr)
+c           iremote=status(MPI_SOURCE)
+c           isync(i)=iremote
+c           do j=1,68
+c             timings(iremote+1,j)=tdat(j)
+c           enddo
+c     enddo
+
+         ncount=68
+         mpitag=11
          do i=1,nalive
-           ncount=68
-           mpitag=11
-           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+           call MPI_Recv(tdat(1,i),ncount,MPI_REAL8,MPI_ANY_SOURCE,
      &           mpitag,MPI_COMM_WORLD,status,ierr)
            iremote=status(MPI_SOURCE)
            isync(i)=iremote
+         enddo
+         do i=1,nalive
            do j=1,68
-             timings(iremote+1,j)=tdat(j)
+             timings(iremote+1,j)=tdat(j,i)
            enddo
          enddo
 

@@ -282,14 +282,14 @@ c     use cuda_functions
         idevel=0
         ifault=1
 
-!     Default solvers are those included in the code
+!     Set solvers undefined
         
-        isolver=0
-        jsolver=0
-        iaslvr=0
-        jaslvr=0
-        inslvr=0
-        jnslvr=0
+        isolver=-1
+        jsolver=-1
+        iaslvr=-1
+        jaslvr=-1
+        inslvr=-1
+        jnslvr=-1
 
         naccel=-1
         ncols=7
@@ -1240,12 +1240,6 @@ c     use cuda_functions
         enddo
       endif
       
-!     if solvers were not specified use the default ones
-      
-      if(iaslvr.lt.0) iaslvr=0
-      if(jaslvr.lt.0) jaslvr=0
-      if(inslvr.lt.0) inslvr=0
-      if(jnslvr.lt.0) jnslvr=0
       
       if(iamacc.eq.1) then
 
@@ -1283,23 +1277,30 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
 #endif
 
+#ifdef CUSOLVER
+        if(iaslvr.lt.0) iaslvr=0
+#endif
+#ifdef CUSOLVERJ
+        if(iaslvr.lt.0) iaslvr=2
+#endif
+        if(inslvr.lt.0) inslvr=0
+        if(jnslvr.lt.0) jnslvr=0
+        if(iaslvr.lt.0) iaslvr=0
+        if(jaslvr.lt.0) jaslvr=1
+        
         isolver=iaslvr
         jsolver=jaslvr
         
       else
 
-        
-!     only non-accelerated ranks will use OpenMP threads
-
 #ifdef MKL
-
-!     if solvers were not specified use MKL solver for svd only
-        
         if(inslvr.lt.0) inslvr=1
-        if(jnslvr.lt.0) jnslvr=0
-
 #endif
-
+        if(iaslvr.lt.0) iaslvr=0
+        if(jaslvr.lt.0) jaslvr=0
+        if(inslvr.lt.0) inslvr=0
+        if(jnslvr.lt.0) jnslvr=0
+        
         isolver=inslvr
         jsolver=jnslvr
         

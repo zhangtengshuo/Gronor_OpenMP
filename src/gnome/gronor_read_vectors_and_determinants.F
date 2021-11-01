@@ -85,14 +85,16 @@
  618  format(i4)
       else
         mebfLabels = .true.
-        write(lfnout,607) '  MEBF       Sum of fragment energies'
+        write(lfnout,607)
+     &       '  MEBF     Electrons   Sum of fragment energies'
  607    format(/,a,/)
         do j = 1,nbase
           write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
  616      format(3a2)
           write(lfnout,617) mebflabel(j),
+     &         nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
      &         fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
- 617      format(a6,t12,f22.12)
+ 617      format(a6,i10,t22,f22.12)
         enddo
       endif
       

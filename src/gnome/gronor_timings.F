@@ -104,7 +104,7 @@
              openrcv=.true.
            endif           
 
-           do while(nreqso.ge.2.or.(i.eq.np.and.nreqsc.lt.nalive))
+           do while(nreqso.ge.itim.or.(i.eq.np.and.nreqsc.lt.nalive))
              call MPI_Test(itreq,flag,status,ierr)
              if(flag) then
                iremote=status(MPI_SOURCE)

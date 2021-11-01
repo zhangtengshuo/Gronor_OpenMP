@@ -156,7 +156,7 @@
 
          do i=1,68
            taver(i)=0.0d0
-           do j=1,np
+           do j=1,np-1
              taver(i)=taver(i)+timings(j,i)
            enddo
            taver(i)=taver(i)/dble(nalive)

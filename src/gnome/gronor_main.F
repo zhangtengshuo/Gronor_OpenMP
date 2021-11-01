@@ -1309,7 +1309,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)
  610    format(/,' Linear algebra solvers',/)
-        if(numdev.ne.0) then
+        if(numdev.gt.0) then
           if(iaslvr.eq.0) write(lfnout,611)
  611      format(' Accelerated ranks use GronOR SVD on CPU')
 #ifdef CUSOLVER

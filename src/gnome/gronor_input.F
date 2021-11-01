@@ -189,7 +189,7 @@
         endif
         
         if(inp_compare(.false.,'Timings',item)) then
-          if(.not.inp_i(itim)) itim=1
+          if(.not.inp_i(itim)) itim=12
           goto 2
         endif
         

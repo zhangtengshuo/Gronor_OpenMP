@@ -39,12 +39,15 @@
       integer :: timer_calls
 
       real (kind=8), allocatable :: timings(:,:)
-      real (kind=8), allocatable :: tdata(:),tdat(:,:),taver(:)
+      real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
       integer (kind=4), allocatable :: isync(:),ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
+      integer (kind=8) :: irtim,nreqso,nreqsc
       integer (kind=8) :: nrecav
       character (len=255) :: date,time
+      logical (kind=4) :: flag
+      logical :: openrcv
 
       if(itim.gt.0) then
 
@@ -56,7 +59,7 @@
 
          allocate(isync(nalive))
          allocate(ireq(nalive))
-         allocate(tdat(68,nalive),taver(68))
+         allocate(tdat(68),taver(68))
          
          do i=1,nalive
            isync(i)=-1
@@ -79,30 +82,48 @@
          timings(me+1,67)=dble(nacc1)
          timings(me+1,68)=dble(memavail)
 
-c         do i=1,nalive
-c           ncount=68
-c           mpitag=11
-c           call MPI_Recv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
-c     &           mpitag,MPI_COMM_WORLD,status,ierr)
-c           iremote=status(MPI_SOURCE)
-c           isync(i)=iremote
-c           do j=1,68
-c             timings(iremote+1,j)=tdat(j)
-c           enddo
-c     enddo
+         nreqso=0
+         nreqsc=0
+         openrcv=.false.
+         irtim=1
+         do i=1,np
 
-         ncount=68
-         mpitag=11
-         do i=1,nalive
-           call MPI_Recv(tdat(1,i),ncount,MPI_REAL8,MPI_ANY_SOURCE,
-     &           mpitag,MPI_COMM_WORLD,status,ierr)
-           iremote=status(MPI_SOURCE)
-           isync(i)=iremote
-         enddo
-         do i=1,nalive
-           do j=1,68
-             timings(iremote+1,j)=tdat(j,i)
+           ncount=1
+           mpitag=20
+           mpidest=i-1
+           if(mpidest.ne.master)
+     &          call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest,
+     &          mpitag,MPI_COMM_WORLD,mpireq,ierr)
+           nreqso=nreqso+1
+             
+           if(.not.openrcv) then
+             ncount=68
+             mpitag=11
+             call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &            mpitag,MPI_COMM_WORLD,itreq,ierr)
+             openrcv=.true.
+           endif           
+
+           do while(nreqso.ge.2.or.(i.eq.np.and.nreqsc.lt.nalive))
+             call MPI_Test(itreq,flag,status,ierr)
+             if(flag) then
+               iremote=status(MPI_SOURCE)
+               isync(i)=iremote
+               do j=1,68
+                 timings(iremote+1,j)=tdat(j)
+               enddo
+               nreqso=nreqso-1
+               nreqsc=nreqsc+1
+
+               ncount=68
+               mpitag=11
+               call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+     &              mpitag,MPI_COMM_WORLD,itreq,ierr)
+               openrcv=.true.
+
+             endif
            enddo
+
          enddo
 
        else
@@ -118,18 +139,25 @@ c     enddo
          tdata(66)=dble(nacc0)
          tdata(67)=dble(nacc1)
          tdata(68)=dble(memavail)
+
+         ncount=1
+         mpitag=20
+         call MPI_Recv(irtim,ncount,MPI_INTEGER8,master,
+     &        mpitag,MPI_COMM_WORLD,status,ierr)
+         
          ncount=68
          mpitag=11
          call MPI_Send(tdata,ncount,MPI_REAL8,master,
      &        mpitag,MPI_COMM_WORLD,ierr)
+
        endif
        
        if(me.eq.master) then
 
          do i=1,68
            taver(i)=0.0d0
-           do j=1,nalive
-             taver(i)=taver(i)+timings(isync(j)+1,i)
+           do j=1,np
+             taver(i)=taver(i)+timings(j,i)
            enddo
            taver(i)=taver(i)/dble(nalive)
          enddo
@@ -285,24 +313,24 @@ c     enddo
          
        endif
        
-       if(me.eq.master) then
-         idum=1
-         do i=1,nalive
-           ncount=1
-           mpitag=12
-           mpidest=isync(i)
-           if (isync(i).ne.-1)
-     &          call MPI_iSend(idum,ncount,MPI_INTEGER8,mpidest,
-     &          mpitag,MPI_COMM_WORLD,mpireq,ierr)
-           ireq(i)=mpireq
-         enddo
-       else
-         ncount=1
-         mpitag=12
-         call MPI_Recv(idum,ncount,MPI_INTEGER8,master,
-     &        mpitag,MPI_COMM_WORLD,status,ierr)
-       endif
-       
+c       if(me.eq.master) then
+c         idum=1
+c         do i=1,nalive
+c           ncount=1
+c           mpitag=12
+c           mpidest=isync(i)
+c           if (isync(i).ne.-1)
+c     &          call MPI_iSend(idum,ncount,MPI_INTEGER8,mpidest,
+c     &          mpitag,MPI_COMM_WORLD,mpireq,ierr)
+c           ireq(i)=mpireq
+c         enddo
+c       else
+c         ncount=1
+c         mpitag=12
+c         call MPI_Recv(idum,ncount,MPI_INTEGER8,master,
+c     &        mpitag,MPI_COMM_WORLD,status,ierr)
+c       endif
+
        deallocate(tdata,timings)
        if(me.eq.master) deallocate(tdat,taver,ireq,isync)
        

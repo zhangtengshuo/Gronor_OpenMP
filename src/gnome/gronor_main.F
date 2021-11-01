@@ -1277,22 +1277,19 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
 #endif
 
-#ifdef CUSOLVER
-        if(iaslvr.lt.0) iaslvr=0
-#endif
+      endif
+      
 #ifdef CUSOLVERJ
         if(iaslvr.lt.0) iaslvr=2
+#endif
+#ifdef CUSOLVER
+        if(iaslvr.lt.0) iaslvr=0
 #endif
         if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
         if(iaslvr.lt.0) iaslvr=0
         if(jaslvr.lt.0) jaslvr=1
         
-        isolver=iaslvr
-        jsolver=jaslvr
-        
-      else
-
 #ifdef MKL
         if(inslvr.lt.0) inslvr=1
 #endif
@@ -1300,11 +1297,14 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(jaslvr.lt.0) jaslvr=0
         if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
-        
-        isolver=inslvr
-        jsolver=jnslvr
-        
-      endif
+
+        if(iamacc.eq.1) then
+          isolver=iaslvr
+          jsolver=jaslvr
+        else
+          isolver=inslvr
+          jsolver=jnslvr
+        endif
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)

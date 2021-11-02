@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 module load CMake
-module load NVHPC/20.11
+module load NVHPC/21.9
 module load CUDA
 module list
 

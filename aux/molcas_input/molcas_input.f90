@@ -15,7 +15,7 @@
       character (len=1) :: operation
       logical :: done,aonly,caspt2
 
-      numa=10
+      numa=12
       nr=12
       aonly=.false.
       caspt2=.false.
@@ -29,8 +29,9 @@
       elem(7)='P '
       elem(8)='S '
       elem(9)='Cl'
-      elem(10)='Br'
-      elem(11)='I '
+      elem(10)='Se'
+      elem(11)='Br'
+      elem(12)='I '
 
       nam(1)=' H'
       nam(2)=' B'
@@ -41,8 +42,9 @@
       nam(7)=' P'
       nam(8)=' S'
       nam(9)='Cl'
-      nam(10)='Br'
-      nam(11)=' I'
+      nam(10)='Se'
+      nam(11)='Br'
+      nam(12)=' I'
 
       nel(1)=1
       nel(2)=5
@@ -53,8 +55,9 @@
       nel(7)=15
       nel(8)=16
       nel(9)=17
-      nel(10)=35
-      nel(11)=53
+      nel(10)=34
+      nel(11)=35
+      nel(12)=53
       
       basis(1)="h.ano-s...3s2p.     "
       basis(2)="b.ano-s...4s3p2d.   "
@@ -65,8 +68,9 @@
       basis(7)="p.ano-s...5s4p3d.   "
       basis(8)="s.ano-s...5s4p3d.   "
       basis(9)="cl.ano-s...5s4p3d.  "
-      basis(10)="br.ano-s...6s5p4d.  "
-      basis(11)="i.ano-s...6s5p4d.   "
+      basis(10)="se.ano-s...6s5p4d.  "
+      basis(11)="br.ano-s...6s5p4d.  "
+      basis(12)="i.ano-s...6s5p4d.   "
 
       mol1=1
       mol2=2
@@ -414,11 +418,11 @@
               'inactive',/,i3,/,'ras2',/,i3,/, &
               'prwf',/,'  0',/,'prsd',//, &
               ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
-              '>>> COPY vecdet.',i1, &
+              '>>> COPY $Project.VecDet.',i1, &
               ' $CurrDir/',a,'_',i3.3,'.det',/) 
           write(iunit,306) mol2,1,1,trim(project),6
 306       format(">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
-              '>>> COPY vecdet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/) 
+              '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/) 
           if(caspt2) write(iunit,219)
 219       format('&caspt2',/)
 229       format('&caspt2',/,'Multistate=  1  2',/)
@@ -429,7 +433,7 @@
                'CIRoot',/,'  1 2',/,'  2',/, &
                'prwf',/,'  0',/,'prsd',//, &
                '>>> COPY $Project.RasOrb.1 $CurrDir/INPORB.',i1,'_',i1,/, &
-               '>>> COPY vecdet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
+               '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
           write(iunit,306) mol2,2,2,trim(project),7
           if(caspt2) write(iunit,229)
           
@@ -639,23 +643,23 @@
               'rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
               'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
               'unsetenv DELETED',/, &
-              'mpirun -n',i3,' gronor $PROJECT"_dimer"')
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer"')
  313      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_A.input" > $PROJECT"_A.output"',/, &
-              '#pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
-              '#pymolcas -clean $PROJECT"_D.input" > $PROJECT"_D.output"',/, &
-              '#common_basis < $PROJECT"_CB.input" > $PROJECT"_CB.output"',/, &
-              '#setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              'pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" > $PROJECT"_D.output"',/, &
+              'common_basis < $PROJECT"_CB.input" > $PROJECT"_CB.output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT"_CB.output" | cut -b42- `',/, &
-              '#touch TRAINT',/, &
-              '#setenv MOLCAS_MEM 4096',/, &
-              '#pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
-              '#setenv OMP_NUM_THREADS ',i3,/, &
-              '#rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
-              '#rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
-              '#unsetenv DELETED',/, &
+              'touch TRAINT',/, &
+              'setenv MOLCAS_MEM 4096',/, &
+              'pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
+              'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
+              'unsetenv DELETED',/, &
               '#mpirun -n',i3,' gronor $PROJECT"_dimer"')
           
           close(unit=iunit)

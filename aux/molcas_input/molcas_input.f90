@@ -750,7 +750,7 @@
               'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
               'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
-              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
@@ -767,7 +767,7 @@
               'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
               'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
-              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
@@ -794,7 +794,7 @@
               'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
               'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
-              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
@@ -811,7 +811,7 @@
               'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
               'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
-              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &

@@ -378,6 +378,7 @@
 
         if(operation.eq.'W'.or.done) then
           iunit=11
+          
           open(unit=iunit,file=trim(project)//'_A.input')
           write(iunit,200)
  200      format('&seward',/,'high cholesky')
@@ -484,37 +485,43 @@
  505      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
-          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol1,1,1,trim(project),1
+          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol1,1,mol1,2,&
+              1,trim(project),1,2,trim(project),2
 406       format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
               'inactive',/,i3,/,'ras2',/,i3,/, &
+              'ciroot',/,' 2 2',/,' 1 2',/,' 1 1',/,&
               'prwf',/,'  0',/,'prsd',//, &
-              ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
+              ">>> COPY $Project.RasOrb $CurrDir/INPORB.",i1,'_',i1,/, &
+              ">>> COPY $Project.RasOrb $CurrDir/INPORB.",i1,'_',i1,/, &
+              '>>> COPY $Project.VecDet.',i1, &
+              ' $CurrDir/',a,'_',i3.3,'.det',/,&
               '>>> COPY $Project.VecDet.',i1, &
               ' $CurrDir/',a,'_',i3.3,'.det',/) 
           write(iunit,506) mol2,1,1,trim(project),6
-506       format(">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
+          write(iunit,506) mol2,2,2,trim(project),7
+506       format(">>> COPY $Project.RasOrb $CurrDir/INPORB.",i1,'_',i1,/, &
               '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/) 
           if(caspt2) write(iunit,419)
 419       format('&caspt2',/,'Multistate=  1  2',/)
           
-          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol1,2,2,trim(project),2
+!          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol1,2,2,trim(project),2
  408      format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
                'inactive',/,i3,/,'ras2',/,i3,/, &
                'CIRoot',/,'  1 2',/,'  2',/, &
                'prwf',/,'  0',/,'prsd',//, &
                '>>> COPY $Project.RasOrb.1 $CurrDir/INPORB.',i1,'_',i1,/, &
                '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
-          write(iunit,506) mol2,2,2,trim(project),7
-          if(caspt2) write(iunit,229)
+!          write(iunit,506) mol2,2,2,trim(project),7
+!          if(caspt2) write(iunit,229)
           
-          write(iunit,406) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
-          write(iunit,506) mol2,3,1,trim(project),8
+          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
+          write(iunit,306) mol2,3,1,trim(project),8
           if(caspt2) write(iunit,219)
-          write(iunit,406) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
-          write(iunit,506) mol2,4,1,trim(project),9
+          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
+          write(iunit,306) mol2,4,1,trim(project),9
           if(caspt2) write(iunit,219)
-          write(iunit,406) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
-          write(iunit,506) mol2,5,1,trim(project),10
+          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
+          write(iunit,306) mol2,5,1,trim(project),10
           if(caspt2) write(iunit,219)
 
           close(unit=iunit)
@@ -587,11 +594,12 @@
  409      format('>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
-          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol2,1,1,trim(project),6      
-          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
-          write(iunit,406) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
-          write(iunit,406) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
-          write(iunit,406) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
+          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol2,1,mol2,2,&
+           1,trim(project),6,2,trim(project),7         
+!          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
+          write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
+          write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
+          write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
 
           close(unit=iunit)
           

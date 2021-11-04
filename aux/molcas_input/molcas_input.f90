@@ -447,10 +447,80 @@
           write(iunit,306) mol2,5,1,trim(project),10
           if(caspt2) write(iunit,219)
 
+          close(unit=iunit)
+          
+          open(unit=iunit,file=trim(project)//'_SA.input')
+          write(iunit,400)
+ 400      format('&seward',/,'high cholesky')
+          do j=1,numa
+            nt=0
+            do i=1,num
+              if(atom(i).eq.elem(j)) nt=nt+1
+            enddo
+            if(nt.gt.0) then
+              write(iunit,401) trim(basis(j))
+ 401          format('basis set',/,a)
+              nt=0
+              do i=1,num
+                if(atom(i).eq.elem(j)) then
+                  nt=nt+1
+                  if(nt.le.9) then
+                    write(iunit,402) nam(j),nt,x1(i,1),x1(i,2),x1(i,3)
+ 402                format(a2,i1,' ',3f15.8,' Angstrom')
+                  else
+                    write(iunit,403) nam(j),nt,x1(i,1),x1(i,2),x1(i,3)
+ 403                format(a2,i2,3f15.8,' Angstrom')
+                  endif
+                endif
+              enddo
+              write(iunit,404)
+ 404          format('end basis')
+            endif
+          enddo
+          write(iunit,405)
+ 405      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT1',/, &
+               '>>> COPY $Project.RunFile $CurrDir/RUNFIL1')
+          write(iunit,505)
+ 505      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
+               '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
+          
+          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol1,1,1,trim(project),1
+406       format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
+              'inactive',/,i3,/,'ras2',/,i3,/, &
+              'prwf',/,'  0',/,'prsd',//, &
+              ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
+              '>>> COPY $Project.VecDet.',i1, &
+              ' $CurrDir/',a,'_',i3.3,'.det',/) 
+          write(iunit,506) mol2,1,1,trim(project),6
+506       format(">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
+              '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/) 
+          if(caspt2) write(iunit,419)
+419       format('&caspt2',/,'Multistate=  1  2',/)
+          
+          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol1,2,2,trim(project),2
+ 408      format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
+               'inactive',/,i3,/,'ras2',/,i3,/, &
+               'CIRoot',/,'  1 2',/,'  2',/, &
+               'prwf',/,'  0',/,'prsd',//, &
+               '>>> COPY $Project.RasOrb.1 $CurrDir/INPORB.',i1,'_',i1,/, &
+               '>>> COPY $Project.VecDet.',i1,' $CurrDir/',a,'_',i3.3,'.det',/)
+          write(iunit,506) mol2,2,2,trim(project),7
+          if(caspt2) write(iunit,229)
+          
+          write(iunit,406) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
+          write(iunit,506) mol2,3,1,trim(project),8
+          if(caspt2) write(iunit,219)
+          write(iunit,406) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
+          write(iunit,506) mol2,4,1,trim(project),9
+          if(caspt2) write(iunit,219)
+          write(iunit,406) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
+          write(iunit,506) mol2,5,1,trim(project),10
+          if(caspt2) write(iunit,219)
 
           close(unit=iunit)
 
           mol2=2
+          
           open(unit=iunit,file=trim(project)//'_B.input')
           
           write(iunit,200)
@@ -488,6 +558,43 @@
 
           close(unit=iunit)
 
+          open(unit=iunit,file=trim(project)//'_SB.input')
+          
+          write(iunit,400)
+          do j=1,numa
+            nt=0
+            do i=1,num
+              if(atom(i).eq.elem(j)) nt=nt+1
+            enddo
+            nt0=nt
+            if(nt.gt.0) then
+              write(iunit,401) trim(basis(j))
+              nt=0
+              do i=1,num
+                if(atom(i).eq.elem(j)) then
+                  nt=nt+1
+                  if(nt+nt0.le.9) then
+                    write(iunit,402) nam(j),nt+nt0,x2(i,1),x2(i,2),x2(i,3)
+                  else
+                    write(iunit,403) nam(j),nt+nt0,x2(i,1),x2(i,2),x2(i,3)
+                  endif
+                endif
+              enddo
+              write(iunit,404)
+            endif
+          enddo
+          write(iunit,409)
+ 409      format('>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
+               '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
+          
+          write(iunit,406) ne,1,(nelecs-ne)/2,no,mol2,1,1,trim(project),6      
+          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
+          write(iunit,406) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
+          write(iunit,406) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
+          write(iunit,406) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
+
+          close(unit=iunit)
+          
           open(unit=iunit,file=trim(project)//'_D.input')
           open(unit=junit,file=trim(project)//'_dimer.xyz')
           write(junit,102) 2*num
@@ -630,37 +737,81 @@
  213      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
               'setenv PROJECT "',a,'"',/, &
-              'pymolcas -clean $PROJECT"_A.input" > $PROJECT"_A.output"',/, &
-              'pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
-              'pymolcas -clean $PROJECT"_D.input" > $PROJECT"_D.output"',/, &
-              'common_basis < $PROJECT"_CB.input" > $PROJECT"_CB.output"',/, &
+              'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_B.input" >> $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT"_CB.output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
-              'pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
-              'rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
-              'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'unsetenv DELETED',/, &
-              '#mpirun -n',i3,' gronor $PROJECT"_dimer"')
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
  313      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
               'setenv PROJECT "',a,'"',/, &
-              'pymolcas -clean $PROJECT"_A.input" > $PROJECT"_A.output"',/, &
-              'pymolcas -clean $PROJECT"_B.input" > $PROJECT"_B.output"',/, &
-              'pymolcas -clean $PROJECT"_D.input" > $PROJECT"_D.output"',/, &
-              'common_basis < $PROJECT"_CB.input" > $PROJECT"_CB.output"',/, &
+              'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_B.input" >> $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT"_CB.output" | cut -b42- `',/, &
               'touch TRAINT',/, &
               'setenv MOLCAS_MEM 4096',/, &
-              'pymolcas -clean $PROJECT"_M.input" > $PROJECT"_M.output"',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
-              'rdcho $MOLCAS_NPROCS > $PROJECT"_RD.output"',/, &
-              'rdtraint < $PROJECT"_CB.input" > $PROJECT"_RT.output"',/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" > $PROJECT".output"',/, &
               'unsetenv DELETED',/, &
-              '#mpirun -n',i3,' gronor $PROJECT"_dimer"')
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+          
+          close(unit=iunit)
+          
+          open(unit=iunit,file=trim(project)//'.sarun')
+
+          if(aonly) then
+            write(iunit,513) nr,trim(project),nr,nr
+          else
+            write(iunit,413) nr,trim(project),nr,nr
+          endif
+ 413      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_SB.input" >> $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'setenv MOLCAS_MEM 4096',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+ 513      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_SB.input" >> $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT"_CB.output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'setenv MOLCAS_MEM 4096',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" > $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
           
           close(unit=iunit)
           
@@ -670,7 +821,6 @@
  214      format('MEBFs 7',/, &
                '  1  2  1  2  3  4  5',/, &
                '  6  6  7  7  8 10  9',/, &
-               'Batch 32',/, &
                'Threshold 1e-4',/, &
                'Timings 4',/, &
                'Size 1',/, &

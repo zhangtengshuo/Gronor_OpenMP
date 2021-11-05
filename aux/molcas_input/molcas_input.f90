@@ -559,12 +559,15 @@
           write(iunit,306) mol2,2,2,trim(project),7
           if(caspt2) write(iunit,229)
           
+          write(iunit,606)
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
           write(iunit,306) mol2,3,1,trim(project),8
           if(caspt2) write(iunit,219)
+          write(iunit,606)
           write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
           write(iunit,306) mol2,4,1,trim(project),9
           if(caspt2) write(iunit,219)
+          write(iunit,606)
           write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
           write(iunit,306) mol2,5,1,trim(project),10
           if(caspt2) write(iunit,219)
@@ -640,12 +643,15 @@
 !          write(iunit,506) mol2,2,2,trim(project),7
 !          if(caspt2) write(iunit,229)
           
+          write(iunit,606)
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol1,3,1,trim(project),3
           write(iunit,306) mol2,3,1,trim(project),8
           if(caspt2) write(iunit,219)
+          write(iunit,606)
           write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol1,4,1,trim(project),4
           write(iunit,306) mol2,4,1,trim(project),9
           if(caspt2) write(iunit,219)
+          write(iunit,606)
           write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol1,5,1,trim(project),5
           write(iunit,306) mol2,5,1,trim(project),10
           if(caspt2) write(iunit,219)
@@ -690,8 +696,11 @@
           endif
           write(iunit,206) ne,1,(nelecs-ne)/2,no,mol2,1,1,trim(project),6      
           write(iunit,208) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
+          write(iunit,606)
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
+          write(iunit,606)
           write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
+          write(iunit,606)
           write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
 
           close(unit=iunit)
@@ -734,7 +743,9 @@
            1,trim(project),6,2,trim(project),7         
 !          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
+          write(iunit,606)
           write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9
+          write(iunit,606)
           write(iunit,206) ne+1,2,(nelecs-ne)/2,no,mol2,5,1,trim(project),10
 
           close(unit=iunit)
@@ -871,7 +882,7 @@
           
           close(unit=iunit)
           
-          open(unit=iunit,file=trim(project)//'.run')
+          open(unit=iunit,file=trim(project)//'_ss.run')
 
           if(aonly) then
             write(iunit,313) nr,memory,trim(project),nr,nr
@@ -915,7 +926,7 @@
           
           close(unit=iunit)
           
-          open(unit=iunit,file=trim(project)//'.sarun')
+          open(unit=iunit,file=trim(project)//'_sa.run')
 
           if(aonly) then
             write(iunit,513) nr,memory,trim(project),nr,nr
@@ -959,7 +970,7 @@
           
           close(unit=iunit)
           
-          open(unit=iunit,file=trim(project)//'.scfrun')
+          open(unit=iunit,file=trim(project)//'_scf.run')
 
             write(iunit,813) nr,memory,trim(project)
 

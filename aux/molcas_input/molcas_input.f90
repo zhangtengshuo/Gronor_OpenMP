@@ -11,12 +11,14 @@
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: a,x1(100,3),x2(100,3),xc(3),v(3),w(3),angle,x(3),y(3)
       character (len=255) :: basis(25),project
-      integer :: iunit,junit,nr
+      integer :: iunit,junit,nr,memory,nalter,ialter(3,25)
       character (len=1) :: operation
       logical :: done,aonly,caspt2
 
       numa=12
       nr=12
+      memory=1024
+      nalter=0
       aonly=.false.
       caspt2=.false.
       
@@ -85,7 +87,8 @@
 !      filinp=filename(1:index(filename,' ')-1)//'.min '
       project=trim(filename)
       filnwo=filename(1:index(filename,' ')-1)//'.nwout '
-      filinp='molcas.min'
+      filinp=filename(1:index(filename,' ')-1)//'.min '
+!      filinp='molcas.min'
       
       open(unit=lfninp,file=filinp(1:index(filinp,' ')-1))
 
@@ -97,8 +100,80 @@
 !     Read operation from input file
 
         if(operation.eq.'&') then
-          read(lfninp,1000,end=1009) operation,options
-1000      format(a1,a)
+          read(lfninp,1000,end=1009) card
+1000      format(a)
+          if(card(2:2).eq.' ') then
+            operation=card(1:1)
+            options(1:254)=card(2:255)
+          endif
+          if(card(1:6).eq.'Rotate'.or.card(1:6).eq.'rotate') then
+            operation='R'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:6).eq.'Center'.or.card(1:6).eq.'center') then
+            operation='C'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:6).eq.'CASPT2'.or.card(1:6).eq.'caspt2') then
+            operation='D'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:6).eq.'NWChem'.or.card(1:6).eq.'nwchem') then
+            operation='N'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:7).eq.'Project'.or.card(1:7).eq.'project') then
+            operation='P'
+            options(1:248)=card(8:255)
+          endif
+          if(card(1:3).eq.'XYZ'.or.card(1:3).eq.'xyz') then
+            operation='X'
+            options(1:252)=card(4:255)
+          endif
+          if(card(1:5).eq.'Aonly'.or.card(1:5).eq.'aonly') then
+            operation='X'
+            options(1:250)=card(6:255)
+          endif
+          if(card(1:5).eq.'Ranks'.or.card(1:5).eq.'ranks') then
+            operation='r'
+            options(1:250)=card(6:255)
+          endif
+          if(card(1:6).eq.'Memory'.or.card(1:5).eq.'memory') then
+            operation='M'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:5).eq.'Alter'.or.card(1:5).eq.'alter') then
+            operation='a'
+            options(1:250)=card(6:255)
+          endif
+          if(card(1:6).eq.'Orient'.or.card(1:5).eq.'orient') then
+            operation='O'
+            options(1:249)=card(7:255)
+          endif
+          if(card(1:5).eq.'Space'.or.card(1:5).eq.'space') then
+            operation='S'
+            options(1:250)=card(6:255)
+          endif
+          if(card(1:9).eq.'Translate'.or.card(1:9).eq.'translate') then
+            operation='T'
+            options(1:246)=card(10:255)
+          endif
+          if(card(1:5).eq.'Write'.or.card(1:5).eq.'write') then
+            operation='W'
+            options(1:250)=card(6:255)
+          endif
+          if(card(1:4).eq.'Quit'.or.card(1:4).eq.'quit') then
+            operation='Q'
+            options(1:251)=card(5:255)
+          endif
+          if(card(1:4).eq.'Exit'.or.card(1:4).eq.'exit') then
+            operation='Q'
+            options(1:251)=card(5:255)
+          endif
+          if(card(1:1).eq.' '.or.card(1:1).eq.' ') then
+            operation='Q'
+            options(1:254)=card(2:255)
+          endif
         endif
         if(operation.eq.'*') operation='&'
         if(operation.eq.'!') operation='&'
@@ -228,6 +303,16 @@
 
         if(operation.eq.'r') then
           read(options,*) nr
+          operation='&'
+        endif
+        
+        if(operation.eq.'M') then
+          read(options,*) memory
+          operation='&'
+        endif
+        
+        if(operation.eq.'a') then
+          read(options,*) nalter,((ialter(i,j),i=1,3),j=1,nalter)
           operation='&'
         endif
         
@@ -379,6 +464,34 @@
         if(operation.eq.'W'.or.done) then
           iunit=11
           
+          open(unit=iunit,file=trim(project)//'_SCF.input')
+          write(iunit,200)
+          do j=1,numa
+            nt=0
+            do i=1,num
+              if(atom(i).eq.elem(j)) nt=nt+1
+            enddo
+            if(nt.gt.0) then
+              write(iunit,201) trim(basis(j))
+              nt=0
+              do i=1,num
+                if(atom(i).eq.elem(j)) then
+                  nt=nt+1
+                  if(nt.le.9) then
+                    write(iunit,202) nam(j),nt,x1(i,1),x1(i,2),x1(i,3)
+                  else
+                    write(iunit,203) nam(j),nt,x1(i,1),x1(i,2),x1(i,3)
+                  endif
+                endif
+              enddo
+              write(iunit,204)
+            endif
+          enddo
+          write(iunit,805)
+ 805      format(/,'&scf',/)
+
+          close(unit=iunit)
+          
           open(unit=iunit,file=trim(project)//'_A.input')
           write(iunit,200)
  200      format('&seward',/,'high cholesky')
@@ -413,9 +526,17 @@
           write(iunit,305)
  305      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
-          
+
+          write(iunit,606)
+606       format('&rasscf')
+          if(nalter.gt.0) then
+            write(iunit,607) nalter
+607         format('alter',/,i3)
+            write(iunit,608) ((ialter(i,j),i=1,3),j=1,nalter)
+608         format(3i3)
+          endif
           write(iunit,206) ne,1,(nelecs-ne)/2,no,mol1,1,1,trim(project),1
-206       format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
+206       format('nactel',/,i3,/,'spin',/,i3,/, &
               'inactive',/,i3,/,'ras2',/,i3,/, &
               'prwf',/,'  0',/,'prsd',//, &
               ">>> COPY $Project.RasOrb.1 $CurrDir/INPORB.",i1,'_',i1,/, &
@@ -485,9 +606,14 @@
  505      format(/,'>>> COPY $Project.OneInt $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
+          write(iunit,606)
+          if(nalter.gt.0) then
+            write(iunit,607) nalter
+            write(iunit,608) ((ialter(i,j),i=1,3),j=1,nalter)
+          endif
           write(iunit,406) ne,1,(nelecs-ne)/2,no,mol1,1,mol1,2,&
               1,trim(project),1,2,trim(project),2
-406       format('&rasscf',/,'nactel',/,i3,/,'spin',/,i3,/, &
+406       format('nactel',/,i3,/,'spin',/,i3,/, &
               'inactive',/,i3,/,'ras2',/,i3,/, &
               'ciroot',/,' 2 2',/,' 1 2',/,' 1 1',/,&
               'prwf',/,'  0',/,'prsd',//, &
@@ -557,6 +683,11 @@
  209      format('>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
+          write(iunit,606)
+          if(nalter.gt.0) then
+            write(iunit,607) nalter
+            write(iunit,608) ((ialter(i,j),i=1,3),j=1,nalter)
+          endif
           write(iunit,206) ne,1,(nelecs-ne)/2,no,mol2,1,1,trim(project),6      
           write(iunit,208) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
@@ -594,6 +725,11 @@
  409      format('>>> COPY $Project.OneInt  $CurrDir/ONEINT2',/, &
                '>>> COPY $Project.RunFile $CurrDir/RUNFIL2',//,'&scf',/)
           
+          write(iunit,606)
+          if(nalter.gt.0) then
+            write(iunit,607) nalter
+            write(iunit,608) ((ialter(i,j),i=1,3),j=1,nalter)
+          endif
           write(iunit,406) ne,1,(nelecs-ne)/2,no,mol2,1,mol2,2,&
            1,trim(project),6,2,trim(project),7         
 !          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
@@ -738,12 +874,13 @@
           open(unit=iunit,file=trim(project)//'.run')
 
           if(aonly) then
-            write(iunit,313) nr,trim(project),nr,nr
+            write(iunit,313) nr,memory,trim(project),nr,nr
           else
-            write(iunit,213) nr,trim(project),nr,nr
+            write(iunit,213) nr,memory,trim(project),nr,nr
           endif
  213      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
               'pymolcas -clean $PROJECT"_B.input" >> $PROJECT".output"',/, &
@@ -752,7 +889,6 @@
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
-              'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
               'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
@@ -761,6 +897,7 @@
               '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
  313      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
               'pymolcas -clean $PROJECT"_B.input" >> $PROJECT".output"',/, &
@@ -769,11 +906,10 @@
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
-              'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
               'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
-              'rdtraint < $PROJECT"_CB.input" > $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'unsetenv DELETED',/, &
               '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
           
@@ -782,12 +918,13 @@
           open(unit=iunit,file=trim(project)//'.sarun')
 
           if(aonly) then
-            write(iunit,513) nr,trim(project),nr,nr
+            write(iunit,513) nr,memory,trim(project),nr,nr
           else
-            write(iunit,413) nr,trim(project),nr,nr
+            write(iunit,413) nr,memory,trim(project),nr,nr
           endif
  413      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
               'pymolcas -clean $PROJECT"_SB.input" >> $PROJECT".output"',/, &
@@ -796,7 +933,6 @@
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
-              'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
               'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
@@ -805,6 +941,7 @@
               '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
  513      format('#!/usr/bin/tcsh',/, &
               'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
               'pymolcas -clean $PROJECT"_SB.input" >> $PROJECT".output"',/, &
@@ -813,13 +950,24 @@
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
               ' $PROJECT".output" | cut -b42- `',/, &
               'touch TRAINT',/, &
-              'setenv MOLCAS_MEM 4096',/, &
               'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
               'setenv OMP_NUM_THREADS ',i3,/, &
               'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
-              'rdtraint < $PROJECT"_CB.input" > $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'unsetenv DELETED',/, &
               '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+          
+          close(unit=iunit)
+          
+          open(unit=iunit,file=trim(project)//'.scfrun')
+
+            write(iunit,813) nr,memory,trim(project)
+
+ 813      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_SCF.input" > $PROJECT"_SCF.output"') 
           
           close(unit=iunit)
           

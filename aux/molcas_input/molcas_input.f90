@@ -742,6 +742,7 @@
           write(iunit,406) ne,1,(nelecs-ne)/2,no,mol2,1,mol2,2,&
            1,trim(project),6,2,trim(project),7         
 !          write(iunit,408) ne,1,(nelecs-ne)/2,no,mol2,2,2,trim(project),7
+          write(iunit,606)
           write(iunit,206) ne,3,(nelecs-ne)/2,no,mol2,3,1,trim(project),8
           write(iunit,606)
           write(iunit,206) ne-1,2,(nelecs-ne)/2,no,mol2,4,1,trim(project),9

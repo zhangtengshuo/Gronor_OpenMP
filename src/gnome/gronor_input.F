@@ -294,7 +294,7 @@
         endif
         
         if(inp_compare(.false.,'OMP',item)) then
-          if(.not.inp_i(numomp)) numomp=1
+           if(.not.inp_i(numomp)) numomp=1
           goto 2
         endif
         

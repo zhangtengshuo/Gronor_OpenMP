@@ -399,7 +399,7 @@ c     use cuda_functions
      &       date(1:8),nrsets,
      &       time(1:8),nrnsets,numdev,
      &       np,np/nnodes,np/nrsets,
-     &       ncycls,num_threads
+     &       ncycls,numomp
  601    format(//,
      &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
      &       ' Host',t30,a,t60,'Number of nodes',t100,i10,/,

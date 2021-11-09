@@ -11,6 +11,6 @@ rm -rf build
 mkdir build
 cd build
 
-cmake -DOPENMP=ON ../
+cmake -DOPENMP=ON -DMKL=ON ../
 
 make -j 24

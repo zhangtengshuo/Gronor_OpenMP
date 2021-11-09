@@ -591,11 +591,9 @@ c!_OMPTGT_($omp end target)
 
         ndim=nelecs
 
-        call dsyevd('N','U',ndim,a,nelecs,diag,
+        call dsyevd('N','L',ndim,a,nelecs,diag,
      &       workspace_d,lwork1,
      &       workspace_i,lworki,ierr)
-
-!        stop 'No correctly working MKL evd yet'
 
       else
 

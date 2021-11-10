@@ -233,13 +233,20 @@
       if(idbg.ge.14) write(lfndbg,602)
  602  format('  itypen icentn jtype jcent   icount      indbas     '
      &     ,' indbas         overlap',//)
-      
+    
+!$omp parallel do
+!$omp& shared(tb)
+!$omp& collapse(2)  
       do iv=1,nvecb
         do ib=1,nbas
           tb(ib,iv)=0.0d0
         enddo
       enddo
+!$omp end parallel do
 
+!$omp parallel do
+!$omp& shared(s,vb,tb) private(sum)
+!$omp& collapse(2)  
       do iv=1,nvecb
         do ib=1,nbas
           sum=0.0d0
@@ -249,18 +256,26 @@
           tb(ib,iv)=tb(ib,iv)+sum
         enddo
       enddo
+!$omp end parallel do
       
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
+!$omp parallel do
+!$omp& shared(ta)
+!$omp& collapse(2)
       do le=1,nelecs
         do ie=1,nelecs
           ta(ie,le)=0.0d0
        enddo
       enddo
+!$omp end parallel do
 
       if(nalfa.ne.0) then
         
+!$omp parallel do
+!$omp& shared(va,ta,tb) private(sum)
+!$omp& collapse(2)
         do ke=1,nalfa
           do ie=1,nalfa
             sum=0.0d0
@@ -270,6 +285,7 @@
             ta(ie,ke)=sum
           enddo
         enddo
+!$omp end parallel do
 
       endif
       
@@ -278,6 +294,8 @@
 
       if(ntcla.ne.0 .and. ntclb.ne.0) then
        
+!$omp parallel do
+!$omp& shared(nalfa,ta,ntclb) private(ii,kk)
         do i=1,ntcla
           ii=i+nalfa
           do k=1,ntclb
@@ -285,6 +303,7 @@
             ta(ii,kk)=ta(i,k)
           enddo
         enddo
+!$omp end parallel do
       
       endif
       
@@ -295,6 +314,9 @@
       if(nveca.ne.nalfa) then
 
         if(ntclb.gt.0) then
+          
+!$omp parallel do
+!$omp& shared(nveca,va,tb,ntclb) private(sum,ii,kk)
           do k=1,ntclb
             kk=k+nalfa
             do i=m1,nveca
@@ -305,9 +327,13 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
+!$omp end parallel do
         endif
 
         if(nvecb.gt.nalfa) then
+          
+!$omp parallel do
+!$omp& shared(nveca,va,ta,tb,ntclb) private(sum,kk)
           do k=nalfa+1,nvecb
             kk=k+ntclb
             do i=m1,nveca
@@ -318,11 +344,15 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
+!$omp end parallel do
         endif
 
       endif
       
       if(nvecb.ne.nalfa .and. ntcla.ne.0) then
+          
+!$omp parallel do
+!$omp& shared(nvecb,va,ta,tb,ntclb) private(sum) collapse(2)
         do i=1,ntcla
           do k=m1,nvecb
             sum=0.0d0
@@ -332,17 +362,21 @@
             ta(i+nalfa,k+ntclb)=sum
           enddo
         enddo
+!$omp end parallel do
       endif
 
 !     There are problems with svd if many off diagonal elements occur
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
-
+          
+!$omp parallel do
+!$omp& shared(nelecs,ta,a) collapse(2)
       do i1=1,nelecs
         do i2=1,nelecs
           if(abs(ta(i1,i2)).lt.1.0d-10) ta(i1,i2)=0.0d0
           a(i1,i2)=ta(i1,i2)
         enddo
       enddo
+!$omp end parallel do
 
       return
       end

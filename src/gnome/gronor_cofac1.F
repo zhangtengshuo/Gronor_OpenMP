@@ -534,16 +534,22 @@ c!_OMPTGT_($omp end target)
         call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
      &       workspace_d,lwork1,ierr)
         
+!$omp parallel do
+!$omp& shared(temp,w) collapse(2)
         do i=1,nelecs
           do j=1,nelecs
             temp(i,j)=w(i,j)
           enddo
         enddo
+!$omp end parallel do
+!$omp parallel do
+!$omp& shared(temp,w) collapse(2)
         do i=1,nelecs
           do j=1,nelecs
             w(j,i)=temp(i,j)
           enddo
         enddo
+!$omp end parallel do
       else
       
         call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
@@ -562,6 +568,8 @@ c!_OMPTGT_($omp end target)
 
       call timer_start(42)
       
+!$omp parallel do
+!$omp& shared(a,u,w) private(i,j,k,coef)
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -571,6 +579,7 @@ c!_OMPTGT_($omp end target)
           a(i,j)=coef
         enddo
       enddo
+!$omp end parallel do
       
       call timer_stop(42)
 
@@ -618,10 +627,13 @@ c!_OMPTGT_($omp end target)
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
       enddo
 
+!$omp parallel do
+!$omp& shared(cdiag,csdiag,diag,sdiag)
       do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
+!$omp end parallel do
 
 !      calculation of det(a) and x and y
 
@@ -661,6 +673,8 @@ c!_OMPTGT_($omp end target)
           deta=coef
           ising=0
 
+!$omp parallel do
+!$omp& shared(u,w,ev,ta) private(coefu) collapse(2)
           do i=1,nelecs
             do j=1,nelecs
               coefu=0.0d0
@@ -670,12 +684,15 @@ c!_OMPTGT_($omp end target)
               ta(i,j)=coefu*0.5d0
             enddo
           enddo
+!$omp end parallel do
 
           call timer_stop(44)
           return
           ising=1
         endif
 
+!$omp parallel do
+!$omp& shared(u,w,ev,ta,diag,sdiag) private(coefu)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -687,11 +704,15 @@ c!_OMPTGT_($omp end target)
             ta(i,j)=coefu
           enddo
         enddo
+!$omp end parallel do
 
+!$omp parallel do
+!$omp& shared(cdiag,csdiag,diag,sdiag)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
+!$omp end parallel do
       
         call timer_stop(44)
         return
@@ -701,6 +722,8 @@ c!_OMPTGT_($omp end target)
         ising=3
       else
 
+!$omp parallel do
+!$omp& shared(u,w,ev,ta,diag,sdiag,cdiag,csdiag) private(coefu)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -709,10 +732,15 @@ c!_OMPTGT_($omp end target)
             ta(i,j)=coefu*w(j,nz2)
           enddo
         enddo
+!$omp end parallel do
+ 
+!$omp parallel do
+!$omp& shared(cdiag,csdiag,diag,sdiag)
         do i=1,nelecs
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
         enddo
+!$omp end parallel do
       
         call timer_stop(44)
         return

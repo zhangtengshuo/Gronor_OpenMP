@@ -313,40 +313,51 @@
 
 !     transformation of diag and sdiag
 
+        if(nalfa.ne.0) then
+!$omp parallel do
+!$omp& shared(nbas,nalfa,cdiag,va,diag) private(sum)
+          do j=1,nbas
+            sum=0.0d0
+            do k=1,nalfa
+              sum=sum+cdiag(k)*va(k,j)
+            enddo
+            diag(j)=sum
+          enddo
+!$omp end parallel do
+        endif
+
+        if(ntcla.ne.0) then
+!$omp parallel do
+!$omp& shared(nbas,nalfa,ntcla,cdiag,va,bdiag) private(sum,kk)
+          do j=1,nbas
+            sum=0.0d0
+            do k=1,ntcla
+              kk=k+nalfa
+              sum=sum+cdiag(kk)*va(k,j)
+            enddo
+            bdiag(j)=sum
+          enddo
+!$omp end parallel do
+        endif
+
+        if(nalfa.ne.nveca) then
+          m1=nalfa+1
+!$omp parallel do
+!$omp& shared(nbas,ntcla,cdiag,va,bdiag,m1) private(sum,kk,k)
+          do j=1,nbas
+            sum=0.0d0
+            do k=m1,nveca
+              kk=k+ntcla
+              sum=sum+cdiag(kk)*va(k,j)
+            enddo
+            bdiag(j)=bdiag(j)+sum
+          enddo
+!$omp end parallel do
+        endif
+
        if(nalfa.ne.0) then
-        do j=1,nbas
-         sum=0.0d0
-         do k=1,nalfa
-          sum=sum+cdiag(k)*va(k,j)
-         enddo
-         diag(j)=sum
-        enddo
-       endif
-
-       if(ntcla.ne.0) then
-        do j=1,nbas
-         sum=0.0d0
-         do k=1,ntcla
-          kk=k+nalfa
-          sum=sum+cdiag(kk)*va(k,j)
-         enddo
-         bdiag(j)=sum
-        enddo
-       endif
-
-       if(nalfa.ne.nveca) then
-        m1=nalfa+1
-        do j=1,nbas
-         sum=0.0d0
-         do k=m1,nveca
-          kk=k+ntcla
-          sum=sum+cdiag(kk)*va(k,j)
-         enddo
-         bdiag(j)=bdiag(j)+sum
-        enddo
-       endif
-
-       if(nalfa.ne.0) then
+!$omp parallel do
+!$omp& shared(nbas,nalfa,vb,csdiag,w1) private(sum)
         do j=1,nbas
          sum=0.0d0
          do k=1,nalfa
@@ -354,9 +365,12 @@
          enddo
          w1(j)=sum
         enddo
+!$omp end parallel do
        endif
 
        if(ntclb.ne.0) then
+!$omp parallel do
+!$omp& shared(nbas,ntclb,nalfa,vb,bsdiag,csdiag,w1) private(sum,kk)
         do j=1,nbas
          sum=0.0d0
          do k=1,ntclb
@@ -365,10 +379,13 @@
          enddo
          bsdiag(j)=sum
         enddo
+!$omp end parallel do
        endif
 
        if(nalfa.ne.nvecb) then
         m1=nalfa+1
+!$omp parallel do
+!$omp& shared(nbas,ntclb,vb,bsdiag,csdiag) private(sum,kk)
         do j=1,nbas
          sum=0.0d0
          do k=m1,nvecb
@@ -377,11 +394,15 @@
          enddo
          bsdiag(j)=bsdiag(j)+sum
         enddo
+!$omp end parallel do
        endif
 
+!$omp parallel do
+!$omp& shared(nbas,csdiag,w1)
        do j=1,nbas
         csdiag(j)=w1(j)
        enddo
+!$omp end parallel do
       endif
 
 !     transformation of the input-matrix a
@@ -389,93 +410,119 @@
 !     calculation of the intermediate matrices
 
       if(nalfa.ne.0) then
-       do i=1,nalfa
-        do j=1,nbas
-         sum=0.0d0
-         do k=1,nalfa
-          sum=sum+ta(i,k)*vb(k,j)
-         enddo
-         w2(i,j)=sum
-        enddo
-       enddo
-        do j=1,nbas
+!$omp parallel do
+!$omp& shared(nbas,nalfa,ta,vb,w2) private(sum) collapse(2)
         do i=1,nalfa
-         ta(i,j)=w2(i,j)
+          do j=1,nbas
+            sum=0.0d0
+            do k=1,nalfa
+              sum=sum+ta(i,k)*vb(k,j)
+            enddo
+            w2(i,j)=sum
+          enddo
         enddo
-       enddo
+!$omp end parallel do
+!$omp parallel do
+!$omp& shared(nbas,nalfa,ta,w2) collapse(2)
+        do j=1,nbas
+          do i=1,nalfa
+            ta(i,j)=w2(i,j)
+          enddo
+        enddo
+!$omp end parallel do
       endif
 
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
-       do i=m1,nelecs
-        do j=1,nbas
-         sum=0.0d0
-         if(ntclb.ne.0) then
-          do k=1,ntclb
-           kk=k+nalfa
-           sum=sum+ta(i,kk)*vb(k,j)
-          enddo
-         endif
-         if(nalfa.ne.nvecb) then
-          do k=m1,nvecb
-           kk=k+ntclb
-           sum=sum+ta(i,kk)*vb(k,j)
-          enddo
-         endif
-         w2(i,j)=sum
-        enddo
-       enddo
-       do j=1,nbas
+!$omp parallel do
+!$omp& shared(nbas,nalfa,nvecb,ntclb,m1,ta,vb,w2)
+!$omp& private(kk,sum) collapse(2)
         do i=m1,nelecs
-         ta(i,j)=w2(i,j)
+          do j=1,nbas
+            sum=0.0d0
+            if(ntclb.ne.0) then
+              do k=1,ntclb
+                kk=k+nalfa
+                sum=sum+ta(i,kk)*vb(k,j)
+              enddo
+            endif
+            if(nalfa.ne.nvecb) then
+              do k=m1,nvecb
+                kk=k+ntclb
+                sum=sum+ta(i,kk)*vb(k,j)
+              enddo
+            endif
+            w2(i,j)=sum
+          enddo
         enddo
-       enddo
+!$omp end parallel do
+!$omp parallel do
+!$omp& shared(nbas,nelecs,m1,ta,w2) collapse(2)
+        do j=1,nbas
+          do i=m1,nelecs
+            ta(i,j)=w2(i,j)
+          enddo
+        enddo
+!$omp end parallel do
       endif
 
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
-       do j=1,nbas 
-        do i=1,nbas 
-         sum=0.0
-         do k=1,nalfa
-          sum=sum+ta(k,j)*va(k,i)
-         enddo
-         aaa(i,j)=sum
+!$omp parallel do
+!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) private(sum) collapse(2)
+        do j=1,nbas 
+          do i=1,nbas 
+            sum=0.0
+            do k=1,nalfa
+              sum=sum+ta(k,j)*va(k,i)
+            enddo
+            aaa(i,j)=sum
+          enddo
         enddo
-       enddo
+!$omp end parallel do
       endif
 
       if(nalfa.ne.nelecs) then
-       do j=1,nbas 
-        do i=1,nbas
-         sum=0.0d0
-         if(ntcla.ne.0) then
-          do k=1,ntcla
-           kk=k+nalfa
-           sum=sum+ta(kk,j)*va(k,i)
+!$omp parallel do
+!$omp& shared(nbas,ntcla,nalfa,nveca,ta,va,w2)
+!$omp& private(sum,kk) collapse(2)
+        do j=1,nbas 
+          do i=1,nbas
+            sum=0.0d0
+            if(ntcla.ne.0) then
+              do k=1,ntcla
+                kk=k+nalfa
+                sum=sum+ta(kk,j)*va(k,i)
+              enddo
+            endif
+            if(nalfa.ne.nveca) then
+              do k=m1,nveca
+                kk=k+ntcla
+                sum=sum+ta(kk,j)*va(k,i)
+              enddo
+            endif
+            w2(i,j)=sum
           enddo
-         endif
-         if(nalfa.ne.nveca) then
-          do k=m1,nveca
-           kk=k+ntcla
-           sum=sum+ta(kk,j)*va(k,i)
+        enddo
+!$omp end parallel do
+!$omp parallel do
+!$omp& shared(nbas,ta,w2) collapse(2)
+        do j=1,nbas 
+          do i=1,nbas
+            ta(i,j)=w2(i,j)
           enddo
-         endif
-         w2(i,j)=sum
         enddo
-       enddo
-       do j=1,nbas 
-        do i=1,nbas
-         ta(i,j)=w2(i,j)
-        enddo
-       enddo
+!$omp end parallel do
       else
-       do j=1,nbas 
-        do i=1,nbas
-         ta(i,j)=0.0d0
+!$omp parallel do
+!$omp& shared(nbas,ta) collapse(2)
+        do j=1,nbas 
+          do i=1,nbas
+            ta(i,j)=0.0d0
+          enddo
         enddo
-       enddo
+!$omp end parallel do
       endif
 
       return

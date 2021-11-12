@@ -102,6 +102,7 @@
         if(operation.eq.'&') then
           read(lfninp,1000,end=1009) card
 1000      format(a)
+
           if(card(2:2).eq.' ') then
             operation=card(1:1)
             options(1:254)=card(2:255)
@@ -129,9 +130,10 @@
           if(card(1:3).eq.'XYZ'.or.card(1:3).eq.'xyz') then
             operation='X'
             options(1:252)=card(4:255)
+
           endif
           if(card(1:5).eq.'Aonly'.or.card(1:5).eq.'aonly') then
-            operation='X'
+            operation='A'
             options(1:250)=card(6:255)
           endif
           if(card(1:5).eq.'Ranks'.or.card(1:5).eq.'ranks') then
@@ -202,7 +204,7 @@
         endif
 
 !     Read NWChem output file
-        
+
         if(operation.eq.'N') then
           do while(options(1:1).eq.' ')
             options(1:254)=options(2:255)
@@ -273,21 +275,18 @@
         endif
         
 !     Read XYZ coordinate file
-        
         if(operation.eq.'X') then
-          do while(options(1:1).eq.' ')
-            options(1:254)=options(2:255)
-          enddo
-          filxyz=trim(options)
-          write(*,6001) trim(filxyz)
+          filxyz=options(2:index(options,'.xyz')+3)
+!          write(*,6002) trim(filxyz)
  6002     format(' XYZ file:',a)
-          open(unit=lfnxyz,file=filxyz)
+          open(unit=lfnxyz,file=trim(filxyz))
+          rewind(lfnxyz)
           read(lfnxyz,*) num
           read(lfnxyz,104) card
  104      format(a)
           do i=1,num
             read(lfnxyz,*) atom(i),x1(i,1),x1(i,2),x1(i,3)
-            write(*,103) atom(i),x1(i,2),x1(i,2),x1(i,3)
+!            write(*,103) atom(i),x1(i,2),x1(i,2),x1(i,3)
           enddo
           close(unit=lfnxyz)
         endif

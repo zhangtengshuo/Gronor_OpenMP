@@ -358,6 +358,15 @@ c     use cuda_functions
         
         if(nbatcha.gt.ntaska) nbatcha=ntaska
         if(nbatch.gt.ntask) nbatch=ntask
+
+!     Sanity check on the task size
+
+        if(numdev.gt.0.and.ntaska.eq.0)
+     &       call errquit(me,2,"Error in main")
+        if(numdev.eq.0.and.ntask.eq.0)
+     &       call errquit(me,2,"Error in main")
+        if(ntaska.eq.0.and.ntask.eq.0)
+     &       call errquit(me,2,"Error in main")
         
 !     Unless the user is an expert let's check thresholds
         

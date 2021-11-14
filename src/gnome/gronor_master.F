@@ -561,7 +561,11 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)
-            ibuf(4)=min(ndone+ntask,ijend)
+            if(map2(iremote+1,5).lt.0) then
+              ibuf(4)=min(ndone+ntask,ijend)
+            else
+              ibuf(4)=min(ndone+ntaska,ijend)
+            endif
             ndone=ibuf(4)
 
 !     Send buffer to requesting rank without waiting for completion of mpi

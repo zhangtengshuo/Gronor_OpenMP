@@ -265,6 +265,8 @@ c     use cuda_functions
 
         ntask=-1
         nbatch=-1
+        ntaska=-1
+        nbatcha=-1
 
 !     Default is not to write a test file
         
@@ -335,6 +337,17 @@ c     use cuda_functions
           mgr=(np-1)/npg
         endif
 
+        if(nbatch.eq.-1) nbatch=32
+        if(nbatcha.eq.-1) nbatcha=0
+        
+        if(ntaska.eq.-1) then
+          if(nbatcha.gt.0) then
+            ntaska=nbatcha
+          else
+            ntaska=32
+          endif
+        endif
+        
         if(ntask.eq.-1) then
           if(nbatch.gt.0) then
             ntask=nbatch
@@ -342,13 +355,10 @@ c     use cuda_functions
             ntask=32
           endif
         endif
-
-        if(nbatch.eq.-1) nbatch=32
-        if(nbatcha.eq.-1) nbatcha=0
         
-        if(nbatcha.gt.ntask) nbatcha=ntask
+        if(nbatcha.gt.ntaska) nbatcha=ntaska
         if(nbatch.gt.ntask) nbatch=ntask
-
+        
 !     Unless the user is an expert let's check thresholds
         
         if(ixpert.eq.0) then
@@ -487,9 +497,9 @@ c     use cuda_functions
      &       ' Number of many-electron base states',t40,i10,/)
         endif
         if(ipr.ge.20) then
-          write(lfnout,606) ntask,mgr,
+          write(lfnout,606) ntaska,ntask,mgr,
      &         max(1,nbatcha),max(1,nbatch),numomp
- 606      format(' Task size',t40,i10,
+ 606      format(' Task size',t40,i10,i6,
      &         t60,'Number of ranks per task',t100,i10,/,
      &         ' Batch size',t40,i10,i6,
      &         t60,'Number of OpenMP threads per rank',t100,i10)
@@ -556,31 +566,32 @@ c     use cuda_functions
           idum(22)=nbas
           idum(23)=mclab
           idum(24)=ntask
-          idum(25)=mgr
-          idum(26)=itest
-          idum(27)=naccel
-          idum(28)=inpcib
-          idum(29)=ipro
-          idum(30)=int2
-          idum(31)=mpibuf
-          idum(32)=idbg
-          idum(33)=nummps
-          idum(34)=numomp
-          idum(35)=itim
-          idum(36)=iaslvr
-          idum(37)=jaslvr
-          idum(38)=inslvr
-          idum(39)=jnslvr
-          idum(40)=ifault
-          idum(41)=idevel
-          idum(42)=iswsvj
-          idum(43)=iswevj
-          idum(44)=nbatch
-          idum(45)=nbatcha
-          idum(46)=nspin
-          idum(47)=labels
-          idum(48)=mbuf
-          idum(49)=idist
+          idum(25)=ntaska
+          idum(26)=mgr
+          idum(27)=itest
+          idum(28)=naccel
+          idum(29)=inpcib
+          idum(30)=ipro
+          idum(31)=int2
+          idum(32)=mpibuf
+          idum(33)=idbg
+          idum(34)=nummps
+          idum(35)=numomp
+          idum(36)=itim
+          idum(37)=iaslvr
+          idum(38)=jaslvr
+          idum(39)=inslvr
+          idum(40)=jnslvr
+          idum(41)=ifault
+          idum(42)=idevel
+          idum(43)=iswsvj
+          idum(44)=iswevj
+          idum(45)=nbatch
+          idum(46)=nbatcha
+          idum(47)=nspin
+          idum(48)=labels
+          idum(49)=mbuf
+          idum(50)=idist
           
           rdum(1)=tau_CI
           rdum(2)=tau_CI
@@ -590,7 +601,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        ncount=49
+        ncount=50
         call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=6
@@ -623,32 +634,33 @@ c     use cuda_functions
         nnucl  =idum(21)
         nbas   =idum(22)
         mclab  =idum(23)
-        ntask =idum(24)
-        mgr    =idum(25)
-        itest  =idum(26)
-        naccel =idum(27)
-        inpcib =idum(28)
-        ipro   =idum(29)
-        int2   =idum(30)
-        mpibuf =idum(31)
-        idbg   =idum(32)
-        nummps =idum(33)
-        numomp =idum(34)
-        itim   =idum(35)
-        iaslvr =idum(36)
-        jaslvr =idum(37)
-        inslvr =idum(38)
-        jnslvr =idum(39)
-        ifault =idum(40)
-        idevel =idum(41)
-        iswsvj =idum(42)
-        iswevj =idum(43)
-        nbatch =idum(44)
-        nbatcha=idum(45)
-        nspin  =idum(46)
-        labels =idum(47)
-        mbuf   =idum(48)
-        idist  =idum(49)
+        ntask  =idum(24)
+        ntaska =idum(25)
+        mgr    =idum(26)
+        itest  =idum(27)
+        naccel =idum(28)
+        inpcib =idum(29)
+        ipro   =idum(30)
+        int2   =idum(31)
+        mpibuf =idum(32)
+        idbg   =idum(33)
+        nummps =idum(34)
+        numomp =idum(35)
+        itim   =idum(36)
+        iaslvr =idum(37)
+        jaslvr =idum(38)
+        inslvr =idum(39)
+        jnslvr =idum(40)
+        ifault =idum(41)
+        idevel =idum(42)
+        iswsvj =idum(43)
+        iswevj =idum(44)
+        nbatch =idum(45)
+        nbatcha=idum(46)
+        nspin  =idum(47)
+        labels =idum(48)
+        mbuf   =idum(49)
+        idist  =idum(50)
         
         int1=(nbas*(nbas+1))/2
         
@@ -1881,7 +1893,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &         80x,'P  M  g s',20x,'m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc  S  P  r t '
-     &         'Solvers Task Batch s  s  s  tau_MO   ',
+     &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
      &         'tau_CI  User Jobname Command',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
@@ -1889,10 +1901,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntask,max(1,nbatch),nmol,nbase,mstates,tau_MO,tau_CI,
+     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
+     &       nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
      &       trim(command)
- 801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,2i5,3i3,
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,4i5,3i3,
      &       1pe9.2,e9.2,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then

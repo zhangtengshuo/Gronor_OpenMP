@@ -49,6 +49,8 @@
       
       flush(lfnout)
 
+!     if(iamacc.eq.0.and.ntask.eq.0) return
+      
       otreq=.false.
       
       l2=0

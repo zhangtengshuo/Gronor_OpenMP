@@ -151,7 +151,8 @@
         endif
         
         if(inp_compare(.false.,'Task',item)) then
-          if(.not.inp_i(ntask)) ntask=1
+          if(.not.inp_i(ntaska)) ntaska=1
+          if(.not.inp_i(ntask)) ntask=ntaska
           goto 2
         endif
         

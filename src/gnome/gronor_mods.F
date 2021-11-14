@@ -125,7 +125,7 @@
 
       integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: itest,ifault,isolver,jsolver,idevel,idist
-      integer :: ntask,nbatch,nbatcha,ndbg,mdbg
+      integer :: ntask,ntaska,nbatch,nbatcha,ndbg,mdbg
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols

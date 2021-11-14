@@ -156,6 +156,12 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'Load',item)) then
+          if(.not.inp_i(loada)) loada=2
+          if(.not.inp_i(load)) load=loada
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'Batch',item)) then
           if(.not.inp_i(nbatch)) call errquit(me,1,"Input error Batch")
           nbatcha=nbatch

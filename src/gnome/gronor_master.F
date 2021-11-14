@@ -193,6 +193,18 @@
       do ibase=1,nbase
         do jbase=1,ibase
 
+          if(ibase.eq.nbase.and.jbase.eq.nbase) then
+            if(loada.gt.1.and.ntaska.gt.1) ntaska=max(1,ntaska/loada)
+            if(load.gt.1.and.ntask.gt.1) ntask=max(1,ntask/load)
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,715) date(1:8),time(1:8),
+     &           timer_wall_total(99),
+     &           '  :  Applied load balancing factors',loada,load
+ 715          format(a8,2x,a8,f12.3,a,2i5)
+            call timer_start(99)
+          endif
+
 !     Determine offset and number of determinant pairs for this base pair
 
           osame=ibase.eq.jbase

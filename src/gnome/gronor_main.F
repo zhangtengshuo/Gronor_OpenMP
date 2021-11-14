@@ -70,7 +70,7 @@ c     use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer :: iarg,i,j,idum(51),k,l
+      integer :: iarg,i,j,idum(52),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
@@ -267,6 +267,8 @@ c     use cuda_functions
         nbatch=-1
         ntaska=-1
         nbatcha=-1
+        load=1
+        loada=1
 
 !     Default is not to write a test file
         
@@ -507,11 +509,12 @@ c     use cuda_functions
         endif
         if(ipr.ge.20) then
           write(lfnout,606) ntaska,ntask,mgr,
-     &         max(1,nbatcha),max(1,nbatch),numomp
+     &         max(1,nbatcha),max(1,nbatch),numomp,loada,load
  606      format(' Task size',t40,i10,i6,
      &         t60,'Number of ranks per task',t100,i10,/,
      &         ' Batch size',t40,i10,i6,
-     &         t60,'Number of OpenMP threads per rank',t100,i10)
+     &         t60,'Number of OpenMP threads per rank',t100,i10,/,
+     &         ' Load balancing',t40,i10,i6)
           if(numdev.gt.0) write(lfnout,638) nummps
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
         endif
@@ -601,6 +604,8 @@ c     use cuda_functions
           idum(48)=labels
           idum(49)=mbuf
           idum(50)=idist
+          idum(51)=load
+          idum(52)=loada
           
           rdum(1)=tau_CI
           rdum(2)=tau_CI
@@ -610,7 +615,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        ncount=50
+        ncount=52
         call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=6
@@ -670,6 +675,8 @@ c     use cuda_functions
         labels =idum(48)
         mbuf   =idum(49)
         idist  =idum(50)
+        load   =idum(51)
+        loada  =idum(52)
         
         int1=(nbas*(nbas+1))/2
         

@@ -1910,7 +1910,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &         '  Date     Time      Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc  S  P  r t '
      &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
-     &         'tau_CI  User Jobname Command',/)
+     &         'tau_CI  User Jobname Command Host',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
      &       timer_wall_total(99)-timer_wall_total(98),
@@ -1920,9 +1920,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
      &       nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
-     &       trim(command)
+     &       trim(command),trim(host)
  801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,4i5,3i3,
-     &       1pe9.2,e9.2,1x,a,1x,a,1x,a)
+     &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
           write(lfnlog,803)

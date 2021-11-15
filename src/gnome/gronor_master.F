@@ -193,7 +193,8 @@
       do ibase=1,nbase
         do jbase=1,ibase
 
-          if(ibase.eq.nbase.and.jbase.eq.nbase) then
+          if(ibase.eq.nbase.and.jbase.eq.nbase.and.
+     &         (load.gt.1.or.loada.gt.1)) then
             if(loada.gt.1.and.ntaska.gt.1) ntaska=max(1,ntaska/loada)
             if(load.gt.1.and.ntask.gt.1) ntask=max(1,ntask/load)
             call timer_stop(99)

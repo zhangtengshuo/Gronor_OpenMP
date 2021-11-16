@@ -1242,6 +1242,19 @@ c     use cuda_functions
         endif
       endif
 
+      j=0
+      do i=1,np
+        if(i.gt.1) then
+          if(map2(i,5).ne.map2(i-1,5)) j=0
+        endif
+        if(map2(i,5).gt.0) then
+          map2(i,7)=j
+        else
+          map2(i,7)=-1
+        endif
+        j=j+1
+      enddo
+      
       if(me.eq.master) then
         write(lfnrnk,6666)
  6666   format(//,' Rank map',//,
@@ -1277,18 +1290,6 @@ c     use cuda_functions
         enddo
       endif
 
-      j=0
-      do i=1,np
-        if(i.gt.1) then
-          if(map2(i,5).ne.map2(i-1,5)) j=0
-        endif
-        if(map2(i,5).gt.0) then
-          map2(i,7)=j
-        else
-          map2(i,7)=-1
-        endif
-        j=j+1
-      enddo
       
       if(iamacc.eq.1) then
 

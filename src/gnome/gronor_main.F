@@ -1243,10 +1243,19 @@ c     use cuda_functions
       endif
 
       if(me.eq.master) then
-        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,6),i=1,np)
+        write(lfnrnk,6666)
  6666   format(//,' Rank map',//,
      &       '    Rank  NumDev NumThrd   Group',
-     &       '    RSet     Act    Node',//,(7i8))
+     &       '    RSet     Act    Node',/)
+        do i=1,np
+          if(map2(j,7).ge.0) then
+            write(lfnrnk,6667) i-1,map2(i,1),map2(i,7),(map2(i,j),j=2,6)
+ 6667       format(7i8)
+          else
+            write(lfnrnk,6668) i-1,(map2(i,j),j=1,6)
+ 6668       format(i8,8x,6i8)
+          endif
+        enddo
       endif
       
       if(me.eq.master) then

@@ -100,7 +100,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 
       if(me.eq.master) num_threads=0
 
-      allocate(map1(np,6),map2(np,6))
+      allocate(map1(np,7),map2(np,7))
 
 !     call MPI_get_processor_name(nodename, len, ierr)
       call hostnm(nodename)
@@ -238,7 +238,11 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 
       map1(me+1,1)=numdev
       map1(me+1,2)=num_threads
-      map1(me+1,3)=0
+      if(numdev.gt.0) then
+        map1(me+1,3)=mod(me,numdev)
+      else
+        map1(me+1,3)=-1
+      endif
       map1(me+1,4)=node
       map1(me+1,5)=0
       map1(me+1,6)=0
@@ -248,12 +252,18 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(map1)
 
+      do i=1,np
+        map2(i,7)=map2(i,3)
+        map2(i,3)=0
+      enddo
+      
 !      map2(me+1,1) : number of acc devices
 !      map2(me+1,2) : number of omp threads
 !      map2(me+1,3) : group
 !      map2(me+1,4) : resource set
 !      map2(me+1,5) : 0
 !      map2(me+1,6) : node
+!      map2(me+1,7) : acc device id
       
 !     node counts the number ranks consecutive node-ids
 !     usually this is the number of nodes in a system

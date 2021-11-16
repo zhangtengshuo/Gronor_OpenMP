@@ -1250,10 +1250,10 @@ c     use cuda_functions
         do i=1,np
           if(map2(j,7).ge.0) then
             write(lfnrnk,6667) i-1,map2(i,1),map2(i,7),(map2(i,j),j=2,6)
- 6667       format(7i8)
+ 6667       format(8i8)
           else
             write(lfnrnk,6668) i-1,(map2(i,j),j=1,6)
- 6668       format(i8,8x,6i8)
+ 6668       format(2i8,8x,6i8)
           endif
         enddo
       endif
@@ -1276,7 +1276,19 @@ c     use cuda_functions
           if(me.eq.thisgroup(i+1)) iamactive=1
         enddo
       endif
-      
+
+      j=0
+      do i=1,np
+        if(i.gt.1) then
+          if(map2(i,6).ne.map2(i-1,6)) j=0
+        endif
+        if(map2(i,6).gt.0) then
+          map2(i,7)=j
+        else
+          map2(i,7)=-1
+        endif
+        j=j+1
+      enddo
       
       if(iamacc.eq.1) then
 
@@ -1284,17 +1296,22 @@ c     use cuda_functions
 
 #ifdef _OPENACC
         if(numdev.gt.1) then
-          mydev=mod(me,numdev)
-          call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-          cpfre=c_loc(memfre)
-          cptot=c_loc(memtot)
-c          istat=cudaMemGetInfo(cpfre,cptot)
-          memavail=memfre
-          if(idbg.gt.0) then
-            call swatch(date,time)
-            write(lfndbg,1301) date(1:8),time(1:8),
-     &           ' Device set to ',mydev,' of ',numdev
- 1301       format(a,1x,a,1x,a,i3,a,i3)
+!     mydev=mod(me,numdev)
+          mydev=map2(me+1,7)
+          if(mydev.ge.0) then
+            call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+            cpfre=c_loc(memfre)
+            cptot=c_loc(memtot)
+c     istat=cudaMemGetInfo(cpfre,cptot)
+            memavail=memfre
+            if(idbg.gt.0) then
+              call swatch(date,time)
+              write(lfndbg,1301) date(1:8),time(1:8),
+     &             ' Device set to ',mydev,' of ',numdev
+ 1301         format(a,1x,a,1x,a,i3,a,i3)
+            endif
+          else
+            iamacc=0
           endif
         endif
 #endif

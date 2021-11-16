@@ -1245,7 +1245,7 @@ c     use cuda_functions
       if(me.eq.master) then
         write(lfnrnk,6666)
  6666   format(//,' Rank map',//,
-     &       '    Rank  NumDev NumThrd   Group',
+     &       '    Rank  NumDev   DevId NumThrd   Group',
      &       '    RSet     Act    Node',/)
         do i=1,np
           if(map2(j,7).ge.0) then

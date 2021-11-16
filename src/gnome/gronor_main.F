@@ -1248,7 +1248,7 @@ c     use cuda_functions
           if(map2(i,5).ne.map2(i-1,5)) j=0
         endif
         if(map2(i,5).gt.0) then
-          map2(i,7)=j
+          map2(i,7)=mod(j,numdev)
         else
           map2(i,7)=-1
         endif

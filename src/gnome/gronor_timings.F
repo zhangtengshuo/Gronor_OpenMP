@@ -340,9 +340,9 @@ c       endif
 
       if(me.eq.master) then
         if(ipr.ge.40) then
-          write(lfnout,620) mgr*nalive+1,np
+          write(lfnout,620) mgr*nalive+1,np,numidle
  620      format(/,' At the end of the run ',i8,' of ',i8,
-     &         ' processes are still active')
+     &         ' processes are still active, with ',i8,' idle')
         endif
         if(ipr.ge.20) then
           write(lfnout,621)

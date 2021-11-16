@@ -53,7 +53,7 @@
 
       integer :: nnodes,nrsets,nranks,ncycls,nrnsets
 
-      integer :: numacc,numnon,numgrp,numgrn
+      integer :: numacc,numnon,numgrp,numgrn,numidle
       integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive
       integer :: mynode,mygroup,myhead,ime,mpibuf
       integer :: iamhead, iamacc, iamactive

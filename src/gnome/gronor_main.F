@@ -1280,9 +1280,9 @@ c     use cuda_functions
       j=0
       do i=1,np
         if(i.gt.1) then
-          if(map2(i,6).ne.map2(i-1,6)) j=0
+          if(map2(i,5).ne.map2(i-1,5)) j=0
         endif
-        if(map2(i,6).gt.0) then
+        if(map2(i,5).gt.0) then
           map2(i,7)=j
         else
           map2(i,7)=-1
@@ -1969,6 +1969,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         call timer_start(99)
       endif
 
+      numidle=0
+      do i=1,np
+        if(map2(i,5).lt.0.and.ntask.eq.0) numidle=numidle+1
+      enddo
+
       deallocate(t,v,ndxtv)
       deallocate(lab,ndx,ig,g)
       deallocate(jspinmol)
@@ -2044,7 +2049,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.nalive.ne.npg) then
+      if(me.eq.master.and.nalive+numidle.ne.npg) then
         ierror=0
         ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)

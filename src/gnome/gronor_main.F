@@ -70,7 +70,7 @@ c     use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer :: iarg,i,j,idum(52),k,l
+      integer :: iarg,i,j,jp,idum(52),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
@@ -1243,16 +1243,16 @@ c     use cuda_functions
       endif
 
       j=0
+      jp=-1
       do i=1,np
-        if(i.gt.1) then
-          if(map2(i,5).ne.map2(i-1,5)) j=0
-        endif
-        if(map2(i,5).gt.0) then
-          map2(i,7)=mod(j,numdev)
+        if(map2(i,4).ne.jp) j=0
+        if(map2(i,5).gt.0.and.map2(i,1).gt.0) then
+          map2(i,7)=mod(j,map2(i,1))
         else
           map2(i,7)=-1
         endif
         j=j+1
+        jp=map2(i,4)
       enddo
       
       if(me.eq.master) then
@@ -1261,7 +1261,7 @@ c     use cuda_functions
      &       '    Rank  NumDev   DevId NumThrd   Group',
      &       '    RSet     Act    Node',/)
         do i=1,np
-          if(map2(j,7).ge.0) then
+          if(map2(i,7).ge.0) then
             write(lfnrnk,6667) i-1,map2(i,1),map2(i,7),(map2(i,j),j=2,6)
  6667       format(8i8)
           else

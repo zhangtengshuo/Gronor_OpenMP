@@ -1298,7 +1298,6 @@ c     use cuda_functions
         if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0))
      &       numidle=numidle+1
       enddo
-      npg=npg-numidle*mgr
 
       if(iamacc.eq.1) then
 

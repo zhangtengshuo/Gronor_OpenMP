@@ -1281,6 +1281,7 @@ c     use cuda_functions
       
       iamacc=0
       iamactive=0
+      if(me.eq.master) iamactive=1
       if(me.ne.master.and.thisgroup(1).gt.0) then
         do i=1,mgr
           if(me.eq.thisgroup(i+1)) iamacc=1
@@ -1291,10 +1292,14 @@ c     use cuda_functions
           if(me.eq.thisgroup(i+1)) iamactive=1
         enddo
       endif
-      if(map2(me+1,5).lt.0.and.(map2(me+1,3).eq.0.or.ntask.eq.0))
-     &     iamactive=0
-      if(me.eq.master) iamactive=1
-      
+
+      numidle=0
+      do i=1,np
+        if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0))
+     &       numidle=numidle+1
+      enddo
+      npg=npg-numidle*mgr
+
       if(iamacc.eq.1) then
 
 !     only accelerated ranks need to set device
@@ -1674,7 +1679,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 !     Define the process groups
       
       if(npg.le.0) npg=1
-      if(npg.gt.np) npg=np
+      if(npg.gt.np) npg=np-numidle-1
       ngr=np/npg
       
       if(me.eq.master.and.ipr.ge.0) then
@@ -1973,12 +1978,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnlog,status='keep')
         call timer_start(99)
       endif
-
-      numidle=0
-      do i=1,np
-        if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0))
-     &       numidle=numidle+1
-      enddo
 
       deallocate(t,v,ndxtv)
       deallocate(lab,ndx,ig,g)

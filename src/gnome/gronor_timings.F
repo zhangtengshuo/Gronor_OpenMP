@@ -343,6 +343,7 @@ c       endif
           write(lfnout,620) mgr*nalive+1,np,numidle
  620      format(/,' At the end of the run ',i8,' of ',i8,
      &         ' processes are still active, with ',i8,' idle')
+          flush(lfnout)
         endif
         if(ipr.ge.20) then
           write(lfnout,621)
@@ -380,6 +381,7 @@ c       endif
      &           ' Response time on master',t55,f12.3,' (',f7.3,'%)',/,
      &           ' Requestf time on master',t55,f12.3,' (',f7.3,'%)',/,
      &           ' Finalize time on master',t55,f12.3,' (',f7.3,'%)')
+            flush(lfnout)
           endif
           write(lfnout,614) 
      &         timer_wall_total(99)-timer_wall_total(98),
@@ -391,22 +393,29 @@ c       endif
      &         ' (',f7.3,'%)',/,
      &         ' Matrix element calculation wall clock time on master',
      &         t55,f12.3,' (',f7.3,'%)')
+          flush(lfnout)
         endif
         
         if(ipr.ge.0) then
           write(lfnout,619) timer_wall_total(99)
  619      format(/,' Total execution wall clock time on master ',
      &         t55,f12.3)
+          flush(lfnout)
         endif
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
      &       '  :  Timings reported'
  702    format(a8,2x,a8,f12.3,a)
         call swatch(date,time)
-        write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),
-     &       nalive,npg,numidle
- 703    format(a8,2x,a8,f12.3,'  :  Completion of job with',i8,' of ',
-     &       i8,' groups still active and ',i8,' ranks idle')
+        write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),np,
+     &       date(1:8),time(1:8),timer_wall_total(99),npg*mgr+1,
+     &       date(1:8),time(1:8),timer_wall_total(99),nalive+1,
+     &       date(1:8),time(1:8),timer_wall_total(99),numidle
+ 703    format(a8,2x,a8,f12.3,'  :  Completion of job with',
+     &       t60,i8,' total ranks',/,
+     &       a8,2x,a8,f12.3,'  :',t60,i8,' assigned ranks',/,
+     &       a8,2x,a8,f12.3,'  :',t60,i8,' active ranks',/,
+     &       a8,2x,a8,f12.3,'  :',t60,i8,' idle ranks')
         flush(lfnday)
       endif
       

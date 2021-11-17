@@ -892,6 +892,9 @@ c     use cuda_functions
       enddo
 
       if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      do i=1,np
+        map2(i,3)=0
+      enddo
       do i=1,numgrp
         allheads(i)=allgroups(i,2)
         do j=1,mgr
@@ -1278,7 +1281,6 @@ c     use cuda_functions
       
       iamacc=0
       iamactive=0
-      if(me.eq.master) iamactive=1
       if(me.ne.master.and.thisgroup(1).gt.0) then
         do i=1,mgr
           if(me.eq.thisgroup(i+1)) iamacc=1
@@ -1289,7 +1291,9 @@ c     use cuda_functions
           if(me.eq.thisgroup(i+1)) iamactive=1
         enddo
       endif
-
+      if(map2(me+1,5).lt.0.and.(map2(me+1,3).eq.0.or.ntask.eq.0))
+     &     iamactive=0
+      if(me.eq.master) iamactive=1
       
       if(iamacc.eq.1) then
 
@@ -1972,7 +1976,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
       numidle=0
       do i=1,np
-        if(map2(i,5).lt.0.and.ntask.eq.0) numidle=numidle+1
+        if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0))
+     &       numidle=numidle+1
       enddo
 
       deallocate(t,v,ndxtv)

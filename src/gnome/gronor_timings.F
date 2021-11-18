@@ -40,7 +40,8 @@
 
       real (kind=8), allocatable :: timings(:,:)
       real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
-      integer (kind=4), allocatable :: isync(:),ireq(:)
+      integer (kind=4), allocatable :: isync(:)
+!      integer (kind=4), allocatable :: ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: irtim,nreqso,nreqsc
@@ -57,8 +58,8 @@
 
          nalive=nalive*mgr
 
-         allocate(isync(nalive))
-         allocate(ireq(nalive))
+         allocate(isync(np))
+!         allocate(ireq(np))
          allocate(tdat(68),taver(68))
          
          do i=1,nalive
@@ -332,7 +333,10 @@ c     &        mpitag,MPI_COMM_WORLD,status,ierr)
 c       endif
 
        deallocate(tdata,timings)
-       if(me.eq.master) deallocate(tdat,taver,ireq,isync)
+       if(me.eq.master) then
+         deallocate(tdat,taver,isync)
+!         deallocate(ireq)
+       endif
        
       endif
       

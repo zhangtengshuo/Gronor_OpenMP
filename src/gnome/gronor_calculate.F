@@ -56,7 +56,9 @@
       integer :: ioff
 
       real (kind=8) :: btemp,btemp2
-
+      
+      logical (kind=4) :: flag
+      
       ndeti=idetb(ib)
       ndetj=idetb(jb)
       nacti=nactb(ib)
@@ -117,10 +119,25 @@
       sstot=0.0d0
       
       do ij=id1,id2
+
+        if(otreq) then
+          call MPI_Test(itreq,flag,status,ierr)
+
+          if(flag) then
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),
+     &             ' Terminating in gronor_calculate'
+            endif
+            oterm=.true.
+            return
+          endif
+        endif
+        
         call timer_start(5)
         
         if(idbg.ge.50)
-     &       write(lfndbg,608) ij, iloop(ij,1),iloop(ij,2)
+     &       write(lfndbg,608) ij,iloop(ij,1),iloop(ij,2)
  608    format(//,
      &       25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,
      &       '         Left determinant      Right determinant',/,

@@ -487,24 +487,31 @@
           if(.not.otreq) then
             call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,
      &           mpitag,MPI_COMM_WORLD,itreq,ierr)
-c            write(*,'(i5,a,i10,3(1x,l1))')
-c     &           me,' Dup Recv  ',itreq,otreq,oterm
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,a)')
+     &             date(1:8),time(1:8),' Terminate iRecv posted '
+            endif
             otreq=.true.
           endif
           call MPI_Test(itreq,flag,status,ierr)
-c          write(*,'(i5,a,i10,3(1x,l1))')
-c     &         me,' Duplicate ',itreq,otreq,oterm,flag
-        else
-c          write(*,'(i5,a,2i10,3(1x,l1))')
-c     &         me,' Singular  ',ibuf(1)
+          if(flag) then
+            if(idbg.gt.10) then
+              call swatch(date,time)
+              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),
+     &             ' Terminating in gronor_worker'
+          endif
+            oterm=.true.
+            return
+          endif
         endif
 
         call timer_stop(39)
         
         if(idbg.gt.15) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,f12.6)') date(1:8),time(1:8),
-     &         me,' Cumulative COMM1 Wait Time ',timer_wall_total(39)
+          write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8),
+     &         ' Cumulative COMM1 Wait Time ',timer_wall_total(39)
           flush(lfndbg)
         endif
         

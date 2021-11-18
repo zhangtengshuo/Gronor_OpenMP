@@ -675,7 +675,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
      &       mpitag,MPI_COMM_WORLD,status,ierr)
         call timer_stop(96)
 
-!     Determine the rank, group and base pair of received request
+!     Determine the rank, group and base pair of received buffer
 
         iremote=status(MPI_SOURCE)
         igrp=map2(iremote+1,3)
@@ -684,7 +684,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 
 !     Flag this group as still active
 
-        lactive(igrp)=1
+        lactive(igrp)=lactive(igrp)+1
+
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
@@ -699,8 +700,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 !     Determine the number of determinants completed for the base pair in ndets
 !     Determine the percent complete for the base pair in pnrb
 
-          ndets(ibin,jbin,2)=
-     &         ndets(ibin,jbin,2)+
+          ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+
      &         lgroup(igrp,4)-lgroup(igrp,3)+1
           pnrb=dble(100*ndets(ibin,jbin,2))/
      &         ndets(ibin,jbin,1)
@@ -743,11 +743,9 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             fday(ibin,jbin)=
      &           fday(ibin,jbin)+dble(iday)
           endif
-        endif
         
 !     Count the number of tasks completed by the remote rank in numrecs
         
-        if(lgroup(igrp,5).gt.0) then
           numrecs(iremote+1)=numrecs(iremote+1)+1
           
 !     Accumulate the returned contributions in buffer
@@ -972,6 +970,7 @@ c            call MPI_Wait(ireq,status,ierr)
         do i=1,npg
           if(lgroup(i,5).gt.0) nleft=nleft+1
         enddo
+
       enddo
 
 !     At this point all outstanding tasks completed
@@ -991,7 +990,7 @@ c            call MPI_Wait(ireq,status,ierr)
 
       nalive=0
       do i=1,npg
-        if(lactive(i).eq.1) nalive=nalive+1
+        if(lactive(i).gt.0) nalive=nalive+1
       enddo
       
 !     Signal worker processes to return from gronor_master
@@ -1001,6 +1000,22 @@ c            call MPI_Wait(ireq,status,ierr)
       ibuf(3)=-1
       ibuf(4)=-1
 
+      do i=1,np
+        ncount=4
+        mpitag=99
+        iremote=i-1
+        
+        if(iremote.ne.master) then
+          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+     &         iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+          if(idbg.gt.10) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,a,i5)') date(1:8),time(1:8),
+     &           ' Terminate signal sent to',iremote
+          endif
+        endif
+      enddo
+      
       do i=1,npg  
         iremote=allgroups(i,2)
         
@@ -1012,8 +1027,8 @@ c            call MPI_Wait(ireq,status,ierr)
         ncount=4
         mpitag=99
 
-        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
-     &       iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+!        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+!     &       iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
 
         ncount=4
         mpitag=2

@@ -969,12 +969,12 @@ c     use cuda_functions
         write(lfnrnk,730)
  730    format(//,' MPI Rank Assignments')
  734    format(' ')
- 735    format(/,' Accelerated Groups',/)
- 733    format(/,' Non-Accelerated Groups',/)
+ 735    format(/,' Accelerated Groups on ',i8,' ranks',/)
+ 733    format(/,' Non-Accelerated Groups on ',i8,' ranks',/)
         k=1
         l=min(k+npl,numacc)
         if(numacc.gt.0) then
-          write(lfnrnk,735)
+          write(lfnrnk,735) numacc
           do while (k.le.l)
             if(mgr.gt.1) write(lfnrnk,734)
             do i=2,mgr+1                
@@ -1096,7 +1096,7 @@ c     use cuda_functions
           write(lfnrnk,734)
         endif
         if(numnon.gt.0) then
-          write(lfnrnk,733)
+          write(lfnrnk,733) numnon
           k=l+1
           l=min(k+npl,numgrp)
           do while (k.le.l)

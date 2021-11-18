@@ -41,7 +41,6 @@
       real (kind=8), allocatable :: timings(:,:)
       real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
       integer (kind=4), allocatable :: isync(:)
-!      integer (kind=4), allocatable :: ireq(:)
       integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: irtim,nreqso,nreqsc
@@ -59,7 +58,7 @@
          nalive=nalive*mgr
 
          allocate(isync(np))
-!         allocate(ireq(np))
+
          allocate(tdat(68),taver(68))
          
          do i=1,nalive
@@ -313,30 +312,9 @@
          flush(lfnout)
          
        endif
-       
-c       if(me.eq.master) then
-c         idum=1
-c         do i=1,nalive
-c           ncount=1
-c           mpitag=12
-c           mpidest=isync(i)
-c           if (isync(i).ne.-1)
-c     &          call MPI_iSend(idum,ncount,MPI_INTEGER8,mpidest,
-c     &          mpitag,MPI_COMM_WORLD,mpireq,ierr)
-c           ireq(i)=mpireq
-c         enddo
-c       else
-c         ncount=1
-c         mpitag=12
-c         call MPI_Recv(idum,ncount,MPI_INTEGER8,master,
-c     &        mpitag,MPI_COMM_WORLD,status,ierr)
-c       endif
 
        deallocate(tdata,timings)
-       if(me.eq.master) then
-         deallocate(tdat,taver,isync)
-!         deallocate(ireq)
-       endif
+       if(me.eq.master) deallocate(tdat,taver,isync)
        
       endif
       

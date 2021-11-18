@@ -2054,8 +2054,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-c      if(me.eq.master.and.nalive+numidle.ne.npg) then
-      if(me.eq.master) then
+      if(me.eq.master.and.nalive+numidle+1.ne.np) then
         ierror=0
         ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)

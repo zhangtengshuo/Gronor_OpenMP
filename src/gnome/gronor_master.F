@@ -41,15 +41,15 @@
       implicit none
 
       integer :: ibase,jbase,mdet,ibin,jbin
-      integer :: l2,i,j,k,ndone,nleft,nrb
+      integer :: l2,i,j,k,l,ndone,nleft,nrb
       integer :: igrp, ltemp, last, nthdet
       logical :: osame,ofirst,owait
 
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
-      integer (kind=8) :: ibuf(4),nsingt(5)
-      integer, allocatable :: lgroup(:,:), lactive(:)
+      integer (kind=8) :: ibuf(4),nsingt(5), ltotal
+      integer, allocatable :: lgroup(:,:), lactive(:), lcount(:)
       
       integer (kind=4) :: ierr,ireq,ireq2,ireq9,iremote,ncount,mpitag
       integer (kind=4) :: status(MPI_STATUS_SIZE)
@@ -67,6 +67,7 @@
       allocate(pnrb(nbase,nbase))
       allocate(fday(nbase,nbase))
       allocate(ipbuf(4,np))
+      allocate(lcount(npg))
 
       ofirst=.true.
       owait=.false.
@@ -90,13 +91,18 @@
 !     lgroup(igrp,3) : index to first determinant pair for H(i,j) in the current task sent to group igrp
 !     lgroup(igrp,4) : index to last determinant pair for H(i,j) in the current task sent to group igrp
 !     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task 
-      
+
       do j=1,5
         do i=1,npg
           lgroup(i,j)=0
         enddo
       enddo
 
+      do i=1,npg
+        lcount(i)=5*npg
+      enddo
+      ltotal=0
+      
 !     Initialize the results matrices to zero
 
 !     hbase(i,j)   collects the Hamiltonian matrix results for basestate combination i j
@@ -324,6 +330,12 @@ c          ibuf(4)=0
             
             iremote=status(MPI_SOURCE)
             igrp=map2(iremote+1,3)
+
+            do k=1,npg
+              lcount(k)=lcount(k)-1
+            enddo
+            lcount(igrp)=5*npg
+            ltotal=ltotal+1
             
             if(idbg.gt.10) then
               call swatch(date,time)
@@ -682,6 +694,12 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
         ibin=lgroup(igrp,1)
         jbin=lgroup(igrp,2)
 
+        do k=1,npg
+          lcount(k)=lcount(k)-1
+        enddo
+        lcount(igrp)=5*npg
+        ltotal=ltotal+1
+        
 !     Flag this group as still active
 
         lactive(igrp)=lactive(igrp)+1
@@ -988,10 +1006,17 @@ c            call MPI_Wait(ireq,status,ierr)
 
 !     Count the number of groups that are still active in nalive
 
-      nalive=0
+      k=0
       do i=1,npg
-        if(lactive(i).gt.0) nalive=nalive+1
+        if(lactive(i).gt.0) k=k+1
       enddo
+
+      l=0
+      do i=1,npg
+        if(lcount(i).gt.0) l=l+1
+      enddo
+
+      nalive=max(k,l)
       
 !     Signal worker processes to return from gronor_master
       
@@ -1023,12 +1048,6 @@ c            call MPI_Wait(ireq,status,ierr)
         ipbuf(2,iremote+1)=ibuf(2)
         ipbuf(3,iremote+1)=ibuf(3)
         ipbuf(4,iremote+1)=ibuf(4)
-
-        ncount=4
-        mpitag=99
-
-!        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
-!     &       iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
 
         ncount=4
         mpitag=2
@@ -1118,7 +1137,7 @@ c            call MPI_Wait(ireq,status,ierr)
       flush(lfnout)
       flush(lfnday)
       
-      deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf)
+      deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,lcount)
       
       return
       end

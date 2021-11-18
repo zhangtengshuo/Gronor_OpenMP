@@ -49,7 +49,6 @@
       
       flush(lfnout)
 
-      if(me.eq.master-1) return
       if(iamacc.eq.0.and.ntask.eq.0) return
       
       otreq=.false.

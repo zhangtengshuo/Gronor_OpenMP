@@ -1847,6 +1847,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &             ' Calling GronOR_worker'
               flush(lfndbg)
             endif
+
             call gronor_worker()
 !_ACCTGT_($acc end data)
 !_OMPTGT_($omp end target data)

@@ -16,7 +16,7 @@
       real(kind=8),allocatable  :: occNu     (:)
       real(kind=8)              :: thrs
 
-      character (len=12)         :: oneintName,runfileName
+      character (len=255)         :: oneintName,runfileName
 
       call readin
       write(*,'(A,E10.2)')'common MO basis with threshold:',threshold
@@ -216,9 +216,9 @@
       real(kind=8) :: dummy
 
       character (len=3)               :: suffix
-      character (len=25)              :: vecFileName
-      character (len=20)              :: base
-      character (len=12)              :: oneintName
+      character (len=255)              :: vecFileName
+      character (len=255)              :: base
+      character (len=255)              :: oneintName
 
       allocate(     linDep(nBasFragMax   ,nBasFrag)       )
       allocate(        vec(nBasFrag      ,nBasFrag)       )
@@ -541,7 +541,7 @@
       real(kind=8)                          :: occ(n)
 
       character (len=6)                     :: mark
-      character (len=12)                    :: filename,base
+      character (len=255)                    :: filename,base
       character (len=132)                   :: line,dummy
       character (len = 1 )                  :: orbLabel(n)
 
@@ -614,7 +614,7 @@
       real (kind=8)                     :: s( n * (n + 1 ) / 2 )
       real (kind=8),intent(out)         :: sAO(n,n)
 
-      character (len=12),intent(in)     :: filename
+      character (len=255),intent(in)     :: filename
 
       s = 0.0
       sAO = 0.0
@@ -730,8 +730,8 @@
       subroutine getFilename(iVec,iFrag,filename,base)
       implicit none
       integer,intent(in)              :: iVec,iFrag
-      character (len=7),intent(in)    :: base
-      character (len=12),intent(out)  :: filename
+      character (len=255),intent(in)    :: base
+      character (len=255),intent(out)  :: filename
 
       if ( iFrag .le. 9 .and. iVec .le. 9 ) then
         write(filename,'(A7,I1,A1,I1)') base,iFrag,'_',iVec
@@ -754,8 +754,8 @@
       implicit none
       integer,intent(in)              :: iVec
       character (len=3),intent(in)    :: suffix
-      character (len=20),intent(in)   :: base
-      character (len=25),intent(out)  :: filename
+      character (len=255),intent(in)   :: base
+      character (len=255),intent(out)  :: filename
 
       write(filename,'(A,I0.3,2A)') trim(base),iVec,'.',suffix
       filename = trim(filename)
@@ -823,7 +823,7 @@
       real(kind=8),allocatable   :: work       (:)
       real(kind=8),allocatable   :: orbs_debug (:,:)
 
-      character (len=12)         :: oneintName
+      character (len=255)         :: oneintName
 
       lwork = 4 * totalFrozen
 
@@ -972,7 +972,7 @@
       integer :: idet,ndet,inactm,i,j,iVec,istat
       real(kind=8),allocatable  :: coeff(:)
       character(len=3)      :: suffix
-      character(len=25)     :: detFilename
+      character(len=255)     :: detFilename
       character (len=255), allocatable :: occ(:)
 
       suffix = 'det'

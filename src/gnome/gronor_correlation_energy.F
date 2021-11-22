@@ -70,19 +70,12 @@
       write(lfnout,671) (i,i =1,nbase)
  671  format(6x,7(6x,i8,6x))
  672  format(i5,1x,7f20.10,/,(6x,7f20.10))
-      do j = 1, nbase
-       write(lfnout,672) j,(hcorr(i,j),i=1,nbase)
-      enddo
-      flush(lfnout)
+      call gronor_print_matrix(lfnout,hcorr,nbase)
 
       if ( ipr .ge. 5 ) then
- 677    format(//,' S^-1/2              ',/)
+ 677    format(//,' S^-1/2              ')
         write(lfnout,677)
         call gronor_print_matrix(lfnout,slow,nbase)
-!        write(lfnout,671) (i,i=1,nbase)
-!        do j = 1, nbase
-!          write(lfnout,672) j,(slow(i,j),i=1,nbase)
-!        enddo
       end if
 
       shft=0.0d0
@@ -93,9 +86,10 @@
           shft(i) = shft(i) + ecorr(ncombv(j,i))
         enddo
       enddo
-      write(lfnout,*)
+      write(lfnout,*) ' '
       write(lfnout,*) ' Shifts applied on the diagonal of H'
       write(lfnout,*) ' MEBF    Total shift            Monomer shifts'
+      write(lfnout,*) ' '
       do i = 1, nbase
         write(lfnout,679) i,shft(i),
      &         (ncombv(j,i),ecorr(ncombv(j,i)),j=1,nmol)
@@ -108,10 +102,6 @@
  678    format(/,' GN weights         ')
         write(lfnout,678)
         call gronor_print_matrix(lfnout,wgn,nbase)
-!        write(lfnout,671) (i,i=1,nbase)
-!        do j = 1, nbase
-!          write(lfnout,672) j,(wgn(i,j),i=1,nbase)
-!        enddo
       else
         wgn = 0.0
         do i = 1, nbase
@@ -128,10 +118,6 @@
       write(lfnout,*)
       write(lfnout,*) ' Shifted Hamiltonian in orthogonal MEBF basis'
       call gronor_print_matrix(lfnout,hcorr,nbase)
-!      write(lfnout,671) (i,i =1,nbase)
-!      do i = 1, nbase
-!        write(lfnout,672)i,hcorr(i,:)
-!      end do      
 
 !     Convert shifted H back to original non-orthogonal basis
       allocate( work(nbase) )
@@ -175,25 +161,20 @@
       if ( ipr .ge. 5 ) then
  671    format(6x,7(6x,i8,6x))
  672    format(i5,1x,7f20.10,/,(6x,7f20.10))
+        write(lfnout,*) ' '
         write(lfnout,*) 'U - Eigenvectors of S: '
+        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,u,nbase)
-!        write(lfnout,671) (i,i=1,nbase)
-!        flush(lfnout)
-!        do j=1,nbase
-!          write(lfnout,672) j,(u(i,j),i=1,nbase)
-!        enddo
-!        flush(lfnout)
       end if
 
 !     S(diag)=U'SU
       ut=transpose(u)
       slow=matmul(ut,matmul(sbase,u))
       if ( ipr .ge. 5 ) then
+        write(lfnout,*) ' '
         write(lfnout,*) 'U^ S U'
+        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,slow,nbase)
-!        do j = 1, nbase
-!          write(lfnout,'(15F25.15)')slow(j,:)
-!        end do
       end if
 !     S(diag)^-1/2
       do j=1,nbase
@@ -202,11 +183,10 @@
 !     S^-1/2 = U S(diag)^-1/2 U'
       slow=matmul(u,matmul(slow,ut))
       if ( ipr .ge. 5 ) then
+        write(lfnout,*) ' '
         write(lfnout,*) 'After normalization'
+        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,slow,nbase)
-!        do j = 1, nbase
-!          write(lfnout,'(15F25.15)')slow(j,:)
-!        end do
       end if
 
       end subroutine gronor_lowdin

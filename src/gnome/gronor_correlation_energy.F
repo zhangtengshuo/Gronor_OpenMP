@@ -67,13 +67,12 @@
       write(lfnout,*) ' Applying a shift on the diagonal'
       write(lfnout,*)
       write(lfnout,*) ' Hamiltonian in orthogonal MEBF basis'
-      write(lfnout,671) (i,i =1,nbase)
  671  format(6x,7(6x,i8,6x))
  672  format(i5,1x,7f20.10,/,(6x,7f20.10))
       call gronor_print_matrix(lfnout,hcorr,nbase)
 
       if ( ipr .ge. 5 ) then
- 677    format(//,' S^-1/2              ')
+ 677    format(/,' S^-1/2              ')
         write(lfnout,677)
         call gronor_print_matrix(lfnout,slow,nbase)
       end if
@@ -163,7 +162,6 @@
  672    format(i5,1x,7f20.10,/,(6x,7f20.10))
         write(lfnout,*) ' '
         write(lfnout,*) 'U - Eigenvectors of S: '
-        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,u,nbase)
       end if
 
@@ -173,7 +171,6 @@
       if ( ipr .ge. 5 ) then
         write(lfnout,*) ' '
         write(lfnout,*) 'U^ S U'
-        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,slow,nbase)
       end if
 !     S(diag)^-1/2
@@ -185,7 +182,6 @@
       if ( ipr .ge. 5 ) then
         write(lfnout,*) ' '
         write(lfnout,*) 'After normalization'
-        write(lfnout,*) ' '
         call gronor_print_matrix(lfnout,slow,nbase)
       end if
 

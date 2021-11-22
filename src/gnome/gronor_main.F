@@ -2054,13 +2054,13 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.nalive+numidle+1.ne.np) then
+      if(me.eq.master.and.(nalive+numidle+1.ne.np.or.otimeout)) then
         ierror=0
         ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-      else
-        call mpi_finalize(ierr)
       endif
+      
+      call mpi_finalize(ierr)
       
       return
  992  write(lfnout,983) filtim(1:inp_strlen(filtim))

@@ -140,7 +140,7 @@
 
       integer (kind=4) :: itreq
       integer (kind=8) :: irbuf(4)
-      logical :: odbg,odupl,oterm,otreq
+      logical :: odbg,odupl,oterm,otreq,otimeout
       logical :: corres
 
       end module gnome_parameters

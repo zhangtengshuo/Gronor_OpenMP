@@ -139,6 +139,14 @@
             call timer_stop(93)
             if(timer_wall_total(93).gt.10.0) then
               otimeout=.true.
+              call timer_stop(99)
+              call swatch(date,time)
+              write(lfnday,707)
+     &             date(1:8),time(1:8),timer_wall_total(99),
+     &             '  :  Timeout of timings details collection at ',i
+ 707          format(a8,2x,a8,f12.3,a,i6)
+              flush(lfnday)
+              call timer_start(99)
               exit
             endif
             call timer_start(93)

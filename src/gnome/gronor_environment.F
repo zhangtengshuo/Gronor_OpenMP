@@ -398,5 +398,10 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
          enddo
       endif
 
+#ifdef _OPENACC
+      call acc_get_device_num(mydev,ACC_DEVICE_NVIDIA)
+      map2(me+1,7)=mydev
+#endif
+      
       return
       end

@@ -1875,35 +1875,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,632)
- 632    format(//,' Hamiltonian Matrix unnormalized',/)
-
-        nk=nbase/ncols
-        if(mod(nbase,ncols).ne.0) nk=nk+1
-        do k=1,nk
-          ii=(k-1)*ncols+1
-          il=min(nbase,k*ncols)
-          write(lfnout,633) (i,i=ii,il)
-          do j=1,nbase
-            write(lfnout,634) j,(hbase(i,j),i=ii,il)
-          enddo
-          write(lfnout,*) ' '
-        enddo
-
-        nk=nbase/ncols
-        if(mod(nbase,ncols).ne.0) nk=nk+1
-        do k=1,nk
-          ii=(k-1)*ncols+1
-          il=min(nbase,k*ncols)
-          write(lfnout,635)
- 635      format(//,' Overlap Matrix unnormalized',/)
-          write(lfnout,633) (i,i=ii,il)
- 633      format(6x,7(6x,i8,6x))
-          do j=1,nbase
-            write(lfnout,634) j,(sbase(i,j),i=ii,il)
- 634        format(i5,1x,10f20.10)
-          enddo
-          write(lfnout,*) ' '
-        enddo
+ 632    format(//,' Hamiltonian Matrix unnormalized')
+        call gronor_print_matrix(lfnout,hbase,nbase)
+        write(lfnout,635)
+ 635    format(//,' Overlap Matrix unnormalized')
+        call gronor_print_matrix(lfnout,sbase,nbase)
       endif
 
       if(me.eq.master) then

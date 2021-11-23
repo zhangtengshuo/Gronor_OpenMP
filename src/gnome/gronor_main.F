@@ -1095,6 +1095,7 @@ c     use cuda_functions
           enddo
           write(lfnrnk,734)
         endif
+        flush(lfnrnk)
         if(numnon.gt.0) then
           write(lfnrnk,733) numnon
           k=l+1
@@ -1243,6 +1244,7 @@ c     use cuda_functions
             l=min(k+npl,numgrp)
           enddo
         endif
+        flush(lfnrnk)
       endif
 
       j=0
@@ -1272,6 +1274,7 @@ c     use cuda_functions
  6668       format(2i8,8x,6i8)
           endif
         enddo
+        flush(lfnrnk)
       endif
       
       if(me.eq.master) then

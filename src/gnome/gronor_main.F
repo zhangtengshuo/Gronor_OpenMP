@@ -421,7 +421,7 @@ c     use cuda_functions
         if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
      &       trim(host),nnodes,
      &       date(1:8),nrsets,
-     &       time(1:8),nrnsets,numdev,
+     &       time(1:8),nrnsets,numdev,ngpus,nummps,
      &       np,np/nnodes,np/nrsets,
      &       ncycls,numomp
  601    format(//,
@@ -432,11 +432,13 @@ c     use cuda_functions
      &       ' Time',t30,a,t60,
      &       'Number of resource sets per node',t100,i10,/,
      &       t60,'Number of GPUs per resource set',t100,i10,/,
+     &       t60,'Number of GPUs per node',t100,i10,/,
+     &       t60,'Number of MPI ranks per GPU (MPS)',t100,i10,/,
      &       t60,'Number of MPI ranks',t100,i10,/,
      &       t60,'Number of MPI ranks per node',t100,i10,/,
      &       t60,'Number of MPI ranks per resource set',t100,i10,/,
      &       t60,'Number of rank assignment cycles',t100,i10,/,
-     &       t60,'Number of OPENMP threads',t100,i10)
+     &       t60,'Number of OPENMP threads per MPI rank',t100,i10)
         if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602)
      &       dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
  602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
@@ -512,16 +514,11 @@ c     use cuda_functions
         endif
         if(ipr.ge.20) then
           write(lfnout,606) ntaska,ntask,mgr,
-     &         max(1,nbatcha),max(1,nbatch),numomp,loada,load
+     &         max(1,nbatcha),max(1,nbatch),loada,load
  606      format(' Task size',t40,i10,i6,
      &         t60,'Number of ranks per task',t100,i10,/,
-     &         ' Batch size',t40,i10,i6,
-     &         t60,'Number of OpenMP threads per rank',t100,i10,/,
+     &         ' Batch size',t40,i10,i6,/,
      &         ' Load balancing',t40,i10,i6)
-          if(numdev.gt.0) write(lfnout,638) nummps
- 638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
-          if(ngpus.gt.1) write(lfnout,650) ngpus
- 650      format(t60,'Number of gpus per node based on host',t100,i10)
         endif
 
         call gronor_read_vectors_and_determinants()
@@ -1330,9 +1327,7 @@ c     use cuda_functions
         if(numdev.gt.1) then
           mydev=map2(me+1,7)
           if(mydev.ge.0) then
-            if(.not.(machine.eq.'Juwels'.and.numdev.eq.1)) then
-              call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-            endif
+            call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
             cpfre=c_loc(memfre)
             cptot=c_loc(memtot)
 c     istat=cudaMemGetInfo(cpfre,cptot)

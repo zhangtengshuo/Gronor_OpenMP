@@ -819,6 +819,13 @@ c     use cuda_functions
 
       ngr=(np-1)/mgr
 
+!     On the JFZ Juwels Booster the slurm implementation sets the
+!     device on each ranks based on best affinity. As a result
+!     numdev from acc_get_num_devices returns 1 as each rank
+!     is already associated with the clostest gpu. To get the
+!     correct map2 entries, the ngpus is set to 4 and nummps
+!     multiplied by ngpus.
+      
       nummps=nummps*ngpus
       
       allocate(ranks_heads(ngr+1))
@@ -1314,6 +1321,10 @@ c     use cuda_functions
       if(iamacc.eq.1) then
 
 !     only accelerated ranks need to set device
+
+!     On the JFZ Juwels Booster the slurm implementation sets the
+!     device on each ranks based on best affinity. As a result
+!     no acc_set_device_num should be executed here.
 
 #ifdef _OPENACC
         if(numdev.gt.1) then

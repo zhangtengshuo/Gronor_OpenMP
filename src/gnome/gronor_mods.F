@@ -51,7 +51,7 @@
       integer (kind=4) :: group_batch, group_heads, group_world
       integer (kind=4), allocatable :: ranks_list(:), ranks_heads(:)
 
-      integer :: nnodes,nrsets,nranks,ncycls,nrnsets
+      integer :: nnodes,nrsets,nranks,ncycls,nrnsets,ngpus
 
       integer :: numacc,numnon,numgrp,numgrn,numidle
       integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive
@@ -72,6 +72,8 @@
 
       integer (kind=8), target :: memfre, memtot, memavail
       integer (kind=4), allocatable :: igrn(:)
+
+      character (len=6) :: machine
 
       end module cidist
 

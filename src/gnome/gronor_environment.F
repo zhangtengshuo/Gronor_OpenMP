@@ -106,16 +106,20 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       call hostnm(nodename)
       len=inp_strlen(nodename)
 
+      machine='      '
+      
 !     Trim the JFZ Juwels Booster node name
       if(nodename(1:3).eq.'jwb') then
         nodename(1:4)=nodename(4:7)
         len=4
+        machine='Juwels'
       endif
 
 !     Trim the CSCS Piz Daint node name
       if(nodename(1:3).eq.'nid') then
         nodename(1:5)=nodename(4:8)
         len=5
+        machine='Daint '
       endif
       
       j=1

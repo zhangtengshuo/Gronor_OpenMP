@@ -70,7 +70,7 @@ c     use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer :: iarg,i,j,jp,idum(52),k,l
+      integer :: iarg,i,j,jp,idum(53),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
@@ -332,6 +332,9 @@ c     use cuda_functions
         tolevj=1.0d-07
         lcpr=.false.
 
+        ngpus=1
+        if(machine.eq.'Juwels'.and.numdev.eq.1) ngpus=4
+        
         call gronor_input()
 
         if(mgr.eq.0) then
@@ -517,6 +520,8 @@ c     use cuda_functions
      &         ' Load balancing',t40,i10,i6)
           if(numdev.gt.0) write(lfnout,638) nummps
  638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
+          if(ngpus.gt.1) write(lfnout,650) ngpus
+ 650      format(t60,'Number of gpus per node based on host',t100,i10)
         endif
 
         call gronor_read_vectors_and_determinants()
@@ -606,6 +611,7 @@ c     use cuda_functions
           idum(50)=idist
           idum(51)=load
           idum(52)=loada
+          idum(53)=ngpus
           
           rdum(1)=tau_CI
           rdum(2)=tau_CI
@@ -615,7 +621,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        ncount=52
+        ncount=53
         call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=6
@@ -677,6 +683,7 @@ c     use cuda_functions
         idist  =idum(50)
         load   =idum(51)
         loada  =idum(52)
+        ngpus  =idum(53)
         
         int1=(nbas*(nbas+1))/2
         
@@ -812,6 +819,8 @@ c     use cuda_functions
 
       ngr=(np-1)/mgr
 
+      nummps=nummps*ngpus
+      
       allocate(ranks_heads(ngr+1))
 
       if(ncycls.gt.1) then
@@ -1308,10 +1317,11 @@ c     use cuda_functions
 
 #ifdef _OPENACC
         if(numdev.gt.1) then
-!     mydev=mod(me,numdev)
           mydev=map2(me+1,7)
           if(mydev.ge.0) then
-            call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+            if(.not.(machine.eq.'Juwels'.and.numdev.eq.1)) then
+              call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+            endif
             cpfre=c_loc(memfre)
             cptot=c_loc(memtot)
 c     istat=cudaMemGetInfo(cpfre,cptot)

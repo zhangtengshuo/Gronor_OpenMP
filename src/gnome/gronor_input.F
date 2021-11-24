@@ -295,6 +295,11 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'GPUs',item)) then
+          if(.not.inp_i(ngpus)) ngpus=1
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'MPS',item)) then
           if(.not.inp_i(nummps)) nummps=1
           goto 2

@@ -824,7 +824,7 @@ c     use cuda_functions
 !     correct map2 entries, the ngpus is set to 4 and nummps
 !     multiplied by ngpus.
       
-      numgps=nummps*ngpus
+      numgpu=nummps*ngpus
       
       allocate(ranks_heads(ngr+1))
 

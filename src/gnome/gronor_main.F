@@ -297,6 +297,7 @@ c     use cuda_functions
 
         naccel=-1
         ncols=7
+        numgpu=0
         nummps=1
         numomp=1
         ixpert=0
@@ -823,7 +824,7 @@ c     use cuda_functions
 !     correct map2 entries, the ngpus is set to 4 and nummps
 !     multiplied by ngpus.
       
-      nummps=nummps*ngpus
+      numgps=nummps*ngpus
       
       allocate(ranks_heads(ngr+1))
 
@@ -833,13 +834,13 @@ c     use cuda_functions
           if(map2(i,5).gt.0) j=j+1
           if(i-1.eq.master) map2(i,5)=0
         enddo
-        do i=1,min(np,nummps*j)
+        do i=1,min(np,numgpu*j)
           map2(i,5)=map2(i,1)
           if(i-1.eq.master) map2(i,5)=0
         enddo
       else
         node=map2(1,4)
-        j=nummps*map2(1,1)
+        j=numgpu*map2(1,1)
         do i=1,np
           map2(i,2)=numomp
           if(map2(i,4).eq.node) then
@@ -852,7 +853,7 @@ c     use cuda_functions
             endif
           else
             node=map2(i,4)
-            j=nummps*map2(i,1)
+            j=numgpu*map2(i,1)
             if(j.gt.0) then
               map2(i,5)=map2(i,1)
               if(naccel.lt.0) map2(i,5)=-map2(i,2)
@@ -1829,8 +1830,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       if(idbg.gt.0) then
         call swatch(date,time)
-        write(lfndbg,'(a,1x,a,1x,a,10i5)') date(1:8),time(1:8),
-     &       ' NVIDIA ',numdev,mydev,iamacc,nummps,
+        write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),
+     &       ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,
      &       (map2(me+1,i),i=1,5)
         flush(lfndbg)
       endif
@@ -1933,26 +1934,26 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(.not.exist) then
           write(lfnlog,800)
  800      format(
-     &         80x,'         ',20x,'      S',/,
-     &         80x,'         ',20x,'F  B  t',/,
-     &         80x,'        D',20x,'r  a  a',/,
-     &         80x,'M  O  M i',20x,'g  s  t',/
-     &         80x,'P  M  g s',20x,'m  e  e',/,
+     &         80x,'            ',20x,'      S',/,
+     &         80x,'            ',20x,'F  B  t',/,
+     &         80x,'           D',20x,'r  a  a',/,
+     &         80x,'M  G  O  M i',20x,'g  s  t',/
+     &         80x,'P  P  M  g s',20x,'m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
-     &         'Total  Nodes  Ranks    Acc nonAcc  S  P  r t '
+     &         'Total  Nodes  Ranks    Acc nonAcc  S  U  P  r t '
      &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
      &         'tau_CI  User Jobname Command Host',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99),
-     &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
+     &       nnodes,np,numacc,numnon,nummps,numgpu,numomp,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
      &       nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
      &       trim(command),trim(host)
- 801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,4i5,3i3,
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,
      &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then

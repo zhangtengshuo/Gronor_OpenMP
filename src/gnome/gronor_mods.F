@@ -131,7 +131,7 @@
       integer :: iaslvr,jaslvr,inslvr,jnslvr
       integer :: iswsvj,iswevj
       integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
-      integer :: iday,idipole,itp4,nummps,numomp,ixpert
+      integer :: iday,idipole,itp4,nummps,numomp,numgpu,ixpert
       integer :: ins2
       integer :: ibase0,jbase0,idet0,jdet0
       integer :: ndeti,ndetj,nacti,nactj,inacti,inactj

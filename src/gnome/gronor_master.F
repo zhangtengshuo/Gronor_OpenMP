@@ -180,13 +180,13 @@
      &     '  ------- Element -------',
      &     '       -------------- Determinants --------------',
      &     '          -------------- Singularities -------------',
-     &     '    --------- Unnormalized ---------',
+     &     '  ------------- Unnormalized -------------  ',
      &     '         Normalized ',
      &     '  Wall Clock  Wall Clock',/
      &     '                          ',
      &     '      left     right         pairs     threshold',
      &     '          none           1           2            3+',
-     &     '      Hamiltonian          Overlap ',
+     &     '      Hamiltonian              Overlap     ',
      &     '         Hamiltonian ',
      &     '        Cost        Time',/)
 
@@ -504,13 +504,13 @@ c          ibuf(4)=0
  522              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
      &                 2e20.13)
  608              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
-     &                 1pe18.10,e18.10,0pf20.10,2f12.1)
+     &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
  607              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
-     &                 1pe18.10,e18.10,20x,0pf12.1,f12.1)
+     &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
  618              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
-     &                 f18.10,f18.10,f20.10,2f12.1)
+     &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
  617              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
-     &                 f18.10,f18.10,20x,2f12.1)
+     &                 f18.10,4x,f18.10,4x,20x,2f12.1)
                 endif
 
 !     Write entry in the checkpoint restart file

@@ -1934,11 +1934,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(.not.exist) then
           write(lfnlog,800)
  800      format(
-     &         80x,'            ',20x,'      S',/,
-     &         80x,'            ',20x,'F  B  t',/,
-     &         80x,'           D',20x,'r  a  a',/,
-     &         80x,'M  G  O  M i',20x,'g  s  t',/
-     &         80x,'P  P  M  g s',20x,'m  e  e',/,
+     &         80x,'            ',29x,'      S',/,
+     &         80x,'            ',29x,'F  B  t',/,
+     &         80x,'           D',29x,'r  a  a',/,
+     &         80x,'M  G  O  M i',29x,'g  s  t',/
+     &         80x,'P  P  M  g s',29x,'m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc  S  U  P  r t '
      &         'Solvers   Task      Batch    s  s  s  tau_MO   ',

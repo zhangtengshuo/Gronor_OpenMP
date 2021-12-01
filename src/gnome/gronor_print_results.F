@@ -80,7 +80,7 @@
             if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
           enddo
           write(lfntst,1672) j,(hbt(i),i=ii,il)
- 1672     format(i5,1x,10f20.8)
+ 1672     format(i5,1x,10f20.6)
         enddo
         write(lfnout,*) ' '
       enddo
@@ -228,7 +228,7 @@
  686        format(4x,a5,1x,a4,t18,12f20.10)
             if(itest.eq.2) then
               write(lfntst,687) token,j,(hsave(j,i),i=ii,il)
- 687          format(6x,a4,i5,t18,12f20.8)
+ 687          format(6x,a4,i5,t18,12f20.6)
             endif
             token="    "
           enddo

@@ -78,25 +78,32 @@
  1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
       allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
-        mebfLabels = .false.
-        do j = 1, nbase
-          write(mebfLabel(j),618) j
-        end do
- 618  format(i4)
+         mebfLabels = .false.
+         do j = 1, nbase
+            write(mebfLabel(j),618) j
+         end do
+ 618     format(i4)
       else
-        mebfLabels = .true.
-        write(lfnout,607)
-     &       '  MEBF     Electrons   Sum of fragment energies'
- 607    format(/,a,/)
-        do j = 1,nbase
-          write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
- 616      format(3a2)
-          write(lfnout,617) mebflabel(j),
-     &         nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
-     &         fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
- 617      format(a6,i10,t22,f22.12)
-        enddo
+         mebfLabels = .true.
+         write(lfnout,607)
+     &        '  MEBF     Electrons   Sum of fragment energies'
+ 607     format(/,a,/)
+         do j = 1,nbase
+            write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
+ 616        format(3a2)
+            write(lfnout,617) mebflabel(j),
+     &           nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
+     &           fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+ 617        format(a6,i10,t22,f22.12)
+         enddo
       endif
+      write(lfnarx,701) nbase,nmol
+ 701  format('State',2i10)
+      do j=1,nbase
+         write(lfnarx,617) mebflabel(j),
+     &        nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
+     &        fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+      enddo
       
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet

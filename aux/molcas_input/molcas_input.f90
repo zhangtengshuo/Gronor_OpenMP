@@ -875,7 +875,7 @@
           
           open(unit=iunit,file=trim(project)//'_CB.input')
 
-          write(iunit,212) project
+          write(iunit,212) trim(project)
  212      format('Project',/,1x,a,/,'Fragments',/,'  2',/,'  5 5',/, &
                'Threshold',/,' 1e-5',/,'Labels',/, &
                ' S0 S1 T1 D+ D- S0 S1 T1 D+ D-',/,'Energies')

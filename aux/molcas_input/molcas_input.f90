@@ -1,4 +1,4 @@
-      program make_input
+      program molcas_input
 
       implicit none
 
@@ -93,7 +93,7 @@
       open(unit=lfninp,file=filinp(1:index(filinp,' ')-1))
 
       done=.false.
-      operation='&'
+      operation='n'
       
       do while(.not.done)
         

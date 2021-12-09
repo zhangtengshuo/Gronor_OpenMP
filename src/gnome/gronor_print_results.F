@@ -209,19 +209,23 @@
           write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
           token="MEBF:"
           do j=1,nbase
-            if(j.eq.1) then
-              if (.not.mebfLabels) then
-                write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
-              else
-                write(lfnout,685)token,mebfLabel(j),(hsave(j,i),i=ii,il)
-              end if
-            else
-              if (.not.mebfLabels) then
-                write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
-              else
-                write(lfnout,686)token,mebfLabel(j),(hsave(j,i),i=ii,il)
-              end if
-            endif
+             if(j.eq.1) then
+                if (.not.mebfLabels) then
+                   write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
+                else
+                   write(lfnout,685)token,mebfLabel(j),
+     &                  (hsave(j,i),i=ii,il)
+                endif
+             else
+                if (.not.mebfLabels) then
+                   write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
+                else
+                   write(lfnout,686)token,mebfLabel(j),
+     &                  (hsave(j,i),i=ii,il)
+                endif
+             endif
+            write(lfnarx,655) (hsave(j,i),i=ii,il)
+ 655        format(12f20.10)
  683        format(/,4x,a5,i5,t18,12f20.10)
  684        format(4x,a5,i5,t18,12f20.10)
  685        format(/,4x,a5,1x,a4,t18,12f20.10)

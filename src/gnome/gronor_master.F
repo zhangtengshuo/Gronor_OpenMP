@@ -190,6 +190,12 @@
      &     '         Hamiltonian ',
      &     '        Cost        Time',/)
 
+      if(ncorr.gt.0) then
+        write(lfnarx,523)
+ 523    format('Ecorr')
+        write(lfnarx,524) (ecorr(i),i=1,nbase)
+ 524    format(10e20.12)
+      endif
       write(lfnarx,521) nbase
  521  format('Data ',i10)
 

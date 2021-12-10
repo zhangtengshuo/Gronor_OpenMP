@@ -95,8 +95,9 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib
+      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc
 
+      character (len=3) :: ident(3)
       character (len=5) :: version
       character (len=64) :: version_type
 
@@ -1276,17 +1277,27 @@ c     use cuda_functions
       
       if(me.eq.master) then
         write(lfnrnk,6666)
- 6666   format(//,' Rank map',//,
-     &       '    Rank  NumDev   DevId NumThrd   Group',
-     &       '    RSet     Act    Node',/)
-        do i=1,np
-          if(map2(i,7).ge.0) then
-            write(lfnrnk,6667) i-1,map2(i,1),map2(i,7),(map2(i,j),j=2,6)
- 6667       format(8i8)
-          else
-            write(lfnrnk,6668) i-1,(map2(i,j),j=1,6)
- 6668       format(2i8,8x,6i8)
-          endif
+ 6666   format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr',
+     &       ' Ac=Accel',//,
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node  ',
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node  ',
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node',/)
+        lc=np/3
+        mc=mod(np,3)
+        if(mc.gt.0) lc=lc+1
+        nc=3
+        do i=1,lc
+          if(mc.gt.0.and.i.eq.lc) nc=mc
+          write(ident(1),'(a3)') '   '
+          write(ident(2),'(a3)') '   '
+          write(ident(3),'(a3)') '   '
+          do j=1,nc
+            if(map2(i+(j-1)*lc,7).ge.0)
+     &           write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
+          enddo
+          write(lfnrnk,6667) (i+(j-1)*lc,map2(i+(j-1)*lc,1),ident(1),
+     &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nc)
+ 6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
         enddo
         flush(lfnrnk)
       endif

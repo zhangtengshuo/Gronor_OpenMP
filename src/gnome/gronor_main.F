@@ -98,6 +98,7 @@ c     use cuda_functions
       integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc
 
       character (len=3) :: ident(3)
+      character (len=4) :: onlabel
       character (len=5) :: version
       character (len=64) :: version_type
 
@@ -336,6 +337,7 @@ c     use cuda_functions
 
         ngpus=1
         if(machine.eq.'Juwels'.and.numdev.eq.1) ngpus=4
+        if(machine.eq.'Summit'.and.numdev.eq.1) ngpus=6
         
         call gronor_input()
 
@@ -420,15 +422,17 @@ c     use cuda_functions
      &       ' Journal of Chemical Physics, 152 (2020), ',
      &       'https://doi.org/10.1063/1.5141358',/)
 
+        onlabel='    '
+        if(machine.ne.'      ') onlabel=' on '
         if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
-     &       trim(host),nnodes,
+     &       trim(host),onlabel,trim(machine),nnodes,
      &       date(1:8),nrsets,
      &       time(1:8),nrnsets,numdev,ngpus,nummps,
      &       np,np/nnodes,np/nrsets,
      &       ncycls,numomp
  601    format(//,
      &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
-     &       ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
+     &       ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/,
      &       ' Date',t30,a,t60,
      &       'Number of resource sets',t100,i10,/,
      &       ' Time',t30,a,t60,

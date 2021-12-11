@@ -121,6 +121,23 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
         len=5
         machine='Daint '
       endif
+
+!     Trim the OLCF Summit node name
+      if(ichar(nodename(1:1)).ge.97.and.
+     &     ichar(nodename(1:1)).le.122.and.
+     &     ichar(nodename(4:4)).ge.97.and.
+     &     ichar(nodename(4:4)).le.122.and.
+     &     ichar(nodename(2:2)).ge.48.and.
+     &     ichar(nodename(2:2)).le.57.and.
+     &     ichar(nodename(3:3)).ge.48.and.
+     &     ichar(nodename(3:3)).le.57.and.
+     &     ichar(nodename(5:5)).ge.48.and.
+     &     ichar(nodename(5:5)).le.57.and.
+     &     ichar(nodename(6:6)).ge.48.and.
+     &     ichar(nodename(6:6)).le.57) then
+        len=6
+        machine='Summit'
+      endif
       
       j=1
       i=1

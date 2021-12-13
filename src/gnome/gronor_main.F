@@ -470,8 +470,8 @@ c     use cuda_functions
  402    format('Date ',a)
         write(lfnarx,403) trim(time)
  403    format('Time ',a)
-        write(lfnarx,404) trim(host)
- 404    format('Host ',a)
+        write(lfnarx,404) trim(host),onlabel,trim(machine)
+ 404    format('Host ',a,a,a)
         write(lfnarx,405) root(1:inp_strlen(root))
  405    format('Root ',a)
         write(lfnarx,406) nnodes,np

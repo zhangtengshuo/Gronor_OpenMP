@@ -710,11 +710,6 @@ c     use cuda_functions
         
       endif
 
-#ifdef _OPENMP
-      if(numomp.gt.0) num_threads=numomp
-      if(num_threads.gt.0) call omp_set_num_threads(num_threads)
-#endif
-
       lfnone=11
       lfntwo=12
       lfndbg=13
@@ -836,6 +831,7 @@ c     use cuda_functions
       if(ncycls.gt.1) then
         j=0
         do i=1,np
+          if(map2(i,5).lt.0) map2(i,2)=numomp
           if(map2(i,5).gt.0) j=j+1
           if(i-1.eq.master) map2(i,5)=0
         enddo
@@ -847,7 +843,7 @@ c     use cuda_functions
         node=map2(1,4)
         j=numgpu*map2(1,1)
         do i=1,np
-          map2(i,2)=numomp
+          if(map2(i,5).lt.0) map2(i,2)=numomp
           if(map2(i,4).eq.node) then
             if(j.gt.0) then
               map2(i,5)=map2(i,1)
@@ -881,6 +877,11 @@ c     use cuda_functions
       numacc=numacc/mgr
       numnon=numnon/mgr
       maxgrp=numacc+numnon
+
+#ifdef _OPENMP
+      if(numomp.gt.0) num_threads=numomp
+      if(map2(me+1,2).gt.1) call omp_set_num_threads(num_threads)
+#endif
       
       allocate(thisgroup(mgr+1))
       allocate(allgroups(maxgrp+1,mgr+1))

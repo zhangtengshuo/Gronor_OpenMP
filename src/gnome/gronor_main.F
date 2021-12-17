@@ -831,7 +831,6 @@ c     use cuda_functions
       if(ncycls.gt.1) then
         j=0
         do i=1,np
-          if(map2(i,5).lt.0) map2(i,2)=numomp
           if(map2(i,5).gt.0) j=j+1
           if(i-1.eq.master) map2(i,5)=0
         enddo
@@ -843,7 +842,6 @@ c     use cuda_functions
         node=map2(1,4)
         j=numgpu*map2(1,1)
         do i=1,np
-          if(map2(i,5).lt.0) map2(i,2)=numomp
           if(map2(i,4).eq.node) then
             if(j.gt.0) then
               map2(i,5)=map2(i,1)
@@ -870,6 +868,7 @@ c     use cuda_functions
       numacc=0
       numnon=0
       do i=1,np
+        if(map2(i,5).lt.0) map2(i,2)=numomp
         if(i-1.eq.master) map2(i,5)=0
         if(map2(i,5).gt.0) numacc=numacc+1
         if(map2(i,5).lt.0) numnon=numnon+1

@@ -1296,7 +1296,7 @@ c     use cuda_functions
           write(ident(2),'(a3)') '   '
           write(ident(3),'(a3)') '   '
           do j=1,nc
-            if(map2(i+(j-1)*lc,7).ge.0)
+            if(map2(i+(j-1)*lc,5).ge.0)
      &           write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
           enddo
           write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(1),

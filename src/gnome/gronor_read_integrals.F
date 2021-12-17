@@ -53,7 +53,7 @@
       if(me.eq.master) then
         numc=16
         lc=numgrp/numc
-        mc=mod(numgrp,8)
+        mc=mod(numgrp,numc)
         if(mc.gt.0) lc=lc+1
         nc=numc
         write(lfnrnk,110)
@@ -81,7 +81,7 @@
      &       '    Rank  ND NT   Group    RSet Ac    Node DI',/)
         do i=1,lc
           if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,115) (i+(j-1)*lc,(map2(i,k),k=1,7),j=1,nc)
+          write(lfnrnk,115) (i+(j-1)*lc-1,(map2(i,k),k=1,7),j=1,nc)
  115      format(3(i8,':',2i3,2i8,i3,i8,i3,2x))
         enddo
       endif

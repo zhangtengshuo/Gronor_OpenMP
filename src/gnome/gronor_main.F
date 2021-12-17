@@ -1299,7 +1299,7 @@ c     use cuda_functions
             if(map2(i+(j-1)*lc,5).ge.0)
      &           write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
           enddo
-          write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(1),
+          write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j),
      &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nc)
  6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
         enddo

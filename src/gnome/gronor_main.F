@@ -869,6 +869,7 @@ c     use cuda_functions
       numnon=0
       do i=1,np
         if(map2(i,5).lt.0) map2(i,2)=numomp
+        if(map2(i,5).eq.0) map2(i,2)=1
         if(i-1.eq.master) map2(i,5)=0
         if(map2(i,5).gt.0) numacc=numacc+1
         if(map2(i,5).lt.0) numnon=numnon+1

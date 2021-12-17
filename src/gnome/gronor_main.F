@@ -839,7 +839,7 @@ c     use cuda_functions
           if(map2(i,5).gt.0) j=j+1
           if(i-1.eq.master) map2(i,5)=0
         enddo
-        do i=1,min(np,numgpu*j)
+        do i=1,min(np,nummps*j)
           map2(i,5)=map2(i,1)
           if(i-1.eq.master) map2(i,5)=0
         enddo
@@ -1717,12 +1717,14 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       ngr=np/npg
       
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr
- 621    format(/,' Process Distribution',//,
-     &       ' Number of processes',t40,i10,t60,
-     &       'Number of process groups',t100,i10,/,
-     &       ' Number of idle processes',t40,i10,t60,
-     &       'Number of processes per group',t100,i10)
+        write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr,numacc,numnon
+ 621    format(/,' Rank Distribution',//,
+     &       ' Number of ranks',t40,i10,t60,
+     &       'Number of rank groups',t100,i10,/,
+     &       ' Number of idle ranks',t40,i10,t60,
+     &       'Number of ranks per group',t100,i10,/,
+     &       ' Number of accelerated ranks',t40,i10,/,
+     &       ' Number of non-accelerated ranks',t40,i10)
       endif
       
 

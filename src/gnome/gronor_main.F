@@ -2028,7 +2028,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       if(me.eq.master) then
         write(lfnrnk,4444)
  4444   format(//,' Number of tasks completed per rank',/)
-        nc=3
+        nc=7
         lc=np/nc
         mc=mod(np,nc)
         if(mc.gt.0) lc=lc+1

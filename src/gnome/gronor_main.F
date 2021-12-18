@@ -1330,18 +1330,6 @@ c        if(i-1.eq.master) map2(i,5)=0
  6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
         enddo
         flush(lfnrnk)
-        write(lfnrnk,4444)
- 4444   format(//,' Number of tasks completed per rank',/)
-        nc=10
-        lc=np/nc
-        mc=mod(np,nc)
-        if(mc.gt.0) lc=lc+1
-        do i=1,lc
-          if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
- 4445     format(10(i6,': ',i6,3x))
-        enddo
-        flush(lfnrnk)
       endif
       
       if(me.eq.master) then
@@ -2065,6 +2053,21 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnout)
         flush(lfnday)
         flush(lfntim)
+      endif
+      
+      if(me.eq.master) then
+        write(lfnrnk,4444)
+ 4444   format(//,' Number of tasks completed per rank',/)
+        nc=10
+        lc=np/nc
+        mc=mod(np,nc)
+        if(mc.gt.0) lc=lc+1
+        do i=1,lc
+          if(mc.gt.0.and.i.eq.lc) nc=mc
+          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
+ 4445     format(10(i6,': ',i6,3x))
+        enddo
+        flush(lfnrnk)
       endif
       
       if(me.eq.master) deallocate(numrecs)

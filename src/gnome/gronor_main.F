@@ -95,7 +95,7 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc
+      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
       character (len=3) :: ident(3)
       character (len=4) :: onlabel
@@ -1289,12 +1289,14 @@ c     use cuda_functions
           write(ident(1),'(a3)') '   '
           write(ident(2),'(a3)') '   '
           write(ident(3),'(a3)') '   '
-          do j=1,nc
+          nnc=nc
+          if(map2(i+(nc-1)*lc.gt.np) nnc=nnc-1
+          do j=1,nnc
             if(map2(i+(j-1)*lc,5).gt.0)
      &           write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
           enddo
           write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j),
-     &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nc)
+     &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nnc)
  6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
         enddo
         flush(lfnrnk)
@@ -2032,7 +2034,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(mc.gt.0) lc=lc+1
         do i=1,lc
           if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
+          nnc=nc
+          if(map2(i+(nc-1)*lc.gt.np) nnc=nnc-1
+          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nnc)
  4445     format(10(i6,': ',i8,3x))
         enddo
         flush(lfnrnk)

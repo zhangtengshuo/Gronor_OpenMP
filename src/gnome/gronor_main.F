@@ -70,7 +70,7 @@ c     use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer :: iarg,i,j,jp,idum(53),k,l
+      integer :: iarg,i,j,jp,idum(54),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
@@ -615,6 +615,7 @@ c     use cuda_functions
           idum(51)=load
           idum(52)=loada
           idum(53)=ngpus
+          idum(54)=num_threads
           
           rdum(1)=tau_CI
           rdum(2)=tau_CI
@@ -624,7 +625,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        ncount=53
+        ncount=54
         call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=6
@@ -687,6 +688,7 @@ c     use cuda_functions
         load   =idum(51)
         loada  =idum(52)
         ngpus  =idum(53)
+        num_threads = idum(54)
         
         int1=(nbas*(nbas+1))/2
         
@@ -893,9 +895,8 @@ c      endif
       numacc=0
       numnon=0
       do i=1,np
-c        if(map2(i,5).lt.0) map2(i,2)=numomp
-c        if(map2(i,5).eq.0) map2(i,2)=1
-c        if(i-1.eq.master) map2(i,5)=0
+        if(map2(i,5).lt.0) map2(i,2)=num_threads
+        if(map2(i,5).ge.0) map2(i,2)=1
         if(map2(i,5).gt.0) numacc=numacc+1
         if(map2(i,5).lt.0) numnon=numnon+1
       enddo
@@ -904,8 +905,7 @@ c        if(i-1.eq.master) map2(i,5)=0
       maxgrp=numacc+numnon
 
 #ifdef _OPENMP
-      if(numomp.gt.1) num_threads=numomp
-      if(map2(me+1,2).gt.1) call omp_set_num_threads(num_threads)
+      call omp_set_num_threads(map2(me+1,2))
 #endif
       
       allocate(thisgroup(mgr+1))

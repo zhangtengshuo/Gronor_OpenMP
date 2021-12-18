@@ -98,7 +98,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       
       num_threads=1
 
-      if(me.eq.master) num_threads=0
+      if(me.eq.master) num_threads=1
 
       allocate(map1(np,7),map2(np,7))
 

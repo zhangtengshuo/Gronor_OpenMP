@@ -51,40 +51,44 @@
       mynode=map2(me+1,6)
       
       if(me.eq.master) then
-        numc=16
-        lc=numgrp/numc
-        mc=mod(numgrp,numc)
-        if(mc.gt.0) lc=lc+1
-        nc=numc
-        write(lfnrnk,110)
- 110    format(//,' Allgroups G=Group A=Accel R=Rank')
-        do i=1,lc
-          if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,111) ((i-1)*numc+j,j=1,nc)
- 111      format(/,'       G:',20i8)
-          write(lfnrnk,112) (allgroups((i-1)*numc+j,1),j=1,nc)
- 112      format('       A:',20i8)
-          do k=2,mgr+1
-            write(lfnrnk,113) (allgroups((i-1)*numc+j,k),j=1,nc)
- 113        format('       R:',20i8)
+        if(ipr.ge.20) then
+          numc=16
+          lc=numgrp/numc
+          mc=mod(numgrp,numc)
+          if(mc.gt.0) lc=lc+1
+          nc=numc
+          write(lfnrnk,110)
+ 110      format(//,' Allgroups G=Group A=Accel R=Rank')
+          do i=1,lc
+            if(mc.gt.0.and.i.eq.lc) nc=mc
+            write(lfnrnk,111) ((i-1)*numc+j,j=1,nc)
+ 111        format(/,'       G:',20i8)
+            write(lfnrnk,112) (allgroups((i-1)*numc+j,1),j=1,nc)
+ 112        format('       A:',20i8)
+            do k=2,mgr+1
+              write(lfnrnk,113) (allgroups((i-1)*numc+j,k),j=1,nc)
+ 113          format('       R:',20i8)
+            enddo
           enddo
-        enddo
-        lc=np/3
-        mc=mod(np,3)
-        if(mc.gt.0) lc=lc+1
-        nc=3
-        write(lfnrnk,114)
- 114    format(//,' Rank map2 ND=NumDev DI=DevId Nt=NumThr',
-     &       ' Ac=Accel',//,
-     &       '    Rank  ND NT   Group    RSet Ac    Node DI  ',
-     &       '    Rank  ND NT   Group    RSet Ac    Node DI  ',
-     &       '    Rank  ND NT   Group    RSet Ac    Node DI',/)
-        do i=1,lc
-          if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,115) (i+(j-1)*lc-1,
-     &         (map2(i+(j-1)*lc,k),k=1,7),j=1,nc)
- 115      format(3(i8,':',2i3,2i8,i3,i8,i3,2x))
-        enddo
+        endif
+        if(ipr.ge.40) then
+          lc=np/3
+          mc=mod(np,3)
+          if(mc.gt.0) lc=lc+1
+          nc=3
+          write(lfnrnk,114)
+ 114      format(//,' Rank map2 ND=NumDev DI=DevId Nt=NumThr',
+     &         ' Ac=Accel',//,
+     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',
+     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',
+     &         '    Rank  ND NT   Group    RSet Ac    Node DI',/)
+          do i=1,lc
+            if(mc.gt.0.and.i.eq.lc) nc=mc
+            write(lfnrnk,115) (i+(j-1)*lc-1,
+     &           (map2(i+(j-1)*lc,k),k=1,7),j=1,nc)
+ 115        format(3(i8,':',2i3,2i8,i3,i8,i3,2x))
+          enddo
+        endif
       endif
 
       myigr=0

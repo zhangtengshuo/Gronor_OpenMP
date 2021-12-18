@@ -310,6 +310,11 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'Threads',item)) then
+           if(.not.inp_i(numomp)) num_threads=1
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'cpr',item)) then
           lcpr=.true.
           goto 2

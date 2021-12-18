@@ -832,45 +832,70 @@ c     use cuda_functions
         j=0
         do i=1,np
           if(map2(i,5).gt.0) j=j+1
-          if(i-1.eq.master) map2(i,5)=0
         enddo
         do i=1,min(np,nummps*j)
           map2(i,5)=map2(i,1)
-          if(i-1.eq.master) map2(i,5)=0
         enddo
       else
-        node=map2(1,4)
-        j=numgpu*map2(1,1)
         do i=1,np
-          if(map2(i,4).eq.node) then
-            if(j.gt.0) then
-              map2(i,5)=map2(i,1)
-              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-              j=j-1
-            else
-              map2(i,5)=-map2(i,2)
-            endif
+          if(map2(i,1).gt.0) then
+            map2(i,5)=map2(i,1)
+            map2(i,2)=1
           else
-            node=map2(i,4)
-            j=numgpu*map2(i,1)
-            if(j.gt.0) then
-              map2(i,5)=map2(i,1)
-              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-              j=j-1
-            else
-              map2(i,5)=-map2(i,2)
-            endif
+            map2(i,5)=-map2(i,2)
           endif
-          if(i-1.eq.master) map2(i,5)=0
         enddo
       endif
+      map2(master+1,5)=0
+      map2(master+1,2)=1
+
+!     Limit the number of accelerated ranks per node to naccel
+      
+      if(naccel.gt.0) then
+        node=-1
+        k=0
+        do i=1,np
+          if(map2(i,5).gt.0) then
+            if(map2(i,6).ne.node) k=0
+            node=map2(i,6)
+            k=k+1
+            if(k.gt.naccel) map2(i,5)=-map2(i,2)
+          endif
+        enddo
+      endif
+      
+c        node=map2(1,4)
+c        j=numgpu*map2(1,1)
+c        do i=1,np
+c          if(map2(i,4).eq.node) then
+c            if(j.gt.0) then
+c              map2(i,5)=map2(i,1)
+c              if(naccel.lt.0) map2(i,5)=-map2(i,2)
+c              j=j-1
+c            else
+c              map2(i,5)=-map2(i,2)
+c            endif
+c          else
+c            node=map2(i,4)
+c            j=numgpu*map2(i,1)
+c            if(j.gt.0) then
+c              map2(i,5)=map2(i,1)
+c              if(naccel.lt.0) map2(i,5)=-map2(i,2)
+c              j=j-1
+c            else
+c              map2(i,5)=-map2(i,2)
+c            endif
+c          endif
+c          if(i-1.eq.master) map2(i,5)=0
+c        enddo
+c      endif
 
       numacc=0
       numnon=0
       do i=1,np
-        if(map2(i,5).lt.0) map2(i,2)=numomp
-        if(map2(i,5).eq.0) map2(i,2)=1
-        if(i-1.eq.master) map2(i,5)=0
+c        if(map2(i,5).lt.0) map2(i,2)=numomp
+c        if(map2(i,5).eq.0) map2(i,2)=1
+c        if(i-1.eq.master) map2(i,5)=0
         if(map2(i,5).gt.0) numacc=numacc+1
         if(map2(i,5).lt.0) numnon=numnon+1
       enddo
@@ -879,7 +904,7 @@ c     use cuda_functions
       maxgrp=numacc+numnon
 
 #ifdef _OPENMP
-      if(numomp.gt.0) num_threads=numomp
+      if(numomp.gt.1) num_threads=numomp
       if(map2(me+1,2).gt.1) call omp_set_num_threads(num_threads)
 #endif
       
@@ -1303,6 +1328,18 @@ c     use cuda_functions
           write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j),
      &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nc)
  6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
+        enddo
+        flush(lfnrnk)
+        write(lfnrnk,4444)
+ 4444   format(//,' Number of tasks completed per rank',/)
+        nc=10
+        lc=np/nc
+        mc=mod(np,nc)
+        if(mc.gt.0) lc=lc+1
+        do i=1,lc
+          if(mc.gt.0.and.i.eq.lc) nc=mc
+          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
+ 4445     format(10(i6,': ',i6,3x))
         enddo
         flush(lfnrnk)
       endif

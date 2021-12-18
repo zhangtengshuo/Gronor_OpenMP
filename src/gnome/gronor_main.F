@@ -849,15 +849,15 @@ c     use cuda_functions
       map2(master+1,5)=0
       map2(master+1,2)=1
 
-!     Limit the number of accelerated ranks per node to naccel
+!     Limit the number of accelerated ranks per resource set to naccel
       
       if(naccel.gt.0) then
         node=-1
         k=0
         do i=1,np
           if(map2(i,5).gt.0) then
-            if(map2(i,6).ne.node) k=0
-            node=map2(i,6)
+            if(map2(i,4).ne.node) k=0
+            node=map2(i,4)
             k=k+1
             if(k.gt.naccel) map2(i,5)=-map2(i,2)
           endif

@@ -830,15 +830,6 @@ c     use cuda_functions
       
       allocate(ranks_heads(ngr+1))
 
-c      if(ncycls.gt.1) then
-c        j=0
-c        do i=1,np
-c          if(map2(i,5).gt.0) j=j+1
-c        enddo
-c        do i=1,min(np,nummps*j)
-c          map2(i,5)=map2(i,1)
-c        enddo
-c      else
         do i=1,np
           if(map2(i,1).gt.0) then
             map2(i,5)=map2(i,1)
@@ -847,51 +838,29 @@ c      else
             map2(i,5)=-map2(i,2)
           endif
         enddo
-c      endif
+
       map2(master+1,5)=0
       map2(master+1,2)=1
 
-!     Limit the number of accelerated ranks per resource set to naccel
+!     Limit the number of accelerated ranks per node to naccel
       
       if(naccel.gt.0) then
         node=-1
-        k=0
         do i=1,np
-          if(map2(i,5).gt.0) then
-            if(map2(i,4).ne.node) k=0
-            node=map2(i,4)
-            k=k+1
-            if(k.gt.naccel) map2(i,5)=-map2(i,2)
-          endif
+          node=max(node,map2(i,6))
+        enddo
+        l=-1
+        do i=1,node+1
+          k=0
+          do j=1,np
+            if(map2(i,6).eq.i-1.and.map2(i,5).gt.0) then
+              k=k+1
+              if(k.gt.naccel) map2(i,5)=-map2(i,2)
+            endif
+          enddo
         enddo
       endif
       
-c        node=map2(1,4)
-c        j=numgpu*map2(1,1)
-c        do i=1,np
-c          if(map2(i,4).eq.node) then
-c            if(j.gt.0) then
-c              map2(i,5)=map2(i,1)
-c              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-c              j=j-1
-c            else
-c              map2(i,5)=-map2(i,2)
-c            endif
-c          else
-c            node=map2(i,4)
-c            j=numgpu*map2(i,1)
-c            if(j.gt.0) then
-c              map2(i,5)=map2(i,1)
-c              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-c              j=j-1
-c            else
-c              map2(i,5)=-map2(i,2)
-c            endif
-c          endif
-c          if(i-1.eq.master) map2(i,5)=0
-c        enddo
-c      endif
-
       numacc=0
       numnon=0
       do i=1,np

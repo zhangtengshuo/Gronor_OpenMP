@@ -853,9 +853,9 @@ c     use cuda_functions
         do i=1,node+1
           k=0
           do j=1,np
-            if(map2(i,6).eq.i-1.and.map2(i,5).gt.0) then
+            if(map2(j,6).eq.i-1.and.map2(j,5).gt.0) then
               k=k+1
-              if(k.gt.naccel) map2(i,5)=-map2(i,2)
+              if(k.gt.naccel) map2(j,5)=-map2(j,2)
             endif
           enddo
         enddo

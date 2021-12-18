@@ -85,7 +85,7 @@
           do i=1,lc
             if(mc.gt.0.and.i.eq.lc) nc=mc
             nnc=nc
-            if(map2(i+(nc-1)*lc.gt.np) nnc=nnc-1
+            if(i+(nc-1)*lc.gt.np) nnc=nnc-1
             write(lfnrnk,115) (i+(j-1)*lc-1,
      &           (map2(i+(j-1)*lc,k),k=1,7),j=1,nnc)
  115        format(3(i8,':',2i3,2i8,i3,i8,i3,2x))

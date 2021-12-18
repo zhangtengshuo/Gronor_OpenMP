@@ -2064,7 +2064,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(mc.gt.0) lc=lc+1
         do i=1,lc
           if(mc.gt.0.and.i.eq.lc) nc=mc
-          write(lfnrnk,41445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
+          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nc)
  4445     format(10(i6,': ',i8,3x))
         enddo
         flush(lfnrnk)

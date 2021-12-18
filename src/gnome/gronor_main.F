@@ -849,7 +849,6 @@ c     use cuda_functions
         do i=1,np
           node=max(node,map2(i,6))
         enddo
-        l=-1
         do i=1,node+1
           k=0
           do j=1,np

@@ -828,15 +828,15 @@ c     use cuda_functions
       
       allocate(ranks_heads(ngr+1))
 
-      if(ncycls.gt.1) then
-        j=0
-        do i=1,np
-          if(map2(i,5).gt.0) j=j+1
-        enddo
-        do i=1,min(np,nummps*j)
-          map2(i,5)=map2(i,1)
-        enddo
-      else
+c      if(ncycls.gt.1) then
+c        j=0
+c        do i=1,np
+c          if(map2(i,5).gt.0) j=j+1
+c        enddo
+c        do i=1,min(np,nummps*j)
+c          map2(i,5)=map2(i,1)
+c        enddo
+c      else
         do i=1,np
           if(map2(i,1).gt.0) then
             map2(i,5)=map2(i,1)
@@ -845,7 +845,7 @@ c     use cuda_functions
             map2(i,5)=-map2(i,2)
           endif
         enddo
-      endif
+c      endif
       map2(master+1,5)=0
       map2(master+1,2)=1
 

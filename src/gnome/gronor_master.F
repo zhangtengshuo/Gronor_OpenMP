@@ -43,7 +43,7 @@
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,l,ndone,nleft,nrb
       integer :: igrp, ltemp, last, nthdet
-      logical :: osame,ofirst,owait
+      logical :: osame,ofirst,owait,oskipn
 
       real (kind=8) :: tsum
       real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
@@ -71,6 +71,7 @@
 
       ofirst=.true.
       owait=.false.
+      oskipn=numacc.gt.np/2
       
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
@@ -906,66 +907,68 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             lgroup(igrp,i)=0
           enddo
 
+          if(oskipn.and.map2(iremote+1,5).gt.0) then
 !     Send a duplicate of an outstanding entry
 
-          j=0
-          do i=1,npg
-            if(j.eq.0) then
-              last=last+1
-              if(last.gt.npg) last=last-npg
-              if(lgroup(last,5).eq.1) j=last
-            endif
-          enddo
-
-          if(j.gt.0) then
-
-c            call MPI_Wait(ireq,status,ierr)
-            
-            do i=1,4
-              ibuf(i)=lgroup(j,i)
+            j=0
+            do i=1,npg
+              if(j.eq.0) then
+                last=last+1
+                if(last.gt.npg) last=last-npg
+                if(lgroup(last,5).eq.1) j=last
+              endif
             enddo
+
+            if(j.gt.0) then
+
+c     call MPI_Wait(ireq,status,ierr)
+              
+              do i=1,4
+                ibuf(i)=lgroup(j,i)
+              enddo
 
 !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
 !     On the receiving worker rank a check for sign of first element indicates a duplicate 
 
-            ipbuf(1,iremote+1)=-ibuf(1)
-            ipbuf(2,iremote+1)=ibuf(2)
-            ipbuf(3,iremote+1)=ibuf(3)
-            ipbuf(4,iremote+1)=ibuf(4)
-            ncount=4
-            mpitag=2
+              ipbuf(1,iremote+1)=-ibuf(1)
+              ipbuf(2,iremote+1)=ibuf(2)
+              ipbuf(3,iremote+1)=ibuf(3)
+              ipbuf(4,iremote+1)=ibuf(4)
+              ncount=4
+              mpitag=2
 
-            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
-     &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+              call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+     &             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
 
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &             master,' sent duplicate ibuf to   ',iremote
-              flush(lfndbg)
-            endif
+              if(idbg.gt.10) then
+                call swatch(date,time)
+                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+     &               master,' sent duplicate ibuf to   ',iremote
+                flush(lfndbg)
+              endif
 
 !     Progress entry
 
-            if(ipro.eq.2.or.ipro.eq.4) then
-              call swatch(date,time)
-              write(lfnpro,682) date(1:8),time(1:8),
-     &             iremote,igrp,(ibuf(k),k=1,4),
-     &             iloop(ibuf(3),1),iloop(ibuf(3),2)
+              if(ipro.eq.2.or.ipro.eq.4) then
+                call swatch(date,time)
+                write(lfnpro,682) date(1:8),time(1:8),
+     &               iremote,igrp,(ibuf(k),k=1,4),
+     &               iloop(ibuf(3),1),iloop(ibuf(3),2)
 !     682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
-              flush(lfnpro)
-            endif
+                flush(lfnpro)
+              endif
 
 !     Store the buffer information sent to remote rank in lgroup
 
-            do k=1,4
-              lgroup(igrp,k)=ibuf(k)
-            enddo
-            lgroup(igrp,5)=2
-            lgroup(j,5)=2
+              do k=1,4
+                lgroup(igrp,k)=ibuf(k)
+              enddo
+              lgroup(igrp,5)=2
+              lgroup(j,5)=2
 
+            endif
           endif
 
         else

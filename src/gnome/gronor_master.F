@@ -907,7 +907,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             lgroup(igrp,i)=0
           enddo
 
-          if(oskipn.and.map2(iremote+1,5).gt.0) then
+          if(.not.oskipn.or.map2(iremote+1,5).gt.0) then
+            
 !     Send a duplicate of an outstanding entry
 
             j=0

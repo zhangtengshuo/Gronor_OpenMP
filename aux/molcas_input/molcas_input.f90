@@ -409,9 +409,7 @@
         if(operation.eq.'T') then
           read(options,*) xc
           do k=1,3
-            xc(k)=0.5d0*xc(k)
             do i=1,num
-              x1(i,k)=x1(i,k)-xc(k)
               x2(i,k)=x2(i,k)+xc(k)
             enddo
           enddo

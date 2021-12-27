@@ -11,7 +11,7 @@
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: a,x1(100,3),x2(100,3),xc(3),v(3),w(3),angle,x(3),y(3)
       character (len=255) :: basis(25),project
-      integer :: iunit,junit,nr,memory,nalter,ialter(3,25)
+      integer :: iunit,junit,kunit,lunit,nr,memory,nalter,ialter(3,25)
       character (len=1) :: operation
       logical :: done,aonly,caspt2
 
@@ -233,7 +233,7 @@
  99       continue
           close(unit=lfnnwo)
           num=num-1
-          filxyz=filnwo(1:index(filnwo,'.nwout'))//'xyz'
+          filxyz=filnwo(1:index(filnwo,'.nwout'))//'.xyz'
           open(unit=lfnxyz,file=filxyz)
           write(lfnxyz,102) num
  102      format(i5,/,'Coordinates in Angstrom')
@@ -265,7 +265,7 @@
  991       continue
           close(unit=lfnnwo)
           num=num-1
-          filxyz=filnwo(1:index(filnwo,'.nwout'))//'xyz'
+          filxyz=filnwo(1:index(filnwo,'.nwout'))//'.xyz'
           open(unit=lfnxyz,file=filxyz)
           write(lfnxyz,102) num
           do i=1,num
@@ -749,8 +749,15 @@
           close(unit=iunit)
           
           open(unit=iunit,file=trim(project)//'_D.input')
+          junit=12
           open(unit=junit,file=trim(project)//'_dimer.xyz')
+          kunit=13
+          open(unit=kunit,file=trim(project)//'_A.xyz')
+          lunit=14
+          open(unit=lunit,file=trim(project)//'_B.xyz')
           write(junit,102) 2*num
+          write(kunit,102) num
+          write(lunit,102) num
           
           write(iunit,200)
           do j=1,numa
@@ -770,6 +777,7 @@
                     write(iunit,203) nam(j),nt,x1(i,1),x1(i,2),x1(i,3)
                   endif
                   write(junit,103) atom(i),x1(i,1),x1(i,2),x1(i,3)
+                  write(kunit,103) atom(i),x1(i,1),x1(i,2),x1(i,3)
                 endif
               enddo
               write(iunit,204)
@@ -793,6 +801,7 @@
                     write(iunit,203) nam(j),nt+nt0,x2(i,1),x2(i,2),x2(i,3)
                   endif
                   write(junit,103) atom(i),x2(i,1),x2(i,2),x2(i,3)
+                  write(lunit,103) atom(i),x2(i,1),x2(i,2),x2(i,3)
                 endif
               enddo
               write(iunit,204)
@@ -804,6 +813,8 @@
 
           close(unit=iunit)
           close(unit=junit)
+          close(unit=kunit)
+          close(unit=lunit)
           
           open(unit=iunit,file=trim(project)//'_M.input')
           
@@ -880,6 +891,12 @@
           
           close(unit=iunit)
           
+          open(unit=iunit,file=trim(project)//'_R.input')
+          write(iunit,701)
+701       format('xyzfiles',/,' fragA.xyz',/,' fragB.xyz',/, &
+              ' 1 1',/,' 2 2',/,' 3 3')
+          close(unit=iunit)
+          
           open(unit=iunit,file=trim(project)//'_ss.run')
 
           if(aonly) then
@@ -954,6 +971,126 @@
               'setenv PROJECT "',a,'"',/, &
               'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
               'pymolcas -clean $PROJECT"_SB.input" >> $PROJECT".output"',/, &
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT".output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+          
+          close(unit=iunit)
+          
+          open(unit=iunit,file=trim(project)//'_ssr.run')
+
+          if(aonly) then
+            write(iunit,1313) nr,memory,trim(project),nr,nr
+          else
+            write(iunit,1213) nr,memory,trim(project),nr,nr
+          endif
+1213      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
+              'cp $PROJECT"_A.xyz" "fragA.xyz"',/, &
+              'cp $PROJECT"_B.xyz" "fragB.xyz"',/, &
+              'cp RUNFIL1 RUNFILE',/, &
+              'foreach n ( 1 2 3 4 5 )',/, &
+              ' cp "INPORB.1_"$n INPORB',/, &
+              ' rotharm3 < $PROJECT"_R.input"',/, &
+              ' cp ROTORB "INPORB.2_"$n',/, &
+              ' cp transrot.xyz $PROJECT"_2_"$n".xyz"',/, &
+              'end',/,&
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT".output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+1313      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_A.input" > $PROJECT".output"',/, &
+              'cp $PROJECT"_A.xyz" "fragA.xyz"',/, &
+              'cp $PROJECT"_B.xyz" "fragB.xyz"',/, &
+              'cp RUNFIL1 RUNFILE',/, &
+              'foreach n ( 1 2 3 4 5 )',/, &
+              ' cp "INPORB.1_"$n INPORB',/, &
+              ' rotharm3 < $PROJECT"_R.input"',/, &
+              ' cp ROTORB "INPORB.2_"$n',/, &
+              ' cp transrot.xyz $PROJECT"_2_"$n".xyz"',/, &
+              'end',/,&
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT".output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+          
+          close(unit=iunit)
+          
+          open(unit=iunit,file=trim(project)//'_sar.run')
+
+          if(aonly) then
+            write(iunit,1513) nr,memory,trim(project),nr,nr
+          else
+            write(iunit,1413) nr,memory,trim(project),nr,nr
+          endif
+1413      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
+              'cp $PROJECT"_A.xyz" "fragA.xyz"',/, &
+              'cp $PROJECT"_B.xyz" "fragB.xyz"',/, &
+              'cp RUNFIL1 RUNFILE',/, &
+              'foreach n ( 1 2 3 4 5 )',/, &
+              ' cp "INPORB.1_"$n INPORB',/, &
+              ' rotharm3 < $PROJECT"_R.input"',/, &
+              ' cp ROTORB "INPORB.2_"$n',/, &
+              ' cp transrot.xyz $PROJECT"_2_"$n".xyz"',/, &
+              'end',/,&
+              'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
+              'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &
+              ' $PROJECT".output" | cut -b42- `',/, &
+              'touch TRAINT',/, &
+              'pymolcas -clean $PROJECT"_M.input" >> $PROJECT".output"',/, &
+              'setenv OMP_NUM_THREADS ',i3,/, &
+              'rdcho $MOLCAS_NPROCS >> $PROJECT".output"',/, &
+              'rdtraint < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
+              'unsetenv DELETED',/, &
+              '#mpirun -n',i3,' gronor $PROJECT"_dimer" >> $PROJECT".output"')
+1513      format('#!/usr/bin/tcsh',/, &
+              'setenv MOLCAS_NPROCS ',i3,/, &
+              'setenv MOLCAS_MEM ',i5,/, &
+              'setenv PROJECT "',a,'"',/, &
+              'pymolcas -clean $PROJECT"_SA.input" > $PROJECT".output"',/, &
+              'cp $PROJECT"_A.xyz" "fragA.xyz"',/, &
+              'cp $PROJECT"_B.xyz" "fragB.xyz"',/, &
+              'cp RUNFIL1 RUNFILE',/, &
+              'foreach n ( 1 2 3 4 5 )',/, &
+              ' cp "INPORB.1_"$n INPORB',/, &
+              ' rotharm3 < $PROJECT"_R.input"',/, &
+              ' cp ROTORB "INPORB.2_"$n',/, &
+              ' cp transrot.xyz $PROJECT"_2_"$n".xyz"',/, &
+              'end',/,&
               'pymolcas -clean $PROJECT"_D.input" >> $PROJECT".output"',/, &
               'common_basis < $PROJECT"_CB.input" >> $PROJECT".output"',/, &
               'setenv DELETED ` grep "Deleted orbitals in MOTRA"', &

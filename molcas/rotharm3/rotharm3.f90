@@ -182,7 +182,7 @@ data keyword /'XYZF','TARG','NOIN' /
 t1(1) = 1     ! target atom of molecule 1 for centering 
 t1(2) = 1     ! same for molecule 2
 t2(1) = 2     ! target atom of molecule 1 to rotate on the x-axis
-t2(1) = 2     ! same for molecule 2
+t2(2) = 2     ! same for molecule 2
 t3(1) = 3     ! target atom of molecule 1 to rotate in the yz plane
 t3(2) = 3     ! same for molecule 2
 inporb = .true.
@@ -388,7 +388,7 @@ if ( i .eq. 2 ) then
                     (z(1,t2(1))-z(2,t2(2)))**2 )
   if (distance .gt. 0.3) then
     write(*,*) 'warning'
-    write(*,*) 'distance between third target atoms ',distance
+    write(*,*) 'distance between second target atoms ',distance
     write(*,*) 'please, check the results'
   end if
 end if

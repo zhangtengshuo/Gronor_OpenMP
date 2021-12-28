@@ -165,7 +165,6 @@ implicit none
 integer, parameter                  :: nKeys = 3
 integer                             :: iKey,jj
 
-character(len=1)                    :: rotaxis
 character(len=4), dimension(nKeys)  :: keyword
 character(len=4)                    :: key
 character(len=132)                  :: line
@@ -388,7 +387,7 @@ if ( i .eq. 2 ) then
                     (z(1,t2(1))-z(2,t2(2)))**2 )
   if (distance .gt. 0.3) then
     write(*,*) 'warning'
-    write(*,*) 'distance between second target atoms ',distance
+    write(*,*) 'distance between third target atoms ',distance
     write(*,*) 'please, check the results'
   end if
 end if
@@ -729,7 +728,19 @@ do j = 1, nBas
   write(12,'(5E22.14)') (rotvec(j,k),k=1,nBas)
 end do
 write(12,'(A4)') '#OCC'
+write(12,'(A20)') '* Occupation Numbers'
 write(12,'(5e22.14)')(nOcc(j),j=1,nBas)
+write(12,'(A6)')'#INDEX'
+write(12,'(A12)')'* 1234567890'
+do j = 1, nBas, 10
+  if ( j + 9 .le. nBas) then
+    write(12,602)mod(int(j/10),10),(orbLabel(k),k=j,j+9)
+  else
+    write(12,602)mod(int(j/10),10),(orbLabel(k),k=j,nBas)
+  end if
+end do
+602  format(I1,x,10A1)
+deallocate(orbLabel)
 
 end subroutine write_rotvec
 

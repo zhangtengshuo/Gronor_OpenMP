@@ -25,13 +25,19 @@ public class GronOR_Fragment {
 	
 	Integer fragmentID = 0, numAtoms=0, numOcc=0;
 	String fragmentName = " ";
+	String fragmentRoot = " ";
 	String fragmentAXYZ, fragmentXYZ, nwchemOutput;
 
 	Double[][] coordinates = new Double[maxAtoms][3];
 	String[] atomLabel = new String[maxAtoms];
+
+	Double[] v = new Double[] {0.0,0.0,0.0};
+	Double[] w = new Double[] {0.0,0.0,0.0};
+	Double[] x = new Double[] {0.0,0.0,0.0};
+	Double[] y = new Double[] {0.0,0.0,0.0};
+	Double g = 0.0;
 	
-	Double[] v,w,x,y = new Double[3];
-	Double g;
+	Double RandT[] = new Double[6];
 	
 	Integer numAlt;
 	Integer[][] alter = new Integer[12][2];
@@ -39,18 +45,42 @@ public class GronOR_Fragment {
 	GronOR_Fragment(){
 	}
 
-	public void initialize(String fName, Integer numE) {
-		fragmentName=fName;
+	public void initialize(String nameP, String nameA, String nameB, Integer numE, Double[] rt) {
+		fragmentRoot=nameP;
+		fragmentName=nameP.trim()+nameB.trim();
+		Boolean fileExistsB = read_XYZ();
+		fragmentName=nameP.trim()+nameA.trim();
+		Boolean fileExistsA = read_XYZ();
 		numOcc = numE / 2;
+		for(int i=0; i<6; i++) RandT[i]=rt[i];
 		if(read_XYZ()) {
+			fragmentName=nameP.trim()+nameB.trim();
+			if(!nameB.trim().equals(nameA.trim())) {
+				rotate_AND_translate(RandT);
+				write_XYZ();
+			}
+		} else {
 			if(NWChem_Converged()) {
-				if(!write_XYZ()) System.exit(0);
+				if(!nameB.trim().equals(nameA.trim())) {
+					rotate_AND_translate(RandT);
+					if(!write_XYZ()) System.exit(0);
+				}
 			}
 		}
 	}
 
-	public void write_Run_Script(Integer frag, Integer states, Integer ranks) {
-		String rootName = fragmentName.trim()+fragmentNames[frag].trim();
+	public void initialize2(String nameP, String nameA, Integer numE) {
+		fragmentRoot=nameP;
+		fragmentName=nameP.trim()+nameA.trim();
+		numOcc = numE / 2;
+		if(read_XYZ()) {
+		} else {
+			System.out.println("XYZ file "+fragmentName+".xyz not found"); System.exit(0);
+		}
+	}
+	
+	public void write_Run_Script_Fragments(Integer frag, Integer states, Integer ranks) {
+		String rootName = fragmentRoot.trim()+fragmentNames[frag].trim();
 		String fileName = rootName.trim()+".run";
 		String fullName;
 		try {
@@ -66,6 +96,41 @@ public class GronOR_Fragment {
 				fullName = rootName.trim()+"_"+stateLabels[i].trim();
 				runFile.println("cp "+fullName.trim()+".input "+rootName.trim()+".input; "+"pymolcas "+rootName.trim()+".input > "+fullName.trim()+".output");
 			}
+			runFile.close();
+		} catch(IOException ei) {
+		}
+	}
+
+	public void write_Run_Script_MEBFs(String p, Integer ranks) {
+		String fileName = p+"_Molcas.run";
+		String fullName;
+		try {
+			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
+			runFile.println("#!/usr/bin/tcsh");
+			runFile.println("setenv MOLCAS_NPROCS "+ranks);
+			runFile.println("setenv MOLCAS_MEM 1024");
+			fullName = p.trim()+"_MEBFONE";
+			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
+			fullName = p.trim()+"_MEBFCB";
+			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"common_basis < "+p.trim()+".input > "+fullName.trim()+".output");
+			fullName = p.trim()+"_MEBFCB";
+			runFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\""+fullName.trim()+".output | cut -b42- `");
+			runFile.println("touch TRAINT");
+			fullName = p.trim()+"_MEBFTWO";
+			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
+			runFile.println("setenv OMP_NUM_THREADS 12");
+			fullName = p.trim()+"_MEBFRT";
+			runFile.println("rdcho $MOLCAS_NPROCS > "+fullName.trim()+".output");
+			runFile.println("unsetenv DELETED");
+			runFile.close();
+		} catch(IOException ei) {
+		}
+		fileName = p+"_GronOR.run";
+		try {
+			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
+			runFile.println("#!/usr/bin/tcsh");
+			fullName= p+"_GronOR";
+			runFile.println("mpirun -n "+ranks+" gronor "+fullName);
 			runFile.close();
 		} catch(IOException ei) {
 		}
@@ -115,7 +180,7 @@ public class GronOR_Fragment {
 	}
 
 	public Boolean NWChem_Converged() {
-		String fileName = fragmentName+".nwout";
+		String fileName = fragmentRoot+".nwout";
 		String card;
 		Boolean converged = false;
 		Double energy = 0.0;
@@ -146,7 +211,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Double NWChem_DFT() {
-		String fileName = fragmentName+".nwout";
+		String fileName = fragmentRoot+".nwout";
 		String card;
 		Boolean converged = false;
 		Double energy = 0.0;
@@ -206,7 +271,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean write_Molcas_Int(Integer frag) {
-		String fileName = fragmentName+fragmentNames[frag]+"_INT.input";
+		String fileName = fragmentRoot+fragmentNames[frag]+"_INT.input";
 		String previous;
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -233,7 +298,7 @@ public class GronOR_Fragment {
 				inputFile.printf("%12.8f",coordinates[i][0]);
 				inputFile.printf("%12.8f",coordinates[i][1]);
 				inputFile.printf("%12.8f",coordinates[i][2]);
-				inputFile.println();
+				inputFile.println(" Angstrom");
 				previous=atomLabel[i].trim();
 		    }
 		    inputFile.println("end basis set");
@@ -245,7 +310,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean write_Molcas_SCF(Integer frag) {
-		String fileName = fragmentName+fragmentNames[frag]+"_SCF.input";
+		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
@@ -261,8 +326,8 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean write_Molcas_CASSCF(Integer frag, Integer state, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
-		String fileName = fragmentName.trim()+fragmentNames[frag].trim()+"_"+stateLabels[state].trim()+".input";
-		String rootName=fragmentName.trim()+fragmentNames[frag].trim();
+		String fileName = fragmentRoot.trim()+fragmentNames[frag].trim()+"_"+stateLabels[state].trim()+".input";
+		String rootName=fragmentRoot.trim()+fragmentNames[frag].trim();
 		String ext = "_"+stateLabels[state];
 		try {
 			Integer Inact = numOcc - numCASe/2;
@@ -438,8 +503,8 @@ public class GronOR_Fragment {
 		return false;
 	}
 	
-	public Boolean Molcas_SCF_Converged(Integer numCASe) {
-		String fileName = fragmentName+"_SCF.output";
+	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe) {
+		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.output";
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -544,8 +609,8 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public Double Molcas_SCF(Integer numCASe) {
-		String fileName = fragmentName+"_SCF.output";
+	public Double Molcas_SCF(Integer frag, Integer numCASe) {
+		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.output";
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -646,13 +711,12 @@ public class GronOR_Fragment {
 			br.close();
 			return energy;
 		} catch(IOException ef) {
-			System.out.println("IOException in SCF energy output");
 			return energy;
 		}
 	}
 	
 	public Integer Molcas_CASSCF_Converged(Integer frag, Integer state) {
-		String fileName = fragmentName+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -678,7 +742,7 @@ public class GronOR_Fragment {
 	}
 
 	public Double Molcas_CASSCF(Integer frag, Integer state) {
-		String fileName = fragmentName+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -704,7 +768,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Double Molcas_CASPT2(Integer frag, Integer state) {
-		String fileName = fragmentName+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -728,8 +792,221 @@ public class GronOR_Fragment {
 			return 0.0;
 		}
 	}
+
+	public Boolean write_MEBF_XYZ(String p, String pn, Integer n, String[] frags) {
+		String fileName = p+".xyz";
+		Integer numberAtoms = 0;
+		for(int j=0; j<n; j++) {
+			initialize2(pn, frags[j], 2);
+			numberAtoms=numberAtoms+numAtoms;
+		}
+		try {
+			PrintfWriter xyzFile = new PrintfWriter(new FileWriter(fileName));
+			xyzFile.printf("%6d",numberAtoms);
+			xyzFile.println();
+			xyzFile.println("Coordinates in Angstrom");
+			for(int j=0; j<n; j++) {
+				initialize2(pn, frags[j], 2);
+				for(int i=0; i<numAtoms; i++) {
+					xyzFile.print(atomLabel[i]); 
+					xyzFile.printf("%12.8f",coordinates[i][0]);
+					xyzFile.printf("%12.8f",coordinates[i][1]);
+					xyzFile.printf("%12.8f",coordinates[i][2]);
+					xyzFile.println();
+				}
+			}
+			xyzFile.close();
+			return true;
+		} catch(IOException ei) {
+			return false;
+		}
+	}
 	
-	public void rotate_AND_translate(Double tx, Double ty, Double tz, Double rx, Double ry, Double rz) {
+	public void write_Molcas_MEBF_One(String p, String pn, Integer n, String[] frags) {
+		String fileName = p+"_MEBFONE.input";
+		String previous;
+		Integer atomNumber=0;
+		Integer maxElement = 45;
+		Integer[] counts = new Integer[maxElement];
+		for(int i=0; i<maxElement; i++) counts[i]=0;
+		try {
+			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+			inputFile.println("&seward");
+			inputFile.println("high cholesky");
+			for(int j=0; j<n; j++) {
+				initialize2(pn, frags[j], 2);
+			    previous=" ";
+			    for(int i=0; i<numAtoms; i++) {
+			    	if(!atomLabel[i].trim().equals(previous)) {
+			    		previous=atomLabel[i].trim();
+			    		if(i>0) inputFile.println("end basis set");
+			    		inputFile.println("basis set");
+			    		if(previous.equals("H")) {
+			    			inputFile.println("h.ano-s...3s3p.");
+			    			atomNumber=1;
+			    		}
+			    		if(previous.equals("C")) {
+			    			inputFile.println("c.ano-s...4s3p2d.");
+			    			atomNumber=6;
+			    		}
+			    		if(previous.equals("N")) {
+			    			inputFile.println("n.ano-s...4s3p2d.");
+			    			atomNumber=7;
+			    		}
+			    		if(previous.equals("O")) {
+			    			inputFile.println("o.ano-s...4s3p2d.");
+			    			atomNumber=8;
+			    		}
+			    		if(previous.equals("F")) {
+			    			inputFile.println("f.ano-s...4s3p2d.");
+			    			atomNumber=9;
+			    		}
+			    		if(previous.equals("Cl")) {
+			    			inputFile.println("cl.ano-s...4s3p2d.");
+			    			atomNumber=17;
+			    		}
+			    		if(previous.equals("Br")) {
+			    			inputFile.println("br.ano-s...4s3p2d.");
+			    			atomNumber=35;
+			    		}
+			    	}
+			    	counts[atomNumber]++;
+			    	inputFile.print(atomLabel[i].trim()+counts[atomNumber]+" "); 
+					inputFile.printf("%12.8f",coordinates[i][0]);
+					inputFile.printf("%12.8f",coordinates[i][1]);
+					inputFile.printf("%12.8f",coordinates[i][2]);
+					inputFile.println(" Angstrom");
+					previous=atomLabel[i].trim();
+			    }
+			    inputFile.println("end basis set");
+			    inputFile.println("oneonly");
+			    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/RUNFILE");
+			}
+		    inputFile.close();
+//		    return true;
+		} catch(IOException e) {
+//			return false;
+		}
+	}
+
+	public void write_Molcas_MEBF_Two(String p, String pn, Integer n, String[] frags) {
+		String fileName = p+"_MEBFTWO.input";
+		String previous;
+		Integer atomNumber=0;
+		Integer maxElement = 45;
+		Integer[] counts = new Integer[maxElement];
+		for(int i=0; i<maxElement; i++) counts[i]=0;
+		try {
+			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+			inputFile.println("&seward");
+			inputFile.println("high cholesky");
+			for(int j=0; j<n; j++) {
+				initialize2(pn, frags[j], 2);
+			    previous=" ";
+			    for(int i=0; i<numAtoms; i++) {
+			    	if(!atomLabel[i].trim().equals(previous)) {
+			    		previous=atomLabel[i].trim();
+			    		if(i>0) inputFile.println("end basis set");
+			    		inputFile.println("basis set");
+			    		if(previous.equals("H")) {
+			    			inputFile.println("h.ano-s...3s3p.");
+			    			atomNumber=1;
+			    		}
+			    		if(previous.equals("C")) {
+			    			inputFile.println("c.ano-s...4s3p2d.");
+			    			atomNumber=6;
+			    		}
+			    		if(previous.equals("N")) {
+			    			inputFile.println("n.ano-s...4s3p2d.");
+			    			atomNumber=7;
+			    		}
+			    		if(previous.equals("O")) {
+			    			inputFile.println("o.ano-s...4s3p2d.");
+			    			atomNumber=8;
+			    		}
+			    		if(previous.equals("F")) {
+			    			inputFile.println("f.ano-s...4s3p2d.");
+			    			atomNumber=9;
+			    		}
+			    		if(previous.equals("Cl")) {
+			    			inputFile.println("cl.ano-s...4s3p2d.");
+			    			atomNumber=17;
+			    		}
+			    		if(previous.equals("Br")) {
+			    			inputFile.println("br.ano-s...4s3p2d.");
+			    			atomNumber=35;
+			    		}
+			    	}
+			    	counts[atomNumber]++;
+			    	inputFile.print(atomLabel[i].trim()+counts[atomNumber]+" "); 
+					inputFile.printf("%12.8f",coordinates[i][0]);
+					inputFile.printf("%12.8f",coordinates[i][1]);
+					inputFile.printf("%12.8f",coordinates[i][2]);
+					inputFile.println(" Angstrom");
+					previous=atomLabel[i].trim();
+			    }
+			    inputFile.println("end basis set");   
+			}
+		    inputFile.println(">>> COPY $CurrDir/COMMONORB INPORB");
+		    inputFile.println();
+		    inputFile.println("&motra");
+		    inputFile.println("LumOrb");
+		    inputFile.println("frozen");
+		    inputFile.println(" 0");
+		    inputFile.println("deleted");
+		    inputFile.println(" $DELETED");
+		    inputFile.println("ctonly");
+		    inputFile.println("kpq");
+		    inputFile.println();
+		    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/RUNFILE");
+		    inputFile.println(">>> COPY "+p+".OneInt  $CurrDir/ONEINT");
+		    inputFile.println(">>> COPY "+p+".TraOne  $CurrDir/TRAONE");
+		    inputFile.println(">>> COPY "+p+".ChVec1  $CurrDir/CHVEC1");
+		    inputFile.println(">>> COPY "+p+".ChRed   $CurrDir/CHRED");
+		    inputFile.println(">>> COPY "+p+".ChRst   $CurrDir/CHORST");
+		    inputFile.println(">>> COPY "+p+".ChMap   $CurrDir/CHOMAP");
+		    inputFile.println(">>> COPY CHMOT1        $CurrDir/CHMOT1");
+		    inputFile.println(">>> eval NPROCS = $MOLCAS_NPROCS - 1");
+		    inputFile.println(">>> foreach L in (1 .. $NPROCS )");
+		    inputFile.println(">>> shell cat tmp_$L/_CHMOT1 >> $CurrDir/_CHMOT1");
+		    inputFile.println(">>> enddo");
+		    inputFile.close();
+//		    return true;
+		} catch(IOException e) {
+//			return false;
+		}
+	}
+
+	public void write_Molcas_MEBF_CB(String p, Integer n, Integer[] states) {
+		String fileName = p+"_MEBFCB.input";
+		try {
+			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+			inputFile.println("Project");
+			inputFile.println(p);
+			inputFile.println("Fragments");
+			inputFile.printf("%3d",n); inputFile.println();
+			for(int i=0; i<n; i++) inputFile.printf("%3d",states[i]); inputFile.println();
+			inputFile.println("Threshold");
+			inputFile.println(" 1.0e-5");
+			inputFile.println("Labels");
+			for(int i=0; i<n; i++) {
+				for(int j=0; j<states[i]; j++) inputFile.print(" "+stateLabels[j].trim());
+			}
+			inputFile.println();
+			inputFile.println("Energies");
+		    inputFile.close();
+			} catch(IOException e) {
+			}
+		
+	}
+
+	public void rotate_AND_translate(Double[] rt) {
+		Double tx=rt[0];
+		Double ty=rt[1];
+		Double tz=rt[2];
+		Double rx=rt[3];
+		Double ry=rt[4];
+		Double rz=rt[5];
 		v[0]=0.0;
 		v[1]=0.0;
 		v[2]=0.0;

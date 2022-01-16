@@ -89,7 +89,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 //				System.out.println("NUMOCC="+numOcc);
 				Integer Inact = numOcc - numCASe/2;
 				if(option2==1) {
-					molcasInput = projectName.trim()+"_AS0.input";
+					molcasInput = projectName.trim()+"A_S0.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -111,7 +111,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==2) {
-					molcasInput = projectName.trim()+"_AS1.input";
+					molcasInput = projectName.trim()+"A_S1.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -139,7 +139,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==3) {
-					molcasInput = projectName.trim()+"_AT1.input";
+					molcasInput = projectName.trim()+"A_T1.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -161,7 +161,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==4) {
-					molcasInput = projectName.trim()+"_ADp.input";
+					molcasInput = projectName.trim()+"A_D+.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -183,7 +183,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==5) {
-					molcasInput = projectName.trim()+"_ADm.input";
+					molcasInput = projectName.trim()+"A_D-.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -205,7 +205,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==6) {
-					molcasInput = projectName.trim()+"_AS2.input";
+					molcasInput = projectName.trim()+"A_S2.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");
@@ -233,7 +233,7 @@ public class GronOR_Molcas extends JFrame implements ActionListener, ChangeListe
 					inputFile.close();
 				}
 				if(option2==7) {
-					molcasInput = projectName.trim()+"_AT2.input";
+					molcasInput = projectName.trim()+"A_T2.input";
 					PrintfWriter inputFile = new PrintfWriter(new FileWriter(molcasInput));
 					inputFile.println("&rasscf");
 					inputFile.println("nactel");

@@ -56,7 +56,7 @@ public class GronOR_Window extends JFrame implements ActionListener, ChangeListe
 	    				    	chooser.showOpenDialog(dialogFrame);
 	    				    	prjFile = chooser.getSelectedFile().toString();
 	    				    };
-	    					projectName=prjFile.substring(0,prjFile.indexOf(".prj"));
+	    					projectName=prjFile.substring(prjFile.lastIndexOf("/")+1,prjFile.indexOf(".prj"));
 	    					GronOR_Project project = new GronOR_Project(projectName);
 //	    					project.setVisible(true);
 	    				} } );

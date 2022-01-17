@@ -19,6 +19,7 @@ public class GronOR_Fragment {
 	Integer maxAtoms = 100;
 	
 	String framentName;
+	String projectRoot;
 	
 	String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H"};
     String[] stateLabels = new String[] {"S0", "S1", "T1", "D-", "D+", "S2", "T2"};
@@ -45,22 +46,26 @@ public class GronOR_Fragment {
 	GronOR_Fragment(){
 	}
 
-	public void initialize(String nameP, String nameA, String nameB, Integer numE, Double[] rt) {
-		fragmentRoot=nameP;
-		fragmentName=nameP.trim()+nameB.trim();
+	public void initialize(String nameP, String nameF, String nameA, String nameB, Integer numE, Double[] rt) {
+		Boolean writeFile = false; 
+		projectRoot=nameP;
+		fragmentRoot=nameF;
+		if(!projectRoot.trim().equals(fragmentRoot.trim())) writeFile=true;
+		if(!nameB.trim().equals(nameA.trim())) writeFile=true;
+		fragmentName=nameF.trim()+nameB.trim();
 		Boolean fileExistsB = read_XYZ();
-		fragmentName=nameP.trim()+nameA.trim();
+		fragmentName=nameF.trim()+nameA.trim();
 		Boolean fileExistsA = read_XYZ();
 		numOcc = numE / 2;
 		for(int i=0; i<6; i++) RandT[i]=rt[i];
 		if(read_XYZ()) {
 			fragmentName=nameP.trim()+nameB.trim();
-			if(!nameB.trim().equals(nameA.trim())) {
+			if(writeFile) {
 				rotate_AND_translate(RandT);
 				write_XYZ();
 			}
 		} else {
-			if(NWChem_Converged()) {
+			if(NWChem_Converged(0)) {
 				if(!nameB.trim().equals(nameA.trim())) {
 					rotate_AND_translate(RandT);
 					if(!write_XYZ()) System.exit(0);
@@ -69,9 +74,9 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public void initialize2(String nameP, String nameA, Integer numE) {
-		fragmentRoot=nameP;
-		fragmentName=nameP.trim()+nameA.trim();
+	public void initialize2(String nameF, String nameA, Integer numE) {
+		fragmentRoot=nameF;
+		fragmentName=nameF.trim()+nameA.trim();
 		numOcc = numE / 2;
 		if(read_XYZ()) {
 		} else {
@@ -80,7 +85,7 @@ public class GronOR_Fragment {
 	}
 	
 	public void write_Run_Script_Fragments(Integer frag, Integer states, Integer ranks) {
-		String rootName = fragmentRoot.trim()+fragmentNames[frag].trim();
+		String rootName = projectRoot.trim()+fragmentNames[frag].trim();
 		String fileName = rootName.trim()+".run";
 		String fullName;
 		try {
@@ -179,8 +184,8 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public Boolean NWChem_Converged() {
-		String fileName = fragmentRoot+".nwout";
+	public Boolean NWChem_Converged(Integer frag) {
+		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nwout";
 		String card;
 		Boolean converged = false;
 		Double energy = 0.0;
@@ -210,8 +215,8 @@ public class GronOR_Fragment {
 		return converged;
 	}
 	
-	public Double NWChem_DFT() {
-		String fileName = fragmentRoot+".nwout";
+	public Double NWChem_DFT(Integer frag) {
+		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nwout";
 		String card;
 		Boolean converged = false;
 		Double energy = 0.0;
@@ -241,8 +246,8 @@ public class GronOR_Fragment {
 		return energy;
 	}
 	
-	public void write_NWChem_DFT() {
-		String fileName = fragmentName+".nw";
+	public void write_NWChem_DFT(Integer frag) {
+		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nw";
 		try {
 			PrintfWriter nwFile = new PrintfWriter(new FileWriter(fileName));
 			nwFile.println("start "+projectName+fragmentName);
@@ -267,11 +272,11 @@ public class GronOR_Fragment {
 			nwFile.println("task dft optimize");
 			nwFile.close();
 		} catch(IOException e) {
-		}
+		}		
 	}
 	
 	public Boolean write_Molcas_Int(Integer frag) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_INT.input";
+		String fileName = projectRoot+fragmentNames[frag]+"_INT.input";
 		String previous;
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -310,7 +315,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean write_Molcas_SCF(Integer frag) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.input";
+		String fileName = projectRoot+fragmentNames[frag]+"_SCF.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
@@ -326,8 +331,8 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean write_Molcas_CASSCF(Integer frag, Integer state, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
-		String fileName = fragmentRoot.trim()+fragmentNames[frag].trim()+"_"+stateLabels[state].trim()+".input";
-		String rootName=fragmentRoot.trim()+fragmentNames[frag].trim();
+		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateLabels[state].trim()+".input";
+		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
 		String ext = "_"+stateLabels[state];
 		try {
 			Integer Inact = numOcc - numCASe/2;
@@ -504,7 +509,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.output";
+		String fileName = projectRoot+fragmentNames[frag]+"_SCF.output";
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -610,7 +615,7 @@ public class GronOR_Fragment {
 	}
 
 	public Double Molcas_SCF(Integer frag, Integer numCASe) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_SCF.output";
+		String fileName = projectRoot+fragmentNames[frag]+"_SCF.output";
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -716,7 +721,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Integer Molcas_CASSCF_Converged(Integer frag, Integer state) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = projectRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -742,7 +747,7 @@ public class GronOR_Fragment {
 	}
 
 	public Double Molcas_CASSCF(Integer frag, Integer state) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = projectRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -768,7 +773,7 @@ public class GronOR_Fragment {
 	}
 	
 	public Double Molcas_CASPT2(Integer frag, Integer state) {
-		String fileName = fragmentRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
+		String fileName = projectRoot+fragmentNames[frag]+"_"+stateLabels[state]+".output";
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;

@@ -145,6 +145,11 @@
       logical :: odbg,odupl,oterm,otreq,otimeout
       logical :: corres
 
+      character (len=128) :: mebfroot
+      character (len=2) :: fragname(12)
+      character (len=2) :: fragstate(12,24)
+      character (len=128), allocatable :: fragfile(:)
+
       end module gnome_parameters
 
       module gnome_data

@@ -66,59 +66,35 @@
         endif
         
         if(inp_compare(.false.,'MEBFs',item)) then
-          if(nmol.gt.0) then
-            if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
-            if(nmol.eq.0) call errquit(me,1,
-     &           "Fragments should precede MEBFs in input")
-            allocate(ncombv(nmol,nbase))
-            do i=1,nmol
-              if(.not.inp_read()) call errquit(me,1,"Input error")
-              do j=1,nbase
-                if(.not.inp_i(ncombv(i,j)))
-     &               call errquit(me,1,"Input error")
-                if(ncombv(i,j).eq.0) ncombv(i,j)=9
-                mstates=max(mstates,ncombv(i,j))
-              enddo
-            enddo
-            goto 2
-          else
-            if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
-            allocate(itemp(25,nbase))
+          if(.not.inp_a(mebfroot)) call errquit(me,1,"Input error")
+          if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
+          nmol=0
+          do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
- 4          continue
-            nmol=nmol+1
-            do j=1,nbase
-              if(.not.inp_i(itemp(nmol,j))) then
-                if(j.eq.1) then
-                  nmol=nmol-1
-                  allocate(ncombv(nmol,nbase))
-                  do im=1,nmol
-                    do ib=1,nbase
-                      ncombv(im,ib)=itemp(im,ib)
-                      if(ncombv(im,ib).eq.0) ncombv(im,ib)=9
-                      mstates=max(mstates,ncombv(im,ib))
-                    enddo
-                  enddo
-                  deallocate(itemp)
-                  goto 2
-                endif
-                call errquit(me,1,"Input error")
-              endif
-            enddo
-            if(inp_read()) goto 4
-            allocate(ncombv(nmol,nbase))
-            do im=1,nmol
-              do ib=1,nbase
-                ncombv(im,ib)=itemp(im,ib)
-                if(ncombv(im,ib).eq.0) ncombv(im,ib)=9
-                mstates=max(mstates,ncombv(im,ib))
+            if(.not.inp_a(item)) goto 1
+            if(len(trim(item)).gt.1) then
+              allocate(ncombv(nmol,nbase))
+              mstates=nmol*nbase
+              allocate(fragfile(mstates))
+              do i=1,nmol
+                do j=1,nbase
+                  ncombv(i,j)=(i-1)*nbase+j
+                  write(fragfile((i-1)*nbase+j),'(a,a,a,a)')
+     &                 trim(mebfroot),trim(fragname(i)),"_",
+     &                 trim(fragstate(i,j))
+                enddo
               enddo
+              goto 3
+            endif
+            nmol=nmol+1
+            fragname(nmol)=trim(item)
+            do i=1,nbase
+              if(.not.inp_a(item)) call errquit(me,1,"Input error")
+              fragstate(nmol,i)=trim(item)
             enddo
-            deallocate(itemp)
-            goto 2            
-          endif
+          enddo
         endif
-        
+
         if(inp_compare(.false.,'States',item)) then
           if(.not.inp_i(mstates)) mstates=1
           goto 2

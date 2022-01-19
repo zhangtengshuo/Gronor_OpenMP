@@ -62,7 +62,8 @@
       allocate(fragEner(mstates))
       allocate(nElectrons(mstates))
       do i=1,mstates
-        write(fildet,203) root(1:inp_strlen(root)),i
+        write(fildet,2203) trim(fragfile(i))
+ 2203   format(a,'.det')
         length=inp_strlen(fildet)
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
@@ -108,7 +109,7 @@
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates
-        write(fildet,203) root(1:inp_strlen(root)),i
+        write(fildet,2203) trim(fragfile(i))
         length=inp_strlen(fildet)
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &         status='old',err=999)            
@@ -156,7 +157,8 @@
 !     Next, reading the vectors
       
       do i=1,mstates
-        write(filvec,201) root(1:inp_strlen(root)),i
+        write(filvec,2201) trim(fragfile(i))
+ 2201   format(a,'.vec')
         length=inp_strlen(filvec)
         open(unit=lfnvec,file=filvec(1:length),form='formatted',
      &        status='old',err=997)
@@ -166,7 +168,7 @@
       enddo
       allocate( vecsm(maxvec,maxvec,mstates) )
       do i=1,mstates
-        write(filvec,201) root(1:inp_strlen(root)),i
+        write(filvec,2201) trim(fragfile(i))
         length=inp_strlen(filvec)
         open(unit=lfnvec,file=filvec(1:length),form='formatted',
      &        status='old',err=997)
@@ -267,9 +269,9 @@
       return
 
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit(me,6,"Error reading determinants")
+      call errquit(me,6,"Error reading symmetry")
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit(me,6,"Error reading determinants")
+      call errquit(me,6,"Error reading vectors")
  999  write(lfnout,989) fildet(1:inp_strlen(fildet))
       call errquit(me,6,"Error reading determinants")
  985  format('Unable to open symmetry file ',a)

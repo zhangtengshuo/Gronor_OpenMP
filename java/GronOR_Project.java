@@ -1,6 +1,7 @@
 package gronor;
 
 import java.util.*;
+import java.util.StringTokenizer;
 import java.awt.*;
 import java.io.*;
 import java.awt.event.*;
@@ -82,7 +83,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	DefaultTableModel mebfsTableModel = new DefaultTableModel(null,mebfLabels);
 	DefaultTableModel mebfsEnergiesTableModel = new DefaultTableModel(null,nociLabels);
 
-//x    Object[][] fragmentDefinitions;
     Object[][] fragmentDefinitions = new Object[maxFragments][15];
     Object[][] stateEnergies = new Object[maxFragments][8];
     Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][14];
@@ -114,18 +114,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
     
     
     Integer numAtoms=12, numStates=0, newFragments=0;
-//    Integer maxStates = 3;
 
     
     String[] states = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2"};
-//    String[] orientations = new String[] {" ", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Method"};
-//    JLabel[] stateLabel = new JLabel[maxStates];
-//    JTable statesTable;
-//    Object[][] stateEnergies = new Object[9][8];
-    
-//    JTable fragmentsTable;
-//    Object[][] fragmentPositions;
-    
     
     String[] methods = new String[] {"SCF", "CASSCF", "CASPT2"};
     JLabel[] methodLabel = new JLabel[3];
@@ -168,8 +159,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
 		
 		if(!readProjectFile(projectFile)) initializeProject();
-		
-//		createFragments();
 		
 		initializeWindow();
 		
@@ -352,25 +341,32 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
 	public Integer getNumExyz(String root) {
 		String fileName=root+".xyz";
+		System.out.println("FILE="+fileName);
 		String card;
-		Integer number;
+		StringTokenizer st;
+		Integer number = 0;
+		Integer nA = 0;
+		String aL;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			card=br.readLine();
-			Integer nA=Integer.valueOf(card.substring(0,6).trim());
+			st = new StringTokenizer(card," ");
+			nA=Integer.valueOf(st.nextToken());
 			card=br.readLine();
 			number=0;
 			for(int i=0; i<nA; i++) {
 				card=br.readLine();
-				if(card.substring(0,4).trim().equals("H")) number=number+1;
-				if(card.substring(0,4).trim().equals("C")) number=number+6;
-				if(card.substring(0,4).trim().equals("N")) number=number+7;
-				if(card.substring(0,4).trim().equals("O")) number=number+8;
-				if(card.substring(0,4).trim().equals("F")) number=number+9;
-			};
+				st = new StringTokenizer(card," ");
+				aL=st.nextToken();
+				if(aL.equals("H")) number=number+1;
+				if(aL.equals("C")) number=number+6;
+				if(aL.equals("N")) number=number+7;
+				if(aL.equals("O")) number=number+8;
+				if(aL.equals("F")) number=number+9;
+			}
 			br.close();
 			return number;
-		} catch(IOException e) {
+		} catch(IOException ef) {
 			System.out.println("IOException in XYZ file "+fileName);
 			return 0;
 		}
@@ -401,7 +397,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			for(int i=numFragments; i<newFragments; i++) {
 		    	namFragments[i]="";
 		    	for(int j=0; j<6; j++) movFragments[i][j]=0.0;
-		    	for(int j=0; j<10; j++) dimFragments[i][j]=0;
+		    	for(int j=0; j<11; j++) dimFragments[i][j]=0;
 		    	energiesDFT[i]=0.0;
 		    	energiesSCF[i]=0.0;
 		    	for(int j=0; j<7; j++) {
@@ -450,12 +446,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
 		String nameA, nameB, nameP, nameF;
 		
-		for(int i=0; i<numFragments; i++) {
-			nameP=projectName.trim();
-			nameF=namFragments[i].trim();
-			nameA=" ";
-			nameB=(String) fragmentDefinitions[dimFragments[i][0]][0];
-		}
 		
 		for(int i=0; i<numEnergies; i++) {
 			for(int j=0; j<8; j++) {
@@ -496,6 +486,8 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			fragmentDefinitions[i][13]=movFragments[i][5];
 			fragmentDefinitions[i][14]=dimFragments[i][10];
 		}
+		
+		
 		numEnergies=0;
 		Integer index=0;
 		for(int i=0; i<numFragments; i++ ) {
@@ -538,19 +530,33 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numEnergies; i++) {
 			energiesTableModel.setValueAt(stateEnergies[i][0],i,0);
 		}
+
+		for(int i=0; i<numFragments; i++) {
+			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
+			nameP=projectName.trim();
+			nameF=namFragments[i].trim();
+			nameB=(String) fragmentDefinitions[dimFragments[i][0]][0];
+			nameA=fragmentNames[i].trim();
+			if(nameB.trim().equals(nameA.trim())) {
+				nameB=" ";
+			} else {
+				nameF=nameP.trim();
+			}
+			fragment.initialize(nameP,nameA,nameF,nameB,dimFragments[i][3],RandT);
+			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],numRanks);
+		}
 		
 		Double energy = 0.0;
 		Integer numAlt = 0;
 		
 		for(int i=0; i<=maxF; i++) {
 			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
-//			nameP=namFragments[i].trim();
 			nameP=projectName.trim();
 			nameF=namFragments[i].trim();
 			nameA=" ";
-//			nameB=namFragments[i].trim()+fragmentNames[i].trim();
 			nameB=(String) fragmentDefinitions[dimFragments[i][0]][0];
-			fragment.initialize(nameP, nameF, nameA, nameB, dimFragments[i][3], RandT);
+
+			fragment.initialize(nameP, nameA, nameF, nameB, dimFragments[i][3], RandT);
 			for(int j=0; j<numEnergies; j++) {
 				if(i==dimFragments[energyFragment[j][0]][0]) {
 					// DFT energy from NWChem optimization
@@ -625,16 +631,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-		for(int i=0; i<numFragments; i++) {
-			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
-//			nameP=namFragments[i].trim();
-			nameP=projectName.trim();
-			nameF=namFragments[i].trim();
-			nameA=(String) fragmentDefinitions[dimFragments[i][0]][0];
-			nameB=fragmentNames[i].trim();
-			fragment.initialize(nameP,nameF,nameA,nameB,dimFragments[i][3],RandT);
-			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],numRanks);
-		}		
+		
+
+		
 		numberStateEnergies=numEnergies;
 		fragmentsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numFragments)*15+55)));
 		energiesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numEnergies)*20+30)));
@@ -661,7 +660,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				mebfName[i]=fragmentNames[0];	// mebf name (default name of first fragment)
 				for(int j=0; j<maxMer; j++) {
 					mebfFragments[i][j][0]=j;		// fragment index
-//					if(mebfFragments[i][j][0]>=numFragments) mebfFragments[i][j][0]=j-numFragments;		// fragment index
 					for(int k=1; k<12; k++) {
 						mebfFragments[i][j][k]=0;
 					}
@@ -670,40 +668,30 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				if(index+1>numFragments) index=numFragments-1;
 			}
 		}
+
+		//Count the number of required rows in MEBF table
+		Integer oldRows = 0;
+		for(int i=0; i<numMEBFs; i++) {
+			oldRows=oldRows+mebfSpecification[i][0];
+			mebfName[i]="";
+			for(int j=0; j<mebfSpecification[i][0]; j++) {
+				mebfName[i]=mebfName[i]+fragmentNames[mebfFragments[i][j][0]];
+			}
+		}
 		
 		//Count the number of required rows in MEBF table
 		Integer numRows = 0;
-		for(int i=0; i<numMEBFs; i++) {
+		for(int i=0; i<newMEBFs; i++) {
 			numRows=numRows+mebfSpecification[i][0];
 			mebfName[i]="";
 			for(int j=0; j<mebfSpecification[i][0]; j++) {
 				mebfName[i]=mebfName[i]+fragmentNames[mebfFragments[i][j][0]];
 			}
 		}
-		numRows=numRows+newMEBFs-numMEBFs;
-		
-		//Add rows to the MEBF table if number of MEBFs increased
-		if(numRows>numberMebfDefinitions) {
-			for(int i=numberMebfDefinitions; i<numRows; i++) {
-				mebfsTableModel.addRow(mebfDefinitions[i]);
-			}
-		}
-		
-		//Remove rows if number of MEBFs decreased
-		if(numRows<numberMebfDefinitions) {
-			for(int i=numRows; i<numberMebfDefinitions; i++) {
-				mebfsTableModel.removeRow(numberMebfDefinitions-1-i);
-			}
-		}
 
-	//    Integer[][] mebfSpecification = new Integer[maxMEBFs][5];	 	//	0: n-mer; 
-	//																		1: spin; 
-	//																		2:number of fragments
-	//																		3:number of states defined
-	//																		4:number of states to include
-	//    String[] mebfName = new String[maxMEBFs];						// name of mefb, e.g. AB for fragment A,B combination
-	//    Integer[][][] mebfFragments = new Integer[maxMEBFs][maxMer][0];	// index of fragment
-	//    Integer[][][] mebfFragments = new Integer[maxMEBFs][maxMer][1..12];	// index to fragment states included in this mebf
+		mebfsTableModel.setRowCount(numRows);
+
+		numMEBFs=newMEBFs;
 
 		for(int i=0; i<numRows; i++) {
 			for(int k=0; k<14; k++) {
@@ -711,7 +699,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 		
-		numMEBFs=newMEBFs;
 		
 		if(numMEBFs>1) {
 			for(int i=0; i<numMEBFs; i++) {
@@ -727,7 +714,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		}
 		
 		//Fill the mebfDefinitions table
-		numberMebfDefinitions=numRows;
 		index=0;
 		for(int i=0; i<numMEBFs; i++) {
 			mebfDefinitions[index][0]=mebfName[i];					// mebf name
@@ -753,8 +739,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				mebfsTableModel.setValueAt(mebfDefinitions[i][j],i,j);
 			}
 		}
-		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numberMebfDefinitions)*20+35)));
-		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numberMebfDefinitions)*20+35)));	
+
+		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numRows)*20+35)));
+		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numRows)*20+35)));	
 		write_Molcas_MEBF_files();
 		write_GronOR_NOCI();
 	}
@@ -1037,7 +1024,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 					nameF=namFragments[row].trim();
 					nameA= (String) fragmentDefinitions[dimFragments[row][0]][0];
 					nameB= (String) namFragments[row];
-					fragment.initialize(nameP,nameF,nameA,nameB,dimFragments[row][3],RandT);
+					fragment.initialize(nameP,nameA,nameF,nameB,dimFragments[row][3],RandT);
 				}
 				updateFragmentList();
 				updateFragmentDefinitions();

@@ -46,20 +46,21 @@ public class GronOR_Fragment {
 	GronOR_Fragment(){
 	}
 
-	public void initialize(String nameP, String nameF, String nameA, String nameB, Integer numE, Double[] rt) {
+	public void initialize(String nameP,String nameA, String nameF,String nameB, Integer numE, Double[] rt) {
+		// Initialize PA from source FB
 		Boolean writeFile = false; 
 		projectRoot=nameP;
 		fragmentRoot=nameF;
+		
 		if(!projectRoot.trim().equals(fragmentRoot.trim())) writeFile=true;
 		if(!nameB.trim().equals(nameA.trim())) writeFile=true;
+		
 		fragmentName=nameF.trim()+nameB.trim();
-		Boolean fileExistsB = read_XYZ();
-		fragmentName=nameF.trim()+nameA.trim();
-		Boolean fileExistsA = read_XYZ();
 		numOcc = numE / 2;
 		for(int i=0; i<6; i++) RandT[i]=rt[i];
+		
 		if(read_XYZ()) {
-			fragmentName=nameP.trim()+nameB.trim();
+			fragmentName=nameP.trim()+nameA.trim();
 			if(writeFile) {
 				rotate_AND_translate(RandT);
 				write_XYZ();
@@ -144,18 +145,21 @@ public class GronOR_Fragment {
 	public Boolean read_XYZ() {
 		String fileName = fragmentName+".xyz";
 		String card;
+		StringTokenizer st;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			card=br.readLine();
-			numAtoms=Integer.valueOf(card.substring(0,6).trim());
+			st = new StringTokenizer(card," ");
+			numAtoms=Integer.valueOf(st.nextToken());
 			card=br.readLine();
 			for(int i=0; i<numAtoms; i++) {
 				card=br.readLine();
-				atomLabel[i] = card.substring(0,3);
-				coordinates[i][0]=Double.valueOf(card.substring(3,15)).doubleValue();
-				coordinates[i][1]=Double.valueOf(card.substring(15,27)).doubleValue();
-				coordinates[i][2]=Double.valueOf(card.substring(27,39)).doubleValue();
-			};
+				st = new StringTokenizer(card," ");
+				atomLabel[i]=st.nextToken();
+				coordinates[i][0]=Double.valueOf(st.nextToken()).doubleValue();
+				coordinates[i][1]=Double.valueOf(st.nextToken()).doubleValue();
+				coordinates[i][2]=Double.valueOf(st.nextToken()).doubleValue();
+			}
 			br.close();
 			return true;
 		} catch(IOException ef) {

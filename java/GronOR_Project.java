@@ -154,7 +154,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	    save.addActionListener(new ActionListener(){
 	      public void actionPerformed(ActionEvent e){ 
 	    	  if(!writeProjectFile(projectFile)) System.exit(0);
-	    	  if(numFragmentsChanged) System.exit(0);
+	    	  writeClearScript();
 	    }});
 
 		
@@ -165,6 +165,21 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	    setVisible(true);
 	}
 
+	private void writeClearScript() {
+		String fileName = "clear.run";
+		try {
+			PrintfWriter clearFile = new PrintfWriter(new FileWriter(fileName));
+			clearFile.println("#!/usr/bin/tcsh");
+			clearFile.println("rm -f "+projectName.trim()+"*.input");
+			clearFile.println("rm -f "+projectName.trim()+"*.inp");
+			clearFile.println("rm -f "+projectName.trim()+"*.nw");
+			clearFile.println("rm -f "+projectName.trim()+"*.run");
+			clearFile.println("rm -f "+projectName.trim()+"*.xyz");
+			clearFile.close();
+		} catch(IOException ei) {
+		}
+	}
+	
 	private Boolean readProjectFile(String fileName) {
 
 		try {
@@ -568,9 +583,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 							stateEnergies[j][1]=energy;
 							energiesTableModel.setValueAt(stateEnergies[j][1],j,1);
 						} else {
-							fragment.write_NWChem_DFT(i);
+							fragment.write_NWChem_DFT(i,numRanks);
 						}
-						fragment.write_NWChem_DFT(i);
+						fragment.write_NWChem_DFT(i,numRanks);
 					}
 					// SCF energy from Molcas
 					if(energyFragment[j][1]==1) {
@@ -631,8 +646,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-		
-
 		
 		numberStateEnergies=numEnergies;
 		fragmentsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numFragments)*15+55)));
@@ -1332,7 +1345,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, frags);	
 				fragment.write_Molcas_MEBF_CB(fileName, nfrags, nums);	
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, frags);
-				fragment.write_Run_Script_MEBFs(fileName,numRanks);
+				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, frags, nums, numRanks);
 			}
 		}
 	}
@@ -1346,7 +1359,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			nmer=mebfSpecification[i][0];
 			try {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
-				inputFile.println("MEBFs "+projectName.trim()+" "+numME);
+				inputFile.println("MEBFs "+projectName.trim()+mebfName[i].trim()+" "+numME);
 				for(int j=0; j<nmer; j++) {
 					inputFile.print(fragmentNames[mebfFragments[i][j][0]]+" ");
 					for(int k=0; k<numME; k++) inputFile.print(" "+stateNames[mebfFragments[i][j][k+1]]);

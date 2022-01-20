@@ -107,9 +107,10 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public void write_Run_Script_MEBFs(String p, Integer ranks) {
+	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] frags, Integer[] states, Integer ranks) {
 		String fileName = p+"_Molcas.run";
 		String fullName;
+		String fullName2;
 		try {
 			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
 			runFile.println("#!/usr/bin/tcsh");
@@ -117,16 +118,71 @@ public class GronOR_Fragment {
 			runFile.println("setenv MOLCAS_MEM 1024");
 			fullName = p.trim()+"_MEBFONE";
 			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
+			Integer index=0;
+			for(int i=0; i<nfrags; i++) {
+				runFile.println("cp "+pn.trim()+frags[i].trim()+".RUNFIL RUNFIL"+(i+1));
+				runFile.println("cp "+pn.trim()+frags[i].trim()+".ONEINT ONEINT"+(i+1));
+				for(int j=0; j<states[i]; j++) {
+					index++;
+					runFile.println("cp "+pn.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".INPORB INPORB."+(i+1)+"_"+(j+1));
+					if(index<10) {
+						runFile.println("cp "+pn.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".det "+p.trim()+"_00"+index+".det");
+					} else {
+						runFile.println("cp "+pn.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".det "+p.trim()+"_0"+index+".det");
+					}
+				}
+			}
+			runFile.println("cp "+p.trim()+".RUNFILE RUNFILE");
 			fullName = p.trim()+"_MEBFCB";
 			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"common_basis < "+p.trim()+".input > "+fullName.trim()+".output");
+			index=0;
+			for(int i=0; i<nfrags; i++) {
+				runFile.println("rm RUNFIL"+(i+1));
+//				runFile.println("rm ONEINT"+(i+1));
+				for(int j=0; j<states[i]; j++) {
+					index++;
+					if(index<10) {
+						runFile.println("mv "+p.trim()+"_00"+index+".vec "+p.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".vec");
+						runFile.println("mv "+p.trim()+"_00"+index+".det "+p.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".det");
+					} else {
+						runFile.println("mv "+p.trim()+"_0"+index+".vec "+p.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".vec");
+						runFile.println("mv "+p.trim()+"_0"+index+".det "+p.trim()+frags[i].trim()+"_"+stateLabels[j].trim()+".det");
+					}
+					runFile.println("rm INPORB."+(i+1)+"_"+(j+1));
+				}	
+			}
 			fullName = p.trim()+"_MEBFCB";
-			runFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\""+fullName.trim()+".output | cut -b42- `");
+			runFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b42- `");
 			runFile.println("touch TRAINT");
+			runFile.println("setenv MOLCAS_MEM 4096");
 			fullName = p.trim()+"_MEBFTWO";
 			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
 			runFile.println("setenv OMP_NUM_THREADS 12");
+			runFile.println("cp "+p.trim()+".RUNFILE RUNFILE");
+			runFile.println("cp "+p.trim()+"_CHMOT1 _CHMOT1");
 			fullName = p.trim()+"_MEBFRT";
 			runFile.println("rdcho $MOLCAS_NPROCS > "+fullName.trim()+".output");
+			runFile.println("rm _CHMOT1");
+			runFile.println("cp "+p.trim()+".RUNFILE RUNFILE");
+			runFile.println("cp "+p.trim()+".CHORST CHORST");
+			runFile.println("cp "+p.trim()+".ONEINT ONEINT");
+			runFile.println("cp "+p.trim()+".TRAONE TRAONE");
+			runFile.println("cp "+p.trim()+".CHOMAP CHOMAP");
+			runFile.println("cp "+p.trim()+".CHRED  CHRED");
+			runFile.println("cp "+p.trim()+".CHVEC1 CHVEC1");
+			runFile.println("cp "+p.trim()+".COMMONORB COMMONORB");
+			fullName = p.trim()+"_MEBFCB";
+			fullName2 = p.trim()+"_MEBFRT";
+			runFile.println("rdtraint < "+fullName.trim()+".input > "+fullName2+".output");
+			runFile.println("mv COMMONORB "+p.trim()+".COMMONORB");
+			runFile.println("rm RUNFILE");
+			runFile.println("rm CHORST");
+			runFile.println("rm ONEINT");
+			runFile.println("rm TRAONE");
+			runFile.println("rm TRAINT");
+			runFile.println("rm CHOMAP");
+			runFile.println("rm CHRED");
+			runFile.println("rm CHVEC1");
 			runFile.println("unsetenv DELETED");
 			runFile.close();
 		} catch(IOException ei) {
@@ -250,11 +306,11 @@ public class GronOR_Fragment {
 		return energy;
 	}
 	
-	public void write_NWChem_DFT(Integer frag) {
+	public void write_NWChem_DFT(Integer frag, Integer ranks) {
 		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nw";
 		try {
 			PrintfWriter nwFile = new PrintfWriter(new FileWriter(fileName));
-			nwFile.println("start "+projectName+fragmentName);
+			nwFile.println("start "+projectRoot+fragmentNames[frag]);
 			nwFile.println("echo");
 			nwFile.println("basis \"ao basis\" print");
 			nwFile.println("* library \"def2-tzvp\"");
@@ -276,11 +332,19 @@ public class GronOR_Fragment {
 			nwFile.println("task dft optimize");
 			nwFile.close();
 		} catch(IOException e) {
+		}
+		fileName = projectRoot+fragmentNames[frag]+"_DFT.run";
+		try {
+			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
+		    runFile.println("mpirun -n "+ranks+" nwchem "+projectRoot+fragmentNames[frag]+"_DFT > "+projectRoot+fragmentNames[frag]+"_DFT.nwout");
+			runFile.close();
+		} catch(IOException e) {
 		}		
 	}
 	
 	public Boolean write_Molcas_Int(Integer frag) {
 		String fileName = projectRoot+fragmentNames[frag]+"_INT.input";
+		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
 		String previous;
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -311,6 +375,8 @@ public class GronOR_Fragment {
 				previous=atomLabel[i].trim();
 		    }
 		    inputFile.println("end basis set");
+			inputFile.println(">>> COPY "+rootName.trim()+".OneInt $CurrDir/"+rootName.trim()+".ONEINT");
+			inputFile.println(">>> COPY "+rootName.trim()+".RunFile $CurrDir/"+rootName.trim()+".RUNFIL");
 		    inputFile.close();
 		    return true;
 		} catch(IOException e) {
@@ -354,10 +420,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_1");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_1");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+"_011.det");
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
@@ -378,10 +442,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_2");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.2 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_2");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.2 $CurrDir/"+rootName.trim()+"_012.det");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
 					inputFile.println("Multistate= 1 2");
@@ -402,10 +464,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_3");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_3");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+"_013.det");
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
@@ -423,10 +483,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_4");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_4");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+"_014.det");
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
@@ -444,10 +502,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_5");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_5");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+"_015.det");
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
@@ -468,10 +524,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_6");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.3 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_6");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.3 $CurrDir/"+rootName.trim()+"_016.det");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
 					inputFile.println("Multistate= 1 3");
@@ -495,10 +549,8 @@ public class GronOR_Fragment {
 				inputFile.println("prwf");
 				inputFile.println("  0");
 				inputFile.println("prsd");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.1_7");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.2 $CurrDir/"+rootName.trim()+ext.trim()+".det");
-				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/INPORB.2_7");
-				inputFile.println(">>> COPY "+rootName.trim()+".VecDet.2 $CurrDir/"+rootName.trim()+"_017.det");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
 					inputFile.println("Multistate= 1 2");
@@ -888,9 +940,9 @@ public class GronOR_Fragment {
 					previous=atomLabel[i].trim();
 			    }
 			    inputFile.println("end basis set");
-			    inputFile.println("oneonly");
-			    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/RUNFILE");
 			}
+		    inputFile.println("oneonly");
+		    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/"+p+".RUNFILE");
 		    inputFile.close();
 //		    return true;
 		} catch(IOException e) {
@@ -957,6 +1009,7 @@ public class GronOR_Fragment {
 			    inputFile.println("end basis set");   
 			}
 		    inputFile.println(">>> COPY $CurrDir/COMMONORB INPORB");
+		    inputFile.println(">>> COPY $CurrDir/COMMONORB $CurrDir/"+p+".COMMONORB");
 		    inputFile.println();
 		    inputFile.println("&motra");
 		    inputFile.println("LumOrb");
@@ -967,17 +1020,17 @@ public class GronOR_Fragment {
 		    inputFile.println("ctonly");
 		    inputFile.println("kpq");
 		    inputFile.println();
-		    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/RUNFILE");
-		    inputFile.println(">>> COPY "+p+".OneInt  $CurrDir/ONEINT");
-		    inputFile.println(">>> COPY "+p+".TraOne  $CurrDir/TRAONE");
-		    inputFile.println(">>> COPY "+p+".ChVec1  $CurrDir/CHVEC1");
-		    inputFile.println(">>> COPY "+p+".ChRed   $CurrDir/CHRED");
-		    inputFile.println(">>> COPY "+p+".ChRst   $CurrDir/CHORST");
-		    inputFile.println(">>> COPY "+p+".ChMap   $CurrDir/CHOMAP");
-		    inputFile.println(">>> COPY CHMOT1        $CurrDir/CHMOT1");
+		    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/"+p+".RUNFILE");
+		    inputFile.println(">>> COPY "+p+".OneInt  $CurrDir/"+p+".ONEINT");
+		    inputFile.println(">>> COPY "+p+".TraOne  $CurrDir/"+p+".TRAONE");
+		    inputFile.println(">>> COPY "+p+".ChVec1  $CurrDir/"+p+".CHVEC1");
+		    inputFile.println(">>> COPY "+p+".ChRed   $CurrDir/"+p+".CHRED");
+		    inputFile.println(">>> COPY "+p+".ChRst   $CurrDir/"+p+".CHORST");
+		    inputFile.println(">>> COPY "+p+".ChMap   $CurrDir/"+p+".CHOMAP");
+		    inputFile.println(">>> COPY _CHMOT1        $CurrDir/"+p+"_CHMOT1");
 		    inputFile.println(">>> eval NPROCS = $MOLCAS_NPROCS - 1");
 		    inputFile.println(">>> foreach L in (1 .. $NPROCS )");
-		    inputFile.println(">>> shell cat tmp_$L/_CHMOT1 >> $CurrDir/_CHMOT1");
+		    inputFile.println(">>> shell cat tmp_$L/_CHMOT1 >> $CurrDir/"+p+"_CHMOT1");
 		    inputFile.println(">>> enddo");
 		    inputFile.close();
 //		    return true;

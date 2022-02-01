@@ -109,7 +109,7 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] frags, Integer[] states, Integer[][] ndxStateList, Integer ranks) {
+	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks) {
 		String fileName = p+"_Molcas.run";
 		String fullName;
 		String fullName2;
@@ -125,9 +125,9 @@ public class GronOR_Fragment {
 			for(int i=0; i<nfrags; i++) {
 				runFile.println("cp "+pn.trim()+frags[i].trim()+".RUNFIL RUNFIL"+(i+1));
 				runFile.println("cp "+pn.trim()+frags[i].trim()+".ONEINT ONEINT"+(i+1));
-				for(int j=0; j<states[i]; j++) {
+				for(int j=0; j<lenStateList[fstat[i]]; j++) {
 					index++;
-					stateIndex=ndxStateList[i][j];
+					stateIndex=ndxStateList[fstat[i]][j];
 					runFile.println("cp "+pn.trim()+frags[i].trim()+"_"+stateNames[stateIndex].trim()+".INPORB INPORB."+(i+1)+"_"+(j+1));
 					if(index<10) {
 						runFile.println("cp "+pn.trim()+frags[i].trim()+"_"+stateNames[stateIndex].trim()+".det "+p.trim()+"_00"+index+".det");
@@ -143,9 +143,9 @@ public class GronOR_Fragment {
 			for(int i=0; i<nfrags; i++) {
 				runFile.println("rm RUNFIL"+(i+1));
 //				runFile.println("rm ONEINT"+(i+1));
-				for(int j=0; j<states[i]; j++) {
+				for(int j=0; j<lenStateList[fstat[i]]; j++) {
 					index++;
-					stateIndex=ndxStateList[i][j];
+					stateIndex=ndxStateList[fstat[i]][j];
 					if(index<10) {
 						runFile.println("mv "+p.trim()+"_00"+index+".vec "+p.trim()+frags[i].trim()+"_"+stateNames[stateIndex].trim()+".vec");
 						runFile.println("mv "+p.trim()+"_00"+index+".det "+p.trim()+frags[i].trim()+"_"+stateNames[stateIndex].trim()+".det");
@@ -165,6 +165,14 @@ public class GronOR_Fragment {
 			runFile.println("setenv OMP_NUM_THREADS 12");
 			runFile.println("cp "+p.trim()+".RUNFILE RUNFILE");
 			runFile.println("cp "+p.trim()+"_CHMOT1 _CHMOT1");
+			runFile.println("cp "+p.trim()+".RUNFILE RUNFILE");
+			runFile.println("cp "+p.trim()+".CHORST CHORST");
+			runFile.println("cp "+p.trim()+".ONEINT ONEINT");
+			runFile.println("cp "+p.trim()+".TRAONE TRAONE");
+			runFile.println("cp "+p.trim()+".CHOMAP CHOMAP");
+			runFile.println("cp "+p.trim()+".CHRED  CHRED");
+			runFile.println("cp "+p.trim()+".CHVEC1 CHVEC1");
+			runFile.println("cp "+p.trim()+".COMMONORB COMMONORB");
 			fullName = p.trim()+"_MEBFRT";
 			runFile.println("rdcho $MOLCAS_NPROCS > "+fullName.trim()+".output");
 			runFile.println("rm _CHMOT1");
@@ -409,7 +417,6 @@ public class GronOR_Fragment {
 		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateNames[state].trim()+".input";
 		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
 		String ext = "_"+stateNames[state];
-		System.out.println("IN WRITE_MOLCAS for "+fragmentNames[frag].trim()+" "+stateNames[state].trim()+" : "+fileName+" "+state);
 		try {
 			Integer Inact = numOcc - numCASe/2;
 			if(stateNames[state].trim().equals("S0")) {
@@ -1168,7 +1175,7 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public void write_Molcas_MEBF_CB(String p, Integer n, Integer[] states) {
+	public void write_Molcas_MEBF_CB(String p, Integer n, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList) {
 		String fileName = p+"_MEBFCB.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -1176,12 +1183,12 @@ public class GronOR_Fragment {
 			inputFile.println(p);
 			inputFile.println("Fragments");
 			inputFile.printf("%3d",n); inputFile.println();
-			for(int i=0; i<n; i++) inputFile.printf("%3d",states[i]); inputFile.println();
+			for(int i=0; i<n; i++) inputFile.printf("%3d",lenStateList[fstat[i]]); inputFile.println();
 			inputFile.println("Threshold");
 			inputFile.println(" 1.0e-5");
 			inputFile.println("Labels");
 			for(int i=0; i<n; i++) {
-				for(int j=0; j<states[i]; j++) inputFile.print(" "+stateNames[j].trim());
+				for(int j=0; j<lenStateList[fstat[i]]; j++) inputFile.print(" "+stateNames[ndxStateList[i][j]].trim());
 			}
 			inputFile.println();
 			inputFile.println("Energies");

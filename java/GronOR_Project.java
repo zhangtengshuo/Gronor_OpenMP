@@ -24,6 +24,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	JPanel parametersPanel;
 	JPanel dimensionPanel;
 	JPanel numberPanel;
+	JPanel threshPanel;
 	JPanel statesPanel;
 	JPanel fragmentsPanel;
 	JPanel fragmentsButtonsPanel;
@@ -56,13 +57,14 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	Double[][] movFragments = new Double[maxFragments][6];		// Rotation and translation of coordinates with respect to original source	
 	Double[] energiesDFT = new Double[maxFragments];			// DFT optimized energy of S0 state from NWChem
 	Double[] energiesSCF = new Double[maxFragments];			// SCF energy of S0 state from Molcas
-	Double[][] energiesCASSCF = new Double[maxFragments][7];	// CASSCF energies of all states of fragment from Molcas
-	Double[][] energiesCASPT2 = new Double[maxFragments][7];	// CASPT2 energies of all states of fragment from Molcas
+	Double[][] energiesCASSCF = new Double[maxFragments][12];	// CASSCF energies of all states of fragment from Molcas
+	Double[][] energiesCASPT2 = new Double[maxFragments][12];	// CASPT2 energies of all states of fragment from Molcas
 	
 	
 	Integer numRanks=12;		// Number of ranks in internal mpirun
 	Integer numTBD1=0;
 	Integer numTBD2=0;
+	Integer numTBD3=0;
 	
 	Integer numEnergies = 0;	// Number of energy entries
 
@@ -73,7 +75,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
     Integer maxMer = 3;
     Integer maxMEBFstates=18;
     
-    Integer numStateLabels = 10;
+    Integer numStateLabels = 12;
 
 	Integer[][] numEnergiesGronOR = new Integer[maxMEBFs][2];		// Number of GronORenergy entries
 	Double[][][] energiesGronOR = new Double[25][maxMEBFs][2];
@@ -90,12 +92,15 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19" };
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
+	Integer[] stateLabelIndex = new Integer[numStateLabels];
+	
     JTable statesTable;
     JTable fragmentsTable;
     JTable energiesTable;
     JTable mebfsTable;
 	JTable dimensionTable = new JTable();
 	JTable numberTable = new JTable();
+	JTable threshTable = new JTable();
     JTable nociEnergiesTable;
 	DefaultTableModel nociEnergiesTableModel = new DefaultTableModel();
     
@@ -109,7 +114,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
     Object[][] stateDefinitions = new Object[maxSets][17];
     Object[][] fragmentDefinitions = new Object[maxFragments][15];
-    Object[][] stateEnergies = new Object[maxFragments][8];
+    Object[][] stateEnergies = new Object[4*maxFragments][12];
     Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][25];
     Object[][] mebfEnergies = new Object[maxMEBFs][10];
     Object[][] nociEnergies = new Object[25][maxMEBFs];
@@ -130,6 +135,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
     GronOR_Fragment fragment = new GronOR_Fragment();
 
     Double[] RandT = new Double[6];
+    
+    Double thresh_CI = 1.0e-5;
+    Double thresh_MO = 1.0e-5;
 
     Integer noci0=0;
     Integer noci1=0;
@@ -262,13 +270,13 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.rnk");
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xmldump");
 			clearFile.close();
 		} catch(IOException ei) {
 		}
 	}
 	
 	private Boolean readProjectFile(String fileName) {
-
 		try {
 		    	BufferedReader br = new BufferedReader(new FileReader(fileName));
 		    	String card;
@@ -279,6 +287,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		    	newFragments = numFragments;
 		    	numMEBFs = Integer.valueOf(card.substring(12,18).trim());
 		    	newMEBFs = numMEBFs;
+		    	numRanks = Integer.valueOf(card.substring(18,24).trim());
+		    	thresh_MO=Double.valueOf(card.substring(24,44)).doubleValue();
+		    	thresh_CI=Double.valueOf(card.substring(44,64)).doubleValue();
 			    
 		    	for(int i=0; i<numSets; i++) {
 		    		card=br.readLine();
@@ -305,8 +316,10 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			    	dimFragments[i][9]=Integer.valueOf(card.substring(54,60).trim());  // Number of CASPT2 energies
 			    	dimFragments[i][10]=Integer.valueOf(card.substring(60,66).trim()); // Number of orbital alterations
 			    	card=br.readLine();
-			    	if(dimFragments[i][6]>0) energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
-			    	if(dimFragments[i][7]>0) energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
+//			    	if(dimFragments[i][6]>0) energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
+//			    	if(dimFragments[i][7]>0) energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
+			    	energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
+			    	energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
 			    	card=br.readLine();
 			    	for(int j=0; j<dimFragments[i][8]; j++) energiesCASSCF[i][j]=Double.valueOf(card.substring(j*20,j*20+20)).doubleValue();
 			    	card=br.readLine();
@@ -328,7 +341,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				br.close();
 				return true;
 			} catch(Exception ee) {
-				System.out.println("Project file does not exist");
 				return false;
 			}
 	}
@@ -341,6 +353,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%6d",newSets);
 			    fw.printf("%6d",newFragments);
 			    fw.printf("%6d",numMEBFs);
+			    fw.printf("%6d",numRanks);
+			    fw.printf("%20.10f",thresh_MO);
+			    fw.printf("%20.10f",thresh_CI);
 			    fw.println();
 		    	for(int i=0; i<numSets; i++) {
 		    		fw.printf("%6d",lenStateList[i]);
@@ -355,8 +370,16 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				    fw.println();
 				    for(int j=0; j<11; j++) fw.printf("%6d",dimFragments[i][j]);
 				    fw.println();
-				    if(dimFragments[i][6]>0) fw.printf("%20.10f",energiesDFT[i]);
-				    if(dimFragments[i][7]>0) fw.printf("%20.10f",energiesSCF[i]);
+				    if(dimFragments[i][6]>0) {
+				    	fw.printf("%20.10f",energiesDFT[i]);
+				    } else {
+				    	fw.printf("%20.10f",0.0);
+				    }
+				    if(dimFragments[i][7]>0) {
+				    	fw.printf("%20.10f",energiesSCF[i]);
+				    }else {
+				    	fw.printf("%20.10f",0.0);
+				    }
 				    fw.println();
 				    for(int j=0; j<dimFragments[i][8]; j++) fw.printf("%20.10f",energiesCASSCF[i][j]);
 				    fw.println();
@@ -462,7 +485,11 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	    	chooser = new JFileChooser("./");
 	    	chooser.setFileFilter(filter);
 	    	chooser.showOpenDialog(dialogFrame);
+	    	try {
 	    	extFile = chooser.getSelectedFile().toString();
+	    	} catch (NullPointerException e1) {
+	    		return "";
+	    	}
 	    };
 		rootName=extFile.substring(extFile.lastIndexOf("/")+1,extFile.indexOf(extension));
 		return rootName;
@@ -484,6 +511,34 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		}
 	}
 
+	public Integer getNumHxyz(String root) {
+		String fileName=root+".xyz";
+		String card;
+		StringTokenizer st;
+		Integer number = 0;
+		Integer nA = 0;
+		String aL;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			st = new StringTokenizer(card," ");
+			nA=Integer.valueOf(st.nextToken());
+			card=br.readLine();
+			number=0;
+			for(int i=0; i<nA; i++) {
+				card=br.readLine();
+				st = new StringTokenizer(card," ");
+				aL=st.nextToken();
+				if(aL.equals("H")) number=number+1;
+			}
+			br.close();
+			return number;
+		} catch(IOException ef) {
+			System.out.println("IOException in XYZ file "+fileName);
+			return 0;
+		}
+	}
+	
 	public Integer getNumExyz(String root) {
 		String fileName=root+".xyz";
 		String card;
@@ -517,14 +572,16 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	}
 
 	private void update() {
+
 		
 		updateStatesList();
 		updateFragmentList();
 		updateFragmentDefinitions();
+		readOutputFiles();
+		updateFragmentEnergies();
 		updateMEBFDefinitions();
 		updateNOCIEnergies();
 		
-		readOutputFiles();
 		
 		statesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numSets)*15+55)));
 		statesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numSets)*15+55)));
@@ -547,14 +604,13 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,noci1*20+35));
 		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*20+30));
 		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*20+30));
-//		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*20+30));
 		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*20+30));
 		nociPlotPanel.setMinimumSize(new Dimension(300,noci1*20+30));
-//		nociPlotPanel.setMaximumSize(new Dimension(300,noci1*20+30));
 		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();
 		numberPanel.revalidate();	
+		threshPanel.revalidate();	
 		statesPanel.revalidate();
 		fragmentsPanel.revalidate();
 		energiesPanel.revalidate();
@@ -566,6 +622,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		parametersPanel.repaint();
 		dimensionPanel.repaint();
 		numberPanel.repaint();
+		threshPanel.repaint();
 		statesPanel.repaint();
 		fragmentsPanel.repaint();
 		energiesPanel.repaint();
@@ -656,8 +713,8 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		    		energiesCASPT2[i][j]=0.0;
 		    	}
 		    	dimFragments[i][2]=0;
-		    	dimFragments[i][4]=8;
-		    	dimFragments[i][5]=8;
+		    	dimFragments[i][4]=numCASe;
+		    	dimFragments[i][5]=numCASo;
 			}
 			if(numFragments>0) {		
 				for(int i=numFragments; i<newFragments; i++) {
@@ -666,28 +723,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 					dimFragments[i][3]=dimFragments[numFragments-1][3];
 					dimFragments[i][4]=dimFragments[numFragments-1][4];
 					dimFragments[i][5]=dimFragments[numFragments-1][5];
-//					for(int j=0; j<numFragments; j++) {
-//						if(j!=row) {
-//							if(namFragments[j].length()>0) {
-//								dimFragments[row][0]=row;
-//								for(int i=0; i<numFragments; i++) {
-//									if(i!=row && namFragments[i]==namFragments[row]) {
-//										if(i<row) {
-//											dimFragments[row][0]=i;
-//										} else {
-//											dimFragments[i][0]=row;
-//										}
-//									}
-//								} 
-//							} else {
-//								if(fragmentDefinitions[j][1]==fragmentDefinitions[row][1]) {
-//									dimFragments[j][1]=dimFragments[row][1];
-//									dimFragments[j][3]=dimFragments[row][3];
-//									namFragments[j]=namFragments[row];						
-//								}
-//							}
-//						}
-//					}
 				}
 			}
 		}
@@ -722,7 +757,10 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		// Update the Fragment Energies table headers
 		
 		numFragmentStates=0;
-		for(int i=0; i<numStateLabels; i++) stateLabels[i]=" ";
+		for(int i=0; i<numStateLabels; i++) {
+			stateLabels[i]=" ";
+			stateLabelIndex[i]=i;
+		}
 		for(int i=0; i<numFragments; i++) {
 			Integer stateIndex=dimFragments[i][2];
 			if(lenStateList[stateIndex]>0) {
@@ -734,13 +772,14 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				if(!found) {
 					numFragmentStates++;
 					stateLabels[numFragmentStates]=stateNames[ndxStateList[stateIndex][j]].trim();
+					stateLabelIndex[ndxStateList[stateIndex][j]]=numFragmentStates;
 				}
 			}
 			}
 		}
 		for(int i=0; i<12; i++) {
 			energiesTable.getColumnModel().getColumn(i).setHeaderValue(stateLabels[i]);
-		}			
+		}
 	}
 	
 	private void updateFragmentDefinitions() {
@@ -840,10 +879,53 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
 			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks);
 		}
-		
-//		writeInputFiles();
-		
 		numberStateEnergies=numEnergies;
+	}
+
+	private void updateFragmentEnergies() {
+		Integer ifrag;
+		Integer itype;
+		Integer istat;
+		Double energy;
+		Integer maxCol=1;
+
+		for(int i=0; i<numEnergies; i++) {
+			for(int j=0; j<12; j++) stateEnergies[i][j]=" ";
+		}
+		
+		for(int i=0; i<numEnergies; i++) {
+			// fragment = energyFragment[i][0]
+			// energy type = energyFragment[i][1] where 0=DFT 1=SCF 2=CASSCF 3=CASPT2
+			ifrag=energyFragment[i][0];
+			itype=energyFragment[i][1];
+			istat=dimFragments[ifrag][2];
+			if(itype==0) {
+				energy=energiesDFT[ifrag];
+				if(energy!=0.0) stateEnergies[i][0]=energy;
+			}
+			if(itype==1) {
+				energy=energiesSCF[ifrag];
+				if(energy!=0.0) stateEnergies[i][0]=energy;
+			}
+			if(itype==2 && lenStateList[istat]>0) {
+				for(int j=0; j<lenStateList[istat]; j++) {
+					energy=energiesCASSCF[ifrag][j];					
+					if(energy!=0.0) stateEnergies[i][stateLabelIndex[ndxStateList[istat][j]]-1]=energy;
+					maxCol=Math.max(maxCol,j);
+				}
+			}
+			if(itype==3) {
+				for(int j=0; j<lenStateList[istat]; j++) {
+					energy=energiesCASPT2[ifrag][j];
+					if(energy!=0.0) stateEnergies[i][stateLabelIndex[ndxStateList[istat][j]]-1]=energy;					
+					maxCol=Math.max(maxCol,j);
+				}
+			}
+		}
+		for(int i=0; i<numEnergies; i++) {
+			for(int j=0; j<=maxCol; j++) energiesTableModel.setValueAt(stateEnergies[i][j],i,j+1);
+		}
+		energiesTable.repaint();
 	}
 
 	public void updateNOCIEnergies() {
@@ -875,7 +957,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numMEBFs; i++) {
 			if(maxMEBFStates<mebfSpecification[i][3]) maxMEBFStates=mebfSpecification[i][3];
 		}
-		System.out.println("MAXMEBFSTATES="+maxMEBFStates);
 		
 		if(maxMEBFStates>0) {	
 			if(noci1<maxMEBFStates) {
@@ -890,14 +971,14 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				nociEnergiesTableModel.setRowCount(noci1);
 			}
 			
+			if(noci0>0) {
 			for(int i=0; i<noci0; i++) {
 				for(int j=0; j<noci1; j++) {
 					nociEnergies[i][j]=" ";
-					nociEnergiesTableModel.setValueAt(nociEnergies[i][j],i,j);
+					nociEnergiesTableModel.setValueAt(nociEnergies[i][j],j,i);
 				}
 			}
-	
-			read_GronOR_arx();
+			}
 	
 			for(int j=0; j<numMEBFs; j++) {
 				for(int i=0; i<mebfSpecification[j][3]; i++) {
@@ -907,75 +988,79 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			
 			nociEnergiesTable.getColumnModel().getColumn(0).setMaxWidth(40);
 			for(int j=1; j<2*numMEBFs+1; j++) nociEnergiesTable.getColumnModel().getColumn(j).setMaxWidth(100);
-	
-			for(int i=0; i<numMEBFs; i++) {
-				if(numEnergiesGronOR[i][0]>0) {
-					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-						nociEnergies[j][2*i]=energiesGronOR[j][i][0];
-						nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i],j,2*i+1);
-					}
-				}
-				if(numEnergiesGronOR[i][1]>0) {
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						nociEnergies[j][2*i+1]=energiesGronOR[j][i][1];
-						nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i+1],j,2*i+2);
-					}
-				}
-			}
-			for(int i=0; i<maxMEBFStates; i++) nociEnergiesTableModel.setValueAt("E"+(i+1),i,0);
-			
+
 			energyDiagram.clear(false);
 			
-			Double Emin=0.0;
-			Double Emax=0.0;
-			for(int i=0; i<numMEBFs; i++) {
-				for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-					Emin=Math.min(Emin, energiesGronOR[j][i][0]);
-				}
-				for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-					Emin=Math.min(Emin, energiesGronOR[j][i][1]);
-				}
-			}
-			Emax=Emin;
-			for(int i=0; i<numMEBFs; i++) {
-				for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-					Emax=Math.max(Emax, energiesGronOR[j][i][0]);
-				}
-				for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-					Emax=Math.max(Emax, energiesGronOR[j][i][1]);
-				}
-			}
-			for(int i=0; i<numMEBFs; i++) {
-				for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-					energiesRelGronOR[j][i][0]=energiesGronOR[j][i][0]-Emin;
-				}
-				for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-					energiesRelGronOR[j][i][1]=energiesGronOR[j][i][1]-Emin;
-				}
-			}
+			if(read_GronOR_arx()) {
 			
-			energyDiagram.setForeground(Color.red);
-			
-			Double Edelta = Emax-Emin;
-			energyDiagram.setYRange(-0.1*Edelta,1.1*Edelta);
-			energyDiagram.setXRange(0.0,Double.valueOf(4*numMEBFs-1));
-			for(int i=0; i<numMEBFs; i++) {
-				for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-					energyDiagram.addPoint(0,Double.valueOf(4*i),energiesRelGronOR[j][i][0],false);
-					energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[j][i][0],true);
+				for(int i=0; i<numMEBFs; i++) {
+					if(numEnergiesGronOR[i][0]>0) {
+						for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
+							nociEnergies[j][2*i]=energiesGronOR[j][i][0];
+							nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i],j,2*i+1);
+						}
+					}
+					if(numEnergiesGronOR[i][1]>0) {
+						for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+							nociEnergies[j][2*i+1]=energiesGronOR[j][i][1];
+							nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i+1],j,2*i+2);
+						}
+					}
 				}
-				for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-					energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],false);
-					energyDiagram.addPoint(0,Double.valueOf(4*i+3),energiesRelGronOR[j][i][1],true);
+				for(int i=0; i<maxMEBFStates; i++) nociEnergiesTableModel.setValueAt("E"+(i+1),i,0);
+				
+				
+				Double Emin=0.0;
+				Double Emax=0.0;
+				for(int i=0; i<numMEBFs; i++) {
+					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
+						Emin=Math.min(Emin, energiesGronOR[j][i][0]);
+					}
+					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+						Emin=Math.min(Emin, energiesGronOR[j][i][1]);
+					}
 				}
-			}
-			energyDiagram.setForeground(Color.black);
-			for(int i=0; i<numMEBFs; i++) {
-				for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-					for(int k=0; k<numEnergiesGronOR[i][0]; k++) {
-						if(Math.abs(coefGronOR[k][j][i])>0.75) {
-							energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[k][i][0],false);
-							energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],true);
+				Emax=Emin;
+				for(int i=0; i<numMEBFs; i++) {
+					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
+						Emax=Math.max(Emax, energiesGronOR[j][i][0]);
+					}
+					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+						Emax=Math.max(Emax, energiesGronOR[j][i][1]);
+					}
+				}
+				for(int i=0; i<numMEBFs; i++) {
+					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
+						energiesRelGronOR[j][i][0]=energiesGronOR[j][i][0]-Emin;
+					}
+					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+						energiesRelGronOR[j][i][1]=energiesGronOR[j][i][1]-Emin;
+					}
+				}
+				
+				energyDiagram.setForeground(Color.red);
+				
+				Double Edelta = Emax-Emin;
+				energyDiagram.setYRange(-0.1*Edelta,1.1*Edelta);
+				energyDiagram.setXRange(0.0,Double.valueOf(4*numMEBFs-1));
+				for(int i=0; i<numMEBFs; i++) {
+					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
+						energyDiagram.addPoint(0,Double.valueOf(4*i),energiesRelGronOR[j][i][0],false);
+						energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[j][i][0],true);
+					}
+					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+						energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],false);
+						energyDiagram.addPoint(0,Double.valueOf(4*i+3),energiesRelGronOR[j][i][1],true);
+					}
+				}
+				energyDiagram.setForeground(Color.black);
+				for(int i=0; i<numMEBFs; i++) {
+					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
+						for(int k=0; k<numEnergiesGronOR[i][0]; k++) {
+							if(Math.abs(coefGronOR[k][j][i])>0.75) {
+								energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[k][i][0],false);
+								energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],true);
+							}
 						}
 					}
 				}
@@ -1009,31 +1094,10 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				if(i==dimFragments[energyFragment[j][0]][0]) {
 					// DFT energy from NWChem optimization
 					if(energyFragment[j][1]==0) {
-//						if(fragment.NWChem_Converged(i)) {
-//							energy=fragment.NWChem_DFT(i);
-//							energiesDFT[energyFragment[j][0]]=energy;
-//							dimFragments[i][6]=1;
-//							stateEnergies[j][1]=energy;
-//							energiesTableModel.setValueAt(stateEnergies[j][1],j,1);
-//						} else {
-//							fragment.write_NWChem_DFT(i,numRanks);
-//						}
 						fragment.write_NWChem_DFT(i,numRanks);
 					}
 					// SCF energy from Molcas
 					if(energyFragment[j][1]==1) {
-//						if(fragment.Molcas_SCF_Converged(energyFragment[j][0],dimFragments[energyFragment[j][0]][4])) {
-//							energy=fragment.Molcas_SCF(energyFragment[j][0],dimFragments[energyFragment[j][0]][4]);
-//							numAlt=fragment.Molcas_numAlt();
-//							dimFragments[i][10]=numAlt;
-//							energiesSCF[energyFragment[j][0]]=energy;
-//							stateEnergies[j][1]=energy;
-//							dimFragments[i][7]=1;
-//							energiesTableModel.setValueAt(stateEnergies[j][1],j,1);
-//						} else {
-//							fragment.write_Molcas_Int(energyFragment[j][0]);
-//							fragment.write_Molcas_SCF(energyFragment[j][0]);
-//						}
 						fragment.write_Molcas_Int(energyFragment[j][0]);
 						fragment.write_Molcas_SCF(energyFragment[j][0]);
 					}
@@ -1041,17 +1105,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 					if(energyFragment[j][1]==2) {
 						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
 							Integer stateIndex = ndxStateList[i][k];
-//							if(fragment.Molcas_CASSCF_Converged(energyFragment[j][0],stateIndex)>=1) {
-//								energy=fragment.Molcas_CASSCF(energyFragment[j][0],stateIndex);
-//								energiesCASSCF[energyFragment[j][0]][k]=energy;
-//								stateEnergies[j][k]=energy;
-//								dimFragments[i][8]=k+1;
-//								energiesTableModel.setValueAt(stateEnergies[j][k],j,k+1);
-//							} else {
-//								fragment.write_Molcas_Int(energyFragment[j][0]);
-//								fragment.write_Molcas_SCF(energyFragment[j][0]);
-//								fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,false,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
-//							}
 							fragment.write_Molcas_Int(energyFragment[j][0]);
 							fragment.write_Molcas_SCF(energyFragment[j][0]);
 							fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,false,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
@@ -1061,17 +1114,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 					if(energyFragment[j][1]==3) {
 						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
 							Integer stateIndex = ndxStateList[i][k];
-//							if(fragment.Molcas_CASSCF_Converged(energyFragment[j][0],k)>=1) {
-//								energy=fragment.Molcas_CASPT2(energyFragment[j][0],k);
-//								energiesCASPT2[energyFragment[j][0]][k]=energy;
-//								stateEnergies[j][k]=energy;
-//								dimFragments[i][9]=k+1;
-//								energiesTableModel.setValueAt(stateEnergies[j][k],j,k+1);
-//							} else {
-//								fragment.write_Molcas_Int(energyFragment[j][0]);
-//								fragment.write_Molcas_SCF(energyFragment[j][0]);
-//								fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,true,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
-//							}
 							fragment.write_Molcas_Int(energyFragment[j][0]);
 							fragment.write_Molcas_SCF(energyFragment[j][0]);
 							fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,true,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
@@ -1090,75 +1132,55 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		Double energy = 0.0;
 		Integer numAlt = 0;
 
-		Integer maxF = -1;
-		for(int i=0; i<numEnergies; i++) {
-			if(dimFragments[energyFragment[i][0]][0]>maxF) maxF = dimFragments[energyFragment[i][0]][0];
-		}
-		
-		for(int i=0; i<=maxF; i++) {
+		for(int i=0; i<numFragments; i++) {
 			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
 			nameP=projectName.trim();
 			nameF=namFragments[i].trim();
 			nameA=" ";
-			nameB=(String) fragmentDefinitions[dimFragments[i][0]][0];
+			nameB=(String) fragmentDefinitions[dimFragments[i][0]][1];
 
 			fragment.initialize(nameP, nameA, nameF, nameB, dimFragments[i][3], RandT);
-			for(int j=0; j<numEnergies; j++) {
-				if(i==dimFragments[energyFragment[j][0]][0]) {
-					// DFT energy from NWChem optimization
-					if(energyFragment[j][1]==0) {
-						if(fragment.NWChem_Converged(i)) {
-							energy=fragment.NWChem_DFT(i);
-							energiesDFT[energyFragment[j][0]]=energy;
-							dimFragments[i][6]=1;
-							stateEnergies[j][1]=energy;
-							energiesTableModel.setValueAt(stateEnergies[j][1],j,1);
-						} 
-					}
-					// SCF energy from Molcas
-					if(energyFragment[j][1]==1) {
-						if(fragment.Molcas_SCF_Converged(energyFragment[j][0],dimFragments[energyFragment[j][0]][4])) {
-							energy=fragment.Molcas_SCF(energyFragment[j][0],dimFragments[energyFragment[j][0]][4]);
-							numAlt=fragment.Molcas_numAlt();
-							dimFragments[i][10]=numAlt;
-							energiesSCF[energyFragment[j][0]]=energy;
-							stateEnergies[j][1]=energy;
-							dimFragments[i][7]=1;
-							energiesTableModel.setValueAt(stateEnergies[j][1],j,1);
-						} 
-					}
-					// CASSCF energy from Molcas
-					if(energyFragment[j][1]==2) {
-						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
-							Integer stateIndex = ndxStateList[i][k];
-							if(fragment.Molcas_CASSCF_Converged(energyFragment[j][0],stateIndex)>=1) {
-								energy=fragment.Molcas_CASSCF(energyFragment[j][0],stateIndex);
-								energiesCASSCF[energyFragment[j][0]][k]=energy;
-								stateEnergies[j][k]=energy;
-								dimFragments[i][8]=k+1;
-								energiesTableModel.setValueAt(stateEnergies[j][k],j,k+1);
-							} 
-						}
-					}
-					// CASPT2 energy from Molcas
-					if(energyFragment[j][1]==3) {
-						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
-							Integer stateIndex = ndxStateList[i][k];
-							if(fragment.Molcas_CASSCF_Converged(energyFragment[j][0],stateIndex)>=1) {
-								energy=fragment.Molcas_CASPT2(energyFragment[j][0],stateIndex);
-								energiesCASPT2[energyFragment[j][0]][k]=energy;
-								stateEnergies[j][k]=energy;
-								dimFragments[i][9]=k+1;
-								energiesTableModel.setValueAt(stateEnergies[j][k],j,k+1);
-							} 
-						}
-					}	
-				}
+			
+			dimFragments[i][6]=0;
+			dimFragments[i][7]=0;
+			dimFragments[i][8]=0;
+			dimFragments[i][9]=0;
+			
+			if(fragment.NWChem_Converged(i)) {
+				energy=fragment.NWChem_DFT(i);
+				energiesDFT[i]=energy;
+				dimFragments[i][6]=1;
+			} 
+			
+			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
+				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
+				numAlt=fragment.Molcas_numAlt();
+				dimFragments[i][10]=numAlt;
+				energiesSCF[i]=energy;
+				dimFragments[i][7]=1;
 			}
-		}
+			
+			for(int j=0; j<lenStateList[dimFragments[i][2]]; j++) {
+				Integer stateIndex = ndxStateList[dimFragments[i][2]][j];
+				Integer conv = fragment.Molcas_CASSCF_Converged(i,stateIndex);
+				energiesCASSCF[i][j]=0.0;
+				energiesCASPT2[i][j]=0.0;
+				if(conv>=1) {
+					energy=fragment.Molcas_CASSCF(i,stateIndex);
+					energiesCASSCF[i][j]=energy;
+					dimFragments[i][8]=j+1;
+					if(conv==2) {
+						energy=fragment.Molcas_CASPT2(i,stateIndex);
+						energiesCASPT2[i][j]=energy;
+						dimFragments[i][9]=j+1;
+					}
+				}
+				
+			}
+		}		
 		read_GronOR_arx();
 	}
-	
+
 	private void updateMEBFDefinitions() {
 
 		Integer index = 0;
@@ -1295,24 +1317,35 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				JFrame jf = new JFrame();
 				String value;
 				if(dimensionTable.getSelectedRow()==0) {
-					value = JOptionPane.showInputDialog(jf,"Enter new number of state definitions");
-					if(value.length()>0) newSets=Integer.valueOf(value);
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter new number of state definitions");
+						if(value.length()>0) newSets=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+						newSets=numSets;
+					}
 					update();
 				}
 				if(dimensionTable.getSelectedRow()==1) {
-					value = JOptionPane.showInputDialog(jf,"Enter new number of fragments");
-					if(value.length()>0) newFragments=Integer.valueOf(value);
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter new number of fragments");
+						if(value.length()>0) newFragments=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+						newFragments=numFragments;
+					}
 					update();
 				}
 				if(dimensionTable.getSelectedRow()==2) {
-					value = JOptionPane.showInputDialog(jf,"Enter new number of MEBFs");
-					if(value.length()>0) newMEBFs=Integer.valueOf(value);
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter new number of MEBFs");
+						if(value.length()>0) newMEBFs=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+						newMEBFs=numMEBFs;
+					}
 					update();
 				}
 				dimensionData[0][1]=newSets;
 				dimensionData[1][1]=newFragments;
 				dimensionData[2][1]=newMEBFs;
-				dimensionPanel.repaint();
 				update();
 			}
 		});
@@ -1336,14 +1369,58 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				JFrame jf = new JFrame();
 				String value;
 				if(numberTable.getSelectedRow()==0) {
+					try {
 					value = JOptionPane.showInputDialog(jf,"Enter new number of ranks");
 					if(value.length()>0) numRanks=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
 				}
 				numberData[0][1]=numRanks;
 				numberData[1][1]=0;
+				numberData[2][1]=0;
+				update();
 			}
 		});
 
+		threshPanel = new JPanel();
+		threshPanel.setLayout(new BoxLayout(threshPanel,BoxLayout.X_AXIS));
+		threshPanel.setPreferredSize(new Dimension(100,100));
+		Object[][] threshData = new Object[][] {
+			{"thr_MO", thresh_MO},
+			{"thr_CI", thresh_CI},
+			{"TBD", numTBD3}
+		};
+		String[] threshColumns = new String[] {" "," "};
+		threshTable = new JTable(threshData,threshColumns);
+		threshTable.setCellSelectionEnabled(true);
+		threshTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		threshTable.getColumnModel().getColumn(1).setMaxWidth(80);
+		ListSelectionModel threshSelectionModel = threshTable.getSelectionModel();
+		threshSelectionModel.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				JFrame jf = new JFrame();
+				String value;
+				if(threshTable.getSelectedRow()==0) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new threshold for common MO basis");
+					if(value.length()>0) thresh_MO=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(threshTable.getSelectedRow()==1) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new threshold for CI coefficients");
+					if(value.length()>0) thresh_MO=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				threshData[0][1]=thresh_MO;
+				threshData[1][1]=thresh_CI;
+				threshData[2][1]=0;
+				update();
+			}
+		});
+		
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.Y_AXIS));
 		buttonPanel.setPreferredSize(new Dimension(150,150));
@@ -1363,18 +1440,20 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		generateButton.setMaximumSize(new Dimension(150,20));
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//update();
+				update();
 				writeInputFiles();
 				writeClearScripts();
 			}
 		});
 		dimensionPanel.add(dimensionTable);
 		numberPanel.add(numberTable);
+		threshPanel.add(threshTable);
 		buttonPanel.add(updateButton);
 		buttonPanel.add(generateButton);
 		buttonPanel.add(Box.createVerticalGlue());
 		parametersPanel.add(dimensionPanel);
 		parametersPanel.add(numberPanel);
+		parametersPanel.add(threshPanel);
 		parametersPanel.add(buttonPanel);
 		
 		parametersPanel.add(Box.createHorizontalGlue());
@@ -1470,15 +1549,32 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 							namFragments[row]=namFragments[i];
 							dimFragments[row][1]=getNumAxyz(namFragments[row]);
 							dimFragments[row][3]=getNumExyz(namFragments[row]);
+							Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
+							if(numXA<dimFragments[row][4]) {
+								numCASe=Math.max(4,numXA);
+								numCASo=Math.max(4,numXA);
+								dimFragments[row][4]=numCASe;
+								dimFragments[row][5]=numCASo;
+							}
 						}
 					}
 				}
 				// xyz coordinate file
 				if(col==2) {
-					fragmentDefinitions[row][col]=getFileRoot(".xyz");
+					String newFile = getFileRoot(".xyz");
+					if(newFile.length()>0) {
+						fragmentDefinitions[row][col]=newFile.trim();
+					}
 					namFragments[row]=fragmentDefinitions[row][col].toString();
 					dimFragments[row][1]=getNumAxyz(fragmentDefinitions[row][col].toString());
 					dimFragments[row][3]=getNumExyz(fragmentDefinitions[row][col].toString());
+					Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
+					if(numXA<dimFragments[row][4]) {
+						numCASe=Math.max(4,numXA);
+						numCASo=Math.max(4,numXA);
+						dimFragments[row][4]=numCASe;
+						dimFragments[row][5]=numCASo;
+					}
 					for(int j=0; j<numFragments; j++) {
 						if(j!=row) {
 							if(namFragments[j].length()>0) {
@@ -1496,6 +1592,8 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 								if(fragmentDefinitions[j][1]==fragmentDefinitions[row][1]) {
 									dimFragments[j][1]=dimFragments[row][1];
 									dimFragments[j][3]=dimFragments[row][3];
+									dimFragments[j][4]=dimFragments[row][4];
+									dimFragments[j][5]=dimFragments[row][5];
 									namFragments[j]=namFragments[row];						
 								}
 							}
@@ -1505,48 +1603,75 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 				}
 				// change number of states from { S0 S1 T1 D- D+ S2 T2 }
 				if(col==4) {
-					value = JOptionPane.showInputDialog(jf,"Enter index into states list for fragment "+fragmentDefinitions[row][0].toString());
-					if(value.length()>0) dimFragments[row][2]=Integer.valueOf(value)-1;
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter index into states list for fragment "+fragmentDefinitions[row][0].toString());
+						if(value.length()>0) dimFragments[row][2]=Integer.valueOf(value)-1;
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change number of CAS electrons
 				if(col==6) {
-					value = JOptionPane.showInputDialog(jf,"Enter number of electrons in CAS for fragment "+fragmentDefinitions[row][0].toString());
-					if(value.length()>0) dimFragments[row][4]=Integer.valueOf(value);
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter number of electrons in CAS for fragment "+fragmentDefinitions[row][0].toString());
+						if(value.length()>0) dimFragments[row][4]=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change number of CAS orbitals
 				if(col==7) {
-					value = JOptionPane.showInputDialog(jf,"Enter number of orbitals in CAS for fragment "+fragmentDefinitions[row][0].toString());
-					if(value.length()>0) dimFragments[row][5]=Integer.valueOf(value);
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter number of orbitals in CAS for fragment "+fragmentDefinitions[row][0].toString());
+						if(value.length()>0) dimFragments[row][5]=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change translation in x
 				if(col==8) {
-					value = JOptionPane.showInputDialog(jf,"Enter Tx for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][0]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Tx for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][0]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change translation in y
 				if(col==9) {
-					value = JOptionPane.showInputDialog(jf,"Enter Ty for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][1]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Ty for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][1]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change translation in z
 				if(col==10) {
-					value = JOptionPane.showInputDialog(jf,"Enter Tz for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][2]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Tz for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][2]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change rotation in x
 				if(col==11) {
-					value = JOptionPane.showInputDialog(jf,"Enter Rx for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][3]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Rx for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][3]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change rotation in y
 				if(col==12) {
-					value = JOptionPane.showInputDialog(jf,"Enter Ry for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][4]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Ry for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][4]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				// change rotation in z
 				if(col==13) {
-					value = JOptionPane.showInputDialog(jf,"Enter Rz for fragment "+fragmentDefinitions[row][0].toString());
-					movFragments[row][5]=Double.valueOf(value).doubleValue();
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter Rz for fragment "+fragmentDefinitions[row][0].toString());
+						movFragments[row][5]=Double.valueOf(value).doubleValue();
+					} catch(NullPointerException e1) {
+					}
 				}
 				if(col==14) {
 					for(int j=0; j<6; j++) RandT[j]=movFragments[row][j];
@@ -1651,8 +1776,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociResultsPanel.setLayout(new BoxLayout(nociResultsPanel,BoxLayout.X_AXIS));
 		nociResultsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,noci1*15+135));
 		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,noci1*15+135));
-//		nociResultsPanel.setMinimumSize(new Dimension(200,200));
-//		nociResultsPanel.setMaximumSize(new Dimension(200,200));
 		
 		nociEnergiesPanel = new JPanel();
 		nociEnergiesPanel.setLayout(new BoxLayout(nociEnergiesPanel,BoxLayout.X_AXIS));
@@ -1684,27 +1807,19 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		});
 
 		nociEnergiesPanel.add(nociEnergiesScroll);
-//		nociEnergiesPanel.add(Box.createHorizontalGlue());
 
 		nociPlotPanel = new JPanel();
 		nociPlotPanel.setLayout(new BoxLayout(nociPlotPanel,BoxLayout.X_AXIS));
 		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*20+50));
-//		nociPlotPanel.setPreferredSize(new Dimension(300,500));
-//		nociPlotPanel.setMinimumSize(new Dimension(300,noci1*20+50));
 		nociPlotPanel.setMinimumSize(new Dimension(300,500));
-//		nociPlotPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,0));
-//		nociPlotPanel.setMinimumSize(new Dimension(200,200));
-//		nociPlotPanel.setMaximumSize(new Dimension(200,200));
 		TitledBorder nociPlotBorder = new TitledBorder(new LineBorder(Color.black),"Energy Diagram");
 		nociPlotBorder.setTitleColor(Color.black);
 		nociPlotPanel.setBorder(nociPlotBorder);
-//		energyDiagram.setTitle("Energy Diagram");
 		energyDiagram.setXRange(0,3);
 		energyDiagram.setYRange(0,10);
 		energyDiagram.setSize(200,500);
 		energyDiagram.setGrid(false);
 		nociPlotPanel.add(energyDiagram);
-//		nociPlotPanel.add(Box.createHorizontalGlue());
 		
 		nociResultsPanel.add(nociEnergiesPanel);
 		nociResultsPanel.add(nociPlotPanel);
@@ -1716,7 +1831,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociPlotPanel.repaint();
 		
 		baseBox.add(nociResultsPanel);
-		baseBox.add(Box.createHorizontalGlue());
+		baseBox.add(Box.createVerticalGlue());
 
 		update();
 	}
@@ -1727,8 +1842,11 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		JFrame jf = new JFrame();
 		String value;
 		if(col==1) {
-			value = JOptionPane.showInputDialog(jf,"Enter number of states for list "+row);
-			if(value.length()>0) lenStateList[row]=Integer.valueOf(value.trim());
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter number of states for list "+row);
+				if(value.length()>0) lenStateList[row]=Integer.valueOf(value.trim());
+			} catch (NullPointerException e1) {
+			}
 		}
 		updateStatesList();
 	}
@@ -1920,24 +2038,33 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		Integer chrg = mebfSpecification[mebf][2];
 		Integer stat = mebfSpecification[mebf][3];
 		if(col==1) {
-			value = JOptionPane.showInputDialog(jf,"Enter number of fragments for MEBF "+mebfName[mebf].trim());
-			if(value.length()>0) mebfSpecification[mebf][0]=Integer.valueOf(value);
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter number of fragments for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][0]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+			}
 			
 			selectMEBFStates(mebf,nmer,spin,chrg,stat);
 			update();			
 		}
 		
 		if(col==2) {
-			value = JOptionPane.showInputDialog(jf,"Enter spin for MEBF "+mebfName[mebf].trim());
-			if(value.length()>0) mebfSpecification[mebf][1]=Integer.valueOf(value);
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter spin for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][1]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+			}
 
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
 		}
 
 		if(col==3) {
-			value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
-			if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+			}
 
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
@@ -1945,8 +2072,11 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		
 		if(col==4) {
 			Integer prev=mebfSpecification[mebf][3];
-			value = JOptionPane.showInputDialog(jf,"Enter number of states for MEBF "+mebfName[mebf].trim());
-			if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter number of states for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+		}
 
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
@@ -1978,7 +2108,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			}
 			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, frags)) {
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, frags);	
-				fragment.write_Molcas_MEBF_CB(fileName, nfrags, frags, fstat, lenStateList, ndxStateList);	
+				fragment.write_Molcas_MEBF_CB(fileName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, frags);
 				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, frags, fstat, lenStateList, ndxStateList, numRanks);
 			}
@@ -2000,7 +2130,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 					for(int k=0; k<numME; k++) inputFile.print(" "+stateNames[mebfFragments[i][j][k+1]]);
 					inputFile.println();
 				}
-				inputFile.println("Threshold 1.0e-5");
+				inputFile.println("Threshold "+thresh_CI);
 				inputFile.println("Print medium");
 				inputFile.close();
 			} catch(IOException e) {
@@ -2008,7 +2138,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		}
 	}
 	
-	public void read_GronOR_arx() {
+	public Boolean read_GronOR_arx() {
 		Integer numE=0;
 		Integer numC=0;
 		Double eMEBF=0.0;
@@ -2019,8 +2149,8 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			numEnergiesGronOR[i][1]=0;
 		}
 		for(int i=0; i<numMEBFs; i++) {
+			String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.arx";
 			try {
-				String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.arx";
 		    	BufferedReader br = new BufferedReader(new FileReader(fileName));
 		    	String card;
 		    	while((card=br.readLine()) != null) {
@@ -2040,7 +2170,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 								card=br.readLine();
 								if(j>=numC) card=br.readLine();
 								ndx=j;
-								if(ndx>=numC) ndx=ndx=numC;
+								if(ndx>=numC) ndx=numC;
 								eMEBF=Double.valueOf(card.substring(20*ndx+6,20*ndx+26)).doubleValue();
 								energiesGronOR[j][i][0]=eMEBF;
 								numEnergiesGronOR[i][0]=j+1;
@@ -2098,11 +2228,13 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 						}
 					}
 		    	}
+		    	br.close();
 			} catch(Exception ee) {
-				System.out.println("Arx file does not exist");
-				return;
+				System.out.println("Arx file "+fileName+" does not exist");
+				return false;
 			}
 		}
+    	return true;
 	}
 	
 	public void actionPerformed(ActionEvent e){}

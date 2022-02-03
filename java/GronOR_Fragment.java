@@ -190,7 +190,7 @@ public class GronOR_Fragment {
 			runFile.println("mv COMMONORB "+p.trim()+".COMMONORB");
 			runFile.println("rm RUNFILE");
 			runFile.println("rm CHORST");
-			runFile.println("rm ONEINT");
+			runFile.println("rm ONEINT*");
 			runFile.println("rm TRAONE");
 			runFile.println("rm TRAINT");
 			runFile.println("rm CHOMAP");
@@ -925,6 +925,7 @@ public class GronOR_Fragment {
 				if(card.startsWith("      RASSCF energy for state")) {
 					numConverged=1;
 					energyCASSCF=Double.valueOf(card.substring(48,64).trim()).doubleValue();
+					convergedCASSCF=true;
 				}
 				if(convergedCASSCF && card.startsWith("      Total energy:    ")) {
 					numConverged=2;
@@ -1175,7 +1176,7 @@ public class GronOR_Fragment {
 		}
 	}
 
-	public void write_Molcas_MEBF_CB(String p, Integer n, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList) {
+	public void write_Molcas_MEBF_CB(String p, Integer n, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Double thr) {
 		String fileName = p+"_MEBFCB.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -1185,10 +1186,10 @@ public class GronOR_Fragment {
 			inputFile.printf("%3d",n); inputFile.println();
 			for(int i=0; i<n; i++) inputFile.printf("%3d",lenStateList[fstat[i]]); inputFile.println();
 			inputFile.println("Threshold");
-			inputFile.println(" 1.0e-5");
+			inputFile.println(" "+thr);
 			inputFile.println("Labels");
 			for(int i=0; i<n; i++) {
-				for(int j=0; j<lenStateList[fstat[i]]; j++) inputFile.print(" "+stateNames[ndxStateList[i][j]].trim());
+				for(int j=0; j<lenStateList[fstat[i]]; j++) inputFile.print(" "+stateNames[ndxStateList[fstat[i]][j]].trim());
 			}
 			inputFile.println();
 			inputFile.println("Energies");

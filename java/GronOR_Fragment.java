@@ -319,11 +319,15 @@ public class GronOR_Fragment {
 		return energy;
 	}
 	
-	public void write_NWChem_DFT(Integer frag, Integer ranks, Integer stat) {
-		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nw";
+	public void write_NWChem_DFT(String nameF, Integer mult, Integer ranks) {
+//		public void write_NWChem_DFT(Integer frag, Integer ranks, Integer stat) {
+		String fileName = nameF.trim()+".xyz";
+		fragmentName=nameF.trim();
+		if(!read_XYZ()) System.exit(0);
+		fileName = nameF.trim()+"_DFT.nw";
 		try {
 			PrintfWriter nwFile = new PrintfWriter(new FileWriter(fileName));
-			nwFile.println("start "+projectRoot+fragmentNames[frag]);
+			nwFile.println("start "+nameF);
 			nwFile.println("echo");
 			nwFile.println("basis \"ao basis\" print");
 			nwFile.println("* library \"def2-tzvp\"");
@@ -339,8 +343,9 @@ public class GronOR_Fragment {
 		    nwFile.println("end");
 			nwFile.println("dft");
 			nwFile.println(" xc b3lyp");
-			if(stateNames[stat].startsWith("D")) nwFile.println(" mult 2");
-			if(stateNames[stat].startsWith("T")) nwFile.println(" mult 3");
+			if(mult>1) nwFile.println(" mult "+mult);
+//			if(stateNames[stat].startsWith("D")) nwFile.println(" mult 2");
+//			if(stateNames[stat].startsWith("T")) nwFile.println(" mult 3");
 			nwFile.println("end");
 			nwFile.println("driver");
 			nwFile.println("end");
@@ -348,18 +353,22 @@ public class GronOR_Fragment {
 			nwFile.close();
 		} catch(IOException e) {
 		}
-		fileName = projectRoot+fragmentNames[frag]+"_DFT.run";
+		fileName = nameF.trim()+"_DFT.run";
+//		fileName = projectRoot+fragmentNames[frag]+"_DFT.run";
 		try {
 			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
-		    runFile.println("mpirun -n "+ranks+" nwchem "+projectRoot+fragmentNames[frag]+"_DFT > "+projectRoot+fragmentNames[frag]+"_DFT.nwout");
+		    runFile.println("mpirun -n "+ranks+" nwchem "+nameF.trim()+"_DFT > "+nameF.trim()+"_DFT.nwout");
 			runFile.close();
 		} catch(IOException e) {
 		}		
 	}
 	
-	public Boolean write_Molcas_Int(Integer frag) {
-		String fileName = projectRoot+fragmentNames[frag]+"_INT.input";
-		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
+	public Boolean write_Molcas_Int(String nameF) {
+		String fileName = nameF.trim()+".xyz";
+		fragmentName=nameF.trim();
+		String rootName=nameF.trim();
+		if(!read_XYZ()) System.exit(0);
+		fileName = nameF+"_INT.input";
 		String previous;
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -398,19 +407,19 @@ public class GronOR_Fragment {
 			return false;
 		}
 	}
-	
-	public Boolean write_Molcas_SCF(Integer frag, Integer stat) {
-		String fileName = projectRoot+fragmentNames[frag]+"_SCF.input";
+
+	public Boolean write_Molcas_SCF(String nameF, Integer mult) {
+		String fileName = nameF.trim()+".xyz";
+		fragmentName=nameF.trim();
+		String rootName=nameF.trim();
+		if(!read_XYZ()) System.exit(0);
+		fileName = nameF+"_SCF.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
-			if(stateNames[stat].startsWith("D")) {
+			if(mult>1) {
 				inputFile.println(" uhf");
-				inputFile.println(" spin 2");
-			}
-			if(stateNames[stat].startsWith("T")) {
-				inputFile.println(" uhf");
-				inputFile.println(" spin 3");
+				inputFile.println(" spin "+mult);
 			}
 			inputFile.close();
 			return true;
@@ -423,13 +432,15 @@ public class GronOR_Fragment {
 		return numAlt;
 	}
 	
-	public Boolean write_Molcas_CASSCF(Integer frag, Integer state, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
-		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateNames[state].trim()+".input";
-		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
-		String ext = "_"+stateNames[state];
+	public Boolean write_Molcas_CASSCF(String nameF, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
+		String fileName=nameF.trim()+"_"+nameS.trim()+".input";
+		String rootName=nameF.trim();
+//		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateNames[state].trim()+".input";
+//		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
+		String ext = "_"+nameS.trim();
 		try {
 			Integer Inact = numOcc - numCASe/2;
-			if(stateNames[state].trim().equals("S0")) {
+			if(nameS.trim().equals("S0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -448,7 +459,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("S1")) {
+			} else if(nameS.trim().equals("S1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -473,7 +484,7 @@ public class GronOR_Fragment {
 				}
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("S2")) {
+			} else if(nameS.trim().equals("S2")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -498,7 +509,7 @@ public class GronOR_Fragment {
 				}
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("D0")) {
+			} else if(nameS.trim().equals("D0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -520,7 +531,7 @@ public class GronOR_Fragment {
 				}
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("D1")) {
+			} else if(nameS.trim().equals("D1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -545,7 +556,7 @@ public class GronOR_Fragment {
 				}
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("T1")) {
+			} else if(nameS.trim().equals("T1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -564,7 +575,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("T2")) {
+			} else if(nameS.trim().equals("T2")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -589,7 +600,7 @@ public class GronOR_Fragment {
 				}
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("S+")) {
+			} else if(nameS.trim().equals("S+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -608,7 +619,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("D+")) {
+			} else if(nameS.trim().equals("D+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -627,7 +638,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("T+")) {
+			} else if(nameS.trim().equals("T+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -646,7 +657,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("S-")) {
+			} else if(nameS.trim().equals("S-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -665,7 +676,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("D-")) {
+			} else if(nameS.trim().equals("D-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");
@@ -684,7 +695,7 @@ public class GronOR_Fragment {
 				if(withCASPT2) inputFile.println("&caspt2");
 				inputFile.close();
 				return true;
-			} else if(stateNames[state].trim().equals("T-")) {
+			} else if(nameS.trim().equals("T-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
 				inputFile.println("nactel");

@@ -172,7 +172,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	GronOR_Project(String pName){
 		
 		super("GronOR Project "+pName);
-	    super.setSize(1000,800);
+	    super.setSize(1000,900);
 	    super.setLocation(150,150);
 	    super.setBackground(Color.lightGray);
 	    super.setForeground(Color.blue);
@@ -272,6 +272,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
 			clearFile.println("rm -f *.xmldump");
+			clearFile.println("mv "+projectName.trim()+".prj KEEPTHIS");
+			clearFile.println("rm -f "+projectName.trim()+"*");
+			clearFile.println("mv KEEPTHIS "+projectName.trim()+".prj");
 			clearFile.close();
 		} catch(IOException ei) {
 		}
@@ -604,12 +607,15 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociResultsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,255));
 		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,255));
 		nociResultsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,noci1*15+65));
-		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*15+60));
-		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*15+60));
-		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*15+60));
-		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*15+60));
-		nociPlotPanel.setMinimumSize(new Dimension(300,noci1*15+60));
-		nociPlotPanel.setMaximumSize(new Dimension(300,noci1*15+60));
+		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*15+50));
+		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*15+50));
+		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*15+50));
+//		nociPlotPanel.setPreferredSize(new Dimension(300,250));
+//		nociPlotPanel.setMinimumSize(new Dimension(300,250));
+//		nociPlotPanel.setMaximumSize(new Dimension(300,250));
+		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*15+50));
+		nociPlotPanel.setMinimumSize(new Dimension(300,noci1*15+50));
+		nociPlotPanel.setMaximumSize(new Dimension(300,noci1*15+50));
 		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();
@@ -962,7 +968,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 			}
 			fragment.initialize(nameP,nameA,nameF,nameB,dimFragments[i][3],RandT);
 
-			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks);
 		}
 		numberStateEnergies=numEnergies;
 	}
@@ -1160,59 +1165,78 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 	
 	private void writeInputFiles() {
 
-		System.out.println("WRITING INPUT FILES");
-		String nameA, nameB, nameP, nameF;
+		String nameA, nameP, nameF, nameS;
+		Integer numCASe=0, numCASo=0;
+		Boolean withCASPT2=false;
 		
-		Double energy = 0.0;
-		Integer numAlt = 0;
+		Integer stateIndex = 0;
 
-		Integer maxF = -1;
+		Integer numRunDFT = -1;
+		Integer numRunMolcas = -1;
+
 		for(int i=0; i<numEnergies; i++) {
-			if(dimFragments[energyFragment[i][0]][0]>maxF) maxF = dimFragments[energyFragment[i][0]][0];
+			if(dimFragments[energyFragment[i][0]][0]>numRunDFT) numRunDFT = dimFragments[energyFragment[i][0]][0];
+			if(energyFragment[i][0]>numRunMolcas) numRunMolcas = energyFragment[i][0];
 		}
 		
-		for(int i=0; i<=maxF; i++) {
+		for(int i=0; i<=numRunDFT; i++) {
 			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
 			nameP=projectName.trim();
-			nameF=namFragments[i].trim();
-			nameA=" ";
-			nameB=(String) fragmentDefinitions[dimFragments[i][0]][0];
+			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
+			Integer mult=1;
+			if(stateNames[ndxStateList[i][0]].startsWith("D")) mult=2;
+			if(stateNames[ndxStateList[i][0]].startsWith("T")) mult=3;
+			nameF=projectName.trim()+nameA.trim();
+			fragment.write_NWChem_DFT(nameF,mult,numRanks);
+		}
 
-			fragment.initialize(nameP, nameA, nameF, nameB, dimFragments[i][3], RandT);
-			for(int j=0; j<numEnergies; j++) {
-				if(i==dimFragments[energyFragment[j][0]][0]) {
-					// DFT energy from NWChem optimization
-					if(energyFragment[j][1]==0) {
-						Integer stateIndex = ndxStateList[i][0];
-						fragment.write_NWChem_DFT(i,numRanks,stateIndex);
-					}
-					// SCF energy from Molcas
-					if(energyFragment[j][1]==1) {
-						Integer stateIndex = ndxStateList[i][0];
-						fragment.write_Molcas_Int(energyFragment[j][0]);
-						fragment.write_Molcas_SCF(energyFragment[j][0],stateIndex);
-					}
-					// CASSCF energy from Molcas
-					if(energyFragment[j][1]==2) {
-						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
-							Integer stateIndex = ndxStateList[i][k];
-//							fragment.write_Molcas_Int(energyFragment[j][0]);
-//							fragment.write_Molcas_SCF(energyFragment[j][0],stateIndex);
-							fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,false,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
-						}
-					}
-					// CASPT2 energy from Molcas
-					if(energyFragment[j][1]==3) {
-						for(int k=0; k<lenStateList[dimFragments[energyFragment[j][0]][2]]; k++) {
-							Integer stateIndex = ndxStateList[i][k];
-//							fragment.write_Molcas_Int(energyFragment[j][0]);
-//							fragment.write_Molcas_SCF(energyFragment[j][0],stateIndex);
-							fragment.write_Molcas_CASSCF(energyFragment[j][0],stateIndex,true,dimFragments[energyFragment[j][0]][4],dimFragments[energyFragment[j][0]][5]);
-						
-						}
-					}	
-				}
+		for(int i=0; i<=numRunMolcas; i++) {
+			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
+			nameP=projectName.trim();
+			nameA= (String) fragmentDefinitions[i][0];
+			stateIndex=dimFragments[i][2];
+			withCASPT2=(fragmentDefinitions[i][0]==fragmentDefinitions[i][1]);
+
+			Integer mult=1;
+			if(stateNames[ndxStateList[stateIndex][0]].startsWith("D")) mult=2;
+			if(stateNames[ndxStateList[stateIndex][0]].startsWith("T")) mult=3;
+			nameF=projectName.trim()+nameA.trim();
+			fragment.write_Molcas_SCF(nameF,mult);
+			
+			if(lenStateList[stateIndex]>0) {
+				for(int j=0; j<lenStateList[stateIndex]; j++) {
+					nameS=stateNames[ndxStateList[stateIndex][j]];
+					numCASe=dimFragments[i][4];
+					numCASo=dimFragments[i][5];
+					fragment.write_Molcas_CASSCF(nameF,nameS,withCASPT2,numCASe,numCASo);
+
+				}		
 			}
+		}
+		
+		for(int i=0; i<numFragments; i++) {
+			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks);
+		}
+		write_Molcas_MEBF_files();
+		write_GronOR_NOCI();
+		write_Run_All_Script();
+	}
+	
+	private void write_Run_All_Script() {
+		String fileName = projectName.trim()+"_all.run";
+		try {
+			PrintfWriter allFile = new PrintfWriter(new FileWriter(fileName));
+			for(int i=0; i<numFragments; i++) {
+				allFile.println("./"+projectName.trim()+fragmentNames[i].trim()+".run");
+			}
+			for(int i=0; i<numMEBFs; i++) {
+				allFile.println("./"+projectName.trim()+mebfName[i].trim()+"_Molcas.run");
+			}
+			for(int i=0; i<numMEBFs; i++) {
+				allFile.println("./"+projectName.trim()+mebfName[i].trim()+"_GronOR.run");
+			}
+			allFile.close();
+		} catch(IOException ei) {
 		}
 	}
 	
@@ -1368,9 +1392,6 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		}
 
 		numMEBFRows=numRows;
-		
-		write_Molcas_MEBF_files();
-		write_GronOR_NOCI();
 	}
 
 	private void initializeWindow() {
@@ -1833,7 +1854,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		mebfsBorder.setTitleColor(Color.black);
 		mebfsPanel.setBorder(mebfsBorder);
 		mebfsTable = new JTable(mebfsTableModel);
-		mebfsTable.getColumnModel().getColumn(0).setMaxWidth(40);
+		mebfsTable.getColumnModel().getColumn(0).setMaxWidth(60);
 		ListSelectionModel mebfsSelectionModel = mebfsTable.getSelectionModel();
 		mebfsSelectionModel.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -1892,6 +1913,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 
 		nociResultsPanel = new JPanel();
 		nociResultsPanel.setLayout(new BoxLayout(nociResultsPanel,BoxLayout.X_AXIS));
+		TitledBorder nociResultsBorder = new TitledBorder(new LineBorder(Color.black),"NOCI Energies");
+		nociResultsBorder.setTitleColor(Color.black);
+		nociResultsPanel.setBorder(nociResultsBorder);
 		nociResultsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
 		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
 		nociResultsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
@@ -1901,8 +1925,7 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*20+130));
 		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*20+80));
 		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*20+80));
-		TitledBorder nociEnergiesBorder = new TitledBorder(new LineBorder(Color.black),"NOCI Energies");
-		nociEnergiesBorder.setTitleColor(Color.black);
+		LineBorder nociEnergiesBorder = new LineBorder(Color.black);
 		nociEnergiesPanel.setBorder(nociEnergiesBorder);
 		nociEnergiesTableModel = new DefaultTableModel(new Object[] {"ID"},1);
 		noci0=1;
@@ -1931,10 +1954,9 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociPlotPanel = new JPanel();
 		nociPlotPanel.setLayout(new BoxLayout(nociPlotPanel,BoxLayout.X_AXIS));
 		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*20+130));
-		nociPlotPanel.setMinimumSize(new Dimension(300,500));
-		nociPlotPanel.setMaximumSize(new Dimension(300,500));
-		TitledBorder nociPlotBorder = new TitledBorder(new LineBorder(Color.black),"Energy Diagram");
-		nociPlotBorder.setTitleColor(Color.black);
+		nociPlotPanel.setMinimumSize(new Dimension(300,800));
+		nociPlotPanel.setMaximumSize(new Dimension(300,800));
+		LineBorder nociPlotBorder = new LineBorder(Color.black);
 		nociPlotPanel.setBorder(nociPlotBorder);
 		energyDiagram.setXRange(0,3);
 		energyDiagram.setYRange(0,10);
@@ -1943,9 +1965,10 @@ public class GronOR_Project extends JFrame implements ActionListener, ChangeList
 		nociPlotPanel.add(energyDiagram);
 		
 		nociResultsPanel.add(nociEnergiesPanel);
-		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		nociResultsPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		nociResultsPanel.add(nociPlotPanel);
 		nociResultsPanel.add(Box.createHorizontalGlue());
+		nociResultsPanel.add(Box.createVerticalGlue());
 
 		energyDiagram.revalidate();
 		energyDiagram.repaint();

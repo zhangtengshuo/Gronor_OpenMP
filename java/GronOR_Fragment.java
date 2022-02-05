@@ -319,7 +319,7 @@ public class GronOR_Fragment {
 		return energy;
 	}
 	
-	public void write_NWChem_DFT(Integer frag, Integer ranks) {
+	public void write_NWChem_DFT(Integer frag, Integer ranks, Integer stat) {
 		String fileName = projectRoot+fragmentNames[frag]+"_DFT.nw";
 		try {
 			PrintfWriter nwFile = new PrintfWriter(new FileWriter(fileName));
@@ -339,6 +339,8 @@ public class GronOR_Fragment {
 		    nwFile.println("end");
 			nwFile.println("dft");
 			nwFile.println(" xc b3lyp");
+			if(stateNames[stat].startsWith("D")) nwFile.println(" mult 2");
+			if(stateNames[stat].startsWith("T")) nwFile.println(" mult 3");
 			nwFile.println("end");
 			nwFile.println("driver");
 			nwFile.println("end");
@@ -397,11 +399,19 @@ public class GronOR_Fragment {
 		}
 	}
 	
-	public Boolean write_Molcas_SCF(Integer frag) {
+	public Boolean write_Molcas_SCF(Integer frag, Integer stat) {
 		String fileName = projectRoot+fragmentNames[frag]+"_SCF.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
+			if(stateNames[stat].startsWith("D")) {
+				inputFile.println(" uhf");
+				inputFile.println(" spin 2");
+			}
+			if(stateNames[stat].startsWith("T")) {
+				inputFile.println(" uhf");
+				inputFile.println(" spin 3");
+			}
 			inputFile.close();
 			return true;
 		} catch(IOException e) {

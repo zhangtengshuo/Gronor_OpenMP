@@ -73,30 +73,7 @@ c      use cuda_rt
 !     allocation of the worker processors, starting at rank 0
 
       master=np-1
-      numdev=0
-      num_threads=1
-
-      memfre=0
-      memtot=0
       
-#ifdef _OPENACC
-      numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-      if(numdev.gt.1) then
-c     mydev=mod(me,numdev)
-c     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-#ifdef CUDA
-        cpfre=c_loc(memfre)
-        cptot=c_loc(memtot)
-c        istat=cudaMemGetInfo(cpfre,cptot)
-#endif
-        memavail=memfre
-      endif
-#endif
-#ifdef _OL_OMP_
-      numdev=omp_get_num_devices()
-#endif
-      
-      num_threads=1
 
       if(me.eq.master) num_threads=1
 
@@ -138,6 +115,36 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
         len=6
         machine='Summit'
       endif
+
+!     Set the device number
+      
+      numdev=0
+      num_threads=1
+
+      memfre=0
+      memtot=0
+      
+#ifdef _OPENACC
+      numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
+      if(numdev.gt.1) then
+        if(machine.ne.'Juwels') then
+          mydev=mod(me,numdev)
+          call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+        endif
+#ifdef CUDA
+        cpfre=c_loc(memfre)
+        cptot=c_loc(memtot)
+c        istat=cudaMemGetInfo(cpfre,cptot)
+#endif
+        memavail=memfre
+      endif
+#endif
+#ifdef _OL_OMP_
+      numdev=omp_get_num_devices()
+#endif
+      
+      num_threads=1
+
       
       j=1
       i=1

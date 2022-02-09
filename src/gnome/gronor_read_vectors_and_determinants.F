@@ -93,8 +93,10 @@
             write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
  616        format(3a2)
             write(lfnout,617) mebflabel(j),
-     &           nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
-     &           fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+     &           sum(nElectrons(ncombv(:,j))),
+*     &           nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
+     &           sum(fragEner(ncombv(:,j)))
+*     &           fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
  617        format(a6,i10,t22,f22.12)
          enddo
       endif
@@ -102,8 +104,10 @@
  701  format('State',2i10)
       do j=1,nbase
          write(lfnarx,617) mebflabel(j),
-     &        nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
-     &        fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+     &        sum(nElectrons(ncombv(:,j))),
+*     &        nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
+     &        sum(fragEner(ncombv(:,j)))
+*     &        fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
       enddo
       
       allocate(civ_raw(maxci_raw,mstates))

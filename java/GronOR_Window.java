@@ -18,7 +18,7 @@ public class GronOR_Window extends JFrame implements ActionListener, ChangeListe
 
 		super("GronOR Graphical User Interface");
 	    super.setSize(800,200);
-	    super.setLocation(100,100);
+	    super.setLocation(200,200);
 	    super.setBackground(Color.lightGray);
 	    super.setForeground(Color.blue);
 	    super.addWindowListener(this);

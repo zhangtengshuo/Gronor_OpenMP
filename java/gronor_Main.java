@@ -1,13 +1,11 @@
-package gronor;
-
-import javax.swing.*;
+package GronOR;
 
 public class gronor_Main {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println("GronOR Graphical User Interface");
-		new GronOR_Window();
+		new gronor_Window();
 	}
-
+	
 }

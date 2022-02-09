@@ -2113,9 +2113,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Boolean include = false;
 		
 		if(mebfSpecification[mebf][0]>maxMer) mebfSpecification[mebf][0]=maxMer;
+		
 		if(mebfSpecification[mebf][0]>nmer) {
-			
-
 			for(int i=nmer; i<mebfSpecification[mebf][0]; i++) {
 				for(int k=0; k<19; k++) {
 					mebfFragments[mebf][i][k]=0;
@@ -2125,9 +2124,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 				mebfFragments[mebf][i][0]=mebfFragments[mebf][i-1][0]+1;
 				if(mebfFragments[mebf][i][0]>maxMer) mebfFragments[mebf][i][0]=mebfFragments[mebf][i][0]-maxMer;
-			}
-			
+				
+			}	
 		}
+		
+		if(mebfSpecification[mebf][0]==1 && numSets==1) mebfSpecification[mebf][1]=spinStateList[0];
+					
 		nmer=mebfSpecification[mebf][0];
 		
 		spin=mebfSpecification[mebf][1];
@@ -2411,7 +2413,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			} catch (NullPointerException e1) {
 			}
-			
+
 			selectMEBFStates(mebf,nmer,spin,chrg,stat);
 			update();			
 		}

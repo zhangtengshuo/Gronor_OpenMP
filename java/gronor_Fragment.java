@@ -42,6 +42,7 @@ public class gronor_Fragment {
 	
 	Integer numAlt;
 	Integer[][] alter = new Integer[12][2];
+	Boolean altDone=false;
 
 	gronor_Fragment(){
 	}
@@ -85,7 +86,7 @@ public class gronor_Fragment {
 		}
 	}
 
-	public void write_Run_Script_Fragments(Integer frag, Integer stateset, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks) {
+	public void write_Run_Script_Fragments(Integer frag, Integer stateset, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks, Integer memory) {
 		String rootName = projectRoot.trim()+fragmentNames[frag].trim();
 		String fileName = rootName.trim()+".run";
 		String fullName;
@@ -94,7 +95,7 @@ public class gronor_Fragment {
 			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
 			runFile.println("#!/usr/bin/tcsh");
 			runFile.println("setenv MOLCAS_NPROCS "+ranks);
-			runFile.println("setenv MOLCAS_MEM 1024");
+			runFile.println("setenv MOLCAS_MEM "+memory);
 			fullName = rootName.trim()+"_INT";
 			runFile.println("cp "+fullName.trim()+".input "+rootName.trim()+".input; "+"pymolcas "+rootName.trim()+".input > "+fullName.trim()+".output");
 			fullName = rootName.trim()+"_SCF";
@@ -109,7 +110,7 @@ public class gronor_Fragment {
 		}
 	}
 
-	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks) {
+	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks, Integer memory) {
 		String fileName = p+"_Molcas.run";
 		String fullName;
 		String fullName2;
@@ -117,7 +118,7 @@ public class gronor_Fragment {
 			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
 			runFile.println("#!/usr/bin/tcsh");
 			runFile.println("setenv MOLCAS_NPROCS "+ranks);
-			runFile.println("setenv MOLCAS_MEM 1024");
+			runFile.println("setenv MOLCAS_MEM "+memory);
 			fullName = p.trim()+"_MEBFONE";
 			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
 			Integer index=0;
@@ -428,11 +429,30 @@ public class gronor_Fragment {
 		}
 	}
 	
-	public Integer Molcas_numAlt() {
-		return numAlt;
+	public void Molcas_numAlt(String nameF) {
+		String fileName=nameF.trim()+".alter";
+		System.out.println("ALTER "+fileName);
+		String card;
+		numAlt=0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			numAlt=Integer.valueOf(card.substring(0,6).trim());
+			
+			for(int i=0; i<numAlt; i++) {
+				card=br.readLine();
+				alter[i][0]=Integer.valueOf(card.substring(0,6).trim());
+				alter[i][1]=Integer.valueOf(card.substring(6,12).trim());
+			}
+			br.close();
+			return;
+		} catch(IOException ef) {
+			return;
+		}
 	}
 	
 	public Boolean write_Molcas_CASSCF(String nameF, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
+		Molcas_numAlt(nameF);
 		String fileName=nameF.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameF.trim();
 //		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateNames[state].trim()+".input";
@@ -443,6 +463,14 @@ public class gronor_Fragment {
 			if(nameS.trim().equals("S0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -462,6 +490,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("S1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -487,6 +523,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("S2")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -512,6 +556,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("D0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -534,6 +586,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("D1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -559,6 +619,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("T1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -578,6 +646,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("T2")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -603,6 +679,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("S+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
 				inputFile.println("spin");
@@ -622,6 +706,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("D+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
 				inputFile.println("spin");
@@ -641,6 +733,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("T+")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
 				inputFile.println("spin");
@@ -660,6 +760,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("S-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
 				inputFile.println("spin");
@@ -679,6 +787,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("D-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
 				inputFile.println("spin");
@@ -698,6 +814,14 @@ public class gronor_Fragment {
 			} else if(nameS.trim().equals("T-")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
 				inputFile.println("spin");
@@ -833,6 +957,7 @@ public class gronor_Fragment {
 		Integer numOcc;
 		Boolean converged = false;
 		Double energy = 0.0;
+		altDone=false;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 	

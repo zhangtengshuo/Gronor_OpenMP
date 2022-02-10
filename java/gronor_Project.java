@@ -63,6 +63,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Object[][] dimensionData;
 	
 	Integer numRanks=12;		// Number of ranks in internal mpirun
+	Integer memory=2048;
 	Integer numTBD1=0;
 	Integer numTBD2=0;
 	Integer numTBD3=0;
@@ -1291,7 +1292,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		
 		for(int i=0; i<numFragments; i++) {
-			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks);
+			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks,memory);
 		}
 		write_Molcas_MEBF_files();
 		write_GronOR_NOCI();
@@ -1345,7 +1346,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
-				numAlt=fragment.Molcas_numAlt();
 				dimFragments[i][10]=numAlt;
 				energiesSCF[i]=energy;
 				dimFragments[i][7]=1;
@@ -1559,14 +1559,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		numberPanel.setBorder(numberBorder);
 		Object[][] numberData = new Object[][] {
 			{"Ranks", numRanks},
-			{"TBD", numTBD1},
+			{"Memory", memory},
 			{"TBD", numTBD2}
 		};
 		String[] numberColumns = new String[] {" "," "};
 		numberTable = new JTable(numberData,numberColumns);
 		numberTable.setCellSelectionEnabled(true);
-		numberTable.getColumnModel().getColumn(0).setMaxWidth(80);
-		numberTable.getColumnModel().getColumn(1).setMaxWidth(30);
+		numberTable.getColumnModel().getColumn(0).setMaxWidth(60);
+		numberTable.getColumnModel().getColumn(1).setMaxWidth(50);
 		ListSelectionModel numberSelectionModel = numberTable.getSelectionModel();
 		numberSelectionModel.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -1579,8 +1579,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					} catch(NullPointerException e1) {
 					}
 				}
+				if(numberTable.getSelectedRow()==1) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new memory");
+					if(value.length()>0) memory=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
 				numberData[0][1]=numRanks;
-				numberData[1][1]=0;
+				numberData[1][1]=memory;
 				numberData[2][1]=0;
 				update();
 			}
@@ -2480,7 +2487,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, frags);	
 				fragment.write_Molcas_MEBF_CB(fileName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, frags);
-				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, frags, fstat, lenStateList, ndxStateList, numRanks);
+				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, frags, fstat, lenStateList, ndxStateList, numRanks,memory);
 			}
 		}
 	}

@@ -359,29 +359,36 @@
       
       
       call timer_start(44)
-!_ACCTGT_($acc kernels present(diag))
-!_OMPTGT_($omp target teams distribute parallel do)
-      do i=1,nelecs
-        if(diag(i).lt.-1.999999d0) idetuw=-idetuw
-      enddo
-!_ACCTGT_($acc end kernels)
-c!_OMPTGT_($omp end target)
+cc!_ACCTGT_($acc kernels present(diag))
+ccc!_OMPTGT_($omp target teams distribute parallel do)
+cc      do i=1,nelecs
+cc        if(diag(i).lt.-1.999999d0) idetuw=-idetuw
+cc      enddo
+cc!_ACCTGT_($acc end kernels)
+ccc!_OMPTGT_($omp end target)
+      
       cmax=0.0d0
       
 !_ACCTGT_($acc kernels present(cdiag,diag,csdiag,sdiag,ev))
 !_OMPTGT_($omp target teams distribute parallel do)
 !     calculation of det(a) and x and y
       do i=1,nelecs
+        if(diag(i).lt.-1.999999d0) idetuw=-idetuw
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
-      enddo
-c!_OMPTGT_($omp end target)
-!_OMPTGT_($omp target teams distribute parallel do)
-      do i=1,nelecs
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
+      
+ccc!_OMPTGT_($omp end target)
+cc!_OMPTGT_($omp target teams distribute parallel do)
+cc      do i=1,nelecs
+cc        cdiag(i)=diag(i)
+cc        csdiag(i)=sdiag(i)
+cc     enddo
+      
 !_ACCTGT_($acc end kernels)
-c!_OMPTGT_($omp end target)
+
+ccc   !_OMPTGT_($omp end target)
       if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
 
       if(idbg.ge.90) then

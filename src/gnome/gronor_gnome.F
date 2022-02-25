@@ -137,7 +137,7 @@
 
       if(iamacc.gt.0) then
         
-!_ACCTGT_($acc data copyin(s,a,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
+!_ACCTGT_($acc data copyin(a,va,vb) create(ta,tat,tb,w1,w2,taa,u,w,ev))
 !_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
 !_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
 !_ACCTGT_($acc& create(sm0,aaa0,tt0,aat0,tat0))

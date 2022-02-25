@@ -453,6 +453,8 @@ c!_OMPTGT_($omp end target)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
+          cdiag(i)=diag(i)
+          csdiag(i)=sdiag(i)
           do j=1,nelecs
             coefu=0.0d0
             do k=1,nelecs
@@ -461,12 +463,12 @@ c!_OMPTGT_($omp end target)
             ta(i,j)=coefu
           enddo
         enddo
-!_OMPTGT_($omp target teams distribute parallel do)
-        do i=1,nelecs
-          cdiag(i)=diag(i)
-          csdiag(i)=sdiag(i)
-        enddo
-c!_OMPTGT_($omp end target)
+cc!_OMPTGT_($omp target teams distribute parallel do)
+cc       do i=1,nelecs
+cc          cdiag(i)=diag(i)
+cc          csdiag(i)=sdiag(i)
+cc        enddo
+ccc!_OMPTGT_($omp end target)
 !_ACCTGT_($acc end kernels)
       
         call timer_stop(44)
@@ -481,17 +483,19 @@ c!_OMPTGT_($omp end target)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
+          cdiag(i)=diag(i)
+          csdiag(i)=sdiag(i)
           coefu=u(i,nz2)
           do j=1,nelecs
             ta(i,j)=coefu*w(j,nz2)
           enddo
         enddo
-!_OMPTGT_($omp target teams distribute parallel do)
-        do i=1,nelecs
-          cdiag(i)=diag(i)
-          csdiag(i)=sdiag(i)
-        enddo
-c!_OMPTGT_($omp end target)
+cc!_OMPTGT_($omp target teams distribute parallel do)
+cc        do i=1,nelecs
+cc          cdiag(i)=diag(i)
+cc          csdiag(i)=sdiag(i)
+cc        enddo
+ccc!_OMPTGT_($omp end target)
 !_ACCTGT_($acc end kernels)
       
         call timer_stop(44)

@@ -42,7 +42,7 @@
       integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
       integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
-      integer :: ipopcnt
+      integer, external :: ipopcnt
       real (kind=8) :: rbuf(8)
 
       logical (kind=4) :: flag
@@ -82,127 +82,6 @@
       nvecb=nveca
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
-
-      allocate(ioccup(mnact,2))
-      allocate(vec(mvec,mbasel,2))
-      allocate(vtemp(mvec,mbasel,2))
-      allocate(itemp(21),ioccn(20,2))
-
-      allocate(st(nstdim))
-
-      allocate(va(nveca,mbasel))
-      allocate(vb(nvecb,mbasel))
-      allocate(vna(nsmf),vnb(nsmf))
-      allocate(veca(mbasel))
-      allocate(vecb(mbasel))
-      allocate(ta(mbasel,max(mbasel,nveca)))
-      allocate(tat(mbasel,max(mbasel,nveca)))
-      allocate(taa(mbasel,max(mbasel,nveca)))
-      allocate(aaa(mbasel,max(mbasel,nveca)))
-      allocate(tb(mbasel,nvecb))
-      allocate(s12d(mbasel,mbasel))
-      allocate(tt(mbasel,max(mbasel,nveca)))
-      allocate(aat(mbasel,max(mbasel,nveca)))
-      allocate(sm(mbasel,max(mbasel,nveca)))
-
-      allocate(a(nelecs,nelecs))
-      allocate(u(nelecs,nelecs))
-      allocate(w(nelecs,nelecs))
-      allocate(ev(nelecs))
-      allocate(sdiag(max(nelecs,nbas,mbasel)))
-      allocate(diag(max(nelecs,nbas,mbasel)))
-      allocate(bsdiag(max(nelecs,nbas,mbasel)))
-      allocate(bdiag(max(nelecs,nbas,mbasel)))
-      allocate(csdiag(max(nelecs,nbas,mbasel)))
-      allocate(cdiag(max(nelecs,nbas,mbasel)))
-
-      if(nbatch.lt.0) then
-        allocate(prefac(ntask))
-        allocate(diagl(ntask,nbas))
-        allocate(bsdiagl(ntask,nbas))
-        allocate(bdiagl(ntask,nbas))
-        allocate(csdiagl(ntask,nbas))
-        allocate(sml(ntask,nbas,nbas))
-        allocate(ttl(ntask,nbas,nbas))
-        allocate(aatl(ntask,nbas,nbas))
-        allocate(aaal(ntask,nbas,nbas))
-        allocate(tatl(ntask,nbas,nbas))
-        allocate(prefac0(1))
-        allocate(sm0(1,1,1))
-        allocate(tt0(1,1,1))
-        allocate(aat0(1,1,1))
-        allocate(aaa0(1,1,1))
-        allocate(tat0(1,1,1))
-        allocate(prefac1(1))
-        allocate(diag1(1,1))
-        allocate(bsdiag1(1,1))
-        allocate(bdiag1(1,1))
-        allocate(csdiag1(1,1))
-        allocate(sm1(1,1,1))
-        allocate(tt1(1,1,1))
-        allocate(aat1(1,1,1))
-        allocate(aaa1(1,1,1))
-        allocate(tat1(1,1,1))
-      elseif(nbatch.eq.0) then
-        allocate(diagl(1,1))
-        allocate(bsdiagl(1,1))
-        allocate(bdiagl(1,1))
-        allocate(csdiagl(1,1))
-        allocate(sml(1,1,1))
-        allocate(ttl(1,1,1))
-        allocate(aatl(1,1,1))
-        allocate(aaal(1,1,1))
-        allocate(tatl(1,1,1))
-        allocate(prefac(1))
-        allocate(prefac0(1))
-        allocate(sm0(1,1,1))
-        allocate(tt0(1,1,1))
-        allocate(aat0(1,1,1))
-        allocate(aaa0(1,1,1))
-        allocate(tat0(1,1,1))
-        allocate(prefac1(1))
-        allocate(diag1(1,1))
-        allocate(bsdiag1(1,1))
-        allocate(bdiag1(1,1))
-        allocate(csdiag1(1,1))
-        allocate(sm1(1,1,1))
-        allocate(tt1(1,1,1))
-        allocate(aat1(1,1,1))
-        allocate(aaa1(1,1,1))
-        allocate(tat1(1,1,1))
-      else
-        allocate(prefac0(nbatch))
-        allocate(sm0(nbatch,nbas,nbas))
-        allocate(tt0(nbatch,nbas,nbas))
-        allocate(aat0(nbatch,nbas,nbas))
-        allocate(aaa0(nbatch,nbas,nbas))
-        allocate(tat0(nbatch,nbas,nbas))
-        allocate(prefac1(nbatch))
-        allocate(diag1(nbatch,nbas))
-        allocate(bsdiag1(nbatch,nbas))
-        allocate(bdiag1(nbatch,nbas))
-        allocate(csdiag1(nbatch,nbas))
-        allocate(sm1(nbatch,nbas,nbas))
-        allocate(tt1(nbatch,nbas,nbas))
-        allocate(aat1(nbatch,nbas,nbas))
-        allocate(aaa1(nbatch,nbas,nbas))
-        allocate(tat1(nbatch,nbas,nbas))
-        allocate(diagl(1,1))
-        allocate(bsdiagl(1,1))
-        allocate(bdiagl(1,1))
-        allocate(csdiagl(1,1))
-        allocate(sml(1,1,1))
-        allocate(ttl(1,1,1))
-        allocate(aatl(1,1,1))
-        allocate(aaal(1,1,1))
-        allocate(tatl(1,1,1))
-        allocate(prefac(1))
-      endif
-
-      allocate(w1(max(nelecs,nbas,mbasel)))
-      allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
-
-      allocate(temp(nelecs,nelecs))
 
       ibase0=0
       jbase0=0
@@ -563,24 +442,6 @@ c     call MPI_Wait(ireq,status,ierr)
         call timer_stop(46)
 
       enddo
-
-      if(nbatch.lt.0) then
-        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
-      elseif(nbatch.eq.0) then
-        deallocate(tatl,aaal,aatl,ttl,sml,csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
-      else
-        deallocate(tat0,aaa0,aat0,tt0,sm0)
-        deallocate(prefac0)
-        deallocate(tat1,aaa1,aat1,tt1,sm1,csdiag1,bdiag1,bsdiag1,diag1)
-        deallocate(prefac1)
-      endif
-      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
-      deallocate(aat,tt,sm)
-      deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)
-      deallocate(s,st)
-      deallocate(temp)
 
       if(iamacc.gt.0) then
 #ifdef CUSOLVER

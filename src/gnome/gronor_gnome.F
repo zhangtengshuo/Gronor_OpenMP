@@ -137,8 +137,8 @@
 
       if(iamacc.gt.0) then
         
-!_ACCTGT_($acc data copyin(s,a,ta,va,vb,tat))
-!_OMPTGT_($omp target data map(to:s,a,ta,va,vb,tat)) 
+!_ACCTGT_($acc data copyin(va,vb))
+!_OMPTGT_($omp target data map(to:va,vb)) 
         
 !     Calculations of the overlap matrices
 

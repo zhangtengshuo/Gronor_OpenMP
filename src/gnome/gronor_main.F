@@ -1907,6 +1907,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
           allocate(va(nveca,mbasel))
           allocate(vb(nvecb,mbasel))
+          allocate(vna(nsmf),vnb(nsmf))
           allocate(veca(mbasel))
           allocate(vecb(mbasel))
           allocate(ta(mbasel,max(mbasel,nveca)))
@@ -2071,7 +2072,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         endif
         deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
         deallocate(aat,tt,sm)
-        deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
+        deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vnb,vna,vb,va)
         deallocate(s,st)
         deallocate(temp)
                 
@@ -2266,8 +2267,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.np.ge.64.and.
-     &     (nalive+numidle+1.ne.np.or.otimeout)) then
+      if(me.eq.master.and.(nalive+numidle+1.ne.np.or.otimeout)) then
         ierror=0
         ierr=0
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)

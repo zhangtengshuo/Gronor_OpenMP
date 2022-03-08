@@ -1,4 +1,16 @@
+!     This file is part of the GronOR software
 
+!     GronOR is free software, and can be used, re-distributed and/or modified under
+!     the Apache License version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+!     Any use of the software has to be in compliance with this license. Unless required
+!     by applicable law or agreed to in writing, software distributed under the license
+!     is distributed on an ‘as is’ bases, without warranties or conditions of any kind,
+!     either express or implied.
+!     See the license for the specific language governing permissions and limitations
+!     under the license.
+
+!     GronOR is copyright of the University of Groningen
+      
 !> @brief
 !! General Non-Orthogonal Matrix Element calculation using GNOME structure
 !!     
@@ -8,7 +20,6 @@
 !!
   
 #include "tgt_guard.fh"
-#include "nvtx.fh"
       
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
@@ -20,25 +31,11 @@
 
       implicit none
 
-      integer :: lfndbg
-      real (kind=8) :: vecs1(nbasis,nbasis),vecs2(nbasis,nbasis)
+      integer :: lfndbg,idet,n,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
-      integer :: nworv(2)
-      integer :: idet
+      logical (kind=4) :: flag
+      integer (kind=4) :: ierr,status(MPI_STATUS_SIZE)
 
-      character (len=25) :: idfmess, line
-
-      integer (kind=4) :: ierr
-      integer :: nwor, n, k, iv, ib, i, j, ihc, nhc
-
-      integer :: ntvc,ivc,ibas
-
-      if(idbg.ge.12) then
-      write(lfndbg,600) nbasis
- 600  format(/,' Number of basis functions is',t45,i8)
-      write(lfndbg,603) nelec(1)
- 603  format(' Number of electrons is',t45,i8)
-      endif
 
       e1=0.0d0
       e2=0.0d0
@@ -46,35 +43,43 @@
       etot=0.0d0
       ttest=0
 
-c      write(*,'(a,4i5)') 'Start Gnome ',ihc,nhc
+!     If duplicate check for terminate signal
+      
+      if(odupl) then
+        call MPI_Test(itreq,flag,status,ierr)
+        oterm=flag
+        if(oterm) return
+      endif
+      
+      if(idbg.ge.20) then
+      write(lfndbg,600) nbasis
+ 600  format(/,' Number of basis functions is',t45,i8)
+      write(lfndbg,603) nelec(1)
+ 603  format(' Number of electrons is',t45,i8)
+      endif
+      
       do idet=1,2
 
-        if(idbg.ge.13) then
+        if(idbg.ge.20) then
           write(lfndbg,604) idet
  604      format(/,' Transformation of MO set',i8,/)
-          write(lfndbg,605) n,(ioccup(k,idet),k=1,nact(idet))
- 605      format(' Active orbital occupation in symrep',i4,' : ',32i3)
+          write(lfndbg,605) (ioccup(k,idet),k=1,nact(idet))
+ 605      format(' Active orbital occupation : ',32i3)
         endif
         
         call timer_start(11)
-_NVTX_(nvtxStartRange("transvc"))
         call gronor_transvc(lfndbg,idet)
-_NVTX_(nvtxEndRange)
         call timer_stop(11)
 
         call timer_start(12)
-!_NVTX_(nvtxStartRange("order"))
 !       call gronor_order(lfndbg,idet)
-!_NVTX_(nvtxEndRange)
         call timer_stop(12)
 
         call timer_start(13)
-_NVTX_(nvtxStartRange("tranout"))
         call gronor_tranout(lfndbg,idet)
-_NVTX_(nvtxEndRange)
         call timer_stop(13)
 
-        if(idbg.ge.14) write(lfndbg,606) idet
+        if(idbg.ge.20) write(lfndbg,606) idet
  606    format(/,' Construction of M.O.set',i2,' completed')
 
       enddo
@@ -89,17 +94,20 @@ _NVTX_(nvtxEndRange)
       ntesta=nveca+ntcla
       ntestb=nvecb+ntclb
       
-      if(ntesta.ne.ntestb) stop'the number of electrons are not equal'
+      if(ntesta.ne.ntestb)
+     &     call errquit(me,9,"Number of electrons is inconsistent")
       
       nelecs=ntesta
       n1bas=nbas*(nbas+1)/2
       nstdim=max(1,nelecs*nelecs,n1bas)
       mbasel=max(nelecs,nbas)
       
-      if(nveca.ne.ntcl(1)+ntop(1)) stop 'here1'
-      if(nvecb.ne.ntcl(2)+ntop(2)) stop 'here2'
+      if(nveca.ne.ntcl(1)+ntop(1)) 
+     &     call errquit(me,9,"Incompatible nveca")
+      if(nvecb.ne.ntcl(2)+ntop(2)) 
+     &     call errquit(me,9,"Incompatible nvecb")
       
-      if(idbg.gt.10) then
+      if(idbg.gt.40) then
         do idet=1,2
           ntvc=ntcl(idet)+ntop(idet)
           write(lfndbg,1603) ntvc
@@ -107,9 +115,11 @@ _NVTX_(nvtxEndRange)
           do ivc=1,ntvc
             if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
  1604       format(/,' Open shell M.O.'' s:')
-            write(lfndbg,1605)  ' (',ivc,')',
-     &           (vec(ivc,ibas,idet),ibas=1,nbas)
- 1605       format(a2,i3,a1,(t9,10f12.8))
+            if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
+              write(lfndbg,1605)  ' (',ivc,')',
+     &             (vec(ivc,ibas,idet),ibas=1,nbas)
+ 1605         format(a2,i3,a1,(t9,10f12.8))
+            endif
           enddo
         enddo
       endif
@@ -127,32 +137,23 @@ _NVTX_(nvtxEndRange)
 
       if(iamacc.gt.0) then
         
-!_ACCTGT_($acc data copyin(s,ta,va,vb,tat) create(tb,w1,w2,taa,u,w,ev))
-!_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
-!_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl))
+!_ACCTGT_($acc data copyin(va,vb))
+!_OMPTGT_($omp target data map(to:va,vb)) 
         
-!_OMPTGT_($omp target data map(to:s,ta,va,vb,tat) map(alloc:tb,w1,w2,taa,u,w,ev))
-!_OMPTGT_($omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
-!_OMPTGT_($omp& map(alloc: diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)) 
-
 !     Calculations of the overlap matrices
 
         call timer_start(14)
-_NVTX_(nvtxStartRange("moover"))
         call gronor_moover(lfndbg)
-_NVTX_(nvtxEndRange)
         call timer_stop(14)
 
 !     Calculation of the cofactor matrices and arrays corresponding
 !     to the total overlap
 
         call timer_start(15)
-_NVTX_(nvtxStartRange("cofac1"))
         call gronor_cofac1(lfndbg)
-_NVTX_(nvtxEndRange)
         call timer_stop(15)
         
-        if(idbg.ge.12) then
+        if(idbg.ge.20) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
           if(ising.eq.2) write(lfndbg,611)
@@ -169,27 +170,21 @@ _NVTX_(nvtxEndRange)
         
           if(corres) then
             call timer_start(16)
-_NVTX_(nvtxStartRange("cororb"))
-            call gronor_cororb(lfndbg)
-_NVTX_(nvtxEndRange)
+            call gronor_cororb()
             call timer_stop(16)
           endif      
           
           call timer_start(17)
-_NVTX_(nvtxStartRange("tramat"))
-          call gronor_tramat(lfndbg)
-_NVTX_(nvtxEndRange)
+          call gronor_tramat()
           call timer_stop(17)
           
           if(idipole.ne.0) then
             call timer_start(18)
-_NVTX_(nvtxStartRange("dipole"))
             call gronor_dipole(lfndbg)
-_NVTX_(nvtxEndRange)
             call timer_stop(18)
           endif
 
-          if(idbg.ge.13) then
+          if(idbg.ge.30) then
             if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
  613        format(' No calculation of two-electron matrix elements',i4)
           endif
@@ -198,28 +193,20 @@ _NVTX_(nvtxEndRange)
 !     electron integrals
 
           call timer_start(19)
-!_NVTX_(nvtxStartRange("trsym"))
 !         call gronor_trsym(lfndbg)
-!_NVTX_(nvtxEndRange)
           call timer_stop(19)
 
 !     transformation of the first order cofactor matrix
 !     (x-matrix to f-matrix in terms of the basis set of the 2-el.integr
 
           call timer_start(20)
-_NVTX_(nvtxStartRange("tramat2"))
           call gronor_tramat2(lfndbg)
-_NVTX_(nvtxEndRange)
           call timer_stop(20)
 
 !     Calculation of the one electron Hamiltonian matrix elements
 
           call timer_start(21)
-          if(icalc.le.1.and.ising.le.1) then
-_NVTX_(nvtxStartRange("transvc"))
-            call gronor_gnone(lfndbg)
-_NVTX_(nvtxEndRange)
-          endif
+          if(icalc.le.1.and.ising.le.1) call gronor_gnone(lfndbg)
           call timer_stop(21)
         endif
 
@@ -227,12 +214,17 @@ _NVTX_(nvtxEndRange)
 
         if((icalc.eq.2.or.icalc.eq.0)) then
           call timer_start(22)
-_NVTX_(nvtxStartRange("gntwo"))
-          if(lbatch.gt.0) then
+          if(nbatch.lt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch(lfndbg,ihc,nhc)
             else
               call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
+            endif
+          elseif(nbatch.gt.0) then
+            if(labels.eq.0) then
+              call gronor_gntwo_batch2(lfndbg,ihc,nhc)
+            else
+              call gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
             endif
           else
             if(labels.eq.0) then
@@ -241,7 +233,6 @@ _NVTX_(nvtxStartRange("gntwo"))
               if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
             endif
           endif
-_NVTX_(nvtxEndRange)
           call timer_stop(22)
         endif
 
@@ -265,7 +256,7 @@ _NVTX_(nvtxEndRange)
         call gronor_cofac1_omp(lfndbg)
         call timer_stop(15)
         
-        if(idbg.ge.12) then
+        if(idbg.ge.30) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
           if(ising.eq.2) write(lfndbg,611)
@@ -276,12 +267,12 @@ _NVTX_(nvtxEndRange)
 
           if(corres) then
             call timer_start(16)
-            call gronor_cororb(lfndbg)
+            call gronor_cororb()
             call timer_stop(16)
           endif
           
           call timer_start(17)
-          call gronor_tramat_omp(lfndbg)
+          call gronor_tramat_omp()
           call timer_stop(17)
           
           if(idipole.ne.0) then
@@ -290,7 +281,7 @@ _NVTX_(nvtxEndRange)
             call timer_stop(18)
           endif
           
-          if(idbg.ge.13) then
+          if(idbg.ge.30) then
             if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
           endif
           
@@ -319,11 +310,17 @@ _NVTX_(nvtxEndRange)
 
           if((icalc.eq.2.or.icalc.eq.0)) then
             call timer_start(22)
-            if(lbatch.gt.0) then
+            if(nbatch.lt.0) then
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
               else
                 call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
+              endif
+            elseif(nbatch.gt.0) then
+              if(labels.eq.0) then
+                call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+              else
+                call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
               endif
             else
               if(labels.eq.0) then
@@ -336,6 +333,6 @@ _NVTX_(nvtxEndRange)
           endif
 
       endif
-      
+
       return
       end

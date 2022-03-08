@@ -154,11 +154,6 @@
 
       module gnome_data
 
-      integer, parameter :: intsrnk=250000000
-
-      integer, parameter :: mncom=400,nqv=780,nsmf=590,nsrep=20
-      integer, parameter :: ncf=10000,nkern=300,nprm=1182
-
       integer :: nnucl,nbas,numint,numfiles
 
       integer :: nelec(2),ntcl(2),ntop(2)
@@ -184,7 +179,6 @@
 
       integer, allocatable :: ioccup(:,:),itemp(:),ioccn(:,:)
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
-      real (kind=8), allocatable :: vna(:),vnb(:)
       real (kind=8) :: bias,deta,smat,hmat
       real (kind=8) :: etot,e1,e2,e2c,etotb,fac,fctr
       real (kind=8) :: e1tot,e2tot,sstot

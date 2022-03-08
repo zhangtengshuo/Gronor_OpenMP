@@ -1,0 +1,6 @@
+
+#ifdef NVTX
+#define _NVTX_(dirstring) "     "//dirstring
+#else
+#define _NVTX_(dirstring)
+#endif

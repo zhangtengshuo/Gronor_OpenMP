@@ -70,7 +70,7 @@ c     use cuda_functions
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer :: iarg,i,j,jp,idum(54),k,l
+      integer :: iarg,i,j,jp,idum(55),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
@@ -308,6 +308,7 @@ c     use cuda_functions
         ixpert=0
         iswsvj=15
         iswevj=15
+        nabort=64
 
 !     labels   0 : read labels from the integral file
 !     1 : use Molcas integral ordering
@@ -619,6 +620,7 @@ c     use cuda_functions
           idum(52)=loada
           idum(53)=ngpus
           idum(54)=num_threads
+          idum(55)=nabort
           
           rdum(1)=tau_CI
           rdum(2)=tau_CI
@@ -628,7 +630,7 @@ c     use cuda_functions
           rdum(6)=potnuc
         endif
         
-        ncount=54
+        ncount=55
         call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=6
@@ -692,6 +694,7 @@ c     use cuda_functions
         loada  =idum(52)
         ngpus  =idum(53)
         num_threads = idum(54)
+        nabort =idum(55)
         
         int1=(nbas*(nbas+1))/2
         
@@ -2081,13 +2084,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call timer_stop(4)
       call timer_stop(98)
       
-      if(idbg.gt.0) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),
-     &       ' Closing ',trim(fildbg)
-        flush(lfndbg)
-        close(unit=lfndbg,status='keep')
-      endif
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,632)
@@ -2231,7 +2227,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       if(me.eq.master) deallocate(numrecs)
 
-      close(unit=lfndbg,status='keep')
+!      close(unit=lfndbg,status='keep')
       if(me.eq.master) then
         if(ipro.ge.3) then
           close(unit=lfnpro,status='keep')
@@ -2267,13 +2263,31 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.(nalive+numidle+1.ne.np.or.otimeout)) then
+      if(me.eq.master.and.np.gt.nabort.and.
+     & (nalive+numidle+1.ne.np.or.otimeout)) then
         ierror=0
         ierr=0
+        if(idbg.gt.0) then
+           write(lfndbg,'(a)') "Issuing mpi_abort"
+           flush(lfndbg)
+        endif
         call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+      endif
+
+      if(idbg.gt.0) then
+         write(lfndbg,'(a)') "Issuing mpi_finalize"
+         flush(lfndbg)
       endif
       
       call mpi_finalize(ierr)
+
+      if(idbg.gt.0) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),
+     &       ' Closing ',trim(fildbg)
+        flush(lfndbg)
+        close(unit=lfndbg,status='keep')
+      endif  
       
       return
  992  write(lfnout,983) filtim(1:inp_strlen(filtim))

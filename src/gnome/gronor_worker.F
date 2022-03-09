@@ -1,3 +1,4 @@
+c     d
 !     This file is part of the GronOR software
 
 !     GronOR is free software, and can be used, re-distributed and/or modified under
@@ -306,7 +307,7 @@
           if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
-     &           me,' received task ',master,(ibuf(i),i=1,4),ierr
+     &           me,' received task ',master,mpitag,(ibuf(i),i=1,4),ierr
             flush(lfndbg)
           endif
 
@@ -356,7 +357,12 @@
 
 !     Check if this is a duplicate
 
-        oterm=.false.
+!     oterm=.false.
+        oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
+        if(oterm) then
+           if(otreq) call MPI_Cancel(itreq,ierr)
+           return
+        endif
         odupl=ibuf(1).lt.0
         ibuf(1)=iabs(ibuf(1))
         if(odupl) then
@@ -374,6 +380,7 @@
           endif
           call MPI_Test(itreq,flag,status,ierr)
           if(flag) then
+             call MPI_Cancel(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),

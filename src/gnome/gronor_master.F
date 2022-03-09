@@ -67,6 +67,7 @@
       allocate(pnrb(nbase,nbase))
       allocate(fday(nbase,nbase))
       allocate(ipbuf(4,np))
+      allocate(itbuf(4,np))
       allocate(lcount(npg))
 
       ofirst=.true.
@@ -1036,41 +1037,49 @@ c     call MPI_Wait(ireq,status,ierr)
       ibuf(3)=-1
       ibuf(4)=-1
 
-      do i=1,np
-        ncount=4
-        mpitag=99
-        iremote=i-1
-        
-        if(iremote.ne.master) then
-          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
-     &         iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
-          if(idbg.gt.10) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,a,i5)') date(1:8),time(1:8),
-     &           ' Terminate signal sent to',iremote
-          endif
-        endif
-      enddo
       
       do i=1,npg  
         iremote=allgroups(i,2)
         
-        ipbuf(1,iremote+1)=ibuf(1)
-        ipbuf(2,iremote+1)=ibuf(2)
-        ipbuf(3,iremote+1)=ibuf(3)
-        ipbuf(4,iremote+1)=ibuf(4)
+        itbuf(1,iremote+1)=0
+        itbuf(2,iremote+1)=-1
+        itbuf(3,iremote+1)=-1
+        itbuf(4,iremote+1)=-1
 
         ncount=4
         mpitag=2
 
-        call MPI_iSend(ibuf,ncount,MPI_INTEGER8,
+        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,
      &       iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
 
         if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
-     &         master,' sent return to',iremote
+          write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)')
+     &         date(1:8),time(1:8),
+     &         master,' sent return to',iremote,mpitag,' buffer ',
+     &         (itbuf(j,iremote+1),j=1,4),ireq2
           flush(lfndbg)
+        endif
+      enddo
+        
+      do i=1,np
+        ncount=4
+        mpitag=99
+        iremote=i-1
+        itbuf(1,iremote+1)=0
+        itbuf(2,iremote+1)=-1
+        itbuf(3,iremote+1)=-1
+        itbuf(4,iremote+1)=-1
+        if(iremote.ne.master) then
+          call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,
+     &         iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+          if(idbg.gt.10) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)')
+     &           date(1:8),time(1:8),
+     &           ' Terminate signal sent to',iremote,mpitag,' buffer ',
+     &         (itbuf(j,iremote+1),j=1,4),ireq9
+          endif
         endif
       enddo
 

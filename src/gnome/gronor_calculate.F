@@ -132,9 +132,9 @@
             oterm=.true.
             return
           endif
-        endif
-        
-        call timer_start(5)
+       endif
+
+       call timer_start(5)
         
         if(idbg.ge.50)
      &       write(lfndbg,608) ij,iloop(ij,1),iloop(ij,2)

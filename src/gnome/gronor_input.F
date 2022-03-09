@@ -121,6 +121,11 @@
           goto 2
         endif
         
+        if(inp_compare(.false.,'Abortt',item)) then
+          if(.not.inp_i(nabort)) nabort=64
+          goto 2
+        endif
+        
         if(inp_compare(.false.,'Thresh_SIN',item)) then
           if(.not.inp_f(tau_SIN)) tau_SIN=1.0d-12
           goto 2

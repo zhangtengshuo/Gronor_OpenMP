@@ -28,6 +28,7 @@
       use gnome_integrals
       use gnome_parameters
       use gnome_data
+!      use nvtx
 
       implicit none
 
@@ -213,7 +214,8 @@
 !     Calculation of the two-electron matrix elements
 
         if((icalc.eq.2.or.icalc.eq.0)) then
-          call timer_start(22)
+           call timer_start(22)
+!           call nvtxStartRange("gntwo")
           if(nbatch.lt.0) then
             if(labels.eq.0) then
               call gronor_gntwo_batch(lfndbg,ihc,nhc)
@@ -232,7 +234,8 @@
             else
               if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
             endif
-          endif
+         endif
+!         call nvtxEndRange
           call timer_stop(22)
         endif
 

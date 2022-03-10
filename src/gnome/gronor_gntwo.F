@@ -292,9 +292,9 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
             k=lab(2,ii)
             l=lab(1,jj)
             n=lab(2,jj)
-            tst=tst+g(intg)*(sm(k,i)*sm(n,l)
-     &           -aat(n,i)*aaa(l,k)-tt(n,i)*ta(l,k)
-     &           -aaa(n,i)*aat(l,k)-ta(n,i)*tt(l,k)
+            tst=tst+g(intg)*(sm(i,k)*sm(l,n)
+     &           -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k)
+     &           -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)
      &           -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
      &           -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
           enddo
@@ -874,6 +874,7 @@ c!_ACCTGT_($acc end kernels)
               sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa0(nb0,i,k)=aaa(i,k)
               aat0(nb0,i,k)=aaa(k,i)
+              ta0(nb0,i,k)=ta(i,k)
               tt0(nb0,i,k)=ta(k,i)
               tat0(nb0,i,k)=ta(i,k)
             enddo
@@ -910,6 +911,7 @@ c!     END ASSEMBLY ON CPU
               sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa1(nb1,i,k)=aaa(i,k)
               aat1(nb1,i,k)=aaa(k,i)
+              ta1(nb1,i,k)=ta(i,k)
               tt1(nb1,i,k)=ta(k,i)
               tat1(nb1,i,k)=ta(i,k)
             enddo
@@ -960,13 +962,13 @@ c!     END ASSEMBLY ON CPU
         
         call timer_start(31)
 
-c!_ACCTGT_($acc update device(tat0,aaa0,aat0,tt0,sm0))
-c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
+c!_ACCTGT_($acc update device(ta0,tat0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0))
         
 !_ACCTGT_($acc data copyin(prefac0))
 !_OMPTGT_($omp target data map(to:prefac0))
 
-!_ACCTGT_($acc kernels present(lab,g,sm0,aat0,aaa0,tt0,tat0,prefac0))
+!_ACCTGT_($acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,tat0,prefac0))
 !_OMPTGT_($omp target teams distribute parallel do)
         do intg=1,numint
           i=lab(1,intg)
@@ -977,13 +979,13 @@ c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
           do ibl=1,nb0
             etotb=etotb+g(intg)*prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l)
      &           -aat0(ibl,n,i)*aaa0(ibl,l,k)
-     &           -tt0(ibl,n,i)*tat0(ibl,l,k)
+     &           -tt0(ibl,n,i)*ta0(ibl,l,k)
      &           -aaa0(ibl,n,i)*aat0(ibl,l,k)
-     &           -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &           -ta0(ibl,n,i)*tt0(ibl,l,k)
      &           -aat0(ibl,l,i)*aaa0(ibl,n,k)
-     &           -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &           -tt0(ibl,l,i)*ta0(ibl,n,k)
      &           -aaa0(ibl,l,i)*aat0(ibl,n,k)
-     &           -tat0(ibl,l,i)*tt0(ibl,n,k))
+     &           -ta0(ibl,l,i)*tt0(ibl,n,k))
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
@@ -1002,13 +1004,13 @@ c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
         
         call timer_start(34)
 
-c!_ACCTGT_($acc update device(tat1,aaa1,aat1,tt1,sm1))
-c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
+c!_ACCTGT_($acc update device(ta1,tat1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1))
         
 !_ACCTGT_($acc data copyin(prefac1))
 !_OMPTGT_($omp target data map(to:prefac1))
 
-!_ACCTGT_($acc kernels present(lab,g,sm1,aat1,aaa1,tt1,tat1,prefac1))
+!_ACCTGT_($acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,tat1,prefac1))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 !_OMPTGT_($omp target teams distribute parallel do)
         do intg=1,numint
@@ -1033,16 +1035,16 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
      &           +tt1(ibl,l,k)*bdiag1(ibl,n))
      &           -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
      &           +aaa1(ibl,n,k)*diag1(ibl,i))
-     &           -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
-     &           +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &           -bsdiag1(ibl,l)*(ta1(ibl,n,i)*bdiag1(ibl,k)
+     &           +ta1(ibl,n,k)*bdiag1(ibl,i))
      &           -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
      &           +aat1(ibl,l,i)*diag1(ibl,n))
      &           -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
      &           +tt1(ibl,l,i)*bdiag1(ibl,n))
      &           -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
      &           +aaa1(ibl,l,k)*diag1(ibl,i))
-     &           -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
-     &           +tat1(ibl,l,k)*bdiag1(ibl,i)))
+     &           -bsdiag1(ibl,n)*(ta1(ibl,l,i)*bdiag1(ibl,k)
+     &           +ta1(ibl,l,k)*bdiag1(ibl,i)))
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
@@ -1116,13 +1118,15 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
           
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaa0,aat0,tt0,tat0,tt,aat,aaa,ta,sm0) copyin(nb0))
+!_ACCTGT_($acc kernels present(aaa0,aat0,tt0,ta0,tat0,tt,aat,aaa,ta,sm0))
+!_ACCTGT_($acc& copyin(nb0))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
           aaa0(nb0,i,k)=aaa(i,k)
           aat0(nb0,i,k)=aaa(k,i)
+          ta0(nb0,i,k)=ta(i,k)
           tt0(nb0,i,k)=ta(k,i)
           tat0(nb0,i,k)=ta(i,k)
         enddo
@@ -1153,13 +1157,15 @@ c!     END ASSEMBLY ON CPU
       
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,tat1,tt,aat,aaa,ta,sm1) copyin(nb1))
+!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,ta1,tat1,tt,aat,aaa,ta,sm1))
+!_ACCTGT_($acc& copyin(nb1))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
           sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
           aaa1(nb1,i,k)=aaa(i,k)
           aat1(nb1,i,k)=aaa(k,i)
+          ta1(nb1,i,k)=ta(i,k)
           tt1(nb1,i,k)=ta(k,i)
           tat1(nb1,i,k)=ta(i,k)
         enddo
@@ -1209,15 +1215,15 @@ c!     END ASSEMBLY ON CPU
         
         call timer_start(31)
 
-c!_ACCTGT_($acc update device(tat0,aaa0,aat0,tt0,sm0))
-c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0)) 
+c!_ACCTGT_($acc update device(ta0,tat0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0)) 
 
 !_ACCTGT_($acc data copyin(prefac0))
 !_OMPTGT_($omp target data map(to:prefac0))
         
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,tat0,prefac0))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,tat0,prefac0))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -1229,15 +1235,15 @@ c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
 !_ACCTGT_($acc loop private(ibl) vector(32))
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac0(ibl)*
-     &             (sm0(ibl,k,i)*sm0(ibl,n,l)
-     &             -aat0(ibl,n,i)*aaa0(ibl,l,k)
-     &             -tt0(ibl,n,i)*tat0(ibl,l,k)
-     &             -aaa0(ibl,n,i)*aat0(ibl,l,k)
-     &             -tat0(ibl,n,i)*tt0(ibl,l,k)
+     &             (sm0(ibl,i,k)*sm0(ibl,l,n)
+     &             -aaa0(ibl,i,n)*aaa0(ibl,l,k)
+     &             -ta0(ibl,i,n)*ta0(ibl,l,k)
+     &             -aat0(ibl,i,n)*aat0(ibl,l,k)
+     &             -tt0(ibl,i,n)*tt0(ibl,l,k)
      &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
-     &             -tt0(ibl,l,i)*tat0(ibl,n,k)
+     &             -tt0(ibl,l,i)*ta0(ibl,n,k)
      &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
-     &             -tat0(ibl,l,i)*tt0(ibl,n,k))
+     &             -ta0(ibl,l,i)*tt0(ibl,n,k))
             enddo
           enddo
         enddo
@@ -1257,15 +1263,15 @@ c!_OMPTGT_($omp target update to(tat0,aaa0,aat0,tt0,sm0))
         
         call timer_start(34)
         
-c!_ACCTGT_($acc update device(tat1,aaa1,aat1,tt1,sm1))
-c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1)) 
+c!_ACCTGT_($acc update device(ta1,tat1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1)) 
 
 !_ACCTGT_($acc data copyin(prefac1))
 !_OMPTGT_($omp target data map(to:prefac1))
 
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,tat1,prefac1))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,tat1,prefac1))
 !_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
@@ -1292,16 +1298,16 @@ c!_OMPTGT_($omp target update to(tat1,aaa1,aat1,tt1,sm1))
      &             +tt1(ibl,l,k)*bdiag1(ibl,n))
      &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
      &             +aaa1(ibl,n,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,l)*(tat1(ibl,n,i)*bdiag1(ibl,k)
-     &             +tat1(ibl,n,k)*bdiag1(ibl,i))
+     &             -bsdiag1(ibl,l)*(ta1(ibl,n,i)*bdiag1(ibl,k)
+     &             +ta1(ibl,n,k)*bdiag1(ibl,i))
      &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
      &             +aat1(ibl,l,i)*diag1(ibl,n))
      &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
      &             +tt1(ibl,l,i)*bdiag1(ibl,n))
      &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
      &             +aaa1(ibl,l,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,n)*(tat1(ibl,l,i)*bdiag1(ibl,k)
-     &             +tat1(ibl,l,k)*bdiag1(ibl,i)))
+     &             -bsdiag1(ibl,n)*(ta1(ibl,l,i)*bdiag1(ibl,k)
+     &             +ta1(ibl,l,k)*bdiag1(ibl,i)))
             enddo
           enddo
         enddo

@@ -121,7 +121,7 @@
           goto 2
         endif
         
-        if(inp_compare(.false.,'Abortt',item)) then
+        if(inp_compare(.false.,'Abort',item)) then
           if(.not.inp_i(nabort)) nabort=64
           goto 2
         endif

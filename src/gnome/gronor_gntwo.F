@@ -876,7 +876,6 @@ c!_ACCTGT_($acc end kernels)
               aat0(nb0,i,k)=aaa(k,i)
               ta0(nb0,i,k)=ta(i,k)
               tt0(nb0,i,k)=ta(k,i)
-              tat0(nb0,i,k)=ta(i,k)
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
@@ -894,7 +893,6 @@ c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
 c          aaa0(nb0,i,k)=aaa(i,k)
 c          aat0(nb0,i,k)=aaa(k,i)
 c          tt0(nb0,i,k)=ta(k,i)
-c          tat0(nb0,i,k)=ta(i,k)
 c        enddo
 c      enddo
 
@@ -913,7 +911,6 @@ c!     END ASSEMBLY ON CPU
               aat1(nb1,i,k)=aaa(k,i)
               ta1(nb1,i,k)=ta(i,k)
               tt1(nb1,i,k)=ta(k,i)
-              tat1(nb1,i,k)=ta(i,k)
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
@@ -931,7 +928,6 @@ c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
 c          aaa1(nb1,i,k)=aaa(i,k)
 c          aat1(nb1,i,k)=aaa(k,i)
 c          tt1(nb1,i,k)=ta(k,i)
-c          tat1(nb1,i,k)=ta(i,k)
 c        enddo
 c      enddo
 
@@ -962,13 +958,13 @@ c!     END ASSEMBLY ON CPU
         
         call timer_start(31)
 
-c!_ACCTGT_($acc update device(ta0,tat0,aaa0,aat0,tt0,sm0))
-c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0))
+c!_ACCTGT_($acc update device(ta0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(ta0,aaa0,aat0,tt0,sm0))
         
 !_ACCTGT_($acc data copyin(prefac0))
 !_OMPTGT_($omp target data map(to:prefac0))
 
-!_ACCTGT_($acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,tat0,prefac0))
+!_ACCTGT_($acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,prefac0))
 !_OMPTGT_($omp target teams distribute parallel do)
         do intg=1,numint
           i=lab(1,intg)
@@ -1004,13 +1000,13 @@ c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0))
         
         call timer_start(34)
 
-c!_ACCTGT_($acc update device(ta1,tat1,aaa1,aat1,tt1,sm1))
-c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1))
+c!_ACCTGT_($acc update device(ta1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
         
 !_ACCTGT_($acc data copyin(prefac1))
 !_OMPTGT_($omp target data map(to:prefac1))
 
-!_ACCTGT_($acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,tat1,prefac1))
+!_ACCTGT_($acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,prefac1))
 !_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl))
 !_OMPTGT_($omp target teams distribute parallel do)
         do intg=1,numint
@@ -1118,7 +1114,7 @@ c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1))
           
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaa0,aat0,tt0,ta0,tat0,tt,aat,aaa,ta,sm0))
+!_ACCTGT_($acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0))
 !_ACCTGT_($acc& copyin(nb0))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
@@ -1128,7 +1124,6 @@ c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1))
           aat0(nb0,i,k)=aaa(k,i)
           ta0(nb0,i,k)=ta(i,k)
           tt0(nb0,i,k)=ta(k,i)
-          tat0(nb0,i,k)=ta(i,k)
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -1145,7 +1140,6 @@ c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
 c          aaa0(nb0,i,k)=aaa(i,k)
 c          aat0(nb0,i,k)=aaa(k,i)
 c          tt0(nb0,i,k)=ta(k,i)
-c          tat0(nb0,i,k)=ta(i,k)
 c        enddo
 c      enddo
 
@@ -1157,7 +1151,7 @@ c!     END ASSEMBLY ON CPU
       
 !     ASSEMBLE ARRAYS ON GPU
       
-!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,ta1,tat1,tt,aat,aaa,ta,sm1))
+!_ACCTGT_($acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1))
 !_ACCTGT_($acc& copyin(nb1))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
@@ -1167,7 +1161,6 @@ c!     END ASSEMBLY ON CPU
           aat1(nb1,i,k)=aaa(k,i)
           ta1(nb1,i,k)=ta(i,k)
           tt1(nb1,i,k)=ta(k,i)
-          tat1(nb1,i,k)=ta(i,k)
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -1184,7 +1177,6 @@ c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
 c          aaa1(nb1,i,k)=aaa(i,k)
 c          aat1(nb1,i,k)=aaa(k,i)
 c          tt1(nb1,i,k)=ta(k,i)
-c          tat1(nb1,i,k)=ta(i,k)
 c        enddo
 c      enddo
 
@@ -1215,15 +1207,15 @@ c!     END ASSEMBLY ON CPU
         
         call timer_start(31)
 
-c!_ACCTGT_($acc update device(ta0,tat0,aaa0,aat0,tt0,sm0))
-c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0)) 
+c!_ACCTGT_($acc update device(ta0,aaa0,aat0,tt0,sm0))
+c!_OMPTGT_($omp target update to(ta0,aaa0,aat0,tt0,sm0)) 
 
 !_ACCTGT_($acc data copyin(prefac0))
 !_OMPTGT_($omp target data map(to:prefac0))
         
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,tat0,prefac0))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -1263,15 +1255,15 @@ c!_OMPTGT_($omp target update to(ta0,tat0,aaa0,aat0,tt0,sm0))
         
         call timer_start(34)
         
-c!_ACCTGT_($acc update device(ta1,tat1,aaa1,aat1,tt1,sm1))
-c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1)) 
+c!_ACCTGT_($acc update device(ta1,aaa1,aat1,tt1,sm1))
+c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1)) 
 
 !_ACCTGT_($acc data copyin(prefac1))
 !_OMPTGT_($omp target data map(to:prefac1))
 
         kl=nbas*(nbas+1)/2
 
-!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,tat1,prefac1))
+!_ACCTGT_($acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1))
 !_ACCTGT_($acc& present(diag1,bdiag1,bsdiag1,csdiag1))
 !_OMPTGT_($omp target teams distribute parallel do)
         do ii=intndx,jntndx
@@ -2400,7 +2392,6 @@ c!_OMPTGT_($omp target update to(ta1,tat1,aaa1,aat1,tt1,sm1))
               aaa0(nb0,i,k)=aaa(i,k)
 c              aat0(nb0,i,k)=aaa(k,i)
               tt0(nb0,i,k)=ta(k,i)
-c              tat0(nb0,i,k)=ta(i,k)
             enddo
           enddo
 !$omp end parallel do
@@ -2416,7 +2407,6 @@ c              tat0(nb0,i,k)=ta(i,k)
               aaa1(nb1,i,k)=aaa(i,k)
 c              aat1(nb1,i,k)=aaa(k,i)
               tt1(nb1,i,k)=ta(k,i)
-c              tat1(nb1,i,k)=ta(i,k)
             enddo
           enddo
 !$omp end parallel do

@@ -14,6 +14,6 @@ rm -rf build
 mkdir build
 cd build
 
-cmake -DOPENACC=ON -DCUSOLVERJ=ON ../
+cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON ../
 
 make -j 12

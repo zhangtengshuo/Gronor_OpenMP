@@ -2132,20 +2132,21 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(.not.exist) then
           write(lfnlog,800)
  800      format(
-     &         80x,'            ',30x,'      S',/,
-     &         80x,'            ',30x,'F  B  t',/,
-     &         80x,'           D',30x,'r  a  a',/,
-     &         80x,'M  G  O  M i',30x,'g  s  t',/
-     &         80x,'P  P  M  g s',30x,'m  e  e',/,
+     &         80x,'      T     ',30x,'       ',/,
+     &         80x,'      h     ',30x,'      S',/,
+     &         80x,'      r     ',30x,'F  B  t',/,
+     &         80x,'      e    D',30x,'r  a  a',/,
+     &         80x,'M  G  a  M i',30x,'g  s  t',/
+     &         80x,'P  P  d  g s',30x,'m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
-     &         'Total  Nodes  Ranks    Acc nonAcc  S  U  P  r t '
+     &         'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t '
      &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
      &         'tau_CI  User Jobname Command Host',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
      &       timer_wall_total(99)-timer_wall_total(98),
      &       timer_wall_total(98),timer_wall_total(99),
-     &       nnodes,np,numacc,numnon,nummps,numgpu,numomp,mgr,
+     &       nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
      &       nmol,nbase,mstates,tau_MO,tau_CI,

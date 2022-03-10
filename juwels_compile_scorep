@@ -1,0 +1,24 @@
+#!/usr/bin/bash
+
+module load CMake
+module load NVHPC
+module load OpenMPI
+#module load ParaStationMPI
+module load Score-P
+module load PAPI
+module list
+
+export FC=mpifort
+export CC=mpicc
+export CXX=mpic++
+export SCOREP_WRAPPER_INSTRUMENTER_FLAGS="--openacc --cuda --verbose"
+
+rm -rf build
+mkdir build
+cd build
+
+SCOREP_WRAPPER=off cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON -DCMAKE_C_COMPILER=scorep-mpicc -DCMAKE_Fortran_COMPILER=scorep-mpif90 ../
+
+make -j 12
+
+cp bin/gronor /p/project/pra129/gronor_scorep

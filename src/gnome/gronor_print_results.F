@@ -169,16 +169,24 @@
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
-          
-        info=0
-        lwork = 4 * nbase
-        hsave = hbase
-        ssave = sbase
-        allocate(work(lwork))
-        call dsygv(1,'V','L',nbase,hsave,nbase,
-     &                   ssave,nbase,hev,work,lwork,info)
-        deallocate(work)
-        if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
+
+        if(nbase.gt.1) then
+          info=0
+          lwork = 4 * nbase
+          do j=1,nbase
+            do i=1,nbase
+              hsave(i,j)=hbase(i,j)
+              ssave(i,j)=sbase(i,j)
+            enddo
+          enddo
+          allocate(work(lwork))
+          call dsygv(1,'V','L',nbase,hsave,nbase,
+     &         ssave,nbase,hev,work,lwork,info)
+          deallocate(work)
+          if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
+        else
+          hev(1)=hbase(1,1)/sbase(1,1)
+        endif
         
 ! Coen 2020/07/18
 ! Check if the eigenvectors come in rows or columns!

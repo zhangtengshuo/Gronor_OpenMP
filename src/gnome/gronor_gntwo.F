@@ -871,11 +871,11 @@ c!_ACCTGT_($acc end kernels)
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
           do k=1,nbas
             do i=1,nbas
-              sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-              aaa0(nb0,i,k)=aaa(i,k)
-              aat0(nb0,i,k)=aaa(k,i)
-              ta0(nb0,i,k)=ta(i,k)
-              tt0(nb0,i,k)=ta(k,i)
+              sm0(i,k,nb0)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa0(i,k,nb0)=aaa(i,k)
+              aat0(i,k,nb0)=aaa(k,i)
+              ta0(i,k,nb0)=ta(i,k)
+              tt0(i,k,nb0)=ta(k,i)
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
@@ -889,10 +889,10 @@ c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))
 
 c      do k=1,nbas
 c        do i=1,nbas
-c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-c          aaa0(nb0,i,k)=aaa(i,k)
-c          aat0(nb0,i,k)=aaa(k,i)
-c          tt0(nb0,i,k)=ta(k,i)
+c          sm0(i,k,nb0)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa0(i,k,nb0)=aaa(i,k)
+c          aat0(i,k,nb0)=aaa(k,i)
+c          tt0(i,k,nb0)=ta(k,i)
 c        enddo
 c      enddo
 
@@ -906,11 +906,11 @@ c!     END ASSEMBLY ON CPU
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
           do k=1,nbas
             do i=1,nbas
-              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-              aaa1(nb1,i,k)=aaa(i,k)
-              aat1(nb1,i,k)=aaa(k,i)
-              ta1(nb1,i,k)=ta(i,k)
-              tt1(nb1,i,k)=ta(k,i)
+              sm1(i,k,nb1)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa1(i,k,nb1)=aaa(i,k)
+              aat1(i,k,nb1)=aaa(k,i)
+              ta1(i,k,nb1)=ta(i,k)
+              tt1(i,k,nb1)=ta(k,i)
             enddo
           enddo
 !_ACCTGT_($acc end kernels)
@@ -924,10 +924,10 @@ c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))
 
 c      do k=1,nbas
 c        do i=1,nbas
-c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-c          aaa1(nb1,i,k)=aaa(i,k)
-c          aat1(nb1,i,k)=aaa(k,i)
-c          tt1(nb1,i,k)=ta(k,i)
+c          sm1(i,k,nb1)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa1(i,k,nb1)=aaa(i,k)
+c          aat1(i,k,nb1)=aaa(k,i)
+c          tt1(i,k,nb1)=ta(k,i)
 c        enddo
 c      enddo
 
@@ -973,15 +973,15 @@ c!_OMPTGT_($omp target update to(ta0,aaa0,aat0,tt0,sm0))
           n=lab(4,intg)
 !_ACCTGT_($acc loop private(ibl) vector(32))
           do ibl=1,nb0
-            etotb=etotb+g(intg)*prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l)
-     &           -aat0(ibl,n,i)*aaa0(ibl,l,k)
-     &           -tt0(ibl,n,i)*ta0(ibl,l,k)
-     &           -aaa0(ibl,n,i)*aat0(ibl,l,k)
-     &           -ta0(ibl,n,i)*tt0(ibl,l,k)
-     &           -aat0(ibl,l,i)*aaa0(ibl,n,k)
-     &           -tt0(ibl,l,i)*ta0(ibl,n,k)
-     &           -aaa0(ibl,l,i)*aat0(ibl,n,k)
-     &           -ta0(ibl,l,i)*tt0(ibl,n,k))
+            etotb=etotb+g(intg)*prefac0(ibl)*(sm0(k,i,ibl)*sm0(n,l,ibl)
+     &           -aat0(n,i,ibl)*aaa0(l,k,ibl)
+     &           -tt0(n,i,ibl)*ta0(l,k,ibl)
+     &           -aaa0(n,i,ibl)*aat0(l,k,ibl)
+     &           -ta0(n,i,ibl)*tt0(l,k,ibl)
+     &           -aat0(l,i,ibl)*aaa0(n,k,ibl)
+     &           -tt0(l,i,ibl)*ta0(n,k,ibl)
+     &           -aaa0(l,i,ibl)*aat0(n,k,ibl)
+     &           -ta0(l,i,ibl)*tt0(n,k,ibl))
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
@@ -1017,30 +1017,30 @@ c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
 !_ACCTGT_($acc loop private(ibl) vector(32))
           do ibl=1,nb1
             etotb=etotb+g(intg)*prefac1(ibl)*
-     &           (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
-     &           +diag1(ibl,n)*csdiag1(ibl,l)
-     &           +bdiag1(ibl,l)*bsdiag1(ibl,n)
-     &           +bdiag1(ibl,n)*bsdiag1(ibl,l))
-     &           +(diag1(ibl,i)*csdiag1(ibl,k)
-     &           +diag1(ibl,k)*csdiag1(ibl,i)
-     &           +bdiag1(ibl,i)*bsdiag1(ibl,k)
-     &           +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
-     &           -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
-     &           +aat1(ibl,l,k)*diag1(ibl,n))
-     &           -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
-     &           +tt1(ibl,l,k)*bdiag1(ibl,n))
-     &           -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
-     &           +aaa1(ibl,n,k)*diag1(ibl,i))
-     &           -bsdiag1(ibl,l)*(ta1(ibl,n,i)*bdiag1(ibl,k)
-     &           +ta1(ibl,n,k)*bdiag1(ibl,i))
-     &           -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
-     &           +aat1(ibl,l,i)*diag1(ibl,n))
-     &           -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
-     &           +tt1(ibl,l,i)*bdiag1(ibl,n))
-     &           -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
-     &           +aaa1(ibl,l,k)*diag1(ibl,i))
-     &           -bsdiag1(ibl,n)*(ta1(ibl,l,i)*bdiag1(ibl,k)
-     &           +ta1(ibl,l,k)*bdiag1(ibl,i)))
+     &           (sm1(k,i,ibl)*(diag1(l,ibl)*csdiag1(n,ibl)
+     &           +diag1(n,ibl)*csdiag1(l,ibl)
+     &           +bdiag1(l,ibl)*bsdiag1(n,ibl)
+     &           +bdiag1(n,ibl)*bsdiag1(l,ibl),ibl)
+     &           +(diag1(i,ibl)*csdiag1(k,ibl)
+     &           +diag1(k,ibl)*csdiag1(i,ibl)
+     &           +bdiag1(i,ibl)*bsdiag1(k,ibl)
+     &           +bdiag1(k,ibl)*bsdiag1(i,ibl),ibl)*sm1(n,l,ibl)
+     &           -csdiag1(i,ibl)*(aat1(n,k,ibl)*diag1(l,ibl)
+     &           +aat1(l,k,ibl)*diag1(n,ibl),ibl)
+     &           -bsdiag1(i,ibl)*(tt1(n,k,ibl)*bdiag1(l,ibl)
+     &           +tt1(l,k,ibl)*bdiag1(n,ibl),ibl)
+     &           -csdiag1(l,ibl)*(aaa1(n,i,ibl)*diag1(k,ibl)
+     &           +aaa1(n,k,ibl)*diag1(i,ibl),ibl)
+     &           -bsdiag1(l,ibl)*(ta1(n,i,ibl)*bdiag1(k,ibl)
+     &           +ta1(n,k,ibl)*bdiag1(i,ibl),ibl)
+     &           -csdiag1(k,ibl)*(aat1(n,i,ibl)*diag1(l,ibl)
+     &           +aat1(l,i,ibl)*diag1(n,ibl),ibl)
+     &           -bsdiag1(k,ibl)*(tt1(n,i,ibl)*bdiag1(l,ibl)
+     &           +tt1(l,i,ibl)*bdiag1(n,ibl),ibl)
+     &           -csdiag1(n,ibl)*(aaa1(l,i,ibl)*diag1(k,ibl)
+     &           +aaa1(l,k,ibl)*diag1(i,ibl),ibl)
+     &           -bsdiag1(n,ibl)*(ta1(l,i,ibl)*bdiag1(k,ibl)
+     &           +ta1(l,k,ibl)*bdiag1(i,ibl)))
           enddo
         enddo
 !_ACCTGT_($acc end kernels)
@@ -1119,11 +1119,11 @@ c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
-          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-          aaa0(nb0,i,k)=aaa(i,k)
-          aat0(nb0,i,k)=aaa(k,i)
-          ta0(nb0,i,k)=ta(i,k)
-          tt0(nb0,i,k)=ta(k,i)
+          sm0(i,k,nb0)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaa0(i,k,nb0)=aaa(i,k)
+          aat0(i,k,nb0)=aaa(k,i)
+          ta0(i,k,nb0)=ta(i,k)
+          tt0(i,k,nb0)=ta(k,i)
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -1136,10 +1136,10 @@ c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
 c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
 c      do k=1,nbas
 c        do i=1,nbas
-c          sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-c          aaa0(nb0,i,k)=aaa(i,k)
-c          aat0(nb0,i,k)=aaa(k,i)
-c          tt0(nb0,i,k)=ta(k,i)
+c          sm0(i,k,nb0)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa0(i,k,nb0)=aaa(i,k)
+c          aat0(i,k,nb0)=aaa(k,i)
+c          tt0(i,k,nb0)=ta(k,i)
 c        enddo
 c      enddo
 
@@ -1156,11 +1156,11 @@ c!     END ASSEMBLY ON CPU
 !_OMPTGT_($omp target teams distribute parallel do collapse(2))
       do k=1,nbas
         do i=1,nbas
-          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-          aaa1(nb1,i,k)=aaa(i,k)
-          aat1(nb1,i,k)=aaa(k,i)
-          ta1(nb1,i,k)=ta(i,k)
-          tt1(nb1,i,k)=ta(k,i)
+          sm1(i,k,nb1)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+          aaa1(i,k,nb1)=aaa(i,k)
+          aat1(i,k,nb1)=aaa(k,i)
+          ta1(i,k,nb1)=ta(i,k)
+          tt1(i,k,nb1)=ta(k,i)
         enddo
       enddo
 !_ACCTGT_($acc end kernels)
@@ -1173,10 +1173,10 @@ c!_ACCTGT_($acc update self(ta,aaa,aat,tt))
 c!_OMPTGT_($omp target update from(ta,aaa,aat,tt))     
 c      do k=1,nbas
 c        do i=1,nbas
-c          sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
-c          aaa1(nb1,i,k)=aaa(i,k)
-c          aat1(nb1,i,k)=aaa(k,i)
-c          tt1(nb1,i,k)=ta(k,i)
+c          sm1(i,k,nb1)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+c          aaa1(i,k,nb1)=aaa(i,k)
+c          aat1(i,k,nb1)=aaa(k,i)
+c          tt1(i,k,nb1)=ta(k,i)
 c        enddo
 c      enddo
 
@@ -1216,26 +1216,25 @@ c!_OMPTGT_($omp target update to(ta0,aaa0,aat0,tt0,sm0))
         kl=nbas*(nbas+1)/2
 
 !_ACCTGT_($acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0))
-!_OMPTGT_($omp target teams distribute parallel do)
-        do ii=intndx,jntndx
-          do jj=ii,kl
-            intg=ndx(ii)+jj
-            i=lab(1,ii)
-            k=lab(2,ii)
-            l=lab(1,jj)
-            n=lab(2,jj)
-!_ACCTGT_($acc loop private(ibl) vector(32))
-            do ibl=1,nb0
+!_OMPTGT_($omp target teams distribute parallel do)       
+        do ibl=1,nb0
+          do ii=intndx,jntndx
+            do jj=ii,kl
+              intg=ndx(ii)+jj
+              i=lab(1,ii)
+              k=lab(2,ii)
+              l=lab(1,jj)
+              n=lab(2,jj)
               etotb=etotb+g(intg)*prefac0(ibl)*
-     &             (sm0(ibl,i,k)*sm0(ibl,l,n)
-     &             -aaa0(ibl,i,n)*aaa0(ibl,l,k)
-     &             -ta0(ibl,i,n)*ta0(ibl,l,k)
-     &             -aat0(ibl,i,n)*aat0(ibl,l,k)
-     &             -tt0(ibl,i,n)*tt0(ibl,l,k)
-     &             -aat0(ibl,l,i)*aaa0(ibl,n,k)
-     &             -tt0(ibl,l,i)*ta0(ibl,n,k)
-     &             -aaa0(ibl,l,i)*aat0(ibl,n,k)
-     &             -ta0(ibl,l,i)*tt0(ibl,n,k))
+     &             (sm0(i,k,ibl)*sm0(l,n,ibl)
+     &             -aaa0(i,n,ibl)*aaa0(l,k,ibl)
+     &             -ta0(i,n,ibl)*ta0(l,k,ibl)
+     &             -aat0(i,n,ibl)*aat0(l,k,ibl)
+     &             -tt0(i,n,ibl)*tt0(l,k,ibl)
+     &             -aat0(l,i,ibl)*aaa0(n,k,ibl)
+     &             -tt0(l,i,ibl)*ta0(n,k,ibl)
+     &             -aaa0(l,i,ibl)*aat0(n,k,ibl)
+     &             -ta0(l,i,ibl)*tt0(n,k,ibl))
             enddo
           enddo
         enddo
@@ -1276,30 +1275,30 @@ c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
 !_ACCTGT_($acc loop private(ibl) vector(32))
             do ibl=1,nb1
               etotb=etotb+g(intg)*prefac1(ibl)*
-     &             (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
-     &             +diag1(ibl,n)*csdiag1(ibl,l)
-     &             +bdiag1(ibl,l)*bsdiag1(ibl,n)
-     &             +bdiag1(ibl,n)*bsdiag1(ibl,l))
-     &             +(diag1(ibl,i)*csdiag1(ibl,k)
-     &             +diag1(ibl,k)*csdiag1(ibl,i)
-     &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
-     &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
-     &             -csdiag1(ibl,i)*(aat1(ibl,n,k)*diag1(ibl,l)
-     &             +aat1(ibl,l,k)*diag1(ibl,n))
-     &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
-     &             +tt1(ibl,l,k)*bdiag1(ibl,n))
-     &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
-     &             +aaa1(ibl,n,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,l)*(ta1(ibl,n,i)*bdiag1(ibl,k)
-     &             +ta1(ibl,n,k)*bdiag1(ibl,i))
-     &             -csdiag1(ibl,k)*(aat1(ibl,n,i)*diag1(ibl,l)
-     &             +aat1(ibl,l,i)*diag1(ibl,n))
-     &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
-     &             +tt1(ibl,l,i)*bdiag1(ibl,n))
-     &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
-     &             +aaa1(ibl,l,k)*diag1(ibl,i))
-     &             -bsdiag1(ibl,n)*(ta1(ibl,l,i)*bdiag1(ibl,k)
-     &             +ta1(ibl,l,k)*bdiag1(ibl,i)))
+     &             (sm1(k,i,ibl)*(diag1(l,ibl)*csdiag1(n,ibl)
+     &             +diag1(n,ibl)*csdiag1(l,ibl)
+     &             +bdiag1(l,ibl)*bsdiag1(n,ibl)
+     &             +bdiag1(n,ibl)*bsdiag1(l,ibl),ibl)
+     &             +(diag1(i,ibl)*csdiag1(k,ibl)
+     &             +diag1(k,ibl)*csdiag1(i,ibl)
+     &             +bdiag1(i,ibl)*bsdiag1(k,ibl)
+     &             +bdiag1(k,ibl)*bsdiag1(i,ibl),ibl)*sm1(n,l,ibl)
+     &             -csdiag1(i,ibl)*(aat1(n,k,ibl)*diag1(l,ibl)
+     &             +aat1(l,k,ibl)*diag1(n,ibl),ibl)
+     &             -bsdiag1(i,ibl)*(tt1(n,k,ibl)*bdiag1(l,ibl)
+     &             +tt1(l,k,ibl)*bdiag1(n,ibl),ibl)
+     &             -csdiag1(l,ibl)*(aaa1(n,i,ibl)*diag1(k,ibl)
+     &             +aaa1(n,k,ibl)*diag1(i,ibl),ibl)
+     &             -bsdiag1(l,ibl)*(ta1(n,i,ibl)*bdiag1(k,ibl)
+     &             +ta1(n,k,ibl)*bdiag1(i,ibl),ibl)
+     &             -csdiag1(k,ibl)*(aat1(n,i,ibl)*diag1(l,ibl)
+     &             +aat1(l,i,ibl)*diag1(n,ibl),ibl)
+     &             -bsdiag1(k,ibl)*(tt1(n,i,ibl)*bdiag1(l,ibl)
+     &             +tt1(l,i,ibl)*bdiag1(n,ibl),ibl)
+     &             -csdiag1(n,ibl)*(aaa1(l,i,ibl)*diag1(k,ibl)
+     &             +aaa1(l,k,ibl)*diag1(i,ibl),ibl)
+     &             -bsdiag1(n,ibl)*(ta1(l,i,ibl)*bdiag1(k,ibl)
+     &             +ta1(l,k,ibl)*bdiag1(i,ibl)))
             enddo
           enddo
         enddo

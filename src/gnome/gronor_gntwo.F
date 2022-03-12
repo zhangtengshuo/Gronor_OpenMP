@@ -2814,7 +2814,8 @@ c              aat1(nb1,i,k)=aaa(k,i)
             do i=1,nbas
               sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
               aaa0(nb0,i,k)=aaa(i,k)
-c              aat0(nb0,i,k)=aaa(k,i)
+              aat0(nb0,i,k)=aaa(k,i)
+              ta0(nb0,i,k)=ta(i,k)
               tt0(nb0,i,k)=ta(k,i)
             enddo
           enddo
@@ -2872,14 +2873,14 @@ c              aat1(nb1,i,k)=aaa(k,i)
                 do ibl=1,nb0
                   etemp=etemp+prefac0(ibl)*
      &                 (sm0(ibl,k,i)*sm0(ibl,n,l)
-     &                 -aaa0(ibl,i,n)*aaa0(ibl,l,k)
-     &                 -aaa0(ibl,n,i)*aaa0(ibl,k,l)
-     &                 -aaa0(ibl,i,l)*aaa0(ibl,n,k)
-     &                 -aaa0(ibl,l,i)*aaa0(ibl,k,n)
-     &                 -tt0(ibl,i,n)*tt0(ibl,l,k)
-     &                 -tt0(ibl,n,i)*tt0(ibl,k,l)
-     &                 -tt0(ibl,i,l)*tt0(ibl,n,k)
-     &                 -tt0(ibl,l,i)*tt0(ibl,k,n))
+     &                 -aat0(ibl,n,i)*aaa0(ibl,l,k)
+     &                 -aaa0(ibl,n,i)*aat0(ibl,l,k)
+     &                 -aat0(ibl,l,i)*aaa0(ibl,n,k)
+     &                 -aaa0(ibl,l,i)*aat0(ibl,n,k)
+     &                 -ta0(ibl,n,i)*tt0(ibl,l,k)
+     &                 -tt0(ibl,n,i)*ta0(ibl,l,k)
+     &                 -ta0(ibl,l,i)*tt0(ibl,n,k)
+     &                 -tt0(ibl,l,i)*ta0(ibl,n,k))
                 enddo
                 etotb=etotb+g(intg)*etemp
               enddo
@@ -2888,6 +2889,7 @@ c              aat1(nb1,i,k)=aaa(k,i)
         enddo
      
         kl=nbas*(nbas+1)/2
+
 c        do ii=intndx,jntndx
 c          igg=ndx(ii)
 c          i=lab(1,ii)

@@ -374,6 +374,222 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       return
       end
       
+      subroutine gronor_gntwo_nolab(lfndbg)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENACC
+      use openacc
+      use cuda_functions
+#endif
+
+      implicit none
+
+      integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,intl,ls
+
+      real(kind=8) :: sum1,sum2,ts,fourdet
+
+#ifdef SINGLEP
+      real (kind=4) :: e2t,e2l,e2n,tst,tsl,tsn
+      real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+#else
+      real (kind=8) :: e2t,e2l,e2n,tst,tsl,tsn
+      real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+      real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+#endif
+
+      real(kind=8), external :: timer_wall
+
+#ifdef _OPENACC
+      integer (kind=4) :: istat
+      type(c_ptr) :: cpfre, cptot
+#endif
+
+      if(ising.ge.3) return
+
+      call timer_start(30)
+      
+      if(idbg.ge.13) write(lfndbg,600)
+ 600  format(' Calculating two electron matrix element',/)
+
+!      numint=ig(mod(me,mgr)+1)
+
+      numint=mint2
+
+      if(ising.gt.1) e1=0.0d0
+      e2=0.0d0
+      ts=0.0d0
+      e2n=0.0d0
+      tsn=0.0d0
+      fourdet=4.0d0*deta
+
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm))
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))
+      do i=1,nbas 
+        do k=1,nbas
+          tat(k,i)=ta(k,i)
+          tt(i,k)=tat(k,i)
+          aat(i,k)=aaa(k,i)
+        enddo
+      enddo
+!_OMPTGT_($omp target teams distribute parallel do collapse(2))      
+      do i=1,nbas 
+        do k=1,nbas
+          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
+        enddo
+      enddo
+!_ACCTGT_($acc end kernels)
+
+      call timer_stop(30)
+      
+      call timer_start(38)
+
+      if(ising.le.0) then
+        
+        call timer_start(31)
+
+        tst=ts
+        kl=nbas*(nbas+1)/2
+        intg=0
+
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& copyin(intg,nbas))
+!_OMPTGT_($omp taskwait)
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:tst))
+        do k=1,nbas
+          do i=1,k
+            tsn=0.0d0
+            do n=k,nbas
+              ls=1
+              if(n.eq.k) ls=i
+              tsl=0.0d0
+              do l=ls,n
+                intg=intg+1
+                tsl=tsl+g(intg)*(sm(i,k)*sm(l,n)
+     &               -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k)
+     &               -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)
+     &               -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
+     &               -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
+              enddo
+              tsn=tsn+tsl
+            enddo
+            tst=tst+tsn
+          enddo
+        enddo
+c        do ii=intndx,jntndx
+c          do jj=ii,kl
+c            intg=ndx(ii)+jj
+c            i=lab(1,ii)
+c            k=lab(2,ii)
+c            l=lab(1,jj)
+c            n=lab(2,jj)
+c            tst=tst+g(intg)*(sm(i,k)*sm(l,n)
+c     &           -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k)
+c     &           -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)
+c     &           -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)
+c     &           -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
+c          enddo
+c        enddo
+!_ACCTGT_($acc end kernels)
+        ts=tst
+
+        call timer_stop(31)
+
+      else
+        
+        call timer_start(34)
+
+        e2t=e2
+        kl=nbas*(nbas+1)/2
+        intg=0
+
+!_ACCTGT_($acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx))
+!_ACCTGT_($acc& present(diag,bdiag,bsdiag,csdiag))
+!_ACCTGT_($acc& copyin(intg,kl,intndx,jntndx))     
+!_OMPTGT_($omp target teams distribute parallel do reduction(+:e2t))
+c        do ii=intndx,jntndx
+c          do jj=ii,kl
+c            intg=ndx(ii)+jj
+c            i=lab(1,ii)
+c            k=lab(2,ii)
+c            l=lab(1,jj)
+c     n=lab(2,jj)
+        
+        do k=1,nbas
+          aak=diag(k)
+          abk=bdiag(k)
+          bak=csdiag(k)
+          bbk=bsdiag(k)
+          do i=1,k
+            aai=diag(i)
+            abi=bdiag(i)
+            bai=csdiag(i)
+            bbi=bsdiag(i)
+            sum1=sm(k,i)
+            sum2=aai*bak+aak*bai+abi*bbk+abk*bbi
+            e2n=0.0d0
+            do n=k,nbas
+              aal=diag(n)
+              abl=bdiag(n)
+              bal=csdiag(n)
+              bbl=bsdiag(n)
+              ls=1
+              if(n.eq.k) ls=i
+              e2l=0.0d0
+              intl=intg
+              do l=ls,n
+                intl=intl+1
+                aaj=diag(l)
+                abj=bdiag(l)
+                baj=csdiag(l)
+                bbj=bsdiag(l)
+                e2l=e2l+g(intl)*
+     &               (sum1*(aaj*bal+aal*baj+abj*bbl+abl*bbj)
+     &               +sum2*sm(n,l)
+     &               -bai*(aat(n,k)*aaj+aat(l,k)*aal)
+     &               -bbi*(tt(n,k)*abj+tt(l,k)*abl)
+     &               -baj*(aaa(n,i)*aak+aaa(n,k)*aai)
+     &               -bbj*(tat(n,i)*abk+tat(n,k)*abi)
+     &               -bak*(aat(n,i)*aaj+aat(l,i)*aal)
+     &               -bbk*(tt(n,i)*abj+tt(l,i)*abl)
+     &               -bal*(aaa(l,i)*aak+aaa(l,k)*aai)
+     &               -bbl*(tat(l,i)*abk+tat(l,k)*abi))
+              enddo
+              intg=intg+n+1-ls
+              e2n=e2n+e2l
+            enddo
+            e2t=e2t+e2n
+          enddo
+        enddo
+!_ACCTGT_($acc end kernels)
+        e2=e2t
+
+        call timer_stop(34)
+
+      endif
+
+#ifdef _OPENACC
+      if(numdev.gt.1) then
+        cpfre=c_loc(memfre)
+        cptot=c_loc(memtot)
+c        istat=cudaMemGetInfo(cpfre,cptot)
+        memavail=min(memfre,memavail)
+      endif
+#endif
+
+      ts=ts*fourdet
+      e2=e2+ts
+      
+      call timer_stop(38)
+      
+      return
+      end
+      
       subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 
       use mpi
@@ -2466,6 +2682,242 @@ c              aat1(nb1,i,k)=aaa(k,i)
 !$omp end do
 !$omp end parallel
         enddo
+
+!     Reset index in buffer to zero
+        nb0=0
+
+        call timer_stop(32)
+        
+      endif
+
+      if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.nbatch) then
+        
+        call timer_start(35)
+        
+        kl=nbas*(nbas+1)/2
+        do ii=intndx,jntndx
+          igg=ndx(ii)
+          i=lab(1,ii)
+          k=lab(2,ii)
+!$omp parallel do reduction(+:etotb)
+!$omp& shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl)
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac)
+!$omp& private(intg,l,n,ibl)
+          do jj=ii,kl
+            intg=igg+jj
+            l=lab(1,jj)
+            n=lab(2,jj)
+            etemp=0.0d0
+            do ibl=1,nb1
+              etemp=etemp+prefac1(ibl)*
+     &             (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)
+     &             +diag1(ibl,n)*csdiag1(ibl,l)
+     &             +bdiag1(ibl,l)*bsdiag1(ibl,n)
+     &             +bdiag1(ibl,n)*bsdiag1(ibl,l))
+     &             +(diag1(ibl,i)*csdiag1(ibl,k)
+     &             +diag1(ibl,k)*csdiag1(ibl,i)
+     &             +bdiag1(ibl,i)*bsdiag1(ibl,k)
+     &             +bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l)
+     &             -csdiag1(ibl,i)*(aaa1(ibl,k,n)*diag1(ibl,l)
+     &             +aaa1(ibl,k,l)*diag1(ibl,n))
+     &             -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,k)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)
+     &             +aaa1(ibl,n,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,l)*(tt1(ibl,i,n)*bdiag1(ibl,k)
+     &             +tt1(ibl,k,n)*bdiag1(ibl,i))
+     &             -csdiag1(ibl,k)*(aaa1(ibl,i,n)*diag1(ibl,l)
+     &             +aaa1(ibl,i,l)*diag1(ibl,n))
+     &             -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)
+     &             +tt1(ibl,l,i)*bdiag1(ibl,n))
+     &             -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)
+     &             +aaa1(ibl,l,k)*diag1(ibl,i))
+     &             -bsdiag1(ibl,n)*(tt1(ibl,i,l)*bdiag1(ibl,k)
+     &             +tt1(ibl,k,l)*bdiag1(ibl,i)))
+            enddo
+            etotb=etotb+g(intg)*etemp
+          enddo
+!$omp end parallel do
+        enddo
+
+!     Reset index into buffer
+        nb1=0
+
+        call timer_stop(35)
+          
+      endif
+
+      return
+      end
+
+      
+      subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
+
+      use mpi
+      use cidist
+      use gnome_parameters
+      use gnome_data
+      use gnome_integrals
+
+#ifdef _OPENMP
+      use omp_lib
+#endif
+
+      implicit none
+
+      integer :: lfndbg
+
+      integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj,igg,ls
+
+      real (kind=8) :: etemp
+
+      real (kind=8) :: ts,fourdet
+
+      real(kind=8), external :: timer_wall
+
+!     Copying arrays into batch arrays
+
+!     Initialize nb0 and nb1 when first matrix element in a batch
+
+!     nb0 : number of singularity 0 elements
+!     nb1 : number of singularity 1 or 2 elements
+      
+      if(ihc.eq.1) then
+        nb0=0
+        nb1=0
+        etotb=0.0d0
+      endif
+      
+      if(ising.lt.3) then
+
+        call timer_start(30)
+        
+        if(iamhead.eq.1) sstot=sstot+fctr*deta
+
+        if(idbg.ge.50) write(lfndbg,600)
+ 600    format(' Calculating two electron matrix element',/)
+
+        numint=mint2
+
+        if(ising.gt.1) e1=0.0d0
+        e2=0.0d0
+        ts=0.0d0
+        fourdet=4.0d0*deta
+
+        if(ising.eq.0) then
+          nb0=nb0+1      
+          prefac0(nb0)=4.0d0*deta*fctr
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k) collapse(2)
+          do k=1,nbas
+            do i=1,nbas
+              sm0(nb0,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa0(nb0,i,k)=aaa(i,k)
+c              aat0(nb0,i,k)=aaa(k,i)
+              tt0(nb0,i,k)=ta(k,i)
+            enddo
+          enddo
+!$omp end parallel do
+        else
+          nb1=nb1+1
+          prefac1(nb1)=fctr
+!$omp parallel do
+!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
+!$omp& private(i,k) collapse(2)
+          do k=1,nbas
+            do i=1,nbas
+              sm1(nb1,i,k)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
+              aaa1(nb1,i,k)=aaa(i,k)
+c              aat1(nb1,i,k)=aaa(k,i)
+              tt1(nb1,i,k)=ta(k,i)
+            enddo
+          enddo
+!$omp end parallel do
+
+!$omp parallel do
+!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
+!$omp& private(i)
+          do i=1,nbas
+            diag1(nb1,i)=diag(i)
+            bdiag1(nb1,i)=bdiag(i)
+            bsdiag1(nb1,i)=bsdiag(i)
+            csdiag1(nb1,i)=csdiag(i)
+          enddo
+!$omp end parallel do
+        endif
+        
+        call timer_stop(30)
+
+      endif
+      
+      call timer_start(38)
+
+!     After the last element of a task the list or when the buffer is full
+!     the energies are evaluated
+
+      if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.nbatch) then
+
+        call timer_start(32)
+
+        intg=0
+        do k=1,nbas
+          do i=1,k
+            do n=k,nbas
+              ls=1
+              if(n.eq.k) ls=i
+              do l=ls,n
+                intg=intg+1
+                etemp=0.0d0
+                do ibl=1,nb0
+                  etemp=etemp+prefac0(ibl)*
+     &                 (sm0(ibl,k,i)*sm0(ibl,n,l)
+     &                 -aaa0(ibl,i,n)*aaa0(ibl,l,k)
+     &                 -aaa0(ibl,n,i)*aaa0(ibl,k,l)
+     &                 -aaa0(ibl,i,l)*aaa0(ibl,n,k)
+     &                 -aaa0(ibl,l,i)*aaa0(ibl,k,n)
+     &                 -tt0(ibl,i,n)*tt0(ibl,l,k)
+     &                 -tt0(ibl,n,i)*tt0(ibl,k,l)
+     &                 -tt0(ibl,i,l)*tt0(ibl,n,k)
+     &                 -tt0(ibl,l,i)*tt0(ibl,k,n))
+                enddo
+                etotb=etotb+g(intg)*etemp
+              enddo
+            enddo
+          enddo
+        enddo
+     
+        kl=nbas*(nbas+1)/2
+c        do ii=intndx,jntndx
+c          igg=ndx(ii)
+c          i=lab(1,ii)
+c          k=lab(2,ii)
+c!$omp parallel
+c!$omp& shared(igg,i,k,ii,sm0,aaa0,tt0,g,lab,nb0,prefac)
+c!$omp do reduction(+:etotb)
+c!$omp& private(intg,jj,l,n,ibl)
+c          do jj=ii,kl
+c            intg=igg+jj
+c            l=lab(1,jj)
+c            n=lab(2,jj)
+c            etemp=0.0d0
+c            do ibl=1,nb0
+c              etemp=etemp+prefac0(ibl)*
+c     &             (sm0(ibl,k,i)*sm0(ibl,n,l)
+c     &             -aaa0(ibl,i,n)*aaa0(ibl,l,k)
+c     &             -aaa0(ibl,n,i)*aaa0(ibl,k,l)
+c     &             -aaa0(ibl,i,l)*aaa0(ibl,n,k)
+c     &             -aaa0(ibl,l,i)*aaa0(ibl,k,n)
+c     &             -tt0(ibl,i,n)*tt0(ibl,l,k)
+c     &             -tt0(ibl,n,i)*tt0(ibl,k,l)
+c     &             -tt0(ibl,i,l)*tt0(ibl,n,k)
+c     &             -tt0(ibl,l,i)*tt0(ibl,k,n))
+c            enddo
+c            etotb=etotb+g(intg)*etemp
+c          enddo
+c!$omp end do
+c!$omp end parallel
+c        enddo
 
 !     Reset index in buffer to zero
         nb0=0

@@ -232,7 +232,11 @@
             if(labels.eq.0) then
               if(ising.le.2) call gronor_gntwo(lfndbg)
             else
-              if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
+              if(itest.eq.0) then
+                if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
+              else
+                if(ising.le.2) call gronor_gntwo_nolab(lfndbg)
+              endif
             endif
          endif
 !         call nvtxEndRange
@@ -323,7 +327,11 @@
               if(labels.eq.0) then
                 call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
               else
-                call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
+                if(itest.eq.0) then
+                  call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
+                else
+                  call gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
+                endif
               endif
             else
               if(labels.eq.0) then

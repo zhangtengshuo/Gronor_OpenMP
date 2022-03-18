@@ -736,7 +736,7 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
             k=lab(2,intg)
             l=lab(3,intg)
             n=lab(4,intg)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
             do ibl=1,nb0
               etotb=etotb+g(intg)*prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
      &             -aatl(ibl,n,i)*aaal(ibl,l,k)
@@ -767,7 +767,7 @@ c!_OMPTGT_($omp target update to(tatl,aaal,aatl,ttl,sml))
             k=lab(2,intg) 
             l=lab(3,intg) 
             n=lab(4,intg)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
             do ibl=nhc-nb1+1,nhc
               etotb=etotb+g(intg)*prefac(ibl)*
      &             (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -948,7 +948,7 @@ c!_ACCTGT_($acc end kernels)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
               do ibl=1,nb0
                 etotb=etotb+g(intg)*
      &               prefac(ibl)*(sml(ibl,k,i)*sml(ibl,n,l)
@@ -983,7 +983,7 @@ c!_ACCTGT_($acc end kernels)
               k=lab(2,ii)
               l=lab(1,jj)
               n=lab(2,jj)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
               do ibl=nhc-nb1+1,nhc
                 etotb=etotb+g(intg)*prefac(ibl)*
      &               (sml(ibl,k,i)*(diagl(ibl,l)*csdiagl(ibl,n)
@@ -1187,7 +1187,7 @@ c!_OMPTGT_($omp target update to(ta0,aaa0,aat0,tt0,sm0))
           k=lab(2,intg)
           l=lab(3,intg)
           n=lab(4,intg)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
           do ibl=1,nb0
             etotb=etotb+g(intg)*prefac0(ibl)*(sm0(k,i,ibl)*sm0(n,l,ibl)
      &           -aat0(n,i,ibl)*aaa0(l,k,ibl)
@@ -1230,7 +1230,7 @@ c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
           k=lab(2,intg) 
           l=lab(3,intg) 
           n=lab(4,intg)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
           do ibl=1,nb1
             etotb=etotb+g(intg)*prefac1(ibl)*
      &           (sm1(k,i,ibl)*(diag1(l,ibl)*csdiag1(n,ibl)
@@ -1488,7 +1488,7 @@ c!_OMPTGT_($omp target update to(ta1,aaa1,aat1,tt1,sm1))
             k=lab(2,ii)
             l=lab(1,jj)
             n=lab(2,jj)
-!_ACCTGT_($acc loop private(ibl) vector(32))
+!_ACCTGT_($acc loop vector(32))
             do ibl=1,nb1
               etotb=etotb+g(intg)*prefac1(ibl)*
      &             (sm1(k,i,ibl)*(diag1(l,ibl)*csdiag1(n,ibl)

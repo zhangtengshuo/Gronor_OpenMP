@@ -57,6 +57,7 @@
       use gnome_parameters
       use gnome_data
       use gnome_integrals
+      use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef CUSOLVER
       use cusolverDn

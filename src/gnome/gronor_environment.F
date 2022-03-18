@@ -99,6 +99,13 @@ c      use cuda_rt
         machine='Daint '
       endif
 
+!     Trim the SurfSara Lisa node name
+      if(index(nodename,'.lisa').gt.0) then
+        len=index(nodename,'.lisa')-1
+        nodename(len+1:len+1)=' '
+        machine='Lisa  '
+      endif
+
 !     Trim the OLCF Summit node name
       if(ichar(nodename(1:1)).ge.97.and.
      &     ichar(nodename(1:1)).le.122.and.

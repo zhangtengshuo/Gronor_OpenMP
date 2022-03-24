@@ -2176,10 +2176,10 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(nbase.gt.1) then
           write(lfnlog,803)
      &         (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
-        endif
+!        endif
         write(lfnlog,803) (hev(i),i=1,nbase)
 *     Close the cml file after closing the remaining open tags
-        if(nbase.gt.1) then
+!        if(nbase.gt.1) then
           write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
         endif
         call gronor_finalize_cml

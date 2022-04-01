@@ -184,7 +184,6 @@
 
       integer, allocatable :: ioccup(:,:),itemp(:),ioccn(:,:)
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
-      real (kind=8), allocatable :: vna(:),vnb(:)
       real (kind=8) :: bias,deta,smat,hmat
       real (kind=8) :: etot,e1,e2,e2c,etotb,fac,fctr
       real (kind=8) :: e1tot,e2tot,sstot

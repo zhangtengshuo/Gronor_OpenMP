@@ -1,6 +1,6 @@
-#!/bin/tcsh
+#!/usr/bin/tcsh
 
-module load cmake intelmpi gronor
+module load nvhpc mpich cmake
 
 setenv FC mpif90
 setenv CC mpicc
@@ -11,6 +11,7 @@ rm -rf build
 mkdir build
 cd build
 
-cmake -DOPENMP=ON -DMKL=ON ../
+cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON ../
 
-make -j 24
+make -j 12
+

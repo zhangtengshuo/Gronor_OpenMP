@@ -93,6 +93,7 @@
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
+      integer :: nciaux
       
       integer :: maxci,maxcib,maxnact,mactb,maxvec,nci
       
@@ -100,6 +101,7 @@
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
       integer, allocatable :: inactm(:), idetm(:), spinm(:), nFrozen(:)
       integer, allocatable :: nElectrons(:)
+      integer, allocatable :: inter_couplings(:,:)
       real (kind=8), allocatable :: civb(:,:), vecsb(:,:,:), fragEner(:)
       integer, allocatable :: ioccb(:,:)
       integer, allocatable ::  ncombv(:,:),inactb(:), nactb(:), idetb(:)
@@ -125,7 +127,9 @@
 
       implicit none
 
-      integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
+      integer,allocatable :: iocc(:),iord(:),indx(:)
+      integer :: icalc,ipr,ipro,ipvec,idbg,itim
+!!      integer :: iocc(2),iord(2),indx(2),icalc,ipr,ipro,ipvec,idbg,itim
       integer :: itest,ifault,isolver,jsolver,idevel,idist
       integer :: ntask,ntaska,nbatch,nbatcha,ndbg,mdbg,load,loada
       integer :: iaslvr,jaslvr,inslvr,jnslvr

@@ -52,6 +52,7 @@
 
       subroutine gronor_make_basestate(ibase)
       use cidef
+      use cidist
       use gnome_data
       use gnome_parameters
       implicit none
@@ -84,25 +85,22 @@
       real (kind = 8), allocatable :: inter_civ(:,:)
       real (kind = 8), allocatable :: civb_copy(:,:)
 
-
-      write(lfnout,*)'start gronor_makebasestate'
-      flush(lfnout)
       inactb(ibase) = 0
       nactb(ibase)  = 0
       do i = 1, nmol
         inactb(ibase) = inactb(ibase) + inactm(ncombv(i,ibase))
         nactb(ibase)  = nactb(ibase) + nactm(ncombv(i,ibase))
       end do
-      write(lfnout,*)'NACTB makebasestate',ibase,nactb(ibase)
-      write(lfnout,*)'combination',ncombv(:,ibase)
+
       if ( nactb(ibase) .gt. maxact) then
-        write(lfnout,*)' * * *  Error  * * *'
-        write(lfnout,*)'Max. number of active orbitals: ',maxact
-        write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
-        stop 'Too many active orbitals'
+         call errquit(me,3,"Too many active orbitals")
+!        write(lfnout,*)' * * *  Error  * * *'
+!        write(lfnout,*)'Max. number of active orbitals: ',maxact
+!        write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
+!        stop 'Too many active orbitals'
       endif
 
-*     Combining the vectors of the fragments
+!     Combining the vectors of the fragments
 
       do i = 1, nbasis
         do j = 1, nbasis
@@ -136,7 +134,7 @@
         jstart = jstart + nactm(ncombv(i,ibase))
       end do
 
-*     Generation of the spin functions
+!     Generation of the spin functions
 
       allocate ( spin(nmol) )
       all_singlet = .true.
@@ -150,7 +148,7 @@
         ioccb(i,ibase)= 0
       enddo
 
-*     Just one molecule
+!     Just one molecule
       if ( nmol .eq. 1 ) then
         do i = 1, idetm(ibase)
           do jact = 1, nactm(ibase)
@@ -197,19 +195,19 @@
         goto 1581
       end if
       
-      if (nmol.gt.2) then
-        write(lfnout,*)'INTER COUPLINGS'
-        do i=1,nbase
-          write(lfnout,*)(inter_couplings(j,i),j=1,nmol-1)
-        end do
-      end if
+!      if (nmol.gt.2) then
+!        write(lfnout,*)'INTER COUPLINGS'
+!        do i=1,nbase
+!          write(lfnout,*)(inter_couplings(j,i),j=1,nmol-1)
+!        end do
+!      end if
+      
 *     All other cases
       allocate(spincomb(2))
       
       spincomb(1)=spin(1)
       spincomb(2)=spin(2)
-      write(lfnout,*)'SPINCOMB'
-      write(lfnout,*)spincomb
+
       allocate(ndet1_ms(spin(1)+1))
       allocate(ci1_ms(nci,spin(1)+1))
       allocate(occ1_ms(nactm(ncombv(1,ibase)),nci,spin(1)+1))      
@@ -244,17 +242,15 @@
           inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
         enddo
       enddo
-*     Make the compound product of all couplings
+!     Make the compound product of all couplings
 
       do icoupling=1,nmol-1
-*       M_S of fragment 1
-        write(lfnout,*)'+++++++++++++++++++++++++++++'
-        write(lfnout,*)'ICOUPLING',icoupling
-        write(lfnout,*)'+++++++++++++++++++++++++++++'
-        write(lfnout,*)
-        write(lfnout,*)'nci: ',nci
-        write(lfnout,*)'maxcib: ',maxcib
-        write(lfnout,*)'spin combination',spincomb
+!       M_S of fragment 1
+!        write(lfnout,*)'ICOUPLING',icoupling
+!        write(lfnout,*)'nci: ',nci
+!        write(lfnout,*)'maxcib: ',maxcib
+!        write(lfnout,*)'spin combination',spincomb
+         
         allocate(iocc_tmp(inter_nact(1),inter_ndet(1)))
         allocate(cicoef_tmp(inter_ndet(1)))        
         iocc_tmp = 0
@@ -265,24 +261,26 @@
             iocc_tmp(j,i) = inter_occ(j,i,1)
           end do
         end do
-        call sminop2(cicoef_tmp,ci1_ms,iocc_tmp,occ1_ms,inter_ndet(1),
-     &       ndet1_ms,spincomb(1),inter_nact(1),nci)        
+        call sminop(cicoef_tmp,ci1_ms,iocc_tmp,occ1_ms,inter_ndet(1),
+     &       ndet1_ms,spincomb(1),inter_nact(1),nci,maxnact)        
 
         deallocate(cicoef_tmp)
-        deallocate(iocc_tmp)        
-        write(lfnout,*)'FRAGMENT 1'
-        write(lfnout,*)'NDETMS'
-        write(lfnout,*)ndet1_ms
+        deallocate(iocc_tmp)
+        
+!        write(lfnout,*)'FRAGMENT 1'
+!        write(lfnout,*)'NDETMS'
+!        write(lfnout,*)ndet1_ms
+        
         do i=1,spincomb(1)+1
           write(lfnout,*)'MS STATE',i
           do j=1,ndet1_ms(i)
             write(lfnout,*)ci1_ms(j,i),
      &           (occ1_ms(k,j,i),k=1,inter_nact(1))
           end do
-          flush(lfnout)
+!          flush(lfnout)
         end do
         
-*       M_S of fragment 2
+!       M_S of fragment 2
         
         allocate(iocc_tmp(inter_nact(2),inter_ndet(2)))
         allocate(cicoef_tmp(inter_ndet(2)))
@@ -294,30 +292,31 @@
             iocc_tmp(j,i) = inter_occ(j,i,2)
           end do
         end do
-        call sminop2(cicoef_tmp,ci2_ms,iocc_tmp,occ2_ms,inter_ndet(2),
-     &       ndet2_ms,spincomb(2),inter_nact(2),nci)
+        call sminop(cicoef_tmp,ci2_ms,iocc_tmp,occ2_ms,inter_ndet(2),
+     &       ndet2_ms,spincomb(2),inter_nact(2),nci,maxnact)
         deallocate(cicoef_tmp)
         deallocate(iocc_tmp)
-        
-        
-        write(lfnout,*)'FRAGMENT 2'
-        write(lfnout,*)'NDETMS'
-        write(lfnout,*)ndet2_ms
-        do i=1,spincomb(2)+1
-          write(lfnout,*)'MS STATE',i
-          do j=1,ndet2_ms(i)
-            write(lfnout,*)ci2_ms(j,i),
-     &           (occ2_ms(k,j,i),k=1,inter_nact(2))
-          end do
-          flush(lfnout)
-        end do
-*       Product
+               
+!        write(lfnout,*)'FRAGMENT 2'
+!        write(lfnout,*)'NDETMS'
+!        write(lfnout,*)ndet2_ms
+
+!        do i=1,spincomb(2)+1
+!          write(lfnout,*)'MS STATE',i
+!          do j=1,ndet2_ms(i)
+!            write(lfnout,*)ci2_ms(j,i),
+!     &           (occ2_ms(k,j,i),k=1,inter_nact(2))
+!          end do
+!          flush(lfnout)
+!        end do
+
+!     Product
         if(nmol.gt.2)then
           target_spin=inter_couplings(icoupling,ibase) ! Remove nspin in the future
         else
           target_spin=nspin
         end if
-*       Determine new maxcib for icoupling > 1 and reallocate the product arrays
+!       Determine new maxcib for icoupling > 1 and reallocate the product arrays
         maxcib_prev=maxcib
         if (icoupling.gt.1)then
           do i = 1, spincomb(1) + 1
@@ -334,26 +333,32 @@
               end if
             end do
           end do
+
           if(k .eq. 0) then
-            write(lfnout,1574) '   spin(1) = ',spincomb(1)+1
-            write(lfnout,1574) '   spin(2) = ',spincomb(2)+1
-            write(lfnout,1574) 'total spin = ',target_spin+1
-            write(lfnout,*) 'not possible'
-            flush(lfnout)
-            stop
- 1574       format(a,i4)
-          end if
-          write(lfnout,*)'old maxcib',maxcib
-          maxcib=max(k,maxcib)
-          write(lfnout,*)'new maxcib',maxcib
-*         Reallocate intermediate civ and occ if couplings loop is not ended
-*         otherwise reallocate civb and ioccb in order to store the mebfs          
-          deallocate(inter_civ,inter_occ)
+!            write(lfnout,1574) '   spin(1) = ',spincomb(1)+1
+!            write(lfnout,1574) '   spin(2) = ',spincomb(2)+1
+!            write(lfnout,1574) 'total spin = ',target_spin+1
+!            write(lfnout,*) 'not possible'
+!            flush(lfnout)
+            call errquit(me,3,"Incompatible spins")
+! 1574       format(a,i4)
+         end if
+         
+!          write(lfnout,*)'old maxcib',maxcib
+
+         maxcib=max(k,maxcib)
+
+         write(lfnout,*)'new maxcib',maxcib
+
+!     Reallocate intermediate civ and occ if couplings loop is not ended
+!     otherwise reallocate civb and ioccb in order to store the mebfs          
+
+         deallocate(inter_civ,inter_occ)
           allocate(inter_civ(maxcib,2),inter_occ(maxact,maxcib,2))          
           inter_civ=0.0d0
           inter_occ=0
           if (icoupling.eq.(nmol-1)) then
-            write(lfnout,*)'Last coupling, re-allocate maxcib'
+!            write(lfnout,*)'Last coupling, re-allocate maxcib'
             allocate(civb_copy(maxcib,nbase))
             allocate(ioccb_copy(maxcib,nbase))
             do i=1,nbase
@@ -378,7 +383,7 @@
           end if
 
         end if
-        write(lfnout,*)'Do the product'
+!        write(lfnout,*)'Do the product'
         k = 0
         do i = 1, spincomb(1) + 1
           ms1  = spincomb(1) - 2*(i-1)
@@ -422,10 +427,10 @@
           end do
         end do
         
-*       After the product the result is in inter_civ(:,1) or in civb(:,ibase) if the loop is ended
-*       Prepare the next iteration if the loop is not ended
+!       After the product the result is in inter_civ(:,1) or in civb(:,ibase) if the loop is ended
+!       Prepare the next iteration if the loop is not ended
         if (icoupling.lt.(nmol-1)) then
-          write(lfnout,*)'not last coupling',icoupling
+!          write(lfnout,*)'not last coupling',icoupling
           
           inter_nact(1)=inter_nact(1)+inter_nact(2)
           inter_nact(2)=nactm(ncombv(icoupling+2,ibase))
@@ -439,23 +444,23 @@
             enddo
           enddo
 
-          write(lfnout,*)'re-calculate nci'
+!          write(lfnout,*)'re-calculate nci'
           spincomb(1)=inter_couplings(icoupling,ibase)
           spincomb(2)=spin(icoupling+2)
           call gronor_determine_nci
      &         (2,inter_nact,
      &         inter_ndet,inter_occ,maxact,maxcib_prev)
-          write(lfnout,*)'new nci:',nci
-          write(lfnout,*)'NEW inter 1'
-          do i=1,inter_ndet(1)
-            write(lfnout,*)inter_civ(i,1),
-     &           (inter_occ(j,i,1),j=1,inter_nact(1))
-          enddo
-          write(lfnout,*)'NEW inter 2'
-          do i=1,inter_ndet(2)
-            write(lfnout,*)inter_civ(i,2),
-     &           (inter_occ(j,i,2),j=1,inter_nact(2))
-          enddo
+!          write(lfnout,*)'new nci:',nci
+!          write(lfnout,*)'NEW inter 1'
+!          do i=1,inter_ndet(1)
+!            write(lfnout,*)inter_civ(i,1),
+!     &           (inter_occ(j,i,1),j=1,inter_nact(1))
+!          enddo
+!          write(lfnout,*)'NEW inter 2'
+!          do i=1,inter_ndet(2)
+!            write(lfnout,*)inter_civ(i,2),
+!     &           (inter_occ(j,i,2),j=1,inter_nact(2))
+!          enddo
           deallocate(ndet1_ms,occ1_ms,ci1_ms)            
           deallocate(ndet2_ms,occ2_ms,ci2_ms)
           allocate(ndet1_ms(spincomb(1)+1),ndet2_ms(spincomb(2)+1))          
@@ -470,12 +475,13 @@
           occ2_ms = 0
         end if
       end do ! end couplings loop
-*     Deallocate all
+
       deallocate(ndet1_ms,occ1_ms,ci1_ms)            
       deallocate(ndet2_ms,occ2_ms,ci2_ms)
       deallocate(spincomb)
       deallocate(inter_nact,inter_ndet)
       deallocate(inter_civ,inter_occ)
+
       ndets = k
  1581 dnorm = 0.0d0
       idetb(ibase) = ndets
@@ -487,6 +493,6 @@
         civb(i,ibase) = civb(i,ibase) * dnorm
       end do
       deallocate(spin)
-      write(lfnout,*)'nactb ibase final makebasestate',nactb(ibase)
+!      write(lfnout,*)'nactb ibase final makebasestate',nactb(ibase)
       return
       end 

@@ -486,19 +486,27 @@ c     use cuda_functions
         
         if(npg*mgr+1.gt.np) then
           call errquit(me,2,"Requested ranks exceeds available")
-        endif
-        
-        allocate(nbasm(mstates))
-        allocate(nactm(mstates))
-        allocate(inactm(mstates))
-        allocate(idetm(mstates))
-        
-        iocc(1)=1
-        iocc(2)=2
-        iord(1)=0
-        iord(2)=0
-        indx(1)=0
-        indx(2)=0
+       endif
+       
+       allocate(nbasm(mstates))
+       allocate(nactm(mstates))
+       allocate(inactm(mstates))
+       allocate(idetm(mstates))
+       allocate(iocc(nmol))
+       allocate(iord(nmol))
+       allocate(indx(nmol))
+       do i=1,nmol
+          iocc(i)=i
+          iord(i)=0
+          indx(i)=0
+       enddo
+       
+!        iocc(1)=1
+!        iocc(2)=2
+!        iord(1)=0
+!        iord(2)=0
+!        indx(1)=0
+!        indx(2)=0
         icalc=0
         ins2=0
         ipvec=0
@@ -640,63 +648,66 @@ c     use cuda_functions
         ncount=255
         call MPI_Bcast(root,ncount,MPI_CHAR,master,
      &       MPI_COMM_WORLD,ierr)
-        
-        nmol   =idum(1)
-        mstates=idum(2)
-        nbase  =idum(3)
-        maxci  =idum(4)
-        maxvec =idum(5)
-        maxnact=idum(6)
-        iocc(1)=idum(7)
-        iocc(2)=idum(8)
-        iord(1)=idum(9)
-        iord(2)=idum(10)
-        indx(1)=idum(11)
-        indx(2)=idum(12)
-        icalc  =idum(13)
-        ipr    =idum(14)
-        ins2   =idum(15)
-        ipvec  =idum(16)
-        itp4   =idum(17)
-        numfiles=idum(18)
-        corres =idum(19).eq.1
-        npg    =idum(20)
-        nnucl  =idum(21)
-        nbas   =idum(22)
-        mclab  =idum(23)
-        ntask  =idum(24)
-        ntaska =idum(25)
-        mgr    =idum(26)
-        itest  =idum(27)
-        naccel =idum(28)
-        inpcib =idum(29)
-        ipro   =idum(30)
-        int2   =idum(31)
-        mpibuf =idum(32)
-        idbg   =idum(33)
-        nummps =idum(34)
-        numomp =idum(35)
-        itim   =idum(36)
-        iaslvr =idum(37)
-        jaslvr =idum(38)
-        inslvr =idum(39)
-        jnslvr =idum(40)
-        ifault =idum(41)
-        idevel =idum(42)
-        iswsvj =idum(43)
-        iswevj =idum(44)
-        nbatch =idum(45)
-        nbatcha=idum(46)
-        nspin  =idum(47)
-        labels =idum(48)
-        mbuf   =idum(49)
-        idist  =idum(50)
-        load   =idum(51)
-        loada  =idum(52)
-        ngpus  =idum(53)
-        num_threads = idum(54)
-        nabort =idum(55)
-        
+
+        if(me.ne.master) then
+           nmol   =idum(1)
+           mstates=idum(2)
+           nbase  =idum(3)
+           maxci  =idum(4)
+           maxvec =idum(5)
+           maxnact=idum(6)
+!     iocc(1)=idum(7)
+!     iocc(2)=idum(8)
+!     iord(1)=idum(9)
+!     iord(2)=idum(10)
+!     indx(1)=idum(11)
+!     indx(2)=idum(12)
+           icalc  =idum(13)
+           ipr    =idum(14)
+           ins2   =idum(15)
+           ipvec  =idum(16)
+           itp4   =idum(17)
+           numfiles=idum(18)
+           corres =idum(19).eq.1
+           npg    =idum(20)
+           nnucl  =idum(21)
+           nbas   =idum(22)
+           mclab  =idum(23)
+           ntask  =idum(24)
+           ntaska =idum(25)
+           mgr    =idum(26)
+           itest  =idum(27)
+           naccel =idum(28)
+           inpcib =idum(29)
+           ipro   =idum(30)
+           int2   =idum(31)
+           mpibuf =idum(32)
+           idbg   =idum(33)
+           nummps =idum(34)
+           numomp =idum(35)
+           itim   =idum(36)
+           iaslvr =idum(37)
+           jaslvr =idum(38)
+           inslvr =idum(39)
+           jnslvr =idum(40)
+           ifault =idum(41)
+           idevel =idum(42)
+           iswsvj =idum(43)
+           iswevj =idum(44)
+           nbatch =idum(45)
+           nbatcha=idum(46)
+           nspin  =idum(47)
+           labels =idum(48)
+           mbuf   =idum(49)
+           idist  =idum(50)
+           load   =idum(51)
+           loada  =idum(52)
+           ngpus  =idum(53)
+           num_threads = idum(54)
+           nabort =idum(55)
+
+        endif
+      
         int1=(nbas*(nbas+1))/2
         
         if(me.eq.master) then
@@ -748,6 +759,10 @@ c     use cuda_functions
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
+        if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
+        allocate(iocc(nmol))
+        allocate(indx(nmol))
+        allocate(iord(nmol))
         
         iocc(1)=idum(7)
         iocc(2)=idum(8)
@@ -786,6 +801,10 @@ c     use cuda_functions
         ncount=4*mstates
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
+        if(nmol.ge.3)then
+           call MPI_Bcast(inter_couplings,(nmol-1)*nbase,MPI_INTEGER8,
+     &          master,MPI_COMM_WORLD,ierr)
+        endif
       endif
       do i=1,mstates
         nbasm(i)=nbuf(i,1)
@@ -2197,6 +2216,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
+      if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)

@@ -224,31 +224,32 @@ c     d
 #endif
       else
 #ifdef MKL
-        ndim=nelecs
-        mdim=mbasel
-        lwork1=-1
-        lwork2=-1
+        ndimm=nelecs
+        mdimm=mbasel
+        lwork1m=-1
+        lwork2m=-1
         lworki=-1
         if(isolver.eq.1) then
           allocate(workspace_d(2448))
-          call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
-     &         workspace_d,lwork1,ierr)
-          lwork1=int(workspace_d(1))
+          call dgesvd('All','All',ndimm,ndimm,a,ndimm,
+     &         ev,u,ndimm,w,ndimm,
+     &         workspace_d,lwork1m,ierr)
+          lwork1m=int(workspace_d(1))
           deallocate(workspace_d)
         endif
         if(jsolver.eq.1) then
           allocate(workspace_d(2448))
           allocate(workspace_i(2448))
-          call dsyevd('N','L',ndim,a,ndim,w,workspace_d,lwork2,
+          call dsyevd('N','L',ndim,a,ndimm,w,workspace_d,lwork2m,
      &         workspace_i,lworki,ierr)
-          lwork2=int(workspace_d(1))
+          lwork2m=int(workspace_d(1))
           lworki=int(workspace_i(1))
           deallocate(workspace_d)
           deallocate(workspace_i)
         endif
-        lwork1=max(8,lwork1,lwork2)
+        lwork1m=max(8,lwork1m,lwork2m)
         lworki=max(8,lworki)
-        allocate(workspace_d(lwork1))
+        allocate(workspace_d(lwork1m))
         allocate(workspace_i(lworki))
 #endif  
       endif

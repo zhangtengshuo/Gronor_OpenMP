@@ -25,6 +25,9 @@
       use cidist
       use gnome_parameters
       use gnome_data
+#ifdef MKL
+      use mkl_solver
+#endif
 
 #ifdef CUSOLVER
       use cusolverDn
@@ -176,9 +179,31 @@
 
 !_ACCTGT_($acc update host (a))
 !_OMPTGT_($omp target update from(a))
-        call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
+
+#ifdef MKL
+  
+        ndimm=nelecs
+
+        call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,
+     &       workspace_d,lwork1m,ierr)
+        
+        do i=1,nelecs
+          do j=1,nelecs
+            temp(i,j)=w(i,j)
+          enddo
+        enddo
+        do i=1,nelecs
+          do j=1,nelecs
+            w(j,i)=temp(i,j)
+          enddo
+        enddo
+       
+#else
+         call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,
-     &       ierr,sdiag,nelecs)
+     &        ierr,sdiag,nelecs)
+#endif
+
 !_ACCTGT_($acc update device (ev,u,w))
 !_OMPTGT_($omp target update to(ev,u,w))
        
@@ -331,10 +356,17 @@
 !_ACCTGT_($acc update host (a))
 !_OMPTGT_($omp target update from(a))
         call timer_start(43)
+#ifdef MKL
+        ndimm=nelecs
+        call dsyevd('N','L',ndimm,a,nelecs,diag,
+     &       workspace_d,lwork1m,
+     &       workspace_i,lworki,ierr)
+#else
         call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,
      &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
         call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,
      &       a,nelecs,nelecs,ierr)
+#endif
         call timer_stop(43)
 !_ACCTGT_($acc update device (a,diag,sdiag))
 !_OMPTGT_($omp target update to(a,diag,sdiag))
@@ -540,10 +572,10 @@ ccc!_OMPTGT_($omp end target)
 
       if(isolver.eq.1) then
 
-        ndim=nelecs
+        ndimm=nelecs
 
-        call dgesvd('All','All',ndim,ndim,a,ndim,ev,u,ndim,w,ndim,
-     &       workspace_d,lwork1,ierr)
+        call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,
+     &       workspace_d,lwork1m,ierr)
         
 !$omp parallel do
 !$omp& shared(temp,w) collapse(2)
@@ -609,10 +641,10 @@ ccc!_OMPTGT_($omp end target)
 #ifdef MKL
       if(jsolver.eq.1) then
 
-        ndim=nelecs
+        ndimm=nelecs
 
-        call dsyevd('N','L',ndim,a,nelecs,diag,
-     &       workspace_d,lwork1,
+        call dsyevd('N','L',ndimm,a,nelecs,diag,
+     &       workspace_d,lwork1m,
      &       workspace_i,lworki,ierr)
 
       else

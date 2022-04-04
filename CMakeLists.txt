@@ -581,6 +581,7 @@ set (FFLAGS_NVIDIA_BASIC "-Mbackslash")
 set (FFLAGS_NVIDIA_PREPROCESS "-Mpreprocess")
 set (FFLAGS_NVIDIA_OPENMP "-mp")
 set (FFLAGS_NVIDIA_PROFILING "-g")
+set (FFLAGS_NVIDIA_MKL "-DMKL")
 set (FFLAGS_NVIDIA_NVTX "-g -lnvhpcwrapnvtx")
 set (FFLAGS_NVIDIA_ILP64 "-i8")
 set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc")
@@ -623,6 +624,7 @@ set (FFLAGS_NVHPC_BASIC "-Mbackslash")
 set (FFLAGS_NVHPC_PREPROCESS "-Mpreprocess")
 set (FFLAGS_NVHPC_OPENMP "-mp")
 set (FFLAGS_NVHPC_PROFILING "-g")
+set (FFLAGS_NVHPC_MKL "-DMKL")
 set (FFLAGS_NVHPC_NVTX "-g -lnvhpcwrapnvtx")
 set (FFLAGS_NVHPC_ILP64 "-i8")
 set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc")
@@ -893,7 +895,7 @@ endif()
 if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
-  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()
 message(STATUS "External libraries defined: '${EXTERNAL_LIBRARIES}")
 
@@ -1065,6 +1067,7 @@ if (MKL)
     endif ()
     set (MKL_LIBRARY_PATH ${libpath} CACHE PATH
       "location of MKL libraries." FORCE)
+      message(STATUS "MKL_LIBRARY_PATH is ${MKL_LIBRARY_PATH}")
     # uncache variables
     unset (LIBMKL_CORE CACHE)
     unset (LIBMKL_INTERFACE CACHE)
@@ -1094,6 +1097,9 @@ if (MKL)
   elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA") # apparently NVIDIA uses this too
     find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC") # apparently NVIDIA uses this too
+    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
   endif ()
   # sequential/compiler-specific threading interface
   find_library (LIBMKL_SEQUENTIAL NAMES "mkl_sequential"
@@ -1104,6 +1110,14 @@ if (MKL)
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
   elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_Intel_OPENMP}")
+    find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA")
+    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_NVIDIA_OPENMP}")
+    find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
+      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
+  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_NVHPC_OPENMP}")
     find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
   endif ()

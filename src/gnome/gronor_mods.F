@@ -563,7 +563,7 @@
 #ifdef MKL
       module mkl_solver
       
-      integer (kind=8)    :: lwork1,lwork2,lworki,ndim,mdim
+      integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
       real (kind=8),allocatable :: rwork(:)
       real (kind=8),allocatable :: workspace_d(:)
       integer (kind=8), allocatable :: workspace_i(:)

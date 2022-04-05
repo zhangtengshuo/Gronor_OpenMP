@@ -36,10 +36,10 @@
 
       implicit none
 
-      integer                          :: i,j,k,istat,length
+      integer                          :: i,j,k,istat,length,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
-      real      (kind=8)               :: sdum
+      real      (kind=8)               :: sdum,sume
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
@@ -68,7 +68,7 @@
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
         read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
-     &                 fragEner(i),nElectrons(i),tau_MO
+     &       fragEner(i),nElectrons(i),tau_MO
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
@@ -87,27 +87,32 @@
       else
          mebfLabels = .true.
          write(lfnout,607)
-     &        '  MEBF     Electrons   Sum of fragment energies'
- 607     format(/,a,/)
+     &        ' MEBF ','Electrons   Sum of fragment energies'
+ 607     format(/,a,t16,a,/)
          do j = 1,nbase
-            write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
- 616        format(3a2)
-            write(lfnout,617) mebflabel(j),
-     &           sum(nElectrons(ncombv(:,j))),
-*     &           nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
-     &           sum(fragEner(ncombv(:,j)))
-*     &           fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
- 617        format(a6,i10,t22,f22.12)
+            write(mebfLabel(j),616)
+     &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
+ 616        format(10a)
+            nume=0
+            sume=0.0d0
+            do k=1,nmol
+               nume=nume+nElectrons(ncombv(k,j))
+               sume=sume+fragEner(ncombv(k,j))
+            enddo
+            write(lfnout,617) mebflabel(j),nume,sume
+ 617        format(1x,a,t16,i5,3x,f22.12)
          enddo
       endif
       write(lfnarx,701) nbase,nmol
  701  format('State',2i10)
       do j=1,nbase
-         write(lfnarx,617) mebflabel(j),
-     &        sum(nElectrons(ncombv(:,j))),
-*     &        nElectrons(ncombv(1,j))+nElectrons(ncombv(2,j)),
-     &        sum(fragEner(ncombv(:,j)))
-*     &        fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
+            nume=0
+            sume=0.0d0
+            do k=1,nmol
+               nume=nume+nElectrons(ncombv(k,j))
+               sume=sume+fragEner(ncombv(k,j))
+            enddo
+         write(lfnarx,617) mebflabel(j),nume,sume
       enddo
       
       allocate(civ_raw(maxci_raw,mstates))
@@ -199,8 +204,8 @@
             enddo
           enddo
           if(ostate) then
-            write(fildet,203) root(1:inp_strlen(root)),i
-            write(filvec,201) root(1:inp_strlen(root)),i
+            write(fildet,203) trim(fragfile(i))
+            write(filvec,201) trim(fragfile(i))
             write(lfnout,604) i,fragLabel(i),
      &           idetm(i),nactm(i),inactm(i),nbasm(i),
      &           nElectrons(i),fragEner(i),
@@ -213,8 +218,8 @@
  605    format(13x,' ------  ------',8x,'  ------',/,
      &     '        max:',i8,i8,8x,i8)
       endif
- 201  format(a,'_',i3.3,'.vec')
- 203  format(a,'_',i3.3,'.det')
+ 201  format(a,'.vec')
+ 203  format(a,'.det')
 
       if(ipr.gt.0) then
         write(lfnout,606) (i,i=1,nbase)

@@ -116,8 +116,8 @@
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
-      character(len=8),allocatable  :: fragLabel(:)
-      character(len=4),allocatable  :: mebfLabel(:)
+      character(len=16),allocatable  :: fragLabel(:)
+      character(len=128),allocatable  :: mebfLabel(:)
       logical                       :: mebfLabels
       integer, allocatable  :: nCntr(:,:)
       

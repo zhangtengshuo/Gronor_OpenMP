@@ -240,7 +240,7 @@ c     d
         if(jsolver.eq.1) then
           allocate(workspace_d(2448))
           allocate(workspace_i(2448))
-          call dsyevd('N','L',ndim,a,ndimm,w,workspace_d,lwork2m,
+          call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,
      &         workspace_i,lworki,ierr)
           lwork2m=int(workspace_d(1))
           lworki=int(workspace_i(1))

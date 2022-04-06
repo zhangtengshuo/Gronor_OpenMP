@@ -153,8 +153,9 @@
            call errquit(me,9,"Incompatible spin state")
         endif
         
-        if ((me.eq.master).and.(ipr.ge.30)) write(lfnout,604) ibase,cib
- 604    format(' Number of determinants in MEBF ',i4,' : ',i10)
+        if ((me.eq.master).and.(ipr.ge.30))
+     &       write(lfnout,604) ibase,cib
+ 604    format(/,' Number of determinants in MEBF ',i4,' : ',i10)
 
         idetb(ibase) = cib
         maxcib = max(cib,maxcib)

@@ -106,26 +106,24 @@
           goto 2
         endif
 
-        if(nmol.ge.3)then
-           if(inp_compare(.false.,'Couplings',item)) then
-              allocate(inter_couplings(nmol-1,nbase))
-              do i=1,nmol-2
-                 if(.not.inp_read()) call errquit()
-                 do j=1,nbase
-                    if(.not.inp_i(inter_couplings(i,j))) call errquit()
-                 enddo
-                 do j=1,nbase
-                    inter_couplings(i,j)=inter_couplings(i,j)-1
-                 enddo
+        if(inp_compare(.false.,'Couplings',item)) then
+           allocate(inter_couplings(nmol-1,nbase))
+           do i=1,nmol-2
+              if(.not.inp_read()) call errquit()
+              do j=1,nbase
+                 if(.not.inp_i(inter_couplings(i,j))) call errquit()
               enddo
               do j=1,nbase
-                 inter_couplings(nmol-1,j)=nspin
-              enddo               
-              do i=1,nmol-1
-                 write(lfnout,*)(inter_couplings(i,j),j=1,nbase)
+                 inter_couplings(i,j)=inter_couplings(i,j)-1
               enddo
-              goto 2
-           endif
+           enddo
+           do j=1,nbase
+              inter_couplings(nmol-1,j)=nspin
+           enddo               
+           do i=1,nmol-1
+              write(lfnout,*)(inter_couplings(i,j),j=1,nbase)
+           enddo
+           goto 2
         endif
         
         if(inp_compare(.false.,'Threshold',item)) then

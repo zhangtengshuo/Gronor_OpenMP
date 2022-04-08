@@ -229,6 +229,13 @@ else()
   message (STATUS "Found ga: $ENV{GA}")
 endif()
 
+if(NOT DEFINED ENV{UTILS})
+  message (STATUS "Not found: utils")
+else()
+  message (STATUS "Found utils: $ENV{UTILS}")
+  set(UTILS "$ENV{UTILS}")
+endif()
+
 if (MOLCAS STREQUAL "")
   unset(MOLCAS)
 endif()
@@ -897,7 +904,15 @@ if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()
-message(STATUS "External libraries defined: '${EXTERNAL_LIBRARIES}")
+
+if(DEFINED UTILS)
+  if(${MKL} MATCHES "OFF")
+   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{UTILS}/lib  -llapack -lblas -ltimer -lchem -linp -lsolvers -lcml -ltps")
+  else()
+   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{UTILS}/lib  -ltimer -lchem -linp -lsolvers -lcml -ltps")
+  endif()
+  include_directories ("$ENV{UTILS}/include")
+endif()
 
 # Define the appropriate compiler flags
 
@@ -971,17 +986,14 @@ endif()
 
 if(${PLATFORM} STREQUAL "PPC64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message (STATUS "Added LINUX compile flag")
 endif()
 
 if(${PLATFORM} STREQUAL "LINUX64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message (STATUS "Added LINUX compile flag")
 endif()
 
 if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-  message (STATUS "Added LINUX compile flag")
 endif()
 
 # Allow user-specified modifications
@@ -1003,8 +1015,6 @@ if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
 endif ()
 get_filename_component (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 
-message (STATUS "CMake install prefix: ${CMAKE_INSTALL_PREFIX}")
-
 # Special print statements
 
 if (DEBUGPRINT)
@@ -1017,7 +1027,6 @@ endif ()
 # Parallel settings
 
 list (APPEND EXTERNAL_LIBRARIES ${MPI_Fortran_LIBRARIES})
-message (STATUS "External libraries: ${EXTERNAL_LIBRARIES}")
 
 
 # BLAS/LAPACK settings
@@ -1162,6 +1171,7 @@ endif ()
 list (APPEND EXTERNAL_LIBRARIES ${LINALG_LIBRARIES})
 
 message (STATUS "Linear Algebra Libraries: ${LINALG_LIBRARIES}")
+message (STATUS "External Libraries: ${EXTERNAL_LIBRARIES}")
 
 # global module directory
 
@@ -1197,12 +1207,16 @@ message (STATUS "Definitions: ${defs}")
 message (STATUS "Debug definitions: ${DEBUG_DEFS}")
 
 if(MKL)
+elseif(UTILS)
 else()
   list(APPEND dir_utils "blas")
-###  list(APPEND dir_utils "lapack")
+  list(APPEND dir_utils "lapack")
 endif()
-list(APPEND dir_utils "utils")
-list(APPEND dir_utils "inp")
+if(UTILS)
+else()
+  list(APPEND dir_utils "utils")
+  list(APPEND dir_utils "inp")
+endif()
 
 # Libraries and Programs
 
@@ -1220,6 +1234,12 @@ foreach (dir ${source_roots})
   if(MKL)
     list(REMOVE_ITEM dir_src "blas") 
     list(REMOVE_ITEM dir_src "lapack") 
+  endif()
+  if(UTILS)
+    list(REMOVE_ITEM dir_src "blas") 
+    list(REMOVE_ITEM dir_src "lapack")  
+    list(REMOVE_ITEM dir_src "inp")  
+    list(REMOVE_ITEM dir_src "utils")
   endif()
   foreach (srcdir ${dir_src})
     set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
@@ -1248,11 +1268,14 @@ foreach (dir ${dir_utils})
   list(REMOVE_ITEM dir_libs ${dir})
 endforeach(dir)
 
-foreach (dir ${dir_libs})
-  add_dependencies(${dir} ${dir_utils})
-  target_link_libraries (${dir} ${dir_utils})
-  message (STATUS "Dependencies ${dir}: ${dir_utils}")
-endforeach(dir)
+list(LENGTH dir_utils numutils)
+if(numutils GREATER 0)
+  foreach (dir ${dir_libs})
+    add_dependencies(${dir} ${dir_utils})
+    target_link_libraries (${dir} ${dir_utils})
+    message (STATUS "Dependencies ${dir}: ${dir_utils}")
+  endforeach(dir)
+endif()
 
 message ("Configuring program list:")
 

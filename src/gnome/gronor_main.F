@@ -802,7 +802,8 @@ c     use cuda_functions
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         if(nmol.ge.3)then
-           call MPI_Bcast(inter_couplings,(nmol-1)*nbase,MPI_INTEGER8,
+           ncount=(nmol-1)*nbase
+           call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,
      &          master,MPI_COMM_WORLD,ierr)
         endif
       endif
@@ -1730,6 +1731,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           endif
         enddo
  299    continue
+        backspace(lfncpr)
       endif
       
 !     Define the process groups

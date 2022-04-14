@@ -120,9 +120,6 @@
            enddo
            do j=1,nbase
               inter_couplings(nmol-1,j)=nspin
-           enddo               
-           do i=1,nmol-1
-              write(lfnout,*)(inter_couplings(i,j),j=1,nbase)
            enddo
            goto 2
         endif

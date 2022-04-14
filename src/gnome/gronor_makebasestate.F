@@ -411,8 +411,8 @@
      &                     perm_ab(iocch,nactb(ibase))
                       civb(k,ibase) = civb(k,ibase) * 
      &                     isetsign4(iocch,nactb(ibase))                      
-                      write(lfnout,'(F7.3,3X,200I2)')civb(k,ibase),
-     &                     iocch(1:nactb(ibase))
+!                      write(lfnout,'(F7.3,3X,200I2)')civb(k,ibase),
+!     &                     iocch(1:nactb(ibase))
                     else ! if loop is not ended, prepare for the next iteration                      
                       do iact=1,kk
                         inter_occ(iact,k,1)=iocch(iact)

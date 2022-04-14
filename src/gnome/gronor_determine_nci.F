@@ -36,7 +36,6 @@
       integer,allocatable  :: spin(:)
       integer,allocatable  :: ndets(:)
 
-      write(lfnout,*)'determine new nci'
       allocate( spin(mstates) )
       do state = 1, mstates
         spin(state) = 0                          ! spin of the monomer function
@@ -66,7 +65,6 @@
         end if
         nci = max(nci,ndets(state))
       end do
-      write(lfnout,*)'New nci subroutine',nci
       deallocate(spin)
       deallocate(ndets)
       return

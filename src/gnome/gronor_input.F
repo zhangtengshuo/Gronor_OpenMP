@@ -109,9 +109,10 @@
         if(inp_compare(.false.,'Couplings',item)) then
            allocate(inter_couplings(nmol-1,nbase))
            do i=1,nmol-2
-              if(.not.inp_read()) call errquit()
+              if(.not.inp_read()) call errquit(me,1,"Input error")
               do j=1,nbase
-                 if(.not.inp_i(inter_couplings(i,j))) call errquit()
+                 if(.not.inp_i(inter_couplings(i,j)))
+     &               call errquit(me,1,"Input error")
               enddo
               do j=1,nbase
                  inter_couplings(i,j)=inter_couplings(i,j)-1

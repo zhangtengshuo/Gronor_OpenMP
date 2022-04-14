@@ -94,7 +94,7 @@
       nvecb=ntclb+ntopb
       ntesta=nveca+ntcla
       ntestb=nvecb+ntclb
-      
+            
       if(ntesta.ne.ntestb)
      &     call errquit(me,9,"Number of electrons is inconsistent")
       

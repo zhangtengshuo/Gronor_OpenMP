@@ -95,7 +95,7 @@
       integer :: nprocs
       integer :: nciaux
       
-      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci
+      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci,nci_copy
       
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)

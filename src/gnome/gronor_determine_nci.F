@@ -19,19 +19,24 @@
 !> @details Rough estimate to stay on the save side, duplicates are
 !>          not taken into account
 
-      subroutine gronor_determine_nci()
-
-      use cidef
+      subroutine gronor_determine_nci
+     &     (mstates,nactm,idetm,ioccm,dimnact,dimndet)
+      
+      use cidef,only : nci,lfnout
 
       implicit none
-
+      
+      integer     :: mstates,dimnact,dimndet
+      integer     :: nactm(mstates),idetm(mstates)
+      integer     :: ioccm(dimnact,dimndet,mstates)
+      
       integer     :: pascal,ms
       integer     :: state,det,act,alpha
 
       integer,allocatable  :: spin(:)
       integer,allocatable  :: ndets(:)
 
-      
+      write(lfnout,*)'determine new nci'
       allocate( spin(mstates) )
       do state = 1, mstates
         spin(state) = 0                          ! spin of the monomer function
@@ -61,7 +66,7 @@
         end if
         nci = max(nci,ndets(state))
       end do
-      
+      write(lfnout,*)'New nci subroutine',nci
       deallocate(spin)
       deallocate(ndets)
       return

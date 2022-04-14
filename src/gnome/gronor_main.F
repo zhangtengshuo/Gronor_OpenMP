@@ -838,7 +838,8 @@ c     use cuda_functions
       allocate(nactb(nbase))
       allocate(idetb(nbase))      
 
-      call gronor_determine_nci()
+      call gronor_determine_nci
+     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
       call gronor_determine_maxcib()
 
       allocate(ioccb(maxcib,nbase))
@@ -1482,11 +1483,10 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
       
       max_coef = 0.0
-      
-      do i=1,nbase
-
+      nci_copy = nci
+      do i=1,nbase        
         call gronor_make_basestate(i)
-        
+        nci = nci_copy
         allocate(sort_coef(maxcib))
         allocate(sort_occ(maxcib))
         sort_coef = 0.0

@@ -83,27 +83,34 @@ c      use cuda_rt
       call hostnm(nodename)
       len=inp_strlen(nodename)
 
-      machine='      '
+      machine='        '
       
 !     Trim the JFZ Juwels Booster node name
       if(nodename(1:3).eq.'jwb') then
         nodename(1:4)=nodename(4:7)
         len=4
-        machine='Juwels'
+        machine='Juwels  '
       endif
 
 !     Trim the CSCS Piz Daint node name
       if(nodename(1:3).eq.'nid') then
         nodename(1:5)=nodename(4:8)
         len=5
-        machine='Daint '
+        machine='Daint   '
       endif
 
 !     Trim the SurfSara Lisa node name
       if(index(nodename,'.lisa').gt.0) then
         len=index(nodename,'.lisa')-1
         nodename(len+1:len+1)=' '
-        machine='Lisa  '
+        machine='Lisa    '
+      endif
+      
+!     Trim the Sara Snellius node name
+      if(nodename(1:3).eq.'gcn') then
+        nodename(1:2)=nodename(4:5)
+        len=2
+        machine='Snellius'
       endif
 
 !     Trim the OLCF Summit node name
@@ -120,7 +127,7 @@ c      use cuda_rt
      &     ichar(nodename(6:6)).ge.48.and.
      &     ichar(nodename(6:6)).le.57) then
         len=6
-        machine='Summit'
+        machine='Summit  '
       endif
 
 !     Set the device number
@@ -134,7 +141,7 @@ c      use cuda_rt
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
       if(numdev.gt.1) then
-        if(machine.ne.'Juwels') then
+        if(machine.ne.'Juwels  ') then
           mydev=mod(me,numdev)
           call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
         endif

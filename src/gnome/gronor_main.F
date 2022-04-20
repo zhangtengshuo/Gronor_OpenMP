@@ -341,8 +341,9 @@ c     use cuda_functions
         lcpr=.false.
 
         ngpus=1
-        if(machine.eq.'Juwels'.and.numdev.eq.1) ngpus=4
-        if(machine.eq.'Summit'.and.numdev.eq.1) ngpus=6
+        if(machine.eq.'Juwels  '.and.numdev.eq.1) ngpus=4
+        if(machine.eq.'Summit  '.and.numdev.eq.1) ngpus=6
+        if(machine.eq.'Snellius'.and.numdev.eq.1) ngpus=4
         
         call gronor_input()
 
@@ -428,7 +429,7 @@ c     use cuda_functions
      &       'https://doi.org/10.1063/1.5141358',/)
 
         onlabel='    '
-        if(machine.ne.'      ') onlabel=' on '
+        if(machine.ne.'        ') onlabel=' on '
         if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
      &       trim(host),onlabel,trim(machine),nnodes,
      &       date(1:8),nrsets,

@@ -73,7 +73,7 @@
       integer (kind=8), target :: memfre, memtot, memavail
       integer (kind=4), allocatable :: igrn(:)
 
-      character (len=6) :: machine
+      character (len=8) :: machine
 
       end module cidist
 

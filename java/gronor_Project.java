@@ -1,4 +1,4 @@
-package GronOR;
+package gronor;
 
 import java.util.*;
 import java.util.StringTokenizer;
@@ -1244,6 +1244,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		String nameA, nameP, nameF, nameS;
 		Integer numCASe=0, numCASo=0;
 		Boolean withCASPT2=false;
+		Boolean withAlter=true;
 		
 		Integer stateIndex = 0;
 
@@ -1281,12 +1282,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragment.write_Molcas_SCF(nameF,mult);
 			
 			if(lenStateList[stateIndex]>0) {
+				withAlter=true;
 				for(int j=0; j<lenStateList[stateIndex]; j++) {
 					nameS=stateNames[ndxStateList[stateIndex][j]];
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
-					fragment.write_Molcas_CASSCF(nameF,nameS,withCASPT2,numCASe,numCASo);
-
+					fragment.write_Molcas_CASSCF(nameF,nameS,withCASPT2,numCASe,numCASo,withAlter);
+					withAlter=false;
 				}		
 			}
 		}
@@ -1343,6 +1345,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				energiesDFT[i]=energy;
 				dimFragments[i][6]=1;
 			} 
+			
+			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
+			numAlt=fragment.read_Alt(nameA);
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);

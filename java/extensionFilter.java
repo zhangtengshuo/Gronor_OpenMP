@@ -1,4 +1,4 @@
-package GronOR;
+package gronor;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;

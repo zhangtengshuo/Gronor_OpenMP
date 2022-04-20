@@ -1,4 +1,4 @@
-package GronOR;
+package gronor;
 
 
 import java.util.*;
@@ -57,6 +57,7 @@ public class gronor_Window extends JFrame implements ActionListener, ChangeListe
 	    				    	chooser.showOpenDialog(dialogFrame);
 	    				    	try {
 	    				    	prjFile = chooser.getSelectedFile().toString();
+	    				    	if(!prjFile.endsWith(".prj")) prjFile=prjFile.trim()+".prj";
 	    				    	} catch(NullPointerException ee) {
 	    				    		prjFile="Test.prj";
 	    				    	}

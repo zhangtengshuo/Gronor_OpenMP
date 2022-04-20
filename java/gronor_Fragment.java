@@ -1,4 +1,4 @@
-package GronOR;
+package gronor;
 
 import java.util.*;
 import java.awt.*;
@@ -88,9 +88,22 @@ public class gronor_Fragment {
 
 	public void write_Run_Script_Fragments(Integer frag, Integer stateset, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks, Integer memory) {
 		String rootName = projectRoot.trim()+fragmentNames[frag].trim();
-		String fileName = rootName.trim()+".run";
+		String fileName = rootName.trim()+"_SCF.run";
 		String fullName;
 		Integer numStates = lenStateList[stateset];
+		try {
+			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
+			runFile.println("#!/usr/bin/tcsh");
+			runFile.println("setenv MOLCAS_NPROCS "+ranks);
+			runFile.println("setenv MOLCAS_MEM "+memory);
+			fullName = rootName.trim()+"_INT";
+			runFile.println("cp "+fullName.trim()+".input "+rootName.trim()+".input; "+"pymolcas "+rootName.trim()+".input > "+fullName.trim()+".output");
+			fullName = rootName.trim()+"_SCF";
+			runFile.println("cp "+fullName.trim()+".input "+rootName.trim()+".input; "+"pymolcas "+rootName.trim()+".input > "+fullName.trim()+".output");
+			runFile.close();
+		} catch(IOException ei) {
+		}
+		fileName = rootName.trim()+".run";
 		try {
 			PrintfWriter runFile = new PrintfWriter(new FileWriter(fileName));
 			runFile.println("#!/usr/bin/tcsh");
@@ -234,6 +247,27 @@ public class gronor_Fragment {
 			return true;
 		} catch(IOException ef) {
 			return false;
+		}
+	}
+
+	public Integer read_Alt(String nameF) {
+		String fileName = fragmentName.trim()+nameF.trim()+".alter";
+		String card;
+		numAlt=0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			numAlt=Integer.valueOf(card.substring(0,6).trim());
+			
+			for(int i=0; i<numAlt; i++) {
+				card=br.readLine();
+				alter[i][0]=Integer.valueOf(card.substring(0,6).trim());
+				alter[i][1]=Integer.valueOf(card.substring(6,12).trim());
+			}
+			br.close();
+			return numAlt;
+		} catch(IOException ef) {
+			return numAlt;
 		}
 	}
 	
@@ -451,13 +485,14 @@ public class gronor_Fragment {
 		}
 	}
 	
-	public Boolean write_Molcas_CASSCF(String nameF, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo) {
+	public Boolean write_Molcas_CASSCF(String nameF, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo, Boolean withAlter) {
 		Molcas_numAlt(nameF);
 		String fileName=nameF.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameF.trim();
 //		String fileName = projectRoot.trim()+fragmentNames[frag].trim()+"_"+stateNames[state].trim()+".input";
 //		String rootName=projectRoot.trim()+fragmentNames[frag].trim();
 		String ext = "_"+nameS.trim();
+		altDone=!withAlter;
 		try {
 			Integer Inact = numOcc - numCASe/2;
 			if(nameS.trim().equals("S0")) {

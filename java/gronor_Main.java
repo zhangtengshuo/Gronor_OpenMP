@@ -1,4 +1,4 @@
-package GronOR;
+package gronor;
 
 public class gronor_Main {
 

@@ -27,7 +27,7 @@
       
       implicit none
 
-      integer :: i,j,im,ib
+      integer :: i,j,k,im,ib
       character (len=255) :: item
       integer, allocatable :: itemp(:,:)
       

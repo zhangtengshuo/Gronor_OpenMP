@@ -27,8 +27,9 @@
       
       implicit none
 
-      integer :: i,j,k,im,ib
-      character (len=255) :: item
+      integer :: i,j,k,m,im,ib
+      character (len=255) :: item,item2
+      real (kind=8) value
       integer, allocatable :: itemp(:,:)
       
       open(unit=lfninp,file=filinp,form='formatted',status='old',
@@ -322,19 +323,33 @@
         if (inp_compare(.false.,'Ecorr',item)) then
           ncorr = 1
           allocate(ecorr(mstates))
+          do i=1,mstates
+             ecorr(i)=0.0d0
+          enddo
 !          do i=1,mstates
 !            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
 !          end do
-          k=0
-          do i=1,nmol
+          do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
-            do j=1,nbase
-               k=k+1
-               if (.not.inp_f(ecorr(k))) ecorr(k)=0.0d0
-             enddo
-          enddo
-          goto 2
-        end if
+            if(.not.inp_a(item)) goto 1
+            if(len(trim(item)).gt.1) goto 3
+            if(.not.inp_a(item2)) goto 1
+            if(.not.inp_f(value)) goto 1
+            m=0
+            do i=1,nmol
+               do j=1,nbase
+                  m=m+1
+                  if(fragname(i).eq.trim(item).and.
+     &                 fragstate(i,j).eq.trim(item2)) then
+                     ecorr(m)=value
+                     write(*,'(2i4,1x,a,1x,a,1x,f20.6)')
+     &                    i,j,trim(item),trim(item2),value
+                  endif
+               enddo
+            enddo
+         enddo
+         goto 2
+      endif
         
 *     Use Gallup-Norbeck weights? Yes, nwt=1; No, nwt .ne. 1
         if (inp_compare(.false.,'GNWeights',item)) then

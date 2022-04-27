@@ -322,9 +322,17 @@
         if (inp_compare(.false.,'Ecorr',item)) then
           ncorr = 1
           allocate(ecorr(mstates))
-          do i=1,mstates
-            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
-          end do
+!          do i=1,mstates
+!            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
+!          end do
+          k=0
+          do i=1,nmol
+            if(.not.inp_read()) call errquit(me,1,"Input error")
+            do j=1,nbase
+               k=k+1
+               if (.not.inp_f(ecorr(k))) ecorr(k)=0.0d0
+             enddo
+          enddo
           goto 2
         end if
         

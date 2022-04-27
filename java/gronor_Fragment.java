@@ -59,21 +59,25 @@ public class gronor_Fragment {
 		fragmentName=nameF.trim()+nameB.trim();
 		numOcc = numE / 2;
 		for(int i=0; i<6; i++) RandT[i]=rt[i];
-		
-		if(read_XYZ()) {
-			fragmentName=nameP.trim()+nameA.trim();
-			if(writeFile) {
-				rotate_AND_translate(RandT);
-				write_XYZ();
-			}
-		} else {
-			if(NWChem_Converged(0)) {
-				if(!nameB.trim().equals(nameA.trim())) {
+			if(!nameF.trim().equals("")) {
+			if(read_XYZ()) {
+				fragmentName=nameP.trim()+nameA.trim();
+				if(writeFile) {
 					rotate_AND_translate(RandT);
-					if(!write_XYZ()) System.exit(0);
+//					System.out.println("FNAME "+fragmentName);
+//					System.out.println("nameA "+nameA.trim());
+					if(!nameA.trim().equals("")) write_XYZ();
+				}
+			} else {
+				if(NWChem_Converged(0)) {
+					if(!nameB.trim().equals(nameA.trim())) {
+						rotate_AND_translate(RandT);
+						System.out.println("CONV "+fragmentName);
+						if(!write_XYZ()) System.exit(0);
+					}
 				}
 			}
-		}
+			}
 	}
 
 	public void initialize2(String nameF, String nameA, Integer numE) {
@@ -227,6 +231,8 @@ public class gronor_Fragment {
 	
 	public Boolean read_XYZ() {
 		String fileName = fragmentName+".xyz";
+		if(fragmentName.trim().equals("")) return false;
+//		System.out.println("READING "+fileName);
 		String card;
 		StringTokenizer st;
 		try {
@@ -273,6 +279,7 @@ public class gronor_Fragment {
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
+//		System.out.println("WRITING "+fileName);
 		try {
 			PrintfWriter xyzFile = new PrintfWriter(new FileWriter(fileName));
 			xyzFile.printf("%6d",numAtoms);
@@ -422,6 +429,7 @@ public class gronor_Fragment {
 		    		if(previous.equals("O")) inputFile.println("o.ano-s...4s3p2d.");
 		    		if(previous.equals("F")) inputFile.println("f.ano-s...4s3p2d.");
 		    		if(previous.equals("Cl")) inputFile.println("cl.ano-s...4s3p2d.");
+		    		if(previous.equals("Cu")) inputFile.println("cu.ano-s...4s3p2d.");
 		    		if(previous.equals("Br")) inputFile.println("br.ano-s...4s3p2d.");
 		    		count=0;
 		    	}
@@ -465,7 +473,7 @@ public class gronor_Fragment {
 	
 	public void Molcas_numAlt(String nameF) {
 		String fileName=nameF.trim()+".alter";
-		System.out.println("ALTER "+fileName);
+//		System.out.println("ALTER "+fileName);
 		String card;
 		numAlt=0;
 		try {
@@ -905,7 +913,7 @@ public class gronor_Fragment {
 					converged=true;
 					energy=Double.valueOf(card.substring(51,68).trim()).doubleValue();
 				}
-				if(card.contains("++    Molecular orbitals:") && converged) {
+				if(card.contains("++    Molecular itals:") && converged) {
 					numBas=numOcc+numSec;
 					numOrb=2*numOcc;
 					Double[] occ = new Double[numOrb];
@@ -1012,7 +1020,7 @@ public class gronor_Fragment {
 					converged=true;
 					energy=Double.valueOf(card.substring(51,68).trim()).doubleValue();
 				}
-				if(card.contains("++    Molecular orbitals:") && converged) {
+				if(card.contains("++    Molecular oitals:") && converged) {
 					numBas=numOcc+numSec;
 					numOrb=2*numOcc;
 					Double[] occ = new Double[numOrb];
@@ -1244,6 +1252,10 @@ public class gronor_Fragment {
 			    			inputFile.println("cl.ano-s...4s3p2d.");
 			    			atomNumber=17;
 			    		}
+			    		if(previous.equals("Cu")) {
+			    			inputFile.println("cu.ano-s...4s3p2d.");
+			    			atomNumber=29;
+			    		}
 			    		if(previous.equals("Br")) {
 			    			inputFile.println("br.ano-s...4s3p2d.");
 			    			atomNumber=35;
@@ -1310,6 +1322,10 @@ public class gronor_Fragment {
 			    		if(previous.equals("Cl")) {
 			    			inputFile.println("cl.ano-s...4s3p2d.");
 			    			atomNumber=17;
+			    		}
+			    		if(previous.equals("Cu")) {
+			    			inputFile.println("cu.ano-s...4s3p2d.");
+			    			atomNumber=29;
 			    		}
 			    		if(previous.equals("Br")) {
 			    			inputFile.println("br.ano-s...4s3p2d.");

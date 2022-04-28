@@ -1,54 +1,54 @@
-!     >  @brief
-!     >    Construct the MEBFs from the fragment functions
-!     >
-!     >  @authors
-!     >    Aitor Sanchez-Mansilla, Coen de Graaf 
-!     >    (URV, Tarragona)
-!     >
-!     >  @date
-!     >    November 2020
-!     >
-!     >  @details
-!     >    MEBF(ibase) is made by multplying state1 and state2.
-!     >    First the vectors of the two state are combined, then
-!     >    three scenarios are foreseen: \n 
-!     >    (i) there is only one fragment \n 
-!     >    (ii) state1 and state2 are spin singlets \n 
-!     >    (iii) all other cases \n
-!     >    In the first case the fragment wave function is copied directly on the MEBF.
-!     >    In the second case, the coefficients of state1 and state2 are multiplied and
-!     >    copied to the MEBF if the product is above a certain threshold.  Case (iii) 
-!     >    starts with the generation of the M_S components of state 1 and 2 by sminop.
-!     >    By looping of the ms values of state 1 and state2, determinants of the fragments
-!     >    are multiplied when ms1 + ms2 = total spin. To ensure correct spin coupling the
-!     >    the product is multiplied by the corresponding Clebsch-Gordon coeefficient
-!     >    calculated by the function cg. \n 
-!     >    All products are properly multplied by (-1)^p, where p is the number of permutations
-!     >    to set the alpha-beta-alpha-beta-... order (function perm_ab) and to move all the
-!     >    doubly occupied orbitals to the left side of the determinant.
-!     >
-!     >  @param state1 many-electron state of fragment 1
-!     >  @param state2 many-electron state of fragment 2
-!     >
-!     >  @todo
-!     >    Get rid of the packing of the orbital occupations, which
-!     >    limits the number of active orbitals to 32
-!     >
-!     >  @todo
-!     >    Design a strategy for more than two fragments. There are two possibilities.\n 
-!     >    i) Fully general coupling, only defining the total spin and combine the fragments
-!     >    in all possbile ways with the total spin being the only restriction.\n 
-!     >    ii) Applying an intermediate coupling scheme. Fragment 1 and 2 are coupled to an
-!     >    intermediate spin, and coupling with fragment 3 is then performed to obtain the
-!     >    final total spin.\n
-!     >    The first is very costly (excessively?), while the second can possibly simulate
-!     >    the first by using several MEBFs with different coupling schemes. Taking three
-!     >    doublets as example: In MEBF 1 we use D1 x D2 = singlet as intermediate coupling,
-!     >    followed by coupling with D3 to the final doublet. Adding a second MEBF with D1 x
-!     >    D2 = triplet, followed by coupling with D3 to doublet, we mimic the fully general
-!     >    case of option (i).
-!     >
-!     >
+!>  @brief
+!>    Construct the MEBFs from the fragment functions
+!>
+!>  @authors
+!>    Aitor Sanchez-Mansilla, Coen de Graaf 
+!>    (URV, Tarragona)
+!>
+!>  @date
+!>    November 2020
+!>
+!>  @details
+!>    MEBF(ibase) is made by multplying state1 and state2.
+!>    First the vectors of the two state are combined, then
+!>    three scenarios are foreseen: \n 
+!>    (i) there is only one fragment \n 
+!>    (ii) state1 and state2 are spin singlets \n 
+!>    (iii) all other cases \n
+!>    In the first case the fragment wave function is copied directly on the MEBF.
+!>    In the second case, the coefficients of state1 and state2 are multiplied and
+!>    copied to the MEBF if the product is above a certain threshold.  Case (iii) 
+!>    starts with the generation of the M_S components of state 1 and 2 by sminop.
+!>    By looping of the ms values of state 1 and state2, determinants of the fragments
+!>    are multiplied when ms1 + ms2 = total spin. To ensure correct spin coupling the
+!>    the product is multiplied by the corresponding Clebsch-Gordon coeefficient
+!>    calculated by the function cg. \n 
+!>    All products are properly multplied by (-1)^p, where p is the number of permutations
+!>    to set the alpha-beta-alpha-beta-... order (function perm_ab) and to move all the
+!>    doubly occupied orbitals to the left side of the determinant.
+!>
+!>  @param state1 many-electron state of fragment 1
+!>  @param state2 many-electron state of fragment 2
+!>
+!>  @todo
+!>    Get rid of the packing of the orbital occupations, which
+!>    limits the number of active orbitals to 32
+!>
+!>  @todo
+!>    Design a strategy for more than two fragments. There are two possibilities.\n 
+!>    i) Fully general coupling, only defining the total spin and combine the fragments
+!>    in all possbile ways with the total spin being the only restriction.\n 
+!>    ii) Applying an intermediate coupling scheme. Fragment 1 and 2 are coupled to an
+!>    intermediate spin, and coupling with fragment 3 is then performed to obtain the
+!>    final total spin.\n
+!>    The first is very costly (excessively?), while the second can possibly simulate
+!>    the first by using several MEBFs with different coupling schemes. Taking three
+!>    doublets as example: In MEBF 1 we use D1 x D2 = singlet as intermediate coupling,
+!>    followed by coupling with D3 to the final doublet. Adding a second MEBF with D1 x
+!>    D2 = triplet, followed by coupling with D3 to doublet, we mimic the fully general
+!>    case of option (i).
+!>
+!>
 
       subroutine gronor_make_basestate(ibase)
       use cidef

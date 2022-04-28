@@ -272,13 +272,15 @@
       if(idbg.ge.50) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',spin(1)+1
+     &        ' allocations spin(1)+1 ',spin(1)+1
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',spin(2)+1
+     &        ' allocations spin(2)+1 ',spin(2)+1
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',ncombv(1,ibase)
+     &        ' allocations ncombv(1) ',ncombv(1,ibase)
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',ncombv(2,ibase)
+     &        ' allocations ncombv(2) ',ncombv(2,ibase)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' allocations nci       ',nci
          flush(lfndbg)
       endif
          
@@ -289,11 +291,47 @@
       spincomb(2)=spin(2)
 
       allocate(ndet1_ms(spin(1)+1))
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' ndet1_ms allocated'
+         flush(lfndbg)
+      endif
       allocate(ci1_ms(nci,spin(1)+1))
-      allocate(occ1_ms(nactm(ncombv(1,ibase)),nci,spin(1)+1))      
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' ci1_ms allocated'
+         flush(lfndbg)
+      endif
+      allocate(occ1_ms(nactm(ncombv(1,ibase)),nci,spin(1)+1))
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' occ1_ms allocated'
+         flush(lfndbg)
+      endif      
       allocate(ndet2_ms(spin(2)+1))
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' ndet2_ms allocated'
+         flush(lfndbg)
+      endif      
       allocate(ci2_ms(nci,spin(2)+1))
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' ci2_ms allocated'
+         flush(lfndbg)
+      endif      
       allocate(occ2_ms(nactm(ncombv(2,ibase)),nci,spin(2)+1))
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' occ2_ms allocated'
+         flush(lfndbg)
+      endif      
       ndet1_ms = 0
       ci1_ms   = 0.0d0
       occ1_ms  = 0
@@ -304,9 +342,10 @@
       if(idbg.ge.50) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',maxcib
+     &        ' allocations maxcib    ',maxcib
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations ',maxact
+     &        ' allocations naxact    ',maxact
+         flush(lfndbg)
       endif
       
 *     Allocate all intermediate arrays for multi-fragment mebfs      
@@ -326,6 +365,7 @@
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
      &        ' allocations completed'
+         flush(lfndbg)
       endif
       
       do i=1,maxcib
@@ -343,6 +383,7 @@
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &           ' coupling for ',icoupling
+            flush(lfndbg)
          endif
          allocate(iocc_tmp(inter_nact(1),inter_ndet(1)))
          allocate(cicoef_tmp(inter_ndet(1)))        
@@ -360,18 +401,22 @@
          deallocate(cicoef_tmp)
          deallocate(iocc_tmp)
          
-!     write(lfnout,*)'FRAGMENT 1'
-!     write(lfnout,*)'NDETMS'
-!     write(lfnout,*)ndet1_ms
-         
-!     do i=1,spincomb(1)+1
-!     write(lfnout,*)'MS STATE',i
-!     do j=1,ndet1_ms(i)
-!     write(lfnout,'(F7.3,3X,200I2)')ci1_ms(j,i),
-!     &           (occ1_ms(k,j,i),k=1,inter_nact(1))
-!     enddo
-!     flush(lfnout)
-!     enddo
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &           ' Frag 1 ndet1_ms ',ndet1_ms
+            
+            do i=1,spincomb(1)+1
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' ms state ',i
+               do j=1,ndet1_ms(i)
+                  write(lfndbg,'(2i5,f7.3)') j,i,ci1_ms(j,i)
+                  write(lfndbg,'(50i2)')
+     &                 (occ1_ms(k,j,i),k=1,inter_nact(1))
+               enddo
+            enddo
+            flush(lfndbg)
+         endif
          
 !     M_S of fragment 2
          
@@ -385,31 +430,38 @@
                iocc_tmp(j,i) = inter_occ(j,i,2)
             enddo
          enddo
-!     write(lfnout,'(A)')'Call sminop state 2 in the combination'
-!     flush(lfnout)
+
          call sminop(cicoef_tmp,ci2_ms,iocc_tmp,occ2_ms,inter_ndet(2),
      &        ndet2_ms,spincomb(2),inter_nact(2),nci)
          deallocate(cicoef_tmp)
          deallocate(iocc_tmp)
          
-!     write(lfnout,*)'FRAGMENT 2'
-!     flush(lfnout)
-!     do i=1,spincomb(2)+1
-!     write(lfnout,*)'MS STATE',i
-!     do j=1,ndet2_ms(i)
-!     write(lfnout,'(F7.3,3X,200I2)')ci2_ms(j,i),
-!     &           (occ2_ms(k,j,i),k=1,inter_nact(2))
-!     enddo
-!     flush(lfnout)
-!     enddo
-!     
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &           ' Frag 2 ndet2_ms ',ndet2_ms
+            do i=1,spincomb(2)+1
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' ms state ',i
+               do j=1,ndet1_ms(i)
+                  write(lfndbg,'(2i5,f7.3)') j,i,ci2_ms(j,i)
+                  write(lfndbg,'(50i2)')
+     &                 (occ2_ms(k,j,i),k=1,inter_nact(2))
+               enddo
+            enddo
+            flush(lfndbg)
+         endif
+     
 !     Product
+
          if(nmol.gt.2)then
             target_spin=inter_couplings(icoupling,ibase) ! Remove nspin in the future
          else
             target_spin=nspin
          endif
+         
 !     Determine new maxcib for icoupling > 1 and reallocate the product arrays
+         
          maxcib_prev=maxcib
          if (icoupling.gt.1)then
             do i = 1, spincomb(1) + 1
@@ -428,21 +480,32 @@
             enddo
 
             if(k .eq. 0) then
-!     write(lfnout,1574) '   spin(1) = ',spincomb(1)+1
-!     write(lfnout,1574) '   spin(2) = ',spincomb(2)+1
-!     write(lfnout,1574) 'total spin = ',target_spin+1
-!     write(lfnout,*) 'not possible'
-!     flush(lfnout)
+               if(idbg.ge.50) then
+                  call swatch(date,time)
+                  write(lfndbg,'(a,1x,a,1x,a,3i4)') date(1:8),time(1:8),
+     &                 ' Incompatible spins ',
+     &                 spincomb(1)+1,spincomb(2)+1,target_spin+1
+                  flush(lfndbg)
+               endif
                call errquit(me,3,"Incompatible spins")
-!     1574       format(a,i4)
             endif
             
-!     write(lfnout,*)'old maxcib',maxcib
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' Old maxcib ',maxcib
+               flush(lfndbg)
+            endif
 
             maxcib=max(k,maxcib)
 
-!     write(lfnout,*)'new maxcib',maxcib
-!     flush(lfnout)
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' New maxcib ',maxcib
+               flush(lfndbg)
+            endif
+
 !     Reallocate intermediate civ and occ if couplings loop is not ended
 !     otherwise reallocate civb and ioccb in order to store the mebfs          
 
@@ -451,7 +514,7 @@
             inter_civ=0.0d0
             inter_occ=0
             if (icoupling.eq.(nmol-1)) then
-!     write(lfnout,*)'Last coupling, re-allocate maxcib'
+
                allocate(civb_copy(maxcib,nbase))
                allocate(ioccb_copy(maxcib,nbase))
                do i=1,nbase
@@ -474,9 +537,23 @@
                enddo
                deallocate(civb_copy,ioccb_copy)
             endif
+            
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &              ' Reallocated civb and ioccb'
+               flush(lfndbg)
+            endif
 
          endif
-!     write(lfnout,*)'PRODUCT STATE RESULT:'
+         
+         if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &              ' Product state result'
+               flush(lfndbg)
+            endif
+
          k = 0
          do i = 1, spincomb(1) + 1
             ms1  = spincomb(1) - 2*(i-1)
@@ -509,10 +586,17 @@
                               civb(k,ibase) = inter_civ(k,1) * 
      &                             perm_ab(iocch,nactb(ibase))
                               civb(k,ibase) = civb(k,ibase) * 
-     &                             isetsign4(iocch,nactb(ibase))                      
-!     write(lfnout,'(F7.3,3X,200I2)')civb(k,ibase),
-!     &                     iocch(1:nactb(ibase))
-                           else ! if loop is not ended, prepare for the next iteration                      
+     &                             isetsign4(iocch,nactb(ibase))
+                              
+                              if(idbg.ge.50) then
+                                 write(lfndbg,'(2i5,f7.3)')
+     &                                k,ibase,civb(k,ibase)
+                                 write(lfndbg,'(50i2)')
+     &                                (iocch(k),k=1,nactb(ibase))
+                                 flush(lfndbg)
+                              endif
+                           else
+!     if loop is not ended, prepare for the next iteration                      
                               do iact=1,kk
                                  inter_occ(iact,k,1)=iocch(iact)
                               enddo                      
@@ -527,7 +611,13 @@
 !     After the product the result is in inter_civ(:,1) or in civb(:,ibase) if the loop is ended
 !     Prepare the next iteration if the loop is not ended
          if (icoupling.lt.(nmol-1)) then
-!     write(lfnout,*)'not last coupling',icoupling
+            
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' Next coupling ',icoupling
+               flush(lfndbg)
+            endif
             
             inter_nact(1)=inter_nact(1)+inter_nact(2)
             inter_nact(2)=nactm(ncombv(icoupling+2,ibase))
@@ -541,23 +631,31 @@
                enddo
             enddo
 
-!     write(lfnout,*)'re-calculate nci'
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &              ' Recalculating nci'
+               flush(lfndbg)
+            endif
+            
             spincomb(1)=inter_couplings(icoupling,ibase)
             spincomb(2)=spin(icoupling+2)
             call gronor_determine_nci
      &           (2,inter_nact,
-     &           inter_ndet,inter_occ,maxact,maxcib_prev)                    
-!     write(lfnout,*)'new nci:',nci
-!     write(lfnout,*)'NEW inter 1'
-!     do i=1,inter_ndet(1)
-!     write(lfnout,'(F7.3,3X,200I2)')inter_civ(i,1),
-!     &           (inter_occ(j,i,1),j=1,inter_nact(1))
-!     enddo
-!     write(lfnout,*)'NEW inter 2'
-!     do i=1,inter_ndet(2)
-!     write(lfnout,'(F7.3,3X,200I2)')inter_civ(i,2),
-!     &           (inter_occ(j,i,2),j=1,inter_nact(2))
-!     enddo
+     &           inter_ndet,inter_occ,maxact,maxcib_prev) 
+            if(idbg.ge.50) then
+               call swatch(date,time)
+               write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &              ' New nci ',nci
+               write(lfndbg,'(2i5,f7.3)') i,1,inter_civ(i,1)
+               write(lfndbg,'(50i2)')
+     &              (inter_occ(j,i,1),j=1,inter_nact(1))
+               write(lfndbg,'(2i5,f7.3)') i,2,inter_civ(i,2)
+               write(lfndbg,'(50i2)')
+     &              (inter_occ(j,i,2),j=1,inter_nact(2))
+               flush(lfndbg)
+            endif                   
+
             deallocate(ndet1_ms,occ1_ms,ci1_ms)            
             deallocate(ndet2_ms,occ2_ms,ci2_ms)
             allocate(ndet1_ms(spincomb(1)+1),ndet2_ms(spincomb(2)+1))          
@@ -619,12 +717,13 @@
          flush(lfndbg)
       endif
       deallocate(spin)
-!     write(lfnout,*)'nactb ibase final makebasestate',nactb(ibase)
+
       if(idbg.ge.50) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
-     &        ' make_basestate completed'
+         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
+     &        ' make_basestate completed ',nactb(ibase)
          flush(lfndbg)
       endif
+      
       return
       end 

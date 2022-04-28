@@ -178,8 +178,8 @@
 
       if(idbg.ge.50) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
-     &        ' spin completed'
+         write(lfndbg,'(a,1x,a,1x,a,l1)') date(1:8),time(1:8),
+     &        ' spin completed, all_singlet is ',all_singlet
          flush(lfndbg)
       endif
 

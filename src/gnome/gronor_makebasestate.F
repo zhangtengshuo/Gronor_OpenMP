@@ -100,6 +100,14 @@
 !        stop 'Too many active orbitals'
       endif
 
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4,a,i6,a,i6)') date(1:8),time(1:8),
+     &        ' orbitals for state',ibase,' are ',inactb(ibase),
+     &        ' and ',nactb(ibase)
+         flush(lfndbg)
+      endif
+      
 !     Combining the vectors of the fragments
 
       do i = 1, nbasis
@@ -120,6 +128,13 @@
         jstart = jstart + inactm(ncombv(i,ibase))
       end do
 
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' vecsb step 1 completed'
+         flush(lfndbg)
+      endif
+      
       jstart = inactb(ibase) + 1
       kstart = 1
 
@@ -133,6 +148,13 @@
         kstart = kstart + nbasm(ncombv(i,ibase))
         jstart = jstart + nactm(ncombv(i,ibase))
       end do
+
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' vecsb step 2 completed'
+         flush(lfndbg)
+      endif
 
 !     Generation of the spin functions
 
@@ -159,6 +181,13 @@
           call pack(ioccb(i,ibase),iocch,nactm(ibase))
         end do
         ndets = idetm(ibase)
+
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &        ' vecsb civb/ioccb completed for nmol ',nmol
+         flush(lfndbg)
+      endif
         goto 1581
       end if 
 
@@ -192,16 +221,28 @@
           end do
         end do
         ndets = k
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &        ' vecsb civb/ioccb completed for nmol ',nmol
+         flush(lfndbg)
+      endif
         goto 1581
       end if
       
-!      if (nmol.gt.2) then
+      if (nmol.gt.2) then
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &        ' intercouplings for nmol ',nmol
+         flush(lfndbg)
+      endif
 !        write(lfnout,*)'INTER COUPLINGS'
 !        do i=1,nbase
 !          write(lfnout,'(200I2)')(inter_couplings(j,i),j=1,nmol-1)
 !        end do
 !        flush(lfnout)
-!      end if
+      end if
       
 *     All other cases
       allocate(spincomb(2))
@@ -481,16 +522,43 @@
       deallocate(inter_civ,inter_occ)
 
       ndets = k
- 1581 dnorm = 0.0d0
+ 1581 continue
+      
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &        ' completed for ',nmol
+         flush(lfndbg)
+      endif
+      
+      dnorm = 0.0d0
       idetb(ibase) = ndets
       do i = 1, idetb(ibase)
         dnorm = dnorm + civb(i,ibase)**2
       end do
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' dnorm completed'
+         flush(lfndbg)
+      endif
       dnorm = 1/dsqrt(dnorm)
       do i = 1, idetb(ibase)
         civb(i,ibase) = civb(i,ibase) * dnorm
       end do
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' civb completed'
+         flush(lfndbg)
+      endif
       deallocate(spin)
 !      write(lfnout,*)'nactb ibase final makebasestate',nactb(ibase)
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' make_basestate completed'
+         flush(lfndbg)
+      endif
       return
       end 

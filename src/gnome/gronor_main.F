@@ -1378,6 +1378,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
               write(lfndbg,1301) date(1:8),time(1:8),
      &             ' Device set to ',mydev,' of ',numdev
  1301         format(a,1x,a,1x,a,i3,a,i3)
+              flush(lfndbg)
             endif
           else
             iamacc=0

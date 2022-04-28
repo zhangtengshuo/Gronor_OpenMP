@@ -375,6 +375,12 @@
           inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
           inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
         enddo
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i10,1,i10)') date(1:8),time(1:8),
+     &        ' civ/occ ',i,' of ',maxcib
+         flush(lfndbg)
+      endif
       enddo
       
       if(idbg.ge.50) then

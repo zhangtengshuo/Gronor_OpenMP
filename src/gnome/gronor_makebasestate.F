@@ -343,15 +343,15 @@
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &        ' allocations maxcib    ',maxcib
-         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
-     &        ' allocations naxact    ',maxact
+         write(lfndbg,'(a,1x,a,1x,a,2i10)') date(1:8),time(1:8),
+     &        ' allocations maxnact   ',maxnact,maxact
          flush(lfndbg)
       endif
       
 *     Allocate all intermediate arrays for multi-fragment mebfs      
       allocate(inter_nact(2),inter_ndet(2))
       allocate(inter_civ(maxcib,2))
-      allocate(inter_occ(maxact,maxcib,2))
+      allocate(inter_occ(maxnact,maxcib,2))
       inter_nact = 0
       inter_ndet = 0
       inter_civ = 0.0d0
@@ -368,21 +368,50 @@
          flush(lfndbg)
       endif
       
+      if(idbg.ge.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,1x,a,6i10)') date(1:8),time(1:8),
+     &       ' civ/occ ',maxcib,maxnact,
+     &       ncombv(1,ibase),ncombv(2,ibase),mstates
+        flush(lfndbg)
+        do i=1,10
+          write(lfndbg,'(a,i5,2e20.10)') 'CIVM',i,
+     &         civm(i,1),civm(i,2)
+          flush(lfndbg)
+        enddo
+      endif
+      
       do i=1,maxcib
+        if(idbg.ge.50) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,i10,2f12.6)') date(1:8),time(1:8),
+     &         ' civ ',i,
+     &         civm(i,ncombv(1,ibase)),civm(i,ncombv(2,ibase))
+          flush(lfndbg)
+        endif
         inter_civ(i,1)=civm(i,ncombv(1,ibase))
         inter_civ(i,2)=civm(i,ncombv(2,ibase))
-        do j=1,maxact
+c        do j=1,maxnact
+c          inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
+c          inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
+c        enddo
+      enddo
+      
+      do i=1,maxcib
+        if(idbg.ge.100) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,i10,2i10)') date(1:8),time(1:8),
+     &         ' occ ',i,
+     &         ioccm(1,i,ncombv(1,ibase)),ioccm(2,i,ncombv(2,ibase))
+          flush(lfndbg)
+        endif
+c        inter_civ(i,1)=civm(i,ncombv(1,ibase))
+c        inter_civ(i,2)=civm(i,ncombv(2,ibase))
+        do j=1,maxnact
           inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
           inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
         enddo
-      if(idbg.ge.50) then
-         call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a,i10,1,i10)') date(1:8),time(1:8),
-     &        ' civ/occ ',i,' of ',maxcib
-         flush(lfndbg)
-      endif
       enddo
-      
       if(idbg.ge.50) then
          call swatch(date,time)
          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
@@ -393,7 +422,7 @@
 !     Make the compound product of all couplings
 
       do icoupling=1,nmol-1
-         if(idbg.ge.50) then
+         if(idbg.ge.100) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &           ' coupling for ',icoupling
@@ -524,7 +553,7 @@
 !     otherwise reallocate civb and ioccb in order to store the mebfs          
 
             deallocate(inter_civ,inter_occ)
-            allocate(inter_civ(maxcib,2),inter_occ(maxact,maxcib,2))          
+            allocate(inter_civ(maxcib,2),inter_occ(maxnact,maxcib,2))          
             inter_civ=0.0d0
             inter_occ=0
             if (icoupling.eq.(nmol-1)) then
@@ -656,7 +685,7 @@
             spincomb(2)=spin(icoupling+2)
             call gronor_determine_nci
      &           (2,inter_nact,
-     &           inter_ndet,inter_occ,maxact,maxcib_prev) 
+     &           inter_ndet,inter_occ,maxnact,maxcib_prev) 
             if(idbg.ge.50) then
                call swatch(date,time)
                write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),

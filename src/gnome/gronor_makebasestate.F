@@ -371,11 +371,19 @@
       do i=1,maxcib
         inter_civ(i,1)=civm(i,ncombv(1,ibase))
         inter_civ(i,2)=civm(i,ncombv(2,ibase))
-        do j=1,maxnact
+        do j=1,maxact
           inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
           inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
         enddo
       enddo
+      
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' inter_civ, inter_occ initialized'
+         flush(lfndbg)
+      endif
+      
 !     Make the compound product of all couplings
 
       do icoupling=1,nmol-1

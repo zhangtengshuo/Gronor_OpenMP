@@ -504,7 +504,8 @@
                            enddo
                            if (icoupling.eq.(nmol-1)) then ! if loop is ended, save in civb and ioccb 
 
-                              call pack(ioccb(k,ibase),iocch,nactb(ibase))
+                              call pack(ioccb(k,ibase),
+     &                             iocch,nactb(ibase))
                               civb(k,ibase) = inter_civ(k,1) * 
      &                             perm_ab(iocch,nactb(ibase))
                               civb(k,ibase) = civb(k,ibase) * 
@@ -536,7 +537,7 @@
             do i=1,inter_ndet(2)
                inter_civ(i,2) = civm(i,ncombv(icoupling+2,ibase))
                do j=1,inter_nact(2)
-                  inter_occ(j,i,2) = ioccm(j,i,ncombv(icoupling+2,ibase))
+                  inter_occ(j,i,2)=ioccm(j,i,ncombv(icoupling+2,ibase))
                enddo
             enddo
 
@@ -560,7 +561,8 @@
             deallocate(ndet1_ms,occ1_ms,ci1_ms)            
             deallocate(ndet2_ms,occ2_ms,ci2_ms)
             allocate(ndet1_ms(spincomb(1)+1),ndet2_ms(spincomb(2)+1))          
-            allocate(ci1_ms(nci,spincomb(1)+1),ci2_ms(nci,spincomb(2)+1))
+            allocate(ci1_ms(nci,spincomb(1)+1))
+            allocate(ci2_ms(nci,spincomb(2)+1))
             allocate(occ1_ms(inter_nact(1),nci,spincomb(1)+1))
             allocate(occ2_ms(inter_nact(2),nci,spincomb(2)+1))
             ndet1_ms = 0

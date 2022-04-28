@@ -85,6 +85,14 @@
       real (kind = 8), allocatable :: inter_civ(:,:)
       real (kind = 8), allocatable :: civb_copy(:,:)
 
+
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &        ' makebasestate for nmol ',nmol
+         flush(lfndbg)
+      endif
+      
       inactb(ibase) = 0
       nactb(ibase)  = 0
       do i = 1, nmol
@@ -102,9 +110,12 @@
 
       if(idbg.ge.50) then
          call swatch(date,time)
-         write(lfndbg,'(a,1x,a,1x,a,i4,a,i6,a,i6)') date(1:8),time(1:8),
-     &        ' orbitals for state',ibase,' are ',inactb(ibase),
-     &        ' and ',nactb(ibase)
+         write(lfndbg,'(a,1x,a,1x,a,i4,a,i6)') date(1:8),time(1:8),
+     &        ' number of inactive orbitals for state',ibase,
+     &        ' is ',inactb(ibase)
+         write(lfndbg,'(a,1x,a,1x,a,i4,a,i6)') date(1:8),time(1:8),
+     &        ' number of active orbitals for state  ',ibase,
+     &        ' is ',nactb(ibase)
          flush(lfndbg)
       endif
       
@@ -165,10 +176,24 @@
         if ( spin(i) .ne. 0 ) all_singlet = .false.
       end do
 
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' spin completed'
+         flush(lfndbg)
+      endif
+
       do i = 1, maxcib
         civb(i,ibase) = 0.0d0
         ioccb(i,ibase)= 0
       enddo
+
+      if(idbg.ge.50) then
+         call swatch(date,time)
+         write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &        ' civb/ioccb initialized'
+         flush(lfndbg)
+      endif
 
 !     Just one molecule
       if ( nmol .eq. 1 ) then

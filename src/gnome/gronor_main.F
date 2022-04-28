@@ -1486,8 +1486,24 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       max_coef = 0.0
       nci_copy = nci
-      do i=1,nbase        
+      do i=1,nbase
+
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &           ' entering make_basestate for ibase ',i
+            flush(lfndbg)
+         endif
+      
         call gronor_make_basestate(i)
+
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &           ' returned from make_basestate for ibase ',i
+            flush(lfndbg)
+         endif
+      
         nci = nci_copy
         allocate(sort_coef(maxcib))
         allocate(sort_occ(maxcib))
@@ -1517,6 +1533,13 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           flush(lfnday)
           call timer_start(99)
         endif
+
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &           ' Base state completed for ibase ',i
+            flush(lfndbg)
+         endif
       enddo
 
       thres2 = tau_CI / max_coef

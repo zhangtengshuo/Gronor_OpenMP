@@ -265,6 +265,7 @@ option (NVBLAS "Enable NVidia BLAS library." OFF)
 option (CTEST "Enable CTest." OFF)
 option (SINGLEP "Enable single precision." OFF)
 option (PROFILING "Enable profiling." OFF)
+option (DEBUG "Debugging." OFF)
 
 #     Note: build and debug options
 
@@ -499,7 +500,7 @@ set (FFLAGS_Intel_MKL "-DMKL")
 set (FFLAGS_Intel_ILP64 "-i8 -r8 -heap-arrays")
 #set (FFLAGS_Intel_ILP64 "-r8 -heap-arrays")
 # Fortran build targets
-set (FFLAGS_Intel_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations")
+set (FFLAGS_Intel_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations -check bounds")
 set (FFLAGS_Intel_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check all,nobounds,noarg_temp_created")
 set (FFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
 set (FFLAGS_Intel_RELEASE "-O2 -traceback")
@@ -934,6 +935,12 @@ if (PROFILING)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_PROFILING}")
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_PROFILING}")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_PROFILING}")
+endif ()
+
+if (DEBUG)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_DEBUG}")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_DEBUG}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_DEBUG}")
 endif ()
 
 if (BOUNDS)

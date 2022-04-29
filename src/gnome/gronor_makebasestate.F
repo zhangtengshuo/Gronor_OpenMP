@@ -773,12 +773,45 @@ c     inter_occ=0
           allocate(ci2_ms(nci,spincomb(2)+1))
           allocate(occ1_ms(inter_nact(1),nci,spincomb(1)+1))
           allocate(occ2_ms(inter_nact(2),nci,spincomb(2)+1))
-          ndet1_ms=0
-          ndet2_ms=0
-          ci1_ms=0.0d0
-          ci2_ms=0.0d0
-          occ1_ms=0
-          occ2_ms=0
+          
+          do i=1,spincomb(1)+1
+            ndet1_ms(i)=0
+          enddo
+          do i=1,spincomb(1)+1
+            do j=1,nci
+              ci1_ms(j,i)=0.0d0
+            enddo
+          enddo
+          do i=1,spincomb(1)+1
+            do j=1,nci
+              do k=1,inter_nact(1)
+                occ1_ms(k,j,i)=0
+              enddo
+            enddo
+          enddo
+          do i=1,spincomb(2)+1
+            ndet2_ms(i)=0
+          enddo
+          do i=1,spincomb(2)+1
+            do j=1,nci
+              ci2_ms(j,i)=0.0d0
+            enddo
+          enddo
+          do i=1,spincomb(2)+1
+            do j=1,nci
+              do k=1,inter_nact(2)
+                occ2_ms(k,j,i)=0
+              enddo
+            enddo
+          enddo
+          
+c     ndet1_ms=0
+c     ndet2_ms=0
+c     ci1_ms=0.0d0
+c     ci2_ms=0.0d0
+c     occ1_ms=0
+c     occ2_ms=0
+      
         endif
         
         if(idbg.ge.50) then

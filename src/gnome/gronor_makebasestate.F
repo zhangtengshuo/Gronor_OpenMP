@@ -1,54 +1,54 @@
-!     >  @brief
-!     >    Construct the MEBFs from the fragment functions
-!     >
-!     >  @authors
-!     >    Aitor Sanchez-Mansilla, Coen de Graaf 
-!     >    (URV, Tarragona)
-!     >
-!     >  @date
-!     >    November 2020
-!     >
-!     >  @details
-!     >    MEBF(ibase) is made by multplying state1 and state2.
-!     >    First the vectors of the two state are combined, then
-!     >    three scenarios are foreseen: \n 
-!     >    (i) there is only one fragment \n 
-!     >    (ii) state1 and state2 are spin singlets \n 
-!     >    (iii) all other cases \n
-!     >    In the first case the fragment wave function is copied directly on the MEBF.
-!     >    In the second case, the coefficients of state1 and state2 are multiplied and
-!     >    copied to the MEBF if the product is above a certain threshold.  Case (iii) 
-!     >    starts with the generation of the M_S components of state 1 and 2 by sminop.
-!     >    By looping of the ms values of state 1 and state2, determinants of the fragments
-!     >    are multiplied when ms1+ms2=total spin. To ensure correct spin coupling the
-!     >    the product is multiplied by the corresponding Clebsch-Gordon coeefficient
-!     >    calculated by the function cg. \n 
-!     >    All products are properly multplied by (-1)^p, where p is the number of permutations
-!     >    to set the alpha-beta-alpha-beta-... order (function perm_ab) and to move all the
-!     >    doubly occupied orbitals to the left side of the determinant.
-!     >
-!     >  @param state1 many-electron state of fragment 1
-!     >  @param state2 many-electron state of fragment 2
-!     >
-!     >  @todo
-!     >    Get rid of the packing of the orbital occupations, which
-!     >    limits the number of active orbitals to 32
-!     >
-!     >  @todo
-!     >    Design a strategy for more than two fragments. There are two possibilities.\n 
-!     >    i) Fully general coupling, only defining the total spin and combine the fragments
-!     >    in all possbile ways with the total spin being the only restriction.\n 
-!     >    ii) Applying an intermediate coupling scheme. Fragment 1 and 2 are coupled to an
-!     >    intermediate spin, and coupling with fragment 3 is then performed to obtain the
-!     >    final total spin.\n
-!     >    The first is very costly (excessively?), while the second can possibly simulate
-!     >    the first by using several MEBFs with different coupling schemes. Taking three
-!     >    doublets as example: In MEBF 1 we use D1 x D2=singlet as intermediate coupling,
-!     >    followed by coupling with D3 to the final doublet. Adding a second MEBF with D1 x
-!     >    D2=triplet, followed by coupling with D3 to doublet, we mimic the fully general
-!     >    case of option (i).
-!     >
-!     >
+!>  @brief
+!>    Construct the MEBFs from the fragment functions
+!>
+!>  @authors
+!>    Aitor Sanchez-Mansilla, Coen de Graaf 
+!>    (URV, Tarragona)
+!>
+!>  @date
+!>    November 2020
+!>
+!>  @details
+!>    MEBF(ibase) is made by multplying state1 and state2.
+!>    First the vectors of the two state are combined, then
+!>    three scenarios are foreseen: \n 
+!>    (i) there is only one fragment \n 
+!>    (ii) state1 and state2 are spin singlets \n 
+!>    (iii) all other cases \n
+!>    In the first case the fragment wave function is copied directly on the MEBF.
+!>    In the second case, the coefficients of state1 and state2 are multiplied and
+!>    copied to the MEBF if the product is above a certain threshold.  Case (iii) 
+!>    starts with the generation of the M_S components of state 1 and 2 by sminop.
+!>    By looping of the ms values of state 1 and state2, determinants of the fragments
+!>    are multiplied when ms1+ms2=total spin. To ensure correct spin coupling the
+!>    the product is multiplied by the corresponding Clebsch-Gordon coeefficient
+!>    calculated by the function cg. \n 
+!>    All products are properly multplied by (-1)^p, where p is the number of permutations
+!>    to set the alpha-beta-alpha-beta-... order (function perm_ab) and to move all the
+!>    doubly occupied orbitals to the left side of the determinant.
+!>
+!>  @param state1 many-electron state of fragment 1
+!>  @param state2 many-electron state of fragment 2
+!>
+!>  @todo
+!>    Get rid of the packing of the orbital occupations, which
+!>    limits the number of active orbitals to 32
+!>
+!>  @todo
+!>    Design a strategy for more than two fragments. There are two possibilities.\n 
+!>    i) Fully general coupling, only defining the total spin and combine the fragments
+!>    in all possbile ways with the total spin being the only restriction.\n 
+!>    ii) Applying an intermediate coupling scheme. Fragment 1 and 2 are coupled to an
+!>    intermediate spin, and coupling with fragment 3 is then performed to obtain the
+!>    final total spin.\n
+!>    The first is very costly (excessively?), while the second can possibly simulate
+!>    the first by using several MEBFs with different coupling schemes. Taking three
+!>    doublets as example: In MEBF 1 we use D1 x D2=singlet as intermediate coupling,
+!>    followed by coupling with D3 to the final doublet. Adding a second MEBF with D1 x
+!>    D2=triplet, followed by coupling with D3 to doublet, we mimic the fully general
+!>    case of option (i).
+!>
+!>
 
       subroutine gronor_make_basestate(ibase)
       use cidef
@@ -66,13 +66,13 @@
       integer              :: target_spin
       integer              :: ms1,ms2,det,det1,det2     
       integer              :: inter_nact(2),inter_ndet(2)
+      integer              :: spincomb(2)
       integer, external    :: perm_ab,isetsign4
       integer, parameter   :: maxact=32 ! because of the packing, maxact is limited to 32 (I guess)
-      integer, allocatable :: spin(:),spincomb(:)
+      integer, allocatable :: spin(:)
       integer, allocatable :: ndet_ms(:),ndet1_ms(:),ndet2_ms(:)
       integer, allocatable :: occ1_ms(:,:,:),occ2_ms(:,:,:)
       integer, allocatable :: iocc_tmp(:,:)
-c      integer, allocatable :: inter_nact(:),inter_ndet(:)
       integer, allocatable :: inter_occ(:,:,:)
       integer, allocatable :: ioccb_copy(:,:)
       logical              :: all_singlet
@@ -287,7 +287,6 @@ c      integer, allocatable :: inter_nact(:),inter_ndet(:)
       endif
       
 *     All other cases
-      allocate(spincomb(2))
       
       spincomb(1)=spin(1)
       spincomb(2)=spin(2)
@@ -376,14 +375,9 @@ c      integer, allocatable :: inter_nact(:),inter_ndet(:)
       endif
       
 *     Allocate all intermediate arrays for multi-fragment mebfs      
-c      allocate(inter_nact(2),inter_ndet(2))
-ccc   allocate(inter_civ(maxcib,2))
-ccc   allocate(inter_occ(maxnact,maxcib,2))
+
       allocate(inter_civ(maxcib,2))
       allocate(inter_occ(maxnact,maxcib,2))
-
-c     inter_nact=0
-c     inter_ndet=0
       
       do i=1,maxcib
         inter_civ(i,1)=0.0d0
@@ -425,38 +419,6 @@ c     inter_ndet=0
         enddo
       endif
       
-c     do i=1,maxcib
-c     if(idbg.ge.50) then
-c     call swatch(date,time)
-c     write(lfndbg,'(a,1x,a,1x,a,i10,2f12.6)') date(1:8),time(1:8),
-c     &         ' civ ',i,
-c     &         civm(i,ncombv(1,ibase)),civm(i,ncombv(2,ibase))
-c     flush(lfndbg)
-c     endif
-c     inter_civ(i,1)=civm(i,ncombv(1,ibase))
-c     inter_civ(i,2)=civm(i,ncombv(2,ibase))
-c     c     do j=1,maxnact
-c     c     inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
-c     c     inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
-c     c     enddo
-c     enddo
-      
-c     do i=1,maxcib
-c     if(idbg.ge.100) then
-c     call swatch(date,time)
-c     write(lfndbg,'(a,1x,a,1x,a,i10,2i10)') date(1:8),time(1:8),
-c     &         ' occ ',i,
-c     &         ioccm(1,i,ncombv(1,ibase)),ioccm(2,i,ncombv(2,ibase))
-c     flush(lfndbg)
-c     endif
-c     c     inter_civ(i,1)=civm(i,ncombv(1,ibase))
-c     c     inter_civ(i,2)=civm(i,ncombv(2,ibase))
-c     do j=1,maxnact
-c     inter_occ(j,i,1)=ioccm(j,i,ncombv(1,ibase))
-c     inter_occ(j,i,2)=ioccm(j,i,ncombv(2,ibase))
-c     enddo
-c     enddo
-
       do i=1,inter_ndet(1)
         inter_civ(i,1)=civm(i,ncombv(1,ibase))
         do j=1,inter_nact(1)
@@ -609,7 +571,6 @@ c     enddo
 !     otherwise reallocate civb and ioccb in order to store the mebfs          
 
           deallocate(inter_civ,inter_occ)
-c     allocate(inter_civ(maxcib,2),inter_occ(maxnact,maxcib,2))
           allocate(inter_civ(maxcib,2),inter_occ(maxnact,maxcib,2))
           
           do i=1,maxcib
@@ -623,9 +584,6 @@ c     allocate(inter_civ(maxcib,2),inter_occ(maxnact,maxcib,2))
             enddo
           enddo
 
-c     inter_civ=0.0d0
-c     inter_occ=0
-          
           if (icoupling.eq.(nmol-1)) then
 
             allocate(civb_copy(maxcib,nbase))
@@ -805,13 +763,6 @@ c     inter_occ=0
             enddo
           enddo
           
-c     ndet1_ms=0
-c     ndet2_ms=0
-c     ci1_ms=0.0d0
-c     ci2_ms=0.0d0
-c     occ1_ms=0
-c     occ2_ms=0
-      
         endif
         
         if(idbg.ge.50) then
@@ -829,23 +780,10 @@ c     occ2_ms=0
         flush(lfndbg)
       endif
       
-      if(idbg.ge.50) write(lfndbg,'(a)') 'A'
-      flush(lfndbg)
       deallocate(ndet1_ms,occ1_ms,ci1_ms)
-      if(idbg.ge.50) write(lfndbg,'(a)') 'B'
-      flush(lfndbg)
       deallocate(ndet2_ms,occ2_ms,ci2_ms)
-      if(idbg.ge.50) write(lfndbg,'(a)') 'C'
-      flush(lfndbg)
-      deallocate(spincomb)
-      if(idbg.ge.50) write(lfndbg,'(a)') 'D'
-      flush(lfndbg)
       if(allocated(inter_civ)) deallocate(inter_civ)
-      if(idbg.ge.50) write(lfndbg,'(a)') 'E'
-      flush(lfndbg)
       if(allocated(inter_occ)) deallocate(inter_occ)
-      if(idbg.ge.50) write(lfndbg,'(a)') 'F'
-      flush(lfndbg)
 
       ndets=k
       

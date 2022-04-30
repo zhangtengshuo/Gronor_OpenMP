@@ -651,11 +651,11 @@ c     use cuda_functions
      &       MPI_COMM_WORLD,ierr)
 
         if(me.ne.master) then
-           nmol   =idum(1)
+           nmol=idum(1)
            mstates=idum(2)
-           nbase  =idum(3)
-           maxci  =idum(4)
-           maxvec =idum(5)
+           nbase=idum(3)
+           maxci=idum(4)
+           maxvec=idum(5)
            maxnact=idum(6)
 !     iocc(1)=idum(7)
 !     iocc(2)=idum(8)
@@ -663,49 +663,49 @@ c     use cuda_functions
 !     iord(2)=idum(10)
 !     indx(1)=idum(11)
 !     indx(2)=idum(12)
-           icalc  =idum(13)
-           ipr    =idum(14)
-           ins2   =idum(15)
-           ipvec  =idum(16)
-           itp4   =idum(17)
+           icalc=idum(13)
+           ipr=idum(14)
+           ins2=idum(15)
+           ipvec=idum(16)
+           itp4=idum(17)
            numfiles=idum(18)
-           corres =idum(19).eq.1
-           npg    =idum(20)
-           nnucl  =idum(21)
-           nbas   =idum(22)
-           mclab  =idum(23)
-           ntask  =idum(24)
-           ntaska =idum(25)
-           mgr    =idum(26)
-           itest  =idum(27)
-           naccel =idum(28)
-           inpcib =idum(29)
-           ipro   =idum(30)
-           int2   =idum(31)
-           mpibuf =idum(32)
-           idbg   =idum(33)
-           nummps =idum(34)
-           numomp =idum(35)
-           itim   =idum(36)
-           iaslvr =idum(37)
-           jaslvr =idum(38)
-           inslvr =idum(39)
-           jnslvr =idum(40)
-           ifault =idum(41)
-           idevel =idum(42)
-           iswsvj =idum(43)
-           iswevj =idum(44)
-           nbatch =idum(45)
+           corres=idum(19).eq.1
+           npg=idum(20)
+           nnucl=idum(21)
+           nbas=idum(22)
+           mclab=idum(23)
+           ntask=idum(24)
+           ntaska=idum(25)
+           mgr=idum(26)
+           itest=idum(27)
+           naccel=idum(28)
+           inpcib=idum(29)
+           ipro=idum(30)
+           int2=idum(31)
+           mpibuf=idum(32)
+           idbg=idum(33)
+           nummps=idum(34)
+           numomp=idum(35)
+           itim=idum(36)
+           iaslvr=idum(37)
+           jaslvr=idum(38)
+           inslvr=idum(39)
+           jnslvr=idum(40)
+           ifault=idum(41)
+           idevel=idum(42)
+           iswsvj=idum(43)
+           iswevj=idum(44)
+           nbatch=idum(45)
            nbatcha=idum(46)
-           nspin  =idum(47)
-           labels =idum(48)
-           mbuf   =idum(49)
-           idist  =idum(50)
-           load   =idum(51)
-           loada  =idum(52)
-           ngpus  =idum(53)
-           num_threads = idum(54)
-           nabort =idum(55)
+           nspin=idum(47)
+           labels=idum(48)
+           mbuf=idum(49)
+           idist=idum(50)
+           load=idum(51)
+           loada=idum(52)
+           ngpus=idum(53)
+           num_threads=idum(54)
+           nabort=idum(55)
 
         endif
       
@@ -745,11 +745,11 @@ c     use cuda_functions
       nacc1=naccel
 
       if(me.ne.master) then
-        nmol   =idum(1)
+        nmol=idum(1)
         mstates=idum(2)
-        nbase  =idum(3)
-        maxci  =idum(4)
-        maxvec =idum(5)
+        nbase=idum(3)
+        maxci=idum(4)
+        maxvec=idum(5)
         maxnact=idum(6)
         
         allocate(ncombv(nmol,nbase))
@@ -771,12 +771,12 @@ c     use cuda_functions
         iord(2)=idum(10)
         indx(1)=idum(11)
         indx(2)=idum(12)
-        icalc  =idum(13)
-        ipr    =idum(14)
-        ins2   =idum(15)
-        ipvec  =idum(16)
-        itp4   =idum(17)
-        corres =idum(19).eq.1
+        icalc=idum(13)
+        ipr=idum(14)
+        ins2=idum(15)
+        ipvec=idum(16)
+        itp4=idum(17)
+        corres=idum(19).eq.1
       endif
 
       allocate(nbuf(mstates,4))
@@ -1389,7 +1389,7 @@ c     istat=cudaMemGetInfo(cpfre,cptot)
 !     only accelerated ranks need to define cusolver handles
         
 #ifdef CUSOLVER
-        cusolver_status = cusolverDnCreate(cusolver_handle)
+        cusolver_status=cusolverDnCreate(cusolver_handle)
         if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       print *, me,'cusolver_handle creation failed'
 
@@ -1484,8 +1484,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         call timer_start(99)
       endif
       
-      max_coef = 0.0
-      nci_copy = nci
+      max_coef=0.0
+      nci_copy=nci
       do i=1,nbase
 
          if(idbg.ge.50) then
@@ -1504,24 +1504,28 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
             flush(lfndbg)
          endif
       
-        nci = nci_copy
+        nci=nci_copy
         allocate(sort_coef(maxcib))
         allocate(sort_occ(maxcib))
-        sort_coef = 0.0
-        sort_occ = 0
-        do idet = 1, idetb(i)
-          sort_coef(idet) = civb(idet,i)
-          sort_occ(idet)  = ioccb(idet,i)
+
+        do j=1,maxcib
+        sort_coef(j)=0.0
+        sort_occ(j)=0
+      enddo
+      
+        do idet=1, idetb(i)
+          sort_coef(idet)=civb(idet,i)
+          sort_occ(idet)=ioccb(idet,i)
         enddo
-        length = idetb(i)
+        length=idetb(i)
         call quicksort(sort_coef,sort_occ,length)
-        do idet = 1, idetb(i)
-          civb(idet,i)  = sort_coef(idet)
-          ioccb(idet,i) = sort_occ(idet)
+        do idet=1, idetb(i)
+          civb(idet,i)=sort_coef(idet)
+          ioccb(idet,i)=sort_occ(idet)
         enddo
         deallocate(sort_coef,sort_occ)
         if(max_coef.lt.abs(civb(1,i))) then
-          max_coef = abs(civb(1,i))
+          max_coef=abs(civb(1,i))
         endif
         
         if(me.eq.master) then
@@ -1542,28 +1546,28 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
          endif
       enddo
 
-      thres2 = tau_CI / max_coef
+      thres2=tau_CI / max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
-      do ibase = 1, nbase
+      do ibase=1, nbase
         ndeti=idetb(ibase)
-        ndet_rev = 0
-        civb_aux = 0.0
-        occu_aux = 0
-        do idet = 1, idetb(ibase)
+        ndet_rev=0
+        civb_aux=0.0
+        occu_aux=0
+        do idet=1, idetb(ibase)
           if(abs(civb(idet,ibase)).gt.thres2) then
-            ndet_rev = ndet_rev + 1
-            civb_aux(ndet_rev) = civb(idet,ibase)
-            occu_aux(ndet_rev) = ioccb(idet,ibase)
+            ndet_rev=ndet_rev + 1
+            civb_aux(ndet_rev)=civb(idet,ibase)
+            occu_aux(ndet_rev)=ioccb(idet,ibase)
           endif
         enddo
-        civb(:,ibase) = 0.0
-        ioccb(:,ibase) = 0
-        do idet = 1, ndet_rev
-          civb(idet,ibase) = civb_aux(idet)
-          ioccb(idet,ibase) = occu_aux(idet)
+        civb(:,ibase)=0.0
+        ioccb(:,ibase)=0
+        do idet=1, ndet_rev
+          civb(idet,ibase)=civb_aux(idet)
+          ioccb(idet,ibase)=occu_aux(idet)
         enddo
-        idetb(ibase) = ndet_rev
+        idetb(ibase)=ndet_rev
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
@@ -1914,7 +1918,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,2i5)') date(1:8),time(1:8),
-     &         ' iamactive, iamacc = ',iamactive,iamacc
+     &         ' iamactive, iamacc=',iamactive,iamacc
           flush(lfndbg)
         endif
         if(iamactive.eq.1) then
@@ -2178,7 +2182,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         call gronor_print_results(hbase,sbase,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
-          hcorr = 0.0
+          hcorr=0.0
           call gronor_correlation_energy(
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)

@@ -73,7 +73,7 @@
           do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
             if(.not.inp_a(item)) goto 1
-            if(len(trim(item)).gt.1) then
+            if(len(trim(item)).ne.1) then
               allocate(ncombv(nmol,nbase))
               mstates=nmol*nbase
               allocate(fragfile(mstates))

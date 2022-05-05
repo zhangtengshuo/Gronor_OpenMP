@@ -31,6 +31,7 @@
       character (len=255) :: item,item2
       real (kind=8) value
       integer, allocatable :: itemp(:,:)
+      logical :: last
       
       open(unit=lfninp,file=filinp,form='formatted',status='old',
      &     err=999)
@@ -72,8 +73,8 @@
           nmol=0
           do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
-            if(.not.inp_a(item)) goto 1
-            if(len(trim(item)).ne.1) then
+            last=.not.inp_a(item)
+            if(last.or.len(trim(item)).ne.1) then
               allocate(ncombv(nmol,nbase))
               mstates=nmol*nbase
               allocate(fragfile(mstates))
@@ -85,6 +86,7 @@
      &                 trim(fragstate(i,j))
                 enddo
               enddo
+              if(last) goto 1
               goto 3
             endif
             nmol=nmol+1

@@ -2126,29 +2126,28 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
             allocate(work(lwork))
             call gronor_worker()
           endif
-        endif
 
-        if(nbatch.lt.0) then
-          deallocate(tal,tatl,aaal,aatl,ttl,sml)
-          deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-          deallocate(prefac)
-        elseif(nbatch.eq.0) then
-          deallocate(tal,tatl,aaal,aatl,ttl,sml)
-          deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-          deallocate(prefac)
-        else
-          deallocate(ta0,aaa0,aat0,tt0,sm0)
-          deallocate(prefac0)
-          deallocate(ta1,aaa1,aat1,tt1,sm1)
-          deallocate(csdiag1,bdiag1,bsdiag1,diag1)
-          deallocate(prefac1)
-        endif
-        deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
-        deallocate(aat,tt,sm)
-        deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
-        deallocate(s,st)
-        deallocate(temp)
-                
+          if(nbatch.lt.0) then
+             deallocate(tal,tatl,aaal,aatl,ttl,sml)
+             deallocate(csdiagl,bdiagl,bsdiagl,diagl)
+             deallocate(prefac)
+          elseif(nbatch.eq.0) then
+             deallocate(tal,tatl,aaal,aatl,ttl,sml)
+             deallocate(csdiagl,bdiagl,bsdiagl,diagl)
+             deallocate(prefac)
+          else
+             deallocate(ta0,aaa0,aat0,tt0,sm0)
+             deallocate(prefac0)
+             deallocate(ta1,aaa1,aat1,tt1,sm1)
+             deallocate(csdiag1,bdiag1,bsdiag1,diag1)
+             deallocate(prefac1)
+          endif
+          deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
+          deallocate(aat,tt,sm)
+          deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
+          deallocate(s,st)
+          deallocate(temp)
+       endif        
       endif
 
       call timer_stop(4)

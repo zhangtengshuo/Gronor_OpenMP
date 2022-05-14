@@ -232,7 +232,7 @@
             if(labels.eq.0) then
               if(ising.le.2) call gronor_gntwo(lfndbg)
             else
-              if(itest.eq.0) then
+              if(idevel.eq.0.or.mgr.gt.1) then
                 if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
               else
                 if(ising.le.2) call gronor_gntwo_nolab(lfndbg)

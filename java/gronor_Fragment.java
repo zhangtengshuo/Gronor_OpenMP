@@ -1346,6 +1346,7 @@ public class gronor_Fragment {
 		    inputFile.println(">>> COPY $CurrDir/COMMONORB $CurrDir/"+p+".COMMONORB");
 		    inputFile.println();
 		    inputFile.println("&motra");
+		    inputFile.println("noorth");
 		    inputFile.println("LumOrb");
 		    inputFile.println("frozen");
 		    inputFile.println(" 0");

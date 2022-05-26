@@ -136,6 +136,12 @@
         enddo
       enddo
 
+      if(idbg.ge.10) then
+         write(lfndbg,3612) iamacc
+ 3612    format(" GNOME with iamacc ",i5)
+         flush(lfndbg)
+      endif
+      
       if(iamacc.gt.0) then
         
 !_ACCTGT_($acc data copyin(va,vb))

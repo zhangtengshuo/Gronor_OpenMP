@@ -370,21 +370,21 @@
         write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &       ' allocations maxcib    ',maxcib
         write(lfndbg,'(a,1x,a,1x,a,2i10)') date(1:8),time(1:8),
-     &       ' allocations maxnact   ',maxnact,maxact
+     &       ' allocations nactb(ibase)   ',nactb(ibase),maxact
         flush(lfndbg)
       endif
       
 *     Allocate all intermediate arrays for multi-fragment mebfs      
 
       allocate(inter_civ(maxcib,2))
-      allocate(inter_occ(maxnact,maxcib,2))
+      allocate(inter_occ(nactb(ibase),maxcib,2))
       
       do i=1,maxcib
         inter_civ(i,1)=0.0d0
         inter_civ(i,2)=0.0d0
       enddo
       do i=1,maxcib
-        do j=1,maxnact
+        do j=1,nactb(ibase)
           inter_occ(j,i,1)=0
           inter_occ(j,i,2)=0
         enddo
@@ -405,7 +405,7 @@
       if(idbg.ge.50) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,1x,a,6i10)') date(1:8),time(1:8),
-     &       ' civ/occ ',maxcib,maxnact,
+     &       ' civ/occ ',maxcib,nactb(ibase),
      &       ncombv(1,ibase),ncombv(2,ibase),mstates
         do i=1,mstates
           write(lfndbg,'(a,1x,a,1x,a,6i10)') date(1:8),time(1:8),
@@ -468,7 +468,6 @@
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,10i10)') date(1:8),time(1:8),
      &         ' Frag 1 ndet1_ms ',ndet1_ms
-          print*,ndet1_ms
           do i=1,spincomb(1)+1
             write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
      &           ' ms state ',i
@@ -568,17 +567,17 @@
           endif
 
 !     Reallocate intermediate civ and occ if couplings loop is not ended
-!     otherwise reallocate civb and ioccb in order to store the mebfs          
+!     otherwise reallocate civb and ioccb in order to store the mebfs
 
           deallocate(inter_civ,inter_occ)
-          allocate(inter_civ(maxcib,2),inter_occ(maxnact,maxcib,2))
+          allocate(inter_civ(maxcib,2),inter_occ(nactb(ibase),maxcib,2))
           
           do i=1,maxcib
             inter_civ(i,1)=0.0d0
             inter_civ(i,2)=0.0d0
           enddo
           do i=1,maxcib
-            do j=1,maxnact
+            do j=1,nactb(ibase)
               inter_occ(j,i,1)=0
               inter_occ(j,i,2)=0
             enddo
@@ -712,7 +711,7 @@
           spincomb(2)=spin(icoupling+2)
           call gronor_determine_nci
      &         (2,inter_nact,
-     &         inter_ndet,inter_occ,maxnact,maxcib_prev) 
+     &         inter_ndet,inter_occ,nactb(ibase),maxcib_prev)
           if(idbg.ge.50) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),

@@ -12,7 +12,7 @@
 !     GronOR is copyright of the University of Groningen
       
 !> @brief
-!! GNOME input of sym file
+!! GNOME input of sys file
 !!     
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
@@ -30,16 +30,16 @@
 *      integer, allocatable  :: nCntr(:,:)
       character (len = 19)  :: lAO
 
-      read(lfnsym,*) text
-!     first line of $Project.sym is a dummy
+      read(lfnsys,*) text
+!     first line of $Project.sys is a dummy
       
-      read(lfnsym,'(a72)') name(1)
-      read(lfnsym,'(a72)') name(2)
+      read(lfnsys,'(a72)') name(1)
+      read(lfnsys,'(a72)') name(2)
       if(ipr.gt.0) write(lfnout,601) name(1),name(2)
  601  format(/,' OpenMolcas header from Seward (integral module)',/,
      &     a,/,a)
       flush(lfnout) 
-      read(lfnsym,'(a17,i4)') text,nNucl
+      read(lfnsys,'(a17,i4)') text,nNucl
 
       allocate( centn(nNucl)   )
       allocate( xCord(nNucl)   )
@@ -48,7 +48,7 @@
       allocate(  zNuc(nNucl)   )
       allocate( nCntr(nNucl,7) )
 
-      read(lfnsym,*) text
+      read(lfnsys,*) text
       lAO = 's  p  d  f  g  h  i'
       
       if(ipr.gt.0) write(lfnout,602) lAO
@@ -61,7 +61,7 @@
 
       zNucTot=0.0d0
       do iAtom = 1, nNucl
-        read(lfnsym,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
+        read(lfnsys,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom),
      &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         if(ipr.gt.0)
      &       write(lfnout,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),

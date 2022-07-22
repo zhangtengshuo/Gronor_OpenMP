@@ -41,7 +41,7 @@
       do i=1,nbas
        do j=1,nbas
         if(ising.eq.0) aij=ta(i,j)*deta*2
-        if(ising .gt. 0) aij=diag(i)*sdiag(j)
+        if(ising.gt.0) aij=diag(i)*sdiag(j)
         if(abs(aij).ge.1.0e-12) then
          dx=-1.0d0*dx*aij
          dy=-1.0d0*dy*aij

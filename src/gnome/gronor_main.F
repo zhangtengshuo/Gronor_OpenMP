@@ -232,7 +232,7 @@ c     use cuda_functions
 !!    <caption id="multi_row">Input derived variables</caption> 
 !!    <tr><th> Variable <th> Description
 !!    <tr><td> npg <td> number of processes per group (default is 1)
-!!    <tr><td> nmol <td> number of molecules
+!!    <tr><td> nfrags <td> number of molecules
 !!    <tr><td> mstates <td> number of molecular states
 !!    <tr><td> nbase <td> number of many-electron base (?)
 !!    </table>
@@ -240,7 +240,7 @@ c     use cuda_functions
 !!    <table>
 !!    <caption id="multi_row">Allocated arrays</caption>
 !!    <tr><th> Variable <th> Description
-!!    <tr><td> ncombv(nmol,nbase) <td> the combination
+!!    <tr><td> ncombv(nfrags,nbase) <td> the combination
 !!    <tr><td> nbasm(mstates) <td> number of one-electron basis functions per monomer/state
 !!    <tr><td> inactm(mstates) <td> number of inactive orbitals per monomer/state
 !!    <tr><td> idetm(mstates) <td> number of determinants per monomer/state
@@ -261,7 +261,7 @@ c     use cuda_functions
           call errquit(me,2,"Error in main")
         endif
 
-        nmol=0
+        nfrags=0
 
 !     mstates will be set depending on Molecule input parameters
 
@@ -493,10 +493,10 @@ c     use cuda_functions
        allocate(nactm(mstates))
        allocate(inactm(mstates))
        allocate(idetm(mstates))
-       allocate(iocc(nmol))
-       allocate(iord(nmol))
-       allocate(indx(nmol))
-       do i=1,nmol
+       allocate(iocc(nfrags))
+       allocate(iord(nfrags))
+       allocate(indx(nfrags))
+       do i=1,nfrags
           iocc(i)=i
           iord(i)=0
           indx(i)=0
@@ -517,7 +517,7 @@ c     use cuda_functions
         corres=.false.
 
         if(ipr.ge.30) then
-          write(lfnout,604) nmol,ifault,mstates,itest,nbase,
+          write(lfnout,604) nfrags,ifault,mstates,itest,nbase,
      &         idevel,idist
  604      format(/,' Number of fragments',t40,i10,
      &         t60,'Fault tolerance wait time',t100,i10,' sec',/
@@ -527,7 +527,7 @@ c     use cuda_functions
      &         t60,'Development option',t100,i10,/,
      &         t60,'Distribution option',t100,i10)
         else
-          write(lfnout,605) nmol,mstates,nbase
+          write(lfnout,605) nfrags,mstates,nbase
  605      format(/,' Number of fragments',t40,i10,/,
      &       ' Number of fragment wave functions',t40,i10,/,
      &       ' Number of many-electron base states',t40,i10,/)
@@ -575,7 +575,7 @@ c     use cuda_functions
       if(np.gt.1) then
         
         if(me.eq.master) then
-          idum(1)=nmol
+          idum(1)=nfrags
           idum(2)=mstates
           idum(3)=nbase
           idum(4)=maxci
@@ -651,7 +651,7 @@ c     use cuda_functions
      &       MPI_COMM_WORLD,ierr)
 
         if(me.ne.master) then
-           nmol=idum(1)
+           nfrags=idum(1)
            mstates=idum(2)
            nbase=idum(3)
            maxci=idum(4)
@@ -745,14 +745,14 @@ c     use cuda_functions
       nacc1=naccel
 
       if(me.ne.master) then
-        nmol=idum(1)
+        nfrags=idum(1)
         mstates=idum(2)
         nbase=idum(3)
         maxci=idum(4)
         maxvec=idum(5)
         maxnact=idum(6)
         
-        allocate(ncombv(nmol,nbase))
+        allocate(ncombv(nfrags,nbase))
         allocate(nbasm(mstates))
         allocate(nactm(mstates))
         allocate(inactm(mstates))
@@ -760,10 +760,10 @@ c     use cuda_functions
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
-        if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
-        allocate(iocc(nmol))
-        allocate(indx(nmol))
-        allocate(iord(nmol))
+        if(nfrags.ge.3) allocate(inter_couplings(nfrags-1,nbase))
+        allocate(iocc(nfrags))
+        allocate(indx(nfrags))
+        allocate(iord(nfrags))
         
         iocc(1)=idum(7)
         iocc(2)=idum(8)
@@ -796,14 +796,14 @@ c     use cuda_functions
         ncount=maxnact*maxci*mstates
         call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        ncount=nmol*nbase
+        ncount=nfrags*nbase
         call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=4*mstates
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        if(nmol.ge.3)then
-           ncount=(nmol-1)*nbase
+        if(nfrags.ge.3)then
+           ncount=(nfrags-1)*nbase
            call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,
      &          master,MPI_COMM_WORLD,ierr)
         endif
@@ -818,7 +818,7 @@ c     use cuda_functions
       
       nbasis=0
       mactb=0
-      do i=1,nmol
+      do i=1,nfrags
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
@@ -1486,6 +1486,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       max_coef=0.0
       nci_copy=nci
+
       do i=1,nbase
 
          if(idbg.ge.50) then
@@ -1494,8 +1495,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &           ' entering make_basestate for ibase ',i
             flush(lfndbg)
          endif
-      
-        call gronor_make_basestate(i)
+
+         call gronor_mebf_vectors(i)
+         call gronor_make_basestate(i)
 
          if(idbg.ge.50) then
             call swatch(date,time)
@@ -1503,40 +1505,40 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &           ' returned from make_basestate for ibase ',i
             flush(lfndbg)
          endif
-      
-        nci=nci_copy
-        allocate(sort_coef(maxcib))
-        allocate(sort_occ(maxcib))
+         
+         nci=nci_copy
+         allocate(sort_coef(maxcib))
+         allocate(sort_occ(maxcib))
 
-        do j=1,maxcib
-        sort_coef(j)=0.0
-        sort_occ(j)=0
-      enddo
-      
-        do idet=1, idetb(i)
-          sort_coef(idet)=civb(idet,i)
-          sort_occ(idet)=ioccb(idet,i)
-        enddo
-        length=idetb(i)
-        call quicksort(sort_coef,sort_occ,length)
-        do idet=1, idetb(i)
-          civb(idet,i)=sort_coef(idet)
-          ioccb(idet,i)=sort_occ(idet)
-        enddo
-        deallocate(sort_coef,sort_occ)
-        if(max_coef.lt.abs(civb(1,i))) then
-          max_coef=abs(civb(1,i))
-        endif
-        
-        if(me.eq.master) then
-          call timer_stop(99)
-          call swatch(date,time)
-          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
-     &         '  :  Base state ',i,' completed '
- 1706     format(a8,2x,a8,f12.3,a,i4,a)
-          flush(lfnday)
-          call timer_start(99)
-        endif
+         do j=1,maxcib
+            sort_coef(j)=0.0
+            sort_occ(j)=0
+         enddo
+         
+         do idet=1, idetb(i)
+            sort_coef(idet)=civb(idet,i)
+            sort_occ(idet)=ioccb(idet,i)
+         enddo
+         length=idetb(i)
+         call quicksort(sort_coef,sort_occ,length)
+         do idet=1, idetb(i)
+            civb(idet,i)=sort_coef(idet)
+            ioccb(idet,i)=sort_occ(idet)
+         enddo
+         deallocate(sort_coef,sort_occ)
+         if(max_coef.lt.abs(civb(1,i))) then
+            max_coef=abs(civb(1,i))
+         endif
+         
+         if(me.eq.master) then
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  Base state ',i,' completed '
+ 1706       format(a8,2x,a8,f12.3,a,i4,a)
+            flush(lfnday)
+            call timer_start(99)
+         endif
 
          if(idbg.ge.50) then
             call swatch(date,time)
@@ -1546,7 +1548,10 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
          endif
       enddo
 
-      thres2=tau_CI / max_coef
+!     At this point the fragment vectors will no longer be used
+!     In principle, vecsm can be deallocated here
+
+      thres2=tau_CI/max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
       do ibase=1, nbase
@@ -1556,7 +1561,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         occu_aux=0
         do idet=1, idetb(ibase)
           if(abs(civb(idet,ibase)).gt.thres2) then
-            ndet_rev=ndet_rev + 1
+            ndet_rev=ndet_rev+1
             civb_aux(ndet_rev)=civb(idet,ibase)
             occu_aux(ndet_rev)=ioccb(idet,ibase)
           endif
@@ -2183,7 +2188,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           allocate( hcorr(nbase,nbase) )
           hcorr=0.0
           call gronor_correlation_energy(
-     &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
+     &         nwt,mstates,ecorr,nbase,nfrags,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
           call gronor_print_results(hcorr,sbase,nbase,hev)
@@ -2215,7 +2220,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),mgr,
-     &       nmol,nbase,mstates,tau_MO,tau_CI,
+     &       nfrags,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
      &       trim(command),trim(host)
  801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,4i3,
@@ -2246,7 +2251,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
-      if(nmol.ge.3)deallocate(inter_couplings)
+      if(nfrags.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)

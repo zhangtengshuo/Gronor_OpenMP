@@ -112,7 +112,7 @@
       
 !     generate overlapmatrix-elements for beta spin in closed-shell m.o.
 
-      if(ntcla.ne.0 .and. ntclb.ne.0) then
+      if(ntcla.ne.0.and.ntclb.ne.0) then
        
 !_ACCTGT_($acc parallel loop present(ta))
 !_OMPTGT_($omp target teams distribute parallel do private(ii))
@@ -167,7 +167,7 @@
 
       endif
       
-      if(nvecb.ne.nalfa .and. ntcla.ne.0) then
+      if(nvecb.ne.nalfa.and.ntcla.ne.0) then
 !_ACCTGT_($acc kernels present(va,ta,tb))
 !_OMPTGT_($omp target teams distribute parallel do private(sum))
         do i=1,ntcla
@@ -292,7 +292,7 @@
       
 !     generate overlapmatrix-elements for beta spin in closed-shell m.o.
 
-      if(ntcla.ne.0 .and. ntclb.ne.0) then
+      if(ntcla.ne.0.and.ntclb.ne.0) then
        
 !$omp parallel do
 !$omp& shared(nalfa,ta,ntclb) private(ii,kk)
@@ -349,7 +349,7 @@
 
       endif
       
-      if(nvecb.ne.nalfa .and. ntcla.ne.0) then
+      if(nvecb.ne.nalfa.and.ntcla.ne.0) then
           
 !$omp parallel do
 !$omp& shared(nvecb,va,ta,tb,ntclb) private(sum) collapse(2)

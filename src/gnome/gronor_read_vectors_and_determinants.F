@@ -73,29 +73,29 @@
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
         maxnact=max(maxnact,nactm(i))
-        inactm(i) = inactm(i) - nFrozen(i)
+        inactm(i)=inactm(i)-nFrozen(i)
         close(lfndet)
       enddo
  1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
       allocate(mebfLabel(nbase))
-      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
-         mebfLabels = .false.
-         do j = 1, nbase
+      if((fragLabel(1)(1:8).eq.'no_label').or.(nfrags.gt.3)) then
+         mebfLabels=.false.
+         do j=1,nbase
             write(mebfLabel(j),618) j
-         end do
+         enddo
  618     format(i4)
       else
-         mebfLabels = .true.
+         mebfLabels=.true.
          write(lfnout,607)
      &        ' MEBF ','Electrons   Sum of fragment energies'
  607     format(/,a,t16,a,/)
-         do j = 1,nbase
+         do j=1,nbase
             write(mebfLabel(j),616)
-     &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
+     &           (trim(fragLabel(ncombv(k,j))),k=1,nfrags)
  616        format(10a)
             nume=0
             sume=0.0d0
-            do k=1,nmol
+            do k=1,nfrags
                nume=nume+nElectrons(ncombv(k,j))
                sume=sume+fragEner(ncombv(k,j))
             enddo
@@ -103,12 +103,12 @@
  617        format(1x,a,t16,i5,3x,f22.12)
          enddo
       endif
-      write(lfnarx,701) nbase,nmol
+      write(lfnarx,701) nbase,nfrags
  701  format('State',2i10)
       do j=1,nbase
             nume=0
             sume=0.0d0
-            do k=1,nmol
+            do k=1,nfrags
                nume=nume+nElectrons(ncombv(k,j))
                sume=sume+fragEner(ncombv(k,j))
             enddo
@@ -199,7 +199,7 @@
         do i=1,mstates
           ostate=.false.
           do j=1,nbase
-            do k=1,nmol
+            do k=1,nfrags
               if(ncombv(k,j).eq.i) ostate=.true.
             enddo
           enddo
@@ -225,7 +225,7 @@
         write(lfnout,606) (i,i=1,nbase)
  606    format(/,' Molecular states included in this calculation',//,
      &       ' State        : ',20i4)
-        do i=1,nmol
+        do i=1,nfrags
           if(i.eq.1) then
             write(lfnout,608) i,(ncombv(i,j),j=1,nbase)
           else

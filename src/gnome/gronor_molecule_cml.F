@@ -48,13 +48,13 @@
         new=.true.
         j=1
         do while ((new).and.(j.le.nDiffEl))
-          if (element(int(znuc(i))).eq.molFormula(j)) then
+          if(element(int(znuc(i))).eq.molFormula(j)) then
             stoichio(j)=stoichio(j)+1
             new=.false.
           endif
           j=j+1 
         enddo
-        if (new) then
+        if(new) then
           nDiffEl=nDiffEl+1
           molFormula(nDiffEl)=element(int(znuc(i)))
           stoichio(nDiffEl)=1
@@ -87,7 +87,7 @@
           numj=int(znuc(j))
           distance=c*sqrt((xcord(i)-xcord(j))**2 +
      &          (ycord(i)-ycord(j))**2+(zcord(i)-zcord(j))**2)*0.1d0
-          if (distance .lt. atom_radius(numi)+atom_radius(numj)) then
+          if(distance.lt.atom_radius(numi)+atom_radius(numj)) then
             bond_order='S'
             id1=trim(centn(i))
             id2=trim(centn(j))
@@ -113,7 +113,7 @@
         info_cml='dictRef="gr:atomLabel"'
         call writetag_scalar_string(lfncml,info_cml,indent,id)
         do l=1, 7
-          if (nCntr(i,l).ne.0) lmax=l
+          if(nCntr(i,l).ne.0) lmax=l
         enddo
         sep='|'
         info_cml='dictRef="gr:shells"'

@@ -54,23 +54,23 @@
         write(lfnout,670)
         write(lfntst,670)
  670    format(//,' Hamiltonian Matrix',/)
-        if (.not.mebfLabels) then
+        if(.not.mebfLabels) then
           write(lfnout,671) (i,i=ii,il)
         else
           write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
           write(lfnout,6712)'-------|',('--------------------',i=ii,il)
-        end if
+        endif
         write(lfntst,671) (i,i=ii,il)
         write(lfnarx,671) (i,i=ii,il)
  671    format(6x,7(6x,i8,6x))
  6711   format(7x,a,7(9x,a6,5x))
  6712   format(8a)
         do j=1,nbase
-          if (.not.mebfLabels) then
+          if(.not.mebfLabels) then
             write(lfnout,672) j,(hbase(i,j),i=ii,il)
           else
             write(lfnout,6721) mebfLabel(j),' |',(hbase(i,j),i=ii,il)
-          end if
+          endif
           write(lfnarx,662) j,(hbase(i,j),i=ii,il)
  672      format(i5,1x,10f20.10)
  6721     format(a6,a2,10f20.10)
@@ -94,20 +94,20 @@
         write(lfnout,673)
         write(lfntst,673)
  673    format(//,' Overlap Matrix',/)
-        if (.not.mebfLabels) then
+        if(.not.mebfLabels) then
           write(lfnout,671) (i,i=ii,il)
         else
           write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
           write(lfnout,6712)'-------|',('--------------------',i=ii,il)
-        end if
+        endif
         write(lfntst,671) (i,i=ii,il)
         write(lfnarx,671) (i,i=ii,il)
         do j=1,nbase
-          if (.not.mebfLabels) then
+          if(.not.mebfLabels) then
             write(lfnout,672) j,(sbase(i,j),i=ii,il)
           else
             write(lfnout,6721) mebfLabel(j),' |',(sbase(i,j),i=ii,il)
-          end if
+          endif
           write(lfnarx,662) j,(sbase(i,j),i=ii,il)
           do i=ii,il
             hbt(i)=sbase(i,j)
@@ -119,7 +119,7 @@
       enddo
       
       if(nbase.gt.1) then
-        tc = 0.0
+        tc=0.0
         do i=2,nbase
           do j=1,i-1
             tc(i,j)=(hbase(i,j)
@@ -137,30 +137,30 @@
         do k=1,nk
           ii=(k-1)*ncols+1
           il=min(nbase,k*ncols)
-          if (.not.mebfLabels) then
+          if(.not.mebfLabels) then
             write(lfnout,671) (i,i=ii,il)
           else
             write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
             write(lfnout,6712)'-------|',
      &                     ('--------------------',i=ii,il)
-          end if
+          endif
           write(lfnarx,671) (i,i=ii,il)
           do j=1,nbase
             if(j.eq.1) then
-              if (.not.mebfLabels) then
+              if(.not.mebfLabels) then
                 write(lfnout,672) 1
               else
                 write(lfnout,6721) mebfLabel(1),' |'
-              end if
+              endif
               write(lfnarx,662) 1
             else
               ik=min(j-1,il)
-              if (.not.mebfLabels) then
+              if(.not.mebfLabels) then
                 write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
               else
                 write(lfnout,6721) mebfLabel(j),' |',
      &                             (27.2114d3*tc(j,i),i=ii,ik)
-              end if
+              endif
               write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
             endif
           enddo
@@ -172,7 +172,7 @@
 
         if(nbase.gt.1) then
           info=0
-          lwork = 4 * nbase
+          lwork=4 * nbase
           do j=1,nbase
             do i=1,nbase
               hsave(i,j)=hbase(i,j)
@@ -183,7 +183,7 @@
           call dsygv(1,'V','L',nbase,hsave,nbase,
      &         ssave,nbase,hev,work,lwork,info)
           deallocate(work)
-          if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
+          if(info.ne.0) write(*,*) 'something went wrong in dyegv'
         else
           hev(1)=hbase(1,1)/sbase(1,1)
         endif
@@ -218,14 +218,14 @@
           token="MEBF:"
           do j=1,nbase
              if(j.eq.1) then
-                if (.not.mebfLabels) then
+                if(.not.mebfLabels) then
                    write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
                 else
                    write(lfnout,685)token,mebfLabel(j),
      &                  (hsave(j,i),i=ii,il)
                 endif
              else
-                if (.not.mebfLabels) then
+                if(.not.mebfLabels) then
                    write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
                 else
                    write(lfnout,686)token,mebfLabel(j),
@@ -248,25 +248,25 @@
       endif
 
 *** Dumping the results in the cml file
-      if (ncorr.eq.1) then
-        if (nwt.eq.1) then
-          id = 'id="GNshifted"'
+      if(ncorr.eq.1) then
+        if(nwt.eq.1) then
+          id='id="GNshifted"'
         else
-          id = 'id="shifted"'
-        end if
+          id='id="shifted"'
+        endif
       else
-        id = 'id="standard"'
-      end if
+        id='id="standard"'
+      endif
 * 1. NOCI matrices
-      label = 'module'
-      indent = 4 
-      info_cml = 'dictRef="gr:matrices" id="normalized"'
+      label='module'
+      indent=4 
+      info_cml='dictRef="gr:matrices" id="normalized"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'propertyList'
-      indent= 5
-      info_cml = 'empty'
+      label='propertyList'
+      indent=5
+      info_cml='empty'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'property'
+      label='property'
       info_cml='dictRef="gr:hamiltonian" '//trim(id)
       call open_tag(lfncml,label,info_cml,6)
       info_cml='units="nonsi:hartree"'
@@ -275,95 +275,95 @@
       call writetag_matrix_real(lfncml,info_cml,7,sep,hbase,
      &   size(hbase,1),size(hbase,2),fmt_1)
       call close_tag(lfncml,label,6)
-      if (ncorr.ne.1) then
+      if(ncorr.ne.1) then
         info_cml='dictRef="gr:overlap"'
-        indent = 6
+        indent=6
         call open_tag(lfncml,label,info_cml,indent) 
         info_cml='empty'
         call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,
      &     size(hbase,1),size(hbase,2),fmt_1)
         call close_tag(lfncml,label,6)
-      end if
-      label = 'propertyList'
-      indent= 5
+      endif
+      label='propertyList'
+      indent=5
       call close_tag(lfncml,label,indent)
       label='module'
-      indent = 4
+      indent=4
       call close_tag(lfncml,label,indent)
 * 2. NOCI wf and energy (only when thre is more than one MEBF)
-      if (nbase.gt.1) then
-        indent = 4
-        label = 'module'
-        info_cml = 'dictRef="gr:nociStates"'
+      if(nbase.gt.1) then
+        indent=4
+        label='module'
+        info_cml='dictRef="gr:nociStates"'
         call open_tag(lfncml,label,info_cml,indent)
-        do i = 1, nbase
-          indent= 5
-          info_cml = 'dictRef="gr:nociroot"'
+        do i=1,nbase
+          indent=5
+          info_cml='dictRef="gr:nociroot"'
           call open_tag(lfncml,label,info_cml,indent)
-          label = 'propertyList'
-          info_cml = 'empty'
+          label='propertyList'
+          info_cml='empty'
           call open_tag(lfncml,label,info_cml,6)
-          label = 'property'
-          info_cml = 'dictRef="gr:rootNumber"'
+          label='property'
+          info_cml='dictRef="gr:rootNumber"'
           call open_tag(lfncml,label,info_cml,7)
           info_cml='empty'
           call writetag_scalar_integer(lfncml,info_cml,8,i)
           call close_tag(lfncml,label,7)
-          info_cml = 'dictRef="gr:nociEnergy" '//trim(id)
+          info_cml='dictRef="gr:nociEnergy" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1='f16.8'
-          info_cml = 'units="nonsi:hartree"'
+          info_cml='units="nonsi:hartree"'
           call writetag_scalar_real(lfncml,info_cml,8,hev(i),fmt_1)
           call close_tag(lfncml,label,7)
-          info_cml = 'dictRef="gr:nociRelEnergy" '//trim(id)
+          info_cml='dictRef="gr:nociRelEnergy" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1='f12.4'
-          info_cml2 = trim(info_cml)//' units="nonsi:electronvolt"'
+          info_cml2=trim(info_cml)//' units="nonsi:electronvolt"'
           call writetag_scalar_real(lfncml,info_cml2,8,(hev(i)-hev(1))
      &                                                   *27.2114,fmt_1)
           call close_tag(lfncml,label,7)
-          info_cml = 'dictRef="gr:mebfCoeff" '//trim(id)
+          info_cml='dictRef="gr:mebfCoeff" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
-          fmt_1 = 'f20.10'
+          fmt_1='f20.10'
           call writetag_array_real(lfncml,info_cml,8,sep,hsave(i,:),
      &              size(hsave,2),fmt_1)
           call close_tag(lfncml,label,7)
-          label = 'propertyList'
+          label='propertyList'
           call close_tag(lfncml,label,6)
-          label = 'module'
+          label='module'
           call close_tag(lfncml,label,5)
-        end do
-        indent = 4
+        enddo
+        indent=4
         call close_tag(lfncml,label,indent)
 *3. Electronic couplings (only when there is more than one MEBF)
         do i=1,size(tc,1)
           do j=1,size(tc,2)
             tc(i,j)=tc(i,j)*27211.4d0
-          end do
-        end do
-        indent = 4
-        info_cml = 'dictRef="gr:elCoupling"'
+          enddo
+        enddo
+        indent=4
+        info_cml='dictRef="gr:elCoupling"'
         call open_tag(lfncml,label,info_cml,indent)
-        label = 'propertyList'
+        label='propertyList'
         indent= 5
-        info_cml = 'empty'
+        info_cml='empty'
         call open_tag(lfncml,label,info_cml,indent)
-        label = 'property'
-        info_cml = 'dictRef="gr:mebfCoupling" '//trim(id)
+        label='property'
+        info_cml='dictRef="gr:mebfCoupling" '//trim(id)
         call open_tag(lfncml,label,info_cml,6)
         info_cml='units="nonsi2:meV"'
         fmt_1='f12.4'
         call writetag_matrix_real(lfncml,info_cml,7,sep,tc,
      &              size(tc,1),size(tc,2),fmt_1)
-        label = 'property'
+        label='property'
         call close_tag(lfncml,label,6)
-        label = 'propertyList'
-        indent= 5
+        label='propertyList'
+        indent=5
         call close_tag(lfncml,label,indent)
         label='module'
-        indent = 4
+        indent=4
         call close_tag(lfncml,label,indent)
-      end if
+      endif
 
       flush(lfnarx)
       

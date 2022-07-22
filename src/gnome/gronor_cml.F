@@ -27,33 +27,33 @@
       character(len=132)   :: info_cml
 
       write(lfncml,'(a38)')'<?xml version="1.0" encoding="UTF-8"?>'
-      info_cml = '<module xmlns="http://www.xml-cml.org/schema"'
+      info_cml='<module xmlns="http://www.xml-cml.org/schema"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml=
      &  '  xmlns:cc="http://www.xml-cml.org/dictionary/compchem/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:cml="http://www.xml-cml.org/schema"'
+      info_cml='  xmlns:cml="http://www.xml-cml.org/schema"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:cmlx="http://www.xml-cml.org/schema/cmlx"'
+      info_cml='  xmlns:cmlx="http://www.xml-cml.org/schema/cmlx"'
       write(lfncml,'(a)') trim(info_cml)
       info_cml =
      &  '  xmlns:convention="http://www.xml-cml.org/convention/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml=
      &  '  xmlns:gr="http://www.iochem-bd.org/dictionary/gronor/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:nonsi="http://www.xml-cml.org/unit/nonSi/"'
+      info_cml='  xmlns:nonsi="http://www.xml-cml.org/unit/nonSi/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml=
      &  '  xmlns:nonsi2="http://www.iochem-bd.org/unit/nonSi2/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:si="http://www.xml-cml.org/unit/si/"'
+      info_cml='  xmlns:si="http://www.xml-cml.org/unit/si/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:xi="http://www.w3.org/2001/XInclude"'
+      info_cml='  xmlns:xi="http://www.w3.org/2001/XInclude"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
+      info_cml='  xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = '  convention="convention:compchem">'
+      info_cml='  convention="convention:compchem">'
       write(lfncml,'(a)') trim(info_cml)
       return
 
@@ -77,87 +77,87 @@
       integer,external    :: getcpucount
 
 * Open the calculation
-      label = 'module'
-      indent = 1
-      info_cml = 'id="job" dictRef="cc:jobList"'
+      label='module'
+      indent=1
+      info_cml='id="job" dictRef="cc:jobList"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'module'
-      indent = 2
-      info_cml = 'id="job" dictRef="cc:job"'
+      label='module'
+      indent=2
+      info_cml='id="job" dictRef="cc:job"'
       call open_tag(lfncml,label,info_cml,indent)
 * Block 1: general job info_cml
-      indent = 3
-      info_cml = 'dictRef="cc:environment" id="environment"'
+      indent=3
+      info_cml='dictRef="cc:environment" id="environment"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameterList'
-      indent = 4
-      info_cml = 'empty'
+      label='parameterList'
+      indent=4
+      info_cml='empty'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 5
-      label = 'parameter'
-      info_cml = 'dictRef="cc:program"'
+      indent=5
+      label='parameter'
+      info_cml='dictRef="cc:program"'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 6
-      info_cml = 'empty'
-      programName = 'GronOR'
+      indent=6
+      info_cml='empty'
+      programName='GronOR'
       call writetag_scalar_string(lfncml,info_cml,indent,
      &             programName)
       call close_tag(lfncml,label,5)
-      indent = 5
-      label = 'parameter'
-      info_cml = 'dictRef="cc:programVersion"'
+      indent=5
+      label='parameter'
+      info_cml='dictRef="cc:programVersion"'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 6
-      info_cml = 'empty'
+      indent=6
+      info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,indent,
      &             version)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:programSubversion"'
+      info_cml='dictRef="cc:programSubversion"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,
      &            version_type)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:executable"'
+      info_cml='dictRef="cc:executable"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,command)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:hostName"'
+      info_cml='dictRef="cc:hostName"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,host)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:numProc"'
+      info_cml='dictRef="cc:numProc"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,
      &     int8(getcpucount()))
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="gr:numProcGPU"'
+      info_cml='dictRef="gr:numProcGPU"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,int8(numdev))
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="gr:numRanks"'
+      info_cml='dictRef="gr:numRanks"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,
      &                          max(0,nrsets-nummps*numdev))
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="gr:numAccRanks"'
+      info_cml='dictRef="gr:numAccRanks"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,nummps*numdev)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="gr:taskSize"'
+      info_cml='dictRef="gr:taskSize"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_integer(lfncml,info_cml,6,ntask)
       call close_tag(lfncml,label,5)
       call swatch(date,time)
-      runDate = date(1:8)//'  '//time(1:8)
-      info_cml = 'dictRef="cc:runDate"'
+      runDate=date(1:8)//'  '//time(1:8)
+      info_cml='dictRef="cc:runDate"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,runDate)
@@ -185,27 +185,27 @@
 
 * block 2, job specifics
 
-      method = 'NOCI-Fragments'
-      pointgroup = 'C1'
-      wavefunctionType = 'NOCI'
+      method='NOCI-Fragments'
+      pointgroup='C1'
+      wavefunctionType='NOCI'
 * some day we might want to add 'Properties' as a new method
      
-      label = 'module'
-      indent = 3
-      info_cml = 'dictRef="cc:initialization" id="jobInitialization"'
+      label='module'
+      indent=3
+      info_cml='dictRef="cc:initialization" id="jobInitialization"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'parameterList'
-      indent = 4
-      info_cml = 'empty'
+      label='parameterList'
+      indent=4
+      info_cml='empty'
       call open_tag(lfncml,label,info_cml,indent)
-      indent = 5
-      label = 'parameter'
-      info_cml = 'dictRef="cc:method"'
+      indent=5
+      label='parameter'
+      info_cml='dictRef="cc:method"'
       call open_tag(lfncml,label,info_cml,indent)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,method)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:pointGroup"'
+      info_cml='dictRef="cc:pointGroup"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,pointgroup)
@@ -227,14 +227,14 @@
       sep='|'
       call writetag_array_string(lfncml,info_cml,6,sep,namint,2)
       call close_tag(lfncml,label,5)
-      charge = zNucTot
-      do i = 1, nmol
-        charge = charge - nElectrons(ncombv(i,1))
-      end do
+      charge=zNucTot
+      do i=1,nfrags
+        charge=charge-nElectrons(ncombv(i,1))
+      enddo
       info_cml='dictRef="cc:charge"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="nonsi:elementary_charge"'
-      fmt_1 = 'f10.4'
+      fmt_1='f10.4'
       call writetag_scalar_real(lfncml,info_cml,6,dble(charge),fmt_1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:spinMultiplicity"'
@@ -250,14 +250,14 @@
       call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:nuclearRepulsionEnergy"'
       call open_tag(lfncml,label,info_cml,5)
-      info_cml = 'units="nonsi:hartree"'
+      info_cml='units="nonsi:hartree"'
       fmt_1='f15.8'
       call writetag_scalar_real(lfncml,info_cml,6,potnuc,fmt_1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="gr:fragments"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,nmol)
+      call writetag_scalar_integer(lfncml,info_cml,6,nfrags)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="gr:nFragFunctions"'
       call open_tag(lfncml,label,info_cml,5)
@@ -275,7 +275,7 @@
       call writetag_matrix_integer(lfncml,info_cml,6,sep,ncombv,
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,5)
-      if (mebfLabels) then
+      if(mebfLabels) then
         info_cml='dictRef="gr:mebfLabels"'
         call open_tag(lfncml,label,info_cml,5)
         info_cml='empty'
@@ -283,8 +283,8 @@
         call writetag_array_string(lfncml,info_cml,6,sep,mebfLabel,
      &     size(mebfLabel))
         call close_tag(lfncml,label,5)
-      end if
-      sep =' '
+      endif
+      sep=' '
       info_cml='dictRef="gr:frozen"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
@@ -313,7 +313,7 @@
       label='parameterList'
       call close_tag(lfncml,label,4)
 * remains to dump the molecule on the cml file
-      indent = 4
+      indent=4
       call gronor_molecule_cml(indent)
       label='module'
       call close_tag(lfncml,label,3)
@@ -329,7 +329,7 @@
       character(len=132)   :: info_cml
       character(len=20)    :: label
 
-      label = 'module'
+      label='module'
       info_cml ='dictRef="cc:calculation" id="NOCI"'
       call open_tag(lfncml,label,info_cml,3)
 
@@ -347,40 +347,40 @@
       real(kind=8), external :: timer_wall_total
 
       label='module'
-      indent = 3
+      indent=3
       call close_tag(lfncml,label,indent)
-      indent = 3
-      info_cml = 'dictRef="cc:finalization"'
+      indent=3
+      info_cml='dictRef="cc:finalization"'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'propertyList'
-      indent = 4
-      info_cml = 'empty'
+      label='propertyList'
+      indent=4
+      info_cml='empty'
       call open_tag(lfncml,label,info_cml,indent)
-      label = 'property'
+      label='property'
       call swatch(date,time)
-      stopDate = date(1:8)//'  '//time(1:8)
-      info_cml = 'dictRef="cc:jobdatetime.end"'
+      stopDate=date(1:8)//'  '//time(1:8)
+      info_cml='dictRef="cc:jobdatetime.end"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
       call writetag_scalar_string(lfncml,info_cml,6,stopDate)
       call close_tag(lfncml,label,5)
-      info_cml = 'dictRef="cc:wallTime"'
+      info_cml='dictRef="cc:wallTime"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="si:s"'
       fmt_1='f12.3'
       call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
      &                                fmt_1)
       call close_tag(lfncml,label,5)
-      label = 'propertyList'
+      label='propertyList'
       call close_tag(lfncml,label,4)
       label='module'
-      indent = 3
+      indent=3
       call close_tag(lfncml,label,indent)
-      indent = 2
+      indent=2
       call close_tag(lfncml,label,indent)
-      indent = 1
+      indent=1
       call close_tag(lfncml,label,indent)
-      indent = 0
+      indent=0
       call close_tag(lfncml,label,indent)
 
       end subroutine gronor_finalize_cml

@@ -81,7 +81,7 @@
 
       implicit none
 
-      integer :: nmol,mstates,nbase,nspin
+      integer :: nfrags,mstates,nbase,nspin
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
       character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet

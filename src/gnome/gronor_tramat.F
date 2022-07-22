@@ -58,12 +58,12 @@
 !_OMPTGT_($omp target teams distribute parallel do private(sum))
        do j=1,nbas
         sum=0.0d0
-        if(nalfa .ne. 0) then
+        if(nalfa.ne.0) then
 !_ACCTGT_($acc loop reduction(+:sum))
          do k=1,nalfa
           sum=sum+diag(k)*va(k,j)
          enddo
-         if(ntcla .ne. 0) then
+         if(ntcla.ne.0) then
 !_ACCTGT_($acc loop reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
@@ -71,7 +71,7 @@
           enddo
          endif
         endif
-        if(nalfa .ne. nveca) then
+        if(nalfa.ne.nveca) then
 !_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
@@ -96,12 +96,12 @@
       do j=1,nelecs
        do i=1,nbas
         sum=0.0d0
-        if(nalfa .ne. 0) then
+        if(nalfa.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+va(k,i)*taa(k,j)
          enddo
-         if(ntcla .ne. 0) then
+         if(ntcla.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntcla
            kk=k+nalfa
@@ -109,7 +109,7 @@
           enddo
          endif
         endif
-        if(nalfa .ne. nveca) then
+        if(nalfa.ne.nveca) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
          do k=m1,nveca
           kk=k+ntcla
@@ -135,12 +135,12 @@
       do i=1,nbas
        do j=1,nbas
         sum=0.0d0
-        if(nalfa .ne. 0) then
+        if(nalfa.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+taa(i,k)*vb(k,j)
          enddo
-         if(ntclb .ne. 0) then
+         if(ntclb.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
@@ -148,7 +148,7 @@
           enddo
          endif
         endif
-        if(nalfa .ne. nvecb) then
+        if(nalfa.ne.nvecb) then
 !_ACCTGT_($acc loop reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
@@ -173,12 +173,12 @@
 !_OMPTGT_($omp target teams distribute parallel do private(sum))
        do j=1,nbas
         sum=0.0d0
-        if(nalfa .ne. 0) then
+        if(nalfa.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
          do k=1,nalfa
           sum=sum+sdiag(k)*vb(k,j)
          enddo
-         if(ntclb .ne. 0) then
+         if(ntclb.ne.0) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
           do k=1,ntclb
            kk=k+nalfa
@@ -186,7 +186,7 @@
           enddo
          endif
         endif
-        if(nalfa .ne. nvecb) then
+        if(nalfa.ne.nvecb) then
 !_ACCTGT_($acc loop seq reduction(+:sum))
          do k=m1,nvecb
           kk=k+ntclb
@@ -245,18 +245,18 @@
 !$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum)
         do j=1,nbas
           sum=0.0d0
-          if(nalfa .ne. 0) then
+          if(nalfa.ne.0) then
             do k=1,nalfa
               sum=sum+diag(k)*va(k,j)
             enddo
-            if(ntcla .ne. 0) then
+            if(ntcla.ne.0) then
               do k=1,ntcla
                 kk=k+nalfa
                 sum=sum+diag(kk)*va(k,j)
               enddo
             endif
           endif
-          if(nalfa .ne. nveca) then
+          if(nalfa.ne.nveca) then
             do k=m1,nveca
               kk=k+ntcla
               sum=sum+diag(kk)*va(k,j)
@@ -285,18 +285,18 @@
       do j=1,nelecs
         do i=1,nbas
           sum=0.0d0
-          if(nalfa .ne. 0) then
+          if(nalfa.ne.0) then
             do k=1,nalfa
               sum=sum+va(k,i)*taa(k,j)
             enddo
-            if(ntcla .ne. 0) then
+            if(ntcla.ne.0) then
               do k=1,ntcla
                 kk=k+nalfa
                 sum=sum+va(k,i)*taa(kk,j)
               enddo
             endif
           endif
-          if(nalfa .ne. nveca) then
+          if(nalfa.ne.nveca) then
             do k=m1,nveca
               kk=k+ntcla
               sum=sum+va(k,i)*taa(kk,j)
@@ -327,18 +327,18 @@
       do i=1,nbas
         do j=1,nbas
           sum=0.0d0
-          if(nalfa .ne. 0) then
+          if(nalfa.ne.0) then
             do k=1,nalfa
               sum=sum+taa(i,k)*vb(k,j)
             enddo
-            if(ntclb .ne. 0) then
+            if(ntclb.ne.0) then
               do k=1,ntclb
                 kk=k+nalfa
                 sum=sum+taa(i,kk)*vb(k,j)
               enddo
             endif
           endif
-          if(nalfa .ne. nvecb) then
+          if(nalfa.ne.nvecb) then
             do k=m1,nvecb
               kk=k+ntclb
               sum=sum+taa(i,kk)*vb(k,j)
@@ -369,18 +369,18 @@
 !$omp& private(sum,kk)
         do j=1,nbas
           sum=0.0d0
-          if(nalfa .ne. 0) then
+          if(nalfa.ne.0) then
             do k=1,nalfa
               sum=sum+sdiag(k)*vb(k,j)
             enddo
-            if(ntclb .ne. 0) then
+            if(ntclb.ne.0) then
               do k=1,ntclb
                 kk=k+nalfa
                 sum=sum+sdiag(kk)*vb(k,j)
               enddo
             endif
           endif
-          if(nalfa .ne. nvecb) then
+          if(nalfa.ne.nvecb) then
             do k=m1,nvecb
               kk=k+ntclb
               sum=sum+sdiag(kk)*vb(k,j)

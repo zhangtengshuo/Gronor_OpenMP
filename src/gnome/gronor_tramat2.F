@@ -49,7 +49,7 @@
         bsdiag(j)=0.0d0
       enddo
 
-      if(ising .ne. 0.) then
+      if(ising.ne.0.) then
 
 
 !     transformation of diag and sdiag
@@ -308,7 +308,7 @@
       if(idbg.ge.13) write(lfndbg,600) 
  600  format(/,' Cofactor matrix transform to symmetry functions')
 
-      if(ising .ne. 0.) then
+      if(ising.ne.0.) then
 
 
 !     transformation of diag and sdiag

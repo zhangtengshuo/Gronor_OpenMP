@@ -1569,7 +1569,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
          do idet=1,maxcib
             civb(idet,ibase)=0.0d0
             ioccb(idet,ibase)=0
-         endif
+         enddo
          do idet=1,ndet_rev
             civb(idet,ibase)=civb_aux(idet)
             ioccb(idet,ibase)=occu_aux(idet)

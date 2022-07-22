@@ -2198,15 +2198,15 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(.not.exist) then
           write(lfnlog,800)
  800      format(
-     &         80x,'      T     ',30x,'       ',/,
-     &         80x,'      h     ',30x,'      S',/,
-     &         80x,'      r     ',30x,'F  B  t',/,
-     &         80x,'      e    D',30x,'r  a  a',/,
-     &         80x,'M  G  a  M i',30x,'g  s  t',/
-     &         80x,'P  P  d  g s',30x,'m  e  e',/,
+     &         80x,'      T     ',30x,'          ',/,
+     &         80x,'      h     ',30x,'         S',/,
+     &         80x,'      r     ',30x,'   F  B  t',/,
+     &         80x,'      e    D',30x,'S  r  a  a',/,
+     &         80x,'M  G  a  M i',30x,'i  g  s  t',/
+     &         80x,'P  P  d  g s',30x,'z  m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t '
-     &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
+     &         'Solvers   Task      Batch    e  s  s  s  tau_MO   ',
      &         'tau_CI  User Jobname Command Host',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
@@ -2214,11 +2214,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
+     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),mgr,
      &       nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
      &       trim(command),trim(host)
- 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,4i3,
      &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then

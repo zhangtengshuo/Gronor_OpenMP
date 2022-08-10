@@ -973,7 +973,7 @@
       real(kind=8),allocatable  :: coeff(:)
       character(len=3)      :: suffix
       character(len=255)     :: detFilename
-      character(len=255) :: occ(1000)
+      character(len=255), allocatable :: occ(:)
 
       suffix = 'det'
       iVec = 0
@@ -981,7 +981,11 @@
         do j = 1, nVec(i)
           ndet = 0
           iVec = iVec + 1
+          write(*,'(a,i10)') 'iVec=',iVec
+          write(*,*) trim(project)
+          write(*,*) trim(suffix)
           call getVecFilename(iVec,detFilename,project,suffix)
+          write(*,*) trim(detFilename)
           open(37,file=detFilename,status='old')
           read(37,*) inactm
           do
@@ -993,15 +997,17 @@
               ndet = ndet + 1
             endif
          enddo
+          write(*,'(a,i10)') 'ndet=',ndet
          if(allocated(coeff)) deallocate(coeff)
-c         if(allocated(occ)) deallocate(occ)
+         if(allocated(occ)) deallocate(occ)
          allocate(coeff(ndet))
-c         allocate(occ(ndet))
+         allocate(occ(ndet))
 c         print*,"occ allocated"
           rewind(unit=37)
           read(37,*)
           do idet = 1, ndet
-            read(37,*) coeff(idet),occ(idet)
+             read(37,*) coeff(idet),occ(idet)
+c             write(*,'(e12.6,2x,a)') coeff(idet),trim(occ(idet))
           end do
           rewind(37)
           if (fragLabels.and.energy_on_INPORB) then
@@ -1021,8 +1027,8 @@ c         print*,"occ allocated"
             write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
           end do
           close(37)
-          deallocate(coeff)
-c          deallocate(coeff,occ)
+c          deallocate(coeff)
+          deallocate(coeff,occ)
         end do
  1600 format(2i5,i12,4x,a,4x,f22.12,i5,1pe10.3)
       end do

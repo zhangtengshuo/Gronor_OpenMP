@@ -38,53 +38,53 @@
       integer :: ms,pos1,pos2,spin,oppspin,aux
       logical :: permutation
       
-      nelec=0
-      do i=1,nact
-        nelec=nelec+abs(occ(i))
+      nelec = 0
+      do i = 1, nact
+        nelec = nelec + abs(occ(i))
       end do
-      allocate(occ2(nelec))
+      allocate( occ2(nelec) )
 
       j=0
       ms=0
       nperm=0
       occ2=0
       do i=1,nact
-         if(occ(i).eq.2) then
+         if(occ(i).eq.2)then
             j=j+1
             occ2(j)=1
             ms=ms+1
             j=j+1            
             occ2(j)=-1
             ms=ms-1
-         else if(occ(i).eq.1) then
+         else if(occ(i).eq.1)then
             j=j+1
             occ2(j)=1
             ms=ms+1
-         else if(occ(i).eq.-1) then
+         else if(occ(i).eq.-1)then
             j=j+1
             occ2(j)=-1
             ms=ms-1
          endif
       enddo
-      if(ms.gt.0) then
+      if(ms.gt.0)then
          call alphastoend(occ2,nelec,nperm,ms)
       endif      
       do i=1,nelec-ms-1
          pos1=mod(i-1,2)
-         if(occ2(i).eq.1) then
+         if(occ2(i).eq.1)then
             spin=0
          else
             spin=1
          endif
-         if(pos1.ne.spin) then
+         if(pos1.ne.spin)then
             oppspin=abs(spin-1)
             permutation=.false.
             j=i
             do while(.not.permutation)
                j=j+1
-               if(occ2(j).ne.occ2(i)) then
+               if(occ2(j).ne.occ2(i))then
                   pos2=mod(j-1,2)
-                  if(pos2.ne.oppspin) then
+                  if(pos2.ne.oppspin)then
                      aux=occ2(i)
                      occ2(i)=occ2(j)
                      occ2(j)=aux
@@ -95,7 +95,7 @@
             enddo
          endif
       enddo
-      if(mod(nperm,2).eq.1) then
+      if(mod(nperm,2).eq.1)then
          perm_ab=-1
       else
          perm_ab=1
@@ -114,11 +114,11 @@
       logical             :: permutation
       
       do i=nact-ms+1,nact
-         if(occ(i).eq.-1) then
+         if(occ(i).eq.-1)then
             index=1
             permutation=.false.
             do while(.not.permutation)
-               if(occ(index).eq.1) then
+               if(occ(index).eq.1)then
                   occ(index)=-1
                   occ(i)=1
                   nperm=nperm+i-index

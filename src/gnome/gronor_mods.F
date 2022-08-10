@@ -81,13 +81,13 @@
 
       implicit none
 
-      integer :: nfrags,mstates,nbase,nspin
+      integer :: nmol,mstates,nbase,nspin
 
       character (len=255) :: root,filinp,filout,filpro,fildbg,filday
-      character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
+      character (len=255) :: filsym,filciv,filvec,filint,filtst,fildet
       character (len=255) :: filone,filtwo,fildat,fillog,filtim
       character (len=255) :: filcpr,filarx,filrnk,filcml
-      integer :: lfninp,lfnout,lfnsys,lfnciv,lfnvec,lfnint,lfndet
+      integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet
       integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim
       integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
 

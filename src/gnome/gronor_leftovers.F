@@ -134,6 +134,6 @@
       enddo
       if(jj.ne.nclosed) then
         call errquit(me,9,"Problem in seticlosed")
-      endif
+      end if
       return
       end

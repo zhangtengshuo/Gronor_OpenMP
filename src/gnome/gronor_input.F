@@ -63,22 +63,22 @@
         endif
         
         if(inp_compare(.false.,'Fragments',item)) then
-          if(.not.inp_i(nfrags)) call errquit(me,1,"Input error")
+          if(.not.inp_i(nmol)) call errquit(me,1,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'MEBFs',item)) then
           if(.not.inp_a(mebfroot)) call errquit(me,1,"Input error")
           if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
-          nfrags=0
+          nmol=0
           do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
             last=.not.inp_a(item)
             if(last.or.len(trim(item)).ne.1) then
-              allocate(ncombv(nfrags,nbase))
-              mstates=nfrags*nbase
+              allocate(ncombv(nmol,nbase))
+              mstates=nmol*nbase
               allocate(fragfile(mstates))
-              do i=1,nfrags
+              do i=1,nmol
                 do j=1,nbase
                   ncombv(i,j)=(i-1)*nbase+j
                   write(fragfile((i-1)*nbase+j),'(a,a,a,a)')
@@ -89,11 +89,11 @@
               if(last) goto 1
               goto 3
             endif
-            nfrags=nfrags+1
-            fragname(nfrags)=trim(item)
+            nmol=nmol+1
+            fragname(nmol)=trim(item)
             do i=1,nbase
               if(.not.inp_a(item)) call errquit(me,1,"Input error")
-              fragstate(nfrags,i)=trim(item)
+              fragstate(nmol,i)=trim(item)
             enddo
           enddo
         endif
@@ -105,13 +105,13 @@
         
         if(inp_compare(.false.,'Spin',item)) then
           if(.not.inp_i(nspin)) call errquit(me,1,"Input error")
-          nspin=nspin-1
+          nspin = nspin - 1
           goto 2
         endif
 
         if(inp_compare(.false.,'Couplings',item)) then
-           allocate(inter_couplings(nfrags-1,nbase))
-           do i=1,nfrags-2
+           allocate(inter_couplings(nmol-1,nbase))
+           do i=1,nmol-2
               if(.not.inp_read()) call errquit(me,1,"Input error")
               do j=1,nbase
                  if(.not.inp_i(inter_couplings(i,j)))
@@ -122,7 +122,7 @@
               enddo
            enddo
            do j=1,nbase
-              inter_couplings(nfrags-1,j)=nspin
+              inter_couplings(nmol-1,j)=nspin
            enddo
            goto 2
         endif
@@ -322,12 +322,15 @@
           goto 2
         endif
 
-        if(inp_compare(.false.,'Ecorr',item)) then
-          ncorr=1
+        if (inp_compare(.false.,'Ecorr',item)) then
+          ncorr = 1
           allocate(ecorr(mstates))
           do i=1,mstates
              ecorr(i)=0.0d0
           enddo
+!          do i=1,mstates
+!            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
+!          end do
           do while(.true.)
             if(.not.inp_read()) call errquit(me,1,"Input error")
             if(.not.inp_a(item)) goto 1
@@ -335,7 +338,7 @@
             if(.not.inp_a(item2)) goto 1
             if(.not.inp_f(value)) goto 1
             m=0
-            do i=1,nfrags
+            do i=1,nmol
                do j=1,nbase
                   m=m+1
                   if(fragname(i).eq.trim(item).and.
@@ -351,8 +354,8 @@
       endif
         
 *     Use Gallup-Norbeck weights? Yes, nwt=1; No, nwt .ne. 1
-        if(inp_compare(.false.,'GNWeights',item)) then
-          if(.not.inp_i(nwt)) nwt=0
+        if (inp_compare(.false.,'GNWeights',item)) then
+          if(.not.inp_i(nwt)) nwt = 0
           goto 2
         endif
         

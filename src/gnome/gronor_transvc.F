@@ -62,11 +62,11 @@
 
 !     Transform the M.O.'s   (no so much to transform if there is no symmetry)
 
-      do im=1,itemp(2)           ! number of non-empty orbitals
-        do k=1,nbas              ! number of basis functions
+      do im = 1, itemp(2)           ! number of non-empty orbitals
+        do k = 1, nbas              ! number of basis functions
           vtemp(im,k,idet)=vec(im,k,idet)
-        enddo
-      enddo
+        end do
+      end do
       if(idbg.ge.13) write(lfndbg,604)
  604  format(/,' M.O.''s are transformed')
 

@@ -103,11 +103,11 @@ c     d
 !_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
        
 !_ACCTGT_($acc host_data use_device(ta))
-          cusolver_status=cusolverDnDgesvd_bufferSize
+          cusolver_status = cusolverDnDgesvd_bufferSize
      &         (cusolver_handle,ndim,ndim,lwork1)
 !_ACCTGT_($acc end host_data)
 
-          if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
 !_ACCTGT_($acc end data)
@@ -116,36 +116,36 @@ c     d
           
           ndim=nelecs
           mdim=mbasel
-          tol=tolsvj
-          max_sweeps=iswsvj
+          tol = tolsvj
+          max_sweeps = iswsvj
           
           jobz=CUSOLVER_EIG_MODE_VECTOR
         
 !_ACCTGT_($acc data create(dev_info_d,u,w,ev,ta))
 
-          cusolver_status=cudaStreamCreateWithFlags
+          cusolver_status = cudaStreamCreateWithFlags
      &         (stream,cudaStreamNonBlocking)
           
-          cusolver_status=cusolverDnSetStream(cusolver_handle,stream)
+          cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
           
-          cusolver_status=cusolverDnCreateGesvdjInfo(gesvdj_params)
+          cusolver_status = cusolverDnCreateGesvdjInfo(gesvdj_params)
           
-          cusolver_status=cusolverDnXgesvdjSetTolerance
+          cusolver_status = cusolverDnXgesvdjSetTolerance
      &         (gesvdj_params,tol)
           
-          cusolver_status=cusolverDnXgesvdjSetMaxSweeps
+          cusolver_status = cusolverDnXgesvdjSetMaxSweeps
      &         (gesvdj_params,max_sweeps)
 
 !_ACCTGT_($acc host_data use_device(ta,ev,u,w))
 
-          cusolver_status=cusolverDnDgesvdj_bufferSize
+          cusolver_status = cusolverDnDgesvdj_bufferSize
      &         (cusolver_handle,jobz,econ,
      &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,
      &         gesvdj_params)
         
 !_ACCTGT_($acc end host_data)
 
-          if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDgesvdj_bufferSize failed",
      &         cusolver_status
 
@@ -159,13 +159,13 @@ c     d
 !_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
 
 !_ACCTGT_($acc host_data use_device(ta,w))
-          cusolver_status=cusolverDnDsyevd_bufferSize
+          cusolver_status = cusolverDnDsyevd_bufferSize
      &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
      &         CUBLAS_FILL_MODE_LOWER,
      &         ndim,ta,mdim,w,lwork2)
 !_ACCTGT_($acc end host_data)
 
-          if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDsyevd_bufferSize failed",
      &         cusolver_status
 
@@ -177,37 +177,37 @@ c     d
           
           ndim=nelecs
           mdim=mbasel
-          tol=tolevj
-          max_sweeps=iswevj
+          tol = tolevj
+          max_sweeps = iswevj
           
-          jobz=CUSOLVER_EIG_MODE_NOVECTOR
-          uplo=CUBLAS_FILL_MODE_LOWER
+          jobz = CUSOLVER_EIG_MODE_NOVECTOR
+          uplo = CUBLAS_FILL_MODE_LOWER
         
 !_ACCTGT_($acc data create(dev_info_d,w,ta,ev))
 
-          cusolver_status=cudaStreamCreateWithFlags
+          cusolver_status = cudaStreamCreateWithFlags
      &         (stream,cudaStreamNonBlocking)
           
-          cusolver_status=cusolverDnSetStream(cusolver_handle,stream)
+          cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
           
-          cusolver_status=cusolverDnCreateSyevjInfo(syevj_params)
+          cusolver_status = cusolverDnCreateSyevjInfo(syevj_params)
           
-          cusolver_status=cusolverDnXsyevjSetTolerance
+          cusolver_status = cusolverDnXsyevjSetTolerance
      &         (syevj_params,tol)
           
-          cusolver_status=cusolverDnXsyevjSetMaxSweeps
+          cusolver_status = cusolverDnXsyevjSetMaxSweeps
      &         (syevj_params,max_sweeps)
 
 !_ACCTGT_($acc host_data use_device(ta,w))
   
-          cusolver_status=cusolverDnDsyevj_bufferSize
+          cusolver_status = cusolverDnDsyevj_bufferSize
      &         (cusolver_handle,jobz,uplo,
      &         ndim,ta,mdim,ev,lwork2,
      &         syevj_params)
         
 !_ACCTGT_($acc end host_data)
 
-          if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &         print *,"cusolverDnDsyevj_bufferSize failed",
      &         cusolver_status
 
@@ -453,8 +453,8 @@ c     call MPI_Wait(ireq,status,ierr)
 
       if(iamacc.gt.0) then
 #ifdef CUSOLVER
-        cusolver_status=cusolverDnDestroy(cusolver_handle)
-        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+        cusolver_status = cusolverDnDestroy(cusolver_handle)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &        write(*,*) 'cusolver_handle destruction failed'
 #endif
       endif

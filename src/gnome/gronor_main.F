@@ -37,8 +37,8 @@
 !!     <tr><th>File name <th> File Description <th> String <th> Unit <th> Source
 !!     <tr><td>\$(root).inp <td> input file <td> filinp <td> lfninp <td>
 !!     <tr><td>\$(root).out <td> output file <td> filout <td> lfnout <td>
-!!     <tr><td>\$(root).sys <td> system information, such as
-!!                 coordinates, basis set <td> filsys <td> lfnsys <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root).sym <td> symmetry of MOs for different sets,
+!!                 coordinates, basis set <td> filsym <td> lfnsym <td> OpenMolcas Auxiliary
 !!     <tr><td>\$(root)_nnn.civ <td> CI vectors, one for every nnn=1,mstates
 !!                 <td> filciv <td> lfnciv <td> OpenMolcas Auxiliary
 !!     <tr><td>\$(root)_nnn.vec <td> MO vectors, one for every nnn=1,mstates
@@ -146,7 +146,7 @@ c     use cuda_functions
 
 !     input file: filinp with logical file number lfninp
 !     output file: filout with logical file number lfnout
-!     system file: filsys with logical file number lfnsys
+!     symmetry file: filsym with logical file number lfnsym
 !     what is on?: filciv with logical file number lfnciv
 !     what is on?: filvec with logical file number lfnvec
 
@@ -161,8 +161,8 @@ c     use cuda_functions
         lfninp=5
         filout=string(1:inp_strlen(string))//'.out'
         lfnout=16
-        filsys=root(1:inp_strlen(root))//'.sys'
-        lfnsys=7
+        filsym=root(1:inp_strlen(root))//'.sym'
+        lfnsym=7
         lfnciv=9
         lfnvec=10
         filint=root(1:inp_strlen(root))//'.int'
@@ -232,7 +232,7 @@ c     use cuda_functions
 !!    <caption id="multi_row">Input derived variables</caption> 
 !!    <tr><th> Variable <th> Description
 !!    <tr><td> npg <td> number of processes per group (default is 1)
-!!    <tr><td> nfrags <td> number of molecules
+!!    <tr><td> nmol <td> number of molecules
 !!    <tr><td> mstates <td> number of molecular states
 !!    <tr><td> nbase <td> number of many-electron base (?)
 !!    </table>
@@ -240,7 +240,7 @@ c     use cuda_functions
 !!    <table>
 !!    <caption id="multi_row">Allocated arrays</caption>
 !!    <tr><th> Variable <th> Description
-!!    <tr><td> ncombv(nfrags,nbase) <td> the combination
+!!    <tr><td> ncombv(nmol,nbase) <td> the combination
 !!    <tr><td> nbasm(mstates) <td> number of one-electron basis functions per monomer/state
 !!    <tr><td> inactm(mstates) <td> number of inactive orbitals per monomer/state
 !!    <tr><td> idetm(mstates) <td> number of determinants per monomer/state
@@ -261,7 +261,7 @@ c     use cuda_functions
           call errquit(me,2,"Error in main")
         endif
 
-        nfrags=0
+        nmol=0
 
 !     mstates will be set depending on Molecule input parameters
 
@@ -456,14 +456,14 @@ c     use cuda_functions
  602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
      &       t60,'Total memory on device',t90,f24.3,' GB')
         if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
-     &       filinp(1:inp_strlen(filinp)),filsys(1:inp_strlen(filsys)),
+     &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
      &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
      &       root(1:inp_strlen(root)),
      &       root(1:inp_strlen(root))
  603    format(/,' Command argument',t30,a,/,
      &       ' Current working directory',t30,a,//,
      &       ' Input file is',t25,a,t60,
-     &       'System file is',t92,a,/,
+     &       'Symmetry file is',t92,a,/,
      &       ' Output file is',t25,a,t60,
      &       'One electron integral file is',t92,a,//,
      &       ' CI vector file(s) are',t25,a,'_nnn.det',/
@@ -493,10 +493,10 @@ c     use cuda_functions
        allocate(nactm(mstates))
        allocate(inactm(mstates))
        allocate(idetm(mstates))
-       allocate(iocc(nfrags))
-       allocate(iord(nfrags))
-       allocate(indx(nfrags))
-       do i=1,nfrags
+       allocate(iocc(nmol))
+       allocate(iord(nmol))
+       allocate(indx(nmol))
+       do i=1,nmol
           iocc(i)=i
           iord(i)=0
           indx(i)=0
@@ -517,7 +517,7 @@ c     use cuda_functions
         corres=.false.
 
         if(ipr.ge.30) then
-          write(lfnout,604) nfrags,ifault,mstates,itest,nbase,
+          write(lfnout,604) nmol,ifault,mstates,itest,nbase,
      &         idevel,idist
  604      format(/,' Number of fragments',t40,i10,
      &         t60,'Fault tolerance wait time',t100,i10,' sec',/
@@ -527,7 +527,7 @@ c     use cuda_functions
      &         t60,'Development option',t100,i10,/,
      &         t60,'Distribution option',t100,i10)
         else
-          write(lfnout,605) nfrags,mstates,nbase
+          write(lfnout,605) nmol,mstates,nbase
  605      format(/,' Number of fragments',t40,i10,/,
      &       ' Number of fragment wave functions',t40,i10,/,
      &       ' Number of many-electron base states',t40,i10,/)
@@ -555,7 +555,7 @@ c     use cuda_functions
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
         
         call gronor_gnome_molcas_input() ! OpenMolcas
-        close(unit=lfnsys)
+        close(unit=lfnsym)
 
         call gronor_env_cml(version,version_type)
         call gronor_init_cml
@@ -575,7 +575,7 @@ c     use cuda_functions
       if(np.gt.1) then
         
         if(me.eq.master) then
-          idum(1)=nfrags
+          idum(1)=nmol
           idum(2)=mstates
           idum(3)=nbase
           idum(4)=maxci
@@ -651,7 +651,7 @@ c     use cuda_functions
      &       MPI_COMM_WORLD,ierr)
 
         if(me.ne.master) then
-           nfrags=idum(1)
+           nmol=idum(1)
            mstates=idum(2)
            nbase=idum(3)
            maxci=idum(4)
@@ -745,14 +745,14 @@ c     use cuda_functions
       nacc1=naccel
 
       if(me.ne.master) then
-        nfrags=idum(1)
+        nmol=idum(1)
         mstates=idum(2)
         nbase=idum(3)
         maxci=idum(4)
         maxvec=idum(5)
         maxnact=idum(6)
         
-        allocate(ncombv(nfrags,nbase))
+        allocate(ncombv(nmol,nbase))
         allocate(nbasm(mstates))
         allocate(nactm(mstates))
         allocate(inactm(mstates))
@@ -760,10 +760,10 @@ c     use cuda_functions
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
-        if(nfrags.ge.3) allocate(inter_couplings(nfrags-1,nbase))
-        allocate(iocc(nfrags))
-        allocate(indx(nfrags))
-        allocate(iord(nfrags))
+        if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
+        allocate(iocc(nmol))
+        allocate(indx(nmol))
+        allocate(iord(nmol))
         
         iocc(1)=idum(7)
         iocc(2)=idum(8)
@@ -796,14 +796,14 @@ c     use cuda_functions
         ncount=maxnact*maxci*mstates
         call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        ncount=nfrags*nbase
+        ncount=nmol*nbase
         call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
         ncount=4*mstates
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,
      &       MPI_COMM_WORLD,ierr)
-        if(nfrags.ge.3)then
-           ncount=(nfrags-1)*nbase
+        if(nmol.ge.3)then
+           ncount=(nmol-1)*nbase
            call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,
      &          master,MPI_COMM_WORLD,ierr)
         endif
@@ -818,7 +818,7 @@ c     use cuda_functions
       
       nbasis=0
       mactb=0
-      do i=1,nfrags
+      do i=1,nmol
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
@@ -1486,7 +1486,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       max_coef=0.0
       nci_copy=nci
-
       do i=1,nbase
 
          if(idbg.ge.50) then
@@ -1495,9 +1494,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &           ' entering make_basestate for ibase ',i
             flush(lfndbg)
          endif
-
-         call gronor_mebf_vectors(i)
-         call gronor_make_basestate(i)
+      
+        call gronor_make_basestate(i)
 
          if(idbg.ge.50) then
             call swatch(date,time)
@@ -1505,40 +1503,40 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &           ' returned from make_basestate for ibase ',i
             flush(lfndbg)
          endif
-         
-         nci=nci_copy
-         allocate(sort_coef(maxcib))
-         allocate(sort_occ(maxcib))
+      
+        nci=nci_copy
+        allocate(sort_coef(maxcib))
+        allocate(sort_occ(maxcib))
 
-         do j=1,maxcib
-            sort_coef(j)=0.0
-            sort_occ(j)=0
-         enddo
-         
-         do idet=1, idetb(i)
-            sort_coef(idet)=civb(idet,i)
-            sort_occ(idet)=ioccb(idet,i)
-         enddo
-         length=idetb(i)
-         call quicksort(sort_coef,sort_occ,length)
-         do idet=1, idetb(i)
-            civb(idet,i)=sort_coef(idet)
-            ioccb(idet,i)=sort_occ(idet)
-         enddo
-         deallocate(sort_coef,sort_occ)
-         if(max_coef.lt.abs(civb(1,i))) then
-            max_coef=abs(civb(1,i))
-         endif
-         
-         if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Base state ',i,' completed '
- 1706       format(a8,2x,a8,f12.3,a,i4,a)
-            flush(lfnday)
-            call timer_start(99)
-         endif
+        do j=1,maxcib
+        sort_coef(j)=0.0
+        sort_occ(j)=0
+      enddo
+      
+        do idet=1, idetb(i)
+          sort_coef(idet)=civb(idet,i)
+          sort_occ(idet)=ioccb(idet,i)
+        enddo
+        length=idetb(i)
+        call quicksort(sort_coef,sort_occ,length)
+        do idet=1, idetb(i)
+          civb(idet,i)=sort_coef(idet)
+          ioccb(idet,i)=sort_occ(idet)
+        enddo
+        deallocate(sort_coef,sort_occ)
+        if(max_coef.lt.abs(civb(1,i))) then
+          max_coef=abs(civb(1,i))
+        endif
+        
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Base state ',i,' completed '
+ 1706     format(a8,2x,a8,f12.3,a,i4,a)
+          flush(lfnday)
+          call timer_start(99)
+        endif
 
          if(idbg.ge.50) then
             call swatch(date,time)
@@ -1548,68 +1546,63 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
          endif
       enddo
 
-!     At this point the fragment vectors will no longer be used
-!     In principle, vecsm can be deallocated here
-
-      thres2=tau_CI/max_coef
+      thres2=tau_CI / max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
-      do ibase=1,nbase
-         ndeti=idetb(ibase)
-         ndet_rev=0
-         civb_aux=0.0
-         occu_aux=0
-         do idet=1, idetb(ibase)
-            if(abs(civb(idet,ibase)).gt.thres2) then
-               ndet_rev=ndet_rev+1
-               civb_aux(ndet_rev)=civb(idet,ibase)
-               occu_aux(ndet_rev)=ioccb(idet,ibase)
-            endif
-         enddo
-         do idet=1,maxcib
-            civb(idet,ibase)=0.0d0
-            ioccb(idet,ibase)=0
-         enddo
-         do idet=1,ndet_rev
-            civb(idet,ibase)=civb_aux(idet)
-            ioccb(idet,ibase)=occu_aux(idet)
-         enddo
-         idetb(ibase)=ndet_rev
-         if(me.eq.master) then
-            call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
-     &           '  :  Base state ',ibase,
-     &           ' coefficient list reduced from    ',
-     &           ndeti,' to ',ndet_rev
- 1710       format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
-            flush(lfnday)
-            call timer_start(99)
-         endif
+      do ibase=1, nbase
+        ndeti=idetb(ibase)
+        ndet_rev=0
+        civb_aux=0.0
+        occu_aux=0
+        do idet=1, idetb(ibase)
+          if(abs(civb(idet,ibase)).gt.thres2) then
+            ndet_rev=ndet_rev + 1
+            civb_aux(ndet_rev)=civb(idet,ibase)
+            occu_aux(ndet_rev)=ioccb(idet,ibase)
+          endif
+        enddo
+        civb(:,ibase)=0.0
+        ioccb(:,ibase)=0
+        do idet=1, ndet_rev
+          civb(idet,ibase)=civb_aux(idet)
+          ioccb(idet,ibase)=occu_aux(idet)
+        enddo
+        idetb(ibase)=ndet_rev
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
+     &         '  :  Base state ',ibase,
+     &         ' coefficient list reduced from    ',
+     &         ndeti,' to ',ndet_rev
+ 1710     format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
+          flush(lfnday)
+          call timer_start(99)
+        endif
       enddo
       deallocate(civb_aux,occu_aux)
 
       do i=1,nbase
-         if(idbg.gt.50) then
-            ndeti=idetb(i)
-            nacti=nactb(i)
-            write(lfndbg,1601) i,ndeti
- 1601       format(/,' Basestate ',i4,' wavefunction has ',i8,
-     &           ' determinants:',/)
-            do ib=1,ndeti
-               call unpack(ioccb(ib,i),iocch,nacti)
-               write(lfndbg,1602) ib,civb(ib,i),(iocch(k),k=1,nacti)
- 1602          format(i5,f15.5,32i3)
-            enddo
-            write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
- 1603       format(/,' Basestate ',i4,' vector ',2i8)
-            do ivc=1,nactb(i)+inactb(i)
-               write(lfndbg,1604) '(',ivc,')',
-     &              (vecsb(ibas,ivc,i),ibas=1,nbas)
- 1604          format(a2,i3,a1,(t9,10f12.8))
-            enddo
-            flush(lfndbg)
-         endif
+        if(idbg.gt.50) then
+          ndeti=idetb(i)
+          nacti=nactb(i)
+          write(lfndbg,1601) i,ndeti
+ 1601     format(/,' Basestate ',i4,' wavefunction has ',i8,
+     &         ' determinants:',/)
+          do ib=1,ndeti
+            call unpack(ioccb(ib,i),iocch,nacti)
+            write(lfndbg,1602) ib,civb(ib,i),(iocch(k),k=1,nacti)
+ 1602       format(i5,f15.5,32i3)
+          enddo
+          write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
+ 1603     format(/,' Basestate ',i4,' vector ',2i8)
+          do ivc=1,nactb(i)+inactb(i)
+            write(lfndbg,1604) '(',ivc,')',
+     &           (vecsb(ibas,ivc,i),ibas=1,nbas)
+ 1604       format(a2,i3,a1,(t9,10f12.8))
+          enddo
+          flush(lfndbg)
+        endif
       enddo
       
       call timer_stop(7)
@@ -2190,7 +2183,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           allocate( hcorr(nbase,nbase) )
           hcorr=0.0
           call gronor_correlation_energy(
-     &         nwt,mstates,ecorr,nbase,nfrags,ncombv,hbase,sbase,hcorr)
+     &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
           call gronor_print_results(hcorr,sbase,nbase,hev)
@@ -2205,15 +2198,15 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         if(.not.exist) then
           write(lfnlog,800)
  800      format(
-     &         80x,'      T     ',30x,'          ',/,
-     &         80x,'      h     ',30x,'         S',/,
-     &         80x,'      r     ',30x,'   F  B  t',/,
-     &         80x,'      e    D',30x,'S  r  a  a',/,
-     &         80x,'M  G  a  M i',30x,'i  g  s  t',/
-     &         80x,'P  P  d  g s',30x,'z  m  e  e',/,
+     &         80x,'      T     ',30x,'       ',/,
+     &         80x,'      h     ',30x,'      S',/,
+     &         80x,'      r     ',30x,'F  B  t',/,
+     &         80x,'      e    D',30x,'r  a  a',/,
+     &         80x,'M  G  a  M i',30x,'g  s  t',/
+     &         80x,'P  P  d  g s',30x,'m  e  e',/,
      &         '  Date     Time      Setup        Main       ',
      &         'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t '
-     &         'Solvers   Task      Batch    e  s  s  s  tau_MO   ',
+     &         'Solvers   Task      Batch    s  s  s  tau_MO   ',
      &         'tau_CI  User Jobname Command Host',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),
@@ -2221,11 +2214,11 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       timer_wall_total(98),timer_wall_total(99),
      &       nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr,
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),mgr,
-     &       nfrags,nbase,mstates,tau_MO,tau_CI,
+     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
+     &       nmol,nbase,mstates,tau_MO,tau_CI,
      &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
      &       trim(command),trim(host)
- 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,4i3,
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,
      &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
@@ -2253,7 +2246,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
-      if(nfrags.ge.3)deallocate(inter_couplings)
+      if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
@@ -2380,9 +2373,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call errquit(me,2,"Error in main")
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))
       call errquit(me,2,"Error in main")
- 994  write(lfnout,984) filsys(1:inp_strlen(fildbg))
+ 994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
       call errquit(me,2,"Error in main")
- 995  write(lfnout,985) filsys(1:inp_strlen(filsys))
+ 995  write(lfnout,985) filsym(1:inp_strlen(filsym))
       call errquit(me,2,"Error in main")
  996  write(lfnout,986) filout(1:inp_strlen(filout))
       call errquit(me,2,"Error in main")
@@ -2392,7 +2385,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call errquit(me,2,"Error in main")
  983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
- 985  format('Unable to open system file ',a)
+ 985  format('Unable to open symmetry file ',a)
  986  format('Unable to open output file ',a)
  987  format('Unable to open vects file ',a)
  988  format('Unable to open civec file ',a)

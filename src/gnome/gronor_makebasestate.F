@@ -86,13 +86,96 @@
       real (kind=8), allocatable :: inter_civ(:,:)
       real (kind=8), allocatable :: civb_copy(:,:)
 
+      if(idbg.ge.1.and.me.eq.master) idbg=100
+
+      if(idbg.ge.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
+     &       ' makebasestate for nmol ',nmol
+        flush(lfndbg)
+      endif
+      
+      inactb(ibase)=0
+      nactb(ibase)=0
+      do i=1,nmol
+        inactb(ibase)=inactb(ibase)+inactm(ncombv(i,ibase))
+        nactb(ibase)=nactb(ibase)+nactm(ncombv(i,ibase))
+      enddo
+
+      if ( nactb(ibase) .gt. maxact) then
+        call errquit(me,3,"Too many active orbitals")
+!     write(lfnout,*)' * * *  Error  * * *'
+!     write(lfnout,*)'Max. number of active orbitals: ',maxact
+!     write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
+!     stop 'Too many active orbitals'
+      endif
+
+      if(idbg.ge.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,1x,a,i4,a,i6)') date(1:8),time(1:8),
+     &       ' number of inactive orbitals for state',ibase,
+     &       ' is ',inactb(ibase)
+        write(lfndbg,'(a,1x,a,1x,a,i4,a,i6)') date(1:8),time(1:8),
+     &       ' number of active orbitals for state  ',ibase,
+     &       ' is ',nactb(ibase)
+        flush(lfndbg)
+      endif
+      
+!     Combining the vectors of the fragments
+
+      do i=1,nbasis
+        do j=1,nbasis
+          vecsb(i,j,ibase)=0.0d0
+        enddo
+      enddo
+      jstart=1
+      kstart=1
+      do i=1,nmol
+        do j=1,inactm(ncombv(i,ibase))
+          do k=1,nbasm(ncombv(i,ibase))
+            vecsb(kstart+k-1,jstart+j-1,ibase)=
+     &           vecsm(k,j,ncombv(i,ibase))
+          enddo
+        enddo
+        kstart=kstart+nbasm(ncombv(i,ibase))
+        jstart=jstart+inactm(ncombv(i,ibase))
+      enddo
+
+      if(idbg.ge.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &       ' vecsb step 1 completed'
+        flush(lfndbg)
+      endif
+      
+      jstart=inactb(ibase)+1
+      kstart=1
+
+      do i=1,nmol
+        do j=1,nactm(ncombv(i,ibase))
+          do k=1,nbasm(ncombv(i,ibase))
+            vecsb(kstart+k-1,jstart+j-1,ibase)=vecsm(k,j+
+     &           inactm(ncombv(i,ibase)),ncombv(i,ibase))
+          enddo
+        enddo
+        kstart=kstart+nbasm(ncombv(i,ibase))
+        jstart=jstart+nactm(ncombv(i,ibase))
+      enddo
+
+      if(idbg.ge.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+     &       ' vecsb step 2 completed'
+        flush(lfndbg)
+      endif
+
 !     Generation of the spin functions
 
-      allocate(spin(nfrags))
+      allocate ( spin(nmol) )
       all_singlet=.true.
-      do i=1,nfrags
+      do i=1,nmol
         spin(i)=spinm(ncombv(i,ibase))
-        if(spin(i).ne.0 ) all_singlet=.false.
+        if ( spin(i) .ne. 0 ) all_singlet=.false.
       enddo
 
       if(idbg.ge.50) then
@@ -115,13 +198,13 @@
       endif
 
 !     Just one molecule
-      if(nfrags.eq.1) then
+      if ( nmol .eq. 1 ) then
         do i=1,idetm(ibase)
           do jact=1,nactm(ibase)
             iocch(jact)=ioccm(jact,i,ibase)
           enddo
-          civb(i,ibase)=civm(i,ibase)*perm_ab(iocch,nactm(ibase))
-          civb(i,ibase)=civb(i,ibase)*isetsign4(iocch,nactm(ibase))
+          civb(i,ibase)=civm(i,ibase) * perm_ab(iocch,nactm(ibase))
+          civb(i,ibase)=civb(i,ibase) * isetsign4(iocch,nactm(ibase))
           call pack(ioccb(i,ibase),iocch,nactm(ibase))
         enddo
         ndets=idetm(ibase)
@@ -129,7 +212,7 @@
         if(idbg.ge.50) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
-     &         ' vecsb civb/ioccb completed for nfrags ',nfrags
+     &         ' vecsb civb/ioccb completed for nmol ',nmol
           flush(lfndbg)
         endif
         goto 1581
@@ -139,12 +222,12 @@
       state2=ncombv(2,ibase)
 
 *     Two singlet fragments
-      if(all_singlet.and.nfrags.eq.2) then
+      if ( all_singlet .and. nmol.eq.2 ) then
         k=0
         do i=1,idetm(state1)
           do j=1,idetm(state2)
-            prod=civm(i,state1)*civm(j,state2)
-            if(abs(prod).gt.tau_CI) then
+            prod=civm(i,state1) * civm(j,state2)
+            if ( abs(prod) .gt. tau_CI ) then
               k=k+1
               civb(k,ibase)=prod
               kk=0
@@ -157,9 +240,9 @@
                 iocch(kk)=ioccm(jact,j,state2)
               enddo
               call pack(ioccb(k,ibase),iocch,nactb(ibase))
-              civb(k,ibase)=civb(k,ibase)*
+              civb(k,ibase)=civb(k,ibase) * 
      &             perm_ab(iocch,nactb(ibase))
-              civb(k,ibase)=civb(k,ibase)*
+              civb(k,ibase)=civb(k,ibase) * 
      &             isetsign4(iocch,nactb(ibase))
             endif
           enddo
@@ -168,22 +251,22 @@
         if(idbg.ge.50) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
-     &         ' vecsb civb/ioccb completed for nfrags ',nfrags
+     &         ' vecsb civb/ioccb completed for nmol ',nmol
           flush(lfndbg)
         endif
         goto 1581
       endif
       
-      if(nfrags.gt.2) then
+      if (nmol.gt.2) then
         if(idbg.ge.50) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),
-     &         ' intercouplings for nfrags ',nfrags
+     &         ' intercouplings for nmol ',nmol
           flush(lfndbg)
         endif
 !     write(lfnout,*)'INTER COUPLINGS'
 !     do i=1,nbase
-!     write(lfnout,'(200I2)')(inter_couplings(j,i),j=1,nfrags-1)
+!     write(lfnout,'(200I2)')(inter_couplings(j,i),j=1,nmol-1)
 !     enddo
 !     flush(lfnout)
       endif
@@ -358,7 +441,7 @@
       
 !     Make the compound product of all couplings
 
-      do icoupling=1,nfrags-1
+      do icoupling=1,nmol-1
         if(idbg.ge.100) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,i10)') date(1:8),time(1:8),
@@ -431,7 +514,7 @@
         
 !     Product
 
-        if(nfrags.gt.2)then
+        if(nmol.gt.2)then
           target_spin=inter_couplings(icoupling,ibase) ! Remove nspin in the future
         else
           target_spin=nspin
@@ -440,23 +523,23 @@
 !     Determine new maxcib for icoupling > 1 and reallocate the product arrays
         
         maxcib_prev=maxcib
-        if(icoupling.gt.1)then
+        if (icoupling.gt.1)then
           do i=1,spincomb(1)+1
             ms1=spincomb(1)-2*(i-1)
             do j=1,spincomb(2)+1
               ms2=spincomb(2)-2*(j-1)
-              if(ms1+ms2.eq.target_spin) then
+              if ( ms1+ms2 .eq. target_spin ) then
                 do det1=1,ndet1_ms(i)
                   do det2=1,ndet2_ms(j)                  
                     prod=ci1_ms(det1,i)*ci2_ms(det2,j)
-                    if(abs(prod).gt.tau_CI)k=k+1
+                    if (abs(prod) .gt. tau_CI)k=k+1
                   enddo
                 enddo
               endif
             enddo
           enddo
 
-          if(k.eq.0) then
+          if(k .eq. 0) then
             if(idbg.ge.50) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a,3i4)') date(1:8),time(1:8),
@@ -500,7 +583,7 @@
             enddo
           enddo
 
-          if(icoupling.eq.(nfrags-1)) then
+          if (icoupling.eq.(nmol-1)) then
 
             allocate(civb_copy(maxcib,nbase))
             allocate(ioccb_copy(maxcib,nbase))
@@ -546,17 +629,17 @@
           ms1=spincomb(1)-2*(i-1)
           do j=1,spincomb(2)+1
             ms2=spincomb(2)-2*(j-1)
-            if(ms1+ms2.eq.target_spin) then
+            if ( ms1+ms2 .eq. target_spin ) then
               do det1=1,ndet1_ms(i)
                 do det2=1,ndet2_ms(j)
                   dnorm=clebsch_gordon(spincomb(1)/2.d0,
      &                 spincomb(2)/2.d0,ms1/2.d0,ms2/2.d0,
      &                 target_spin/2.d0,target_spin/2.d0)
                   prod=ci1_ms(det1,i)*ci2_ms(det2,j)                                                      
-                  if(abs(prod).gt.tau_CI) then
+                  if (abs(prod) .gt. tau_CI) then
                     iocch=0
                     k=k+1                    
-                    inter_civ(k,1)=prod*dnorm                    
+                    inter_civ(k,1)=prod * dnorm                    
                     kk=0
                     do iact=1,inter_nact(1)
                       kk=kk+1
@@ -566,13 +649,13 @@
                       kk=kk+1
                       iocch(kk)=occ2_ms(jact,det2,j)
                     enddo
-                    if(icoupling.eq.(nfrags-1)) then ! if loop is ended, save in civb and ioccb 
+                    if (icoupling.eq.(nmol-1)) then ! if loop is ended, save in civb and ioccb 
 
                       call pack(ioccb(k,ibase),
      &                     iocch,nactb(ibase))
-                      civb(k,ibase)=inter_civ(k,1)*
+                      civb(k,ibase)=inter_civ(k,1) * 
      &                     perm_ab(iocch,nactb(ibase))
-                      civb(k,ibase)=civb(k,ibase)*
+                      civb(k,ibase)=civb(k,ibase) * 
      &                     isetsign4(iocch,nactb(ibase))
                       
                       if(idbg.ge.50) then
@@ -596,7 +679,7 @@
         
 !     After the product the result is in inter_civ(:,1) or in civb(:,ibase) if the loop is ended
 !     Prepare the next iteration if the loop is not ended
-        if(icoupling.lt.(nfrags-1)) then
+        if (icoupling.lt.(nmol-1)) then
           
           if(idbg.ge.50) then
             call swatch(date,time)
@@ -715,7 +798,7 @@
       if(idbg.ge.50) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,1x,a,i4,a,i10,a)') date(1:8),time(1:8),
-     &       ' completed for ',nfrags,' with ',ndets,' determinants'
+     &       ' completed for ',nmol,' with ',ndets,' determinants'
         flush(lfndbg)
       endif
       
@@ -732,7 +815,7 @@
       endif
       dnorm=1/dsqrt(dnorm)
       do i=1,idetb(ibase)
-        civb(i,ibase)=civb(i,ibase)*dnorm
+        civb(i,ibase)=civb(i,ibase) * dnorm
       enddo
       if(idbg.ge.50) then
         call swatch(date,time)

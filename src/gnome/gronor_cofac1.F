@@ -75,7 +75,7 @@
 
        if(isolver.eq.1) then
 
-       jobu='A'  ! all m columns of U
+       jobu = 'A'  ! all m columns of U
        jobvt= 'A'  ! all m columns of VT
 
 !_ACCTGT_($acc data copy(dev_info_d) create(temp,workspace_d,rwork))
@@ -148,9 +148,9 @@
         if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
      &       write(*,*) 'cusolverDnDgesvdj failed',cusolver_status
         
-        cusolver_status=cusolverDnXgesvdjGetSweeps
+        cusolver_status = cusolverDnXgesvdjGetSweeps
      &       (cusolver_handle, gesvdj_params, exec_sweeps)
-        cusolver_status=cusolverDnXgesvdjGetResidual
+        cusolver_status = cusolverDnXgesvdjGetResidual
      &       (cusolver_handle, gesvdj_params, residual)
 
         call timer_start(42)
@@ -299,7 +299,7 @@
 
 !_ACCTGT_($acc wait)
 !_ACCTGT_($acc host_data use_device(a,diag,dev_info_d,workspace_d))
-        cusolver_status=cusolverDnDsyevd(cusolver_handle,
+        cusolver_status = cusolverDnDsyevd(cusolver_handle,
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,
      &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
 !_ACCTGT_($acc end host_data)
@@ -322,15 +322,15 @@
         ndim=nelecs
         mdim=mbasel
         
-        jobz=CUSOLVER_EIG_MODE_NOVECTOR
-        uplo=CUBLAS_FILL_MODE_LOWER
+        jobz = CUSOLVER_EIG_MODE_NOVECTOR
+        uplo = CUBLAS_FILL_MODE_LOWER
           
         call timer_start(43)
 
 !_ACCTGT_($acc data copy(dev_info_d,syevj_params) create(workspace_d))
 
 !_ACCTGT_($acc host_data use_device(a,diag,dev_info_d,workspace_d))
-        cusolver_status=cusolverDnDsyevj
+        cusolver_status = cusolverDnDsyevj
      &       (cusolver_handle, jobz, uplo, ndim,a,ndim,diag,
      &       workspace_d,lwork2,dev_info_d,syevj_params)
 !_ACCTGT_($acc end host_data)
@@ -443,13 +443,13 @@ ccc   !_OMPTGT_($omp end target)
 
       do i=1,nelecs
         coefu=ev(i)
-        if(abs(coefu).le.cnorm) then
+        if(abs(coefu) .le. cnorm) then
           if(nz1.gt.0.and.nz2.gt.0) then
             ising=3
             call timer_stop(44)
             return
           endif
-          if(nz1.gt.0) nz2=i
+          if(nz1 .gt. 0) nz2=i
           if(nz1.eq.0) nz1=i
         else
           coef=coef*coefu
@@ -696,13 +696,13 @@ ccc!_OMPTGT_($omp end target)
 
       do i=1,nelecs
         coefu=ev(i)
-        if(abs(coefu).le.cnorm) then
+        if(abs(coefu) .le. cnorm) then
           if(nz1.gt.0.and.nz2.gt.0) then
             ising=3
             call timer_stop(44)
             return
           endif
-          if(nz1.gt.0) nz2=i
+          if(nz1 .gt. 0) nz2=i
           if(nz1.eq.0) nz1=i
         else
           coef=coef*coefu

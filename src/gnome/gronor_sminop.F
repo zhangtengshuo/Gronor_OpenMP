@@ -84,14 +84,14 @@
          enddo
       enddo
 * Normalize the MS(max) component
-      dnorm=0.0
-      do j=1,ndetout(1)
-        dnorm=dnorm+cicoef_out(j,1)**2
-      enddo
-      dnorm=1.0/dsqrt(dnorm)
-      do j=1,ndetout(1)
-        cicoef_out(j,1)=cicoef_out(j,1)*dnorm
-      enddo
+      dnorm = 0.0
+      do j = 1, ndetout(1)
+        dnorm = dnorm + cicoef_out(j,1)**2
+      end do
+      dnorm = 1.0/dsqrt(dnorm)
+      do j = 1, ndetout(1)
+        cicoef_out(j,1) = cicoef_out(j,1)*dnorm
+      end do
 
       return
       end

@@ -42,22 +42,22 @@
       common/iloopvar/ndeti,ndetj,osame
       real(kind = 8) :: p,q
       integer :: l,i,j
-      if(osame) then
+      if (osame) then
         p=-0.5+dsqrt(8.0d0*ij+1)/2
         i=p
         l=i*(i+1)/2
         q=p-i
-        if(q.gt.1.0d-8) i=i+1
+        if (q.gt.1.0d-8) i=i+1
          j=ij-l
-        if(j.eq.0) j=i
+        if (j.eq.0) j=i
         ni=i
         nj=j
       else
         ni=ij/ndetj+1
-        if(mod(ij,ndetj).eq.0) ni=ni-1
+        if (mod(ij,ndetj).eq.0) ni=ni-1
         nj=ij-(ni-1)*ndetj
       endif
-      if(mode.eq.1) then
+      if (mode.eq.1) then
          iloop=ni
       elseif(mode.eq.2) then
          iloop=nj

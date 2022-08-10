@@ -89,8 +89,8 @@ Coen: maybe here a check to be sure that mclab and labels are coherent
         do i=1,nbas
           do j=1,i
             s(i,j)=s(j,i)
-          enddo
-        enddo
+          end do
+        end do
         read(lfnone,err=993) (t(i),i=1,int1)
         read(lfnone,err=993) (v(i),i=1,int1)
 
@@ -101,7 +101,7 @@ C     The number of small integrals can be written by rdtraint
 C     and retrieved here, if considered useful info
         
         read(lfnone,end=993) nt
-        if(nt(2).eq.-1) read(lfnone) nt(2)
+        if (nt(2).eq.-1) read(lfnone) nt(2)
         int2=nt(2)
 
 #ifdef SINGLEP
@@ -296,7 +296,7 @@ C     and retrieved here, if considered useful info
 !     Determine the correct record length of the integral files
       
       inquire(iolength=nrecb4) b(1)
-      nrecb=nrecb4
+      nrecb = nrecb4
       if(mclab.ne.1) then
         nrecl=(2*mbuf+2)*nrecb
       else

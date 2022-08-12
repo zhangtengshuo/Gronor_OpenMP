@@ -1,6 +1,6 @@
 #!/usr/bin/tcsh
 
-module load intel mpich/4.0.1 molcas mkl ga cmake utils
+module load intel mpich/4.0.1 molcas mkl ga cmake 
 
 setenv FC mpif90
 setenv CC mpicc

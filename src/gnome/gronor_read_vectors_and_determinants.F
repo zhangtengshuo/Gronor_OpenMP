@@ -207,21 +207,24 @@
      &       '       istate   ndetm   nactm  ninatm   nbasm',
      &       '  nelecs               energy     files',/)
         do i=1,mstates
-          ostate=.false.
-          do j=1,nbase
-            do k=1,nmol
-              if(ncombv(k,j).eq.i) ostate=.true.
-            enddo
-          enddo
+           ostate=.true.
+           do j=1,i-1
+              if(trim(fragfile(i)).eq.trim(fragfile(j))) ostate=.false.
+           enddo
+c          do j=1,nbase
+c            do k=1,nmol
+c              if(ncombv(k,j).eq.i) ostate=.true.
+c            enddo
+c          enddo
           if(ostate) then
             write(fildet,203) trim(fragfile(i))
             write(filvec,201) trim(fragfile(i))
-            write(lfnout,604) i,fragLabel(i),
+            write(lfnout,604) fragLabel(i),
      &           idetm(i),nactm(i),inactm(i),nbasm(i),
      &           nElectrons(i),ecasscf(i),
      &           fildet(1:inp_strlen(fildet)),
      &           filvec(1:inp_strlen(filvec))
- 604        format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a)
+ 604        format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
           endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec
@@ -237,12 +240,12 @@
      &       ' State        : ',20i4)
         do i=1,nmol
           if(i.eq.1) then
-            write(lfnout,608) i,(ncombv(i,j),j=1,nbase)
+            write(lfnout,608) i,(fragLabel(ncombv(i,j)),j=1,nbase)
           else
-            write(lfnout,614) i,(ncombv(i,j),j=1,nbase)
+            write(lfnout,614) i,(fragLabel(ncombv(i,j)),j=1,nbase)
           endif
- 608      format(/,' Fragment',i4,' : ',20i4)
- 614      format(' Fragment',i4,' : ',20i4)
+ 608      format(/,' Fragment',i4,' : ',20(2x,a2))
+ 614      format(' Fragment',i4,' : ',20(2x,a2))
         enddo
       endif
 

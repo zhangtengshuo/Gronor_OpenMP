@@ -39,7 +39,7 @@
       integer                          :: i,j,k,istat,length,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
-      real      (kind=8)               :: sdum,sume
+      real      (kind=8)               :: sdum,sume,sump,sumc
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
@@ -59,16 +59,21 @@
 
       allocate(nFrozen(mstates))
       allocate(fragLabel(mstates))
-      allocate(fragEner(mstates))
+      allocate(ecasscf(mstates))
+      allocate(ecaspt2(mstates))
+      allocate(ecorr(mstates))
       allocate(nElectrons(mstates))
+      ncorr=1
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
  2203   format(a,'.det')
         length=inp_strlen(fildet)
         open(unit=lfndet,file=fildet(1:length),form='formatted',
      &       status='old',err=999)
-        read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
-     &       fragEner(i),nElectrons(i),tau_MO
+        read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),
+     &       fragLabel(i),ecasscf(i),nElectrons(i),tau_MO, ecaspt2(i)
+        if(ecaspt2(i).ge.0.0d0) ncorr=0
+        ecorr(i)=ecaspt2(i)-ecasscf(i)
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
@@ -76,7 +81,7 @@
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo
- 1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
+ 1600 format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
          mebfLabels = .false.
@@ -87,20 +92,25 @@
       else
          mebfLabels = .true.
          write(lfnout,607)
-     &        ' MEBF ','Electrons   Sum of fragment energies'
- 607     format(/,a,t16,a,/)
+     &        ' MEBF ','Electrons   Sum of fragment energies',
+     &        'E(CASSCF)','E(CASPT2)','E_corr'
+ 607     format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
          do j = 1,nbase
             write(mebfLabel(j),616)
      &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
  616        format(10a)
             nume=0
             sume=0.0d0
+            sump=0.0d0
+            sumc=0.0d0
             do k=1,nmol
                nume=nume+nElectrons(ncombv(k,j))
-               sume=sume+fragEner(ncombv(k,j))
+               sume=sume+ecasscf(ncombv(k,j))
+               sump=sump+ecaspt2(ncombv(k,j))
+               sumc=sumc+ecorr(ncombv(k,j))
             enddo
-            write(lfnout,617) mebflabel(j),nume,sume
- 617        format(1x,a,t16,i5,3x,f22.12)
+            write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+ 617        format(1x,a,t16,i5,3x,3f22.12)
          enddo
       endif
       write(lfnarx,701) nbase,nmol
@@ -110,7 +120,7 @@
             sume=0.0d0
             do k=1,nmol
                nume=nume+nElectrons(ncombv(k,j))
-               sume=sume+fragEner(ncombv(k,j))
+               sume=sume+ecasscf(ncombv(k,j))
             enddo
          write(lfnarx,617) mebflabel(j),nume,sume
       enddo
@@ -208,7 +218,7 @@
             write(filvec,201) trim(fragfile(i))
             write(lfnout,604) i,fragLabel(i),
      &           idetm(i),nactm(i),inactm(i),nbasm(i),
-     &           nElectrons(i),fragEner(i),
+     &           nElectrons(i),ecasscf(i),
      &           fildet(1:inp_strlen(fildet)),
      &           filvec(1:inp_strlen(filvec))
  604        format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a)

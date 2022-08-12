@@ -1012,16 +1012,16 @@ c             write(*,'(e12.6,2x,a)') coeff(idet),trim(occ(idet))
           rewind(37)
           if (fragLabels.and.energy_on_INPORB) then
             write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           ener(i,j),nElectrons(i,j),threshold
+     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
           elseif (fragLabels) then
             write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           0.0,nElectrons(i,j),threshold
+     &           0.0,nElectrons(i,j),threshold,0.0d0
           elseif (energy_on_INPORB) then
             write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           ener(i,j),nElectrons(i,j),threshold
+     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
           else
             write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           0.0,nElectrons(i,j),threshold
+     &           0.0,nElectrons(i,j),threshold,0.0d0
           end if
           do idet = 1, ndet
             write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
@@ -1030,7 +1030,7 @@ c             write(*,'(e12.6,2x,a)') coeff(idet),trim(occ(idet))
 c          deallocate(coeff)
           deallocate(coeff,occ)
         end do
- 1600 format(2i5,i12,4x,a,4x,f22.12,i5,1pe10.3)
+ 1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3,f22.12)
       end do
      
       end subroutine addInfo_on_detFiles

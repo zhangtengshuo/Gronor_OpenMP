@@ -205,7 +205,8 @@
         write(lfnout,603)
  603    format(/,' Dimensions',//,
      &       '       istate   ndetm   nactm  ninatm   nbasm',
-     &       '  nelecs               energy     files',/)
+     &       '  nelecs     CASSCF energy      ',
+     &       'CASPT2 energy           files',/)
         do i=1,mstates
            ostate=.true.
            do j=1,i-1
@@ -221,10 +222,10 @@ c          enddo
             write(filvec,201) trim(fragfile(i))
             write(lfnout,604) fragLabel(i),
      &           idetm(i),nactm(i),inactm(i),nbasm(i),
-     &           nElectrons(i),ecasscf(i),
+     &           nElectrons(i),ecasscf(i),ecaspt2(i),
      &           fildet(1:inp_strlen(fildet)),
      &           filvec(1:inp_strlen(filvec))
- 604        format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
+ 604        format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
           endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec

@@ -205,8 +205,8 @@
         write(lfnout,603)
  603    format(/,' Dimensions',//,
      &       '       istate   ndetm   nactm  ninatm   nbasm',
-     &       '  nelecs     CASSCF energy      ',
-     &       'CASPT2 energy           files',/)
+     &       '  nelecs         CASSCF energy  ',
+     &       '       CASPT2 energy    files',/)
         do i=1,mstates
            ostate=.true.
            do j=1,i-1

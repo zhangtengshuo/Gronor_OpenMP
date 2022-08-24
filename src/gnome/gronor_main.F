@@ -1550,35 +1550,37 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
       do ibase=1, nbase
-        ndeti=idetb(ibase)
-        ndet_rev=0
-        civb_aux=0.0
-        occu_aux=0
-        do idet=1, idetb(ibase)
-          if(abs(civb(idet,ibase)).gt.thres2) then
-            ndet_rev=ndet_rev + 1
-            civb_aux(ndet_rev)=civb(idet,ibase)
-            occu_aux(ndet_rev)=ioccb(idet,ibase)
-          endif
-        enddo
-        civb(:,ibase)=0.0
-        ioccb(:,ibase)=0
-        do idet=1, ndet_rev
-          civb(idet,ibase)=civb_aux(idet)
-          ioccb(idet,ibase)=occu_aux(idet)
-        enddo
-        idetb(ibase)=ndet_rev
-        if(me.eq.master) then
-          call timer_stop(99)
-          call swatch(date,time)
-          write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
-     &         '  :  Base state ',ibase,
-     &         ' coefficient list reduced from    ',
-     &         ndeti,' to ',ndet_rev
- 1710     format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
-          flush(lfnday)
-          call timer_start(99)
-        endif
+         ndeti=idetb(ibase)
+         ndet_rev=0
+         civb_aux=0.0
+         occu_aux=0
+         do idet=1,idetb(ibase)
+            if(abs(civb(idet,ibase)).gt.thres2) then
+               ndet_rev=ndet_rev + 1
+               civb_aux(ndet_rev)=civb(idet,ibase)
+               occu_aux(ndet_rev)=ioccb(idet,ibase)
+            endif
+         enddo
+         do idet=1,maxcib
+            civb(idet,ibase)=0.0
+            ioccb(idet,ibase)=0
+         enddo
+         do idet=1,ndet_rev
+            civb(idet,ibase)=civb_aux(idet)
+            ioccb(idet,ibase)=occu_aux(idet)
+         enddo
+         idetb(ibase)=ndet_rev
+         if(me.eq.master) then
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
+     &           '  :  Base state ',ibase,
+     &           ' coefficient list reduced from    ',
+     &           ndeti,' to ',ndet_rev
+ 1710       format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
+            flush(lfnday)
+            call timer_start(99)
+         endif
       enddo
       deallocate(civb_aux,occu_aux)
 

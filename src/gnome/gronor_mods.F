@@ -264,8 +264,11 @@
 
       real (kind=8) :: buffer(8)
 
-      integer (kind=8) :: numdet
+      integer (kind=8) :: numdet,melen,memax,icur,jcur
+      integer (kind=4), allocatable :: melist(:,:),medim(:,:)
       integer (kind=8), allocatable :: ndxdet(:,:),lstdet(:,:)
+
+      real (kind=8) :: gbmelist
 
       real (kind=8), allocatable :: c2sum(:,:)
       integer (kind=8), allocatable :: nbdet(:,:)

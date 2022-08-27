@@ -53,7 +53,7 @@
       integer :: ipopcnt
       integer :: ntvc,ivc,ibas
 
-      integer :: ioff
+!      integer :: ioff
 
       real (kind=8) :: btemp,btemp2
       
@@ -92,7 +92,7 @@
         enddo
       endif
 
-      ioff=ndxdet(ib,jb)
+!      ioff=ndxdet(ib,jb)
       
       osame=ib.eq.jb
       call iloop_init(ndeti,ndetj,osame)
@@ -150,8 +150,12 @@
         ntcl(1)=0
         ntcl(2)=0
         
-        i=lstdet(ij+ioff,1)
-        j=lstdet(ij+ioff,2)
+!        i=lstdet(ij+ioff,1)
+!        j=lstdet(ij+ioff,2)
+
+        i=melist(ij,1)
+        j=melist(ij,2)
+!        write(*,'(4i6)') i,j,melist(ij,1),melist(ij,2)
         
         ihc=ij-id1+1
 
@@ -187,8 +191,10 @@
           if(nelec(1).ne.nelec(2))
      &         call errquit(me,7,"Inconsistent number electrons")
 
-          i=lstdet(ij+ioff,1)
-          j=lstdet(ij+ioff,2)
+!          i=lstdet(ij+ioff,1)
+!          j=lstdet(ij+ioff,2)
+          i=melist(ij,1)
+          j=melist(ij,2)
           
           hh=0.0d0
           ss=0.0d0

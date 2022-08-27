@@ -1621,11 +1621,16 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(c2sum(nbase,nbase),nbdet(nbase,nbase))
+      allocate(medim(nbase,nbase))
       
       numdet=0
+      memax=0
+      icur=0
+      jcur=0
       ndtot=0
       do ibase=1,nbase
         do jbase=1,ibase
+           melen=0
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           ibd=0
@@ -1636,6 +1641,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
+                melen=melen+1
                 ibd=ibd+1
                 if(i.eq.j) then
                   c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
@@ -1650,6 +1656,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=1,ndetj
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
+                melen=melen+1
                 ibd=ibd+1
                 c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
               enddo
@@ -1659,6 +1666,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           nbdet(jbase,ibase)=ibd
           c2sum(ibase,jbase)=c2s
           c2sum(jbase,ibase)=c2s
+          memax=max(memax,melen)
+          medim(ibase,jbase)=melen
         enddo
       enddo
 
@@ -1674,7 +1683,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(ndxdet(nbase,nbase))
-      allocate(lstdet(numdet,2))
+!      allocate(lstdet(numdet,2))
+!      allocate(medim(nbase,nbase))
 
       numdet=0
       do ibase=1,nbase
@@ -1686,8 +1696,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
-                lstdet(numdet,1)=i
-                lstdet(numdet,2)=j
+!                lstdet(numdet,1)=i
+!                lstdet(numdet,2)=j
               enddo
             enddo
           else
@@ -1695,8 +1705,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=1,ndetj
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
-                lstdet(numdet,1)=i
-                lstdet(numdet,2)=j
+                melen=melen+1
+!                lstdet(numdet,1)=i
+!                lstdet(numdet,2)=j
               enddo
             enddo
           endif
@@ -1908,6 +1919,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfndbg)
       endif
 
+      call gronor_memory_usage()
+      
       if(me.eq.master) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2253,7 +2266,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
 
-      deallocate(lstdet,ndxdet)
+      deallocate(ndxdet)
+!      deallocate(lstdet)
 
       deallocate(c2sum,nbdet)
 

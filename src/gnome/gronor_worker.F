@@ -1,4 +1,4 @@
-c     d
+
 !     This file is part of the GronOR software
 
 !     GronOR is free software, and can be used, re-distributed and/or modified under
@@ -39,7 +39,7 @@ c     d
       real(kind=8), external :: timer_wall_total, timer_wall
       
       integer :: ibase,jbase,idet,jdet,nidet,njdet
-      integer :: i,l2,n
+      integer :: i,j,k,l2,n
       integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
       integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
@@ -354,7 +354,28 @@ c     d
             flush(lfndbg)
           endif
 
-        endif
+       endif
+
+!     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
+       
+       if(icur.ne.ibuf(1).or.jcur.ne.ibuf(2)) then
+          if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
+          icur=iabs(ibuf(1))
+          jcur=ibuf(2)
+          if(icur.gt.0.and.jcur.gt.0) then
+             ndeti=idetb(icur)
+             ndetj=idetb(jcur)
+             k=0
+             do i=1,ndeti
+                do j=i,ndetj
+                   if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+                   k=k+1
+                   melist(k,1)=i
+                   melist(k,2)=j
+                enddo
+             enddo
+          endif
+       endif
 
 !     Check if this is a duplicate
 

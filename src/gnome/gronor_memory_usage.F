@@ -42,8 +42,8 @@
       if(me.eq.master) then
          write(lfnout,600)
  600     format(/,' Memory Usage Summary per Rank (Approximate)',//,
-     &        ' Array',t25,'  Size in GB',/)
- 601     format(1x,a,t25,f12.5)
+     &        ' Array',t25,'    Size in GB',/)
+ 601     format(1x,a,t25,f14.6)
 
          nr=nbas*nbas+2*int1
          gb=real(8*nr)/real(1073741824)

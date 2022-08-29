@@ -265,8 +265,8 @@
       real (kind=8) :: buffer(8)
 
       integer (kind=8) :: numdet,melen,memax,icur,jcur
-      integer (kind=4), allocatable :: melist(:,:),medim(:,:)
-      integer (kind=8), allocatable :: ndxdet(:,:),lstdet(:,:)
+      integer (kind=4), allocatable :: melist(:,:)
+      integer (kind=8), allocatable :: ndxdet(:,:)
 
       real (kind=8) :: gbmelist
 

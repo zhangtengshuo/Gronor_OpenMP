@@ -1621,7 +1621,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(c2sum(nbase,nbase),nbdet(nbase,nbase))
-      allocate(medim(nbase,nbase))
       
       numdet=0
       memax=0
@@ -1630,7 +1629,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       ndtot=0
       do ibase=1,nbase
         do jbase=1,ibase
-           melen=0
+          melen=0
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           ibd=0
@@ -1667,7 +1666,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           c2sum(ibase,jbase)=c2s
           c2sum(jbase,ibase)=c2s
           memax=max(memax,melen)
-          medim(ibase,jbase)=melen
         enddo
       enddo
 
@@ -1683,8 +1681,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(ndxdet(nbase,nbase))
-!      allocate(lstdet(numdet,2))
-!      allocate(medim(nbase,nbase))
 
       numdet=0
       do ibase=1,nbase
@@ -1696,8 +1692,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
-!                lstdet(numdet,1)=i
-!                lstdet(numdet,2)=j
+                melen=melen+1
               enddo
             enddo
           else
@@ -1706,8 +1701,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
                 melen=melen+1
-!                lstdet(numdet,1)=i
-!                lstdet(numdet,2)=j
               enddo
             enddo
           endif
@@ -2267,7 +2260,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
 
       deallocate(ndxdet)
-!      deallocate(lstdet)
 
       deallocate(c2sum,nbdet)
 

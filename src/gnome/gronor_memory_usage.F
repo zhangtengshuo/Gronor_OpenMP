@@ -36,10 +36,44 @@
 
       implicit none
 
-      integer (kind=8) :: ni,nr
+      integer (kind=8) :: ni,nr,membuf(9)
       real (kind=8) ::gb
+      integer (kind=4) :: ireq,ierr,istat(MPI_STATUS_SIZE)
+      integer (kind=4) :: ncount,mpitag,mpisrc
+
+      if(me.eq.0) then
+        membuf(1)=mbasel
+        membuf(2)=mvec
+        membuf(3)=nveca
+        membuf(4)=nvecb
+        membuf(5)=nstdim
+        membuf(6)=nelecs
+        membuf(7)=nbas
+        membuf(8)=ntask
+        membuf(9)=nbatch
+        ncount=9
+        mpitag=12
+        call MPI_iSend(membuf,ncount,MPI_INTEGER8,master,mpitag,
+     &       MPI_COMM_WORLD,ireq,ierr)
+      endif
+      
 
       if(me.eq.master) then
+        ncount=9
+        mpitag=12
+        mpisrc=0
+        call MPI_Recv(membuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,mpitag,
+     &       MPI_COMM_WORLD,istat,ierr)
+        mbasel=membuf(1)
+        mvec=membuf(2)
+        nveca=membuf(3)
+        nvecb=membuf(4)
+        nstdim=membuf(5)
+        nelecs=membuf(6)
+        nbas=membuf(7)
+        ntask=membuf(8)
+        nbatch=membuf(9)
+        
          write(lfnout,600)
  600     format(/,' Memory Usage Summary per Rank (Approximate)',//,
      &        ' Array',t25,'    Size in GB',/)
@@ -67,7 +101,7 @@
          gb=real(8*ni+8*nr)/real(1073741824)
          write(lfnout,601) "Fragment Lists",gb
          
-         ni=melen*2
+         ni=memax*2
          gb=real(4*ni)/real(1073741824)
          write(lfnout,601) "ME List",gb
 
@@ -79,7 +113,8 @@
             ni=ni+27
          else
             ni=ni+nbatch*(2+4*nbas+10*nbas*nbas)+13
-         endif
+          endif
+          write(lfnout,'(20i20)') mbasel,nelecs,ntask,nbatch
          gb=real(8*ni)/real(1073741824)
          write(lfnout,601) "Cofac 1 Arrays",gb
          

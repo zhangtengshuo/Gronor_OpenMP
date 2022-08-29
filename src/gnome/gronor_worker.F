@@ -357,24 +357,36 @@
        endif
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
-       
-       if(icur.ne.ibuf(1).or.jcur.ne.ibuf(2)) then
-          if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
-          icur=iabs(ibuf(1))
-          jcur=ibuf(2)
-          if(icur.gt.0.and.jcur.gt.0) then
-             ndeti=idetb(icur)
-             ndetj=idetb(jcur)
-             k=0
+
+       if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.
+     &      ibuf(2).gt.0) then
+         if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
+         icur=iabs(ibuf(1))
+         jcur=ibuf(2)
+         if(icur.gt.0.and.jcur.gt.0) then
+           ndeti=idetb(icur)
+           ndetj=idetb(jcur)
+           k=0
+           if(icur.eq.jcur) then
              do i=1,ndeti
-                do j=i,ndetj
-                   if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
-                   k=k+1
-                   melist(k,1)=i
-                   melist(k,2)=j
-                enddo
+               do j=i,ndeti
+                 if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+                 k=k+1
+                 melist(k,1)=i
+                 melist(k,2)=j
+               enddo
              enddo
-          endif
+           else
+             do i=1,ndeti
+               do j=1,ndetj
+                 if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+                 k=k+1
+                 melist(k,1)=i
+                 melist(k,2)=j
+               enddo
+             enddo
+           endif
+         endif
        endif
 
 !     Check if this is a duplicate

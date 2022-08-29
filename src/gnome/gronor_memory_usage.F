@@ -113,8 +113,7 @@
             ni=ni+27
          else
             ni=ni+nbatch*(2+4*nbas+10*nbas*nbas)+13
-          endif
-          write(lfnout,'(20i20)') mbasel,nelecs,ntask,nbatch
+         endif
          gb=real(8*ni)/real(1073741824)
          write(lfnout,601) "Cofac 1 Arrays",gb
          

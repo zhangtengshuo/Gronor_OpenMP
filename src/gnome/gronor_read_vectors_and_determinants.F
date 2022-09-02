@@ -91,10 +91,17 @@
  618     format(i4)
       else
          mebfLabels = .true.
-         write(lfnout,607)
-     &        ' MEBF ','Electrons   Sum of fragment energies',
-     &        'E(CASSCF)','E(CASPT2)','E_corr'
+         if(ncorr.ne.0) then
+            write(lfnout,607)
+     &           ' MEBF ','Electrons   Sum of fragment energies',
+     &           'E(CASSCF)','E(CASPT2)','E_corr'
+         else
+            write(lfnout,627)
+     &           ' MEBF ','Electrons   Sum of fragment energies',
+     &           'E(CASSCF)'
+         endif
  607     format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
+ 627     format(/,a,t16,a,/,t34,a,/)
          do j = 1,nbase
             write(mebfLabel(j),616)
      &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
@@ -109,8 +116,13 @@
                sump=sump+ecaspt2(ncombv(k,j))
                sumc=sumc+ecorr(ncombv(k,j))
             enddo
-            write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+            if(ncorr.ne.0) then
+               write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+            else
+               write(lfnout,637) mebflabel(j),nume,sume
+            endif
  617        format(1x,a,t16,i5,3x,3f22.12)
+ 637        format(1x,a,t16,i5,3x,f22.12)
          enddo
       endif
       write(lfnarx,701) nbase,nmol
@@ -202,11 +214,18 @@
 !     Finally, the output section
       
       if(ipr.ge.20) then
-        write(lfnout,603)
+         if(ncorr.ne.0) then
+            write(lfnout,603)
+         else
+            write(lfnout,623)
+         endif
  603    format(/,' Dimensions',//,
      &       '       istate   ndetm   nactm  ninatm   nbasm',
      &       '  nelecs         CASSCF energy  ',
      &       '       CASPT2 energy    files',/)
+ 623    format(/,' Dimensions',//,
+     &       '       istate   ndetm   nactm  ninatm   nbasm',
+     &       '  nelecs         CASSCF energy    files',/)
         do i=1,mstates
            ostate=.true.
            do j=1,i-1
@@ -217,15 +236,24 @@ c            do k=1,nmol
 c              if(ncombv(k,j).eq.i) ostate=.true.
 c            enddo
 c          enddo
-          if(ostate) then
-            write(fildet,203) trim(fragfile(i))
-            write(filvec,201) trim(fragfile(i))
-            write(lfnout,604) fragLabel(i),
-     &           idetm(i),nactm(i),inactm(i),nbasm(i),
-     &           nElectrons(i),ecasscf(i),ecaspt2(i),
-     &           fildet(1:inp_strlen(fildet)),
-     &           filvec(1:inp_strlen(filvec))
+           if(ostate) then
+              write(fildet,203) trim(fragfile(i))
+              write(filvec,201) trim(fragfile(i))
+              if(ncorr.ne.0) then
+                 write(lfnout,604) fragLabel(i),
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),
+     &                nElectrons(i),ecasscf(i),ecaspt2(i),
+     &                fildet(1:inp_strlen(fildet)),
+     &                filvec(1:inp_strlen(filvec))
+              else
+                 write(lfnout,634) fragLabel(i),
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),
+     &                nElectrons(i),ecasscf(i),
+     &                fildet(1:inp_strlen(fildet)),
+     &                filvec(1:inp_strlen(filvec))
+              endif
  604        format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
+ 634        format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
           endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec

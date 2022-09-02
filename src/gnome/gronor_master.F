@@ -1148,9 +1148,9 @@ c     call MPI_Wait(ireq,status,ierr)
      &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),
      &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
       endif
- 615  format(/,' Total',40x,3i14,2i12,i14,56x,1f12.1,/,
-     &     /,' Total averaged per rank',t183,2f12.1,/,
-     &     ' Task execution efficiency',t183,f12.1,' %')
+ 615  format(/,' Total',40x,3i14,2i12,i14,64x,1f12.1,/,
+     &     /,' Total averaged per rank',t191,2f12.1,/,
+     &     ' Task execution efficiency',t191,f12.1,' %')
       call timer_start(98)
       call timer_start(99)
 

@@ -1911,8 +1911,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       (map2(me+1,i),i=1,5)
         flush(lfndbg)
       endif
-
-      call gronor_memory_usage()
       
       if(me.eq.master) then
         if(idbg.gt.0) then
@@ -1921,6 +1919,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &         ' Calling GronOR_master'
           flush(lfndbg)
         endif
+        call gronor_memory_usage()
         call gronor_master()
       else
         if(idbg.gt.0) then
@@ -2125,13 +2124,14 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &             ' Calling GronOR_worker'
               flush(lfndbg)
             endif
-
+            call gronor_memory_usage()
             call gronor_worker()
 !_ACCTGT_($acc end data)
 !_OMPTGT_($omp end target data)
           elseif(ntask.ne.0) then
             lwork=10
             allocate(work(lwork))
+            call gronor_memory_usage()
             call gronor_worker()
           endif
 

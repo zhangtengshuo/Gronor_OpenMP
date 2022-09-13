@@ -1,6 +1,6 @@
 #!/usr/bin/tcsh
 
-module load intel mpich/4.0.1 molcas mkl ga cmake 
+module load intel mpich molcas mkl ga cmake utils
 
 setenv FC mpif90
 setenv CC mpicc
@@ -14,7 +14,8 @@ rm -rf build
 mkdir build
 cd build
 
-cmake -DOPENMP=ON ../
+cmake -DOPENMP=ON -DCMAKE_INSTALL_PREFIX=/home/tps/Software/intel-2022.2.0/mpich-4.0.2/gronor/23.00 ../
 
 make -j 12
 
+cp bin/* /home/tps/Software/intel-2022.2.0/mpich-4.0.2/gronor/23.00/bin

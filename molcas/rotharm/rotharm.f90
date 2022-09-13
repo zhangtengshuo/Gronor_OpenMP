@@ -78,7 +78,7 @@ end module rotation_data
 
 ! ===============================================================================
 
-program rotate
+program rotharm
 use useful_data
 implicit none
 
@@ -154,7 +154,7 @@ close(14)
 deallocate(x,y,z,label)
 if ( inporb ) call write_rotvec
 
-end program rotate
+end program rotharm
 
 ! ===============================================================================
 

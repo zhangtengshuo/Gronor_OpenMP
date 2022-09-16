@@ -114,6 +114,7 @@
       close(unit=lfn1)
       close(unit=lfn2)
 
+!      write(*,'(a)') "Reference"
       call analyze(natoms,name1,coord1,nb,ib,id)
 
       do i=1,natoms
@@ -143,6 +144,7 @@
          coord2(i,3)=coordt(ndx2(i),3)
       enddo
 
+!      write(*,'(a)') "Target"
       call analyze(natoms,name2,coord2,nb2,ib2,id2)
       
       m=0
@@ -165,7 +167,11 @@
                if(ndx(i).eq.0) num=num+1
                if(ndx(i).gt.0) then
                   do j=1,nb2(i)
-                     if(ndx(ib(i,j)).eq.0.and.id2(ib2(ndx(i),j)).eq.id(ib(i,j))) ndx(ib(i,j))=ib2(ndx(i),j)
+                     if(ndx(ib(i,j)).eq.0.and.id2(ib2(ndx(i),j)).eq.id(ib(i,j))) then
+                        ndx(ib(i,j))=ib2(ndx(i),j)
+!                        write(*,'(a,40i3)') "From ",(m,m=1,natoms)
+!                        write(*,'(a,40i3)') "To   ",(ndx(m),m=1,natoms)
+                     endif
                   enddo
                endif
             enddo
@@ -235,9 +241,11 @@
         integer (kind=8), allocatable :: n4c(:)
         integer (kind=8), allocatable :: n4n(:)
         integer (kind=8), allocatable :: n4o(:)
+
+        real (kind=8), allocatable :: dm(:)
         
         integer :: i,j,k,m,id2,id3,id4
-        real (kind=8) :: d
+        real (kind=8) :: d,dcut
 
         allocate(ia(natoms))
         
@@ -261,6 +269,8 @@
         allocate(n4n(natoms))
         allocate(n4o(natoms))
 
+        allocate(dm(natoms))
+
         
         do i=1,natoms
            nb(i)=0
@@ -279,6 +289,7 @@
            n4c(i)=0
            n4n(i)=0
            n4o(i)=0
+           dm(i)=999.999d9
         enddo
 
         do i=1,natoms
@@ -299,7 +310,11 @@
                  d=d+(coord(i,k)-coord(j,k))**2
               enddo
               d=dsqrt(d)
-              if(d.lt.1.6d0) then
+              if(d.lt.dm(i)) dm(i)=d
+              if(d.lt.dm(j)) dm(j)=d
+              dcut=1.6d0
+              if(ia(i).gt.30.or.ia(j).gt.30) dcut=1.99d0
+              if(d.lt.dcut) then
                  nb(i)=nb(i)+1
                  nb(j)=nb(j)+1
                  ib(i,nb(i))=j
@@ -356,9 +371,15 @@
            endif
         enddo
 
+!        do i=1,natoms
+!           write(*,'(i3,1x,a,t6,i10,3f12.6,6i4," : ",10i4)') i,trim(name(i)),id(i),coord(i,1),coord(i,2),coord(i,3), &
+!                nb(i),n2a(i),n2h(i),n2c(i),n2n(i),n2o(i),(ib(i,m),m=1,nb(i))
+!        enddo
+        
         deallocate(n2a,n2h,n2c,n2n,n2o)
         deallocate(n3,n3a,n3h,n3c,n3n,n3o)
         deallocate(n4,n4a,n4h,n4c,n4n,n4o)
+        deallocate(dm)
         
         return
 

@@ -418,15 +418,14 @@ c     use cuda_functions
      &       ' Based on GNOME written by R. Broer-Braam, ',
      &       'J. Th. van Montfort, and B. Vunderink',//,
      &       ' Please cite the following reference when publishing ',
-     &       'results obtained using GronOR:',//,
-     &       ' T. P. Straatsma, R. Broer, S. Faraji,',
-     &       'R. W. A. Havenith, L. E. Aguilar Suarez, R. K. Kathir, ',
-     &       'M. Wibowo, and C.de Graaf',/,
-     &       ' "GronOR: Massively parallel and GPU-accelerated ',
-     &       'non-orthogonal configuration interaction for large ',
-     &       'molecular systems"',/,
-     &       ' Journal of Chemical Physics, 152 (2020), ',
-     &       'https://doi.org/10.1063/1.5141358',/)
+     &       'results obtained using GronOR:',//,        
+     &       ' T. P. Straatsma, R. Broer, A. Sanchez-Mansilla,',
+     &       'C. Sousa, and C.de Graaf',/,
+     &       ' "GronOR: Scalable and Accelerated Nonorthogonal ',
+     &       'Configuration Interaction for Molecular Wave ',
+     &       'Functions"',/,
+     &       ' Journal of Chemical Theory and Computation, 18, 3549-',
+     &       '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
         onlabel='    '
         if(machine.ne.'        ') onlabel=' on '

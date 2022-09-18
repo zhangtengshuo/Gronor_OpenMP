@@ -167,6 +167,7 @@
                if(ndx(i).eq.0) num=num+1
                if(ndx(i).gt.0) then
                   do j=1,nb2(i)
+!                     write(*,'(a,5i3,2i16)') "Test ",i,j,ib(i,j),ib2(ndx(i),j),ndx(ib(i,j)),id2(ib2(ndx(i),j)),id(ib(i,j))
                      if(ndx(ib(i,j)).eq.0.and.id2(ib2(ndx(i),j)).eq.id(ib(i,j))) then
                         ndx(ib(i,j))=ib2(ndx(i),j)
 !                        write(*,'(a,40i3)') "From ",(m,m=1,natoms)
@@ -185,10 +186,10 @@
          enddo
 
          do i=1,natoms
-            name2(ndx(i))=namet(i)
-            coord2(ndx(i),1)=coordt(i,1)
-            coord2(ndx(i),2)=coordt(i,2)
-            coord2(ndx(i),3)=coordt(i,3)
+            name2(i)=namet(ndx(i))
+            coord2(i,1)=coordt(ndx(i),1)
+            coord2(i,2)=coordt(ndx(i),2)
+            coord2(i,3)=coordt(ndx(i),3)
          enddo
 
       endif
@@ -374,6 +375,10 @@
 !        do i=1,natoms
 !           write(*,'(i3,1x,a,t6,i10,3f12.6,6i4," : ",10i4)') i,trim(name(i)),id(i),coord(i,1),coord(i,2),coord(i,3), &
 !                nb(i),n2a(i),n2h(i),n2c(i),n2n(i),n2o(i),(ib(i,m),m=1,nb(i))
+!        enddo
+
+!        do i=1,natoms
+!           write(*,'(i5," : ",10i10)') i,(ib(i,m),m=1,nb(i)),(id(ib(i,m)),m=1,nb(i))
 !        enddo
         
         deallocate(n2a,n2h,n2c,n2n,n2o)

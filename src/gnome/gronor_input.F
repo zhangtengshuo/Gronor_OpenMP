@@ -47,32 +47,32 @@
  3      continue
 
         if(inp_compare(.false.,'Groups',item)) then
-          if(.not.inp_i(npg)) call errquit(me,1,"Input error")
+          if(.not.inp_i(npg)) call gronor_abort(101,"Groups")
           goto 2
         endif
 
         if(inp_compare(.false.,'Size',item)) then
-          if(.not.inp_i(mgr)) call errquit(me,1,"Input error")
+          if(.not.inp_i(mgr)) call gronor_abort(102,"Size")
           npg=(np-1)/mgr
           if(np.lt.mgr+1) then
             write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &           ') cannot be supported by available ranks (',np,')'
-            call errquit(me,1,"Input error")
+            call gronor_abort(103,"Input error")
           endif
           goto 2
         endif
         
         if(inp_compare(.false.,'Fragments',item)) then
-          if(.not.inp_i(nmol)) call errquit(me,1,"Input error")
+          if(.not.inp_i(nmol)) call gronor_abort(104,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'MEBFs',item)) then
-          if(.not.inp_a(mebfroot)) call errquit(me,1,"Input error")
-          if(.not.inp_i(nbase)) call errquit(me,1,"Input error")
+          if(.not.inp_a(mebfroot)) call gronor_abort(105,"Input error")
+          if(.not.inp_i(nbase)) call gronor_abort(106,"Input error")
           nmol=0
           do while(.true.)
-            if(.not.inp_read()) call errquit(me,1,"Input error")
+            if(.not.inp_read()) call gronor_abort(107,"Input error")
             last=.not.inp_a(item)
             if(last.or.len(trim(item)).ne.1) then
               allocate(ncombv(nmol,nbase))
@@ -92,7 +92,7 @@
             nmol=nmol+1
             fragname(nmol)=trim(item)
             do i=1,nbase
-              if(.not.inp_a(item)) call errquit(me,1,"Input error")
+              if(.not.inp_a(item)) call gronor_abort(108,"Input error")
               fragstate(nmol,i)=trim(item)
             enddo
           enddo
@@ -104,7 +104,7 @@
         endif
         
         if(inp_compare(.false.,'Spin',item)) then
-          if(.not.inp_i(nspin)) call errquit(me,1,"Input error")
+          if(.not.inp_i(nspin)) call gronor_abort(110,"Input error")
           nspin = nspin - 1
           goto 2
         endif
@@ -112,10 +112,10 @@
         if(inp_compare(.false.,'Couplings',item)) then
            allocate(inter_couplings(nmol-1,nbase))
            do i=1,nmol-2
-              if(.not.inp_read()) call errquit(me,1,"Input error")
+              if(.not.inp_read()) call gronor_abort(111,"Input error")
               do j=1,nbase
                  if(.not.inp_i(inter_couplings(i,j)))
-     &               call errquit(me,1,"Input error")
+     &               call gronor_abort(111,"Input error")
               enddo
               do j=1,nbase
                  inter_couplings(i,j)=inter_couplings(i,j)-1
@@ -128,12 +128,12 @@
         endif
         
         if(inp_compare(.false.,'Threshold',item)) then
-          if(.not.inp_f(tau_CI)) call errquit(me,1,"Input error")
+          if(.not.inp_f(tau_CI)) call gronor_abort(112,"Input error")
           goto 2
         endif
 
         if(inp_compare(.false.,'Labels',item)) then
-          if(.not.inp_i(labels)) call errquit(me,1,"Input error")
+          if(.not.inp_i(labels)) call gronor_abort(1,"Input error")
           goto 2
         endif
         
@@ -165,7 +165,8 @@
         endif
         
         if(inp_compare(.false.,'Batch',item)) then
-          if(.not.inp_i(nbatch)) call errquit(me,1,"Input error Batch")
+           if(.not.inp_i(nbatch))
+     & call gronor_abort(1,"Input error Batch")
           nbatcha=nbatch
           if(.not.inp_i(nbatch)) then
           endif
@@ -192,7 +193,7 @@
             ipr=0
             goto 2
           else
-            call errquit(me,1,"Input error in Print")
+            call gronor_abort(1,"Input error in Print")
           endif
           goto 2
         endif
@@ -288,7 +289,7 @@
         endif
         
         if(inp_compare(.false.,'MPIbuffer',item)) then
-          if(.not.inp_i(mpibuf)) call errquit(me,1,"Input error")
+          if(.not.inp_i(mpibuf)) call gronor_abort(1,"Input error")
           goto 2
         endif
         
@@ -332,7 +333,7 @@
 !            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
 !          end do
           do while(.true.)
-            if(.not.inp_read()) call errquit(me,1,"Input error")
+            if(.not.inp_read()) call gronor_abort(1,"Input error")
             if(.not.inp_a(item)) goto 1
             if(len(trim(item)).gt.1) goto 3
             if(.not.inp_a(item2)) goto 1
@@ -369,6 +370,6 @@
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))
  989  format('Unable to open input file ',a)
       
-      call errquit(me,1,"Input error")
+      call gronor_abort(1,"Input error")
       
       end subroutine gronor_input

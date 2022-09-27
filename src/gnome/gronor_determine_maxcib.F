@@ -53,7 +53,7 @@
              write(lfnout,601) i,nspin
  601         format(' State ',i2,' is incompatible with spin ',
      &           'of molecule (',i2,')')
-            call errquit(me,9,"Incompatible spin state")
+            call gronor_abort(9,"Incompatible spin state")
           endif
         enddo
         return
@@ -71,7 +71,7 @@
      &            ' for MEBF',i2,/,' Spin(1) = ',i4,/,
      &            ' and spin(2) = ',i4,/,
      &            ' cannot be coupled to ',i2)
-             call errquit(me,9,"Incompatible spin state")
+             call gronor_abort(9,"Incompatible spin state")
           end if
         end if
         cib = 0
@@ -150,7 +150,7 @@
  603       format(' Spin(1) = ',i2,/,' Spin(2) = ',i2,/,
      &          ' Total spin = ',i2, ' is not possible')
            flush(lfnout)
-           call errquit(me,9,"Incompatible spin state")
+           call gronor_abort(9,"Incompatible spin state")
         endif
         
         if ((me.eq.master).and.(ipr.ge.30))

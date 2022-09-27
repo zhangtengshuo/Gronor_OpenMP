@@ -421,7 +421,7 @@ cc     enddo
 !_ACCTGT_($acc end kernels)
 
 ccc   !_OMPTGT_($omp end target)
-      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
+      if(cmax.le.0.01) call gronor_abort(8,"No overlap between m.o.s")
 
       if(idbg.ge.90) then
 !_ACCTGT_($acc update host (diag,cdiag,csdiag,sdiag))
@@ -686,7 +686,7 @@ ccc!_OMPTGT_($omp end target)
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
       enddo
 
-      if(cmax.le.0.01) call errquit(me,8,"No overlap between m.o.s")
+      if(cmax.le.0.01) call gronor_abort(8,"No overlap between m.o.s")
 
       cnorm=tau_SIN*cmax
       coef=idetuw

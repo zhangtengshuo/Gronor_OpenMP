@@ -133,7 +133,7 @@
        endif
       enddo
       if(jj.ne.nclosed) then
-        call errquit(me,9,"Problem in seticlosed")
+        call gronor_abort(9,"Problem in seticlosed")
       end if
       return
       end

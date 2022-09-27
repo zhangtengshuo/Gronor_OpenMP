@@ -88,8 +88,9 @@
       character (len=255) :: filone,filtwo,fildat,fillog,filtim
       character (len=255) :: filcpr,filarx,filrnk,filcml
       integer :: lfninp,lfnout,lfnsym,lfnciv,lfnvec,lfnint,lfndet
-      integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim
+      integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim,lfnabt
       integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
+      integer :: lfnwrn
 
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs

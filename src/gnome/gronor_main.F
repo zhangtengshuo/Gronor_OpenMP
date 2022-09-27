@@ -192,6 +192,8 @@ c     use cuda_functions
         lfncml=24
         filtim=string(1:inp_strlen(string))//'.tim'
         lfntim=25
+        lfnabt=26
+        lfnwrn=27
 
         open(unit=lfnout,file=filout(1:inp_strlen(filout)),
      &       form='formatted',status='unknown',err=996)
@@ -258,7 +260,7 @@ c     use cuda_functions
         if(np.lt.mgr+1) then
           write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &         ') cannot be supported by available ranks (',np,')'
-          call errquit(me,2,"Error in main")
+          call gronor_abort(2,"Error in main")
         endif
 
         nmol=0
@@ -348,7 +350,7 @@ c     use cuda_functions
         call gronor_input()
 
         if(mgr.eq.0) then
-          if(npg.eq.0) call errquit(me,2,"Error in main")
+          if(npg.eq.0) call gronor_abort(2,"Error in main")
           mgr=(np-1)/npg
         endif
 
@@ -377,11 +379,11 @@ c     use cuda_functions
 !     Sanity check on the task size
 
         if(numdev.gt.0.and.ntaska.eq.0)
-     &       call errquit(me,2,"Error in main")
+     &       call gronor_abort(2,"Error in main")
         if(numdev.eq.0.and.ntask.eq.0)
-     &       call errquit(me,2,"Error in main")
+     &       call gronor_abort(2,"Error in main")
         if(ntaska.eq.0.and.ntask.eq.0)
-     &       call errquit(me,2,"Error in main")
+     &       call gronor_abort(2,"Error in main")
         
 !     Unless the user is an expert let's check thresholds
         
@@ -485,7 +487,7 @@ c     use cuda_functions
         call gronor_number_integrals(numone,numtwo)
         
         if(npg*mgr+1.gt.np) then
-          call errquit(me,2,"Requested ranks exceeds available")
+          call gronor_abort(2,"Requested ranks exceeds available")
        endif
        
        allocate(nbasm(mstates))
@@ -733,6 +735,8 @@ c     use cuda_functions
       lfnone=11
       lfntwo=12
       lfndbg=13
+      lfnabt=26
+      lfnwrn=27
       if(idbg.gt.0) then
         write(fildbg,1300) me
  1300   format('GronOR_',i5.5,'.dbg ')
@@ -946,7 +950,7 @@ c     use cuda_functions
       
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
-        call errquit(me,2,"Error in main")
+        call gronor_abort(2,"Error in main")
       endif
       do i=1,numgrp
         do j=1,mgr
@@ -2377,19 +2381,19 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       return
  992  write(lfnout,983) filtim(1:inp_strlen(filtim))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  996  write(lfnout,986) filout(1:inp_strlen(filout))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call errquit(me,2,"Error in main")
+      call gronor_abort(2,"Error in main")
  983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
  985  format('Unable to open symmetry file ',a)

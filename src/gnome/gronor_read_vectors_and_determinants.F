@@ -175,7 +175,7 @@
  601          format(' Weird occupation in ',a)
               write(lfnout,602) j,i
  602          format(' Determinant ',i4,' of state ',i4)
-              call errquit(me,9,"Inconsistent occupation")
+              call gronor_abort(9,"Inconsistent occupation")
               stop
             endif
           enddo
@@ -320,11 +320,11 @@ c          enddo
       return
 
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit(me,6,"Error reading symmetry")
+      call gronor_abort(6,"Error reading symmetry")
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit(me,6,"Error reading vectors")
+      call gronor_abort(6,"Error reading vectors")
  999  write(lfnout,989) fildet(1:inp_strlen(fildet))
-      call errquit(me,6,"Error reading determinants")
+      call gronor_abort(6,"Error reading determinants")
  985  format('Unable to open symmetry file ',a)
  987  format('Unable to open vects  file ',a)
  989  format('Unable to open vecdet file ',a)

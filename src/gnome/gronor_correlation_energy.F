@@ -153,7 +153,7 @@
       if ( info .ne. 0 ) then
         write(lfnout,*)'Something went wrong in dsyev in gronor_lowdin '
         write(lfnout,*) 'info = ',info
-        call errquit(me,9,"Error in Gronor_Lowdin dsyev")
+        call gronor_abort(9,"Error in Gronor_Lowdin dsyev")
       end if
       deallocate(work)
 

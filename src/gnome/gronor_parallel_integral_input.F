@@ -591,15 +591,15 @@ C     and retrieved here, if considered useful info
       return
       
  993  write(lfnout,983) filone(1:inp_strlen(filone))
-      call errquit(me,4,"Error in reading integrals")
+      call gronor_abort(4,"Error in reading integrals")
  994  write(lfnout,984) filone(1:inp_strlen(filone))
-      call errquit(me,4,"Error in reading integrals")
+      call gronor_abort(4,"Error in reading integrals")
  983  format('Error reading one electron integral file ',a)
  984  format('Unable to open one electron integral file ',a)
  995  write(lfnout,985) filtwo(1:inp_strlen(filtwo))
-      call errquit(me,4,"Error in reading integrals")
+      call gronor_abort(4,"Error in reading integrals")
  996  write(lfnout,986) filtwo(1:inp_strlen(filtwo))
-      call errquit(me,4,"Error in reading integrals")
+      call gronor_abort(4,"Error in reading integrals")
  985  format('Error reading two electron integral file ',a)
  986  format('Unable to open two electron integral file ',a)
       end

@@ -62,7 +62,7 @@
       elseif(mode.eq.2) then
          iloop=nj
       else
-        call gronor_abort(9,"Wrong mode for iloop")
+        call gronor_abort(280,"Wrong mode for iloop")
       endif
       return
       end

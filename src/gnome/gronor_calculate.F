@@ -185,7 +185,7 @@
           nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
 
           if(nelec(1).ne.nelec(2))
-     &         call gronor_abort(7,"Inconsistent number electrons")
+     &         call gronor_abort(300,"Inconsistent number electrons")
 
           i=melist(ij,1)
           j=melist(ij,2)

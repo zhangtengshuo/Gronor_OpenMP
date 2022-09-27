@@ -260,7 +260,7 @@ c     use cuda_functions
         if(np.lt.mgr+1) then
           write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
      &         ') cannot be supported by available ranks (',np,')'
-          call gronor_abort(2,"Error in main")
+          call gronor_abort(200,"Error in main")
         endif
 
         nmol=0
@@ -350,7 +350,7 @@ c     use cuda_functions
         call gronor_input()
 
         if(mgr.eq.0) then
-          if(npg.eq.0) call gronor_abort(2,"Error in main")
+          if(npg.eq.0) call gronor_abort(201,"Error in main")
           mgr=(np-1)/npg
         endif
 
@@ -379,11 +379,11 @@ c     use cuda_functions
 !     Sanity check on the task size
 
         if(numdev.gt.0.and.ntaska.eq.0)
-     &       call gronor_abort(2,"Error in main")
+     &       call gronor_abort(202,"Error in main")
         if(numdev.eq.0.and.ntask.eq.0)
-     &       call gronor_abort(2,"Error in main")
+     &       call gronor_abort(202,"Error in main")
         if(ntaska.eq.0.and.ntask.eq.0)
-     &       call gronor_abort(2,"Error in main")
+     &       call gronor_abort(202,"Error in main")
         
 !     Unless the user is an expert let's check thresholds
         
@@ -487,7 +487,7 @@ c     use cuda_functions
         call gronor_number_integrals(numone,numtwo)
         
         if(npg*mgr+1.gt.np) then
-          call gronor_abort(2,"Requested ranks exceeds available")
+          call gronor_abort(203,"Requested ranks exceeds available")
        endif
        
        allocate(nbasm(mstates))
@@ -950,7 +950,7 @@ c     use cuda_functions
       
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
-        call gronor_abort(2,"Error in main")
+        call gronor_abort(201,"Error in main")
       endif
       do i=1,numgrp
         do j=1,mgr
@@ -2381,19 +2381,19 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       
       return
  992  write(lfnout,983) filtim(1:inp_strlen(filtim))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(204,trim(filtim))
  993  write(lfnout,984) fillog(1:inp_strlen(fillog))
-      call gronor_abort(2,"Error in main")
- 994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(205,trim(fillog))
+ 994  write(lfnout,984) fildbg(1:inp_strlen(fildbg))
+      call gronor_abort(206,trim(fildbg))
  995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(207,trim(filsym))
  996  write(lfnout,986) filout(1:inp_strlen(filout))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(208,trim(filout))
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(209,trim(filvec))
  998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call gronor_abort(2,"Error in main")
+      call gronor_abort(210,trim(filciv))
  983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
  985  format('Unable to open symmetry file ',a)

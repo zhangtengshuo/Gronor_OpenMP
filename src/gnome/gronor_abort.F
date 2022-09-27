@@ -70,9 +70,204 @@
       case(112)
          write(lfnabt,'(a)')
      &        "Input: Threshold : CI threshold not specified"
+         
+      case(113)
+         write(lfnabt,'(a)')
+     &        "Input: Labels : labels option not specified"
+         
+      case(114)
+         write(lfnabt,'(a)')
+     &        "Input: Expert : expert option not specified"
+         
+      case(115)
+         write(lfnabt,'(a)')
+     &        "Input: Abort : abort option not specified"
+         
+      case(116)
+         write(lfnabt,'(a)')
+     &        "Input: Thresh_SIN : singularoty threshold not specified"
+         
+      case(117)
+         write(lfnabt,'(a)')
+     &        "Input: Task : number of tasks not specified"
+         
+      case(118)
+         write(lfnabt,'(a)')
+     &        "Input: Load : load balance option not specified"
+         
+      case(119)
+         write(lfnabt,'(a)')
+     &        "Input: Batch : Size of batch not specified"
+         
+      case(120)
+         write(lfnabt,'(a)')
+     &        "Input: Print : print option not properly specified"
+         
+      case(130)
+         write(lfnabt,'(a)')
+     &        "Input: MPIbuffer : MPI buffer size not specified"
+         
+      case(140)
+         write(lfnabt,'(a)')
+     &        "Input: Ecorr : Correlation energies not specified"
+         
+      case(150)
+         write(lfnabt,'(a,a,a)')
+     &        "Input: Input file ",trim(string)," could not be opened"
+         
+      case(200)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: Groups size incompatible",
+     &        " with available ranks"
+         
+      case(201)
+         write(lfnabt,'(a)')
+     &        "gronor_main: number of groups is zero"
+         
+      case(202)
+         write(lfnabt,'(a)')
+     &        "gronor_main: number of tasks is zero"
+         
+      case(203)
+         write(lfnabt,'(a)')
+     &        "gronor_main: number of rasks exceeds available"
+         
+      case(204)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening timing file ",trim(string)
+         
+      case(205)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening log file ",trim(string)
+         
+      case(206)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening dbg file ",trim(string)
+         
+      case(207)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening sys file ",trim(string)
+         
+      case(208)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening output file ",trim(string)
+         
+      case(209)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening vector file ",trim(string)
+         
+      case(210)
+         write(lfnabt,'(a,a)')
+     &        "gronor_main: error opening civ file ",trim(string)
+         
+      case(220)
+         write(lfnabt,'(a)')
+     &        "gronor_makebasestate: too many active orbitals"
+
+      case(221)
+         write(lfnabt,'(a)')
+     &        "gronor_makebasestate: incompatible spins"
+
+      case(230)
+         write(lfnabt,'(a,a)')
+     &        "gronor_number_integrals: error in ",trim(string)
+
+      case(231)
+         write(lfnabt,'(a,a)')
+     &        "gronor_number_integrals: error in ",trim(string)
+
+      case(240)
+         write(lfnabt,'(a,a)')
+     &        "gronor_parallel_integral_input: error reading",
+     &        " one-electron integrals from ",trim(string)
+
+      case(241)
+         write(lfnabt,'(a,a)')
+     &        "gronor_parallel_integral_input: error reading",
+     &        " one-electron integrals from ",trim(string)
+
+      case(242)
+         write(lfnabt,'(a,a)')
+     &        "gronor_parallel_integral_input: error reading",
+     &        " two-electron integrals from ",trim(string)
+
+      case(243)
+         write(lfnabt,'(a,a)')
+     &        "gronor_parallel_integral_input: error reading",
+     &        " two-electron integrals from ",trim(string)
+
+      case(250)
+         write(lfnabt,'(a,a)')
+     &        "gronor_read_integrals: error reading two-electron",
+     &        " integrals from ",trim(string)
+
+      case(251)
+         write(lfnabt,'(a,a)')
+     &        "gronor_read_integrals: error reading two-electron",
+     &        " integrals from ",trim(string)
+
+      case(260)
+         write(lfnabt,'(a,a)')
+     &        "gronor_read_vectors_and_determinants: ",
+     &        "inconsistent occupation"
+
+      case(261)
+         write(lfnabt,'(a,a,a)')
+     &        "gronor_read_vectors_and_determinants: ",
+     &        "error reading system file ",trim(string)
+
+      case(262)
+         write(lfnabt,'(a,a,a)')
+     &        "gronor_read_vectors_and_determinants: ",
+     &        "error reading vector file ",trim(string)
+
+      case(263)
+         write(lfnabt,'(a,a,a)')
+     &        "gronor_read_vectors_and_determinants: ",
+     &        "error reading determinant file ",trim(string)
+         
+      case(270)
+         write(lfnabt,'(a)')
+     &        "gronor_detemine_maxcib: incompatible spin state"
+      case(271)
+         write(lfnabt,'(a)')
+     &        "gronor_detemine_maxcib: incompatible spin state"
+      case(272)
+         write(lfnabt,'(a)')
+     &        "gronor_detemine_maxcib: incompatible spin state"
+
+      case(280)
+         write(lfnabt,'(a)')
+     &        "gronor_iloop: wrong mode"
+
+      case(290)
+         write(lfnabt,'(a)')
+     &        "gronor_leftovers: problem in seticlosed"
 
 
+         
+      case(300)
+         write(lfnabt,'(a)')
+     &        "gronor_calculate: inconsistent number of electrons"
+      case(305)
+         write(lfnabt,'(a)')
+     &        "gronor_gnome: inconsistent number of electrons"
+      case(306)
+         write(lfnabt,'(a)')
+     &        "gronor_gnome: incompatible nveca"
+      case(307)
+         write(lfnabt,'(a)')
+     &        "gronor_gnome: incompatibler nvecb"
+      case(310)
+         write(lfnabt,'(a)')
+     &        "gronor_cofac1: no everlap between MOs"
+      case(320)
+         write(lfnabt,'(a)')
+     &        "gronor_moover: inconsistent number of electron spins"
 
+      case(330)
+         write(lfnabt,'(a)')
+     &        "gronor_lowdin: error in dsyevs"
 
          
       case DEFAULT

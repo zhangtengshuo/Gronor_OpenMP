@@ -133,40 +133,42 @@
         endif
 
         if(inp_compare(.false.,'Labels',item)) then
-          if(.not.inp_i(labels)) call gronor_abort(1,"Input error")
+          if(.not.inp_i(labels)) call gronor_abort(113,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'Expert',item)) then
-          if(.not.inp_i(ixpert)) ixpert=1
+          if(.not.inp_i(ixpert)) call gronor_abort(114,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'Abort',item)) then
-          if(.not.inp_i(nabort)) nabort=64
+          if(.not.inp_i(nabort)) call gronor_abort(115,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'Thresh_SIN',item)) then
-          if(.not.inp_f(tau_SIN)) tau_SIN=1.0d-12
+          if(.not.inp_f(tau_SIN)) call gronor_abort(116,"Input error")
           goto 2
         endif
         
         if(inp_compare(.false.,'Task',item)) then
-          if(.not.inp_i(ntaska)) ntaska=1
+          ntaska=1
+          if(.not.inp_i(ntaska)) call gronor_abort(117,"Input error")
           if(.not.inp_i(ntask)) ntask=ntaska
           goto 2
         endif
         
         if(inp_compare(.false.,'Load',item)) then
-          if(.not.inp_i(loada)) loada=2
+          loada=2
+          if(.not.inp_i(loada)) call gronor_abort(118,"Input error")
           if(.not.inp_i(load)) load=loada
           goto 2
         endif
         
         if(inp_compare(.false.,'Batch',item)) then
            if(.not.inp_i(nbatch))
-     & call gronor_abort(1,"Input error Batch")
+     & call gronor_abort(119,"Input error Batch")
           nbatcha=nbatch
           if(.not.inp_i(nbatch)) then
           endif
@@ -193,7 +195,7 @@
             ipr=0
             goto 2
           else
-            call gronor_abort(1,"Input error in Print")
+            call gronor_abort(120,"Input error in Print")
           endif
           goto 2
         endif
@@ -289,7 +291,7 @@
         endif
         
         if(inp_compare(.false.,'MPIbuffer',item)) then
-          if(.not.inp_i(mpibuf)) call gronor_abort(1,"Input error")
+          if(.not.inp_i(mpibuf)) call gronor_abort(130,"Input error")
           goto 2
         endif
         
@@ -333,7 +335,7 @@
 !            if (.not.inp_f(ecorr(i))) ecorr(i) = 0.0d0
 !          end do
           do while(.true.)
-            if(.not.inp_read()) call gronor_abort(1,"Input error")
+            if(.not.inp_read()) call gronor_abort(140,"Input error")
             if(.not.inp_a(item)) goto 1
             if(len(trim(item)).gt.1) goto 3
             if(.not.inp_a(item2)) goto 1
@@ -370,6 +372,6 @@
  999  write(lfnout,989) filinp(1:inp_strlen(filinp))
  989  format('Unable to open input file ',a)
       
-      call gronor_abort(1,"Input error")
+      call gronor_abort(150,filinp)
       
       end subroutine gronor_input

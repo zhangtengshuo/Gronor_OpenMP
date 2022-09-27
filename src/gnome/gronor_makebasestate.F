@@ -103,7 +103,7 @@
       enddo
 
       if ( nactb(ibase) .gt. maxact) then
-        call gronor_abort(3,"Too many active orbitals")
+        call gronor_abort(220,"Too many active orbitals")
 !     write(lfnout,*)' * * *  Error  * * *'
 !     write(lfnout,*)'Max. number of active orbitals: ',maxact
 !     write(lfnout,*)'Actual active orbitals        : ',nactb(ibase)
@@ -547,7 +547,7 @@
      &             spincomb(1)+1,spincomb(2)+1,target_spin+1
               flush(lfndbg)
             endif
-            call gronor_abort(3,"Incompatible spins")
+            call gronor_abort(221,"Incompatible spins")
           endif
           
           if(idbg.ge.50) then

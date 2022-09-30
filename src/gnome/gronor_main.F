@@ -37,8 +37,7 @@
 !!     <tr><th>File name <th> File Description <th> String <th> Unit <th> Source
 !!     <tr><td>\$(root).inp <td> input file <td> filinp <td> lfninp <td>
 !!     <tr><td>\$(root).out <td> output file <td> filout <td> lfnout <td>
-!!     <tr><td>\$(root).sym <td> symmetry of MOs for different sets,
-!!                 coordinates, basis set <td> filsym <td> lfnsym <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root).sys <td> system file <td> filsys <td> lfnsys <td>
 !!     <tr><td>\$(root)_nnn.civ <td> CI vectors, one for every nnn=1,mstates
 !!                 <td> filciv <td> lfnciv <td> OpenMolcas Auxiliary
 !!     <tr><td>\$(root)_nnn.vec <td> MO vectors, one for every nnn=1,mstates
@@ -146,7 +145,7 @@ c     use cuda_functions
 
 !     input file: filinp with logical file number lfninp
 !     output file: filout with logical file number lfnout
-!     symmetry file: filsym with logical file number lfnsym
+!     system file: filsys with logical file number lfnsys
 !     what is on?: filciv with logical file number lfnciv
 !     what is on?: filvec with logical file number lfnvec
 
@@ -161,8 +160,8 @@ c     use cuda_functions
         lfninp=5
         filout=string(1:inp_strlen(string))//'.out'
         lfnout=16
-        filsym=root(1:inp_strlen(root))//'.sym'
-        lfnsym=7
+        filsys=root(1:inp_strlen(root))//'.sys'
+        lfnsys=7
         lfnciv=9
         lfnvec=10
         filint=root(1:inp_strlen(root))//'.int'
@@ -457,14 +456,14 @@ c     use cuda_functions
  602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
      &       t60,'Total memory on device',t90,f24.3,' GB')
         if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
-     &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
+     &       filinp(1:inp_strlen(filinp)),filsys(1:inp_strlen(filsys)),
      &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
      &       root(1:inp_strlen(root)),
      &       root(1:inp_strlen(root))
  603    format(/,' Command argument',t30,a,/,
      &       ' Current working directory',t30,a,//,
      &       ' Input file is',t25,a,t60,
-     &       'Symmetry file is',t92,a,/,
+     &       'System file is',t92,a,/,
      &       ' Output file is',t25,a,t60,
      &       'One electron integral file is',t92,a,//,
      &       ' CI vector file(s) are',t25,a,'_nnn.det',/
@@ -556,7 +555,7 @@ c     use cuda_functions
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
         
         call gronor_gnome_molcas_input() ! OpenMolcas
-        close(unit=lfnsym)
+        close(unit=lfnsys)
 
         call gronor_env_cml(version,version_type)
         call gronor_init_cml
@@ -2386,8 +2385,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call gronor_abort(205,trim(fillog))
  994  write(lfnout,984) fildbg(1:inp_strlen(fildbg))
       call gronor_abort(206,trim(fildbg))
- 995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call gronor_abort(207,trim(filsym))
+ 995  write(lfnout,985) filsys(1:inp_strlen(filsys))
+      call gronor_abort(207,trim(filsys))
  996  write(lfnout,986) filout(1:inp_strlen(filout))
       call gronor_abort(208,trim(filout))
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
@@ -2396,7 +2395,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       call gronor_abort(210,trim(filciv))
  983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
- 985  format('Unable to open symmetry file ',a)
+ 985  format('Unable to open system file ',a)
  986  format('Unable to open output file ',a)
  987  format('Unable to open vects file ',a)
  988  format('Unable to open civec file ',a)

@@ -308,24 +308,24 @@ c          enddo
       endif
       flush(lfnout)
 
-      write(filsym,202) root(1:inp_strlen(root))
- 202  format(a,'.sym')
-      length=inp_strlen(filsym)
-      open(unit=lfnsym,file=filsym(1:length),form='formatted',
+      write(filsys,202) root(1:inp_strlen(root))
+ 202  format(a,'.sys')
+      length=inp_strlen(filsys)
+      open(unit=lfnsys,file=filsys(1:length),form='formatted',
      &      status='old',err=995)
 
-      if(ipr.gt.0) write(lfnout,615) filsym(1:inp_strlen(filsym))
+      if(ipr.gt.0) write(lfnout,615) filsys(1:inp_strlen(filsys))
  615  format(/,' System information read from ',a)
 
       return
 
- 995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call gronor_abort(261,trim(filsym))
+ 995  write(lfnout,985) filsys(1:inp_strlen(filsys))
+      call gronor_abort(261,trim(filsys))
  997  write(lfnout,987) filvec(1:inp_strlen(filvec))
       call gronor_abort(262,trim(filvec))
  999  write(lfnout,989) fildet(1:inp_strlen(fildet))
       call gronor_abort(263,trim(fildet))
- 985  format('Unable to open symmetry file ',a)
+ 985  format('Unable to open system file ',a)
  987  format('Unable to open vects  file ',a)
  989  format('Unable to open vecdet file ',a)
 

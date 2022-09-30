@@ -1313,6 +1313,19 @@ endforeach(dir)
 
 message (STATUS "Programs constructed: ${programs}")
 
+message ("Configuring install list:")
+
+#add_library(blas lapack inp chem util)
+install(TARGETS ${libraries})
+set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+install(TARGETS ${programs})
+set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/bin")
+
+#message(STATUS "Install targets: ${libraries}")
+#set(MODULE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
+#install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY} DESTINATION ${MODULE_INSTALL_DIR})
+
+
 enable_testing()
 
 include(CTest)

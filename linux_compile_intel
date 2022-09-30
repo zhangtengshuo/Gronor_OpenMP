@@ -18,4 +18,8 @@ cmake -DOPENMP=ON -DCMAKE_INSTALL_PREFIX=/home/tps/Software/intel-2022.2.0/mpich
 
 make -j 12
 
-cp bin/* /home/tps/Software/intel-2022.2.0/mpich-4.0.2/gronor/23.00/bin
+make install
+
+#cp bin/rotharm3 bin/rotharm
+
+#cp bin/* /home/tps/Software/intel-2022.2.0/mpich-4.0.2/gronor/23.00/bin

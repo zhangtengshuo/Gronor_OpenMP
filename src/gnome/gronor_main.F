@@ -109,7 +109,7 @@ c     use cuda_functions
       integer*4 len4,ierr4
 #endif
       
-#ifdef CUDA
+#ifdef _OPENACC
       type(c_ptr) :: cpfre, cptot
 #endif
 

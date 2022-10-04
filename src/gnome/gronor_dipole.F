@@ -38,6 +38,9 @@
       x=0.0d0
       y=0.0d0
       z=0.0d0
+      dx=0.0d0
+      dy=0.0d0
+      dz=0.0d0
       do i=1,nbas
        do j=1,nbas
         if(ising.eq.0) aij=ta(i,j)*deta*2

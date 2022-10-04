@@ -26,7 +26,9 @@
 
 #ifdef _OPENACC
       use openacc
+#ifdef CUDA
       use cuda_functions
+#endif
 c      use cuda_rt
 #endif
 #ifdef _OPENMP

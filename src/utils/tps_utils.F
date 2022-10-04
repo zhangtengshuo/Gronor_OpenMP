@@ -541,7 +541,8 @@ c
 #ifdef USE_POSIXF
       call pxfgetlogin(user,ilen,ierror)
 #else
-      call getlog(user)
+!      call getlog(user)
+      call getenv("USER",user)
 #endif
 c
       return

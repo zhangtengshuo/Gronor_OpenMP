@@ -37,6 +37,7 @@
 
       implicit none
 
+      integer :: nrecbd
       integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
@@ -295,8 +296,8 @@ C     and retrieved here, if considered useful info
 
 !     Determine the correct record length of the integral files
       
-      inquire(iolength=nrecb4) b(1)
-      nrecb = nrecb4
+      inquire(iolength=nrecbd) b(1)
+      nrecb = nrecbd
       if(mclab.ne.1) then
         nrecl=(2*mbuf+2)*nrecb
       else

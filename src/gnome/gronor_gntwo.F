@@ -42,7 +42,7 @@
       use gnome_data
       use gnome_integrals
       use iso_c_binding, only : c_loc, c_ptr
-
+      
 #ifdef _OPENACC
       use openacc
 #ifdef CUDA

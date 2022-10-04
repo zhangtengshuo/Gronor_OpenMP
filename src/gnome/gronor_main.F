@@ -133,7 +133,8 @@ c     use cuda_functions
 #ifdef USE_POSIXF
         call pxfgetlogin(user,len4,ierr4)
 #else
-        call getlog(user)
+        call getenv("USER",user)
+!        call getlog(user)
         call hostnm(host)
         call swatch(date,time)
         call getcwd(cwd)
@@ -2202,7 +2203,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
 
         inquire(file=fillog(1:inp_strlen(fillog)),exist=EXIST)
         open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
-     &       form='formatted',status='unknown',access='append',err=993)
+     &       form='formatted',status='unknown',
+     &       position='append',err=993)
         call timer_stop(99)
         call swatch(date,time)
         if(.not.exist) then

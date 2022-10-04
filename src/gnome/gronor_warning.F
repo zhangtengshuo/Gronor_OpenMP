@@ -19,7 +19,7 @@
 !
       write(filwrn,'(a,i5.5,a)') "GronOR_",me,".wrn"
       open(unit=lfnwrn,file=trim(filwrn),form="formatted",
-     & access="append")
+     & position="append")
 
       select case(icode)
 

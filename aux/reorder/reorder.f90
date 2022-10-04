@@ -314,7 +314,7 @@
               if(d.lt.dm(i)) dm(i)=d
               if(d.lt.dm(j)) dm(j)=d
               dcut=1.6d0
-              if(ia(i).gt.30.or.ia(j).gt.30) dcut=1.99d0
+              if(ia(i).gt.15.or.ia(j).gt.15) dcut=1.99d0
               if(d.lt.dcut) then
                  nb(i)=nb(i)+1
                  nb(j)=nb(j)+1

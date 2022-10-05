@@ -207,7 +207,7 @@
  101  lenja = 0
  100  read(iread,'(a)',end=300)ja(lenja+1:max_width)
       input_line = input_line + 1
-      lenja = inp_strlen(ja)
+      lenja=len(trim(ja))
 
 !     Check for . * eof at beginning of line to indicate EOF
 
@@ -224,9 +224,9 @@
          include_level = include_level + 1
          include_file_name(include_level) = ja(9:)
          write(6,*) ' include: start of ', 
-     &        include_file_name(include_level)
-     &        (1:inp_strlen(include_file_name(include_level)))
-         open(80+include_level,file=include_file_name(include_level),
+     &        trim(include_file_name(include_level))
+         open(80+include_level,
+     &        file=trim(include_file_name(include_level)),
      &        form='formatted', status='old', err=105)
 !     call inp_save_state()
          iopt=6
@@ -244,14 +244,14 @@
             goto 100
          endif
       endif
-      jwidth = inp_strlen(ja)
+      jwidth=len(trim(ja))
 
 !     handle comments from # to eol ... allow for backslash quoting
 
       xprev = xblnk
       do i=1, jwidth
  91      if (ja(i:i) .eq. xcomm .and. xprev.ne.xback) then
-            lenja = inp_strlen(ja)
+            lenja=len(trim(ja))
             ja(i:max_width) = xblnk
             goto 80
          else if (ja(i:i) .eq. xcomm .and. xprev.eq.xback) then
@@ -264,7 +264,7 @@
          xprev = ja(i:i)
       enddo
 
- 80   if (inp_strlen(ja(1:i)) .eq. 0) goto 101 ! All line comments
+ 80   if (len(trim(ja(1:i))) .eq. 0) goto 101 ! All line comments
 
 !     figure out where ; splits physical line into multiple logical lines
 !     again handling quoted backslash
@@ -374,8 +374,7 @@
  300  if (include_level .gt. 0) then ! End of file detected
          close(80+include_level)
          write(6,*) ' include: end of ', 
-     &        include_file_name(include_level)
-     &        (1:inp_strlen(include_file_name(include_level)))
+     &        trim(include_file_name(include_level))
          include_level = include_level - 1
 !         call inp_restore_state()
          goto 1
@@ -420,13 +419,12 @@
       if (include_level .gt. 0) then
          write(6,*) ' Include file stack '
          do i = 1, include_level
-            write(6,321) i, include_file_name(i)
-     &        (1:inp_strlen(include_file_name(i)))
+            write(6,321) i, trim(include_file_name(i))
  321        format(1x,i5,2x,a)
          enddo
       endif
       if (errmsg .ne. ' ') then
-         length = inp_strlen(errmsg)
+         length=len(trim(errmsg))
          write(iwrite, 40) input_line, errmsg(1:length)
  40      format(' input error at line', i5,': ', a)
 
@@ -675,8 +673,8 @@ c.... the number itself
       character (len=1) :: atest, btest
 
       inp_compare = .false.
-      la = inp_strlen(a)
-      lb = inp_strlen(b)
+      la=len(trim(a))
+      lb=len(trim(b))
       if (la .ne. lb) then      ! use .gt. for short match
          return
       else if (ocase) then
@@ -702,7 +700,7 @@ c.... the number itself
       character (len=*) :: test, array(*)
       integer (kind=8) :: i, j, l
 
-      l = inp_strlen(test)
+      l=len(trim(test))
       inp_match = .false.
       ind = -1
 
@@ -738,8 +736,8 @@ c.... the number itself
 
       ipos = -1
       inp_contains = .false.
-      la = inp_strlen(a)
-      lb = inp_strlen(b)
+      la=len(trim(a))
+      lb=len(trim(b))
       if (la .gt. lb) then   
          return
       else if (ocase) then
@@ -779,16 +777,18 @@ c
       implicit none
 
       character (len=*) :: a
-      integer (kind=8) :: i
+      integer (kind=8) :: i,j
       logical :: ois_ws
       intrinsic len
       character (len=1) :: xtest
       ois_ws(xtest) = (iachar(xtest).eq.32 .or. iachar(xtest).eq.9)
 
       do i = len(a),1,-1
+         j=i
          if (.not. ois_ws(a(i:i))) goto 10
       enddo
 
+      i=j
  10   inp_strlen = i
 
       end
@@ -876,7 +876,7 @@ c
       if (maxz .lt. nz)
      &     call inpquit('inp_search: hard dim fail',nz)
       do i = 1, nz
-         length(i) = inp_strlen(z(i))
+         length(i)=len(trim(z(i)))
       enddo
 
  10   if (inp_read()) then
@@ -911,7 +911,7 @@ c
 !     Only called from inside the basis set input routine?
 
       inp_search_fast = .false.
-      length = max(3,inp_strlen(z)) ! 3 for EOF/eof detection
+      length = max(3,len(trim(z))) ! 3 for EOF/eof detection
 
  10   read(iread,'(a)',end=300) ja(1:length)
       input_line = input_line + 1

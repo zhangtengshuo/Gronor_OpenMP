@@ -1431,9 +1431,13 @@ c
       implicit none
       character(*) :: message
       integer :: id
+      integer (kind=4) :: ierror,ierr
 
       write(*,999) id,message
  999  format('Error code ',i2,': ',a)
-      stop
+
+      ierror=0
+!      call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
+      stop "Aborting from tps_abort"
       return 
       end

@@ -37,7 +37,11 @@
 
       implicit none
 
+#ifdef CRAY
       integer :: nrecbd
+#else
+      integer (kind=4) :: nrecbd
+#endif
       integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem

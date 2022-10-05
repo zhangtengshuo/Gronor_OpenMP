@@ -369,9 +369,9 @@
       
       return
       
- 999  write(lfnout,989) filinp(1:inp_strlen(filinp))
+ 999  write(lfnout,989) trim(filinp)
  989  format('Unable to open input file ',a)
       
-      call gronor_abort(150,filinp)
+      call gronor_abort(150,trim(filinp))
       
       end subroutine gronor_input

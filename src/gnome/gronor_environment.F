@@ -38,7 +38,7 @@ c      use cuda_rt
       implicit none
 
       integer :: i,j,k,node
-      integer (kind=4) :: len, ierr, istat, ncount
+      integer (kind=4) :: length, ierr, istat, ncount
 
       integer :: getcpucount
       external :: getcpucount
@@ -81,37 +81,37 @@ c      use cuda_rt
 
       allocate(map1(np,7),map2(np,7))
 
-!     call MPI_get_processor_name(nodename, len, ierr)
+!     call MPI_get_processor_name(nodename, length, ierr)
       call hostnm(nodename)
-      len=inp_strlen(nodename)
+      length=len(trim(nodename))
 
       machine='        '
       
 !     Trim the JFZ Juwels Booster node name
       if(nodename(1:3).eq.'jwb') then
         nodename(1:4)=nodename(4:7)
-        len=4
+        length=4
         machine='Juwels  '
       endif
 
 !     Trim the CSCS Piz Daint node name
       if(nodename(1:3).eq.'nid') then
         nodename(1:5)=nodename(4:8)
-        len=5
+        length=5
         machine='Daint   '
       endif
 
 !     Trim the SurfSara Lisa node name
       if(index(nodename,'.lisa').gt.0) then
-        len=index(nodename,'.lisa')-1
-        nodename(len+1:len+1)=' '
+        length=index(nodename,'.lisa')-1
+        nodename(length+1:length+1)=' '
         machine='Lisa    '
       endif
       
 !     Trim the Sara Snellius node name
       if(nodename(1:3).eq.'gcn') then
         nodename(1:2)=nodename(4:5)
-        len=2
+        length=2
         machine='Snellius'
       endif
 
@@ -128,7 +128,7 @@ c      use cuda_rt
      &     ichar(nodename(5:5)).le.57.and.
      &     ichar(nodename(6:6)).ge.48.and.
      &     ichar(nodename(6:6)).le.57) then
-        len=6
+        length=6
         machine='Summit  '
       endif
 
@@ -165,7 +165,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       j=1
       i=1
 
-      do while(i.le.len.and.nodename(i:i).ne.' ')
+      do while(i.le.length.and.nodename(i:i).ne.' ')
         if(nodename(i:i).eq.'0'.or.nodename(i:i).eq.'1'.or.
      &       nodename(i:i).eq.'2'.or.nodename(i:i).eq.'3'.or.
      &       nodename(i:i).eq.'4'.or.nodename(i:i).eq.'5'.or.

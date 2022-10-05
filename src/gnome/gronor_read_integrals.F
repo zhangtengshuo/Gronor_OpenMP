@@ -185,9 +185,9 @@
       call gronor_parallel_integral_input()
 
       return
- 993  write(lfnout,983) filint(1:inp_strlen(filint))
+ 993  write(lfnout,983) trim(filint)
       call gronor_abort(250,trim(filint))
- 994  write(lfnout,984) filint(1:inp_strlen(filint))
+ 994  write(lfnout,984) trim(filint)
       call gronor_abort(251,trim(filint))
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)

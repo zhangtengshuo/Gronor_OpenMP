@@ -174,7 +174,6 @@
               write(lfnout,602) j,i
  602          format(' Determinant ',i4,' of state ',i4)
               call gronor_abort(260,"Inconsistent occupation")
-              stop
             endif
           enddo
         enddo

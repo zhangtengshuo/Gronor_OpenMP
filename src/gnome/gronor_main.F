@@ -431,6 +431,14 @@ c     use cuda_functions
 
         onlabel='    '
         if(machine.ne.'        ') onlabel=' on '
+#ifdef _OL_ACC_
+        if(ipr.ge.20) write(lfnout,643)
+ 643    format(//,' GronOR compiled for OpenACC device offload')
+#endif
+#ifdef _OL_OMP_
+        if(ipr.ge.20) write(lfnout,644)
+ 644    format(//,' GronOR compiled for OpenMP device offload')
+#endif
         if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
      &       trim(host),onlabel,trim(machine),nnodes,
      &       date(1:8),nrsets,

@@ -114,6 +114,13 @@ c      use cuda_rt
         length=2
         machine='Snellius'
       endif
+      
+!     Trim the Crusher node name
+      if(nodename(1:7).eq.'crusher') then
+        nodename(1:3)=nodename(8:10)
+        length=3
+        machine='Crusher '
+      endif
 
 !     Trim the OLCF Summit node name
       if(ichar(nodename(1:1)).ge.97.and.
@@ -448,6 +455,13 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
         map2(me+1,7)=mydev
       endif
 #endif
+
+#ifdef _OL_OMP_
+      if(numdev.ge.1) then
+        mydev=omp_get_device_num()
+        map2(me+1,7)=mydev
+      endif
+#endif 
       
       return
       end

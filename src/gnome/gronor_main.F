@@ -346,6 +346,7 @@ c     use cuda_functions
         if(machine.eq.'Juwels  '.and.numdev.eq.1) ngpus=4
         if(machine.eq.'Summit  '.and.numdev.eq.1) ngpus=6
         if(machine.eq.'Snellius'.and.numdev.eq.1) ngpus=4
+        if(machine.eq.'Crusher '.and.numdev.eq.1) ngpus=8
         
         call gronor_input()
 
@@ -436,6 +437,9 @@ c     use cuda_functions
  643    format(//,' GronOR compiled for OpenACC device offload')
 #endif
 #ifdef _OL_OMP_
+        if(ipr.ge.20) write(lfnout,644) numdev,mydev
+ 644    format(//,' GronOR compiled for OpenMP device offload,',
+     &       ' numdev,mydev=',2i10)
         if(ipr.ge.20) write(lfnout,644)
  644    format(//,' GronOR compiled for OpenMP device offload')
 #endif

@@ -37,7 +37,11 @@
 
       implicit none
 
+#ifdef CRAY
       integer :: nrecbd
+#else
+      integer (kind=4) :: nrecbd
+#endif
       integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
@@ -150,7 +154,7 @@ C     and retrieved here, if considered useful info
           write(lfnout,607)
           do i=1,numfiles
             write(filtwo,'(a,a,i3.3,a)')
-     &           root(1:inp_strlen(root)),'_',i,'.two'
+     &           trim(root),'_',i,'.two'
             write(lfnout,608) i,ifil(i,1),ifil(i,2),trim(filtwo)
           enddo
           write(lfnout,609) nrectot,ninttot
@@ -333,7 +337,7 @@ C     and retrieved here, if considered useful info
           if(idf.ne.ndxf(igr,1)) idri=1
           if(idf.eq.ndxf(igr,2)) idrf=ndxf(igr,4)
           write(filtwo,'(a,a,i3.3,a)')
-     &         root(1:inp_strlen(root)),'_',idf,'.two'
+     &         trim(root),'_',idf,'.two'
           open(unit=lfntwo,file=filtwo,access='direct',
      &         form='unformatted',recl=nrecl,status='old')
           do idr=idri,idrf
@@ -591,15 +595,15 @@ C     and retrieved here, if considered useful info
       
       return
       
- 993  write(lfnout,983) filone(1:inp_strlen(filone))
+ 993  write(lfnout,983) trim(filone)
       call gronor_abort(240,trim(filone))
- 994  write(lfnout,984) filone(1:inp_strlen(filone))
+ 994  write(lfnout,984) trim(filone)
       call gronor_abort(241,trim(filone))
  983  format('Error reading one electron integral file ',a)
  984  format('Unable to open one electron integral file ',a)
- 995  write(lfnout,985) filtwo(1:inp_strlen(filtwo))
+ 995  write(lfnout,985) trim(filtwo)
       call gronor_abort(242,trim(filtwo))
- 996  write(lfnout,986) filtwo(1:inp_strlen(filtwo))
+ 996  write(lfnout,986) trim(filtwo)
       call gronor_abort(243,trim(filtwo))
  985  format('Error reading two electron integral file ',a)
  986  format('Unable to open two electron integral file ',a)

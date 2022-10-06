@@ -155,68 +155,68 @@ c     use cuda_functions
         iarg=1
         call getarg(iarg,string)
 
-        root=string(1:inp_strlen(string))
+        root=trim(string)
         if(index(string,'_').gt.0) root=string(1:index(string,'_')-1)
-        filinp=string(1:inp_strlen(string))//'.inp'
+        filinp=trim(string)//'.inp'
         lfninp=5
-        filout=string(1:inp_strlen(string))//'.out'
+        filout=trim(string)//'.out'
         lfnout=16
-        filsys=root(1:inp_strlen(root))//'.sys'
+        filsys=trim(root)//'.sys'
         lfnsys=7
         lfnciv=9
         lfnvec=10
-        filint=root(1:inp_strlen(root))//'.int'
-        filone=root(1:inp_strlen(root))//'.one'
+        filint=trim(root)//'.int'
+        filone=trim(root)//'.one'
         lfnint=11
         lfnone=11
         lfntwo=12
         lfndbg=13
-        filpro=string(1:inp_strlen(string))//'.pro'
+        filpro=trim(string)//'.pro'
         lfnpro=14
-        fildat=string(1:inp_strlen(string))//'.dat'
+        fildat=trim(string)//'.dat'
         lfndat=15
         lfndet=17
-        filday=string(1:inp_strlen(string))//'.day'
+        filday=trim(string)//'.day'
         lfnday=18
-        filtst=string(1:inp_strlen(string))//'.tst'
+        filtst=trim(string)//'.tst'
         lfntst=19
-        fillog=root(1:inp_strlen(root))//'.log'
+        fillog=trim(root)//'.log'
         lfnlog=20
-        filcpr=string(1:inp_strlen(string))//'.cpr'
+        filcpr=trim(string)//'.cpr'
         lfncpr=21
-        filarx=string(1:inp_strlen(string))//'.arx'
+        filarx=trim(string)//'.arx'
         lfnarx=22
-        filrnk=string(1:inp_strlen(string))//'.rnk'
+        filrnk=trim(string)//'.rnk'
         lfnrnk=23
-        filcml=string(1:inp_strlen(string))//'.cml'
+        filcml=trim(string)//'.cml'
         lfncml=24
-        filtim=string(1:inp_strlen(string))//'.tim'
+        filtim=trim(string)//'.tim'
         lfntim=25
         lfnabt=26
         lfnwrn=27
 
-        open(unit=lfnout,file=filout(1:inp_strlen(filout)),
+        open(unit=lfnout,file=trim(filout),
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfnpro,file=filpro(1:inp_strlen(filpro)),
+        open(unit=lfnpro,file=trim(filpro),
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfnday,file=filday(1:inp_strlen(filday)),
+        open(unit=lfnday,file=trim(filday),
      &       form='formatted',status='unknown',err=996)
         
-        open(unit=lfntst,file=filtst(1:inp_strlen(filtst)),
+        open(unit=lfntst,file=trim(filtst),
      &       form='formatted',status='unknown',err=996)
         
-        open(unit=lfncpr,file=filcpr(1:inp_strlen(filcpr)),
+        open(unit=lfncpr,file=trim(filcpr),
      &       form='unformatted',status='unknown',err=996)
         
-        open(unit=lfnarx,file=filarx(1:inp_strlen(filarx)),
+        open(unit=lfnarx,file=trim(filarx),
      &       form='formatted',status='unknown',err=996)
         
-        open(unit=lfnrnk,file=filrnk(1:inp_strlen(filrnk)),
+        open(unit=lfnrnk,file=trim(filrnk),
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfncml,file=filcml(1:inp_strlen(filcml)),
+        open(unit=lfncml,file=trim(filcml),
      &       form='formatted',status='unknown',err=996)
 
         call gronor_prelude_cml()
@@ -465,10 +465,10 @@ c     use cuda_functions
  602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
      &       t60,'Total memory on device',t90,f24.3,' GB')
         if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
-     &       filinp(1:inp_strlen(filinp)),filsys(1:inp_strlen(filsys)),
-     &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
-     &       root(1:inp_strlen(root)),
-     &       root(1:inp_strlen(root))
+     &       trim(filinp),trim(filsys),
+     &       trim(filout),trim(filone),
+     &       trim(root),
+     &       trim(root)
  603    format(/,' Command argument',t30,a,/,
      &       ' Current working directory',t30,a,//,
      &       ' Input file is',t25,a,t60,
@@ -487,7 +487,7 @@ c     use cuda_functions
  403    format('Time ',a)
         write(lfnarx,404) trim(host),onlabel,trim(machine)
  404    format('Host ',a,a,a)
-        write(lfnarx,405) root(1:inp_strlen(root))
+        write(lfnarx,405) trim(root)
  405    format('Root ',a)
         write(lfnarx,406) nnodes,np
  406    format('Nodes',i10,i10)
@@ -748,7 +748,7 @@ c     use cuda_functions
       if(idbg.gt.0) then
         write(fildbg,1300) me
  1300   format('GronOR_',i5.5,'.dbg ')
-        open(unit=lfndbg,file=fildbg(1:inp_strlen(fildbg)),
+        open(unit=lfndbg,file=trim(fildbg),
      &       form='formatted',status='unknown',err=996)
       endif
       
@@ -2209,8 +2209,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           deallocate( hcorr )
         endif
 
-        inquire(file=fillog(1:inp_strlen(fillog)),exist=EXIST)
-        open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
+        inquire(file=trim(fillog),exist=EXIST)
+        open(unit=lfnlog,file=trim(fillog),
      &       form='formatted',status='unknown',
      &       position='append',err=993)
         call timer_stop(99)
@@ -2236,7 +2236,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
      &       idist,iaslvr,jaslvr,inslvr,jnslvr,
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),
      &       nmol,nbase,mstates,tau_MO,tau_CI,
-     &       user(1:inp_strlen(user)),string(1:inp_strlen(string)),
+     &       trim(user),trim(string),
      &       trim(command),trim(host)
  801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,
      &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
@@ -2285,7 +2285,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         flush(lfnday)
         call timer_start(99)
         
-        open(unit=lfntim,file=filtim(1:inp_strlen(filtim)),
+        open(unit=lfntim,file=trim(filtim),
      &       form='formatted',status='unknown',err=992)
          
       endif
@@ -2389,19 +2389,19 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif  
       
       return
- 992  write(lfnout,983) filtim(1:inp_strlen(filtim))
+ 992  write(lfnout,983) trim(filtim)
       call gronor_abort(204,trim(filtim))
- 993  write(lfnout,984) fillog(1:inp_strlen(fillog))
+ 993  write(lfnout,984) trim(fillog)
       call gronor_abort(205,trim(fillog))
- 994  write(lfnout,984) fildbg(1:inp_strlen(fildbg))
+ 994  write(lfnout,984) trim(fildbg)
       call gronor_abort(206,trim(fildbg))
- 995  write(lfnout,985) filsys(1:inp_strlen(filsys))
+ 995  write(lfnout,985) trim(filsys)
       call gronor_abort(207,trim(filsys))
- 996  write(lfnout,986) filout(1:inp_strlen(filout))
+ 996  write(lfnout,986) trim(filout)
       call gronor_abort(208,trim(filout))
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
+ 997  write(lfnout,987) trim(filvec)
       call gronor_abort(209,trim(filvec))
- 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
+ 998  write(lfnout,988) trim(filciv)
       call gronor_abort(210,trim(filciv))
  983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)

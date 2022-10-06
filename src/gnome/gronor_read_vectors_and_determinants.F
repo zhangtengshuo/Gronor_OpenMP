@@ -36,7 +36,7 @@
 
       implicit none
 
-      integer                          :: i,j,k,istat,length,nume
+      integer                          :: i,j,k,istat,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
       real      (kind=8)               :: sdum,sume,sump,sumc
@@ -67,8 +67,7 @@
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
  2203   format(a,'.det')
-        length=inp_strlen(fildet)
-        open(unit=lfndet,file=fildet(1:length),form='formatted',
+        open(unit=lfndet,file=trim(fildet),form='formatted',
      &       status='old',err=999)
         read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),
      &       fragLabel(i),ecasscf(i),nElectrons(i),tau_MO, ecaspt2(i)
@@ -141,8 +140,7 @@
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
-        length=inp_strlen(fildet)
-        open(unit=lfndet,file=fildet(1:length),form='formatted',
+        open(unit=lfndet,file=trim(fildet),form='formatted',
      &         status='old',err=999)            
         read(lfndet,*)
         do j=1,idet_raw(i)
@@ -176,7 +174,6 @@
               write(lfnout,602) j,i
  602          format(' Determinant ',i4,' of state ',i4)
               call gronor_abort(260,"Inconsistent occupation")
-              stop
             endif
           enddo
         enddo
@@ -190,8 +187,7 @@
       do i=1,mstates
         write(filvec,2201) trim(fragfile(i))
  2201   format(a,'.vec')
-        length=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:length),form='formatted',
+        open(unit=lfnvec,file=trim(filvec),form='formatted',
      &        status='old',err=997)
         read(lfnvec,*)nbasm(i)
         maxvec=max(maxvec,nbasm(i))
@@ -200,8 +196,7 @@
       allocate( vecsm(maxvec,maxvec,mstates) )
       do i=1,mstates
         write(filvec,2201) trim(fragfile(i))
-        length=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:length),form='formatted',
+        open(unit=lfnvec,file=trim(filvec),form='formatted',
      &        status='old',err=997)
         read(lfnvec,*)
         do j=1,nbasm(i)
@@ -243,14 +238,14 @@ c          enddo
                  write(lfnout,604) fragLabel(i),
      &                idetm(i),nactm(i),inactm(i),nbasm(i),
      &                nElectrons(i),ecasscf(i),ecaspt2(i),
-     &                fildet(1:inp_strlen(fildet)),
-     &                filvec(1:inp_strlen(filvec))
+     &                trim(fildet),
+     &                trim(filvec)
               else
                  write(lfnout,634) fragLabel(i),
      &                idetm(i),nactm(i),inactm(i),nbasm(i),
      &                nElectrons(i),ecasscf(i),
-     &                fildet(1:inp_strlen(fildet)),
-     &                filvec(1:inp_strlen(filvec))
+     &                trim(fildet),
+     &                trim(filvec)
               endif
  604        format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
  634        format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
@@ -294,9 +289,8 @@ c          enddo
             endif
           enddo
           if(ipr.ge.40) then
-            write(filvec,201) root(1:inp_strlen(root)),i
-            length=inp_strlen(filvec)
-            write(lfnout,612) filvec(1:length),nbasm(i)
+            write(filvec,201) trim(root),i
+            write(lfnout,612) trim(filvec),nbasm(i)
  612        format(/,' Vector File ',a,//,
      &          ' Number of basis functions ',i8,/)
             do j=1,nbasm(i)
@@ -308,22 +302,21 @@ c          enddo
       endif
       flush(lfnout)
 
-      write(filsys,202) root(1:inp_strlen(root))
+      write(filsys,202) trim(root)
  202  format(a,'.sys')
-      length=inp_strlen(filsys)
-      open(unit=lfnsys,file=filsys(1:length),form='formatted',
+      open(unit=lfnsys,file=trim(filsys),form='formatted',
      &      status='old',err=995)
 
-      if(ipr.gt.0) write(lfnout,615) filsys(1:inp_strlen(filsys))
+      if(ipr.gt.0) write(lfnout,615) trim(filsys)
  615  format(/,' System information read from ',a)
 
       return
 
- 995  write(lfnout,985) filsys(1:inp_strlen(filsys))
+ 995  write(lfnout,985) trim(filsys)
       call gronor_abort(261,trim(filsys))
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
+ 997  write(lfnout,987) trim(filvec)
       call gronor_abort(262,trim(filvec))
- 999  write(lfnout,989) fildet(1:inp_strlen(fildet))
+ 999  write(lfnout,989) trim(fildet)
       call gronor_abort(263,trim(fildet))
  985  format('Unable to open system file ',a)
  987  format('Unable to open vects  file ',a)

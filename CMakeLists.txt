@@ -672,6 +672,7 @@ set (CFLAGS_Cray_FAST "-O2")
 # Fortran compiler
 list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
 #set (FFLAGS_Cray_BASIC "-Mbackslash")
+set (FFLAGS_Cray_BASIC "-DCRAY")
 #set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
 set (FFLAGS_Cray_OPENMP "-mp")
 set (FFLAGS_Cray_PROFILING "")

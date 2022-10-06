@@ -78,22 +78,22 @@ c
       util_cpusec = win32_cputime()
 #endif
 
-#if defined(CRAY)
-#define __UTIL_CPUSEC__
-      double precision secondr
-      external secondr
-      double precision first
-      logical ofirst
-      save first, ofirst
-      data ofirst /.true./
-c
-      if (ofirst) then
-	first = secondr()
-	ofirst = .false.
-      endif
-c
-      util_cpusec = secondr() - first ! Actually wall time
-#endif
+c#if defined(CRAY)
+c#define __UTIL_CPUSEC__
+c      double precision secondr
+c      external secondr
+c      double precision first
+c      logical ofirst
+c      save first, ofirst
+c      data ofirst /.true./
+cc
+c      if (ofirst) then
+c	first = secondr()
+c	ofirst = .false.
+c      endif
+cc
+c      util_cpusec = secondr() - first ! Actually wall time
+c#endif
 
 #if defined(FUJITSU_SOLARIS) || defined(CATAMOUNT)
 #define __UTIL_CPUSEC__

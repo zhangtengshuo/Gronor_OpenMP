@@ -444,7 +444,7 @@ c     use cuda_functions
      &       date(1:8),nrsets,
      &       time(1:8),nrnsets,numdev,ngpus,nummps,
      &       np,np/nnodes,np/nrsets,
-     &       ncycls,numomp
+     &       ncycls,num_threads
  601    format(//,
      &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
      &       ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/,

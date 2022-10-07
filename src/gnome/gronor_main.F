@@ -440,8 +440,6 @@ c     use cuda_functions
         if(ipr.ge.20) write(lfnout,644) numdev,mydev
  644    format(//,' GronOR compiled for OpenMP device offload,',
      &       ' numdev,mydev=',2i10)
-        if(ipr.ge.20) write(lfnout,644)
- 644    format(//,' GronOR compiled for OpenMP device offload')
 #endif
         if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
      &       trim(host),onlabel,trim(machine),nnodes,

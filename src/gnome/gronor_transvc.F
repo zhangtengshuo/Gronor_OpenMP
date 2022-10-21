@@ -10,16 +10,16 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Transform vectors
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
-      
+
+
       subroutine gronor_transvc(lfndbg,idet)
       use cidist
       use gnome_data
@@ -44,8 +44,8 @@
         ioccn(m,idet)=iocopen(n1,idet)
        endif
       enddo
-      if(idbg.ge.13) write(lfndbg,602) idet,
-     & nclose(idet),nopen(idet),
+      if(idbg.ge.13) write(lfndbg,602) idet,                                    &
+     & nclose(idet),nopen(idet),                                                &
      & (ioccn(i,idet),i=1,nopen(idet))
  602  format(3i8,20i4)
 

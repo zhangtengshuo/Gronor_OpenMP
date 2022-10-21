@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !>    @brief
 !!    Driver for calculation range of Hamiltonian matrix element contributions
 !!    on worker ranks
@@ -27,7 +27,7 @@
 !!    @param[in] id1 : index of initial matrix contribution
 !!    @param[in] id2 : index of final matrix contribution
 !!    @date    2016
-      
+
       subroutine gronor_calculate(ib,jb,id1,id2)
 
       use mpi
@@ -56,9 +56,9 @@
       integer :: ioff
 
       real (kind=8) :: btemp,btemp2
-      
+
       logical (kind=4) :: flag
-      
+
       ndeti=idetb(ib)
       ndetj=idetb(jb)
       nacti=nactb(ib)
@@ -93,7 +93,7 @@
       endif
 
       ioff=ndxdet(ib,jb)
-      
+
       osame=ib.eq.jb
       call iloop_init(ndeti,ndetj,osame)
       if(ib.eq.jb) then
@@ -117,7 +117,7 @@
       e2tot=0.0d0
       etotb=0.0d0
       sstot=0.0d0
-      
+
       do ij=id1,id2
 
         if(otreq) then
@@ -126,7 +126,7 @@
           if(flag) then
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),                   &
      &             ' Terminating in gronor_calculate'
             endif
             oterm=.true.
@@ -135,38 +135,38 @@
        endif
 
        call timer_start(5)
-        
-        if(idbg.ge.50)
+
+        if(idbg.ge.50)                                                          &
      &       write(lfndbg,608) ij,iloop(ij,1),iloop(ij,2)
- 608    format(//,
-     &       25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,
-     &       '         Left determinant      Right determinant',/,
+ 608    format(//,                                                              &
+     &       25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//,        &
+     &       '         Left determinant      Right determinant',/,              &
      &       ' Irrep   inactive   active     inactive   active',//)
-        
+
         nelec(1)=0
         nelec(2)=0
         ntop(1)=0
         ntop(2)=0
         ntcl(1)=0
         ntcl(2)=0
-        
+
         i=melist(ij,1)
         j=melist(ij,2)
-        
+
         ihc=ij-id1+1
 
         hh=0.0d0
         ss=0.0d0
-        
+
         if(dabs(civb(i,ib)*civb(j,jb)).lt.tau_CI) then
           ising=4
         else
-          
+
           inacti=inactb(ib)
           inactj=inactb(jb)
           nacti=nactb(ib)
           nactj=nactb(jb)
-          
+
           nclose(1)=inacti
           nclose(2)=inactj
           nopen(1)=nacti
@@ -184,12 +184,12 @@
           nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
           nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
 
-          if(nelec(1).ne.nelec(2))
+          if(nelec(1).ne.nelec(2))                                              &
      &         call gronor_abort(300,"Inconsistent number electrons")
 
           i=melist(ij,1)
           j=melist(ij,2)
-          
+
           hh=0.0d0
           ss=0.0d0
           if(ib.eq.jb) then
@@ -318,7 +318,7 @@
               do ivc=1,ntvc
                 if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
  1604           format(/,' Open shell M.O.'' s:')
-                write(lfndbg,1605)  ' (',ivc,')',
+                write(lfndbg,1605)  ' (',ivc,')',                               &
      &               (vec(ivc,ibas,idet),ibas=1,nbas)
  1605           format(a2,i3,a1,(t9,10f12.8))
               enddo
@@ -363,13 +363,13 @@
           if(idbg.ge.12) then
             call swatch(date,time)
             write(lfndbg,651) date(1:8),time(1:8),ij,i,j,hh,ss
- 651        format(a,1x,a,' Calculated values from gronor_gnome ',3i7,
+ 651        format(a,1x,a,' Calculated values from gronor_gnome ',3i7,          &
      &           '  H:',f20.10,'  S:',f20.10)
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
         else
-          
+
         endif
         buffer(ising+4)=buffer(ising+4)+1.0d0
 
@@ -392,19 +392,19 @@
 
 !     Upon return from gronor_calculate the head thread has the
 !     accumulated results from all threads in the group
-      
+
       call timer_start(37)
       if(mgr.gt.1) then
         if(iamhead.eq.1) then
           do ii=1,mgr-1
             ncount=1
             mpitag=5
-            call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+            call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,               &
      &           mpitag,MPI_COMM_WORLD,status,ierr)
             iremote=status(MPI_SOURCE)
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),             &
      &             me,' received e2buf from',iremote
               flush(lfndbg)
             endif
@@ -414,12 +414,12 @@
           ncount=1
           mpitag=5
           mpidest=thisgroup(2)
-          call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,
+          call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,                       &
      &         mpitag,MPI_COMM_WORLD,ireq,ierr)
 
           if(idbg.gt.10) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),
+            write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),               &
      &           me,' sent e2buf to',thisgroup(2)
             flush(lfndbg)
           endif
@@ -431,4 +431,4 @@
 
       return
       end subroutine gronor_calculate
-      
+

@@ -1,7 +1,7 @@
       subroutine gronor_print_matrix(lfn,r,nrdim)
-      
+
       use gnome_parameters, only : ncols
-      
+
       implicit none
       integer, intent(in) :: lfn,nrdim
       real(kind=8), intent(in) :: r(nrdim,nrdim)

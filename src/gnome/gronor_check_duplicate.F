@@ -10,11 +10,11 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
       subroutine check_duplicate(list,det,korb,nact,ndetlist,dup,i_dup)
 
       implicit none
-      
+
       integer :: nact,ndetlist,i,korb
       integer :: list(nact,ndetlist),det(nact),newdet(nact)
       integer :: i_dup
@@ -24,7 +24,7 @@
       enddo
       newdet(korb)=-1
       dup=.false.
-      do i=1,ndetlist         
+      do i=1,ndetlist
          if(all(newdet.eq.list(:,i)))then
             dup=.true.
             i_dup=i

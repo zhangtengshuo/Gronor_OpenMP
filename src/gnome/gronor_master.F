@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Main driver routine for the master rank
 !!
-!! @author T. P. Straatsma, ORNL      
+!! @author T. P. Straatsma, ORNL
 !! @author C. de Graaf, URV
 !! @date 2016
 !!
-!! The master rank orchestrates the calculation by reponding to task requests received 
+!! The master rank orchestrates the calculation by reponding to task requests received
 !! from worker ranks.
 !! The master rank requests matrix element contributions from worker ranks as tasks
 !! consisting of batches of contributions with user defined bacth size.
@@ -28,8 +28,8 @@
 !! This is the primary mechanism to achieve fault resiliency.
 !! A consequence of this implementation is that when all results have been received
 !! and the calculation has normally completed, the main program terminates with an MPI-Abort,
-!! rather than an MPI_Finalize. This avoids the job from hanging if a harware fault occurred. 
-      
+!! rather than an MPI_Finalize. This avoids the job from hanging if a harware fault occurred.
+
       subroutine gronor_master()
 
       use mpi
@@ -50,7 +50,7 @@
 
       integer (kind=8) :: ibuf(4),nsingt(5), ltotal
       integer, allocatable :: lgroup(:,:), lactive(:), lcount(:)
-      
+
       integer (kind=4) :: ierr,ireq,ireq2,ireq9,iremote,ncount,mpitag
       integer (kind=4) :: status(MPI_STATUS_SIZE)
 
@@ -59,7 +59,7 @@
       integer, allocatable :: ntasks(:,:),ndets(:,:,:)
 
       integer :: ioff
-      
+
       allocate(lgroup(npg,5))
       allocate(lactive(npg))
       allocate(ntasks(nbase,nbase))
@@ -73,11 +73,11 @@
       ofirst=.true.
       owait=.false.
       oskipn=numacc.gt.np/2
-      
+
 !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
 !     for contributions to Hamiltonian matrix element H(i,j)
 !     nsingt(k) sums the singularities over the entire Hamiltonian matrix
-      
+
       do i=1,5
         nsingt(i)=0
       enddo
@@ -92,7 +92,7 @@
 !     lgroup(igrp,2) : current j in H(i,j) for current task sent to group igrp
 !     lgroup(igrp,3) : index to first determinant pair for H(i,j) in the current task sent to group igrp
 !     lgroup(igrp,4) : index to last determinant pair for H(i,j) in the current task sent to group igrp
-!     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task 
+!     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task
 
       do j=1,5
         do i=1,npg
@@ -104,7 +104,7 @@
         lcount(i)=5*npg
       enddo
       ltotal=0
-      
+
 !     Initialize the results matrices to zero
 
 !     hbase(i,j)   collects the Hamiltonian matrix results for basestate combination i j
@@ -139,7 +139,7 @@
 !     ndets(i,j,1) has the number of determinant pairs for base state combination i j
 !     ndets(i,j,2) has the number of completed determinant pairs for base state combination i j
 !     mdet         has the total number of determinant pairs to be evaluated
-      
+
       mdet=0
       do ibase=1,nbase
         do jbase=1,ibase
@@ -170,26 +170,26 @@
           ndets(ibase,jbase,2)=0
         enddo
       enddo
-      
+
       if(ipr.ge.40) write(lfnout,601) mdet,numdet
- 601  format(' Number of determinant pairs',t50,i16,/,
+ 601  format(' Number of determinant pairs',t50,i16,/,                          &
      &     ' Number of determinants above CI threshold',t50,i16)
-      
+
       if(ipr.gt.0) then
         write(lfnout,602)
       endif
- 602  format(//,' Calculation of Hamiltonian matrix elements',//,
-     &     '  ------- Element -------',
-     &     '       -------------- Determinants --------------',
-     &     '          -------------- Singularities -------------',
-     &     '  ------------- Unnormalized -------------  ',
-     &     '         Normalized ',
-     &     '  Wall Clock  Wall Clock',/
-     &     '                          ',
-     &     '      left     right         pairs     threshold',
-     &     '          none           1           2            3+',
-     &     '      Hamiltonian              Overlap     ',
-     &     '         Hamiltonian ',
+ 602  format(//,' Calculation of Hamiltonian matrix elements',//,               &
+     &     '  ------- Element -------',                                         &
+     &     '       -------------- Determinants --------------',                 &
+     &     '          -------------- Singularities -------------',              &
+     &     '  ------------- Unnormalized -------------  ',                      &
+     &     '         Normalized ',                                              &
+     &     '  Wall Clock  Wall Clock',/                                         &
+     &     '                          ',                                        &
+     &     '      left     right         pairs     threshold',                  &
+     &     '          none           1           2            3+',              &
+     &     '      Hamiltonian              Overlap     ',                       &
+     &     '         Hamiltonian ',                                             &
      &     '        Cost        Time',/)
 
       write(lfnarx,521) nbase
@@ -201,14 +201,14 @@
       do ibase=1,nbase
         do jbase=1,ibase
 
-          if(ibase.eq.nbase.and.jbase.eq.nbase.and.
+          if(ibase.eq.nbase.and.jbase.eq.nbase.and.                             &
      &         (load.gt.1.or.loada.gt.1)) then
             if(loada.gt.1.and.ntaska.gt.1) ntaska=max(1,ntaska/loada)
             if(load.gt.1.and.ntask.gt.1) ntask=max(1,ntask/load)
             call timer_stop(99)
             call swatch(date,time)
-            write(lfnday,715) date(1:8),time(1:8),
-     &           timer_wall_total(99),
+            write(lfnday,715) date(1:8),time(1:8),                              &
+     &           timer_wall_total(99),                                          &
      &           '  :  Applied load balancing factors',loada,load
  715          format(a8,2x,a8,f12.3,a,2i5)
             call timer_start(99)
@@ -233,44 +233,44 @@
           ioff=ndxdet(ibase,jbase)
 
 !     fday is the progress counter for messages to the dayfile
-          
+
           fday(ibase,jbase)=dble(iday)
-          
+
           if(ipr.ge.40) then
             write(lfnout,603) ibase,jbase
  603        format(/,' Base state pair ',2i5)
             write(lfnout,604) ndeti
- 604        format(/,' Left wavefunction has ',i8,
+ 604        format(/,' Left wavefunction has ',i8,                              &
      &           ' determinants:',/)
             do i=1,ndeti
               call unpack(ioccb(i,ibase),iocch,nacti)
-              write(lfnout,605) i,civb(i,ibase),
+              write(lfnout,605) i,civb(i,ibase),                                &
      &             (iocch(k),k=1,nacti)
  605          format(i5,f25.15,35i3)
             enddo
             write(lfnout,606) ndetj
- 606        format(//,' Right wavefunction has ',i8,
+ 606        format(//,' Right wavefunction has ',i8,                            &
      &           ' determinants:',/)
             do i=1,ndetj
               call unpack(ioccb(i,jbase),iocch,nactj)
-              write(lfnout,605) i,civb(i,jbase),
+              write(lfnout,605) i,civb(i,jbase),                                &
      &             (iocch(k),k=1,nactj)
             enddo
           endif
           flush(lfnout)
-          
+
           call swatch(date,time)
           call timer_stop(99)
           if(.not.ofirst) then
             if(ntasks(ibase,jbase).ne.-2) then
-              write(lfnday,802) date(1:8),time(1:8),
-     &             timer_wall_total(99),
-     &             '  :  ',ibase,jbase,' started   ',
+              write(lfnday,802) date(1:8),time(1:8),                            &
+     &             timer_wall_total(99),                                        &
+     &             '  :  ',ibase,jbase,' started   ',                           &
      &             c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
             else
-              write(lfnday,803) date(1:8),time(1:8),
-     &             timer_wall_total(99),
-     &             '  :  ',ibase,jbase,
+              write(lfnday,803) date(1:8),time(1:8),                            &
+     &             timer_wall_total(99),                                        &
+     &             '  :  ',ibase,jbase,                                         &
      &             ' read from checkpoint restart'
             endif
           endif
@@ -278,13 +278,13 @@
  803      format(a8,2x,a8,f12.3,a,2i6,a,3i12,f12.6)
           flush(lfnday)
           call timer_start(99)
-          
+
           nrb=0
           ndone=0
-c          ibuf(1)=0
-c          ibuf(2)=0
-c          ibuf(3)=0
-c          ibuf(4)=0
+!          ibuf(1)=0
+!          ibuf(2)=0
+!          ibuf(3)=0
+!          ibuf(4)=0
 
           if(ntasks(ibase,jbase).eq.-2) ndone=ijend
 
@@ -294,11 +294,11 @@ c          ibuf(4)=0
           do while(ndone.lt.ijend)
 
 !     Wait for a request for a task from any worker group
-            
+
             call timer_start(94)
             ncount=8
             mpitag=1
-            call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+            call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,               &
      &           mpitag,MPI_COMM_WORLD,status,ierr)
             call timer_stop(94)
 
@@ -306,21 +306,21 @@ c          ibuf(4)=0
               ofirst=.false.
               call timer_stop(99)
               call swatch(date,time)
-              write(lfnday,705) date(1:8),time(1:8),
-     &             timer_wall_total(99),
+              write(lfnday,705) date(1:8),time(1:8),                            &
+     &             timer_wall_total(99),                                        &
      &             '  :  Integral distribution completed'
-              write(lfnday,705) date(1:8),time(1:8),
-     &             timer_wall_total(99),
+              write(lfnday,705) date(1:8),time(1:8),                            &
+     &             timer_wall_total(99),                                        &
      &       '  :  Start Hamiltonian calculation'
               if(ntasks(ibase,jbase).ne.-2) then
-                write(lfnday,802) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibase,jbase,' started   ',
+                write(lfnday,802) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibase,jbase,' started   ',                         &
      &               c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
               else
-                write(lfnday,803) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibase,jbase,
+                write(lfnday,803) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibase,jbase,                                       &
      &               ' read from checkpoint restart'
               endif
  705          format(a8,2x,a8,f12.3,a)
@@ -329,7 +329,7 @@ c          ibuf(4)=0
               call timer_start(98)
             endif
 !     Determine rank and group from which the request came
-            
+
             iremote=status(MPI_SOURCE)
             igrp=map2(iremote+1,3)
 
@@ -338,33 +338,33 @@ c          ibuf(4)=0
             enddo
             lcount(igrp)=5*npg
             ltotal=ltotal+1
-            
+
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,7i7)')
-     &             date(1:8),time(1:8),
-     &             master,' received buffer from',
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')                                 &
+     &             date(1:8),time(1:8),                                         &
+     &             master,' received buffer from',                              &
      &             iremote,igrp,(lgroup(igrp,i),i=1,5)
               flush(lfndbg)
             endif
 
 !     If the request group completed a task accumulate into appropriate arrays
 !     The very first request comes without results so this is skipped
-            
+
             if(lgroup(igrp,5).ne.0) then
 
               ibin=lgroup(igrp,1)
               jbin=lgroup(igrp,2)
-                
+
 !     Determine the number of determinants completed for the base pair in ndets
 !     Determine the percent complete for the base pair in pnrb
 
-              ndets(ibin,jbin,2)=
-     &             ndets(ibin,jbin,2)+
+              ndets(ibin,jbin,2)=                                               &
+     &             ndets(ibin,jbin,2)+                                          &
      &             lgroup(igrp,4)-lgroup(igrp,3)+1
-              pnrb(ibin,jbin)=
-     &             dble(100*ndets(ibin,
-     &             jbin,2))/
+              pnrb(ibin,jbin)=                                                  &
+     &             dble(100*ndets(ibin,                                         &
+     &             jbin,2))/                                                    &
      &             ndets(ibin,jbin,1)
 
 !     Write entry to progress file
@@ -372,54 +372,54 @@ c          ibuf(4)=0
               if(ipro.eq.1.or.ipro.eq.3) then
                 call swatch(date,time)
                 if(ipro.eq.1) rewind(unit=lfnpro)
-                write(lfnpro,680) date(1:8),time(1:8),
-     &               iremote,igrp,(lgroup(igrp,j),j=1,4),
-     &               iloop(lgroup(igrp,3),1),
-     &               iloop(lgroup(igrp,3),2),
-     &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &               pnrb(ibin,jbin),
+                write(lfnpro,680) date(1:8),time(1:8),                          &
+     &               iremote,igrp,(lgroup(igrp,j),j=1,4),                       &
+     &               iloop(lgroup(igrp,3),1),                                   &
+     &               iloop(lgroup(igrp,3),2),                                   &
+     &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,                       &
+     &               pnrb(ibin,jbin),                                           &
      &               buffer(1),buffer(2),(int(buffer(j)),j=4,8)
- 680            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
+ 680            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,                      &
      &               3i6,i12,f8.3,'% ',2e16.8,5i8)
                 flush(lfnpro)
               elseif(ipro.eq.2.or.ipro.eq.4) then
                 call swatch(date,time)
                 if(ipro.eq.2) rewind(unit=lfnpro)
-                write(lfnpro,681) date(1:8),time(1:8), 
-     &               iremote,igrp,(lgroup(igrp,j),j=1,4),
-     &               iloop(lgroup(igrp,3),1),
-     &               iloop(lgroup(igrp,3),2),
-     &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
+                write(lfnpro,681) date(1:8),time(1:8),                          &
+     &               iremote,igrp,(lgroup(igrp,j),j=1,4),                       &
+     &               iloop(lgroup(igrp,3),1),                                   &
+     &               iloop(lgroup(igrp,3),2),                                   &
+     &               lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,                       &
      &               pnrb(ibin,jbin)
- 681            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,
+ 681            format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,                      &
      &               3i6,i12,f8.3,'% ')
                 flush(lfnpro)
               endif
-              if(me.eq.master.and.
-     &             pnrb(ibin,jbin).ge.
+              if(me.eq.master.and.                                              &
+     &             pnrb(ibin,jbin).ge.                                          &
      &             fday(ibin,jbin)) then
                 call timer_stop(99)
                 call swatch(date,time)
-                write(lfnday,702) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibin,
-     &               jbin,' at ',
-     &               pnrb(ibin,jbin),'% ( ',
+                write(lfnday,702) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibin,                                              &
+     &               jbin,' at ',                                               &
+     &               pnrb(ibin,jbin),'% ( ',                                    &
      &               ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
  702            format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a,i10,a,i10,a)
                 flush(lfnday)
                 call timer_start(99)
-                fday(ibin,jbin)=
-     &               fday(ibin,
+                fday(ibin,jbin)=                                                &
+     &               fday(ibin,                                                 &
      &               jbin)+dble(iday)
               endif
-              
+
 !     Count the number of tasks completed by the remote rank in numrecs
-              
+
               numrecs(iremote+1)=numrecs(iremote+1)+1
-              
+
 !     Accumulate the returned contributions in buffer
-              
+
               hbase(ibin,jbin)=hbase(ibin,jbin)+buffer(1)
               sbase(ibin,jbin)=sbase(ibin,jbin)+buffer(2)
               tbase(ibin,jbin)=tbase(ibin,jbin)+buffer(3)
@@ -435,121 +435,121 @@ c          ibuf(4)=0
               tmax=max(tmax,buffer(3))
 
 !     Decrement the tasks still to be done for base pair
-              
+
               ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
 
-              if(ntasks(ibin,jbin).eq.0.and.
+              if(ntasks(ibin,jbin).eq.0.and.                                    &
      &             (ibin.ne.ibase.or.jbin.ne.jbase)) then
-                
+
                 if(ibin.eq.jbin) then
                   ltemp=idetb(ibin)*(idetb(ibin)+1)/2
                 else
                   ltemp=idetb(ibin)*idetb(jbin)
                 endif
-                
-                write(lfnarx,522) ibin,jbin,
-     &               adjustl(mebfLabel(ibin)),
-     &               adjustr(mebfLabel(jbin)),
-     &               idetb(ibin),idetb(jbin),
-     &               ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),
+
+                write(lfnarx,522) ibin,jbin,                                    &
+     &               adjustl(mebfLabel(ibin)),                                  &
+     &               adjustr(mebfLabel(jbin)),                                  &
+     &               idetb(ibin),idetb(jbin),                                   &
+     &               ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),         &
      &               hbase(ibin,jbin),sbase(ibin,jbin)
-                
+
                 call timer_stop(98)
                 call timer_stop(99)
-                
+
                 if(ipr.ge.1) then
-                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                      &
      &                 dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                     if(ibin.ne.jbin) then
-                      write(lfnout,607) ibin,jbin,
-     &                     adjustl(mebfLabel(ibin)),
-     &                     adjustr(mebfLabel(jbin)),
-     &                     idetb(ibin),idetb(jbin),
-     &                     ltemp,nbdet(ibin,jbin),
-     &                     (nsing(ibin,jbin,k),k=1,4),
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+                      write(lfnout,607) ibin,jbin,                              &
+     &                     adjustl(mebfLabel(ibin)),                            &
+     &                     adjustr(mebfLabel(jbin)),                            &
+     &                     idetb(ibin),idetb(jbin),                             &
+     &                     ltemp,nbdet(ibin,jbin),                              &
+     &                     (nsing(ibin,jbin,k),k=1,4),                          &
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
      &                     tbase(ibin,jbin),timer_wall_total(98)
                     else
-                      write(lfnout,608) ibin,jbin,
-     &                     adjustl(mebfLabel(ibin)),
-     &                     adjustr(mebfLabel(jbin)),
-     &                     idetb(ibin),idetb(jbin),
-     &                     ltemp,nbdet(ibin,jbin),
-     &                     (nsing(ibin,jbin,k),k=1,4),
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),
-     &                     hbase(ibin,jbin)/sbase(ibin,jbin),
+                      write(lfnout,608) ibin,jbin,                              &
+     &                     adjustl(mebfLabel(ibin)),                            &
+     &                     adjustr(mebfLabel(jbin)),                            &
+     &                     idetb(ibin),idetb(jbin),                             &
+     &                     ltemp,nbdet(ibin,jbin),                              &
+     &                     (nsing(ibin,jbin,k),k=1,4),                          &
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
+     &                     hbase(ibin,jbin)/sbase(ibin,jbin),                   &
      &                     tbase(ibin,jbin),timer_wall_total(98)
                     endif
                   else
                     if(ibin.ne.jbin) then
-                      write(lfnout,617) ibin,jbin,
-     &                     adjustl(mebfLabel(ibin)),
-     &                     adjustr(mebfLabel(jbin)),
-     &                     idetb(ibin),idetb(jbin),
-     &                     ltemp,nbdet(ibin,jbin),
-     &                     (nsing(ibin,jbin,k),k=1,4),
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),
+                      write(lfnout,617) ibin,jbin,                              &
+     &                     adjustl(mebfLabel(ibin)),                            &
+     &                     adjustr(mebfLabel(jbin)),                            &
+     &                     idetb(ibin),idetb(jbin),                             &
+     &                     ltemp,nbdet(ibin,jbin),                              &
+     &                     (nsing(ibin,jbin,k),k=1,4),                          &
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
      &                     tbase(ibin,jbin),timer_wall_total(98)
                     else
-                      write(lfnout,618) ibin,jbin,
-     &                     adjustl(mebfLabel(ibin)),
-     &                     adjustr(mebfLabel(jbin)),
-     &                     idetb(ibin),idetb(jbin),
-     &                     ltemp,nbdet(ibin,jbin),
-     &                     (nsing(ibin,jbin,k),k=1,4),
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),
-     &                     hbase(ibin,jbin)/sbase(ibin,jbin),
+                      write(lfnout,618) ibin,jbin,                              &
+     &                     adjustl(mebfLabel(ibin)),                            &
+     &                     adjustr(mebfLabel(jbin)),                            &
+     &                     idetb(ibin),idetb(jbin),                             &
+     &                     ltemp,nbdet(ibin,jbin),                              &
+     &                     (nsing(ibin,jbin,k),k=1,4),                          &
+     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
+     &                     hbase(ibin,jbin)/sbase(ibin,jbin),                   &
      &                     tbase(ibin,jbin),timer_wall_total(98)
                     endif
                   endif
                   flush(lfnout)
- 522              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
+ 522              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 2e20.13)
- 608              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
+ 608              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
- 607              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
+ 607              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
- 618              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
+ 618              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
- 617              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,
+ 617              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 f18.10,4x,f18.10,4x,20x,2f12.1)
                 endif
 
 !     Write entry in the checkpoint restart file
-                
-                write(lfncpr) ibin,jbin,
-     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
+
+                write(lfncpr) ibin,jbin,                                        &
+     &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),        &
      &               (nsing(ibin,jbin,k),k=1,4)
                 flush(lfncpr)
 
 !     Write completion message to dayfile
 
                 call swatch(date,time)
-                if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+                if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                        &
      &               dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                   if(ibin.ne.jbin) then
-                    write(lfnday,703) date(1:8),time(1:8),
-     &                   timer_wall_total(99),
-     &                   '  :  ',ibin,jbin,' completed, H,S   :',
+                    write(lfnday,703) date(1:8),time(1:8),                      &
+     &                   timer_wall_total(99),                                  &
+     &                   '  :  ',ibin,jbin,' completed, H,S   :',               &
      &                   hbase(ibin,jbin),sbase(ibin,jbin)
                   else
-                    write(lfnday,703) date(1:8),time(1:8),
-     &                   timer_wall_total(99),
-     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+                    write(lfnday,703) date(1:8),time(1:8),                      &
+     &                   timer_wall_total(99),                                  &
+     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',               &
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),                     &
      &                   hbase(ibin,jbin)/sbase(ibin,jbin)
                   endif
                 else
                   if(ibin.ne.jbin) then
-                    write(lfnday,704) date(1:8),time(1:8),
-     &                   timer_wall_total(99),
-     &                   '  :  ',ibin,jbin,' completed, H,S   :',
+                    write(lfnday,704) date(1:8),time(1:8),                      &
+     &                   timer_wall_total(99),                                  &
+     &                   '  :  ',ibin,jbin,' completed, H,S   :',               &
      &                   hbase(ibin,jbin),sbase(ibin,jbin)
                   else
-                    write(lfnday,704) date(1:8),time(1:8),
-     &                   timer_wall_total(99),
-     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &                   hbase(ibin,jbin),sbase(ibin,jbin),
+                    write(lfnday,704) date(1:8),time(1:8),                      &
+     &                   timer_wall_total(99),                                  &
+     &                   '  :  ',ibin,jbin,' completed, H,S,H*:',               &
+     &                   hbase(ibin,jbin),sbase(ibin,jbin),                     &
      &                   hbase(ibin,jbin)/sbase(ibin,jbin)
                   endif
                 endif
@@ -560,12 +560,12 @@ c          ibuf(4)=0
                 call timer_start(99)
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
-                
+
                 ntasks(ibin,jbin)=-2
               endif
-              
+
 !     Reset the task information for the group from which request came
-              
+
               do k=1,5
                 lgroup(igrp,k)=0
               enddo
@@ -583,8 +583,8 @@ c          ibuf(4)=0
 
 !     ndone becomes the last index of the determinant pairs that have been put in a task
 
-c            if(owait) call MPI_Wait(ireq,status,ierr)
-            
+!            if(owait) call MPI_Wait(ireq,status,ierr)
+
             ibuf(1)=ibase
             ibuf(2)=jbase
             ibuf(3)=min(ndone+1,ijend)
@@ -604,7 +604,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             ncount=4
             mpitag=2
 
-            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+            call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,              &
      &           iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
             owait=.true.
 
@@ -617,9 +617,9 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,7i7)')
-     &             date(1:8),time(1:8),
-     &             master,' sent ibuf to        ',
+              write(lfndbg,'(a,1x,a,i5,a,7i7)')                                 &
+     &             date(1:8),time(1:8),                                         &
+     &             master,' sent ibuf to        ',                              &
      &             iremote,igrp,(ibuf(i),i=1,4)
               flush(lfndbg)
             endif
@@ -628,8 +628,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 
             if(ipr.eq.2.or.ipro.eq.4) then
               call swatch(date,time)
-              write(lfnpro,682) date(1:8),time(1:8),
-     &             iremote,igrp,(ibuf(j),j=1,4),
+              write(lfnpro,682) date(1:8),time(1:8),                            &
+     &             iremote,igrp,(ibuf(j),j=1,4),                                &
      &             iloop(ibuf(3),1),iloop(ibuf(3),2)
  682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
               flush(lfnpro)
@@ -641,13 +641,13 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
               lgroup(igrp,k)=ibuf(k)
             enddo
             lgroup(igrp,5)=1
-            
+
           enddo
 
           call timer_stop(95)
 
 !     At this point the while loop over the determinant pairs for base pair ibase jabase has completed
-          
+
         enddo
       enddo
 
@@ -658,8 +658,8 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 
       call swatch(date,time)
       call timer_stop(99)
-      write(lfnday,8023) date(1:8),time(1:8),
-     &     timer_wall_total(99),
+      write(lfnday,8023) date(1:8),time(1:8),                                   &
+     &     timer_wall_total(99),                                                &
      &     '  :  Switching to duplicate tasks'
  8023 format(a8,2x,a8,f12.3,a)
       flush(lfnday)
@@ -668,7 +668,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
       last=0
 
 !     Count the outstanding tasks in nleft
-      
+
       nleft=0
       do i=1,npg
         if(lgroup(i,5).gt.0) nleft=nleft+1
@@ -685,7 +685,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
         call timer_start(96)
         ncount=8
         mpitag=1
-        call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,
+        call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,                   &
      &       mpitag,MPI_COMM_WORLD,status,ierr)
         call timer_stop(96)
 
@@ -701,18 +701,18 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
         enddo
         lcount(igrp)=5*npg
         ltotal=ltotal+1
-        
+
 !     Flag this group as still active
 
         lactive(igrp)=lactive(igrp)+1
 
         if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+          write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),                &
      &         master,' received last buffer from',iremote
           flush(lfndbg)
         endif
-        
+
 !     Accumulate results into appropriate arrays
 
         if(lgroup(igrp,5).gt.0) then
@@ -720,56 +720,56 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 !     Determine the number of determinants completed for the base pair in ndets
 !     Determine the percent complete for the base pair in pnrb
 
-          ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+
+          ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+                                &
      &         lgroup(igrp,4)-lgroup(igrp,3)+1
-          pnrb=dble(100*ndets(ibin,jbin,2))/
+          pnrb=dble(100*ndets(ibin,jbin,2))/                                    &
      &         ndets(ibin,jbin,1)
 
 !     Write entry to progress file
-          
+
           if(ipro.eq.1.or.ipro.eq.3) then
-            if(ipro.eq.1) rewind(unit=lfnpro)   
-            write(lfnpro,680) date(1:8),time(1:8),
-     &           iremote,igrp,(lgroup(igrp,j),j=1,4),
-     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
-     &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
-     &           pnrb(ibin,jbin),
+            if(ipro.eq.1) rewind(unit=lfnpro)
+            write(lfnpro,680) date(1:8),time(1:8),                              &
+     &           iremote,igrp,(lgroup(igrp,j),j=1,4),                           &
+     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),               &
+     &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,                           &
+     &           pnrb(ibin,jbin),                                               &
      &           buffer(1),buffer(2),(int(buffer(j)),j=4,8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             if(ipro.eq.2) rewind(unit=lfnpro)
-            write(lfnpro,681) date(1:8),time(1:8),
-     &           iremote,igrp,(lgroup(igrp,j),j=1,4),
-     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
-     &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,
+            write(lfnpro,681) date(1:8),time(1:8),                              &
+     &           iremote,igrp,(lgroup(igrp,j),j=1,4),                           &
+     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),               &
+     &           lgroup(igrp,4)-lgroup(igrp,3)+1,nrb,                           &
      &           pnrb(ibin,jbin)
             flush(lfnpro)
           endif
-          
+
 !     Write entry to dayfile
-          
-          if(me.eq.master.and.
-     &         pnrb(ibin,jbin).ge.
+
+          if(me.eq.master.and.                                                  &
+     &         pnrb(ibin,jbin).ge.                                              &
      &         fday(ibin,jbin)) then
             call timer_stop(99)
             call swatch(date,time)
-            write(lfnday,702) date(1:8),time(1:8),
-     &           timer_wall_total(99),
-     &           '  :  ',ibin,jbin,' at ',
-     &           pnrb(ibin,jbin),'% ( ',
+            write(lfnday,702) date(1:8),time(1:8),                              &
+     &           timer_wall_total(99),                                          &
+     &           '  :  ',ibin,jbin,' at ',                                      &
+     &           pnrb(ibin,jbin),'% ( ',                                        &
      &           ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
             flush(lfnday)
             call timer_start(99)
-            fday(ibin,jbin)=
+            fday(ibin,jbin)=                                                    &
      &           fday(ibin,jbin)+dble(iday)
           endif
-        
+
 !     Count the number of tasks completed by the remote rank in numrecs
-        
+
           numrecs(iremote+1)=numrecs(iremote+1)+1
-          
+
 !     Accumulate the returned contributions in buffer
-          
+
           hbase(ibin,jbin)=hbase(ibin,jbin)+buffer(1)
           sbase(ibin,jbin)=sbase(ibin,jbin)+buffer(2)
           tbase(ibin,jbin)=tbase(ibin,jbin)+buffer(3)
@@ -780,7 +780,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
           nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
 
 !     Decrement the tasks still to be done for base pair
-          
+
           ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
 
 !     Loop over all base pairs to check if all tasks have been completed
@@ -795,91 +795,91 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             else
               ltemp=idetb(ibin)*idetb(jbin)
             endif
-                write(lfnarx,522) ibin,jbin,
-     &           adjustl(mebfLabel(ibin)),
-     &           adjustr(mebfLabel(jbin)),
-     &           idetb(ibin),idetb(jbin),
-     &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),
+                write(lfnarx,522) ibin,jbin,                                    &
+     &           adjustl(mebfLabel(ibin)),                                      &
+     &           adjustr(mebfLabel(jbin)),                                      &
+     &           idetb(ibin),idetb(jbin),                                       &
+     &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
      &           hbase(ibin,jbin),sbase(ibin,jbin)
             if(ipr.ge.1) then
-              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                          &
      &             dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                 if(ibin.ne.jbin) then
-                  write(lfnout,607) ibin,jbin,
-     &                 adjustl(mebfLabel(ibin)),
-     &                 adjustr(mebfLabel(jbin)),
-     &                 idetb(ibin),idetb(jbin),
-     &                 ltemp,nbdet(ibin,jbin),
-     &                 (nsing(ibin,jbin,k),k=1,4),
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+                  write(lfnout,607) ibin,jbin,                                  &
+     &                 adjustl(mebfLabel(ibin)),                                &
+     &                 adjustr(mebfLabel(jbin)),                                &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 (nsing(ibin,jbin,k),k=1,4),                              &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
      &                 tbase(ibin,jbin),timer_wall_total(98)
                 else
-                  write(lfnout,608) ibin,jbin,
-     &                 adjustl(mebfLabel(ibin)),
-     &                 adjustr(mebfLabel(jbin)),
-     &                 idetb(ibin),idetb(jbin),
-     &                 ltemp,nbdet(ibin,jbin),
-     &                 (nsing(ibin,jbin,k),k=1,4),
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),
-     &                 hbase(ibin,jbin)/sbase(ibin,jbin),
+                  write(lfnout,608) ibin,jbin,                                  &
+     &                 adjustl(mebfLabel(ibin)),                                &
+     &                 adjustr(mebfLabel(jbin)),                                &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 (nsing(ibin,jbin,k),k=1,4),                              &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
+     &                 hbase(ibin,jbin)/sbase(ibin,jbin),                       &
      &                 tbase(ibin,jbin),timer_wall_total(98)
                 endif
               else
                 if(ibin.ne.jbin) then
-                  write(lfnout,617) ibin,jbin,
-     &                 adjustl(mebfLabel(ibin)),
-     &                 adjustr(mebfLabel(jbin)),
-     &                 idetb(ibin),idetb(jbin),
-     &                 ltemp,nbdet(ibin,jbin),
-     &                 (nsing(ibin,jbin,k),k=1,4),
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),
+                  write(lfnout,617) ibin,jbin,                                  &
+     &                 adjustl(mebfLabel(ibin)),                                &
+     &                 adjustr(mebfLabel(jbin)),                                &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 (nsing(ibin,jbin,k),k=1,4),                              &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
      &                 tbase(ibin,jbin),timer_wall_total(98)
                 else
-                  write(lfnout,618) ibin,jbin,
-     &                 adjustl(mebfLabel(ibin)),
-     &                 adjustr(mebfLabel(jbin)),
-     &                 idetb(ibin),idetb(jbin),
-     &                 ltemp,nbdet(ibin,jbin),
-     &                 (nsing(ibin,jbin,k),k=1,4),
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),
-     &                 hbase(ibin,jbin)/sbase(ibin,jbin),
+                  write(lfnout,618) ibin,jbin,                                  &
+     &                 adjustl(mebfLabel(ibin)),                                &
+     &                 adjustr(mebfLabel(jbin)),                                &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 (nsing(ibin,jbin,k),k=1,4),                              &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
+     &                 hbase(ibin,jbin)/sbase(ibin,jbin),                       &
      &                 tbase(ibin,jbin),timer_wall_total(98)
                 endif
               endif
               flush(lfnout)
             endif
-            
+
             call swatch(date,time)
-            write(lfncpr) ibin,jbin,
-     &           hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),
+            write(lfncpr) ibin,jbin,                                            &
+     &           hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),            &
      &           (nsing(ibin,jbin,k),k=1,4)
             flush(lfncpr)
-            
-            if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.
+
+            if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                            &
      &           dabs(sbase(ibin,jbin)).lt.1.0e-06) then
               if(ibin.ne.jbin) then
-                write(lfnday,703) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibin,jbin,' completed, H,S   :',
+                write(lfnday,703) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibin,jbin,' completed, H,S   :',                   &
      &               hbase(ibin,jbin),sbase(ibin,jbin)
               else
-                write(lfnday,703) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &               hbase(ibin,jbin),sbase(ibin,jbin),
+                write(lfnday,703) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibin,jbin,' completed, H,S,H*:',                   &
+     &               hbase(ibin,jbin),sbase(ibin,jbin),                         &
      &               hbase(ibin,jbin)/sbase(ibin,jbin)
               endif
             else
               if(ibin.ne.jbin) then
-                write(lfnday,704) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibin,jbin,' completed, H,S   :',
+                write(lfnday,704) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibin,jbin,' completed, H,S   :',                   &
      &               hbase(ibin,jbin),sbase(ibin,jbin)
               else
-                write(lfnday,704) date(1:8),time(1:8),
-     &               timer_wall_total(99),
-     &               '  :  ',ibin,jbin,' completed, H,S,H*:',
-     &               hbase(ibin,jbin),sbase(ibin,jbin),
+                write(lfnday,704) date(1:8),time(1:8),                          &
+     &               timer_wall_total(99),                                      &
+     &               '  :  ',ibin,jbin,' completed, H,S,H*:',                   &
+     &               hbase(ibin,jbin),sbase(ibin,jbin),                         &
      &               hbase(ibin,jbin)/sbase(ibin,jbin)
               endif
             endif
@@ -888,17 +888,17 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
             call timer_start(99)
 
 !     Setting ntasks to -2 identifies this base pair as completed and reported
-            
+
             ntasks(ibin,jbin)=-2
           endif
-          
+
 !     Remove duplicates that have already been sent
-          
+
           do i=1,npg
-            if(lgroup(i,1).eq.lgroup(igrp,1).and.
-     &           lgroup(i,2).eq.lgroup(igrp,2).and.
-     &           lgroup(i,3).eq.lgroup(igrp,3).and.
-     &           lgroup(i,4).eq.lgroup(igrp,4).and.
+            if(lgroup(i,1).eq.lgroup(igrp,1).and.                               &
+     &           lgroup(i,2).eq.lgroup(igrp,2).and.                             &
+     &           lgroup(i,3).eq.lgroup(igrp,3).and.                             &
+     &           lgroup(i,4).eq.lgroup(igrp,4).and.                             &
      &           lgroup(i,5).gt.0.and.i.ne.igrp) lgroup(i,5)=0
           enddo
 
@@ -909,7 +909,7 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
           enddo
 
           if(.not.oskipn.or.map2(iremote+1,5).gt.0) then
-            
+
 !     Send a duplicate of an outstanding entry
 
             j=0
@@ -923,14 +923,14 @@ c            if(owait) call MPI_Wait(ireq,status,ierr)
 
             if(j.gt.0) then
 
-c     call MPI_Wait(ireq,status,ierr)
-              
+!     call MPI_Wait(ireq,status,ierr)
+
               do i=1,4
                 ibuf(i)=lgroup(j,i)
               enddo
 
 !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
-!     On the receiving worker rank a check for sign of first element indicates a duplicate 
+!     On the receiving worker rank a check for sign of first element indicates a duplicate
 
               ipbuf(1,iremote+1)=-ibuf(1)
               ipbuf(2,iremote+1)=ibuf(2)
@@ -939,14 +939,14 @@ c     call MPI_Wait(ireq,status,ierr)
               ncount=4
               mpitag=2
 
-              call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,
+              call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8,            &
      &             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
 !     Debug message
 
               if(idbg.gt.10) then
                 call swatch(date,time)
-                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),          &
      &               master,' sent duplicate ibuf to   ',iremote
                 flush(lfndbg)
               endif
@@ -955,8 +955,8 @@ c     call MPI_Wait(ireq,status,ierr)
 
               if(ipro.eq.2.or.ipro.eq.4) then
                 call swatch(date,time)
-                write(lfnpro,682) date(1:8),time(1:8),
-     &               iremote,igrp,(ibuf(k),k=1,4),
+                write(lfnpro,682) date(1:8),time(1:8),                          &
+     &               iremote,igrp,(ibuf(k),k=1,4),                              &
      &               iloop(ibuf(3),1),iloop(ibuf(3),2)
 !     682          format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
                 flush(lfnpro)
@@ -978,17 +978,17 @@ c     call MPI_Wait(ireq,status,ierr)
 !     Received data other than matrix elements, should currently be impossible
 
           if(ipro.eq.1.or.ipro.eq.3) then
-            write(lfnpro,683) date(1:8),time(1:8), 
-     &           iremote,igrp,(lgroup(igrp,j),j=1,4),
-     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),
+            write(lfnpro,683) date(1:8),time(1:8),                              &
+     &           iremote,igrp,(lgroup(igrp,j),j=1,4),                           &
+     &           iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),               &
      &           lgroup(igrp,4)-lgroup(igrp,3)+1
- 683        format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,
+ 683        format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,                          &
      &           3i6)
           endif
         endif
 
 !     Count the outstanding tasks in nleft
-        
+
         nleft=0
         do i=1,npg
           if(lgroup(i,5).gt.0) nleft=nleft+1
@@ -1002,18 +1002,18 @@ c     call MPI_Wait(ireq,status,ierr)
         write(lfnarx,524) (ecorr(i),i=1,nbase)
  524    format(10e20.12)
       endif
-      
+
 !     At this point all outstanding tasks completed
 
       call timer_stop(99)
       call swatch(date,time)
-      write(lfnday,706) date(1:8),time(1:8),
-     &     timer_wall_total(99),
+      write(lfnday,706) date(1:8),time(1:8),                                    &
+     &     timer_wall_total(99),                                                &
      &     '  :  Completed all tasks'
  706  format(a8,2x,a8,f12.3,a)
       flush(lfnday)
       call timer_start(99)
-      
+
       call timer_stop(97)
 
 !     Count the number of groups that are still active in nalive
@@ -1029,18 +1029,18 @@ c     call MPI_Wait(ireq,status,ierr)
       enddo
 
       nalive=max(k,l)
-      
+
 !     Signal worker processes to return from gronor_master
-      
+
       ibuf(1)=0
       ibuf(2)=-1
       ibuf(3)=-1
       ibuf(4)=-1
 
-      
-      do i=1,npg  
+
+      do i=1,npg
         iremote=allgroups(i,2)
-        
+
         itbuf(1,iremote+1)=0
         itbuf(2,iremote+1)=-1
         itbuf(3,iremote+1)=-1
@@ -1049,19 +1049,19 @@ c     call MPI_Wait(ireq,status,ierr)
         ncount=4
         mpitag=2
 
-        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,
+        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,                  &
      &       iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
 
         if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)')
-     &         date(1:8),time(1:8),
-     &         master,' sent return to',iremote,mpitag,' buffer ',
+          write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)')                           &
+     &         date(1:8),time(1:8),                                             &
+     &         master,' sent return to',iremote,mpitag,' buffer ',              &
      &         (itbuf(j,iremote+1),j=1,4),ireq2
           flush(lfndbg)
         endif
       enddo
-        
+
       do i=1,np
         ncount=4
         mpitag=99
@@ -1071,20 +1071,20 @@ c     call MPI_Wait(ireq,status,ierr)
         itbuf(3,iremote+1)=-1
         itbuf(4,iremote+1)=-1
         if(iremote.ne.master) then
-          call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,
+          call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,                &
      &         iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
           if(idbg.gt.10) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)')
-     &           date(1:8),time(1:8),
-     &           ' Terminate signal sent to',iremote,mpitag,' buffer ',
+            write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)')                            &
+     &           date(1:8),time(1:8),                                           &
+     &           ' Terminate signal sent to',iremote,mpitag,' buffer ',         &
      &         (itbuf(j,iremote+1),j=1,4),ireq9
           endif
         endif
       enddo
 
 !     Fill lower half of the Hamiltonian and overlap matrices
-      
+
       do i=1,nbase
         do j=i+1,nbase
           hbase(i,j)=hbase(j,i)
@@ -1093,7 +1093,7 @@ c     call MPI_Wait(ireq,status,ierr)
       enddo
 
 !     Output of the un-normalized results
-      
+
       if(ipr.ge.40) then
         write(lfnout,609)
  609    format(//,' Hamiltonian Matrix Unnormalized',/)
@@ -1126,7 +1126,7 @@ c     call MPI_Wait(ireq,status,ierr)
       endif
 
 !     Sum the different singularities
-      
+
       do i=1,nbase
         do j=1,nbase
           do k=1,5
@@ -1144,20 +1144,20 @@ c     call MPI_Wait(ireq,status,ierr)
       call timer_stop(98)
       call timer_stop(99)
       if(ipr.gt.0) then
-        write(lfnout,615) mdet,nthdet,(nsingt(i),i=1,4),tsum,
-     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),
+        write(lfnout,615) mdet,nthdet,(nsingt(i),i=1,4),tsum,                   &
+     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),                    &
      &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
       endif
- 615  format(/,' Total',40x,3i14,2i12,i14,64x,1f12.1,/,
-     &     /,' Total averaged per rank',t191,2f12.1,/,
+ 615  format(/,' Total',40x,3i14,2i12,i14,64x,1f12.1,/,                         &
+     &     /,' Total averaged per rank',t191,2f12.1,/,                          &
      &     ' Task execution efficiency',t191,f12.1,' %')
       call timer_start(98)
       call timer_start(99)
 
       flush(lfnout)
       flush(lfnday)
-      
+
       deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,lcount)
-      
+
       return
       end

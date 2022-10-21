@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! iloop functions
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
 
       subroutine iloop_init(ni,nj,os)
       implicit none

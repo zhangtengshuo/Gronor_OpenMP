@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief   Read the CI coefficients and the vectors
 !>
 !>          Duplicates are removed from the list of determinants by
@@ -27,7 +27,7 @@
 !> @param   occ_string ocupation string as read from the root_nnn.det
 !>          file
 
-      subroutine gronor_read_vectors_and_determinants() 
+      subroutine gronor_read_vectors_and_determinants()
 
       use inp
       use cidef
@@ -53,7 +53,7 @@
       allocate ( idet_raw(mstates) )
 
 !     Starting with the determinants
-      
+
 !     Filling idetm, inactm,nactm and determine the maximum dets and active orbitals.
 !     For reading from vecdet a raw value is calculated as duplicates are still to be removed
 
@@ -67,9 +67,9 @@
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
  2203   format(a,'.det')
-        open(unit=lfndet,file=trim(fildet),form='formatted',
+        open(unit=lfndet,file=trim(fildet),form='formatted',                    &
      &       status='old',err=999)
-        read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),
+        read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),                     &
      &       fragLabel(i),ecasscf(i),nElectrons(i),tau_MO, ecaspt2(i)
         if(ecaspt2(i).ge.0.0d0) ncorr=0
         ecorr(i)=ecaspt2(i)-ecasscf(i)
@@ -91,18 +91,18 @@
       else
          mebfLabels = .true.
          if(ncorr.ne.0) then
-            write(lfnout,607)
-     &           ' MEBF ','Electrons   Sum of fragment energies',
+            write(lfnout,607)                                                   &
+     &           ' MEBF ','Electrons   Sum of fragment energies',               &
      &           'E(CASSCF)','E(CASPT2)','E_corr'
          else
-            write(lfnout,627)
-     &           ' MEBF ','Electrons   Sum of fragment energies',
+            write(lfnout,627)                                                   &
+     &           ' MEBF ','Electrons   Sum of fragment energies',               &
      &           'E(CASSCF)'
          endif
  607     format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
  627     format(/,a,t16,a,/,t34,a,/)
          do j = 1,nbase
-            write(mebfLabel(j),616)
+            write(mebfLabel(j),616)                                             &
      &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
  616        format(10a)
             nume=0
@@ -135,23 +135,23 @@
             enddo
          write(lfnarx,617) mebflabel(j),nume,sume
       enddo
-      
+
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
-        open(unit=lfndet,file=trim(fildet),form='formatted',
-     &         status='old',err=999)            
+        open(unit=lfndet,file=trim(fildet),form='formatted',                    &
+     &         status='old',err=999)
         read(lfndet,*)
         do j=1,idet_raw(i)
           read(lfndet,*) civ_raw(j,i),occ_string(j,i)
           occ_string(j,i)=adjustl(occ_string(j,i))
-        enddo                                    
-        call remove_duplicates_fildet
-     &       (idet_raw(i),idetm(i),civ_raw(:,i),
+        enddo
+        call remove_duplicates_fildet                                           &
+     &       (idet_raw(i),idetm(i),civ_raw(:,i),                                &
      &       occ_string(:,i),tau_CI)
-        close(unit=lfndet)                        
-        maxci=max(maxci,idetm(i))     
+        close(unit=lfndet)
+        maxci=max(maxci,idetm(i))
       enddo
       allocate( civm(maxci,mstates) )               ! Now that the number of unique dets is known
       allocate( ioccm(maxnact,maxci,mstates) )      ! civm and ioccm can be allocated
@@ -183,11 +183,11 @@
       deallocate(occ_string)
 
 !     Next, reading the vectors
-      
+
       do i=1,mstates
         write(filvec,2201) trim(fragfile(i))
  2201   format(a,'.vec')
-        open(unit=lfnvec,file=trim(filvec),form='formatted',
+        open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
         read(lfnvec,*)nbasm(i)
         maxvec=max(maxvec,nbasm(i))
@@ -196,7 +196,7 @@
       allocate( vecsm(maxvec,maxvec,mstates) )
       do i=1,mstates
         write(filvec,2201) trim(fragfile(i))
-        open(unit=lfnvec,file=trim(filvec),form='formatted',
+        open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
         read(lfnvec,*)
         do j=1,nbasm(i)
@@ -207,44 +207,44 @@
       enddo
 
 !     Finally, the output section
-      
+
       if(ipr.ge.20) then
          if(ncorr.ne.0) then
             write(lfnout,603)
          else
             write(lfnout,623)
          endif
- 603    format(/,' Dimensions',//,
-     &       '       istate   ndetm   nactm  ninatm   nbasm',
-     &       '  nelecs         CASSCF energy  ',
+ 603    format(/,' Dimensions',//,                                              &
+     &       '       istate   ndetm   nactm  ninatm   nbasm',                   &
+     &       '  nelecs         CASSCF energy  ',                                &
      &       '       CASPT2 energy    files',/)
- 623    format(/,' Dimensions',//,
-     &       '       istate   ndetm   nactm  ninatm   nbasm',
+ 623    format(/,' Dimensions',//,                                              &
+     &       '       istate   ndetm   nactm  ninatm   nbasm',                   &
      &       '  nelecs         CASSCF energy    files',/)
         do i=1,mstates
            ostate=.true.
            do j=1,i-1
               if(trim(fragfile(i)).eq.trim(fragfile(j))) ostate=.false.
            enddo
-c          do j=1,nbase
-c            do k=1,nmol
-c              if(ncombv(k,j).eq.i) ostate=.true.
-c            enddo
-c          enddo
+!          do j=1,nbase
+!            do k=1,nmol
+!              if(ncombv(k,j).eq.i) ostate=.true.
+!            enddo
+!          enddo
            if(ostate) then
               write(fildet,203) trim(fragfile(i))
               write(filvec,201) trim(fragfile(i))
               if(ncorr.ne.0) then
-                 write(lfnout,604) fragLabel(i),
-     &                idetm(i),nactm(i),inactm(i),nbasm(i),
-     &                nElectrons(i),ecasscf(i),ecaspt2(i),
-     &                trim(fildet),
+                 write(lfnout,604) fragLabel(i),                                &
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),                     &
+     &                nElectrons(i),ecasscf(i),ecaspt2(i),                      &
+     &                trim(fildet),                                             &
      &                trim(filvec)
               else
-                 write(lfnout,634) fragLabel(i),
-     &                idetm(i),nactm(i),inactm(i),nbasm(i),
-     &                nElectrons(i),ecasscf(i),
-     &                trim(fildet),
+                 write(lfnout,634) fragLabel(i),                                &
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),                     &
+     &                nElectrons(i),ecasscf(i),                                 &
+     &                trim(fildet),                                             &
      &                trim(filvec)
               endif
  604        format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
@@ -252,7 +252,7 @@ c          enddo
           endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec
- 605    format(13x,' ------  ------',8x,'  ------',/,
+ 605    format(13x,' ------  ------',8x,'  ------',/,                           &
      &     '        max:',i8,i8,8x,i8)
       endif
  201  format(a,'.vec')
@@ -260,7 +260,7 @@ c          enddo
 
       if(ipr.gt.0) then
         write(lfnout,606) (i,i=1,nbase)
- 606    format(/,' Molecular states included in this calculation',//,
+ 606    format(/,' Molecular states included in this calculation',//,           &
      &       ' State        : ',20i4)
         do i=1,nmol
           if(i.eq.1) then
@@ -279,11 +279,11 @@ c          enddo
         do i=1,mstates
           do j=1,idetm(i)
             if(j.eq.1) then
-              write(lfnout,610) i,j,civm(j,i),
+              write(lfnout,610) i,j,civm(j,i),                                  &
      &             (ioccm(k,j,i),k=1,nactm(i))
  610          format(/,2i8,f25.14,6x,32(i2,1x))
             else
-              write(lfnout,611) j,civm(j,i),
+              write(lfnout,611) j,civm(j,i),                                    &
      &             (ioccm(k,j,i),k=1,nactm(i))
  611          format(8x,i8,f25.14,6x,32(i2,1x))
             endif
@@ -291,7 +291,7 @@ c          enddo
           if(ipr.ge.40) then
             write(filvec,201) trim(root),i
             write(lfnout,612) trim(filvec),nbasm(i)
- 612        format(/,' Vector File ',a,//,
+ 612        format(/,' Vector File ',a,//,                                      &
      &          ' Number of basis functions ',i8,/)
             do j=1,nbasm(i)
               write(lfnout,613) j,(vecsm(k,j,i),k=1,nbasm(i))
@@ -304,7 +304,7 @@ c          enddo
 
       write(filsys,202) trim(root)
  202  format(a,'.sys')
-      open(unit=lfnsys,file=trim(filsys),form='formatted',
+      open(unit=lfnsys,file=trim(filsys),form='formatted',                      &
      &      status='old',err=995)
 
       if(ipr.gt.0) write(lfnout,615) trim(filsys)

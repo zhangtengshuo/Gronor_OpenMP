@@ -10,21 +10,21 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Collect and print timings to the output file
 !!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-!! The code is instrumented with timers to collect CPU and wall-clock times for the 
-!! computationally demanding parts of the calculation. These timings are presented for each 
+!! The code is instrumented with timers to collect CPU and wall-clock times for the
+!! computationally demanding parts of the calculation. These timings are presented for each
 !! of the ranks used in the calculation.
-!! Because of the fault resilient implementation, the master ranks only waits for a limited 
+!! Because of the fault resilient implementation, the master ranks only waits for a limited
 !! time for timning data from other ranks. In that case values of zero are reported for those
 !! ranks. This is not an error!
 !!
- 
+
       subroutine gronor_memory_usage()
 
       use mpi
@@ -53,16 +53,16 @@
         membuf(9)=nbatch
         ncount=9
         mpitag=12
-        call MPI_iSend(membuf,ncount,MPI_INTEGER8,master,mpitag,
+        call MPI_iSend(membuf,ncount,MPI_INTEGER8,master,mpitag,                &
      &       MPI_COMM_WORLD,ireq,ierr)
       endif
-      
+
 
       if(me.eq.master) then
         ncount=9
         mpitag=12
         mpisrc=0
-        call MPI_Recv(membuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,mpitag,
+        call MPI_Recv(membuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,mpitag,         &
      &       MPI_COMM_WORLD,istat,ierr)
         mbasel=membuf(1)
         mvec=membuf(2)
@@ -73,9 +73,9 @@
         nbas=membuf(7)
         ntask=membuf(8)
         nbatch=membuf(9)
-        
+
          write(lfnout,600)
- 600     format(/,' Memory Usage Summary per Rank (Approximate)',//,
+ 600     format(/,' Memory Usage Summary per Rank (Approximate)',//,            &
      &        ' Array',t25,'    Size in GB',/)
  601     format(1x,a,t25,f14.6)
 
@@ -90,17 +90,17 @@
          endif
          gb=real(8*ni)/real(1073741824)
          write(lfnout,601) "Two-electron labels",gb
-         
+
          nr=int2
          gb=real(8*nr)/real(1073741824*mgr)
          write(lfnout,601) "Two-electron integrals",gb
-         
+
          ni=nbase*(4+nmol+maxcib)+4*mstates+3*nmol
          nr=mstates*(maxci+maxvec*maxvec+maxnact*maxci)
          nr=nr+nbase*(1+nbasis*nbasis+maxcib+12*nbase)+maxcib*2
          gb=real(8*ni+8*nr)/real(1073741824)
          write(lfnout,601) "Fragment Lists",gb
-         
+
          ni=memax*2
          gb=real(4*ni)/real(1073741824)
          write(lfnout,601) "ME List",gb
@@ -116,10 +116,10 @@
          endif
          gb=real(8*ni)/real(1073741824)
          write(lfnout,601) "Cofac 1 Arrays",gb
-         
+
 
       endif
-      
+
       return
       end
-      
+

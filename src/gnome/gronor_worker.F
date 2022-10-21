@@ -11,13 +11,13 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !>    Driver routine for worker ranks
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)
 
 #include "tgt_guard.fh"
-      
+
       subroutine gronor_worker()
 
       use mpi
@@ -37,7 +37,7 @@
       implicit none
 
       real(kind=8), external :: timer_wall_total, timer_wall
-      
+
       integer :: ibase,jbase,idet,jdet,nidet,njdet
       integer :: i,j,k,l2,n
       integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
@@ -47,13 +47,13 @@
       real (kind=8) :: rbuf(8)
 
       logical (kind=4) :: flag
-      
+
       flush(lfnout)
 
       if(iamacc.eq.0.and.ntask.eq.0) return
-      
+
       otreq=.false.
-      
+
       l2=0
       mnact=0
       mvec=0
@@ -101,52 +101,52 @@
         if(isolver.eq.1) then
 #endif
 !_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
-       
+
 !_ACCTGT_($acc host_data use_device(ta))
-          cusolver_status = cusolverDnDgesvd_bufferSize
+          cusolver_status = cusolverDnDgesvd_bufferSize                         &
      &         (cusolver_handle,ndim,ndim,lwork1)
 !_ACCTGT_($acc end host_data)
 
-          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
 !_ACCTGT_($acc end data)
 #ifdef CUSOLVERJ
         elseif(isolver.eq.2) then
-          
+
           ndim=nelecs
           mdim=mbasel
           tol = tolsvj
           max_sweeps = iswsvj
-          
+
           jobz=CUSOLVER_EIG_MODE_VECTOR
-        
+
 !_ACCTGT_($acc data create(dev_info_d,u,w,ev,ta))
 
-          cusolver_status = cudaStreamCreateWithFlags
+          cusolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
-          
+
           cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
-          
+
           cusolver_status = cusolverDnCreateGesvdjInfo(gesvdj_params)
-          
-          cusolver_status = cusolverDnXgesvdjSetTolerance
+
+          cusolver_status = cusolverDnXgesvdjSetTolerance                       &
      &         (gesvdj_params,tol)
-          
-          cusolver_status = cusolverDnXgesvdjSetMaxSweeps
+
+          cusolver_status = cusolverDnXgesvdjSetMaxSweeps                       &
      &         (gesvdj_params,max_sweeps)
 
 !_ACCTGT_($acc host_data use_device(ta,ev,u,w))
 
-          cusolver_status = cusolverDnDgesvdj_bufferSize
-     &         (cusolver_handle,jobz,econ,
-     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,
+          cusolver_status = cusolverDnDgesvdj_bufferSize                        &
+     &         (cusolver_handle,jobz,econ,                                      &
+     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,                       &
      &         gesvdj_params)
-        
+
 !_ACCTGT_($acc end host_data)
 
-          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &         print *,"cusolverDnDgesvdj_bufferSize failed",
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"cusolverDnDgesvdj_bufferSize failed",                   &
      &         cusolver_status
 
 !_ACCTGT_($acc end data)
@@ -159,65 +159,65 @@
 !_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
 
 !_ACCTGT_($acc host_data use_device(ta,w))
-          cusolver_status = cusolverDnDsyevd_bufferSize
-     &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,
-     &         CUBLAS_FILL_MODE_LOWER,
+          cusolver_status = cusolverDnDsyevd_bufferSize                         &
+     &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,                     &
+     &         CUBLAS_FILL_MODE_LOWER,                                          &
      &         ndim,ta,mdim,w,lwork2)
 !_ACCTGT_($acc end host_data)
 
-          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &         print *,"cusolverDnDsyevd_bufferSize failed",
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"cusolverDnDsyevd_bufferSize failed",                    &
      &         cusolver_status
 
 !_ACCTGT_($acc end data)
-#ifdef CUSOLVERJ         
+#ifdef CUSOLVERJ
         elseif(jsolver.eq.2) then
 
 ! Jacobi EVD
-          
+
           ndim=nelecs
           mdim=mbasel
           tol = tolevj
           max_sweeps = iswevj
-          
+
           jobz = CUSOLVER_EIG_MODE_NOVECTOR
           uplo = CUBLAS_FILL_MODE_LOWER
-        
+
 !_ACCTGT_($acc data create(dev_info_d,w,ta,ev))
 
-          cusolver_status = cudaStreamCreateWithFlags
+          cusolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
-          
+
           cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
-          
+
           cusolver_status = cusolverDnCreateSyevjInfo(syevj_params)
-          
-          cusolver_status = cusolverDnXsyevjSetTolerance
+
+          cusolver_status = cusolverDnXsyevjSetTolerance                        &
      &         (syevj_params,tol)
-          
-          cusolver_status = cusolverDnXsyevjSetMaxSweeps
+
+          cusolver_status = cusolverDnXsyevjSetMaxSweeps                        &
      &         (syevj_params,max_sweeps)
 
 !_ACCTGT_($acc host_data use_device(ta,w))
-  
-          cusolver_status = cusolverDnDsyevj_bufferSize
-     &         (cusolver_handle,jobz,uplo,
-     &         ndim,ta,mdim,ev,lwork2,
+
+          cusolver_status = cusolverDnDsyevj_bufferSize                         &
+     &         (cusolver_handle,jobz,uplo,                                      &
+     &         ndim,ta,mdim,ev,lwork2,                                          &
      &         syevj_params)
-        
+
 !_ACCTGT_($acc end host_data)
 
-          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
-     &         print *,"cusolverDnDsyevj_bufferSize failed",
+          if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"cusolverDnDsyevj_bufferSize failed",                    &
      &         cusolver_status
 
 !_ACCTGT_($acc end data)
-          
+
         endif
 #endif
-      
+
         lwork1=max(lwork1,lwork2)
-        
+
         allocate(workspace_d(lwork1))
         allocate(rwork(nelecs))
 
@@ -231,8 +231,8 @@
         lworki=-1
         if(isolver.eq.1) then
           allocate(workspace_d(2448))
-          call dgesvd('All','All',ndimm,ndimm,a,ndimm,
-     &         ev,u,ndimm,w,ndimm,
+          call dgesvd('All','All',ndimm,ndimm,a,ndimm,                          &
+     &         ev,u,ndimm,w,ndimm,                                              &
      &         workspace_d,lwork1m,ierr)
           lwork1m=int(workspace_d(1))
           deallocate(workspace_d)
@@ -240,7 +240,7 @@
         if(jsolver.eq.1) then
           allocate(workspace_d(2448))
           allocate(workspace_i(2448))
-          call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,
+          call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,              &
      &         workspace_i,lworki,ierr)
           lwork2m=int(workspace_d(1))
           lworki=int(workspace_i(1))
@@ -251,7 +251,7 @@
         lworki=max(8,lworki)
         allocate(workspace_d(lwork1m))
         allocate(workspace_i(lworki))
-#endif  
+#endif
       endif
 
       do i=1,8
@@ -260,11 +260,11 @@
 
       if(idbg.gt.0) then
        call swatch(date,time)
-       write(lfndbg,'(a,1x,a,1x,a,5i5)') date(1:8),time(1:8),
-     & ' iamhead, numdev, master, mygroup =',
+       write(lfndbg,'(a,1x,a,1x,a,5i5)') date(1:8),time(1:8),                   &
+     & ' iamhead, numdev, master, mygroup =',                                   &
      & iamhead,numdev,master,mygroup
        call swatch(date,time)
-       write(lfndbg,130) date(1:8),time(1:8),
+       write(lfndbg,130) date(1:8),time(1:8),                                   &
      & ' thisgroup=',(thisgroup(i),i=1,mgr+1)
  130   format(a,1x,a,1x,a,t30,11i5,/,(t35,10i5))
        flush(lfndbg)
@@ -275,17 +275,17 @@
       if(iamhead.eq.1) then
         ncount=8
         mpitag=1
-       call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
+       call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,                      &
      & MPI_COMM_WORLD,ireq,ierr)
        if(idbg.gt.20) then
         call swatch(date,time)
-        write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+        write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),                      &
      &      ' Head signalled master'
         flush(lfndbg)
        endif
        if(idbg.gt.10) then
         call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),
+        write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),                  &
      &     me,' sent buffer   ',master
         flush(lfndbg)
        endif
@@ -302,12 +302,12 @@
 !     Receive next task from master on head thread
           ncount=4
           mpitag=2
-          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,
+          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,                 &
      &         MPI_COMM_WORLD,status,ierr)
-          
+
           if(idbg.gt.10) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
+            write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),              &
      &           me,' received task ',master,mpitag,(ibuf(i),i=1,4),ierr
             flush(lfndbg)
           endif
@@ -320,11 +320,11 @@
               ncount=4
               mpidest=thisgroup(i+2)
               mpitag=15
-              call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
+              call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,           &
      &             MPI_COMM_WORLD,ireq,ierr)
               if(idbg.gt.10) then
                 call swatch(date,time)
-                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+                write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),          &
      &               me,' sent task to group rank ',thisgroup(i+2)
                 flush(lfndbg)
               endif
@@ -338,18 +338,18 @@
 
           if(idbg.gt.30) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),              &
      &           me,' waiting for task from head rank ',thisgroup(2)
             flush(lfndbg)
           endif
           ncount=4
           mpidest=thisgroup(2)
           mpitag=15
-          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,
+          call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,                &
      &         MPI_COMM_WORLD,status,ierr)
           if(idbg.gt.10) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),
+            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8),              &
      &           me,' received task from head rank ',thisgroup(2)
             flush(lfndbg)
           endif
@@ -358,7 +358,7 @@
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
 
-       if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.
+       if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.                       &
      &      ibuf(2).gt.0) then
          if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
          icur=iabs(ibuf(1))
@@ -403,11 +403,11 @@
           ncount=4
           mpitag=99
           if(.not.otreq) then
-            call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,
+            call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,            &
      &           mpitag,MPI_COMM_WORLD,itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,a)')
+              write(lfndbg,'(a,1x,a,a)')                                        &
      &             date(1:8),time(1:8),' Terminate iRecv posted '
             endif
             otreq=.true.
@@ -417,7 +417,7 @@
              call MPI_Cancel(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),                   &
      &             ' Terminating in gronor_worker'
           endif
             oterm=.true.
@@ -426,14 +426,14 @@
         endif
 
         call timer_stop(39)
-        
+
         if(idbg.gt.15) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8),
+          write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8),                 &
      &         ' Cumulative COMM1 Wait Time ',timer_wall_total(39)
           flush(lfndbg)
         endif
-        
+
         ibase=ibuf(1)
         jbase=ibuf(2)
         idet=ibuf(3)
@@ -443,37 +443,37 @@
         if(ibase.ne.0.and..not.oterm) then
           if(idbg.gt.30) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),
-     &           me,' Entering gronor_calculate with ',
+            write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8),             &
+     &           me,' Entering gronor_calculate with ',                         &
      &           ibase,jbase,idet,jdet,ntask,nbatch
             flush(lfndbg)
           endif
           call timer_start(47)
           call gronor_calculate(ibase,jbase,idet,jdet)
           call timer_stop(47)
-          
+
           if(oterm) return
-          
+
           buffer(3)=timer_wall(47)
           if(idbg.gt.30) then
             call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),
+            write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),                  &
      &           me,' Returned from gronor_calculate '
             flush(lfndbg)
           endif
           call timer_start(48)
           if(iamhead.eq.1) then
-c     call MPI_Wait(ireq,status,ierr)
+!     call MPI_Wait(ireq,status,ierr)
             do i=1,8
               rbuf(i)=buffer(i)
             enddo
             ncount=8
             mpitag=1
-            call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,
+            call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,                 &
      &           MPI_COMM_WORLD,ireq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8),            &
      &             me,' sent results  ',master,(ibuf(i),i=1,4)
               flush(lfndbg)
             endif
@@ -487,10 +487,10 @@ c     call MPI_Wait(ireq,status,ierr)
       if(iamacc.gt.0) then
 #ifdef CUSOLVER
         cusolver_status = cusolverDnDestroy(cusolver_handle)
-        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+        if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                         &
      &        write(*,*) 'cusolver_handle destruction failed'
 #endif
       endif
-      
+
       return
       end

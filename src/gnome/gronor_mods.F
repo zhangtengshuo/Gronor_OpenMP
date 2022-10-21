@@ -10,24 +10,24 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! GronOR module definitions
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
 #include "tgt_guard.fh"
-      
+
       module const
       integer :: nr(20,3)
-      data nr/0,1,0,0,2,0,0,1,1,0,3,0,0,2,2,1,0,1,0,1,
-     &        0,0,1,0,0,2,0,1,0,1,0,3,0,1,0,2,2,0,1,1,
+      data nr/0,1,0,0,2,0,0,1,1,0,3,0,0,2,2,1,0,1,0,1,                          &
+     &        0,0,1,0,0,2,0,1,0,1,0,3,0,1,0,2,2,0,1,1,                          &
      &        0,0,0,1,0,0,2,0,1,1,0,0,3,0,1,0,1,2,2,1/
       real (kind=8) :: pi,twopi,dnorm,piroot,piterm,enorm
       data pi,twopi,dnorm/3.1415926535898d0,6.2831853071796d0,32.0d0/
-      data piroot,piterm,enorm/0.88622692545276d0,34.986836655250d0,
+      data piroot,piterm,enorm/0.88622692545276d0,34.986836655250d0,            &
      & 1.0d-12/
       end module const
 
@@ -95,9 +95,9 @@
       character (len=255) :: user,host,date,time,cwd,command
       integer :: nprocs
       integer :: nciaux
-      
+
       integer :: maxci,maxcib,maxnact,mactb,maxvec,nci,nci_copy
-      
+
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
       integer, allocatable :: inactm(:), idetm(:), spinm(:), nFrozen(:)
@@ -114,7 +114,7 @@
       integer :: iocch(32)
 
       logical :: vecdet,lcpr
-      
+
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
@@ -122,7 +122,7 @@
       character(len=128),allocatable  :: mebfLabel(:)
       logical                       :: mebfLabels
       integer, allocatable  :: nCntr(:,:)
-      
+
       end module cidef
 
       module gnome_parameters
@@ -170,7 +170,7 @@
       integer :: nelec(2),ntcl(2),ntop(2)
       integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb
       integer :: nclose(2)
-      integer :: nopen(2),iocopen(100,2)                  
+      integer :: nopen(2),iocopen(100,2)
 
       character (len=80) :: text,name(2),namint(2)
       real (kind=8) :: potnuc,zNucTot
@@ -273,7 +273,7 @@
 
       real (kind=8), allocatable :: c2sum(:,:)
       integer (kind=8), allocatable :: nbdet(:,:)
-      
+
       end module gnome_data
 
       module gnome_integrals
@@ -297,7 +297,8 @@
       integer (kind=4) :: new_group,grp_group
       integer, allocatable :: ntarget(:)
 
-      integer (kind=8) :: labels,mlab,icomm1
+      integer (kind=8) :: mlab,icomm1
+      integer :: labels
 
       logical :: lcomm1
 
@@ -307,7 +308,7 @@
       module cuda_functions
        use iso_c_binding
        interface
-        integer (c_int) function cudaMemGetInfo(fre,tot)
+        integer (c_int) function cudaMemGetInfo(fre,tot)                        &
      &                  bind(C,name="cudaMemGetInfo")
          use iso_c_binding
          implicit none
@@ -315,7 +316,7 @@
          type(c_ptr),value :: tot
         end function cudaMemGetInfo
 
-        integer (c_int) function cudaMalloc ( buff,size )
+        integer (c_int) function cudaMalloc ( buff,size )                       &
      &                  bind (C,name="cudaMalloc" )
          use iso_c_binding
          implicit none
@@ -323,7 +324,7 @@
          integer (c_size_t), value :: size
         end function cudaMalloc
 
-        integer (c_int) function cudaMemcpy ( dst,src,count,kind )
+        integer (c_int) function cudaMemcpy ( dst,src,count,kind )              &
      &                  bind (C,name="cudaMemcpy" )
 !       note: cudaMemcpyHostToDevice=1
 !       note: cudaMemcpyDeviceToHost=2
@@ -332,7 +333,7 @@
          integer (c_size_t), value :: count,kind
         end function cudaMemcpy
 
-        integer (c_int) function cudaFree(buff)
+        integer (c_int) function cudaFree(buff)                                 &
      &                  bind(C,name="cudaFree")
          use iso_c_binding
          implicit none
@@ -344,7 +345,7 @@
 
 #ifdef CUSOLVER
       module cuda_cusolver
-      
+
       use cusolverDN
       use cudafor
 
@@ -352,22 +353,22 @@
       type gesvdjInfo
       type(c_ptr) :: svInfo
       end type gesvdjInfo
-      
+
       type syevjInfo
       type(c_ptr) :: svInfo
       end type syevjInfo
-      
+
       interface
-        integer(c_int) function cusolverDnCreateGesvdjInfo(info)
+        integer(c_int) function cusolverDnCreateGesvdjInfo(info)                &
      &       bind(C,name='cusolverDnCreateGesvdjInfo')
         import gesvdjInfo
         type(gesvdjInfo) :: info
         end function cusolverDnCreateGesvdjInfo
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXgesvdjSetTolerance
-     &       (info,tolerance)
+        integer(c_int) function cusolverDnXgesvdjSetTolerance                   &
+     &       (info,tolerance)                                                   &
      &       bind(C,name='cusolverDnXgesvdjSetTolerance')
         use iso_c_binding
         import gesvdjInfo
@@ -375,10 +376,10 @@
         real(c_double), value  :: tolerance
         end function cusolverDnXgesvdjSetTolerance
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXgesvdjSetMaxSweeps
-     &       (info,max_sweeps)
+        integer(c_int) function cusolverDnXgesvdjSetMaxSweeps                   &
+     &       (info,max_sweeps)                                                  &
      &       bind(C,name='cusolverDnXgesvdjSetMaxSweeps')
         use iso_c_binding
         import gesvdjInfo
@@ -386,10 +387,10 @@
         integer(c_int),value   :: max_sweeps
         end function cusolverDnXgesvdjSetMaxSweeps
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXgesvdjGetSweeps
-     &       (cusolver_Hndl,info,executed_sweeps)
+        integer(c_int) function cusolverDnXgesvdjGetSweeps                      &
+     &       (cusolver_Hndl,info,executed_sweeps)                               &
      &       bind(C,name='cusolverDnXgesvdjGetSweeps')
         use iso_c_binding
         import cusolverDnHandle
@@ -399,10 +400,10 @@
         integer(c_int)                :: executed_sweeps
         end function cusolverDnXgesvdjGetSweeps
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXgesvdjGetResidual
-     &       (cusolver_Hndl,info,residual)
+        integer(c_int) function cusolverDnXgesvdjGetResidual                    &
+     &       (cusolver_Hndl,info,residual)                                      &
      &       bind(C,name='cusolverDnXgesvdjGetResidual')
         use iso_c_binding
         import cusolverDnHandle
@@ -412,11 +413,11 @@
         real(c_double)                :: residual
         end function cusolverDnXgesvdjGetResidual
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnDgesvdj_bufferSize
-     &       (cusolver_Hndl,jobz,econ,
-     &       m,n,a,lda,s,u,ldu,v,ldv,lwork,info)
+        integer(c_int) function cusolverDnDgesvdj_bufferSize                    &
+     &       (cusolver_Hndl,jobz,econ,                                          &
+     &       m,n,a,lda,s,u,ldu,v,ldv,lwork,info)                                &
      &       bind(C,name='cusolverDnDgesvdj_bufferSize')
         use iso_c_binding
         import cusolverDnHandle
@@ -430,12 +431,12 @@
         type(gesvdjInfo)         :: info
         end function cusolverDnDgesvdj_bufferSize
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnDgesvdj
-     &       (cusolver_Hndl,jobz,econ,
-     &       m,n,a,lda,s,u,ldu,v,ldv,work,lwork,
-     &       devinfo,info )
+        integer(c_int) function cusolverDnDgesvdj                               &
+     &       (cusolver_Hndl,jobz,econ,                                          &
+     &       m,n,a,lda,s,u,ldu,v,ldv,work,lwork,                                &
+     &       devinfo,info )                                                     &
      &       bind(C,name='cusolverDnDgesvdj')
         use iso_c_binding
         import cusolverDnHandle
@@ -449,18 +450,18 @@
         type(gesvdjInfo)        :: info
         end function cusolverDnDgesvdj
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnCreateSyevjInfo(info)
+        integer(c_int) function cusolverDnCreateSyevjInfo(info)                 &
      &       bind(C,name='cusolverDnCreateSyevjInfo')
         import syevjInfo
         type(syevjInfo) :: info
         end function cusolverDnCreateSyevjInfo
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXsyevjSetTolerance
-     &       (info,tolerance)
+        integer(c_int) function cusolverDnXsyevjSetTolerance                    &
+     &       (info,tolerance)                                                   &
      &       bind(C,name='cusolverDnXsyevjSetTolerance')
         use iso_c_binding
         import syevjInfo
@@ -468,10 +469,10 @@
         real(c_double), value  :: tolerance
         end function cusolverDnXsyevjSetTolerance
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXsyevjSetMaxSweeps
-     &       (info,max_sweeps)
+        integer(c_int) function cusolverDnXsyevjSetMaxSweeps                    &
+     &       (info,max_sweeps)                                                  &
      &       bind(C,name='cusolverDnXsyevjSetMaxSweeps')
         use iso_c_binding
         import syevjInfo
@@ -479,10 +480,10 @@
         integer(c_int),value  :: max_sweeps
         end function cusolverDnXsyevjSetMaxSweeps
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXsyevjGetSweeps
-     &       (cusolver_Hndl,info,executed_sweeps)
+        integer(c_int) function cusolverDnXsyevjGetSweeps                       &
+     &       (cusolver_Hndl,info,executed_sweeps)                               &
      &       bind(C,name='cusolverDnXsyevjGetSweeps')
         use iso_c_binding
         import cusolverDnHandle
@@ -492,10 +493,10 @@
         integer(c_int)                :: executed_sweeps
         end function cusolverDnXsyevjGetSweeps
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnXsyevjGetResidual
-     &       (cusolver_Hndl,info,residual)
+        integer(c_int) function cusolverDnXsyevjGetResidual                     &
+     &       (cusolver_Hndl,info,residual)                                      &
      &       bind(C,name='cusolverDnXsyevjGetResidual')
         use iso_c_binding
         import cusolverDnHandle
@@ -505,11 +506,11 @@
         real(c_double)                :: residual
         end function cusolverDnXsyevjGetResidual
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnDsyevj_bufferSize
-     &       (cusolver_Hndl,jobz,uplo,
-     &       n,a,lda,v,lwork,info)
+        integer(c_int) function cusolverDnDsyevj_bufferSize                     &
+     &       (cusolver_Hndl,jobz,uplo,                                          &
+     &       n,a,lda,v,lwork,info)                                              &
      &       bind(C,name='cusolverDnDsyevj_bufferSize')
         use iso_c_binding
         import cusolverDnHandle
@@ -523,12 +524,12 @@
         type(syevjInfo)               :: info
         end function cusolverDnDsyevj_bufferSize
       end interface
-      
+
       interface
-        integer(c_int) function cusolverDnDsyevj
-     &       (cusolver_Hndl,jobz,uplo,
-     &       n,a,lda,v,work,lwork,
-     &       devinfo,info )
+        integer(c_int) function cusolverDnDsyevj                                &
+     &       (cusolver_Hndl,jobz,uplo,                                          &
+     &       n,a,lda,v,work,lwork,                                              &
+     &       devinfo,info )                                                     &
      &       bind(C,name='cusolverDnDsyevj')
         use iso_c_binding
         import cusolverDnHandle
@@ -544,7 +545,7 @@
         end function cusolverDnDsyevj
       end interface
 #endif
-      
+
       type(cusolverDnHandle) :: cusolver_handle
 #ifdef CUSOLVERJ
       type(gesvdjInfo)       :: gesvdj_params
@@ -561,17 +562,17 @@
       integer(kind=cuda_stream_kind) :: stream
       integer (kind=4) :: jobz
       integer (kind=4) :: uplo=0
-      
+
       end module cuda_cusolver
 #endif
 
 #ifdef MKL
       module mkl_solver
-      
+
       integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
       real (kind=8),allocatable :: rwork(:)
       real (kind=8),allocatable :: workspace_d(:)
       integer (kind=8), allocatable :: workspace_i(:)
-      
+
       end module mkl_solver
 #endif

@@ -31,9 +31,9 @@
       do i=1, nnucl
         id=trim(centn(i))
         element_name=element(int(znuc(i)))
-        call writetag_atom(lfncml,indent,id,element_name,c*xcord(i),
+        call writetag_atom(lfncml,indent,id,element_name,c*xcord(i),            &
      &                        c*ycord(i),c*zcord(i))
-      enddo 
+      enddo
       indent=indent-1
       label='atomArray'
       call close_tag(lfncml,label,indent)
@@ -52,7 +52,7 @@
             stoichio(j)=stoichio(j)+1
             new=.false.
           endif
-          j=j+1 
+          j=j+1
         enddo
         if (new) then
           nDiffEl=nDiffEl+1
@@ -67,11 +67,11 @@
       write(concise,fmt=fmt_2)(molFormula(i),stoichio(i),i=1,nDiffEl)
       label='formula'
       write(info_cml,'(3a)')'concise="',trim(concise),'"'
-      call open_tag(lfncml,label,info_cml,indent) 
-      write(fmt_1,'(6a)')'(a,',trim(dummy),'(a2,1x)',
+      call open_tag(lfncml,label,info_cml,indent)
+      write(fmt_1,'(6a)')'(a,',trim(dummy),'(a2,1x)',                           &
      &    ',a,',trim(dummy),'(f5.1),a)'
-      write(info_cml,fmt=fmt_1)'elementType="',
-     &  (molFormula(i),i=1,nDiffEl),
+      write(info_cml,fmt=fmt_1)'elementType="',                                 &
+     &  (molFormula(i),i=1,nDiffEl),                                            &
      &  '" count="',(float(stoichio(i)),i=1,nDiffEl),'"'
       label='atomArray'
       call write_simpletag(lfncml,label,info_cml,indent+1)
@@ -85,7 +85,7 @@
         numi=int(znuc(i))
         do j=i+1, nnucl
           numj=int(znuc(j))
-          distance=c*sqrt((xcord(i)-xcord(j))**2 +
+          distance=c*sqrt((xcord(i)-xcord(j))**2 +                              &
      &          (ycord(i)-ycord(j))**2+(zcord(i)-zcord(j))**2)*0.1d0
           if (distance .lt. atom_radius(numi)+atom_radius(numj)) then
             bond_order='S'
@@ -117,11 +117,11 @@
         enddo
         sep='|'
         info_cml='dictRef="gr:shells"'
-        call writetag_array_string(lfncml,info_cml,indent,sep,
+        call writetag_array_string(lfncml,info_cml,indent,sep,                  &
      &                  lMoment,lmax)
         sep=' '
         info_cml='dictRef="gr:contractedFunctions"'
-        call writetag_array_integer(lfncml,info_cml,indent,sep,
+        call writetag_array_integer(lfncml,info_cml,indent,sep,                 &
      &                  nCntr(i,:),lmax)
         indent=indent-1
         call close_tag(lfncml,label,indent)
@@ -129,7 +129,7 @@
       indent=indent -1
       label='module'
       call close_tag(lfncml,label,indent)
-      call flush(lfncml)
+      flush(lfncml)
 
       deallocate(molFormula)
       deallocate(stoichio)

@@ -10,10 +10,10 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Several routines used in generating basestates
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @author  R. Havenith, RuG
 !! @author  C. de Graaf, URV

@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Cororb
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
       subroutine gronor_cororb()
       use gnome_parameters
       use gnome_data

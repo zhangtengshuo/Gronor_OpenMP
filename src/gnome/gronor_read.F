@@ -10,14 +10,14 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Read records from integral file
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
       subroutine gronor_read0(lfn,n)
 
       implicit none

@@ -10,16 +10,16 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Setup the parallel computing environment
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-    
+
       subroutine gronor_environment()
- 
+
       use mpi
       use inp
       use cidist
@@ -29,7 +29,7 @@
 #ifdef CUDA
       use cuda_functions
 #endif
-c      use cuda_rt
+!      use cuda_rt
 #endif
 #ifdef _OPENMP
       use omp_lib
@@ -48,7 +48,7 @@ c      use cuda_rt
       character (len=40) :: numeric
       character (len=128) :: value
 
-      integer (kind=8) :: lenv,statv
+      integer :: lenv,statv
 
 #ifdef CUDA
       type(c_ptr) :: cpfre, cptot
@@ -75,7 +75,7 @@ c      use cuda_rt
 !     allocation of the worker processors, starting at rank 0
 
       master=np-1
-      
+
 
       if(me.eq.master) num_threads=1
 
@@ -86,7 +86,7 @@ c      use cuda_rt
       length=len(trim(nodename))
 
       machine='        '
-      
+
 !     Trim the JFZ Juwels Booster node name
       if(nodename(1:3).eq.'jwb') then
         nodename(1:4)=nodename(4:7)
@@ -107,14 +107,14 @@ c      use cuda_rt
         nodename(length+1:length+1)=' '
         machine='Lisa    '
       endif
-      
+
 !     Trim the Sara Snellius node name
       if(nodename(1:3).eq.'gcn') then
         nodename(1:2)=nodename(4:5)
         length=2
         machine='Snellius'
       endif
-      
+
 !     Trim the Crusher node name
       if(nodename(1:7).eq.'crusher') then
         nodename(1:3)=nodename(8:10)
@@ -123,30 +123,30 @@ c      use cuda_rt
       endif
 
 !     Trim the OLCF Summit node name
-      if(ichar(nodename(1:1)).ge.97.and.
-     &     ichar(nodename(1:1)).le.122.and.
-     &     ichar(nodename(4:4)).ge.97.and.
-     &     ichar(nodename(4:4)).le.122.and.
-     &     ichar(nodename(2:2)).ge.48.and.
-     &     ichar(nodename(2:2)).le.57.and.
-     &     ichar(nodename(3:3)).ge.48.and.
-     &     ichar(nodename(3:3)).le.57.and.
-     &     ichar(nodename(5:5)).ge.48.and.
-     &     ichar(nodename(5:5)).le.57.and.
-     &     ichar(nodename(6:6)).ge.48.and.
+      if(ichar(nodename(1:1)).ge.97.and.                                        &
+     &     ichar(nodename(1:1)).le.122.and.                                     &
+     &     ichar(nodename(4:4)).ge.97.and.                                      &
+     &     ichar(nodename(4:4)).le.122.and.                                     &
+     &     ichar(nodename(2:2)).ge.48.and.                                      &
+     &     ichar(nodename(2:2)).le.57.and.                                      &
+     &     ichar(nodename(3:3)).ge.48.and.                                      &
+     &     ichar(nodename(3:3)).le.57.and.                                      &
+     &     ichar(nodename(5:5)).ge.48.and.                                      &
+     &     ichar(nodename(5:5)).le.57.and.                                      &
+     &     ichar(nodename(6:6)).ge.48.and.                                      &
      &     ichar(nodename(6:6)).le.57) then
         length=6
         machine='Summit  '
       endif
 
 !     Set the device number
-      
+
       numdev=0
       num_threads=1
 
       memfre=0
       memtot=0
-      
+
 #ifdef _OPENACC
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
       if(numdev.gt.1) then
@@ -157,7 +157,7 @@ c      use cuda_rt
 #ifdef CUDA
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
-c        istat=cudaMemGetInfo(cpfre,cptot)
+!        istat=cudaMemGetInfo(cpfre,cptot)
 #endif
         memavail=memfre
       endif
@@ -165,18 +165,18 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 #ifdef _OL_OMP_
       numdev=omp_get_num_devices()
 #endif
-      
+
       num_threads=1
 
-      
+
       j=1
       i=1
 
       do while(i.le.length.and.nodename(i:i).ne.' ')
-        if(nodename(i:i).eq.'0'.or.nodename(i:i).eq.'1'.or.
-     &       nodename(i:i).eq.'2'.or.nodename(i:i).eq.'3'.or.
-     &       nodename(i:i).eq.'4'.or.nodename(i:i).eq.'5'.or.
-     &       nodename(i:i).eq.'6'.or.nodename(i:i).eq.'7'.or.
+        if(nodename(i:i).eq.'0'.or.nodename(i:i).eq.'1'.or.                     &
+     &       nodename(i:i).eq.'2'.or.nodename(i:i).eq.'3'.or.                   &
+     &       nodename(i:i).eq.'4'.or.nodename(i:i).eq.'5'.or.                   &
+     &       nodename(i:i).eq.'6'.or.nodename(i:i).eq.'7'.or.                   &
      &       nodename(i:i).eq.'8'.or.nodename(i:i).eq.'9') then
           numeric(j:j)=nodename(i:i)
           j=j+1
@@ -274,7 +274,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
         endif
         read(string,'(i20)') node
       endif
-      
+
       do j=1,5
        do i=1,np
         map1(i,j)=0
@@ -294,7 +294,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       map1(me+1,5)=0
       map1(me+1,6)=0
       ncount=4*np
-      call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER8,MPI_SUM,
+      call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER8,MPI_SUM,                 &
      & MPI_COMM_WORLD,ierr)
 
       deallocate(map1)
@@ -306,7 +306,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 !      map2(me+1,5) : 0
 !      map2(me+1,6) : node
 !      map2(me+1,7) : acc device id
-      
+
 !     node counts the number ranks consecutive node-ids
 !     usually this is the number of nodes in a system
 !     on systems (Summit) with round-robin assignment to multiple
@@ -329,7 +329,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
       enddo
 
 !     nnodes counts the number of nodes
-      
+
       nnodes=1
       map2(1,6)=1
       do i=2,np
@@ -386,7 +386,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 !     nranks is the number of ranks in concecutive block: 6
 !     nranks is reset to the total number of ranks per node: 1 * 6 = 6
 !     nrnsets is the number of resource sets per node: 12 / 2 = 6
-      
+
 !     For example, for 8 ranks on single node system such as a workstation or laptop:
 
 !     Node:           0
@@ -401,7 +401,7 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 !     nranks is the number of ranks in concecutive block: 8
 !     nranks is reset to the total number of ranks per node: 1 * 8 = 8
 !     nrnsets is the number of resource sets per node: 8 / 1 = 8
-      
+
       ncycls=node/nnodes
       nrsets=np/ncycls
       nranks=ncycls*nranks
@@ -458,10 +458,14 @@ c        istat=cudaMemGetInfo(cpfre,cptot)
 
 #ifdef _OL_OMP_
       if(numdev.ge.1) then
+#ifdef IBM
+        mydev=omp_get_default_device()
+#elif
         mydev=omp_get_device_num()
+#endif
         map2(me+1,7)=mydev
       endif
-#endif 
-      
+#endif
+
       return
       end

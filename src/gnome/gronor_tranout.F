@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Write out transformed MOs
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
 
       subroutine gronor_tranout(lfndbg,idet)
       use cidist
@@ -30,8 +30,8 @@
 
       ntvc=ntcl(idet)+ntop(idet)
 
-      if(idbg.ge.25)
-     &  write(lfndbg,601)  ntcl(idet),ntop(idet),
+      if(idbg.ge.25)                                                            &
+     &  write(lfndbg,601)  ntcl(idet),ntop(idet),                               &
      &                     (ioccn(i,idet),i=1,ntop(idet))
  601  format(/,' Tranout: nclose:',i3,',nopen:',i3,',ocopen:',20i4)
       if(idbg.ge.13) write(lfndbg,602)

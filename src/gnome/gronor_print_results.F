@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Print results to the output file
 !!
@@ -20,9 +20,9 @@
 !!
 
       subroutine gronor_print_results(hbase,sbase,nbase,hev)
-      
+
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,
+      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels
 
       implicit none
@@ -43,7 +43,7 @@
       character(len=20)             :: label
       character(len=1)              :: sep
       integer                       :: indent
-      
+
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
       nk=nbase/ncols
@@ -117,13 +117,13 @@
         enddo
         write(lfnout,*) ' '
       enddo
-      
+
       if(nbase.gt.1) then
         tc = 0.0
         do i=2,nbase
           do j=1,i-1
-            tc(i,j)=(hbase(i,j)
-     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/
+            tc(i,j)=(hbase(i,j)                                                 &
+     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/                    &
      &           (1.0d0-sbase(i,j)*sbase(i,j))
           enddo
         enddo
@@ -141,7 +141,7 @@
             write(lfnout,671) (i,i=ii,il)
           else
             write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-            write(lfnout,6712)'-------|',
+            write(lfnout,6712)'-------|',                                       &
      &                     ('--------------------',i=ii,il)
           end if
           write(lfnarx,671) (i,i=ii,il)
@@ -158,7 +158,7 @@
               if (.not.mebfLabels) then
                 write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
               else
-                write(lfnout,6721) mebfLabel(j),' |',
+                write(lfnout,6721) mebfLabel(j),' |',                           &
      &                             (27.2114d3*tc(j,i),i=ii,ik)
               end if
               write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
@@ -180,19 +180,19 @@
             enddo
           enddo
           allocate(work(lwork))
-          call dsygv(1,'V','L',nbase,hsave,nbase,
+          call dsygv(1,'V','L',nbase,hsave,nbase,                               &
      &         ssave,nbase,hev,work,lwork,info)
           deallocate(work)
           if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
         else
           hev(1)=hbase(1,1)/sbase(1,1)
         endif
-        
+
 ! Coen 2020/07/18
 ! Check if the eigenvectors come in rows or columns!
 ! a transpose(hsave) might be needed
 ! printing takes care of it now: hsave(j,i) instead of hsave(i,j)
-          
+
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions')
         write(lfnarx,667) nbase,ncols
@@ -221,14 +221,14 @@
                 if (.not.mebfLabels) then
                    write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
                 else
-                   write(lfnout,685)token,mebfLabel(j),
+                   write(lfnout,685)token,mebfLabel(j),                         &
      &                  (hsave(j,i),i=ii,il)
                 endif
              else
                 if (.not.mebfLabels) then
                    write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
                 else
-                   write(lfnout,686)token,mebfLabel(j),
+                   write(lfnout,686)token,mebfLabel(j),                         &
      &                  (hsave(j,i),i=ii,il)
                 endif
              endif
@@ -247,7 +247,7 @@
         enddo
       endif
 
-*** Dumping the results in the cml file
+!** Dumping the results in the cml file
       if (ncorr.eq.1) then
         if (nwt.eq.1) then
           id = 'id="GNshifted"'
@@ -257,9 +257,9 @@
       else
         id = 'id="standard"'
       end if
-* 1. NOCI matrices
+! 1. NOCI matrices
       label = 'module'
-      indent = 4 
+      indent = 4
       info_cml = 'dictRef="gr:matrices" id="normalized"'
       call open_tag(lfncml,label,info_cml,indent)
       label = 'propertyList'
@@ -272,15 +272,15 @@
       info_cml='units="nonsi:hartree"'
       sep='|'
       fmt_1='f20.10'
-      call writetag_matrix_real(lfncml,info_cml,7,sep,hbase,
+      call writetag_matrix_real(lfncml,info_cml,7,sep,hbase,                    &
      &   size(hbase,1),size(hbase,2),fmt_1)
       call close_tag(lfncml,label,6)
       if (ncorr.ne.1) then
         info_cml='dictRef="gr:overlap"'
         indent = 6
-        call open_tag(lfncml,label,info_cml,indent) 
+        call open_tag(lfncml,label,info_cml,indent)
         info_cml='empty'
-        call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,
+        call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,                  &
      &     size(hbase,1),size(hbase,2),fmt_1)
         call close_tag(lfncml,label,6)
       end if
@@ -290,7 +290,7 @@
       label='module'
       indent = 4
       call close_tag(lfncml,label,indent)
-* 2. NOCI wf and energy (only when thre is more than one MEBF)
+! 2. NOCI wf and energy (only when thre is more than one MEBF)
       if (nbase.gt.1) then
         indent = 4
         label = 'module'
@@ -319,13 +319,13 @@
           call open_tag(lfncml,label,info_cml,7)
           fmt_1='f12.4'
           info_cml2 = trim(info_cml)//' units="nonsi:electronvolt"'
-          call writetag_scalar_real(lfncml,info_cml2,8,(hev(i)-hev(1))
+          call writetag_scalar_real(lfncml,info_cml2,8,(hev(i)-hev(1))          &
      &                                                   *27.2114,fmt_1)
           call close_tag(lfncml,label,7)
           info_cml = 'dictRef="gr:mebfCoeff" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1 = 'f20.10'
-          call writetag_array_real(lfncml,info_cml,8,sep,hsave(i,:),
+          call writetag_array_real(lfncml,info_cml,8,sep,hsave(i,:),            &
      &              size(hsave,2),fmt_1)
           call close_tag(lfncml,label,7)
           label = 'propertyList'
@@ -335,7 +335,7 @@
         end do
         indent = 4
         call close_tag(lfncml,label,indent)
-*3. Electronic couplings (only when there is more than one MEBF)
+!3. Electronic couplings (only when there is more than one MEBF)
         do i=1,size(tc,1)
           do j=1,size(tc,2)
             tc(i,j)=tc(i,j)*27211.4d0
@@ -353,7 +353,7 @@
         call open_tag(lfncml,label,info_cml,6)
         info_cml='units="nonsi2:meV"'
         fmt_1='f12.4'
-        call writetag_matrix_real(lfncml,info_cml,7,sep,tc,
+        call writetag_matrix_real(lfncml,info_cml,7,sep,tc,                     &
      &              size(tc,1),size(tc,2),fmt_1)
         label = 'property'
         call close_tag(lfncml,label,6)
@@ -366,7 +366,7 @@
       end if
 
       flush(lfnarx)
-      
+
       return
-      
+
       end subroutine gronor_print_results

@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !>    Adding the correlation energy of the fragment wave functions
 !>
@@ -35,9 +35,9 @@
 !> @param wgn Gallup-Norbeck weights
 !> @param shft shifts applied on the diagonal of the orthogonalized Hamiltonian
 !> @param slow S^-1/2 matrix
-      
-      
-      subroutine gronor_correlation_energy(
+
+
+      subroutine gronor_correlation_energy(                                     &
      &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout
       use gnome_parameters, only :  ipr
@@ -90,7 +90,7 @@
       write(lfnout,*) ' MEBF    Total shift            Monomer shifts'
       write(lfnout,*) ' '
       do i = 1, nbase
-        write(lfnout,679) i,shft(i),
+        write(lfnout,679) i,shft(i),                                            &
      &         (ncombv(j,i),ecorr(ncombv(j,i)),j=1,nmol)
       end do
  679  format(I4,F15.8,8x,5(I4,F15.8))
@@ -113,7 +113,7 @@
           hcorr(i,i) = hcorr(i,i) + (wgn(i,j)*shft(j))
         enddo
       enddo
-      
+
       write(lfnout,*)
       write(lfnout,*) ' Shifted Hamiltonian in orthogonal MEBF basis'
       call gronor_print_matrix(lfnout,hcorr,nbase)
@@ -130,7 +130,7 @@
       subroutine gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
       use cidist
-      
+
       implicit none
 
       integer, intent(in)        :: nbase,lfnout,ipr
@@ -144,7 +144,7 @@
       real(kind=8)               :: ut(nbase,nbase)
       real(kind=8)               :: ev(nbase)
 
-!     diagonalize S matrix: 
+!     diagonalize S matrix:
       u=sbase
       allocate(work(4*nbase))
       work = 0.0

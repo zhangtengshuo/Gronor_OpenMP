@@ -10,17 +10,17 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Transformed MOs matrix multiplication
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
 
 #include "tgt_guard.fh"
-      
+
       subroutine gronor_tramat()
 
 !      This routine mutiplies the input-matrix (a)
@@ -228,7 +228,7 @@
 
       m1=nalfa+1
 
-!$omp parallel do
+!$omp parallel do                                                                 &
 !$omp& shared(nelecs,ta,taa) collapse(2)
       do i=1,nelecs
        do j=1,nelecs
@@ -241,7 +241,7 @@
 
 !     transformation of diag
 
-!$omp parallel do
+!$omp parallel do                                                                 &
 !$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum)
         do j=1,nbas
           sum=0.0d0
@@ -265,8 +265,8 @@
           w1(j)=sum
         enddo
 !$omp end parallel do
-        
-!$omp parallel do
+
+!$omp parallel do                                                               &
 !$omp& shared(diag,w1)
         do j=1,nbas
           diag(j)=w1(j)
@@ -279,8 +279,8 @@
 !                first :
 !     calculation of an intermediate array (w)
 
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)                     &
 !$omp& private(sum,kk) collapse(2)
       do j=1,nelecs
         do i=1,nbas
@@ -309,8 +309,8 @@
 
 !     put w in the work-matrix (aa)
 
-!$omp parallel do
-!$omp& shared(nbas,nelecs,w2,taa)
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nelecs,w2,taa)                                               &
 !$omp& private(sum,kk) collapse(2)
       do j=1,nelecs
        do i=1,nbas
@@ -321,8 +321,8 @@
 
 !     calculation of the final matrix aa
 
-!$omp parallel do
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)                          &
 !$omp& private(sum,kk) collapse(2)
       do i=1,nbas
         do j=1,nbas
@@ -351,8 +351,8 @@
 
 !     put w back in the work-matrix aa
 
-!$omp parallel do
-!$omp& shared(nbas,w2,taa)
+!$omp parallel do                                                                 &
+!$omp& shared(nbas,w2,taa)                                                        &
 !$omp& collapse(2)
       do j=1,nbas
        do i=1,nbas
@@ -364,8 +364,8 @@
 !        transformation of sdiag
 
       if(ising.ne.0) then
-!$omp parallel do
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)
+!$omp parallel do                                                                &
+!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)                         &
 !$omp& private(sum,kk)
         do j=1,nbas
           sum=0.0d0
@@ -389,8 +389,8 @@
           w1(j)=sum
         enddo
 !$omp end parallel do
-        
-!$omp parallel do
+
+!$omp parallel do                                                                &
 !$omp& shared(nbas,sdiag,w1)
         do j=1,nbas
           sdiag(j)=w1(j)

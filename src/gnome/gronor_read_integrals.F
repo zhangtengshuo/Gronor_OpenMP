@@ -10,14 +10,14 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Read integral file
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
       subroutine gronor_read_integrals()
 
       use mpi
@@ -49,7 +49,7 @@
       allocate(ntarget(mgr))
 
       mynode=map2(me+1,6)
-      
+
       if(me.eq.master) then
         if(ipr.ge.20) then
           numc=16
@@ -77,16 +77,16 @@
           if(mc.gt.0) lc=lc+1
           nc=3
           write(lfnrnk,114)
- 114      format(//,' Rank map2 ND=NumDev DI=DevId Nt=NumThr',
-     &         ' Ac=Accel',//,
-     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',
-     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',
+ 114      format(//,' Rank map2 ND=NumDev DI=DevId Nt=NumThr',                  &
+     &         ' Ac=Accel',//,                                                  &
+     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',               &
+     &         '    Rank  ND NT   Group    RSet Ac    Node DI  ',               &
      &         '    Rank  ND NT   Group    RSet Ac    Node DI',/)
           do i=1,lc
             if(mc.gt.0.and.i.eq.lc) nc=mc
             nnc=nc
             if(i+(nc-1)*lc.gt.np) nnc=nnc-1
-            write(lfnrnk,115) (i+(j-1)*lc-1,
+            write(lfnrnk,115) (i+(j-1)*lc-1,                                    &
      &           (map2(i+(j-1)*lc,k),k=1,7),j=1,nnc)
  115        format(3(i8,':',2i3,2i8,i3,i8,i3,2x))
           enddo
@@ -99,7 +99,7 @@
           if(allgroups(i,j+1).eq.me) myigr=j
         enddo
       enddo
-      
+
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)
 
       allocate(new_comm(mgr),new_comm1(mgr),new_comm2(mgr,nnodes))
@@ -113,9 +113,9 @@
           do j=1,numgrp
             ranks_list(j)=allgroups(j,i+1)
           enddo
-          call MPI_Group_Incl(group_world,int(numgrp,kind=4),
+          call MPI_Group_Incl(group_world,int(numgrp,kind=4),                   &
      &         ranks_list,new_group,ierr)
-          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,                        &
      &         new_comm(i),ierr)
         enddo
       endif
@@ -133,15 +133,15 @@
               if(me.eq.allgroups(j,i+1)) lcomm1=.true.
             endif
           enddo
-          call MPI_Group_Incl(group_world,int(n,kind=4),
+          call MPI_Group_Incl(group_world,int(n,kind=4),                        &
      &         ranks_list,new_group,ierr)
-          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+          call MPI_Comm_Create(MPI_COMM_WORLD,new_group,                        &
      &         new_comm1(i),ierr)
         enddo
       endif
 
 !     Create communicators for each first, second, etc rank from groups on the same node
-      
+
       if(idist.ne.0) then
 
         if(idist.eq.1) then
@@ -154,18 +154,18 @@
                   ranks_list(k)=allgroups(j,i+1)
                 endif
               enddo
-              call MPI_Group_Incl(group_world,int(k,kind=4),
+              call MPI_Group_Incl(group_world,int(k,kind=4),                    &
      &             ranks_list,new_group,ierr)
-              call MPI_Comm_Create(MPI_COMM_WORLD,new_group,
+              call MPI_Comm_Create(MPI_COMM_WORLD,new_group,                    &
      &             new_comm2(i,n),ierr)
             enddo
           enddo
-          
+
         else
           numgrn=0
           if(mygroup.gt.0) then
             do i=1,numgrp
-              if(map2(allgroups(i,myigr+1)+1,6).eq.mynode)
+              if(map2(allgroups(i,myigr+1)+1,6).eq.mynode)                      &
      &             numgrn=numgrn+1
             enddo
           endif

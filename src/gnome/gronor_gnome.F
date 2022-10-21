@@ -10,17 +10,17 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! General Non-Orthogonal Matrix Element calculation using GNOME structure
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
 #include "tgt_guard.fh"
-      
+
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       use mpi
@@ -45,20 +45,20 @@
       ttest=0
 
 !     If duplicate check for terminate signal
-      
+
       if(odupl) then
         call MPI_Test(itreq,flag,status,ierr)
         oterm=flag
         if(oterm) return
       endif
-      
+
       if(idbg.ge.20) then
       write(lfndbg,600) nbasis
  600  format(/,' Number of basis functions is',t45,i8)
       write(lfndbg,603) nelec(1)
  603  format(' Number of electrons is',t45,i8)
       endif
-      
+
       do idet=1,2
 
         if(idbg.ge.20) then
@@ -67,7 +67,7 @@
           write(lfndbg,605) (ioccup(k,idet),k=1,nact(idet))
  605      format(' Active orbital occupation : ',32i3)
         endif
-        
+
         call timer_start(11)
         call gronor_transvc(lfndbg,idet)
         call timer_stop(11)
@@ -89,25 +89,25 @@
       ntclb=ntcl(2)
       ntopa=ntop(1)
       ntopb=ntop(2)
-      
+
       nveca=ntcla+ntopa
       nvecb=ntclb+ntopb
       ntesta=nveca+ntcla
       ntestb=nvecb+ntclb
-            
-      if(ntesta.ne.ntestb)
+
+      if(ntesta.ne.ntestb)                                                      &
      &     call gronor_abort(305,"Number of electrons is inconsistent")
-      
+
       nelecs=ntesta
       n1bas=nbas*(nbas+1)/2
       nstdim=max(1,nelecs*nelecs,n1bas)
       mbasel=max(nelecs,nbas)
-      
-      if(nveca.ne.ntcl(1)+ntop(1)) 
+
+      if(nveca.ne.ntcl(1)+ntop(1))                                              &
      &     call gronor_abort(306,"Incompatible nveca")
-      if(nvecb.ne.ntcl(2)+ntop(2)) 
+      if(nvecb.ne.ntcl(2)+ntop(2))                                              &
      &     call gronor_abort(307,"Incompatible nvecb")
-      
+
       if(idbg.gt.40) then
         do idet=1,2
           ntvc=ntcl(idet)+ntop(idet)
@@ -117,7 +117,7 @@
             if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
  1604       format(/,' Open shell M.O.'' s:')
             if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
-              write(lfndbg,1605)  ' (',ivc,')',
+              write(lfndbg,1605)  ' (',ivc,')',                                 &
      &             (vec(ivc,ibas,idet),ibas=1,nbas)
  1605         format(a2,i3,a1,(t9,10f12.8))
             endif
@@ -141,12 +141,12 @@
  3612    format(" GNOME with iamacc ",i5)
          flush(lfndbg)
       endif
-      
+
       if(iamacc.gt.0) then
-        
+
 !_ACCTGT_($acc data copyin(va,vb))
-!_OMPTGT_($omp target data map(to:va,vb)) 
-        
+!_OMPTGT_($omp target data map(to:va,vb))
+
 !     Calculations of the overlap matrices
 
         call timer_start(14)
@@ -159,7 +159,7 @@
         call timer_start(15)
         call gronor_cofac1(lfndbg)
         call timer_stop(15)
-        
+
         if(idbg.ge.20) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
@@ -167,24 +167,24 @@
           if(ising.eq.3) write(lfndbg,612)
  609      format(/,' A has no singularities')
  610      format(/,' A has a single singularity')
- 611      format(/,' A has two singularities: ',
+ 611      format(/,' A has two singularities: ',                                &
      &         'one electron matrix elements are zero')
- 612      format(/,' A has more than two singularities: ',
+ 612      format(/,' A has more than two singularities: ',                      &
      &         'one and two electron matrix elements are zero')
         endif
 
         if(ising.lt.3) then
-        
+
           if(corres) then
             call timer_start(16)
             call gronor_cororb()
             call timer_stop(16)
-          endif      
-          
+          endif
+
           call timer_start(17)
           call gronor_tramat()
           call timer_stop(17)
-          
+
           if(idipole.ne.0) then
             call timer_start(18)
             call gronor_dipole(lfndbg)
@@ -268,7 +268,7 @@
         call timer_start(15)
         call gronor_cofac1_omp(lfndbg)
         call timer_stop(15)
-        
+
         if(idbg.ge.30) then
           if(ising.eq.0) write(lfndbg,609)
           if(ising.eq.1) write(lfndbg,610)
@@ -283,21 +283,21 @@
             call gronor_cororb()
             call timer_stop(16)
           endif
-          
+
           call timer_start(17)
           call gronor_tramat_omp()
           call timer_stop(17)
-          
+
           if(idipole.ne.0) then
             call timer_start(18)
             call gronor_dipole(lfndbg)
             call timer_stop(18)
           endif
-          
+
           if(idbg.ge.30) then
             if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
           endif
-          
+
 !     Transformation of the  m.o.'s into the bassisset of the two
 !     electron integrals
 

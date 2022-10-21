@@ -212,7 +212,8 @@ if(NOT DEFINED ENV{MOLCAS})
   set(MOLCAS "")
   message (STATUS "Not found: molcas")
 else()
-  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
+#  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
+  set(molcas_root $ENV{MOLCAS})
   message (STATUS "Found Molcas: ${molcas_root}")
 endif()
 
@@ -952,7 +953,7 @@ endif()
 
 # molcas dependent auxiliary programs need the molcas libraries
 if(DEFINED MOLCAS)
-  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS_BUILD}/lib -lmolcas")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()

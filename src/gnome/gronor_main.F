@@ -74,7 +74,7 @@
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
-      character (len=255) :: string,target
+      character (len=255) :: string,target,compiler
       logical exist
 
       real(kind=8), external :: timer_wall_total
@@ -433,27 +433,35 @@
      &       '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
         target=' '
+        compiler=' '
 #ifdef _OL_ACC_
-        write(target,'(a)') " for OpenACC device offload"
+        write(target,'(a)') " OpenACC"
 #endif
 #ifdef _OL_OMP_
-        write(target,'(a)') " for OpenMP device offload"
+        write(target,'(a)') " OpenMP target"
 #endif
         if(ipr.ge.0) write(lfnout,645) trim(target)
 #ifdef CRAY
  645    format(//,' Compiled with the CRAY CCE Compiler suite',a)
+        compiler='Cray CCE'
 #elseif IBM
  645    format(//,' Compiled with the IBM XL Compiler suite',a)
+        compiler='IBM XL'
 #elseif PGI
  645    format(//,' Compiled with the PGI Compiler suite',a)
+        compiler='PGI'
 #elseif NVIDIA
  645    format(//,' Compiled with the NVIDIA Compiler suite',a)
+        compiler='NVIDIA'
 #elseif NVHPC
  645    format(//,' Compiled with the NVIDIA NVHPC Compiler suite',a)
+        compiler='NVHPC'
 #elseif GNU
  645    format(//,' Compiled with the GNU Compiler suite',a)
+        compiler='GNU'
 #elseif INTEL
  645    format(//,' Compiled with the INTEL Compiler suite',a)
+        compiler='Intel'
 #else
  645    format(//,' Compiled with unknown compiler suite',a)
 #endif
@@ -2258,9 +2266,9 @@
      &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),                         &
      &       nmol,nbase,mstates,tau_MO,tau_CI,                                  &
      &       trim(user),trim(string),                                           &
-     &       trim(command),trim(host)
+     &       trim(command),trim(host),trim(compiler),trim(target)
  801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,                        &
-     &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a)
+     &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
           write(lfnlog,803)                                                     &

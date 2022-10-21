@@ -5,11 +5,11 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
 !>
-      subroutine writetag_array_real(lfn,info,indent,sep,num,length,
+      subroutine writetag_array_real(lfn,info,indent,sep,num,length,            &
      &                 numfmt)
       implicit none
       integer  :: lfn,indent,length,j
@@ -37,8 +37,8 @@
       else
         write(fmt_1,'(5a)')'(',trim(ts),',5a,',trim(adjustl(l1)),'a)'
       end if
-      write(lfn,fmt=fmt_1)'<array dataType="xsd:double" ',trim(info),
-     & ' size="',trim(adjustl(l)),'">',(trim(num2(j)),sep,j=1,length-1),
+      write(lfn,fmt=fmt_1)'<array dataType="xsd:double" ',trim(info),           &
+     & ' size="',trim(adjustl(l)),'">',(trim(num2(j)),sep,j=1,length-1),        &
      & trim(num2(length)),'</array>'
-      
+
       end subroutine writetag_array_real

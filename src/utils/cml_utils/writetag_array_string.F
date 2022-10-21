@@ -5,7 +5,7 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
 !>
@@ -33,8 +33,8 @@
       else
         write(fmt_1,'(5a)')'(',trim(ts),',5a,',trim(adjustl(l1)),'a)'
       end if
-      write(lfn,fmt=fmt_1)'<array dataType="xsd:string" ',trim(info),
-     &     ' size="',trim(adjustl(l)),'">',
+      write(lfn,fmt=fmt_1)'<array dataType="xsd:string" ',trim(info),           &
+     &     ' size="',trim(adjustl(l)),'">',                                     &
      &     (trim(num(j)),sep,j=1,length-1),trim(num(length)),'</array>'
-      
+
       end subroutine writetag_array_string

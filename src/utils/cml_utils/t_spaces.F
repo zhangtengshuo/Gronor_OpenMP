@@ -19,5 +19,5 @@
       write(s,'(i4)') spaces
       t_spaces = 't'//trim(adjustl(s))
       return
-      end 
-      
+      end
+

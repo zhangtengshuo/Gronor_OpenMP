@@ -47,7 +47,7 @@
       data errmsg  /' '/
       data input_line /0/
       data xblnk /' '/
-#if defined(DECOSF) || defined(SGITFP) || defined(SGI_N32) || defined(CRAY) || defined(HPUX) || defined(WIN32) || defined(PSCALE) ||defined(GCC4) 
+#if defined(DECOSF) || defined(SGITFP) || defined(SGI_N32) || defined(CRAY) || defined(HPUX) || defined(WIN32) || defined(PSCALE) ||defined(GCC4)
       data xtab  /'	'/      ! Tab ... no backslash necessary
 #elif (defined(LINUX) || defined(MACX)) && !defined(PGLINUX) && !defined(XLFLINUX) &&!defined(GCC4)
       data xtab  /'9'/            ! Tab ... g77 has trouble with escape sequence
@@ -73,7 +73,7 @@
       iwrite = iw
       jrec = -1
       jump = 0
-      oswit = .false. 
+      oswit = .false.
       nerr = 999
       nline = 0
       noline = 0
@@ -107,13 +107,13 @@
 
 !     set field to be read next (ivalue=0,...,inp_n_field())
 
-      if (ivalue.lt.0 .or. ivalue.gt.inp_n_field())
+      if (ivalue.lt.0 .or. ivalue.gt.inp_n_field())                             &
      & call inpquit('inp_set_field: stupid field value',ivalue)
       jrec = ivalue
 
       ierrpos = -1
       errmsg = ' '
-     
+
       end
 
       logical function inp_line(z)
@@ -142,7 +142,7 @@
       character (len=*) :: buf
 
 !     Read a physical line of input into buf() WITHOUT any
-!     tokenizing, scanning, etc. 
+!     tokenizing, scanning, etc.
 
 !     This routine is intended for programms embedded into NWChem
 !     that need to read from the NWChem input file bypassing any
@@ -180,8 +180,9 @@
       integer (kind=8) :: lenja, i, k, mark, j, nbegin, nfini, iopt
       integer (kind=8) :: jwidth
       integer (kind=8) :: ncol(max_field)
-      logical :: ois_ws            ! Inline funtion  
+      logical :: ois_ws            ! Inline funtion
       character (len=1) :: xtest
+      integer (kind=8) :: ivalue
 
       ois_ws(xtest) = (iachar(xtest).eq.32 .or. iachar(xtest).eq.9)
 
@@ -211,22 +212,22 @@
 
 !     Check for . * eof at beginning of line to indicate EOF
 
-      if (lenja.eq.1 .and. (ja(1:1).eq.'.' .or. ja(1:1).eq.'*'))
+      if (lenja.eq.1 .and. (ja(1:1).eq.'.' .or. ja(1:1).eq.'*'))                &
      &     goto 300
-      if (lenja.eq.3 .and. inp_compare(.false., 'eof', ja(1:3))) 
+      if (lenja.eq.3 .and. inp_compare(.false., 'eof', ja(1:3)))                &
      &     goto 300
 
 !     Handle include statement
 
       if (inp_compare(.false.,ja(1:7),'include')) then
-         if (include_level .eq. max_include_level) call inpquit
+         if (include_level .eq. max_include_level) call inpquit                 &
      &     ('inp_read: include nested too deep ', include_level)
          include_level = include_level + 1
          include_file_name(include_level) = ja(9:)
-         write(6,*) ' include: start of ', 
+         write(6,*) ' include: start of ',                                      &
      &        trim(include_file_name(include_level))
-         open(80+include_level,
-     &        file=trim(include_file_name(include_level)),
+         open(80+include_level,                                                 &
+     &        file=trim(include_file_name(include_level)),                      &
      &        form='formatted', status='old', err=105)
 !     call inp_save_state()
          iopt=6
@@ -373,7 +374,7 @@
 
  300  if (include_level .gt. 0) then ! End of file detected
          close(80+include_level)
-         write(6,*) ' include: end of ', 
+         write(6,*) ' include: end of ',                                        &
      &        trim(include_file_name(include_level))
          include_level = include_level - 1
 !         call inp_restore_state()
@@ -388,7 +389,10 @@
       endif
       return
 
- 105  call inpquit('inp_read: failed to open include file',0)
+ 105  continue
+
+      ivalue=0
+      call inpquit('inp_read: failed to open include file',ivalue)
 
       end
       logical function inp_eof()
@@ -446,7 +450,7 @@
 !     Write out the current input line
 
       write(iwrite,50) input_line, ia(1:iwidth)
-50    format(1x,i5,': ',a)
+ 50   format(1x,i5,': ',a)
 
       end
       logical function inp_a(a)
@@ -528,8 +532,8 @@
       integer (kind=8) :: i1, i2, ie2, isign, ie, iexp, ie1, itmp, i, j
       logical :: orep
       character (len=1) :: xchar(17)
-      data xchar /'0','1','2','3','4','5','6','7','8','9'
-     1     ,'+','-','.','e','d','E','D'/
+      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
+     &     ,'+','-','.','e','d','E','D'/
       data ten/10.0d0/
 
       ierrpos = -1
@@ -545,13 +549,13 @@
       i1=istrt(jrec)
       i2=i1+inumb(jrec)-1
       ie2=i2
-c...  sign
+!...  sign
       isign=1
       if (ia(i1:i1).eq.xchar(12))isign=-1
       if (ia(i1:i1).eq.xchar(12).or.ia(i1:i1).eq.xchar(11)) i1=i1+1
-c...  exponent
+!...  exponent
       do ie=i1+1,i2
-         if (ia(ie:ie).eq.xchar(14) .or. ia(ie:ie).eq.xchar(15) .OR.
+         if (ia(ie:ie).eq.xchar(14) .or. ia(ie:ie).eq.xchar(15) .OR.            &
      &      ia(ie:ie).eq.xchar(16) .or. ia(ie:ie).eq.xchar(17)) goto 20
       enddo
       iexp=0
@@ -560,8 +564,8 @@ c...  exponent
       iexp=1
       ie1=ie+1
       if (ia(ie1:ie1).eq.xchar(12))iexp=-1
-      if (ia(ie1:ie1).eq.xchar(12).or.ia(ie1:ie1).eq.xchar(11))
-     *     ie1=ie1+1
+      if (ia(ie1:ie1).eq.xchar(12).or.ia(ie1:ie1).eq.xchar(11))                 &
+     &     ie1=ie1+1
       itmp=0
       do i=ie1,ie2
          do j=1,10
@@ -571,7 +575,7 @@ c...  exponent
  41      itmp=itmp*10+j-1
       enddo
       iexp=iexp*itmp
-c.... the number itself
+!.... the number itself
  50   orep=.false.
       do i=i1,i2
          if(ia(i:i).ne.xchar(13)) then
@@ -614,9 +618,9 @@ c.... the number itself
       character (len=1) :: xchar(12)
       integer (kind=8) :: n, ifact, ist, nstrt, i, j
       character (len=1) :: xtemp
-      integer (kind=8) :: jbuf, jtmp
-      data xchar /'0','1','2','3','4','5','6','7','8','9'
-     1     ,'+','-'/
+      integer :: jbuf, jtmp
+      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
+     &     ,'+','-'/
 
 !     subroutine for reading integers from the array ia,
 !     starting at ia(istrt(jrec)) and going on for inumb(jrec))
@@ -711,7 +715,7 @@ c.... the number itself
                ind = 0
 
                write(6,1) test(1:l), (array(j),j=1,nrec)
- 1             format('inp: ambiguous match for ', a,', in:'/
+ 1             format('inp: ambiguous match for ', a,', in:'/                   &
      &              100(1x,a/))
 
                return
@@ -738,7 +742,7 @@ c.... the number itself
       inp_contains = .false.
       la=len(trim(a))
       lb=len(trim(b))
-      if (la .gt. lb) then   
+      if (la .gt. lb) then
          return
       else if (ocase) then
          do i = 1, lb - la + 1
@@ -750,21 +754,21 @@ c.... the number itself
          enddo
          return
       else
-         do j = 0, lb - la 
+         do j = 0, lb - la
             do i = 1, la
                atest = a(i:i)
                btest = b(j+i:j+i)
                call inp_lcase(atest)
                call inp_lcase(btest)
-               if (atest.ne.btest) goto 00011
+               if (atest.ne.btest) goto 11
             enddo
             inp_contains = .true.
             return
-00011    continue
+   11    continue
          enddo
          return
       endif
-c
+!
       end
       subroutine inp_prev_field()
       implicit none
@@ -799,18 +803,21 @@ c
       character (len=*) :: string
       intrinsic ichar, len
       integer (kind=8) :: i, length, uca, ucz, lca, shift, test
+      integer (kind=8) :: ivalue
 
       uca = ichar('A')          ! MUST be uppercase A
       ucz = ichar('Z')          ! MUST be uppercase Z
       lca = ichar('a')          ! MUST be lowercase a
       shift = lca - uca
-      if (shift .eq. 0) 
-     &     call inpquit('inp_lcase: check case of program source',0)
+
+      ivalue=0
+      if (shift .eq. 0)                                                         &
+     & call inpquit('inp_lcase: check case of program source',ivalue)
 
       length = len(string)
       do i = 1, length
          test = ichar(string(i:i))
-         if (test.ge.uca .and. test.le.ucz) 
+         if (test.ge.uca .and. test.le.ucz)                                     &
      &        string(i:i) = char(test+shift)
       enddo
 
@@ -830,10 +837,10 @@ c
       do i = 1, length
         if (.not. ois_ws(a(i:i))) goto 10
       end do
-10    continue
+ 10    continue
       s=i-1
       do i=s+1,length
-       a(i-s:i-s) = a(i:i) 
+       a(i-s:i-s) = a(i:i)
        a(i:i)=""
       enddo
 
@@ -844,18 +851,21 @@ c
       character (len=*) :: string
       intrinsic ichar, len
       integer (kind=8) :: i, length, lca, lcz, uca, shift, test
+      integer (kind=8) :: ivalue
 
       lca = ichar('a')          ! MUST be lowercase A
       lcz = ichar('z')          ! MUST be lowercase Z
       uca = ichar('A')          ! MUST be uppercase a
       shift = uca - lca
-      if (shift .eq. 0) 
-     &     call inpquit('inp_ucase: check case of program source',0)
+
+      ivalue=0
+      if (shift .eq. 0)                                                         &
+     & call inpquit('inp_ucase: check case of program source',ivalue)
 
       length = len(string)
       do i = 1, length
          test = ichar(string(i:i))
-         if (test.ge.lca .and. test.le.lcz) 
+         if (test.ge.lca .and. test.le.lcz)                                     &
      &        string(i:i) = char(test+shift)
       enddo
 
@@ -873,7 +883,7 @@ c
       parameter (maxz = 100)
       integer (kind=8) :: length(maxz)
 
-      if (maxz .lt. nz)
+      if (maxz .lt. nz)                                                         &
      &     call inpquit('inp_search: hard dim fail',nz)
       do i = 1, nz
          length(i)=len(trim(z(i)))
@@ -900,12 +910,13 @@ c
 
       character (len=*) :: z
       integer (kind=8) :: length
+      integer (kind=8) :: ivalue
 
-!     Quicker search that 
+!     Quicker search that
 
-!     1) matches case 
+!     1) matches case
 !     2) assumes the token being searched for is at the beginning of the line
-!     3) ignores continutation lines, comments, quotes etc. 
+!     3) ignores continutation lines, comments, quotes etc.
 !     4) Still attempts to track line numbers EOF.
 
 !     Only called from inside the basis set input routine?
@@ -919,7 +930,9 @@ c
       if (z(1:length) .eq. ja(1:length)) then
          backspace(iread)       ! Re-read line with full input routine
          input_line = input_line - 1
-         if (.not. inp_read()) call inpquit('inp_search_fast: inp?',0)
+         ivalue=0
+         if (.not. inp_read())                                                  &
+     &    call inpquit('inp_search_fast: inp?',ivalue)
          inp_search_fast = .true.
          return
       endif
@@ -954,11 +967,11 @@ c
 !     must not be modified between calls) so multiple strings
 !     may be parsed simultaneously.
 
-!     E.g., to split list = 'robert:rick:jeff' into tokens separated 
+!     E.g., to split list = 'robert:rick:jeff' into tokens separated
 !     by ':'. You execute
 
 !     istart = 0
-c  10 if (inp_strtok(list, ':', istart, iend)) then
+!  10 if (inp_strtok(list, ':', istart, iend)) then
 !     write(6,*) list(istart:iend)
 !     goto 10
 !     endif
@@ -1012,15 +1025,15 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 !     Reads the line for a list of integers and puts
 !     the results in List.  Ranges of integers may be compactly using
 !     F90-style triplet notation. The number of elements set from the
-!     input is returned in N. 
+!     input is returned in N.
 
 !     It USED to read the entire remainder of the input line. BUT now
 !     reads until it finds something that is not an integer range.
 
 !     IF (the remainder of the input line was read as a valid list)
 !     .  inp_list returns .true. with N as the number of elements read
-!     ELSE 
-!     .  inp_list returns .false. with N as the number of elements 
+!     ELSE
+!     .  inp_list returns .false. with N as the number of elements
 !     .  and also sets the INP internal error message appropriately
 !     .  which can be cleared with inp_clear_err
 
@@ -1028,7 +1041,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 
 !     If N > MaxList, it indicates that there is too much data on
 !     the line to fit in List. NOTE that inp_ilist now returns
-!     true in this scenario so the value of N must be checked 
+!     true in this scenario so the value of N must be checked
 !     for this condition.  A recovery action would be to reposition
 !     the input to the beginning of the list, allocate a sufficiently
 !     large array and then call inp_ilist again.  The input position may
@@ -1044,21 +1057,21 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 
  10   If ( Inp_IRange(First, Last, Stride) ) then
 
-!     Expand the triplet.  If there are too many elements for the List, 
+!     Expand the triplet.  If there are too many elements for the List,
 !     we count them but do not overwrite the array bounds.
 
          Do I = First, Last, Stride
             N = N + 1
             If ( N .le. MaxList) List(N) = I
-            If ( N .eq. MaxList+1) call inp_mark_err
+            If ( N .eq. MaxList+1) call inp_mark_err                            &
      &          ('insufficient space for integer list')
          EndDo
          goto 10
       EndIf
 
-!     OK if we are we are the end of the input line 
+!     OK if we are we are the end of the input line
 
-      inp_ilist = (inp_cur_field() .eq. inp_n_field()) 
+      inp_ilist = (inp_cur_field() .eq. inp_n_field())
 
       End
 
@@ -1067,7 +1080,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
       integer (kind=8) :: n                 ! [out]   number of elements in list
 
 !     description
-!     reads the line of a list of integers and 
+!     reads the line of a list of integers and
 !     and returns total number of elements
 !     designed to be use a helper routine for inp_ilist
 !     on exit from this routine the input is repositioned back
@@ -1084,7 +1097,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 
  10   if ( Inp_IRange(first, last, stride) ) then
 
-!     expand the triplet.  if there are too many elements for the list, 
+!     expand the triplet.  if there are too many elements for the list,
 !     we count them but do not overwrite the array bounds.
 
          do i = first, last, stride
@@ -1093,7 +1106,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
          goto 10
       endif
 
-      inp_ilist_size = (inp_cur_field() .eq. inp_n_field()) 
+      inp_ilist_size = (inp_cur_field() .eq. inp_n_field())
       call inp_set_field(nc)
       end
 
@@ -1106,8 +1119,8 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
       integer (kind=8) :: jFirst, JLast, JStride, jtmp(3), term
       logical :: Expect_Sep, Expect_Dig
       character (len=1) :: xchar(13)
-      data xchar /'0','1','2','3','4','5','6','7','8','9'
-     1     ,'+','-',':'/
+      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
+     &     ,'+','-',':'/
 
 !     subroutine for reading an integer range specification (in Fortran90-
 !     style triplet notation, stride optional) from the array ia,
@@ -1158,7 +1171,7 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
 
          ElseIf(j.eq.11 .OR. J .eq. 12) then     ! +/- signs
             If ( Expect_Sep .OR. Expect_Dig) Goto 120
-            if(j.eq.12)jtmp(term) =-jtmp(term) 
+            if(j.eq.12)jtmp(term) =-jtmp(term)
             Expect_sep = .TRUE. ! Need separator (or EOR) next
 
          Else                                    ! Add new digit
@@ -1233,12 +1246,12 @@ c  10 if (inp_strtok(list, ':', istart, iend)) then
       character (len=*), optional :: string
       integer (kind=8), optional :: icode
 
-!     error termination 
+!     error termination
 
 !     string = error message printed to stdout
 !     icode  = informative value printed to stdout
 
-!     try to minimize the amount of output if all nodes 
+!     try to minimize the amount of output if all nodes
 !     detect an error
 
       write(*,999) icode,string

@@ -4,10 +4,10 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
-!> 
+!>
       subroutine writetag_scalar_integer(lfn,info,indent,num)
       implicit none
       integer  :: lfn,num,indent
@@ -27,10 +27,10 @@
         write(fmt_2,'(3a)')'(',trim(ts),',5a)'
       end if
       if (info(1:5).eq.'empty') then
-        write(lfn,fmt=fmt_1)'<scalar dataType="xsd:integer"','>',
+        write(lfn,fmt=fmt_1)'<scalar dataType="xsd:integer"','>',               &
      &       trim(num2),'</scalar>'
       else
-        write(lfn,fmt=fmt_2)'<scalar dataType="xsd:string" ',
+        write(lfn,fmt=fmt_2)'<scalar dataType="xsd:string" ',                   &
      &       trim(info),'>',trim(num2),'</scalar>'
       end if
 

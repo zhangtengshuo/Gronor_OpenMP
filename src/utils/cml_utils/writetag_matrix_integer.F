@@ -5,11 +5,11 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
 !>
-      subroutine writetag_matrix_integer(lfn,info,indent,sep,
+      subroutine writetag_matrix_integer(lfn,info,indent,sep,                   &
      &                                               num,row,col)
       implicit none
       integer  :: lfn,indent,i,j,k,col,row
@@ -42,9 +42,9 @@
       else
         write(fmt_1,'(5a)') '(',trim(ts),',',trim(adjustl(rc)),'a)'
       end if
-      write(lfn,fmt=fmt_1) '<matrix dataType="xsd:integer" ',trim(info),
-     & ' columns="',trim(adjustl(c)),'" rows="',trim(adjustl(r)),'">',
-     &   (trim(num2(k)),sep,k=1,row*col-1),trim(num2(row*col)),
+      write(lfn,fmt=fmt_1) '<matrix dataType="xsd:integer" ',trim(info),        &
+     & ' columns="',trim(adjustl(c)),'" rows="',trim(adjustl(r)),'">',          &
+     &   (trim(num2(k)),sep,k=1,row*col-1),trim(num2(row*col)),                 &
      &                     '</matrix>'
-      
+
       end subroutine writetag_matrix_integer

@@ -1,10 +1,10 @@
       double precision function util_cpusec()
       implicit none
-c $Id: util_cpusec.F 19707 2010-10-29 17:59:36Z d3y133 $
-*
-* routine to give cpu seconds since start of execution
-*  delta times are handled by all applications
-*
+! $Id: util_cpusec.F 19707 2010-10-29 17:59:36Z d3y133 $
+!
+! routine to give cpu seconds since start of execution
+!  delta times are handled by all applications
+!
 #if defined(IBM) || defined(SP1) ||defined(HPUX)
 #define __UTIL_CPUSEC__
       double precision ibm_cputime
@@ -13,12 +13,12 @@ c $Id: util_cpusec.F 19707 2010-10-29 17:59:36Z d3y133 $
 #endif
 #if defined(KSR)
 #define __UTIL_CPUSEC__
-*--KSR-start
+!--KSR-start
       real ksr_cputime
       external ksr_cputime
-c
+!
       util_cpusec = ksr_cputime()
-*--KSR-end
+!--KSR-end
 #endif
 #if defined(SUN) || defined(__PARAGON__) || defined(DECOSF) || defined(SOLARIS) || defined(FUJITSU_VPP)|| defined(LINUXALPHA) || defined(MACX)
 #define __UTIL_CPUSEC__
@@ -27,9 +27,9 @@ c
 #ifndef GCC4
       external etime
 #endif
-c
+!
       util_cpusec = etime(tarray)
-c      
+!
 #endif
 
 #if defined(SGI)
@@ -44,7 +44,7 @@ c
       external etime
 #endif
       util_cpusec = etime(tarray)
-#endif  
+#endif
 
 #if defined(DELTA)
 #define __UTIL_CPUSEC__
@@ -53,20 +53,20 @@ c
       double precision first
       logical ofirst
       data ofirst /.true./
-c
+!
       if (ofirst) then
-	first = dclock()
-	ofirst = .false.
+!first = dclock()
+!ofirst = .false.
       endif
-c
+!
       util_cpusec = dclock() - first
 #endif
 
-#if (defined(LINUX) || defined(CYGNUS)) && !defined(LINUXIA64) &&! defined(CATAMOUNT)
+#if (defined(LINUX) || defined(CYGNUS)) && !defined(LINUXIA64) && !defined(CATAMOUNT) && !defined(IBM)
 #define __UTIL_CPUSEC__
       double precision linux_cputime
       external linux_cputime
-c
+!
       util_cpusec = linux_cputime()
 #endif
 
@@ -74,37 +74,37 @@ c
 #define __UTIL_CPUSEC__
       double precision win32_cputime
       external win32_cputime
-c
+!
       util_cpusec = win32_cputime()
 #endif
 
-c#if defined(CRAY)
-c#define __UTIL_CPUSEC__
-c      double precision secondr
-c      external secondr
-c      double precision first
-c      logical ofirst
-c      save first, ofirst
-c      data ofirst /.true./
-cc
-c      if (ofirst) then
-c	first = secondr()
-c	ofirst = .false.
-c      endif
-cc
-c      util_cpusec = secondr() - first ! Actually wall time
-c#endif
+!#if defined(CRAY)
+!#define __UTIL_CPUSEC__
+!      double precision secondr
+!      external secondr
+!      double precision first
+!      logical ofirst
+!      save first, ofirst
+!      data ofirst /.true./
+!c
+!      if (ofirst) then
+!	first = secondr()
+!	ofirst = .false.
+!      endif
+!c
+!      util_cpusec = secondr() - first ! Actually wall time
+!#endif
 
 #if defined(FUJITSU_SOLARIS) || defined(CATAMOUNT)
 #define __UTIL_CPUSEC__
 #ifdef FUJITSU_SOLARIS
       intrinsic cpu_time
 #endif
-c
+!
       call cpu_time (util_cpusec)
 #endif
 
-*
+!
 #if !defined(__UTIL_CPUSEC__)
       util_cpusec = 0.0d00
 #endif

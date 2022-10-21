@@ -1,4 +1,4 @@
-      subroutine svd(nm,m,n,a,na1,na2,w,nw,matu,u,nu1,nu2,matv,
+      subroutine svd(nm,m,n,a,na1,na2,w,nw,matu,u,nu1,nu2,matv,                 &
      & v,nv1,nv2,ierr,rv1,nrv)
 
       implicit none
@@ -108,7 +108,7 @@
                g=-sign(sqrt(s),f)
                h=f*g-s
                u(i,i)=f-g
-               
+
                if(i.ne.n) then
                   do j=l, n
                      s=0.0d0
@@ -124,14 +124,14 @@
                      enddo
                   enddo
                endif
-               
+
                do k=i, m
                   u(k,i)=scale*u(k,i)
                enddo
 
             endif
          endif
-         
+
          w(i)=scale*g
          g=0.0d0
          s=0.0d0
@@ -180,7 +180,7 @@
 
             endif
          endif
-         
+
          anorm=max(anorm,abs(w(i))+abs(rv1(i)))
 
       enddo
@@ -242,7 +242,7 @@
             i=mn+1-ii
             l=i+1
             g=w(i)
-            
+
             if(i.ne.n) then
                do j=l, n
                   u(i,j)=0.0d0
@@ -265,18 +265,18 @@
 
                      do k=i, m
                         u(k,j)=u(k,j)+f*u(k,i)
-                        
+
                      enddo
                   enddo
                endif
-               
+
                do j=i, m
                   u(j,i)=u(j,i)/g
                enddo
 
             else
 
-               
+
                do j=i, m
                   u(j,i)=0.0d0
                enddo
@@ -292,7 +292,7 @@
 !     .......... for k=n step -1 until 1 do -- ..........
 
       do kk=1,n
-         
+
          k1=n-kk
          k=k1+1
          its=0
@@ -376,7 +376,7 @@
                g=-x*s+g*c
                h=y*s
                y=y*c
-               
+
                if(matv) then
                   do j=1, n
                      x=v(j,i1)
@@ -418,7 +418,7 @@
          if(z.ne.0.0d0) then
 !     .......... w(k) is made non-negative ..........
             w(k)=-z
-            
+
             if(matv) then
                do j=1, n
                   v(j,k)=-v(j,k)

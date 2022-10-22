@@ -28,9 +28,9 @@
 
       do while(.true.)
          read(10,'(a)',end=1,err=1) card
-         if(card(1:29).eq."      RASSCF energy for state")
+         if(card(1:29).eq."      RASSCF energy for state")                &
      &        read(card(49:64),'(f16.8)') ecasscf
-         if(card(1:23).eq."      Total energy:    ")
+         if(card(1:23).eq."      Total energy:    ")                      &
      &        read(card(29:46),'(f18.10)') ecaspt2
       enddo
  1    continue

@@ -1,85 +1,85 @@
-*> \brief \b DSWAP
-*
-*  =========== DOCUMENTATION ===========
-*
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
-*
-*  Definition:
-*  ===========
-*
-*       SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
-* 
-*       .. Scalar Arguments ..
-*       INTEGER INCX,INCY,N
-*       ..
-*       .. Array Arguments ..
-*       DOUBLE PRECISION DX(*),DY(*)
-*       ..
-*  
-*
-*> \par Purpose:
-*  =============
-*>
-*> \verbatim
-*>
-*>    interchanges two vectors.
-*>    uses unrolled loops for increments equal one.
-*> \endverbatim
-*
-*  Authors:
-*  ========
-*
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
-*
-*> \date November 2011
-*
-*> \ingroup double_blas_level1
-*
-*> \par Further Details:
-*  =====================
-*>
-*> \verbatim
-*>
-*>     jack dongarra, linpack, 3/11/78.
-*>     modified 12/3/93, array(1) declarations changed to array(*)
-*> \endverbatim
-*>
-*  =====================================================================
+!> \brief \b DSWAP
+!
+!  =========== DOCUMENTATION ===========
+!
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
+!
+!  Definition:
+!  ===========
+!
+!       SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
+!
+!       .. Scalar Arguments ..
+!       INTEGER INCX,INCY,N
+!       ..
+!       .. Array Arguments ..
+!       DOUBLE PRECISION DX(*),DY(*)
+!       ..
+!
+!
+!> \par Purpose:
+!  =============
+!>
+!> \verbatim
+!>
+!>    interchanges two vectors.
+!>    uses unrolled loops for increments equal one.
+!> \endverbatim
+!
+!  Authors:
+!  ========
+!
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
+!
+!> \date November 2011
+!
+!> \ingroup double_blas_level1
+!
+!> \par Further Details:
+!  =====================
+!>
+!> \verbatim
+!>
+!>     jack dongarra, linpack, 3/11/78.
+!>     modified 12/3/93, array(1) declarations changed to array(*)
+!> \endverbatim
+!>
+!  =====================================================================
       SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
-*
-*  -- Reference BLAS level1 routine (version 3.4.0) --
-*  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
-*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
-*
-*     .. Scalar Arguments ..
+!
+!  -- Reference BLAS level1 routine (version 3.4.0) --
+!  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     November 2011
+!
+!     .. Scalar Arguments ..
       INTEGER INCX,INCY,N
-*     ..
-*     .. Array Arguments ..
+!     ..
+!     .. Array Arguments ..
       DOUBLE PRECISION DX(*),DY(*)
-*     ..
-*
-*  =====================================================================
-*
-*     .. Local Scalars ..
+!     ..
+!
+!  =====================================================================
+!
+!     .. Local Scalars ..
       DOUBLE PRECISION DTEMP
       INTEGER I,IX,IY,M,MP1
-*     ..
-*     .. Intrinsic Functions ..
+!     ..
+!     .. Intrinsic Functions ..
       INTRINSIC MOD
-*     ..
+!     ..
       IF (N.LE.0) RETURN
       IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
-*
-*       code for both increments equal to 1
-*
-*
-*       clean-up loop
-*
+!
+!       code for both increments equal to 1
+!
+!
+!       clean-up loop
+!
          M = MOD(N,3)
          IF (M.NE.0) THEN
             DO I = 1,M
@@ -102,10 +102,10 @@
             DY(I+2) = DTEMP
          END DO
       ELSE
-*
-*       code for unequal increments or equal increments not equal
-*         to 1
-*
+!
+!       code for unequal increments or equal increments not equal
+!         to 1
+!
          IX = 1
          IY = 1
          IF (INCX.LT.0) IX = (-N+1)*INCX + 1

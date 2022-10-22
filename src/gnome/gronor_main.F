@@ -432,34 +432,34 @@
      &       ' Journal of Chemical Theory and Computation, 18, 3549-',          &
      &       '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
-        target=' '
+        target=' CPU'
         compiler=' '
 #ifdef _OL_ACC_
         write(target,'(a)') " OpenACC"
 #endif
 #ifdef _OL_OMP_
-        write(target,'(a)') " OpenMP target"
+        write(target,'(a)') " OpenMP offload"
 #endif
         if(ipr.ge.0) write(lfnout,645) trim(target)
-#ifdef CRAY
+#if defined(CRAY)
  645    format(//,' Compiled with the CRAY CCE Compiler suite',a)
         compiler='Cray CCE'
-#elseif IBM
+#elif defined(IBM)
  645    format(//,' Compiled with the IBM XL Compiler suite',a)
         compiler='IBM XL'
-#elseif PGI
+#elif defined(PGI)
  645    format(//,' Compiled with the PGI Compiler suite',a)
         compiler='PGI'
-#elseif NVIDIA
+#elif defined(NVIDIA)
  645    format(//,' Compiled with the NVIDIA Compiler suite',a)
         compiler='NVIDIA'
-#elseif NVHPC
+#elif defined(NVHPC)
  645    format(//,' Compiled with the NVIDIA NVHPC Compiler suite',a)
         compiler='NVHPC'
-#elseif GNU
+#elif defined(GNU)
  645    format(//,' Compiled with the GNU Compiler suite',a)
         compiler='GNU'
-#elseif INTEL
+#elif defined(INTEL)
  645    format(//,' Compiled with the INTEL Compiler suite',a)
         compiler='Intel'
 #else
@@ -2256,7 +2256,7 @@
      &         '  Date     Time      Setup        Main       ',                 &
      &         'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ',              &
      &         'Solvers   Task      Batch    s  s  s  tau_MO   ',               &
-     &         'tau_CI  User Jobname Command Host',/)
+     &         'tau_CI  User Jobname Command Host Compiler',/)
         endif
         write(lfnlog,801) date(1:8),time(1:8),                                  &
      &       timer_wall_total(99)-timer_wall_total(98),                         &

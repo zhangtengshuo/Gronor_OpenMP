@@ -136,8 +136,12 @@
         call pxfgetlogin(user,len4,ierr4)
 #else
         call getenv("USER",user)
-!        call getlog(user)
+!     call getlog(user)
+#ifdef IBM
+        call hostnm_(host)
+#else
         call hostnm(host)
+#endif
         call swatch(date,time)
         call getcwd(cwd)
 #endif
@@ -2440,3 +2444,9 @@
  988  format('Unable to open civec file ',a)
       end
 
+#ifdef IBM
+      integer function getcpucount()
+      getcpucount=0
+      return
+      end
+#endif

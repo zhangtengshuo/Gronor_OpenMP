@@ -82,7 +82,11 @@
       allocate(map1(np,7),map2(np,7))
 
 !     call MPI_get_processor_name(nodename, length, ierr)
+#ifdef IBM
+      call hostnm_(nodename)
+#else
       call hostnm(nodename)
+#endif
       length=len(trim(nodename))
 
       machine='        '

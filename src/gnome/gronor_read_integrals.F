@@ -73,7 +73,8 @@
         endif
         if(ipr.ge.40) then
           lc=np/3
-          mc=mod(np,3)
+          i=np
+          mc=mod(i,3)
           if(mc.gt.0) lc=lc+1
           nc=3
           write(lfnrnk,114)

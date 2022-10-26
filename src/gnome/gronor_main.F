@@ -290,7 +290,7 @@
 
 !     Distribution of integrals
 !     0 : MPI_Bcast to all ranks (default)
-!     1 : MPI_Bcats to all nodes, followed by MPI_Bcast to ranks within nodes
+!     1 : MPI_Bcast to all nodes, followed by MPI_Bcast to ranks within nodes
 !     2 : MPI_Bcast to all nodes, followed by MPI_iSend/MPI_Recv to ranks within nodes
 
         idist=0
@@ -1354,7 +1354,8 @@
      &       '    Rank  ND DI NT   Group    RSet Ac    Node  ',                 &
      &       '    Rank  ND DI NT   Group    RSet Ac    Node',/)
         lc=np/3
-        mc=mod(np,3)
+        i=np
+        mc=mod(i,3)
         if(mc.gt.0) lc=lc+1
         nc=3
         do i=1,lc
@@ -2336,7 +2337,9 @@
  4444   format(//,' Number of tasks completed per rank',/)
         nc=7
         lc=np/nc
-        mc=mod(np,nc)
+        i=np
+        j=nc
+        mc=mod(i,j)
         if(mc.gt.0) lc=lc+1
         do i=1,lc
           nnc=nc

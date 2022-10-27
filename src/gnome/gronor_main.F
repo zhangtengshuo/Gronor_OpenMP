@@ -2169,11 +2169,11 @@
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
 #endif
 #ifdef OMPTGT
-!$omp target data map(to:g,lab,ndx,t,v,ndxtv,s) &                              &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev) &                               &
-!$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &         &
-!$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &    &
-!$omp& map(alloc:sm0,aaa0,tt0,aat0,ta0,ta1) &                                  &
+!$omp target data map(to:g,lab,ndx,t,v,ndxtv,s)                                &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev)                                 &
+!$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)           &
+!$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)      &
+!$omp& map(alloc:sm0,aaa0,tt0,aat0,ta0,ta1)                                    &
 !$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
 #endif
             if(idbg.gt.0) then

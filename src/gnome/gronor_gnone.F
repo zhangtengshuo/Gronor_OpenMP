@@ -26,7 +26,6 @@
 !! </table>
 !!
 
-#include "tgt_guard.fh"
 
       subroutine gronor_gnone(lfndbg)
       use cidist
@@ -46,10 +45,16 @@
       ielem=0
       jkoff=0
 
-!_ACCTGT_($acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv))
+#ifdef ACC
+!$acc kernels present(t,v,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
+#endif
       if(ising.eq.0) then
-!_ACCTGT_($acc loop reduction(+:tsum,vsum))
-!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
+#ifdef ACC
+!$acc loop reduction(+:tsum,vsum)
+#endif
+#ifdef OMP
+! target teams distribute parallel do private(tsj,vsj,abjk)
+#endif
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
@@ -64,8 +69,12 @@
          vsum=vsum+vsj
         enddo
       else
-!_ACCTGT_($acc loop reduction(+:tsum,vsum))
-!_OMPTGT_( target teams distribute parallel do private(tsj,vsj,abjk))
+#ifdef ACC
+!$acc loop reduction(+:tsum,vsum)
+#endif
+#ifdef OMP
+! target teams distribute parallel do private(tsj,vsj,abjk)
+#endif
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
@@ -81,8 +90,9 @@
          vsum=vsum+vsj
         enddo
       endif
-!_ACCTGT_($acc end kernels)
-
+#ifdef ACC
+!$acc end kernels
+#endif
       potnuc1=potnuc*deta
       e1=tsum+vsum+potnuc1
 

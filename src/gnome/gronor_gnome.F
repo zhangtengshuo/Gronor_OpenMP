@@ -19,7 +19,6 @@
 !! @date    2016
 !!
 
-#include "tgt_guard.fh"
 
       subroutine gronor_gnome(lfndbg,ihc,nhc)
 
@@ -144,9 +143,12 @@
 
       if(iamacc.gt.0) then
 
-!_ACCTGT_($acc data copyin(va,vb))
-!_OMPTGT_($omp target data map(to:va,vb))
-
+#ifdef ACC
+!$acc data copyin(va,vb)
+#endif
+#ifdef OMP
+!$omp target data map(to:va,vb)
+#endif
 !     Calculations of the overlap matrices
 
         call timer_start(14)
@@ -249,9 +251,12 @@
           call timer_stop(22)
         endif
 
-!_ACCTGT_($acc end data)
-!_OMPTGT_($omp end target data)
-
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMP
+!$omp end target data
+#endif
       else
 
 !     OpenMP routines

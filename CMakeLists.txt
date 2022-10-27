@@ -257,6 +257,7 @@ endif()
 # Set defaults for optional arguments to cmake
 #    Note: MPI is not optional and removed from options list
 
+option (ACC "Enable OPENACC off-loading." OFF)
 option (OPENACC "Enable OPENACC off-loading." OFF)
 option (_OL_ACC_ "Enable OPENACC off-loading." OFF)
 option (OPENMP "Enable multi-threading." OFF)
@@ -1003,12 +1004,16 @@ if (BOUNDS)
   add_definitions (-D_MALLOC_INTERCEPT_)
 endif ()
 
+if(ACC)
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_ -DACC")
+endif()
+
 if(OPENACC)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_ -DACC")
 endif()
 
 if(_OL_ACC_)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ACC} -D_OL_ACC_ -DACC")
 endif()
 
 if(_OL_OMP_)
@@ -1016,7 +1021,7 @@ if(_OL_OMP_)
 endif()
 
 if(OPENOMP)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -DOMP")
 endif()
 
 if(CUDA)

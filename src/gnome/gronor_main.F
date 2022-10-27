@@ -22,7 +22,6 @@
 !>           input would be nice (with some extra checks on
 !>           input errors)
 
-#include "tgt_guard.fh"
 #include "gronor_config.fh"
 
       subroutine gronor_main()
@@ -401,7 +400,7 @@
 
         major=_GRONOR_VERSION_MAJOR_
         minor=_GRONOR_VERSION_MINOR_
-        
+
         if(minor.eq.0.or.minor.gt.12) then
           version_type=" under active development"
         else
@@ -438,10 +437,10 @@
 
         target=' CPU'
         compiler=' '
-#ifdef _OL_ACC_
+#ifdef ACC
         write(target,'(a)') " OpenACC"
 #endif
-#ifdef _OL_OMP_
+#ifdef OMPTGT
         write(target,'(a)') " OpenMP offload"
 #endif
         if(ipr.ge.0) write(lfnout,645) trim(target)
@@ -2151,18 +2150,22 @@
      &             ' mint2= ',mint2
               flush(lfndbg)
             endif
-!_ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv,s))
-!_ACCTGT_($acc& create(a,ta,tb,w1,w2,taa,tat,u,w,ev))
-!_ACCTGT_($acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm))
-!_ACCTGT_($acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal))
-!_ACCTGT_($acc& create(sm0,aaa0,tt0,aat0,ta0,ta1))
-!_ACCTGT_($acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1))
-!_OMPTGT_($omp target data map(to:g,lab,ndx,t,v,ndxtv,s) &)
-!_OMPTGT_($omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev) &)
-!_OMPTGT_($omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &)
-!_OMPTGT_($omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &)
-!_OMPTGT_($omp& map(alloc:sm0,aaa0,tt0,aat0,ta0,ta1) &)
-!_OMPTGT_($omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1))
+#ifdef ACC
+!$acc data copyin(g,lab,ndx,t,v,ndxtv,s)                                       &
+!$acc& create(a,ta,tb,w1,w2,taa,tat,u,w,ev)                                    &
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)              &
+!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)         &
+!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)                                       &
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+#endif
+#ifdef OMP
+!$omp target data map(to:g,lab,ndx,t,v,ndxtv,s) &                              &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev) &                               &
+!$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &         &
+!$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &    &
+!$omp& map(alloc:sm0,aaa0,tt0,aat0,ta0,ta1) &                                  &
+!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+#endif
             if(idbg.gt.0) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),                &
@@ -2171,8 +2174,12 @@
             endif
             call gronor_memory_usage()
             call gronor_worker()
-!_ACCTGT_($acc end data)
-!_OMPTGT_($omp end target data)
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMP
+!$omp end target data
+#endif
           elseif(ntask.ne.0) then
             lwork=10
             allocate(work(lwork))

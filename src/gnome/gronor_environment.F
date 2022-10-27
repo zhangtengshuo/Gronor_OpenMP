@@ -166,7 +166,7 @@
         memavail=memfre
       endif
 #endif
-#ifdef _OL_OMP_
+#ifdef OMP
       numdev=omp_get_num_devices()
 #endif
 
@@ -460,7 +460,7 @@
       endif
 #endif
 
-#ifdef _OL_OMP_
+#ifdef OMP
       if(numdev.ge.1) then
 #ifdef IBM
         mydev=omp_get_default_device()

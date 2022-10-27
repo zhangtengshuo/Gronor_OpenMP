@@ -18,8 +18,6 @@
 !! @date    2016
 !!
 
-#include "tgt_guard.fh"
-
       module const
       integer :: nr(20,3)
       data nr/0,1,0,0,2,0,0,1,1,0,3,0,0,2,2,1,0,1,0,1,                          &

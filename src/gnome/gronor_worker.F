@@ -16,7 +16,6 @@
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)
 
-#include "tgt_guard.fh"
 
       subroutine gronor_worker()
 
@@ -100,17 +99,21 @@
 #ifdef CUSOLVERJ
         if(isolver.eq.1) then
 #endif
-!_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
-
-!_ACCTGT_($acc host_data use_device(ta))
+#ifdef ACC
+!$acc data copyin(w,ta) create(dev_info_d)
+!$acc host_data use_device(ta)
+#endif
           cusolver_status = cusolverDnDgesvd_bufferSize                         &
      &         (cusolver_handle,ndim,ndim,lwork1)
-!_ACCTGT_($acc end host_data)
-
+#ifdef ACC
+!$acc end host_data
+#endif
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
      &         write(*,*) 'cusolverDnDgesvd_bufferSize failed'
 
-!_ACCTGT_($acc end data)
+#ifdef ACC
+!$acc end data
+#endif
 #ifdef CUSOLVERJ
         elseif(isolver.eq.2) then
 
@@ -121,8 +124,9 @@
 
           jobz=CUSOLVER_EIG_MODE_VECTOR
 
-!_ACCTGT_($acc data create(dev_info_d,u,w,ev,ta))
-
+#ifdef ACC
+!$acc data create(dev_info_d,u,w,ev,ta)
+#endif
           cusolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
 
@@ -136,40 +140,48 @@
           cusolver_status = cusolverDnXgesvdjSetMaxSweeps                       &
      &         (gesvdj_params,max_sweeps)
 
-!_ACCTGT_($acc host_data use_device(ta,ev,u,w))
-
+#ifdef ACC
+!$acc host_data use_device(ta,ev,u,w)
+#endif
           cusolver_status = cusolverDnDgesvdj_bufferSize                        &
      &         (cusolver_handle,jobz,econ,                                      &
      &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,                       &
      &         gesvdj_params)
 
-!_ACCTGT_($acc end host_data)
-
+#ifdef ACC
+!$acc end host_data
+#endif
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
      &         print *,"cusolverDnDgesvdj_bufferSize failed",                   &
      &         cusolver_status
 
-!_ACCTGT_($acc end data)
+#ifdef ACC
+!$acc end data
+#endif
         endif
 #endif
 
 #ifdef CUSOLVERJ
         if(jsolver.eq.1) then
 #endif
-!_ACCTGT_($acc data copyin(w,ta) create(dev_info_d))
-
-!_ACCTGT_($acc host_data use_device(ta,w))
+#ifdef ACC
+!$acc data copyin(w,ta) create(dev_info_d)
+!$acc host_data use_device(ta,w)
+#endif
           cusolver_status = cusolverDnDsyevd_bufferSize                         &
      &         (cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR,                     &
      &         CUBLAS_FILL_MODE_LOWER,                                          &
      &         ndim,ta,mdim,w,lwork2)
-!_ACCTGT_($acc end host_data)
-
+#ifdef ACC
+!$acc end host_data
+#endif
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
      &         print *,"cusolverDnDsyevd_bufferSize failed",                    &
      &         cusolver_status
 
-!_ACCTGT_($acc end data)
+#ifdef ACC
+!$acc end data
+#endif
 #ifdef CUSOLVERJ
         elseif(jsolver.eq.2) then
 
@@ -183,8 +195,9 @@
           jobz = CUSOLVER_EIG_MODE_NOVECTOR
           uplo = CUBLAS_FILL_MODE_LOWER
 
-!_ACCTGT_($acc data create(dev_info_d,w,ta,ev))
-
+#ifdef ACC
+!$acc data create(dev_info_d,w,ta,ev)
+#endif
           cusolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
 
@@ -198,21 +211,24 @@
           cusolver_status = cusolverDnXsyevjSetMaxSweeps                        &
      &         (syevj_params,max_sweeps)
 
-!_ACCTGT_($acc host_data use_device(ta,w))
-
+#ifdef ACC
+!$acc host_data use_device(ta,w)
+#endif
           cusolver_status = cusolverDnDsyevj_bufferSize                         &
      &         (cusolver_handle,jobz,uplo,                                      &
      &         ndim,ta,mdim,ev,lwork2,                                          &
      &         syevj_params)
 
-!_ACCTGT_($acc end host_data)
-
+#ifdef ACC
+!$acc end host_data
+#endif
           if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                       &
      &         print *,"cusolverDnDsyevj_bufferSize failed",                    &
      &         cusolver_status
 
-!_ACCTGT_($acc end data)
-
+#ifdef ACC
+!$acc end data
+#endif
         endif
 #endif
 

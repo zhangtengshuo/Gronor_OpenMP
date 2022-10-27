@@ -4,8 +4,8 @@ module use /home/qq/coen/modules
 module load compilers/nvmpi
 
 export PATH=/home/programes/qq/cmake-3.18/bin:$PATH
-export CUDA_MPS_PIPE_DIRECTORY=/home/tps/tps/log
-export CUDA_MPS_LOG_DIRECTORY=/home/tps/tps/log
+export CUDA_MPS_PIPE_DIRECTORY=$HOME/log
+export CUDA_MPS_LOG_DIRECTORY=$HOME/log
 rm -rf build
 
 mkdir build

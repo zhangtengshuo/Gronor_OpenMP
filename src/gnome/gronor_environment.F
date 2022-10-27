@@ -152,12 +152,21 @@
       memtot=0
 
 #ifdef _OPENACC
+#ifdef AMD
+      numdev=acc_get_num_devices(ACC_DEVICE_AMD)
+      if(numdev.gt.1) then
+        if(machine.ne.'Juwels  ') then
+          mydev=mod(me,numdev)
+          call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+        endif
+#else
       numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
       if(numdev.gt.1) then
         if(machine.ne.'Juwels  ') then
           mydev=mod(me,numdev)
           call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
         endif
+#endif
 #ifdef CUDA
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
@@ -455,7 +464,11 @@
 
 #ifdef _OPENACC
       if(numdev.ge.1) then
+#ifdef AMD
+        mydev=acc_get_device_num(ACC_DEVICE_AMD)
+#else
         mydev=acc_get_device_num(ACC_DEVICE_NVIDIA)
+#endif
         map2(me+1,7)=mydev
       endif
 #endif

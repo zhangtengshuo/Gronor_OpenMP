@@ -1412,7 +1412,11 @@
         if(numdev.gt.1) then
           mydev=map2(me+1,7)
           if(mydev.ge.0) then
+#ifdef AMD
+            call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+#else
             call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+#endif
             cpfre=c_loc(memfre)
             cptot=c_loc(memtot)
 !     istat=cudaMemGetInfo(cpfre,cptot)
@@ -1950,9 +1954,15 @@
 
       if(idbg.gt.0) then
         call swatch(date,time)
+#ifdef AMD
+        write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),                 &
+     &       ' AMD    ',numdev,mydev,iamacc,nummps,numgpu,                      &
+     &       (map2(me+1,i),i=1,5)
+#else
         write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),                 &
      &       ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,                      &
      &       (map2(me+1,i),i=1,5)
+#endif
         flush(lfndbg)
       endif
 

@@ -52,7 +52,7 @@
 #ifdef ACC
 !$acc loop reduction(+:tsum,vsum)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 ! target teams distribute parallel do private(tsj,vsj,abjk)
 #endif
         do j=1,nbas
@@ -72,7 +72,7 @@
 #ifdef ACC
 !$acc loop reduction(+:tsum,vsum)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 ! target teams distribute parallel do private(tsj,vsj,abjk)
 #endif
         do j=1,nbas

@@ -45,7 +45,7 @@
 #ifdef ACC
 !$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC
@@ -60,7 +60,7 @@
       if(ising.ne.0) then
 
 !     transformation of diag
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
        do j=1,nbas
@@ -93,7 +93,7 @@
         endif
         w1(j)=sum
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
        do j=1,nbas
@@ -106,7 +106,7 @@
 !                first :
 !     calculation of an intermediate array (w)
 
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
 #ifdef ACC
@@ -146,7 +146,7 @@
       enddo
 
 !     put w in the work-matrix (aa)
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC
@@ -159,7 +159,7 @@
       enddo
 
 !     calculation of the final matrix aa
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
 #ifdef ACC
@@ -199,7 +199,7 @@
       enddo
 
 !     put w back in the work-matrix aa
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC
@@ -213,7 +213,7 @@
 
 !        transformation of sdiag
       if(ising.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
        do j=1,nbas
@@ -246,7 +246,7 @@
         endif
         w1(j)=sum
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
        do j=1,nbas

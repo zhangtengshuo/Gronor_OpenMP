@@ -55,7 +55,7 @@
 !     transformation of diag and sdiag
 
         if(nalfa.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -71,7 +71,7 @@
        endif
 
        if(ntcla.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -89,7 +89,7 @@
 
        if(nalfa.ne.nveca) then
          m1=nalfa+1
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -106,7 +106,7 @@
        endif
 
        if(nalfa.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -122,7 +122,7 @@
        endif
 
        if(ntclb.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -140,7 +140,7 @@
 
        if(nalfa.ne.nvecb) then
          m1=nalfa+1
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(sum)
 #endif
         do j=1,nbas
@@ -156,7 +156,7 @@
         enddo
       endif
 
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
        do j=1,nbas
@@ -169,7 +169,7 @@
 !     calculation of the intermediate matrices
 
       if(nalfa.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
 #ifdef ACC
@@ -187,7 +187,7 @@
          w2(i,j)=sum
         enddo
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC
@@ -202,7 +202,7 @@
 
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
        do i=m1,nelecs
@@ -229,7 +229,7 @@
          w2(i,j)=sum
         enddo
        enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
         do j=1,nbas
@@ -242,7 +242,7 @@
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
 #ifdef ACC
@@ -263,7 +263,7 @@
       endif
 
       if(nalfa.ne.nelecs) then
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
 #ifdef ACC
@@ -293,7 +293,7 @@
          w2(i,j)=sum
         enddo
        enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC
@@ -305,7 +305,7 @@
         enddo
        enddo
       else
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
 #ifdef ACC

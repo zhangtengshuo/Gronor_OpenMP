@@ -146,7 +146,7 @@
 #ifdef ACC
 !$acc data copyin(va,vb)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:va,vb)
 #endif
 !     Calculations of the overlap matrices
@@ -254,7 +254,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
       else

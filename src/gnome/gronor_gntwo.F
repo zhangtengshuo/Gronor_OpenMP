@@ -93,7 +93,7 @@
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -103,7 +103,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -127,7 +127,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
 !$acc loop reduction (+:tst)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp taskwait
 !$omp target teams distribute parallel do reduction(+:tst)
 #endif
@@ -159,7 +159,7 @@
 !$acc& present(lab,diag,bdiag,bsdiag,csdiag)
 !$acc loop reduction (+:e2t)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do reduction(+:e2t)
 #endif
         do intg=1,numint
@@ -281,7 +281,7 @@
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -291,7 +291,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -317,7 +317,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
 !$acc& copyin(kl,intndx,jntndx)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp taskwait
 !$omp target teams distribute parallel do reduction(+:tst)
 #endif
@@ -353,7 +353,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
 !$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do reduction(+:e2t)
 #endif
         do ii=intndx,jntndx
@@ -478,7 +478,7 @@
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -488,7 +488,7 @@
           aat(i,k)=aaa(k,i)
         enddo
       enddo
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do i=1,nbas
@@ -515,7 +515,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
 !$acc& copyin(intg,nbas)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp taskwait
 !$omp target teams distribute parallel do reduction(+:tst)
 #endif
@@ -573,7 +573,7 @@
 !$acc& present(diag,bdiag,bsdiag,csdiag)                                       &
 !$acc& copyin(intg,kl,intndx,jntndx)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do reduction(+:e2t)
 #endif
 !        do ii=intndx,jntndx
@@ -722,7 +722,7 @@
 !$acc kernels present(diag,bdiag,bsdiag,csdiag)                                &
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do i=1,nbas
@@ -738,7 +738,7 @@
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
         do i=1,nbas
@@ -755,7 +755,7 @@
 #ifdef ACC
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
         do k=1,nbas
@@ -807,7 +807,7 @@
 #ifdef ACC
 !$acc data copyin(prefac)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac)
 #endif
         if(nb0.gt.0) then
@@ -816,7 +816,7 @@
 #ifdef ACC
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do intg=1,numint
@@ -854,7 +854,7 @@
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)                     &
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do intg=1,numint
@@ -903,7 +903,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
       endif
@@ -990,7 +990,7 @@
 #ifdef ACC
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do k=1,nbas
@@ -1012,7 +1012,7 @@
 #ifdef ACC
 !$acc update self(ta,aaa,aat,tt)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(ta,aaa,aat,tt)
 #endif
       do k=1,nbas
@@ -1040,7 +1040,7 @@
 #ifdef ACC
 !$acc update device(tatl,aaal,aatl,ttl,sml)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update to(tatl,aaal,aatl,ttl,sml)
 #endif
         etotb=0.0d0
@@ -1048,7 +1048,7 @@
 #ifdef ACC
 !$acc data copyin(prefac)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac)
 #endif
         if(nb0.gt.0) then
@@ -1059,7 +1059,7 @@
 #ifdef ACC
 !$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do ii=intndx,jntndx
@@ -1101,7 +1101,7 @@
 !$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)                 &
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do ii=intndx,jntndx
@@ -1152,7 +1152,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
       endif
@@ -1221,7 +1221,7 @@
 #ifdef ACC
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
           do k=1,nbas
@@ -1261,7 +1261,7 @@
 #ifdef ACC
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
           do k=1,nbas
@@ -1298,7 +1298,7 @@
 !$acc kernels present(diag,bdiag,bsdiag,csdiag)                                &
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
           do i=1,nbas
@@ -1330,13 +1330,13 @@
 #ifdef ACC
 !$acc data copyin(prefac0)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac0)
 #endif
 #ifdef ACC
 !$acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
         do intg=1,numint
@@ -1363,7 +1363,7 @@
 !$acc end kernels
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
 !     Reset index in buffer to zero
@@ -1383,14 +1383,14 @@
 #ifdef ACC
 !$acc data copyin(prefac1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac1)
 #endif
 #ifdef ACC
 !$acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,prefac1)                     &
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
         do intg=1,numint
@@ -1433,7 +1433,7 @@
 !$acc end kernels
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
 !     Reset index into buffer
@@ -1506,7 +1506,7 @@
 !$acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0)                     &
 !$acc& copyin(nb0)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do k=1,nbas
@@ -1548,7 +1548,7 @@
 !$acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1)                     &
 !$acc& copyin(nb1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2)
 #endif
       do k=1,nbas
@@ -1584,7 +1584,7 @@
 !$acc kernels present(diag,bdiag,bsdiag,csdiag)                                &
 !$acc& present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
         do i=1,nbas
@@ -1616,7 +1616,7 @@
 #ifdef ACC
 !$acc data copyin(prefac0)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac0)
 #endif
         kl=nbas*(nbas+1)/2
@@ -1624,7 +1624,7 @@
 #ifdef ACC
 !$acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
         do ibl=1,nb0
@@ -1657,7 +1657,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
         call timer_stop(31)
@@ -1674,7 +1674,7 @@
 #ifdef ACC
 !$acc data copyin(prefac1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:prefac1)
 #endif
         kl=nbas*(nbas+1)/2
@@ -1683,7 +1683,7 @@
 !$acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1)                 &
 !$acc& present(diag1,bdiag1,bsdiag1,csdiag1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
         do ii=intndx,jntndx
@@ -1736,7 +1736,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
       endif

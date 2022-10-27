@@ -207,7 +207,7 @@
 #ifdef ACC
 !$acc update host (a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(a)
 #endif
 #ifdef MKL
@@ -237,7 +237,7 @@
 #ifdef ACC
 !$acc update device (ev,u,w)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update to(ev,u,w)
 #endif
        call timer_start(42)
@@ -245,7 +245,7 @@
 #ifdef ACC
 !$acc parallel loop gang present(u,w,a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(coef)
 #endif
        do i=1,nelecs
@@ -261,7 +261,7 @@
 #ifdef ACC
 !$acc end parallel loop
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target
 #endif
        call timer_stop(42)
@@ -273,7 +273,7 @@
 #ifdef ACC
 !$acc update host (a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(a)
 #endif
       call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,                            &
@@ -282,7 +282,7 @@
 #ifdef ACC
 !$acc update device (ev,u,w)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update to(ev,u,w)
 #endif
       call timer_start(42)
@@ -290,7 +290,7 @@
 #ifdef ACC
 !$acc kernels present(u,w,a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(coef)
 #endif
       do i=1,nelecs
@@ -424,7 +424,7 @@
 #ifdef ACC
 !$acc update host (a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(a)
 #endif
         call timer_start(43)
@@ -443,7 +443,7 @@
 #ifdef ACC
 !$acc update device (a,diag,sdiag)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update to(a,diag,sdiag)
 #endif
       endif
@@ -456,7 +456,7 @@
 #ifdef ACC
 !$acc update host (a)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(a)
 #endif
       call timer_start(43)
@@ -468,7 +468,7 @@
 #ifdef ACC
 !$acc update device (a,diag,sdiag)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update to(a,diag,sdiag)
 #endif
 #endif
@@ -488,7 +488,7 @@
 #ifdef ACC
 !$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do
 #endif
 !     calculation of det(a) and x and y
@@ -532,7 +532,7 @@
 #ifdef ACC
 !$acc update host(ev)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target update from(ev)
 #endif
       do i=1,nelecs
@@ -557,7 +557,7 @@
           deta=coef
           ising=0
 
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(coefu)
 #endif
 #ifdef ACC
@@ -583,7 +583,7 @@
 #ifdef ACC
 !$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(coefu)
 #endif
         do i=1,nelecs
@@ -618,7 +618,7 @@
 #ifdef ACC
 !$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target teams distribute parallel do private(coefu)
 #endif
         do i=1,nelecs

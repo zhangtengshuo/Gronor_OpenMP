@@ -2158,7 +2158,7 @@
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)                                       &
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,ndxtv,s) &                              &
 !$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev) &                               &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &         &
@@ -2177,7 +2177,7 @@
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef OMP
+#ifdef OMPTGT
 !$omp end target data
 #endif
           elseif(ntask.ne.0) then

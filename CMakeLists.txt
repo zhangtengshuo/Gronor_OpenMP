@@ -1033,7 +1033,7 @@ if(OPENACC)
 endif()
 
 if(OMPTGT)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -DOMP _DOMPTGT")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -DOMP -DOMPTGT")
 endif()
 
 if(OPENOMP)

@@ -56,7 +56,7 @@
 
         if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams distribute parallel do private(sum,k)
 #endif
         do j=1,nbas
          sum=0.0d0

@@ -46,7 +46,7 @@
 !$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(i,j)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)

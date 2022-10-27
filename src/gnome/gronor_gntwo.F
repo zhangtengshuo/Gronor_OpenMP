@@ -94,7 +94,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -282,7 +282,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -479,7 +479,7 @@
 !$acc kernels present(aat,aaa,tt,ta,tat,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -723,7 +723,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(i)
 #endif
           do i=1,nbas
             diagl(ibl,i)=diag(i)
@@ -991,7 +991,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1222,7 +1222,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
           do k=1,nbas
             do i=1,nbas
@@ -1262,7 +1262,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
           do k=1,nbas
             do i=1,nbas
@@ -1507,7 +1507,7 @@
 !$acc& copyin(nb0)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1549,7 +1549,7 @@
 !$acc& copyin(nb1)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas

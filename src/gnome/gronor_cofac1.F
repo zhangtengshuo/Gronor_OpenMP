@@ -291,7 +291,7 @@
 !$acc kernels present(u,w,a)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(coef)
+!$omp target teams distribute parallel do private(coef,k)
 #endif
       do i=1,nelecs
         do j=1,i

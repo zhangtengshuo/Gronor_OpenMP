@@ -61,7 +61,7 @@
 !$acc kernels present(ta,tb,s,vb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(iv,ib)
 #endif
       do iv=1,nvecb
         do ib=1,nbas

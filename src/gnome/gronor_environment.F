@@ -477,7 +477,7 @@
       if(numdev.ge.1) then
 #ifdef IBM
         mydev=omp_get_default_device()
-#elif
+#else
         mydev=omp_get_device_num()
 #endif
         map2(me+1,7)=mydev

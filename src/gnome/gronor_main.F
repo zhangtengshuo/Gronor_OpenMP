@@ -438,10 +438,18 @@
         target=' CPU'
         compiler=' '
 #ifdef ACC
-        write(target,'(a)') " OpenACC"
+#ifdef AMD
+        write(target,'(a)') " OpenACC AMD"
+#else
+        write(target,'(a)') " OpenACC NVIDIA"
+#endif
 #endif
 #ifdef OMPTGT
-        write(target,'(a)') " OpenMP offload"
+#ifdef AMD
+        write(target,'(a)') " OpenMP target AMD"
+#else
+        write(target,'(a)') " OpenMP target NVIDIA"
+#endif
 #endif
         if(ipr.ge.0) write(lfnout,645) trim(target)
 #if defined(CRAY)

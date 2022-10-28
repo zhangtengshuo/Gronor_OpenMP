@@ -53,7 +53,7 @@
 !$acc loop reduction(+:tsum,vsum)
 #endif
 #ifdef OMPTGT
-! target teams distribute parallel do private(tsj,vsj,abjk)
+!$omp target teams distribute parallel do private(tsj,vsj,abjk)
 #endif
         do j=1,nbas
          nn=ndxtv(j)
@@ -73,7 +73,7 @@
 !$acc loop reduction(+:tsum,vsum)
 #endif
 #ifdef OMPTGT
-! target teams distribute parallel do private(tsj,vsj,abjk)
+!$omp target teams distribute parallel do private(tsj,vsj,abjk)
 #endif
         do j=1,nbas
          nn=ndxtv(j)

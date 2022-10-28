@@ -636,7 +636,7 @@ set (CFLAGS_NVHPC_RELEASE "-O2")
 set (CFLAGS_NVHPC_FAST "-O2")
 # Fortran compiler
 list (APPEND SUPPORTED_Fortran_COMPILERS "NVHPC")
-set (FFLAGS_NVHPC_BASIC "-DNVHPC -Mbackslash")
+set (FFLAGS_NVHPC_BASIC "-DNVHPC -Mbackslash -Mlist")
 set (FFLAGS_NVHPC_PREPROCESS "-Mpreprocess")
 set (FFLAGS_NVHPC_OPENMP "-mp")
 set (FFLAGS_NVHPC_PROFILING "-g")

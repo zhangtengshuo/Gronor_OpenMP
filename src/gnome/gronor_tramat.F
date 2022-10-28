@@ -281,22 +281,26 @@
       real (kind=8) :: sum
 
       m1=nalfa+1
-
-!$omp parallel do                                                              &  &
+#ifdef OMP
+!$omp parallel do                                                                 &
 !$omp& shared(nelecs,ta,taa) collapse(2)
+#endif
       do i=1,nelecs
        do j=1,nelecs
         taa(j,i)=ta(j,i)
        enddo
       enddo
+#ifdef OMP
 !$omp end parallel do
-
+#endif
       if(ising.ne.0) then
 
 !     transformation of diag
 
-!$omp parallel do                                                              &  &
+#ifdef OMP
+!$omp parallel do                                                                 &
 !$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum)
+#endif
         do j=1,nbas
           sum=0.0d0
           if(nalfa .ne. 0) then
@@ -318,14 +322,19 @@
           endif
           w1(j)=sum
         enddo
+#ifdef OMP
 !$omp end parallel do
-
-!$omp parallel do                                                              &&
+#endif
+#ifdef OMP
+!$omp parallel do                                                               &
 !$omp& shared(diag,w1)
+#endif
         do j=1,nbas
           diag(j)=w1(j)
         enddo
+#ifdef OMP
 !$omp end parallel do
+#endif
       endif
 
 
@@ -333,9 +342,11 @@
 !                first :
 !     calculation of an intermediate array (w)
 
-!$omp parallel do                                                              &&
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)                    &&
+#ifdef OMP
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)                     &
 !$omp& private(sum,kk) collapse(2)
+#endif
       do j=1,nelecs
         do i=1,nbas
           sum=0.0d0
@@ -359,25 +370,31 @@
           w2(i,j)=sum
         enddo
       enddo
+#ifdef OMP
 !$omp end parallel do
-
+#endif
 !     put w in the work-matrix (aa)
 
-!$omp parallel do                                                              &&
-!$omp& shared(nbas,nelecs,w2,taa)                                              &&
+#ifdef OMP
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nelecs,w2,taa)                                               &
 !$omp& private(sum,kk) collapse(2)
+#endif
       do j=1,nelecs
        do i=1,nbas
         taa(i,j)=w2(i,j)
        enddo
       enddo
+#ifdef OMP
 !$omp end parallel do
-
+#endif
 !     calculation of the final matrix aa
 
-!$omp parallel do                                                              &&
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)                         &&
+#ifdef OMP
+!$omp parallel do                                                               &
+!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)                          &
 !$omp& private(sum,kk) collapse(2)
+#endif
       do i=1,nbas
         do j=1,nbas
           sum=0.0d0
@@ -401,26 +418,32 @@
           w2(i,j)=sum
         enddo
       enddo
+#ifdef OMP
 !$omp end parallel do
-
+#endif
 !     put w back in the work-matrix aa
 
-!$omp parallel do                                                              &  &
-!$omp& shared(nbas,w2,taa)                                                     &  &
+#ifdef OMP
+!$omp parallel do                                                                 &
+!$omp& shared(nbas,w2,taa)                                                        &
 !$omp& collapse(2)
+#endif
       do j=1,nbas
        do i=1,nbas
         taa(i,j)=w2(i,j)
        enddo
       enddo
+#ifdef OMP
 !$omp end parallel do
-
+#endif
 !        transformation of sdiag
 
       if(ising.ne.0) then
-!$omp parallel do                                                              & &
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)                       & &
+#ifdef OMP
+!$omp parallel do                                                                &
+!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)                         &
 !$omp& private(sum,kk)
+#endif
         do j=1,nbas
           sum=0.0d0
           if(nalfa .ne. 0) then
@@ -442,14 +465,19 @@
           endif
           w1(j)=sum
         enddo
+#ifdef OMP
 !$omp end parallel do
-
-!$omp parallel do                                                              & &
+#endif
+#ifdef OMP
+!$omp parallel do                                                                &
 !$omp& shared(nbas,sdiag,w1)
+#endif
         do j=1,nbas
           sdiag(j)=w1(j)
         enddo
+#ifdef OMP
 !$omp end parallel do
+#endif
       endif
 
       return

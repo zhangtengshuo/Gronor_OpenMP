@@ -104,7 +104,7 @@
         enddo
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas

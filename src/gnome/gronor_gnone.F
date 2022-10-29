@@ -53,7 +53,8 @@
 !$acc loop reduction(+:tsum,vsum) private(tsj,vsj,abjk,j,k,nn)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(tsj,vsj,abjk,j,k,nn)
+!$omp target teams distribute parallel do simd                                  &
+!$omp& private(tsj,vsj,abjk,j,k,nn)
 #endif
         do j=1,nbas
          nn=ndxtv(j)
@@ -130,6 +131,9 @@
       jkoff=0
 
       if(ising.eq.0) then
+#ifdef OMP
+!$omp parallel do simd private(tsj,vsj,abjk,j,k,nn)
+#endif
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
@@ -143,7 +147,13 @@
          tsum=tsum+tsj
          vsum=vsum+vsj
         enddo
+#ifdef OMP
+!$omp end parallel do
+#endif
       else
+#ifdef OMP
+!$omp parallel do simd private(tsj,vsj,abjk,j,k)
+#endif
         do j=1,nbas
          nn=ndxtv(j)
          tsj=0.0d0
@@ -158,6 +168,9 @@
          tsum=tsum+tsj
          vsum=vsum+vsj
         enddo
+#ifdef OMP
+!$omp end parallel do
+#endif
       endif
 
       potnuc1=potnuc*deta

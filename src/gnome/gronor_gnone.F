@@ -50,10 +50,10 @@
 #endif
       if(ising.eq.0) then
 #ifdef ACC
-!$acc loop reduction(+:tsum,vsum)
+!$acc loop reduction(+:tsum,vsum) private(tsj,vsj,abjk,j,k,nn)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(tsj,vsj,abjk,j,k)
+!$omp target teams distribute parallel do private(tsj,vsj,abjk,j,k,nn)
 #endif
         do j=1,nbas
          nn=ndxtv(j)

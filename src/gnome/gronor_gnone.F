@@ -148,7 +148,7 @@
          vsum=vsum+vsj
         enddo
 #ifdef OMP
-!$omp end parallel do
+!$omp end parallel do simd
 #endif
       else
 #ifdef OMP
@@ -169,7 +169,7 @@
          vsum=vsum+vsj
         enddo
 #ifdef OMP
-!$omp end parallel do
+!$omp end parallel do simd
 #endif
       endif
 

@@ -312,7 +312,6 @@
         ncols=7
         numgpu=0
         nummps=1
-        numomp=1
         ixpert=0
         iswsvj=15
         iswevj=15
@@ -659,7 +658,7 @@
           idum(32)=mpibuf
           idum(33)=idbg
           idum(34)=nummps
-          idum(35)=numomp
+          idum(35)=0
           idum(36)=itim
           idum(37)=iaslvr
           idum(38)=jaslvr
@@ -734,7 +733,7 @@
            mpibuf=idum(32)
            idbg=idum(33)
            nummps=idum(34)
-           numomp=idum(35)
+
            itim=idum(36)
            iaslvr=idum(37)
            jaslvr=idum(38)

@@ -4,11 +4,11 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
-!> 
-      subroutine writetag_scalar_real(lfn,info,indent,num,
+!>
+      subroutine writetag_scalar_real(lfn,info,indent,num,                      &
      &                      numfmt)
       implicit none
       integer  :: lfn,indent
@@ -31,10 +31,10 @@
         write(fmt_2,'(3a)')'(',trim(ts),',5a)'
       end if
       if (info(1:5).eq.'empty') then
-        write(lfn,fmt=fmt_1)'<scalar dataType="xsd:double" ',
+        write(lfn,fmt=fmt_1)'<scalar dataType="xsd:double" ',                   &
      &   '>',trim(num2),'</scalar>'
       else
-        write(lfn,fmt=fmt_2)'<scalar dataType="xsd:double" ',trim(info),
+        write(lfn,fmt=fmt_2)'<scalar dataType="xsd:double" ',trim(info),        &
      &   '>',trim(num2),'</scalar>'
       end if
 

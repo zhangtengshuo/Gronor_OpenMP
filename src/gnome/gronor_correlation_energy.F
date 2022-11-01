@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !>    Adding the correlation energy of the fragment wave functions
 !>
@@ -35,9 +35,9 @@
 !> @param wgn Gallup-Norbeck weights
 !> @param shft shifts applied on the diagonal of the orthogonalized Hamiltonian
 !> @param slow S^-1/2 matrix
-      
-      
-      subroutine gronor_correlation_energy(
+
+
+      subroutine gronor_correlation_energy(                                     &
      &     nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       use cidef           , only :  lfnout
       use gnome_parameters, only :  ipr
@@ -57,7 +57,7 @@
 
 
 !     Lowdin orthogonalizing vectors
-      call lowdin(lfnout,ipr,nbase,sbase,slow)
+      call gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
 !     Lowdin orthogonalized Hamiltonian H'= (S^-1/2)' H (S^-1/2)
       hcorr = matmul( transpose(slow),matmul(hbase,slow) )
@@ -67,21 +67,14 @@
       write(lfnout,*) ' Applying a shift on the diagonal'
       write(lfnout,*)
       write(lfnout,*) ' Hamiltonian in orthogonal MEBF basis'
-      write(lfnout,671) (i,i =1,nbase)
  671  format(6x,7(6x,i8,6x))
  672  format(i5,1x,7f20.10,/,(6x,7f20.10))
-      do j = 1, nbase
-       write(lfnout,672) j,(hcorr(i,j),i=1,nbase)
-      enddo
-      flush(lfnout)
+      call gronor_print_matrix(lfnout,hcorr,nbase)
 
       if ( ipr .ge. 5 ) then
- 677    format(//,' S^-1/2              ',/)
+ 677    format(/,' S^-1/2              ')
         write(lfnout,677)
-        write(lfnout,671) (i,i=1,nbase)
-        do j = 1, nbase
-          write(lfnout,672) j,(slow(i,j),i=1,nbase)
-        enddo
+        call gronor_print_matrix(lfnout,slow,nbase)
       end if
 
       shft=0.0d0
@@ -92,24 +85,22 @@
           shft(i) = shft(i) + ecorr(ncombv(j,i))
         enddo
       enddo
-      write(lfnout,*)
+      write(lfnout,*) ' '
       write(lfnout,*) ' Shifts applied on the diagonal of H'
       write(lfnout,*) ' MEBF    Total shift            Monomer shifts'
+      write(lfnout,*) ' '
       do i = 1, nbase
-        write(lfnout,679) i,shft(i),
+        write(lfnout,679) i,shft(i),                                            &
      &         (ncombv(j,i),ecorr(ncombv(j,i)),j=1,nmol)
       end do
  679  format(I4,F15.8,8x,5(I4,F15.8))
       write(lfnout,*)
 
       if ( nwt .eq. 1 ) then
-        call gnweight(nbase,wgn,slow,sbase)
+        call gronor_gnweight(nbase,wgn,slow,sbase)
  678    format(/,' GN weights         ')
         write(lfnout,678)
-        write(lfnout,671) (i,i=1,nbase)
-        do j = 1, nbase
-          write(lfnout,672) j,(wgn(i,j),i=1,nbase)
-        enddo
+        call gronor_print_matrix(lfnout,wgn,nbase)
       else
         wgn = 0.0
         do i = 1, nbase
@@ -122,13 +113,10 @@
           hcorr(i,i) = hcorr(i,i) + (wgn(i,j)*shft(j))
         enddo
       enddo
-      
+
       write(lfnout,*)
       write(lfnout,*) ' Shifted Hamiltonian in orthogonal MEBF basis'
-      write(lfnout,671) (i,i =1,nbase)
-      do i = 1, nbase
-        write(lfnout,672)i,hcorr(i,:)
-      end do      
+      call gronor_print_matrix(lfnout,hcorr,nbase)
 
 !     Convert shifted H back to original non-orthogonal basis
       allocate( work(nbase) )
@@ -139,10 +127,10 @@
 
       end subroutine gronor_correlation_energy
 
-      subroutine lowdin(lfnout,ipr,nbase,sbase,slow)
+      subroutine gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
       use cidist
-      
+
       implicit none
 
       integer, intent(in)        :: nbase,lfnout,ipr
@@ -156,39 +144,34 @@
       real(kind=8)               :: ut(nbase,nbase)
       real(kind=8)               :: ev(nbase)
 
-!     diagonalize S matrix: 
+!     diagonalize S matrix:
       u=sbase
       allocate(work(4*nbase))
       work = 0.0
       info = 0
       call dsyev('V','L',nbase,u,nbase,ev,work,4*nbase,info)
       if ( info .ne. 0 ) then
-        write(lfnout,*)'Something went wrong in dsyev in lowdin '
+        write(lfnout,*)'Something went wrong in dsyev in gronor_lowdin '
         write(lfnout,*) 'info = ',info
-        call errquit(me,9,"Error in Lowdin dsyev")
+        call gronor_abort(330,"Error in Gronor_Lowdin dsyev")
       end if
       deallocate(work)
 
       if ( ipr .ge. 5 ) then
  671    format(6x,7(6x,i8,6x))
  672    format(i5,1x,7f20.10,/,(6x,7f20.10))
+        write(lfnout,*) ' '
         write(lfnout,*) 'U - Eigenvectors of S: '
-        write(lfnout,671) (i,i=1,nbase)
-        flush(lfnout)
-        do j=1,nbase
-          write(lfnout,672) j,(u(i,j),i=1,nbase)
-        enddo
-        flush(lfnout)
+        call gronor_print_matrix(lfnout,u,nbase)
       end if
 
 !     S(diag)=U'SU
       ut=transpose(u)
       slow=matmul(ut,matmul(sbase,u))
       if ( ipr .ge. 5 ) then
+        write(lfnout,*) ' '
         write(lfnout,*) 'U^ S U'
-        do j = 1, nbase
-          write(lfnout,'(15F25.15)')slow(j,:)
-        end do
+        call gronor_print_matrix(lfnout,slow,nbase)
       end if
 !     S(diag)^-1/2
       do j=1,nbase
@@ -197,15 +180,14 @@
 !     S^-1/2 = U S(diag)^-1/2 U'
       slow=matmul(u,matmul(slow,ut))
       if ( ipr .ge. 5 ) then
+        write(lfnout,*) ' '
         write(lfnout,*) 'After normalization'
-        do j = 1, nbase
-          write(lfnout,'(15F25.15)')slow(j,:)
-        end do
+        call gronor_print_matrix(lfnout,slow,nbase)
       end if
 
-      end subroutine lowdin
+      end subroutine gronor_lowdin
 
-      subroutine gnweight(nbase,wgn,slow,sbase)
+      subroutine gronor_gnweight(nbase,wgn,slow,sbase)
       implicit none
 
 !     compute the Gallup-Norbeck weights
@@ -243,4 +225,5 @@
         end do
       end do
 
-      end subroutine gnweight
+      end subroutine gronor_gnweight
+

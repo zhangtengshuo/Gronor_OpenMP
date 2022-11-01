@@ -10,21 +10,21 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Reading integral files in parallel mode
 !!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2020
 !!
-!! Integrals are read in parallel by all ranks the first worker group. 
+!! Integrals are read in parallel by all ranks the first worker group.
 !! If worker groups have only one rank, one rank is doing the reading of integrals.
 !! After the integrals are read, an MPI broadcast copies them to the corresponding
 !! ranks in other worker groups.
 !!
 !! The integrals may be read from multiple files, with or witjout integral labels.
 !! If used without labels, the canonical order as defined by OpenMolcas is assumed.
-      
+
       subroutine gronor_parallel_integral_input()
 
       use mpi
@@ -37,14 +37,19 @@
 
       implicit none
 
-      integer (kind=4) :: ierr,nrecb4
+#ifdef CRAY
+      integer :: nrecbd
+#else
+      integer (kind=4) :: nrecbd
+#endif
+      integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
       real (kind=8), allocatable :: b(:)
       integer (kind=2), allocatable :: ibuf(:)
       integer (kind=8), allocatable :: ijbuf(:,:)
-      integer :: kint,kintbatch,mint,nint,jint,lint,jbuf(6)
+      integer (kind=8) :: kint,kintbatch,mint,nint,jint,lint,jbuf(6)
 
       integer (kind=8) :: numigr,idf,idr,ii,jj,kk,inode
 
@@ -52,15 +57,15 @@
       integer (kind=8), allocatable :: ndxf(:,:)
       integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
-      
+
       inode=map2(me+1,6)
 
 !     Read the one-electron integral file on the master
 
       if(me.eq.master) then
-        open(unit=lfnone,file=filone,form='unformatted',status='old',
+        open(unit=lfnone,file=filone,form='unformatted',status='old',           &
      &       err=994)
-c     rewind(lfnone)
+!     rewind(lfnone)
         mclab=0
         read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
         if(mclab.eq.1) labels=1
@@ -75,16 +80,16 @@ c     rewind(lfnone)
         int1=(nbas*(nbas+1))/2
         if(ipr.ge.30) then
           write(lfnout,603) mclab,labels
- 603      format(/,
-     &         ' Two electron integral labels option on file ',t50,i16,
+ 603      format(/,                                                             &
+     &         ' Two electron integral labels option on file ',t50,i16,         &
      &         /,' Two electron integral labels input option ',t50,i16)
         endif
-Coen: maybe here a check to be sure that mclab and labels are coherent
-        
+!oen: maybe here a check to be sure that mclab and labels are coherent
+
         allocate(s(nbas,nbas))
         allocate(t(int1))
         allocate(v(int1))
-        
+
         read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
         do i=1,nbas
           do j=1,i
@@ -94,12 +99,12 @@ Coen: maybe here a check to be sure that mclab and labels are coherent
         read(lfnone,err=993) (t(i),i=1,int1)
         read(lfnone,err=993) (v(i),i=1,int1)
 
-Coen: this part is not valid anymore.
-C     although we'll loose backward compatibility, we might 
-C     want to replace it with just "read(lfnone) int2"
-C     The number of small integrals can be written by rdtraint
-C     and retrieved here, if considered useful info
-        
+!oen: this part is not valid anymore.
+!     although we'll loose backward compatibility, we might
+!     want to replace it with just "read(lfnone) int2"
+!     The number of small integrals can be written by rdtraint
+!     and retrieved here, if considered useful info
+
         read(lfnone,end=993) nt
         if (nt(2).eq.-1) read(lfnone) nt(2)
         int2=nt(2)
@@ -111,7 +116,7 @@ C     and retrieved here, if considered useful info
         if(ipr.ge.30) write(lfnout,606)
  606    format(' Integrals are used in double precision')
 #endif
-        
+
         read(lfnone,err=993) numfiles
       endif
 
@@ -124,13 +129,18 @@ C     and retrieved here, if considered useful info
       endif
 
 !     Broadcast the overlap and one-electron integrals
-
-      call MPI_Bcast(s,nbas*nbas,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(t,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(v,int1,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=nbas*nbas
+      call MPI_Bcast(s,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1
+      call MPI_Bcast(t,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1
+      call MPI_Bcast(v,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=1
+      call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,master,                       &
+     &     MPI_COMM_WORLD,ierr)
 
       allocate(ifil(numfiles,2))
-      
+
       if(me.eq.master) then
         read(lfnone,err=993) (ifil(i,1),i=1,numfiles)
         read(lfnone,err=993) (ifil(i,2),i=1,numfiles)
@@ -143,21 +153,21 @@ C     and retrieved here, if considered useful info
         if(ipr.ge.2) then
           write(lfnout,607)
           do i=1,numfiles
-            write(filtwo,'(a,a,i3.3,a)')
-     &           root(1:inp_strlen(root)),'_',i,'.two'
+            write(filtwo,'(a,a,i3.3,a)')                                        &
+     &           trim(root),'_',i,'.two'
             write(lfnout,608) i,ifil(i,1),ifil(i,2),trim(filtwo)
           enddo
           write(lfnout,609) nrectot,ninttot
- 607      format(/,' Dimensions on two-electron integral files',//,
-     &         ' File     Number Records    Number Integrals'
+ 607      format(/,' Dimensions on two-electron integral files',//,             &
+     &         ' File     Number Records    Number Integrals',                  &
      &         '     Filename(s)',/)
  608      format(i4,5x,i12,i20,8x,a)
- 609      format(11x,'----------',10x,'----------',/,
+ 609      format(11x,'----------',10x,'----------',/,                           &
      &         ' Total   ',i12,i20)
         endif
       endif
-
-      call MPI_Bcast(ifil,2*numfiles,MPI_INTEGER8,master,
+      ncount=2*numfiles
+      call MPI_Bcast(ifil,ncount,MPI_INTEGER8,master,                           &
      &     MPI_COMM_WORLD,ierr)
 
 !     Determine id of rank within its group
@@ -168,7 +178,7 @@ C     and retrieved here, if considered useful info
       enddo
 
 !     Determine dimension of super-index to integrals
-      
+
       mlab=nbas*(nbas+1)/2
 
 !     For each rank i within a group determine
@@ -177,12 +187,12 @@ C     and retrieved here, if considered useful info
 !     Initial and final index into record in : ndxf(i,5) and ndxf(i,6)
 
 !     Target number of integrals per rank is numigr
-      
+
       allocate(ndxf(mgr,6),nag(mgr),nig(mgr),nng(mgr))
       if(me.eq.master) then
-        
+
         numigr=int2/mgr
-        
+
         k=0
         j=1
         do i=1,mlab
@@ -247,13 +257,13 @@ C     and retrieved here, if considered useful info
         enddo
         if(ipr.ge.40) then
           write(lfnout,614)
- 614      format(/,' Index into file buffers by ranks in a group',//,
-     &         t12,' ------- Initial -------',
-     &         t50,' -------- Final --------',/,
-     &         t12,' File   Record     Index',
+ 614      format(/,' Index into file buffers by ranks in a group',//,           &
+     &         t12,' ------- Initial -------',                                  &
+     &         t50,' -------- Final --------',/,                                &
+     &         t12,' File   Record     Index',                                  &
      &         t50,' File   Record     Index',/)
           do j=1,mgr
-            write(lfnout,615) j,ndxf(j,1),ndxf(j,3),ndxf(j,5),
+            write(lfnout,615) j,ndxf(j,1),ndxf(j,3),ndxf(j,5),                  &
      &           ndxf(j,2),ndxf(j,4),ndxf(j,6)
  615        format(' Rank',i5,t12,i4,2i10,t50,i4,2i10)
           enddo
@@ -272,10 +282,10 @@ C     and retrieved here, if considered useful info
         ijbuf(i,7)=nig(i)
         ijbuf(i,8)=nng(i)
       enddo
-     
-      call MPI_Bcast(ijbuf,8*mgr,MPI_INTEGER8,master,
+      ncount=8*mgr
+      call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,master,                          &
      &     MPI_COMM_WORLD,ierr)
-      
+
       do j=1,6
         do i=1,mgr
           ndxf(i,j)=ijbuf(i,j)
@@ -285,22 +295,22 @@ C     and retrieved here, if considered useful info
         nig(i)=ijbuf(i,7)
         nng(i)=ijbuf(i,8)
       enddo
-      
+
       deallocate(ijbuf)
 
 !     Determine the correct record length of the integral files
-      
-      inquire(iolength=nrecb4) b(1)
-      nrecb = nrecb4
+
+      inquire(iolength=nrecbd) b(1)
+      nrecb = nrecbd
       if(mclab.ne.1) then
         nrecl=(2*mbuf+2)*nrecb
       else
         nrecl=(mbuf+2)*nrecb
       endif
-      
+
 
       if(igr.gt.0) mint2=nng(igr)
-      
+
 !     Allocate the arrays to hold integrals and labels
 
       if(me.eq.master.or.iamactive.eq.0) then
@@ -314,7 +324,7 @@ C     and retrieved here, if considered useful info
           allocate(lab(2,mlab),ndx(mlab))
         endif
       endif
-      
+
 !     Only the first group reads the integrals from file
 
       if(mygroup.eq.1) then
@@ -326,16 +336,16 @@ C     and retrieved here, if considered useful info
           idrf=ifil(idf,1)
           if(idf.ne.ndxf(igr,1)) idri=1
           if(idf.eq.ndxf(igr,2)) idrf=ndxf(igr,4)
-          write(filtwo,'(a,a,i3.3,a)')
-     &         root(1:inp_strlen(root)),'_',idf,'.two'
-          open(unit=lfntwo,file=filtwo,access='direct',
+          write(filtwo,'(a,a,i3.3,a)')                                          &
+     &         trim(root),'_',idf,'.two'
+          open(unit=lfntwo,file=filtwo,access='direct',                         &
      &         form='unformatted',recl=nrecl,status='old')
           do idr=idri,idrf
             if(mclab.eq.0) then
-              read(lfntwo,rec=idr)
+              read(lfntwo,rec=idr)                                              &
      &             (b(n),n=1,mbuf),(ibuf(nn),nn=1,4*mbuf),jint,ilast
             else
-              read(lfntwo,rec=idr)
+              read(lfntwo,rec=idr)                                              &
      &             (b(n),n=1,mbuf),jint,ilast
             endif
             idgi=ndxf(igr,5)
@@ -352,7 +362,7 @@ C     and retrieved here, if considered useful info
               endif
             enddo
 
-          enddo  
+          enddo
           close(unit=lfntwo,status='keep')
         enddo
         deallocate(b,ibuf)
@@ -372,7 +382,7 @@ C     and retrieved here, if considered useful info
       jntndx=mlab
       if(igr.gt.1) intndx=nig(igr-1)+1
       if(igr.lt.mgr) jntndx=nig(igr)
-      
+
 !     Distribute integrals and labels if more than one group
 
       if(numgrp.gt.1) then
@@ -387,50 +397,73 @@ C     and retrieved here, if considered useful info
             lint=min(mint,kint)
             if(idist.eq.0) then
 #ifdef SINGLEP
-              call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+              ncount=lint
+              mpitag=0
+              call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,                   &
      &             new_comm(igr),ierr)
 #else
-              call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+              ncount=lint
+              mpitag=0
+              call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,                   &
      &             new_comm(igr),ierr)
 #endif
             else
 #ifdef SINGLEP
-              if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
+              ncount=lint
+              mpitag=0
+              if(lcomm1.and.nnodes.gt.1)                                        &
+     &             call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,              &
      &             new_comm1(igr),ierr)
               if(idist.eq.1) then
-                call MPI_Bcast(g(nint),lint,MPI_REAL4,0,
-     &               new_comm2(igr,inode),ierr) 
-              else
-                if(numgrn.gt.1) then
-                  if(igrn(1).eq.me) then
-                    do i=2,numgrn
-                      call MPI_iSend(g(nint),lint,MPI_REAL4,igrn(i),20,
-     &                     MPI_COMM_WORLD,status,ierr)
-                    enddo
-                  else
-                    call MPI_Recv(g(nint),lint,MPI_REAL4,igrn(1),20,
-     &                   MPI_COMM_WORLD,status,ierr)
-                  endif
-                endif
-              endif 
-#else
-              if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
-     &             new_comm1(igr),ierr)
-              if(idist.eq.1) then
-                call MPI_Bcast(g(nint),lint,MPI_REAL8,0,
+              ncount=lint
+              mpitag=0
+                call MPI_Bcast(g(nint),ncount,MPI_REAL4,mpitag,                 &
      &               new_comm2(igr,inode),ierr)
               else
                 if(numgrn.gt.1) then
                   if(igrn(1).eq.me) then
                     do i=2,numgrn
-                      call MPI_iSend(g(nint),lint,MPI_REAL8,igrn(i),20,
-     &                     MPI_COMM_WORLD,status,ierr)
+                      ncount=lint
+                      mpitag=20
+                      call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),          &
+     &                     mpitag,MPI_COMM_WORLD,status,ierr)
                     enddo
                   else
-                    call MPI_Recv(g(nint),lint,MPI_REAL8,igrn(1),20,
-     &                   MPI_COMM_WORLD,status,ierr)
+                    ncount=lint
+                    mpitag=20
+                    call MPI_Recv(g(nint),ncount,MPI_REAL4,igrn(1),             &
+     &                   mpitag,MPI_COMM_WORLD,status,ierr)
+                  endif
+                endif
+              endif
+#else
+              ncount=lint
+              mpitag=0
+              if(lcomm1.and.nnodes.gt.1)                                        &
+     &             call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,              &
+     &             new_comm1(igr),ierr)
+              if(idist.eq.1) then
+                ncount=lint
+                mpitag=0
+                call MPI_Bcast(g(nint),ncount,MPI_REAL8,mpitag,                 &
+     &               new_comm2(igr,inode),ierr)
+              else
+                if(numgrn.gt.1) then
+                  if(igrn(1).eq.me) then
+                    do i=2,numgrn
+                      ncount=lint
+                      mpitag=20
+                      mpidest=igrn(i)
+                      call MPI_iSend(g(nint),ncount,MPI_REAL8,                  &
+     &                     mpidest,                                             &
+     &                     mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                    enddo
+                  else
+                    ncount=lint
+                    mpitag=20
+                    mpidest=igrn(1)
+                    call MPI_Recv(g(nint),ncount,MPI_REAL8,mpidest,             &
+     &                   mpitag,MPI_COMM_WORLD,status,ierr)
                   endif
                 endif
               endif
@@ -438,25 +471,37 @@ C     and retrieved here, if considered useful info
             endif
             if(labels.eq.0) then
               if(idist.eq.0) then
-                call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &               new_comm(igr),ierr)
+              ncount=4*lint
+              mpitag=0
+                call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,                 &
+     &               mpitag,new_comm(igr),ierr)
               else
-                if(lcomm1.and.nnodes.gt.1)
-     &               call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &               new_comm1(igr),ierr)
+                ncount=4*lint
+                mpitag=0
+                if(lcomm1.and.nnodes.gt.1)                                      &
+     &               call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,            &
+     &               mpitag,new_comm1(igr),ierr)
                 if(idist.eq.1) then
-                  call MPI_Bcast(lab(1,nint),4*lint,MPI_INTEGER2,0,
-     &                 new_comm2(igr,inode),ierr)
+                    ncount=4*lint
+                    mpitag=0
+                  call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,               &
+     &                 mpitag,new_comm2(igr,inode),ierr)
                 else
                   if(numgrn.gt.1) then
                     if(igrn(1).eq.me) then
                       do i=2,numgrn
-                        call MPI_iSend(lab(1,nint),4*lint,MPI_INTEGER2,
-     &                       igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                    ncount=4*lint
+                    mpitag=21
+                    mpidest=igrn(i)
+                        call MPI_iSend(lab(1,nint),ncount,MPI_INTEGER2,         &
+     &                       mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
                       enddo
                     else
-                      call MPI_Recv(lab(1,nint),4*lint,MPI_INTEGER2,
-     &                     igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                      ncount=4*lint
+                      mpitag=21
+                      mpidest=igrn(1)
+                      call MPI_Recv(lab(1,nint),ncount,MPI_INTEGER2,            &
+     &                     mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
                     endif
                   endif
                 endif
@@ -476,25 +521,37 @@ C     and retrieved here, if considered useful info
 
           if(labels.eq.1) then
             if(idist.eq.0) then
-              call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+              ncount=2*mlab
+              mpitag=0
+              call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,               &
      &             new_comm(igr),ierr)
             else
-              if(lcomm1.and.nnodes.gt.1)
-     &             call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+              ncount=2*mlab
+              mpitag=0
+              if(lcomm1.and.nnodes.gt.1)                                        &
+     &             call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,          &
      &             new_comm1(igr),ierr)
               if(idist.eq.1) then
-                call MPI_Bcast(lab(1,1),2*mlab,MPI_INTEGER2,0,
+                ncount=2*mlab
+                mpitag=0
+                call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,             &
      &               new_comm2(igr,inode),ierr)
               else
                 if(numgrn.gt.1) then
                   if(igrn(1).eq.me) then
                     do i=2,numgrn
-                      call MPI_iSend(lab(1,1),2*mlab,MPI_INTEGER2,
-     &                     igrn(i),21,MPI_COMM_WORLD,status,ierr)
+                      ncount=2*mlab
+                      mpitag=21
+                      mpidest=igrn(i)
+                      call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2,              &
+     &                     mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
                     enddo
                   else
-                    call MPI_Recv(lab(1,1),2*mlab,MPI_INTEGER2,
-     &                   igrn(1),21,MPI_COMM_WORLD,status,ierr)
+                    ncount=2*mlab
+                    mpitag=21
+                    mpidest=igrn(1)
+                    call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2,                 &
+     &                   mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
                   endif
                 endif
               endif
@@ -531,23 +588,23 @@ C     and retrieved here, if considered useful info
           ielem=ielem+1
         enddo
         t(ielem)=0.5d0*t(ielem)
-        v(ielem)=0.5d0*v(ielem)       
+        v(ielem)=0.5d0*v(ielem)
       enddo
-      
+
       flush(lfnout)
-      
+
       return
-      
- 993  write(lfnout,983) filone(1:inp_strlen(filone))
-      call errquit(me,4,"Error in reading integrals")
- 994  write(lfnout,984) filone(1:inp_strlen(filone))
-      call errquit(me,4,"Error in reading integrals")
+
+ 993  write(lfnout,983) trim(filone)
+      call gronor_abort(240,trim(filone))
+ 994  write(lfnout,984) trim(filone)
+      call gronor_abort(241,trim(filone))
  983  format('Error reading one electron integral file ',a)
  984  format('Unable to open one electron integral file ',a)
- 995  write(lfnout,985) filtwo(1:inp_strlen(filtwo))
-      call errquit(me,4,"Error in reading integrals")
- 996  write(lfnout,986) filtwo(1:inp_strlen(filtwo))
-      call errquit(me,4,"Error in reading integrals")
+ 995  write(lfnout,985) trim(filtwo)
+      call gronor_abort(242,trim(filtwo))
+ 996  write(lfnout,986) trim(filtwo)
+      call gronor_abort(243,trim(filtwo))
  985  format('Error reading two electron integral file ',a)
  986  format('Unable to open two electron integral file ',a)
       end

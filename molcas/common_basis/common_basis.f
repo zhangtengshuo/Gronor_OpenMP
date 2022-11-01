@@ -16,7 +16,7 @@
       real(kind=8),allocatable  :: occNu     (:)
       real(kind=8)              :: thrs
 
-      character (len=12)         :: oneintName,runfileName
+      character (len=255)         :: oneintName,runfileName
 
       call readin
       write(*,'(A,E10.2)')'common MO basis with threshold:',threshold
@@ -67,7 +67,7 @@
         else
           write(runfileName,'(A6,I2)')'RUNFIL',iFrag
           write(oneintName,'(A6,I2)') 'ONEINT',iFrag
-        end if
+       end if
         call NameRun(runfileName)
         call Get_iScalar('nSym',nSym)
         if ( nSym .ne. 1 ) then
@@ -216,9 +216,9 @@
       real(kind=8) :: dummy
 
       character (len=3)               :: suffix
-      character (len=25)              :: vecFileName
-      character (len=20)              :: base
-      character (len=12)              :: oneintName
+      character (len=255)              :: vecFileName
+      character (len=255)              :: base
+      character (len=255)              :: oneintName
 
       allocate(     linDep(nBasFragMax   ,nBasFrag)       )
       allocate(        vec(nBasFrag      ,nBasFrag)       )
@@ -541,7 +541,7 @@
       real(kind=8)                          :: occ(n)
 
       character (len=6)                     :: mark
-      character (len=12)                    :: filename,base
+      character (len=255)                    :: filename,base
       character (len=132)                   :: line,dummy
       character (len = 1 )                  :: orbLabel(n)
 
@@ -614,7 +614,7 @@
       real (kind=8)                     :: s( n * (n + 1 ) / 2 )
       real (kind=8),intent(out)         :: sAO(n,n)
 
-      character (len=12),intent(in)     :: filename
+      character (len=255),intent(in)     :: filename
 
       s = 0.0
       sAO = 0.0
@@ -730,8 +730,8 @@
       subroutine getFilename(iVec,iFrag,filename,base)
       implicit none
       integer,intent(in)              :: iVec,iFrag
-      character (len=7),intent(in)    :: base
-      character (len=12),intent(out)  :: filename
+      character (len=255),intent(in)    :: base
+      character (len=255),intent(out)  :: filename
 
       if ( iFrag .le. 9 .and. iVec .le. 9 ) then
         write(filename,'(A7,I1,A1,I1)') base,iFrag,'_',iVec
@@ -754,8 +754,8 @@
       implicit none
       integer,intent(in)              :: iVec
       character (len=3),intent(in)    :: suffix
-      character (len=20),intent(in)   :: base
-      character (len=25),intent(out)  :: filename
+      character (len=255),intent(in)   :: base
+      character (len=255),intent(out)  :: filename
 
       write(filename,'(A,I0.3,2A)') trim(base),iVec,'.',suffix
       filename = trim(filename)
@@ -823,7 +823,7 @@
       real(kind=8),allocatable   :: work       (:)
       real(kind=8),allocatable   :: orbs_debug (:,:)
 
-      character (len=12)         :: oneintName
+      character (len=255)         :: oneintName
 
       lwork = 4 * totalFrozen
 
@@ -972,8 +972,8 @@
       integer :: idet,ndet,inactm,i,j,iVec,istat
       real(kind=8),allocatable  :: coeff(:)
       character(len=3)      :: suffix
-      character(len=25)     :: detFilename
-      character (len=255), allocatable :: occ(:)
+      character(len=255)     :: detFilename
+      character(len=255), allocatable :: occ(:)
 
       suffix = 'det'
       iVec = 0
@@ -981,7 +981,11 @@
         do j = 1, nVec(i)
           ndet = 0
           iVec = iVec + 1
-          call getVecFilename(iVec,detFilename,project,suffix)     
+          write(*,'(a,i10)') 'iVec=',iVec
+          write(*,*) trim(project)
+          write(*,*) trim(suffix)
+          call getVecFilename(iVec,detFilename,project,suffix)
+          write(*,*) trim(detFilename)
           open(37,file=detFilename,status='old')
           read(37,*) inactm
           do
@@ -992,34 +996,41 @@
             else
               ndet = ndet + 1
             endif
-          enddo
-          allocate(coeff(ndet))
-          allocate(occ(ndet))
+         enddo
+          write(*,'(a,i10)') 'ndet=',ndet
+         if(allocated(coeff)) deallocate(coeff)
+         if(allocated(occ)) deallocate(occ)
+         allocate(coeff(ndet))
+         allocate(occ(ndet))
+c         print*,"occ allocated"
+          rewind(unit=37)
           read(37,*)
           do idet = 1, ndet
-            read(37,*) coeff(idet),occ(idet)
+             read(37,*) coeff(idet),occ(idet)
+c             write(*,'(e12.6,2x,a)') coeff(idet),trim(occ(idet))
           end do
           rewind(37)
           if (fragLabels.and.energy_on_INPORB) then
             write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           ener(i,j),nElectrons(i,j),threshold
+     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
           elseif (fragLabels) then
             write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           0.0,nElectrons(i,j),threshold
+     &           0.0,nElectrons(i,j),threshold,0.0d0
           elseif (energy_on_INPORB) then
             write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           ener(i,j),nElectrons(i,j),threshold
+     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
           else
             write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           0.0,nElectrons(i,j),threshold
+     &           0.0,nElectrons(i,j),threshold,0.0d0
           end if
           do idet = 1, ndet
             write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
           end do
           close(37)
+c          deallocate(coeff)
           deallocate(coeff,occ)
         end do
- 1600 format(2i5,i12,4x,a,4x,f22.12,i5,1pe10.3)
+ 1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3,f22.12)
       end do
      
       end subroutine addInfo_on_detFiles

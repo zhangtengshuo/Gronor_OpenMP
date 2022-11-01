@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+module load CMake
+module load NVHPC/21.9
+module load CUDA
+module list
+
+export FC=mpif90
+export CC=mpicc
+export CXX=mpic++
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENACC=ON -DCUSOLVERJ=ON ../
+
+make -j 12

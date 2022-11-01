@@ -1,151 +1,151 @@
-*> \brief \b SPOTRS
-*
-*  =========== DOCUMENTATION ===========
-*
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
-*
-*> \htmlonly
-*> Download SPOTRS + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/spotrs.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/spotrs.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/spotrs.f"> 
-*> [TXT]</a>
-*> \endhtmlonly 
-*
-*  Definition:
-*  ===========
-*
-*       SUBROUTINE SPOTRS( UPLO, N, NRHS, A, LDA, B, LDB, INFO )
-* 
-*       .. Scalar Arguments ..
-*       CHARACTER          UPLO
-*       INTEGER            INFO, LDA, LDB, N, NRHS
-*       ..
-*       .. Array Arguments ..
-*       REAL               A( LDA, * ), B( LDB, * )
-*       ..
-*  
-*
-*> \par Purpose:
-*  =============
-*>
-*> \verbatim
-*>
-*> SPOTRS solves a system of linear equations A*X = B with a symmetric
-*> positive definite matrix A using the Cholesky factorization
-*> A = U**T*U or A = L*L**T computed by SPOTRF.
-*> \endverbatim
-*
-*  Arguments:
-*  ==========
-*
-*> \param[in] UPLO
-*> \verbatim
-*>          UPLO is CHARACTER*1
-*>          = 'U':  Upper triangle of A is stored;
-*>          = 'L':  Lower triangle of A is stored.
-*> \endverbatim
-*>
-*> \param[in] N
-*> \verbatim
-*>          N is INTEGER
-*>          The order of the matrix A.  N >= 0.
-*> \endverbatim
-*>
-*> \param[in] NRHS
-*> \verbatim
-*>          NRHS is INTEGER
-*>          The number of right hand sides, i.e., the number of columns
-*>          of the matrix B.  NRHS >= 0.
-*> \endverbatim
-*>
-*> \param[in] A
-*> \verbatim
-*>          A is REAL array, dimension (LDA,N)
-*>          The triangular factor U or L from the Cholesky factorization
-*>          A = U**T*U or A = L*L**T, as computed by SPOTRF.
-*> \endverbatim
-*>
-*> \param[in] LDA
-*> \verbatim
-*>          LDA is INTEGER
-*>          The leading dimension of the array A.  LDA >= max(1,N).
-*> \endverbatim
-*>
-*> \param[in,out] B
-*> \verbatim
-*>          B is REAL array, dimension (LDB,NRHS)
-*>          On entry, the right hand side matrix B.
-*>          On exit, the solution matrix X.
-*> \endverbatim
-*>
-*> \param[in] LDB
-*> \verbatim
-*>          LDB is INTEGER
-*>          The leading dimension of the array B.  LDB >= max(1,N).
-*> \endverbatim
-*>
-*> \param[out] INFO
-*> \verbatim
-*>          INFO is INTEGER
-*>          = 0:  successful exit
-*>          < 0:  if INFO = -i, the i-th argument had an illegal value
-*> \endverbatim
-*
-*  Authors:
-*  ========
-*
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
-*
-*> \date November 2011
-*
-*> \ingroup realPOcomputational
-*
-*  =====================================================================
+!> \brief \b SPOTRS
+!
+!  =========== DOCUMENTATION ===========
+!
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
+!
+!> \htmlonly
+!> Download SPOTRS + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/spotrs.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/spotrs.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/spotrs.f">
+!> [TXT]</a>
+!> \endhtmlonly
+!
+!  Definition:
+!  ===========
+!
+!       SUBROUTINE SPOTRS( UPLO, N, NRHS, A, LDA, B, LDB, INFO )
+!
+!       .. Scalar Arguments ..
+!       CHARACTER          UPLO
+!       INTEGER            INFO, LDA, LDB, N, NRHS
+!       ..
+!       .. Array Arguments ..
+!       REAL               A( LDA, * ), B( LDB, * )
+!       ..
+!
+!
+!> \par Purpose:
+!  =============
+!>
+!> \verbatim
+!>
+!> SPOTRS solves a system of linear equations A*X = B with a symmetric
+!> positive definite matrix A using the Cholesky factorization
+!> A = U**T*U or A = L*L**T computed by SPOTRF.
+!> \endverbatim
+!
+!  Arguments:
+!  ==========
+!
+!> \param[in] UPLO
+!> \verbatim
+!>          UPLO is CHARACTER*1
+!>          = 'U':  Upper triangle of A is stored;
+!>          = 'L':  Lower triangle of A is stored.
+!> \endverbatim
+!>
+!> \param[in] N
+!> \verbatim
+!>          N is INTEGER
+!>          The order of the matrix A.  N >= 0.
+!> \endverbatim
+!>
+!> \param[in] NRHS
+!> \verbatim
+!>          NRHS is INTEGER
+!>          The number of right hand sides, i.e., the number of columns
+!>          of the matrix B.  NRHS >= 0.
+!> \endverbatim
+!>
+!> \param[in] A
+!> \verbatim
+!>          A is REAL array, dimension (LDA,N)
+!>          The triangular factor U or L from the Cholesky factorization
+!>          A = U**T*U or A = L*L**T, as computed by SPOTRF.
+!> \endverbatim
+!>
+!> \param[in] LDA
+!> \verbatim
+!>          LDA is INTEGER
+!>          The leading dimension of the array A.  LDA >= max(1,N).
+!> \endverbatim
+!>
+!> \param[in,out] B
+!> \verbatim
+!>          B is REAL array, dimension (LDB,NRHS)
+!>          On entry, the right hand side matrix B.
+!>          On exit, the solution matrix X.
+!> \endverbatim
+!>
+!> \param[in] LDB
+!> \verbatim
+!>          LDB is INTEGER
+!>          The leading dimension of the array B.  LDB >= max(1,N).
+!> \endverbatim
+!>
+!> \param[out] INFO
+!> \verbatim
+!>          INFO is INTEGER
+!>          = 0:  successful exit
+!>          < 0:  if INFO = -i, the i-th argument had an illegal value
+!> \endverbatim
+!
+!  Authors:
+!  ========
+!
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
+!
+!> \date November 2011
+!
+!> \ingroup realPOcomputational
+!
+!  =====================================================================
       SUBROUTINE SPOTRS( UPLO, N, NRHS, A, LDA, B, LDB, INFO )
-*
-*  -- LAPACK computational routine (version 3.4.0) --
-*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
-*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
-*
-*     .. Scalar Arguments ..
+!
+!  -- LAPACK computational routine (version 3.4.0) --
+!  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     November 2011
+!
+!     .. Scalar Arguments ..
       CHARACTER          UPLO
       INTEGER            INFO, LDA, LDB, N, NRHS
-*     ..
-*     .. Array Arguments ..
+!     ..
+!     .. Array Arguments ..
       REAL               A( LDA, * ), B( LDB, * )
-*     ..
-*
-*  =====================================================================
-*
-*     .. Parameters ..
+!     ..
+!
+!  =====================================================================
+!
+!     .. Parameters ..
       REAL               ONE
       PARAMETER          ( ONE = 1.0E+0 )
-*     ..
-*     .. Local Scalars ..
+!     ..
+!     .. Local Scalars ..
       LOGICAL            UPPER
-*     ..
-*     .. External Functions ..
+!     ..
+!     .. External Functions ..
       LOGICAL            LSAME
       EXTERNAL           LSAME
-*     ..
-*     .. External Subroutines ..
+!     ..
+!     .. External Subroutines ..
       EXTERNAL           STRSM, XERBLA
-*     ..
-*     .. Intrinsic Functions ..
+!     ..
+!     .. Intrinsic Functions ..
       INTRINSIC          MAX
-*     ..
-*     .. Executable Statements ..
-*
-*     Test the input parameters.
-*
+!     ..
+!     .. Executable Statements ..
+!
+!     Test the input parameters.
+!
       INFO = 0
       UPPER = LSAME( UPLO, 'U' )
       IF( .NOT.UPPER .AND. .NOT.LSAME( UPLO, 'L' ) ) THEN
@@ -163,42 +163,42 @@
          CALL XERBLA( 'SPOTRS', -INFO )
          RETURN
       END IF
-*
-*     Quick return if possible
-*
-      IF( N.EQ.0 .OR. NRHS.EQ.0 )
-     $   RETURN
-*
+!
+!     Quick return if possible
+!
+      IF( N.EQ.0 .OR. NRHS.EQ.0 )                                               &
+     &   RETURN
+!
       IF( UPPER ) THEN
-*
-*        Solve A*X = B where A = U**T *U.
-*
-*        Solve U**T *X = B, overwriting B with X.
-*
-         CALL STRSM( 'Left', 'Upper', 'Transpose', 'Non-unit', N, NRHS,
-     $               ONE, A, LDA, B, LDB )
-*
-*        Solve U*X = B, overwriting B with X.
-*
-         CALL STRSM( 'Left', 'Upper', 'No transpose', 'Non-unit', N,
-     $               NRHS, ONE, A, LDA, B, LDB )
+!
+!        Solve A*X = B where A = U**T *U.
+!
+!        Solve U**T *X = B, overwriting B with X.
+!
+         CALL STRSM( 'Left', 'Upper', 'Transpose', 'Non-unit', N, NRHS,         &
+     &               ONE, A, LDA, B, LDB )
+!
+!        Solve U*X = B, overwriting B with X.
+!
+         CALL STRSM( 'Left', 'Upper', 'No transpose', 'Non-unit', N,            &
+     &               NRHS, ONE, A, LDA, B, LDB )
       ELSE
-*
-*        Solve A*X = B where A = L*L**T.
-*
-*        Solve L*X = B, overwriting B with X.
-*
-         CALL STRSM( 'Left', 'Lower', 'No transpose', 'Non-unit', N,
-     $               NRHS, ONE, A, LDA, B, LDB )
-*
-*        Solve L**T *X = B, overwriting B with X.
-*
-         CALL STRSM( 'Left', 'Lower', 'Transpose', 'Non-unit', N, NRHS,
-     $               ONE, A, LDA, B, LDB )
+!
+!        Solve A*X = B where A = L*L**T.
+!
+!        Solve L*X = B, overwriting B with X.
+!
+         CALL STRSM( 'Left', 'Lower', 'No transpose', 'Non-unit', N,            &
+     &               NRHS, ONE, A, LDA, B, LDB )
+!
+!        Solve L**T *X = B, overwriting B with X.
+!
+         CALL STRSM( 'Left', 'Lower', 'Transpose', 'Non-unit', N, NRHS,         &
+     &               ONE, A, LDA, B, LDB )
       END IF
-*
+!
       RETURN
-*
-*     End of SPOTRS
-*
+!
+!     End of SPOTRS
+!
       END

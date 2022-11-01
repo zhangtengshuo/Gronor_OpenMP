@@ -5,12 +5,12 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
 !>
 
-      subroutine writetag_matrix_real(lfn,info,indent,sep,
+      subroutine writetag_matrix_real(lfn,info,indent,sep,                      &
      &                           num,row,col,numfmt)
       implicit none
       integer  :: lfn,indent,i,j,k,col,row
@@ -32,7 +32,7 @@
       end do
       write(r,'(i4)') row
       write(c,'(i4)') col
-      write(rc,'(i4)') 5 + 2*row*col + 2 
+      write(rc,'(i4)') 5 + 2*row*col + 2
       if (info(1:5).eq.'empty') info=''
       if (sep.ne.' ') then
         info=trim(info)//' delimiter="'//sep//'" '
@@ -43,9 +43,9 @@
       else
         write(fmt_1,'(5a)') '(',trim(ts),',2x,',trim(adjustl(rc)),'a)'
       end if
-      write(lfn,fmt=fmt_1) '<matrix dataType="xsd:double" ',trim(info),
-     &  ' columns="',trim(adjustl(c)),'" rows="',trim(adjustl(r)),'">',
-     &    (trim(num2(k)),sep,k=1,row*col-1),trim(num2(row*col)), 
+      write(lfn,fmt=fmt_1) '<matrix dataType="xsd:double" ',trim(info),         &
+     &  ' columns="',trim(adjustl(c)),'" rows="',trim(adjustl(r)),'">',         &
+     &    (trim(num2(k)),sep,k=1,row*col-1),trim(num2(row*col)),                &
      &    '</matrix>'
-      
+
       end subroutine writetag_matrix_real

@@ -1,245 +1,245 @@
-*> \brief \b ZSYR2K
-*
-*  =========== DOCUMENTATION ===========
-*
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
-*
-*  Definition:
-*  ===========
-*
-*       SUBROUTINE ZSYR2K(UPLO,TRANS,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-* 
-*       .. Scalar Arguments ..
-*       COMPLEX*16 ALPHA,BETA
-*       INTEGER K,LDA,LDB,LDC,N
-*       CHARACTER TRANS,UPLO
-*       ..
-*       .. Array Arguments ..
-*       COMPLEX*16 A(LDA,*),B(LDB,*),C(LDC,*)
-*       ..
-*  
-*
-*> \par Purpose:
-*  =============
-*>
-*> \verbatim
-*>
-*> ZSYR2K  performs one of the symmetric rank 2k operations
-*>
-*>    C := alpha*A*B**T + alpha*B*A**T + beta*C,
-*>
-*> or
-*>
-*>    C := alpha*A**T*B + alpha*B**T*A + beta*C,
-*>
-*> where  alpha and beta  are scalars,  C is an  n by n symmetric matrix
-*> and  A and B  are  n by k  matrices  in the  first  case  and  k by n
-*> matrices in the second case.
-*> \endverbatim
-*
-*  Arguments:
-*  ==========
-*
-*> \param[in] UPLO
-*> \verbatim
-*>          UPLO is CHARACTER*1
-*>           On  entry,   UPLO  specifies  whether  the  upper  or  lower
-*>           triangular  part  of the  array  C  is to be  referenced  as
-*>           follows:
-*>
-*>              UPLO = 'U' or 'u'   Only the  upper triangular part of  C
-*>                                  is to be referenced.
-*>
-*>              UPLO = 'L' or 'l'   Only the  lower triangular part of  C
-*>                                  is to be referenced.
-*> \endverbatim
-*>
-*> \param[in] TRANS
-*> \verbatim
-*>          TRANS is CHARACTER*1
-*>           On entry,  TRANS  specifies the operation to be performed as
-*>           follows:
-*>
-*>              TRANS = 'N' or 'n'    C := alpha*A*B**T + alpha*B*A**T +
-*>                                         beta*C.
-*>
-*>              TRANS = 'T' or 't'    C := alpha*A**T*B + alpha*B**T*A +
-*>                                         beta*C.
-*> \endverbatim
-*>
-*> \param[in] N
-*> \verbatim
-*>          N is INTEGER
-*>           On entry,  N specifies the order of the matrix C.  N must be
-*>           at least zero.
-*> \endverbatim
-*>
-*> \param[in] K
-*> \verbatim
-*>          K is INTEGER
-*>           On entry with  TRANS = 'N' or 'n',  K  specifies  the number
-*>           of  columns  of the  matrices  A and B,  and on  entry  with
-*>           TRANS = 'T' or 't',  K  specifies  the number of rows of the
-*>           matrices  A and B.  K must be at least zero.
-*> \endverbatim
-*>
-*> \param[in] ALPHA
-*> \verbatim
-*>          ALPHA is COMPLEX*16
-*>           On entry, ALPHA specifies the scalar alpha.
-*> \endverbatim
-*>
-*> \param[in] A
-*> \verbatim
-*>          A is COMPLEX*16 array of DIMENSION ( LDA, ka ), where ka is
-*>           k  when  TRANS = 'N' or 'n',  and is  n  otherwise.
-*>           Before entry with  TRANS = 'N' or 'n',  the  leading  n by k
-*>           part of the array  A  must contain the matrix  A,  otherwise
-*>           the leading  k by n  part of the array  A  must contain  the
-*>           matrix A.
-*> \endverbatim
-*>
-*> \param[in] LDA
-*> \verbatim
-*>          LDA is INTEGER
-*>           On entry, LDA specifies the first dimension of A as declared
-*>           in  the  calling  (sub)  program.   When  TRANS = 'N' or 'n'
-*>           then  LDA must be at least  max( 1, n ), otherwise  LDA must
-*>           be at least  max( 1, k ).
-*> \endverbatim
-*>
-*> \param[in] B
-*> \verbatim
-*>          B is COMPLEX*16 array of DIMENSION ( LDB, kb ), where kb is
-*>           k  when  TRANS = 'N' or 'n',  and is  n  otherwise.
-*>           Before entry with  TRANS = 'N' or 'n',  the  leading  n by k
-*>           part of the array  B  must contain the matrix  B,  otherwise
-*>           the leading  k by n  part of the array  B  must contain  the
-*>           matrix B.
-*> \endverbatim
-*>
-*> \param[in] LDB
-*> \verbatim
-*>          LDB is INTEGER
-*>           On entry, LDB specifies the first dimension of B as declared
-*>           in  the  calling  (sub)  program.   When  TRANS = 'N' or 'n'
-*>           then  LDB must be at least  max( 1, n ), otherwise  LDB must
-*>           be at least  max( 1, k ).
-*> \endverbatim
-*>
-*> \param[in] BETA
-*> \verbatim
-*>          BETA is COMPLEX*16
-*>           On entry, BETA specifies the scalar beta.
-*> \endverbatim
-*>
-*> \param[in,out] C
-*> \verbatim
-*>          C is COMPLEX*16 array of DIMENSION ( LDC, n ).
-*>           Before entry  with  UPLO = 'U' or 'u',  the leading  n by n
-*>           upper triangular part of the array C must contain the upper
-*>           triangular part  of the  symmetric matrix  and the strictly
-*>           lower triangular part of C is not referenced.  On exit, the
-*>           upper triangular part of the array  C is overwritten by the
-*>           upper triangular part of the updated matrix.
-*>           Before entry  with  UPLO = 'L' or 'l',  the leading  n by n
-*>           lower triangular part of the array C must contain the lower
-*>           triangular part  of the  symmetric matrix  and the strictly
-*>           upper triangular part of C is not referenced.  On exit, the
-*>           lower triangular part of the array  C is overwritten by the
-*>           lower triangular part of the updated matrix.
-*> \endverbatim
-*>
-*> \param[in] LDC
-*> \verbatim
-*>          LDC is INTEGER
-*>           On entry, LDC specifies the first dimension of C as declared
-*>           in  the  calling  (sub)  program.   LDC  must  be  at  least
-*>           max( 1, n ).
-*> \endverbatim
-*
-*  Authors:
-*  ========
-*
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
-*
-*> \date November 2011
-*
-*> \ingroup complex16_blas_level3
-*
-*> \par Further Details:
-*  =====================
-*>
-*> \verbatim
-*>
-*>  Level 3 Blas routine.
-*>
-*>  -- Written on 8-February-1989.
-*>     Jack Dongarra, Argonne National Laboratory.
-*>     Iain Duff, AERE Harwell.
-*>     Jeremy Du Croz, Numerical Algorithms Group Ltd.
-*>     Sven Hammarling, Numerical Algorithms Group Ltd.
-*> \endverbatim
-*>
-*  =====================================================================
+!> \brief \b ZSYR2K
+!
+!  =========== DOCUMENTATION ===========
+!
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
+!
+!  Definition:
+!  ===========
+!
+!       SUBROUTINE ZSYR2K(UPLO,TRANS,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+!
+!       .. Scalar Arguments ..
+!       COMPLEX*16 ALPHA,BETA
+!       INTEGER K,LDA,LDB,LDC,N
+!       CHARACTER TRANS,UPLO
+!       ..
+!       .. Array Arguments ..
+!       COMPLEX*16 A(LDA,*),B(LDB,*),C(LDC,*)
+!       ..
+!
+!
+!> \par Purpose:
+!  =============
+!>
+!> \verbatim
+!>
+!> ZSYR2K  performs one of the symmetric rank 2k operations
+!>
+!>    C := alpha*A*B**T + alpha*B*A**T + beta*C,
+!>
+!> or
+!>
+!>    C := alpha*A**T*B + alpha*B**T*A + beta*C,
+!>
+!> where  alpha and beta  are scalars,  C is an  n by n symmetric matrix
+!> and  A and B  are  n by k  matrices  in the  first  case  and  k by n
+!> matrices in the second case.
+!> \endverbatim
+!
+!  Arguments:
+!  ==========
+!
+!> \param[in] UPLO
+!> \verbatim
+!>          UPLO is CHARACTER*1
+!>           On  entry,   UPLO  specifies  whether  the  upper  or  lower
+!>           triangular  part  of the  array  C  is to be  referenced  as
+!>           follows:
+!>
+!>              UPLO = 'U' or 'u'   Only the  upper triangular part of  C
+!>                                  is to be referenced.
+!>
+!>              UPLO = 'L' or 'l'   Only the  lower triangular part of  C
+!>                                  is to be referenced.
+!> \endverbatim
+!>
+!> \param[in] TRANS
+!> \verbatim
+!>          TRANS is CHARACTER*1
+!>           On entry,  TRANS  specifies the operation to be performed as
+!>           follows:
+!>
+!>              TRANS = 'N' or 'n'    C := alpha*A*B**T + alpha*B*A**T +
+!>                                         beta*C.
+!>
+!>              TRANS = 'T' or 't'    C := alpha*A**T*B + alpha*B**T*A +
+!>                                         beta*C.
+!> \endverbatim
+!>
+!> \param[in] N
+!> \verbatim
+!>          N is INTEGER
+!>           On entry,  N specifies the order of the matrix C.  N must be
+!>           at least zero.
+!> \endverbatim
+!>
+!> \param[in] K
+!> \verbatim
+!>          K is INTEGER
+!>           On entry with  TRANS = 'N' or 'n',  K  specifies  the number
+!>           of  columns  of the  matrices  A and B,  and on  entry  with
+!>           TRANS = 'T' or 't',  K  specifies  the number of rows of the
+!>           matrices  A and B.  K must be at least zero.
+!> \endverbatim
+!>
+!> \param[in] ALPHA
+!> \verbatim
+!>          ALPHA is COMPLEX*16
+!>           On entry, ALPHA specifies the scalar alpha.
+!> \endverbatim
+!>
+!> \param[in] A
+!> \verbatim
+!>          A is COMPLEX*16 array of DIMENSION ( LDA, ka ), where ka is
+!>           k  when  TRANS = 'N' or 'n',  and is  n  otherwise.
+!>           Before entry with  TRANS = 'N' or 'n',  the  leading  n by k
+!>           part of the array  A  must contain the matrix  A,  otherwise
+!>           the leading  k by n  part of the array  A  must contain  the
+!>           matrix A.
+!> \endverbatim
+!>
+!> \param[in] LDA
+!> \verbatim
+!>          LDA is INTEGER
+!>           On entry, LDA specifies the first dimension of A as declared
+!>           in  the  calling  (sub)  program.   When  TRANS = 'N' or 'n'
+!>           then  LDA must be at least  max( 1, n ), otherwise  LDA must
+!>           be at least  max( 1, k ).
+!> \endverbatim
+!>
+!> \param[in] B
+!> \verbatim
+!>          B is COMPLEX*16 array of DIMENSION ( LDB, kb ), where kb is
+!>           k  when  TRANS = 'N' or 'n',  and is  n  otherwise.
+!>           Before entry with  TRANS = 'N' or 'n',  the  leading  n by k
+!>           part of the array  B  must contain the matrix  B,  otherwise
+!>           the leading  k by n  part of the array  B  must contain  the
+!>           matrix B.
+!> \endverbatim
+!>
+!> \param[in] LDB
+!> \verbatim
+!>          LDB is INTEGER
+!>           On entry, LDB specifies the first dimension of B as declared
+!>           in  the  calling  (sub)  program.   When  TRANS = 'N' or 'n'
+!>           then  LDB must be at least  max( 1, n ), otherwise  LDB must
+!>           be at least  max( 1, k ).
+!> \endverbatim
+!>
+!> \param[in] BETA
+!> \verbatim
+!>          BETA is COMPLEX*16
+!>           On entry, BETA specifies the scalar beta.
+!> \endverbatim
+!>
+!> \param[in,out] C
+!> \verbatim
+!>          C is COMPLEX*16 array of DIMENSION ( LDC, n ).
+!>           Before entry  with  UPLO = 'U' or 'u',  the leading  n by n
+!>           upper triangular part of the array C must contain the upper
+!>           triangular part  of the  symmetric matrix  and the strictly
+!>           lower triangular part of C is not referenced.  On exit, the
+!>           upper triangular part of the array  C is overwritten by the
+!>           upper triangular part of the updated matrix.
+!>           Before entry  with  UPLO = 'L' or 'l',  the leading  n by n
+!>           lower triangular part of the array C must contain the lower
+!>           triangular part  of the  symmetric matrix  and the strictly
+!>           upper triangular part of C is not referenced.  On exit, the
+!>           lower triangular part of the array  C is overwritten by the
+!>           lower triangular part of the updated matrix.
+!> \endverbatim
+!>
+!> \param[in] LDC
+!> \verbatim
+!>          LDC is INTEGER
+!>           On entry, LDC specifies the first dimension of C as declared
+!>           in  the  calling  (sub)  program.   LDC  must  be  at  least
+!>           max( 1, n ).
+!> \endverbatim
+!
+!  Authors:
+!  ========
+!
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
+!
+!> \date November 2011
+!
+!> \ingroup complex16_blas_level3
+!
+!> \par Further Details:
+!  =====================
+!>
+!> \verbatim
+!>
+!>  Level 3 Blas routine.
+!>
+!>  -- Written on 8-February-1989.
+!>     Jack Dongarra, Argonne National Laboratory.
+!>     Iain Duff, AERE Harwell.
+!>     Jeremy Du Croz, Numerical Algorithms Group Ltd.
+!>     Sven Hammarling, Numerical Algorithms Group Ltd.
+!> \endverbatim
+!>
+!  =====================================================================
       SUBROUTINE ZSYR2K(UPLO,TRANS,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-*
-*  -- Reference BLAS level3 routine (version 3.4.0) --
-*  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
-*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
-*
-*     .. Scalar Arguments ..
+!
+!  -- Reference BLAS level3 routine (version 3.4.0) --
+!  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     November 2011
+!
+!     .. Scalar Arguments ..
       COMPLEX*16 ALPHA,BETA
       INTEGER K,LDA,LDB,LDC,N
       CHARACTER TRANS,UPLO
-*     ..
-*     .. Array Arguments ..
+!     ..
+!     .. Array Arguments ..
       COMPLEX*16 A(LDA,*),B(LDB,*),C(LDC,*)
-*     ..
-*
-*  =====================================================================
-*
-*     .. External Functions ..
+!     ..
+!
+!  =====================================================================
+!
+!     .. External Functions ..
       LOGICAL LSAME
       EXTERNAL LSAME
-*     ..
-*     .. External Subroutines ..
+!     ..
+!     .. External Subroutines ..
       EXTERNAL XERBLA
-*     ..
-*     .. Intrinsic Functions ..
+!     ..
+!     .. Intrinsic Functions ..
       INTRINSIC MAX
-*     ..
-*     .. Local Scalars ..
+!     ..
+!     .. Local Scalars ..
       COMPLEX*16 TEMP1,TEMP2
       INTEGER I,INFO,J,L,NROWA
       LOGICAL UPPER
-*     ..
-*     .. Parameters ..
+!     ..
+!     .. Parameters ..
       COMPLEX*16 ONE
       PARAMETER (ONE= (1.0D+0,0.0D+0))
       COMPLEX*16 ZERO
       PARAMETER (ZERO= (0.0D+0,0.0D+0))
-*     ..
-*
-*     Test the input parameters.
-*
+!     ..
+!
+!     Test the input parameters.
+!
       IF (LSAME(TRANS,'N')) THEN
           NROWA = N
       ELSE
           NROWA = K
       END IF
       UPPER = LSAME(UPLO,'U')
-*
+!
       INFO = 0
       IF ((.NOT.UPPER) .AND. (.NOT.LSAME(UPLO,'L'))) THEN
           INFO = 1
-      ELSE IF ((.NOT.LSAME(TRANS,'N')) .AND.
-     +         (.NOT.LSAME(TRANS,'T'))) THEN
+      ELSE IF ((.NOT.LSAME(TRANS,'N')) .AND.                                    &
+     &         (.NOT.LSAME(TRANS,'T'))) THEN
           INFO = 2
       ELSE IF (N.LT.0) THEN
           INFO = 3
@@ -256,14 +256,14 @@
           CALL XERBLA('ZSYR2K',INFO)
           RETURN
       END IF
-*
-*     Quick return if possible.
-*
-      IF ((N.EQ.0) .OR. (((ALPHA.EQ.ZERO).OR.
-     +    (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
-*
-*     And when  alpha.eq.zero.
-*
+!
+!     Quick return if possible.
+!
+      IF ((N.EQ.0) .OR. (((ALPHA.EQ.ZERO).OR.                                   &
+     &    (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
+!
+!     And when  alpha.eq.zero.
+!
       IF (ALPHA.EQ.ZERO) THEN
           IF (UPPER) THEN
               IF (BETA.EQ.ZERO) THEN
@@ -296,13 +296,13 @@
           END IF
           RETURN
       END IF
-*
-*     Start the operations.
-*
+!
+!     Start the operations.
+!
       IF (LSAME(TRANS,'N')) THEN
-*
-*        Form  C := alpha*A*B**T + alpha*B*A**T + C.
-*
+!
+!        Form  C := alpha*A*B**T + alpha*B*A**T + C.
+!
           IF (UPPER) THEN
               DO 130 J = 1,N
                   IF (BETA.EQ.ZERO) THEN
@@ -319,8 +319,8 @@
                           TEMP1 = ALPHA*B(J,L)
                           TEMP2 = ALPHA*A(J,L)
                           DO 110 I = 1,J
-                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +
-     +                                 B(I,L)*TEMP2
+                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +                  &
+     &                                 B(I,L)*TEMP2
   110                     CONTINUE
                       END IF
   120             CONTINUE
@@ -341,17 +341,17 @@
                           TEMP1 = ALPHA*B(J,L)
                           TEMP2 = ALPHA*A(J,L)
                           DO 160 I = J,N
-                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +
-     +                                 B(I,L)*TEMP2
+                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +                  &
+     &                                 B(I,L)*TEMP2
   160                     CONTINUE
                       END IF
   170             CONTINUE
   180         CONTINUE
           END IF
       ELSE
-*
-*        Form  C := alpha*A**T*B + alpha*B**T*A + C.
-*
+!
+!        Form  C := alpha*A**T*B + alpha*B**T*A + C.
+!
           IF (UPPER) THEN
               DO 210 J = 1,N
                   DO 200 I = 1,J
@@ -364,8 +364,8 @@
                       IF (BETA.EQ.ZERO) THEN
                           C(I,J) = ALPHA*TEMP1 + ALPHA*TEMP2
                       ELSE
-                          C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +
-     +                             ALPHA*TEMP2
+                          C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +                  &
+     &                             ALPHA*TEMP2
                       END IF
   200             CONTINUE
   210         CONTINUE
@@ -381,16 +381,16 @@
                       IF (BETA.EQ.ZERO) THEN
                           C(I,J) = ALPHA*TEMP1 + ALPHA*TEMP2
                       ELSE
-                          C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +
-     +                             ALPHA*TEMP2
+                          C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +                  &
+     &                             ALPHA*TEMP2
                       END IF
   230             CONTINUE
   240         CONTINUE
           END IF
       END IF
-*
+!
       RETURN
-*
-*     End of ZSYR2K.
-*
+!
+!     End of ZSYR2K.
+!
       END

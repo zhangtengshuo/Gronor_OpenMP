@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+
+module load CMake
+module load NVHPC
+module load ParaStationMPI
+module load CUDA
+module list
+
+export FC=mpifort
+export CC=mpicc
+export CXX=mpic++
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON ../
+
+make -j 12

@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Dipole calculation
-!!     
+!!
 !! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
       subroutine gronor_dipole(lfndbg)
       use cidist
       use gnome_parameters
@@ -38,6 +38,9 @@
       x=0.0d0
       y=0.0d0
       z=0.0d0
+      dx=0.0d0
+      dy=0.0d0
+      dz=0.0d0
       do i=1,nbas
        do j=1,nbas
         if(ising.eq.0) aij=ta(i,j)*deta*2
@@ -60,14 +63,14 @@
        write(lfndbg,130)
        write(lfndbg,140) x,y,z
   130 format(1x,'Dipole matrix elements',//)
-  140 format(10x,'x-direction :',8x,f20.12,//,
-     &       10x,'y-direction :',8x,f20.12,//,
+  140 format(10x,'x-direction :',8x,f20.12,//,                                  &
+     &       10x,'y-direction :',8x,f20.12,//,                                  &
      &       10x,'z-direction :',8x,f20.12,//)
        endif
        return
       elseif(idbg.ge.13) then
        write(lfndbg,120)
-  120 format(///,11x,'Dipole moment',//,1x,'electronic'
+  120 format(///,11x,'Dipole moment',//,1x,'electronic'                         &
      &      ,' contribution :',//)
        write(lfndbg,140) x,y,z
       endif

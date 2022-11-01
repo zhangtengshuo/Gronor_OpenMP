@@ -10,15 +10,15 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Open CML file and dump basic info
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @author  C. de Graaf, URV / ICREA
 !! @date    2020
 !!
-  
+
 
       subroutine gronor_prelude_cml()
       use cidef
@@ -29,22 +29,22 @@
       write(lfncml,'(a38)')'<?xml version="1.0" encoding="UTF-8"?>'
       info_cml = '<module xmlns="http://www.xml-cml.org/schema"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml =                                                                &
      &  '  xmlns:cc="http://www.xml-cml.org/dictionary/compchem/"'
       write(lfncml,'(a)') trim(info_cml)
       info_cml = '  xmlns:cml="http://www.xml-cml.org/schema"'
       write(lfncml,'(a)') trim(info_cml)
       info_cml = '  xmlns:cmlx="http://www.xml-cml.org/schema/cmlx"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml =
+      info_cml =                                                                &
      &  '  xmlns:convention="http://www.xml-cml.org/convention/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml =                                                                &
      &  '  xmlns:gr="http://www.iochem-bd.org/dictionary/gronor/"'
       write(lfncml,'(a)') trim(info_cml)
       info_cml = '  xmlns:nonsi="http://www.xml-cml.org/unit/nonSi/"'
       write(lfncml,'(a)') trim(info_cml)
-      info_cml = 
+      info_cml =                                                                &
      &  '  xmlns:nonsi2="http://www.iochem-bd.org/unit/nonSi2/"'
       write(lfncml,'(a)') trim(info_cml)
       info_cml = '  xmlns:si="http://www.xml-cml.org/unit/si/"'
@@ -76,7 +76,7 @@
       integer             :: indent
       integer,external    :: getcpucount
 
-* Open the calculation
+! Open the calculation
       label = 'module'
       indent = 1
       info_cml = 'id="job" dictRef="cc:jobList"'
@@ -85,7 +85,7 @@
       indent = 2
       info_cml = 'id="job" dictRef="cc:job"'
       call open_tag(lfncml,label,info_cml,indent)
-* Block 1: general job info_cml
+! Block 1: general job info_cml
       indent = 3
       info_cml = 'dictRef="cc:environment" id="environment"'
       call open_tag(lfncml,label,info_cml,indent)
@@ -100,7 +100,7 @@
       indent = 6
       info_cml = 'empty'
       programName = 'GronOR'
-      call writetag_scalar_string(lfncml,info_cml,indent,
+      call writetag_scalar_string(lfncml,info_cml,indent,                       &
      &             programName)
       call close_tag(lfncml,label,5)
       indent = 5
@@ -109,13 +109,13 @@
       call open_tag(lfncml,label,info_cml,indent)
       indent = 6
       info_cml = 'empty'
-      call writetag_scalar_string(lfncml,info_cml,indent,
+      call writetag_scalar_string(lfncml,info_cml,indent,                       &
      &             version)
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="cc:programSubversion"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_string(lfncml,info_cml,6,
+      call writetag_scalar_string(lfncml,info_cml,6,                            &
      &            version_type)
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="cc:executable"'
@@ -131,17 +131,18 @@
       info_cml = 'dictRef="cc:numProc"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,getcpucount())
+      call writetag_scalar_integer(lfncml,info_cml,6,                           &
+     &     int8(getcpucount()))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numProcGPU"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,numdev)
+      call writetag_scalar_integer(lfncml,info_cml,6,int8(numdev))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numRanks"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_scalar_integer(lfncml,info_cml,6,
+      call writetag_scalar_integer(lfncml,info_cml,6,                           &
      &                          max(0,nrsets-nummps*numdev))
       call close_tag(lfncml,label,5)
       info_cml = 'dictRef="gr:numAccRanks"'
@@ -182,13 +183,13 @@
       character(len=132)  :: info_cml,fmt_1
       integer             :: indent,charge,i
 
-* block 2, job specifics
+! block 2, job specifics
 
       method = 'NOCI-Fragments'
       pointgroup = 'C1'
       wavefunctionType = 'NOCI'
-* some day we might want to add 'Properties' as a new method
-     
+! some day we might want to add 'Properties' as a new method
+
       label = 'module'
       indent = 3
       info_cml = 'dictRef="cc:initialization" id="jobInitialization"'
@@ -234,7 +235,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="nonsi:elementary_charge"'
       fmt_1 = 'f10.4'
-      call writetag_scalar_real(lfncml,info_cml,6,charge,fmt_1)
+      call writetag_scalar_real(lfncml,info_cml,6,dble(charge),fmt_1)
       call close_tag(lfncml,label,5)
       info_cml='dictRef="cc:spinMultiplicity"'
       call open_tag(lfncml,label,info_cml,5)
@@ -271,7 +272,7 @@
       info_cml='dictRef="gr:MEBFs"'
       call open_tag(lfncml,label,info_cml,5)
       info_cml='empty'
-      call writetag_matrix_integer(lfncml,info_cml,6,sep,ncombv,
+      call writetag_matrix_integer(lfncml,info_cml,6,sep,ncombv,                &
      &   size(ncombv,1),size(ncombv,2))
       call close_tag(lfncml,label,5)
       if (mebfLabels) then
@@ -279,7 +280,7 @@
         call open_tag(lfncml,label,info_cml,5)
         info_cml='empty'
         sep='|'
-        call writetag_array_string(lfncml,info_cml,6,sep,mebfLabel,
+        call writetag_array_string(lfncml,info_cml,6,sep,mebfLabel,             &
      &     size(mebfLabel))
         call close_tag(lfncml,label,5)
       end if
@@ -311,7 +312,7 @@
       call close_tag(lfncml,label,5)
       label='parameterList'
       call close_tag(lfncml,label,4)
-* remains to dump the molecule on the cml file
+! remains to dump the molecule on the cml file
       indent = 4
       call gronor_molecule_cml(indent)
       label='module'
@@ -333,7 +334,7 @@
       call open_tag(lfncml,label,info_cml,3)
 
       end subroutine gronor_results_header_cml
- 
+
 
       subroutine gronor_finalize_cml
       use cidef
@@ -367,7 +368,7 @@
       call open_tag(lfncml,label,info_cml,5)
       info_cml='units="si:s"'
       fmt_1='f12.3'
-      call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),
+      call writetag_scalar_real(lfncml,info_cml,6,timer_wall_total(99),         &
      &                                fmt_1)
       call close_tag(lfncml,label,5)
       label = 'propertyList'

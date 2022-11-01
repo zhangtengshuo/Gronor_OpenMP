@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
       recursive subroutine quicksort(coef,occu,n)
       implicit none
 

@@ -1,7 +1,7 @@
 !> GronOR Main Program
-      
-      program gronor
  
+      program gronor
+
       use mpi
       use cidist
 

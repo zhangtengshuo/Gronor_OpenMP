@@ -1,0 +1,20 @@
+#!/usr/bin/tcsh
+
+module load nvhpc mpich cmake/3.22.3 utils
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+unsetenv MPI_ROOT
+
+env | grep MKL
+env | grep UTILS
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON ../
+
+make -j 12
+

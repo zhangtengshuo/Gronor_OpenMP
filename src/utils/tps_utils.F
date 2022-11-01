@@ -1,97 +1,97 @@
       integer function atom_number(element)
-c
+
       implicit none
-c
+
       character*2 element
-c
+
       character*2 aname(0:105),bname(0:105)
-c
-      data aname / '  ',
-     + ' H','He','Li','Be',' B',' C',' N',' O',' F','Ne',
-     + 'Na','Mg','Al','Si',' P',' S','Cl','Ar',' K','Ca',
-     + 'Sc','Ti',' V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-     + 'Ga','Ge','As','Se','Br',' R','Rb','Sr',' Y','Zr',
-     + 'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',
-     + 'Sb','Te',' I','Xe','Cs','Ba','La','Ce','Pr','Nd',
-     + 'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',
-     + 'Lu','Hf','Ta',' W','Re','Os','Ir','Pt','Au','Hg',
-     + 'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-     + 'Pa',' U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
-     + 'Md','No','Lr','Rf','Ha' /
-      data bname / '  ',
-     + ' H','HE','LI','BE',' B',' C',' N',' O',' F','NE',
-     + 'NA','MG','AL','SI',' P',' S','CL','AR',' K','CA',
-     + 'SC','TI',' V','CR','MN','FE','CO','NI','CU','ZN',
-     + 'GA','GE','AS','SE','BR',' R','RB','SR',' Y','ZR',
-     + 'NB','MO','TC','RU','RH','PD','AG','CD','IN','SN',
-     + 'SB','TE',' I','XE','CS','BA','LA','CE','PR','ND',
-     + 'PM','SM','EU','GD','TB','DY','HO','ER','TM','YB',
-     + 'LU','HF','TA',' W','RE','OS','IR','PT','AU','HG',
-     + 'TL','PB','BI','PO','AT','RN','FR','RA','AC','TH',
-     + 'PA',' U','Np','PU','AM','CM','BK','CF','ES','FM',
-     + 'MD','NO','LR','RF','HA' /
-c
+
+      data aname / '  ',                                                        &
+     & ' H','He','Li','Be',' B',' C',' N',' O',' F','Ne',                       &
+     & 'Na','Mg','Al','Si',' P',' S','Cl','Ar',' K','Ca',                       &
+     & 'Sc','Ti',' V','Cr','Mn','Fe','Co','Ni','Cu','Zn',                       &
+     & 'Ga','Ge','As','Se','Br',' R','Rb','Sr',' Y','Zr',                       &
+     & 'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',                       &
+     & 'Sb','Te',' I','Xe','Cs','Ba','La','Ce','Pr','Nd',                       &
+     & 'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',                       &
+     & 'Lu','Hf','Ta',' W','Re','Os','Ir','Pt','Au','Hg',                       &
+     & 'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',                       &
+     & 'Pa',' U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',                       &
+     & 'Md','No','Lr','Rf','Ha' /
+      data bname / '  ',                                                        &
+     & ' H','HE','LI','BE',' B',' C',' N',' O',' F','NE',                       &
+     & 'NA','MG','AL','SI',' P',' S','CL','AR',' K','CA',                       &
+     & 'SC','TI',' V','CR','MN','FE','CO','NI','CU','ZN',                       &
+     & 'GA','GE','AS','SE','BR',' R','RB','SR',' Y','ZR',                       &
+     & 'NB','MO','TC','RU','RH','PD','AG','CD','IN','SN',                       &
+     & 'SB','TE',' I','XE','CS','BA','LA','CE','PR','ND',                       &
+     & 'PM','SM','EU','GD','TB','DY','HO','ER','TM','YB',                       &
+     & 'LU','HF','TA',' W','RE','OS','IR','PT','AU','HG',                       &
+     & 'TL','PB','BI','PO','AT','RN','FR','RA','AC','TH',                       &
+     & 'PA',' U','Np','PU','AM','CM','BK','CF','ES','FM',                       &
+     & 'MD','NO','LR','RF','HA' /
+
       integer i
-c
+
       do 1 i=1,105
       if(element.eq.aname(i).or.element.eq.bname(i)) then
       atom_number=i
       return
       endif
     1 continue
-c
+
       atom_number=0
       if(element.eq.'1H') atom_number=1
       if(element.eq.'2H') atom_number=1
       if(element.eq.'3H') atom_number=1
       if(element.eq.'4H') atom_number=1
-c
+
       return
       end
       real*8 function atom_radius(number)
-c
+
       implicit none
-c
+
       integer number
-c
+
       real*8 radius(0:105)
-c
-      data radius / 99999.99,
-     + 0.35, 1.22, 1.23, 0.89, 0.88, 0.77, 0.70, 0.66, 0.58, 1.60,
-     + 1.40, 1.36, 1.25, 1.17, 1.10, 1.04, 0.99, 1.91, 2.03, 1.74,
-     + 1.44, 1.32, 1.22, 1.19, 1.17,1.165, 1.16, 1.15, 1.17, 1.25,
-     + 1.25, 1.22, 1.21, 1.17, 1.14, 1.98, 2.22, 1.92, 1.62, 1.45,
-     + 1.34, 1.29, 1.27, 1.24, 1.25, 1.28, 1.34, 1.41, 1.50, 1.40,
-     + 1.41, 1.37, 1.33, 2.09, 2.35, 1.98, 1.69, 1.65, 1.65, 1.64,
-     + 1.65, 1.66, 1.65, 1.61, 1.59, 1.59, 1.58, 1.57, 1.56, 1.56,
-     + 1.56, 1.44, 1.34, 1.30, 1.28, 1.26, 1.26, 1.29, 1.34, 1.44,
-     + 1.55, 1.54, 1.52, 1.53, 1.50, 2.20, 3.24, 2.68, 2.25, 2.16,
-     + 1.93, 1.66, 1.57, 1.81, 2.21, 1.43, 1.42, 1.40, 1.39, 1.38,
-     + 1.37, 1.36, 1.34, 1.30, 1.30 /
-c
+
+      data radius / 99999.99,                                                   &
+     & 0.35, 1.22, 1.23, 0.89, 0.88, 0.77, 0.70, 0.66, 0.58, 1.60,              &
+     & 1.40, 1.36, 1.25, 1.17, 1.10, 1.04, 0.99, 1.91, 2.03, 1.74,              &
+     & 1.44, 1.32, 1.22, 1.19, 1.17,1.165, 1.16, 1.15, 1.17, 1.25,              &
+     & 1.25, 1.22, 1.21, 1.17, 1.14, 1.98, 2.22, 1.92, 1.62, 1.45,              &
+     & 1.34, 1.29, 1.27, 1.24, 1.25, 1.28, 1.34, 1.41, 1.50, 1.40,              &
+     & 1.41, 1.37, 1.33, 2.09, 2.35, 1.98, 1.69, 1.65, 1.65, 1.64,              &
+     & 1.65, 1.66, 1.65, 1.61, 1.59, 1.59, 1.58, 1.57, 1.56, 1.56,              &
+     & 1.56, 1.44, 1.34, 1.30, 1.28, 1.26, 1.26, 1.29, 1.34, 1.44,              &
+     & 1.55, 1.54, 1.52, 1.53, 1.50, 2.20, 3.24, 2.68, 2.25, 2.16,              &
+     & 1.93, 1.66, 1.57, 1.81, 2.21, 1.43, 1.42, 1.40, 1.39, 1.38,              &
+     & 1.37, 1.36, 1.34, 1.30, 1.30 /
+
       atom_radius=1.1d-01*radius(number)
-c
+
       return
       end
       character*255 function atom_color(number)
       implicit none
       integer number
-c
+
       integer indexc(0:105)
-c
-      data indexc / 12,
-     +  7,  5, 14, 12, 13,  0,  1,  2,  6, 12,
-     + 13, 15,  9,  6,  8,  3, 13, 12, 16, 16,
-     + 12,  9, 12,  9,  9,  8, 12, 10, 10, 10,
-     + 12, 12, 12, 12, 10, 12, 12, 12, 12, 12,
-     + 12, 12, 12, 12, 12, 12, 16, 12, 12, 12,
-     + 12, 12, 11, 12, 12,  8, 12, 12, 12, 12,
-     + 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-     + 12, 12, 12, 12, 12, 12, 12, 16, 17, 16,
-     + 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-     + 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-     + 12, 12, 12, 12, 12 /
-c
+
+      data indexc / 12,                                                         &
+     &  7,  5, 14, 12, 13,  0,  1,  2,  6, 12,                                  &
+     & 13, 15,  9,  6,  8,  3, 13, 12, 16, 16,                                  &
+     & 12,  9, 12,  9,  9,  8, 12, 10, 10, 10,                                  &
+     & 12, 12, 12, 12, 10, 12, 12, 12, 12, 12,                                  &
+     & 12, 12, 12, 12, 12, 12, 16, 12, 12, 12,                                  &
+     & 12, 12, 11, 12, 12,  8, 12, 12, 12, 12,                                  &
+     & 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,                                  &
+     & 12, 12, 12, 12, 12, 12, 12, 16, 17, 16,                                  &
+     & 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,                                  &
+     & 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,                                  &
+     & 12, 12, 12, 12, 12 /
+
       atom_color='white '
       if(indexc(number).eq.0) atom_color='LightGrey '
       if(indexc(number).eq.1) atom_color='SkyBlue '
@@ -111,48 +111,48 @@ c
       if(indexc(number).eq.15) atom_color='DarkGreen '
       if(indexc(number).eq.16) atom_color='Silver '
       if(indexc(number).eq.17) atom_color='Gold '
-c
+
       return
       end
       character*2 function element(number)
-c
+
       implicit none
       integer number
-c
+
       character*2 aname(0:116)
-c
-      data aname / '  ',
-     + ' H','He','Li','Be',' B',' C',' N',' O',' F','Ne',
-     + 'Na','Mg','Al','Si',' P',' S','Cl','Ar',' K','Ca',
-     + 'Sc','Ti',' V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-     + 'Ga','Ge','As','Se','Br',' R','Rb','Sr',' Y','Zr',
-     + 'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',
-     + 'Sb','Te',' I','Xe','Cs','Ba','La','Ce','Pr','Nd',
-     + 'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',
-     + 'Lu','Hf','Ta',' W','Re','Os','Ir','Pt','Au','Hg',
-     + 'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-     + 'Pa',' U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
-     + 'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',
-     + 'Rg','Cn','  ','Fl','  ','Lv'/
-c
+
+      data aname / '  ',                                                        &
+     & ' H','He','Li','Be',' B',' C',' N',' O',' F','Ne',                       &
+     & 'Na','Mg','Al','Si',' P',' S','Cl','Ar',' K','Ca',                       &
+     & 'Sc','Ti',' V','Cr','Mn','Fe','Co','Ni','Cu','Zn',                       &
+     & 'Ga','Ge','As','Se','Br',' R','Rb','Sr',' Y','Zr',                       &
+     & 'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',                       &
+     & 'Sb','Te',' I','Xe','Cs','Ba','La','Ce','Pr','Nd',                       &
+     & 'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',                       &
+     & 'Lu','Hf','Ta',' W','Re','Os','Ir','Pt','Au','Hg',                       &
+     & 'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',                       &
+     & 'Pa',' U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',                       &
+     & 'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',                       &
+     & 'Rg','Cn','  ','Fl','  ','Lv'/
+
       element=aname(number)
-c
+
       return
       end
       subroutine rotate(v,w,g,x,y)
-c
-c $Id: util_md.F 19707 2010-10-29 17:59:36Z d3y133 $
-c
+
+! $Id: util_md.F 19707 2010-10-29 17:59:36Z d3y133 $
+
       implicit none
-c
+
       real*8 v(3),w(3),x(3),y(3),xx(3),t(3,3)
       real*8 small,pi,r,a,b,ca,cb,cg,sa,sb,sg,g
-      integer i 
+      integer i
       parameter (small=1.0d-24)
-c
-c     rotation with angle g around vector from v to w
-c     of point x giving result in y
-c
+
+!     rotation with angle g around vector from v to w
+!     of point x giving result in y
+
       if(abs(w(2)-v(2)).lt.small) then
       if(abs(w(1)-v(1)).lt.small) then
       a=0.0d0
@@ -188,15 +188,15 @@ c
       cb=cos(b)
       sg=sin(g)
       cg=cos(g)
-      t(1,1)=ca*ca*cg-sa*ca*cb*sg+sa*ca*cb*sg
-     +       +sa*sa*cb*cb*cg+sa*sa*sb*sb
-      t(1,2)=(-sa)*ca*cg-ca*ca*cb*sg-sa*sa*cb*sg
-     +       +sa*ca*cb*cb*cg+sa*ca*sb*sb
+      t(1,1)=ca*ca*cg-sa*ca*cb*sg+sa*ca*cb*sg                                   &
+     &       +sa*sa*cb*cb*cg+sa*sa*sb*sb
+      t(1,2)=(-sa)*ca*cg-ca*ca*cb*sg-sa*sa*cb*sg                                &
+     &       +sa*ca*cb*cb*cg+sa*ca*sb*sb
       t(1,3)=ca*sb*sg-sa*sb*cb*cg+sa*sb*cb
-      t(2,1)=(-sa)*ca*cg+sa*sa*cb*sg+ca*ca*cb*sg
-     +       +sa*ca*cb*cb*cg+sa*ca*sb*sb
-      t(2,2)=sa*sa*cg+sa*ca*cb*sg-sa*ca*cb*sg
-     +       +ca*ca*cb*cb*cg+ca*ca*sb*sb
+      t(2,1)=(-sa)*ca*cg+sa*sa*cb*sg+ca*ca*cb*sg                                &
+     &       +sa*ca*cb*cb*cg+sa*ca*sb*sb
+      t(2,2)=sa*sa*cg+sa*ca*cb*sg-sa*ca*cb*sg                                   &
+     &       +ca*ca*cb*cb*cg+ca*ca*sb*sb
       t(2,3)=(-sa)*sb*sg-ca*sb*cb*cg+ca*sb*cb
       t(3,1)=(-ca)*sb*sg-sa*sb*cb*cg+sa*sb*cb
       t(3,2)=sa*sb*sg-ca*sb*cb*cg+ca*sb*cb
@@ -207,14 +207,14 @@ c
       return
       end
       real*8 function angl(x,y,z)
-c
+
       implicit none
-c
+
       real*8 x(3),y(3),z(3)
-c
+
       real*8 xy(3),zy(3),rxy,rzy,phi
       integer i
-c
+
       rxy=0.0d0
       rzy=0.0d0
       do 1 i=1,3
@@ -227,43 +227,43 @@ c
       if(phi.lt.-1.0d0) phi=-1.0d0
       if(phi.gt.1.0d0) phi=1.0d0
       angl=acos(phi)
-c
+
       return
       end
       subroutine povinc(lfn,xmin,xmax,ymin,ymax,zmin,zmax)
-c
+
       implicit none
-c
+
       integer lfn
       real*8 xmin,xmax,ymin,ymax,zmin,zmax
-c
-      open(unit=lfn,file='camera.inc',form='formatted',status='new',
-     + err=9)
-      write(lfn,1000)
-     + 0.0d0,0.0d0,-1.0d1*max(abs(xmax),abs(ymax),abs(zmax),
-     + abs(xmin),abs(ymin),abs(zmin)),
-     + 5.0d-1*(xmax+xmin),5.0d-1*(ymax+ymin),5.0d-1*(zmax+zmin)
-c     + 0.0d0, 0.0d0, 0.0d0,
-c     + 1.3d0, 0.0d0, 0.0d0,
-c     + 0.0d0, 0.0d0, 1.0d0,
-c     + 0.0d0, 1.0d0, 0.0d0
- 1000 format('camera {',/,
-     + ' location <',f12.6,',',f12.6,',',f12.6,'>',/,
-     + ' look_at <',f12.6,',',f12.6,',',f12.6,'>',/,
-     + ' angle 20.0',/,'}')
+
+      open(unit=lfn,file='camera.inc',form='formatted',status='new',            &
+     & err=9)
+      write(lfn,1000)                                                           &
+     & 0.0d0,0.0d0,-1.0d1*max(abs(xmax),abs(ymax),abs(zmax),                    &
+     & abs(xmin),abs(ymin),abs(zmin)),                                          &
+     & 5.0d-1*(xmax+xmin),5.0d-1*(ymax+ymin),5.0d-1*(zmax+zmin)
+!     + 0.0d0, 0.0d0, 0.0d0,
+!     + 1.3d0, 0.0d0, 0.0d0,
+!     + 0.0d0, 0.0d0, 1.0d0,
+!     + 0.0d0, 1.0d0, 0.0d0
+ 1000 format('camera {',/,                                                      &
+     & ' location <',f12.6,',',f12.6,',',f12.6,'>',/,                           &
+     & ' look_at <',f12.6,',',f12.6,',',f12.6,'>',/,                            &
+     & ' angle 20.0',/,'}')
       write(lfn,1001)  0.0d1, 0.0d1,-5.0d1, 1.0d0,1.0d0,1.0d0
       write(lfn,1001) -1.0d1, 2.0d1,-1.0d1, 1.0d0,1.0d0,1.0d0
       write(lfn,1001)  1.0d1, 2.0d1,-1.0d1, 1.0d0,1.0d0,1.0d0
       write(lfn,1001)  0.0d1, 1.0d1,-2.0d1, 1.0d0,1.0d0,1.0d0
- 1001 format('light_source { <',f12.6,',',f12.6,',',f12.6,
-     + '> color rgb <',f4.2,',',f4.2,',',f4.2,'> }')
+ 1001 format('light_source { <',f12.6,',',f12.6,',',f12.6,                      &
+     & '> color rgb <',f4.2,',',f4.2,',',f4.2,'> }')
       write(lfn,1002) 0.0d0,0.0d0,0.0d0
  1002 format('background { color rgb <',f4.2,',',f4.2,',',f4.2,'> }')
       close(unit=lfn)
-c
+
     9 continue
-      open(unit=lfn,file='colors.inc',form='formatted',status='new',
-     + err=99)
+      open(unit=lfn,file='colors.inc',form='formatted',status='new',            &
+     & err=99)
       write(lfn,2000)
  2000 format('#declare Colors_Inc_Temp = version ;',/,'#version 2.0 ;')
       write(lfn,2001) 'Gray05',0.05,0.05,0.05
@@ -393,61 +393,61 @@ c
       write(lfn,2001) 'HuntersGreen',0.13,0.37,0.31
       write(lfn,2001) 'Scarlet',0.55,0.09,0.09
       write(lfn,2002) 'Clear',1.0,1.0,1.0,1.0
- 2001 format('#declare ',a,' = color red ',f8.6,' green ',f8.6,
-     + ' blue ',f8.6,' ;')
- 2002 format('#declare ',a,' = color red ',f8.6,' green ',f8.6,
-     + ' blue ',f8.6,' filter ',f8.6,' ;')
+ 2001 format('#declare ',a,' = color red ',f8.6,' green ',f8.6,                 &
+     & ' blue ',f8.6,' ;')
+ 2002 format('#declare ',a,' = color red ',f8.6,' green ',f8.6,                 &
+     & ' blue ',f8.6,' filter ',f8.6,' ;')
       write(lfn,2003)
- 2003 format('#declare Plane_Map = 0 ;',/,'#declare Sphere_Map = 1 ;',/,
-     + '#declare Cylinder_Map = 2 ;',/,'#declare Torus_Map = 5 ;',/,
-     + '#declare Bi   = 2 ;',/,'#declare Norm = 4 ;',/,
-     + '#version Colors_Inc_Temp ;')
+ 2003 format('#declare Plane_Map = 0 ;',/,'#declare Sphere_Map = 1 ;',/,        &
+     & '#declare Cylinder_Map = 2 ;',/,'#declare Torus_Map = 5 ;',/,            &
+     & '#declare Bi   = 2 ;',/,'#declare Norm = 4 ;',/,                         &
+     & '#version Colors_Inc_Temp ;')
       close(unit=lfn)
-c
+
    99 continue
-      open(unit=lfn,file='plane.inc',form='formatted',status='new',
-     + err=999)
+      open(unit=lfn,file='plane.inc',form='formatted',status='new',             &
+     & err=999)
       write(lfn,3001)
- 3001 format('plane{ <0,1,0>,-1 pigment { White } }') 
+ 3001 format('plane{ <0,1,0>,-1 pigment { White } }')
       close(unit=lfn)
-c
+
   999 continue
-c
+
       return
       end
       real*8 function torsion(a,b,c,d)
-c
+
       implicit none
-c
+
       real*8 a(3),b(3),c(3),d(3)
-c
+
       torsion=0.0d0
-c
+
       return
       end
       subroutine argos_jacobi(a,n,na,d,v,nrot)
-c
-c     compute eigenvectors and eigenvalues for real symmetric 
-c     matrix using the Jacobi diagonalization
-c
+
+!     compute eigenvectors and eigenvalues for real symmetric
+!     matrix using the Jacobi diagonalization
+
       implicit none
-c
+
       integer nrmax
       parameter(nrmax=100)
-c
+
       real*8 zero,half,one,two
       parameter(zero=0.0d0)
       parameter(half=0.5d0)
       parameter(one=1.0d0)
       parameter(two=2.0d0)
-c
+
       integer n,na,nrot
       real*8 a(na,na),d(na),v(na,na)
       real*8 at,b,dma,q
-c
+
       integer i,j,k,l
       real*8 c,s,t,sum,temp
-c
+
       do 1 i=1,n
       do 2 j=1,n
       v(i,j)=zero
@@ -455,7 +455,7 @@ c
       v(i,i)=one
       d(i)=a(i,i)
     1 continue
-c
+
       nrot=0
       do 3 l=1,nrmax
       nrot=nrot+1
@@ -523,40 +523,42 @@ c
    10 continue
     9 continue
     3 continue
-c
+
       call tps_abort('argos_jacobi: maximum iterations reached',0)
-c
+
       return
       end
       subroutine suser(user)
-c
+
       implicit none
-c
+
       character*32 user
-c
+
 #ifdef USE_POSIXF
       integer*4 ilen,ierror
 #endif
-c
+
 #ifdef USE_POSIXF
       call pxfgetlogin(user,ilen,ierror)
 #else
-      call getlog(user)
+!      call getlog(user)
+      call getenv("USER",user)
 #endif
-c
+
       return
       end
       subroutine swatch(today,now)
-c
+
       implicit none
-c
+
       character*10 today,now
-c
-c#if defined(LINUX)
-c      character*26 string
-c#endif
+
+!#if defined(LINUX)
+!      character*26 string
+!#endif
 #if defined(IBM)
-      character*26 string
+      character*26 dstring,tstring,tzone
+      integer dtvalue(8)
 #endif
 #if defined(KSR)
       integer time
@@ -568,27 +570,33 @@ c#endif
 #if defined(SGI)
       character*9 string
 #endif
-c
+
       today='00/00/00  '
       now='00:00:00   '
-c
+
 #if defined(IBM)
-      call fdate(string)
-      if(string(4:6).eq.'Jan') today(1:2)='01'
-      if(string(4:6).eq.'Feb') today(1:2)='02'
-      if(string(4:6).eq.'Mar') today(1:2)='03'
-      if(string(4:6).eq.'Apr') today(1:2)='04'
-      if(string(4:6).eq.'May') today(1:2)='05'
-      if(string(4:6).eq.'Jun') today(1:2)='06'
-      if(string(4:6).eq.'Jul') today(1:2)='07'
-      if(string(4:6).eq.'Aug') today(1:2)='08'
-      if(string(4:6).eq.'Sep') today(1:2)='09'
-      if(string(4:6).eq.'Oct') today(1:2)='10'
-      if(string(4:6).eq.'Nov') today(1:2)='11'
-      if(string(4:6).eq.'Dec') today(1:2)='12'
-      today(7:8)=string(8:9)
-      today(4:5)=string(1:2)
-      now=string(11:20)
+!     call fdate(string)
+      call date_and_time(dstring,tstring,tzone,dtvalue)
+      today(1:2)=dstring(5:6)
+      today(4:5)=dstring(7:8)
+      today(7:8)=dstring(3:4)
+!      if(string(4:6).eq.'Jan') today(1:2)='01'
+!      if(string(4:6).eq.'Feb') today(1:2)='02'
+!      if(string(4:6).eq.'Mar') today(1:2)='03'
+!      if(string(4:6).eq.'Apr') today(1:2)='04'
+!      if(string(4:6).eq.'May') today(1:2)='05'
+!      if(string(4:6).eq.'Jun') today(1:2)='06'
+!      if(string(4:6).eq.'Jul') today(1:2)='07'
+!      if(string(4:6).eq.'Aug') today(1:2)='08'
+!      if(string(4:6).eq.'Sep') today(1:2)='09'
+!      if(string(4:6).eq.'Oct') today(1:2)='10'
+!      if(string(4:6).eq.'Nov') today(1:2)='11'
+!      if(string(4:6).eq.'Dec') today(1:2)='12'
+!      today(7:8)=string(8:9)
+!      today(4:5)=string(1:2)
+      now(1:2)=tstring(1:2)
+      now(4:5)=tstring(3:4)
+      now(7:8)=tstring(5:6)
 #endif
 #if defined(KSR)
       string=ctime(time())
@@ -626,7 +634,7 @@ c
       today(4:5)=string(9:10)
       now=string(11:20)
 #endif
-#if defined(LINUX)
+#if defined(LINUX) && !defined(IBM)
       call linux_date(today)
       call linux_time(now)
 #endif
@@ -653,7 +661,7 @@ c
       return
       end
       subroutine matinv(a,n,ndim)
-c
+
       implicit none
 
       integer maxdim
@@ -662,22 +670,22 @@ c
       parameter(zero=0.0d0)
       parameter(small=1.0d-6)
       parameter(one=1.0d0)
-c
+
       integer n,ndim
       real*8 a(ndim,ndim)
       integer ia(2,maxdim),ib(maxdim),ic(maxdim)
       real*8 d(maxdim)
-c
+
       integer idim,i,j,k,l,m
       real*8 b,e
-c
+
       if(ndim.gt.maxdim) call tps_abort('matinv dimension error',0)
-c
+
       do 1 idim=1,n
       ia(1,idim)=0
       ia(2,idim)=0
     1 continue
-c
+
       do 9 idim=1,n
       b=zero
       do 3 l=1,n
@@ -697,9 +705,9 @@ c
       ib(k)=i
       ic(i)=k
       b=a(i,k)
-c
-      if(dabs(b).lt.small)
-     + call tps_abort('arg_matinv singular matrix',0)
+
+      if(dabs(b).lt.small)                                                      &
+     & call tps_abort('arg_matinv singular matrix',0)
       a(i,k)=one/b
       do 6 l=1,n
       if(l.ne.k) a(i,l)=-a(i,l)/b
@@ -713,7 +721,7 @@ c
       if(l.ne.i) a(l,k)=a(l,k)/b
   11  continue
   9   continue
-c
+
       do 15 l=1,n
       do 13 j=1,n
       k=ib(j)
@@ -723,7 +731,7 @@ c
       a(j,l)=d(j)
    14 continue
   15  continue
-c
+
       do 16 l=1,n
       do 17 j=1,n
       k=ic(j)
@@ -733,93 +741,98 @@ c
       a(l,j)=d(j)
    18 continue
   16  continue
-c
+
       return
       end
       logical function frequency(istep,nstep)
-c
+
       implicit none
-c
+
       integer istep,nstep
-c
+
       if(nstep.le.0) then
       frequency=.false.
       else
       frequency=mod(istep,nstep).eq.0
       endif
-c
+
       return
       end
       subroutine rolex(elaps,cputim)
-c
+
       implicit none
-c
+
       real*8 elaps,cputim
-c
+
       real*8 linux_walltime,linux_cputime
       external linux_walltime,linux_cputime
-c
+
+#if defined(IBM)
+      call cpu_time(elaps)
+      call cpu_time(cputim)
+#else
       elaps=linux_walltime()
       cputim=linux_cputime()
-c
+#endif
+
       return
       end
       subroutine timer_init()
-c
+
       implicit none
-c
+
       call timer(0,0)
-c
+
       return
       end
       subroutine timer_reset(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       call timer(itime,-2)
-c
+
       return
       end
       subroutine timer_start(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       call timer(itime,0)
-c
+
       return
       end
       subroutine timer_stop(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       call timer(itime,1)
-c
+
       return
       end
       subroutine timer(itime,iopt)
-c
+
       implicit none
-c
+
       integer itime,iopt
-c
+
       real*8 elaps,cputim
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
+
       integer i
-c
+
       call rolex(elaps,cputim)
-c
+
       if(itime.eq.0) then
       do 1 i=1,mtime
       ncall(i)=0
@@ -864,248 +877,248 @@ c
       else
       call tps_abort('Unimplemented timer option',0)
       endif
-c
+
       return
       end
       real*8 function timer_cpu(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_cpu=0.0d0
       else
       timer_cpu=ctime(itime,2)
       endif
-c
+
       return
       end
       real*8 function timer_wall(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_wall=0.0d0
       else
       timer_wall=ttime(itime,2)
       endif
-c
+
       return
       end
       integer function timer_calls(itime)
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       timer_calls=ncall(itime)
-c
+
       return
       end
       real*8 function timer_cpu_minimum(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_cpu_minimum=0.0d0
       else
       timer_cpu_minimum=ctime(itime,3)
       endif
-c
+
       return
       end
       real*8 function timer_wall_minimum(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_wall_minimum=0.0d0
       else
       timer_wall_minimum=ttime(itime,3)
       endif
-c
+
       return
       end
       real*8 function timer_cpu_average(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_cpu_average=0.0d0
       else
       timer_cpu_average=ctime(itime,1)/dble(ncall(itime))
       endif
-c
+
       return
       end
       real*8 function timer_wall_average(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_wall_average=0.0d0
       else
       timer_wall_average=ttime(itime,1)/dble(ncall(itime))
       endif
-c
+
       return
       end
       real*8 function timer_cpu_total(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_cpu_total=0.0d0
       else
       timer_cpu_total=ctime(itime,1)
       endif
-c
+
       return
       end
       real*8 function timer_wall_total(itime)
-c
+
       implicit none
-c
+
       integer itime
-c
+
       integer mtime
       parameter(mtime=250)
       integer ncall(250)
       real*8 ttime(250,3),ctime(250,3)
       common/tim/ncall,ttime,ctime
-c
-      if(itime.le.0.or.itime.gt.mtime)
-     + call tps_abort('Illegal timer index',0)
-c
+
+      if(itime.le.0.or.itime.gt.mtime)                                          &
+     & call tps_abort('Illegal timer index',0)
+
       if(ncall(itime).le.0) then
       timer_wall_total=0.0d0
       else
       timer_wall_total=ttime(itime,1)
       endif
-c
+
       return
       end
       subroutine tracer_init(itr,ltr,lfn)
-c
+
       implicit none
-c
+
       integer ntrace,itr,ltr,lfn,md0,md1,lfntrc
       real*8 strace,ttrace(1000)
       integer itrace(1000)
-      common/trc/ntrace,strace,ttrace,itrace,lfntrc,md0,md1
-c
+      common/trc/strace,ttrace,ntrace,itrace,lfntrc,md0,md1
+
       real*8 cputim
-c
+
       ntrace=0
       call rolex(strace,cputim)
       md0=itr
       md1=ltr
       lfntrc=lfn
-c
+
       return
       end
       subroutine tracer(md,id)
-c
+
       implicit none
-c
+
       integer ntrace
       real*8 strace,ttrace(1000)
       integer md,id,lfntrc,md0,md1,itrace(1000)
-      common/trc/ntrace,strace,ttrace,itrace,lfntrc,md0,md1
-c
+      common/trc/strace,ttrace,ntrace,itrace,lfntrc,md0,md1
+
       integer i
       real*8 elaps,cputim
-c
-c
+
+
       if(md.lt.md0.or.md.gt.md1) return
-c
-c      if(id.eq.0)
-c     + write(lfntrc,100) (itrace(i),i=1,ntrace)
-c  100 format(6i12)
-c
+
+!      if(id.eq.0)
+!     + write(lfntrc,100) (itrace(i),i=1,ntrace)
+!  100 format(6i12)
+
       if(ntrace.lt.950) then
       ntrace=ntrace+1
       elseif(id.eq.0) then
@@ -1115,50 +1128,50 @@ c
       else
       ntrace=ntrace+1
       endif
-c
+
       itrace(ntrace)=100*md+id
       call rolex(elaps,cputim)
       ttrace(ntrace)=elaps-strace
       strace=elaps
-c
+
       return
       end
       subroutine tracer_end(itr)
-c
+
       implicit none
-c
+
       integer itr
-c
+
       integer ntrace
       real*8 strace,ttrace(1000)
       integer lfntrc,md0,md1,itrace(1000)
-      common/trc/ntrace,strace,ttrace,itrace,lfntrc,md0,md1
-c
+      common/trc/strace,ttrace,ntrace,itrace,lfntrc,md0,md1
+
       integer i
-c
+
       if(itr.gt.0) write(lfntrc,1000) (ttrace(i),i=1,ntrace)
  1000 format(100f12.6)
-c
+
       return
       end
       subroutine auto_corr(data,ndata,aver,acf,lacf,ratio)
-c
+
       implicit none
-c
+
       real*8 zero,half,one,two
       parameter(zero=0.0d0)
       parameter(half=5.0d-1)
       parameter(one=1.0d0)
       parameter(two=2.0d0)
-c
+
       integer ndata,lacf,nacf
       real*8 data(ndata),acf(lacf),aver,ratio
-c
+
       integer i,j
       real*8 dsum,dvar
-c
+
       nacf=min(ndata,lacf)
-c
+
       dsum=zero
       do 1 i=1,ndata
       dsum=dsum+(data(i)-aver)**2
@@ -1171,218 +1184,218 @@ c
     3 continue
       acf(i)=dvar*(dsum/dble(ndata-i))*(one-dble(i-1)/dble(ndata-2))
     2 continue
-c
+
       ratio=half
       do 4 i=1,nacf-1
       ratio=ratio+(one-(dble(i)/dble(ndata))**2)*abs(acf(i))
     4 continue
       ratio=sqrt(two*abs(ratio))
       if(ratio.lt.one) ratio=one
-c
+
       lacf=nacf
-c
+
       return
       end
       subroutine acf_approx(acf,acfapp,lacf)
-c
+
       implicit none
-c
+
       integer lacf
       real*8 acf(lacf),acfapp(lacf)
-c
-c      integer kapprox(15)
-c
-c      rfact=two*sqrt(dble(klarge))/dble(nacfa-1)
-c      wsum1=zero
-c      wsum2=zero
-c      warg=zero
-c      do 5 i=1,nacfa-1
-c      acf(i)=abs(acf(i))
-c      if(acf(i).gt.zero) then
-c      wterm=exp(weight*dble(nacfa-i)/dble(nacfa-1))
-c      wsum1=wsum1+wterm
-c      wsum2=wsum2+wterm*log(acf(i))/(rfact*dble(i))
-c      endif
-c    5 continue
-c      if(abs(wsum1).gt.small) warg=wsum2/wsum1
-c      do 55 i=1,nacfa-1
-c      acf(i)=acf(i)-exp(warg*dble(i)*rfact)
-c   55 continue
-c      nfunc=iapprx
-c      if(nfunc.le.0) nfunc=15
-c      do 6 k=1,nfunc
-c      do 7 l=1,nfunc
-c      cdap(k,l)=zero
-c      do 8 m=1,nacfa-1
-c      xappm=dble(m)*rfact
-c      cdawgt=exp(weight*dble(nacfa-m)/dble(nacfa-1))
-c      cdap(k,l)=cdap(k,l)+cdawgt*exp((-xappm)*xappm)*
-c     + approx(k)*approx(l)*(xappm**(kapprx(k)+kapprx(l)))
-c    8 continue
-c      cdaq(k,l)=cdap(k,l)
-c    7 continue
-c    6 continue
-c      do 9 i=1,nfunc
-c      cdad(i)=zero
-c      do 10 j=1,nacfa-1
-c      xappj=dble(j)*rfact
-c      cdawgt=exp(weight*dble(nacfa-j)/dble(nacfa-1))
-c      cdad(i)=cdad(i)+cdawgt*exp((-half)*xappj*xappj)*
-c     + acf(j)*approx(i)*(xappj**kapprx(i))
-c   10 continue
-c    9 continue
-c      do 11 k=1,nfunc
-c      do 12 i=k,nfunc
-c      cdaq(i,k)=cdap(i,k)
-c      do 13 l=1,k-1
-c      cdaq(i,k)=cdaq(i,k)-cdaq(i,l)*cdaq(l,k)
-c   13 continue
-c   12 continue
-c      do 14 i=k+1,nfunc
-c      cdaq(k,i)=cdap(k,i)
-c      do 15 l=1,k-1
-c      cdaq(k,i)=cdaq(k,i)-cdaq(k,l)*cdaq(l,i)
-c   15 continue
-c      cdaq(k,i)=cdaq(k,i)/cdaq(k,k)
-c   14 continue
-c   11 continue
-c      do 16 j=1,nfunc
-c      cdac(j)=cdad(j)
-c      do 17 i=1,j-1
-c      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
-c   17 continue
-c      cdac(j)=cdac(j)/cdaq(j,j)
-c   16 continue
-c      do 18 k=1,nfunc
-c      j=nfunc+1-k
-c      do 19 i=j+1,nfunc
-c      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
-c   19 continue
-c   18 continue
-c      do 20 i=1,nacfa-1
-c      xappi=dble(i)*rfact
-c      acf(i)=exp(warg*xappi)
-c      do 21 j=1,nfunc
-c      acf(i)=acf(i)+exp((-half)*xappi*xappi)*
-c     + approx(j)*cdac(j)*(xappi**kapprx(j))
-c   21 continue
-c   20 continue
-c
-c     autocorrelation function upto lag min(nacf,ndata)
-c
-c      if(iopt.gt.0) then
-c      warg=zero
-c      nacfa=nacf
-c      if(nacfa.gt.ndata) nacfa=ndata
-c      dfsum=zero
-c      do 2 i=1,ndata
-c      dfsum=dfsum+(data(i)-aver)**2
-c    2 continue
-c      dvar=dble(ndata)/dfsum
-c      do 3 i=1,nacfa-1
-c      dfsum=zero
-c      do 4 j=1,ndata-i
-c      dfsum=dfsum+(data(j)-aver)*(data(i+j)-aver)
-c    4 continue
-c      acf(i)=dvar*(dfsum/dble(ndata-i))*(one-dble(i-1)/dble(ndata-2))
-c    3 continue
-c      endif
-cc
-cc     approximate acf here
-cc
-c      if(iopt.gt.1) then
-c      rfact=two*sqrt(dble(klarge))/dble(nacfa-1)
-c      wsum1=zero
-c      wsum2=zero
-c      warg=zero
-c      do 5 i=1,nacfa-1
-c      acf(i)=abs(acf(i))
-c      if(acf(i).gt.zero) then
-c      wterm=exp(weight*dble(nacfa-i)/dble(nacfa-1))
-c      wsum1=wsum1+wterm
-c      wsum2=wsum2+wterm*log(acf(i))/(rfact*dble(i))
-c      endif
-c    5 continue
-c      if(abs(wsum1).gt.small) warg=wsum2/wsum1
-c      do 55 i=1,nacfa-1
-c      acf(i)=acf(i)-exp(warg*dble(i)*rfact)
-c   55 continue
-c      nfunc=iapprx
-c      if(nfunc.le.0) nfunc=15
-c      do 6 k=1,nfunc
-c      do 7 l=1,nfunc
-c      cdap(k,l)=zero
-c      do 8 m=1,nacfa-1
-c      xappm=dble(m)*rfact
-c      cdawgt=exp(weight*dble(nacfa-m)/dble(nacfa-1))
-c      cdap(k,l)=cdap(k,l)+cdawgt*exp((-xappm)*xappm)*
-c     + approx(k)*approx(l)*(xappm**(kapprx(k)+kapprx(l)))
-c    8 continue
-c      cdaq(k,l)=cdap(k,l)
-c    7 continue
-c    6 continue
-c      do 9 i=1,nfunc
-c      cdad(i)=zero
-c      do 10 j=1,nacfa-1
-c      xappj=dble(j)*rfact
-c      cdawgt=exp(weight*dble(nacfa-j)/dble(nacfa-1))
-c      cdad(i)=cdad(i)+cdawgt*exp((-half)*xappj*xappj)*
-c     + acf(j)*approx(i)*(xappj**kapprx(i))
-c   10 continue
-c    9 continue
-c      do 11 k=1,nfunc
-c      do 12 i=k,nfunc
-c      cdaq(i,k)=cdap(i,k)
-c      do 13 l=1,k-1
-c      cdaq(i,k)=cdaq(i,k)-cdaq(i,l)*cdaq(l,k)
-c   13 continue
-c   12 continue
-c      do 14 i=k+1,nfunc
-c      cdaq(k,i)=cdap(k,i)
-c      do 15 l=1,k-1
-c      cdaq(k,i)=cdaq(k,i)-cdaq(k,l)*cdaq(l,i)
-c   15 continue
-c      cdaq(k,i)=cdaq(k,i)/cdaq(k,k)
-c   14 continue
-c   11 continue
-c      do 16 j=1,nfunc
-c      cdac(j)=cdad(j)
-c      do 17 i=1,j-1
-c      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
-c   17 continue
-c      cdac(j)=cdac(j)/cdaq(j,j)
-c   16 continue
-c      do 18 k=1,nfunc
-c      j=nfunc+1-k
-c      do 19 i=j+1,nfunc
-c      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
-c   19 continue
-c   18 continue
-c      do 20 i=1,nacfa-1
-c      xappi=dble(i)*rfact
-c      acf(i)=exp(warg*xappi)
-c      do 21 j=1,nfunc
-c      acf(i)=acf(i)+exp((-half)*xappi*xappi)*
-c     + approx(j)*cdac(j)*(xappi**kapprx(j))
-c   21 continue
-c   20 continue
-c      endif
-cc
-cc     sampling ratio
-cc
-c      ratio=one
-c      if(iopt.gt.0) then
-c      ratio=half
-c      do 22 i=1,nacfa-1
-c      ratio=ratio+(one-(dble(i)/dble(ndata))**2)*abs(acf(i))
-c   22 continue
-c      ratio=sqrt(two*abs(ratio))
-c      if(ratio.lt.one) ratio=one
-c      endif
-cc
-cc
-c      corerr=ratio*stderr
-cc
+
+!      integer kapprox(15)
+
+!      rfact=two*sqrt(dble(klarge))/dble(nacfa-1)
+!      wsum1=zero
+!      wsum2=zero
+!      warg=zero
+!      do 5 i=1,nacfa-1
+!      acf(i)=abs(acf(i))
+!      if(acf(i).gt.zero) then
+!      wterm=exp(weight*dble(nacfa-i)/dble(nacfa-1))
+!      wsum1=wsum1+wterm
+!      wsum2=wsum2+wterm*log(acf(i))/(rfact*dble(i))
+!      endif
+!    5 continue
+!      if(abs(wsum1).gt.small) warg=wsum2/wsum1
+!      do 55 i=1,nacfa-1
+!      acf(i)=acf(i)-exp(warg*dble(i)*rfact)
+!   55 continue
+!      nfunc=iapprx
+!      if(nfunc.le.0) nfunc=15
+!      do 6 k=1,nfunc
+!      do 7 l=1,nfunc
+!      cdap(k,l)=zero
+!      do 8 m=1,nacfa-1
+!      xappm=dble(m)*rfact
+!      cdawgt=exp(weight*dble(nacfa-m)/dble(nacfa-1))
+!      cdap(k,l)=cdap(k,l)+cdawgt*exp((-xappm)*xappm)*
+!     + approx(k)*approx(l)*(xappm**(kapprx(k)+kapprx(l)))
+!    8 continue
+!      cdaq(k,l)=cdap(k,l)
+!    7 continue
+!    6 continue
+!      do 9 i=1,nfunc
+!      cdad(i)=zero
+!      do 10 j=1,nacfa-1
+!      xappj=dble(j)*rfact
+!      cdawgt=exp(weight*dble(nacfa-j)/dble(nacfa-1))
+!      cdad(i)=cdad(i)+cdawgt*exp((-half)*xappj*xappj)*
+!     + acf(j)*approx(i)*(xappj**kapprx(i))
+!   10 continue
+!    9 continue
+!      do 11 k=1,nfunc
+!      do 12 i=k,nfunc
+!      cdaq(i,k)=cdap(i,k)
+!      do 13 l=1,k-1
+!      cdaq(i,k)=cdaq(i,k)-cdaq(i,l)*cdaq(l,k)
+!   13 continue
+!   12 continue
+!      do 14 i=k+1,nfunc
+!      cdaq(k,i)=cdap(k,i)
+!      do 15 l=1,k-1
+!      cdaq(k,i)=cdaq(k,i)-cdaq(k,l)*cdaq(l,i)
+!   15 continue
+!      cdaq(k,i)=cdaq(k,i)/cdaq(k,k)
+!   14 continue
+!   11 continue
+!      do 16 j=1,nfunc
+!      cdac(j)=cdad(j)
+!      do 17 i=1,j-1
+!      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
+!   17 continue
+!      cdac(j)=cdac(j)/cdaq(j,j)
+!   16 continue
+!      do 18 k=1,nfunc
+!      j=nfunc+1-k
+!      do 19 i=j+1,nfunc
+!      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
+!   19 continue
+!   18 continue
+!      do 20 i=1,nacfa-1
+!      xappi=dble(i)*rfact
+!      acf(i)=exp(warg*xappi)
+!      do 21 j=1,nfunc
+!      acf(i)=acf(i)+exp((-half)*xappi*xappi)*
+!     + approx(j)*cdac(j)*(xappi**kapprx(j))
+!   21 continue
+!   20 continue
+!
+!     autocorrelation function upto lag min(nacf,ndata)
+!
+!      if(iopt.gt.0) then
+!      warg=zero
+!      nacfa=nacf
+!      if(nacfa.gt.ndata) nacfa=ndata
+!      dfsum=zero
+!      do 2 i=1,ndata
+!      dfsum=dfsum+(data(i)-aver)**2
+!    2 continue
+!      dvar=dble(ndata)/dfsum
+!      do 3 i=1,nacfa-1
+!      dfsum=zero
+!      do 4 j=1,ndata-i
+!      dfsum=dfsum+(data(j)-aver)*(data(i+j)-aver)
+!    4 continue
+!      acf(i)=dvar*(dfsum/dble(ndata-i))*(one-dble(i-1)/dble(ndata-2))
+!    3 continue
+!      endif
+!c
+!c     approximate acf here
+!c
+!      if(iopt.gt.1) then
+!      rfact=two*sqrt(dble(klarge))/dble(nacfa-1)
+!      wsum1=zero
+!      wsum2=zero
+!      warg=zero
+!      do 5 i=1,nacfa-1
+!      acf(i)=abs(acf(i))
+!      if(acf(i).gt.zero) then
+!      wterm=exp(weight*dble(nacfa-i)/dble(nacfa-1))
+!      wsum1=wsum1+wterm
+!      wsum2=wsum2+wterm*log(acf(i))/(rfact*dble(i))
+!      endif
+!    5 continue
+!      if(abs(wsum1).gt.small) warg=wsum2/wsum1
+!      do 55 i=1,nacfa-1
+!      acf(i)=acf(i)-exp(warg*dble(i)*rfact)
+!   55 continue
+!      nfunc=iapprx
+!      if(nfunc.le.0) nfunc=15
+!      do 6 k=1,nfunc
+!      do 7 l=1,nfunc
+!      cdap(k,l)=zero
+!      do 8 m=1,nacfa-1
+!      xappm=dble(m)*rfact
+!      cdawgt=exp(weight*dble(nacfa-m)/dble(nacfa-1))
+!      cdap(k,l)=cdap(k,l)+cdawgt*exp((-xappm)*xappm)*
+!     + approx(k)*approx(l)*(xappm**(kapprx(k)+kapprx(l)))
+!    8 continue
+!      cdaq(k,l)=cdap(k,l)
+!    7 continue
+!    6 continue
+!      do 9 i=1,nfunc
+!      cdad(i)=zero
+!      do 10 j=1,nacfa-1
+!      xappj=dble(j)*rfact
+!      cdawgt=exp(weight*dble(nacfa-j)/dble(nacfa-1))
+!      cdad(i)=cdad(i)+cdawgt*exp((-half)*xappj*xappj)*
+!     + acf(j)*approx(i)*(xappj**kapprx(i))
+!   10 continue
+!    9 continue
+!      do 11 k=1,nfunc
+!      do 12 i=k,nfunc
+!      cdaq(i,k)=cdap(i,k)
+!      do 13 l=1,k-1
+!      cdaq(i,k)=cdaq(i,k)-cdaq(i,l)*cdaq(l,k)
+!   13 continue
+!   12 continue
+!      do 14 i=k+1,nfunc
+!      cdaq(k,i)=cdap(k,i)
+!      do 15 l=1,k-1
+!      cdaq(k,i)=cdaq(k,i)-cdaq(k,l)*cdaq(l,i)
+!   15 continue
+!      cdaq(k,i)=cdaq(k,i)/cdaq(k,k)
+!   14 continue
+!   11 continue
+!      do 16 j=1,nfunc
+!      cdac(j)=cdad(j)
+!      do 17 i=1,j-1
+!      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
+!   17 continue
+!      cdac(j)=cdac(j)/cdaq(j,j)
+!   16 continue
+!      do 18 k=1,nfunc
+!      j=nfunc+1-k
+!      do 19 i=j+1,nfunc
+!      cdac(j)=cdac(j)-cdaq(j,i)*cdac(i)
+!   19 continue
+!   18 continue
+!      do 20 i=1,nacfa-1
+!      xappi=dble(i)*rfact
+!      acf(i)=exp(warg*xappi)
+!      do 21 j=1,nfunc
+!      acf(i)=acf(i)+exp((-half)*xappi*xappi)*
+!     + approx(j)*cdac(j)*(xappi**kapprx(j))
+!   21 continue
+!   20 continue
+!      endif
+!c
+!c     sampling ratio
+!c
+!      ratio=one
+!      if(iopt.gt.0) then
+!      ratio=half
+!      do 22 i=1,nacfa-1
+!      ratio=ratio+(one-(dble(i)/dble(ndata))**2)*abs(acf(i))
+!   22 continue
+!      ratio=sqrt(two*abs(ratio))
+!      if(ratio.lt.one) ratio=one
+!      endif
+!c
+!c
+!      corerr=ratio*stderr
+!c
       return
       end
 #if defined(CRAY_T3D) || defined(CRAY_T3E)
@@ -1393,15 +1406,15 @@ cc
       end
 #endif
       logical function argos_zmat(x1,x2,x3,x4,d,a,t)
-c
+
       implicit none
-c
+
       real*8 x1(3),x2(3),x3(3),x4(3),d,a,t
-c
+
       real*8 p(3),q(3),s(3),v(3),w(3)
       real*8 r
       integer i
-c
+
       do 1 i=1,3
       p(i)=x3(i)-x2(i)
       q(i)=x4(i)-x2(i)
@@ -1409,30 +1422,34 @@ c
       v(1)=p(2)*q(3)-p(3)*q(2)+x2(1)
       v(2)=p(3)*q(1)-p(1)*q(3)+x2(2)
       v(3)=p(1)*q(2)-p(2)*q(1)+x2(3)
-c
+
       r=sqrt(p(1)*p(1)+p(2)*p(2)+p(3)*p(3))
       do 2 i=1,3
       s(i)=d*p(i)/r+x2(i)
     2 continue
-c
+
       call rotate(x2,v,a,s,w)
       call rotate(x3,x2,t,w,s)
-c
+
       do 3 i=1,3
       x1(i)=s(i)
     3 continue
-c
+
       argos_zmat=.true.
       return
       end
-      
+
       subroutine tps_abort(message,id)
       implicit none
       character(*) :: message
       integer :: id
+      integer (kind=4) :: ierror,ierr
 
       write(*,999) id,message
- 999  format('Error code ',i,': ',a)
-      stop
-      return 
+ 999  format('Error code ',i2,': ',a)
+
+      ierror=0
+!      call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
+      stop "Aborting from tps_abort"
+      return
       end

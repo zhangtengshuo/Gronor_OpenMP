@@ -9,9 +9,9 @@ runfile = name+".run"
 
 runcommand = open(runfile).read().rstrip("\n")
 
-os.system('rm '+name+'.dif')
-os.system('rm '+name+'.tst')
-os.system('rm '+name+'.cpr')
+os.system('rm -f '+name+'.dif')
+os.system('rm -f '+name+'.tst')
+os.system('rm -f '+name+'.cpr')
 
 os.system(runcommand+' gronor '+name)
 

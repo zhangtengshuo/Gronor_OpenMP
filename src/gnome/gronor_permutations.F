@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief   Counts the number of permutations to bring a determinant in
 !!          the alpha-beta-alpha-beta-... order.
 !!
@@ -28,7 +28,7 @@
 !! @param   occ2 expanded occupation string
 
       integer function perm_ab(occ,nact)
-*     permutes the determinant in the alpha-beta order
+!     permutes the determinant in the alpha-beta order
       implicit none
 
       integer :: nact,nelec
@@ -37,7 +37,7 @@
       integer,allocatable  :: occ2(:)
       integer :: ms,pos1,pos2,spin,oppspin,aux
       logical :: permutation
-      
+
       nelec = 0
       do i = 1, nact
         nelec = nelec + abs(occ(i))
@@ -53,7 +53,7 @@
             j=j+1
             occ2(j)=1
             ms=ms+1
-            j=j+1            
+            j=j+1
             occ2(j)=-1
             ms=ms-1
          else if(occ(i).eq.1)then
@@ -68,7 +68,7 @@
       enddo
       if(ms.gt.0)then
          call alphastoend(occ2,nelec,nperm,ms)
-      endif      
+      endif
       do i=1,nelec-ms-1
          pos1=mod(i-1,2)
          if(occ2(i).eq.1)then
@@ -101,18 +101,18 @@
          perm_ab=1
       endif
       deallocate (occ2)
-      return     
+      return
       end
 
       subroutine alphastoend(occ,nact,nperm,ms)
-      
+
       implicit none
 
       integer,intent(in)  :: nact,ms
       integer             :: index,i,nperm
       integer             :: occ(nact)
       logical             :: permutation
-      
+
       do i=nact-ms+1,nact
          if(occ(i).eq.-1)then
             index=1
@@ -128,5 +128,5 @@
             enddo
          endif
       enddo
-      return      
+      return
       end

@@ -10,7 +10,7 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief   Read the CI coefficients and the vectors
 !>
 !>          Duplicates are removed from the list of determinants by
@@ -27,7 +27,7 @@
 !> @param   occ_string ocupation string as read from the root_nnn.det
 !>          file
 
-      subroutine gronor_read_vectors_and_determinants() 
+      subroutine gronor_read_vectors_and_determinants()
 
       use inp
       use cidef
@@ -36,10 +36,10 @@
 
       implicit none
 
-      integer                          :: i,j,k,istat,length
+      integer                          :: i,j,k,istat,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
-      real      (kind=8)               :: sdum
+      real      (kind=8)               :: sdum,sume,sump,sumc
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
       character (len=255), allocatable :: occ_string(:,:)
@@ -53,21 +53,26 @@
       allocate ( idet_raw(mstates) )
 
 !     Starting with the determinants
-      
+
 !     Filling idetm, inactm,nactm and determine the maximum dets and active orbitals.
 !     For reading from vecdet a raw value is calculated as duplicates are still to be removed
 
       allocate(nFrozen(mstates))
       allocate(fragLabel(mstates))
-      allocate(fragEner(mstates))
+      allocate(ecasscf(mstates))
+      allocate(ecaspt2(mstates))
+      allocate(ecorr(mstates))
       allocate(nElectrons(mstates))
+      ncorr=1
       do i=1,mstates
-        write(fildet,203) root(1:inp_strlen(root)),i
-        length=inp_strlen(fildet)
-        open(unit=lfndet,file=fildet(1:length),form='formatted',
+        write(fildet,2203) trim(fragfile(i))
+ 2203   format(a,'.det')
+        open(unit=lfndet,file=trim(fildet),form='formatted',                    &
      &       status='old',err=999)
-        read(lfndet,*) inactm(i),nFrozen(i),idet_raw(i),fragLabel(i),
-     &                 fragEner(i),nElectrons(i),tau_MO
+        read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i),                     &
+     &       fragLabel(i),ecasscf(i),nElectrons(i),tau_MO, ecaspt2(i)
+        if(ecaspt2(i).ge.0.0d0) ncorr=0
+        ecorr(i)=ecaspt2(i)-ecasscf(i)
         read(lfndet,*) sdum,dumstr
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
@@ -75,44 +80,78 @@
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo
- 1600 format(2i5,i12,4x,a8,4x,f22.12,i5)
+ 1600 format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
-        mebfLabels = .false.
-        do j = 1, nbase
-          write(mebfLabel(j),618) j
-        end do
- 618  format(i4)
+         mebfLabels = .false.
+         do j = 1, nbase
+            write(mebfLabel(j),618) j
+         end do
+ 618     format(i4)
       else
-        mebfLabels = .true.
-        write(lfnout,607) '  MEBF       Sum of fragment energies'
- 607    format(/,a,/)
-        do j = 1,nbase
-          write(mebfLabel(j),616) (fragLabel(ncombv(k,j)),k=1,nmol)
- 616      format(3a2)
-          write(lfnout,617) mebflabel(j),
-     &         fragEner(ncombv(1,j))+fragEner(ncombv(2,j))
- 617      format(a6,t12,f22.12)
-        enddo
+         mebfLabels = .true.
+         if(ncorr.ne.0) then
+            write(lfnout,607)                                                   &
+     &           ' MEBF ','Electrons   Sum of fragment energies',               &
+     &           'E(CASSCF)','E(CASPT2)','E_corr'
+         else
+            write(lfnout,627)                                                   &
+     &           ' MEBF ','Electrons   Sum of fragment energies',               &
+     &           'E(CASSCF)'
+         endif
+ 607     format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
+ 627     format(/,a,t16,a,/,t34,a,/)
+         do j = 1,nbase
+            write(mebfLabel(j),616)                                             &
+     &           (trim(fragLabel(ncombv(k,j))),k=1,nmol)
+ 616        format(10a)
+            nume=0
+            sume=0.0d0
+            sump=0.0d0
+            sumc=0.0d0
+            do k=1,nmol
+               nume=nume+nElectrons(ncombv(k,j))
+               sume=sume+ecasscf(ncombv(k,j))
+               sump=sump+ecaspt2(ncombv(k,j))
+               sumc=sumc+ecorr(ncombv(k,j))
+            enddo
+            if(ncorr.ne.0) then
+               write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+            else
+               write(lfnout,637) mebflabel(j),nume,sume
+            endif
+ 617        format(1x,a,t16,i5,3x,3f22.12)
+ 637        format(1x,a,t16,i5,3x,f22.12)
+         enddo
       endif
-      
+      write(lfnarx,701) nbase,nmol
+ 701  format('State',2i10)
+      do j=1,nbase
+            nume=0
+            sume=0.0d0
+            do k=1,nmol
+               nume=nume+nElectrons(ncombv(k,j))
+               sume=sume+ecasscf(ncombv(k,j))
+            enddo
+         write(lfnarx,617) mebflabel(j),nume,sume
+      enddo
+
       allocate(civ_raw(maxci_raw,mstates))
       allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
       do i=1,mstates
-        write(fildet,203) root(1:inp_strlen(root)),i
-        length=inp_strlen(fildet)
-        open(unit=lfndet,file=fildet(1:length),form='formatted',
-     &         status='old',err=999)            
+        write(fildet,2203) trim(fragfile(i))
+        open(unit=lfndet,file=trim(fildet),form='formatted',                    &
+     &         status='old',err=999)
         read(lfndet,*)
         do j=1,idet_raw(i)
           read(lfndet,*) civ_raw(j,i),occ_string(j,i)
           occ_string(j,i)=adjustl(occ_string(j,i))
-        enddo                                    
-        call remove_duplicates_fildet
-     &       (idet_raw(i),idetm(i),civ_raw(:,i),
+        enddo
+        call remove_duplicates_fildet                                           &
+     &       (idet_raw(i),idetm(i),civ_raw(:,i),                                &
      &       occ_string(:,i),tau_CI)
-        close(unit=lfndet)                        
-        maxci=max(maxci,idetm(i))     
+        close(unit=lfndet)
+        maxci=max(maxci,idetm(i))
       enddo
       allocate( civm(maxci,mstates) )               ! Now that the number of unique dets is known
       allocate( ioccm(maxnact,maxci,mstates) )      ! civm and ioccm can be allocated
@@ -134,8 +173,7 @@
  601          format(' Weird occupation in ',a)
               write(lfnout,602) j,i
  602          format(' Determinant ',i4,' of state ',i4)
-              call errquit(me,9,"Inconsistent occupation")
-              stop
+              call gronor_abort(260,"Inconsistent occupation")
             endif
           enddo
         enddo
@@ -145,11 +183,11 @@
       deallocate(occ_string)
 
 !     Next, reading the vectors
-      
+
       do i=1,mstates
-        write(filvec,201) root(1:inp_strlen(root)),i
-        length=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:length),form='formatted',
+        write(filvec,2201) trim(fragfile(i))
+ 2201   format(a,'.vec')
+        open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
         read(lfnvec,*)nbasm(i)
         maxvec=max(maxvec,nbasm(i))
@@ -157,9 +195,8 @@
       enddo
       allocate( vecsm(maxvec,maxvec,mstates) )
       do i=1,mstates
-        write(filvec,201) root(1:inp_strlen(root)),i
-        length=inp_strlen(filvec)
-        open(unit=lfnvec,file=filvec(1:length),form='formatted',
+        write(filvec,2201) trim(fragfile(i))
+        open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
         read(lfnvec,*)
         do j=1,nbasm(i)
@@ -170,49 +207,69 @@
       enddo
 
 !     Finally, the output section
-      
+
       if(ipr.ge.20) then
-        write(lfnout,603)
- 603    format(/,' Dimensions',//,
-     &       '       istate   ndetm   nactm  ninatm   nbasm',
-     &       '  nelecs               energy     files',/)
+         if(ncorr.ne.0) then
+            write(lfnout,603)
+         else
+            write(lfnout,623)
+         endif
+ 603    format(/,' Dimensions',//,                                              &
+     &       '       istate   ndetm   nactm  ninatm   nbasm',                   &
+     &       '  nelecs         CASSCF energy  ',                                &
+     &       '       CASPT2 energy    files',/)
+ 623    format(/,' Dimensions',//,                                              &
+     &       '       istate   ndetm   nactm  ninatm   nbasm',                   &
+     &       '  nelecs         CASSCF energy    files',/)
         do i=1,mstates
-          ostate=.false.
-          do j=1,nbase
-            do k=1,nmol
-              if(ncombv(k,j).eq.i) ostate=.true.
-            enddo
-          enddo
-          if(ostate) then
-            write(fildet,203) root(1:inp_strlen(root)),i
-            write(filvec,201) root(1:inp_strlen(root)),i
-            write(lfnout,604) i,fragLabel(i),
-     &           idetm(i),nactm(i),inactm(i),nbasm(i),
-     &           nElectrons(i),fragEner(i),
-     &           fildet(1:inp_strlen(fildet)),
-     &           filvec(1:inp_strlen(filvec))
- 604        format(i8,': ',a2,5i8,3x,f22.12,2x,a,', ',a)
+           ostate=.true.
+           do j=1,i-1
+              if(trim(fragfile(i)).eq.trim(fragfile(j))) ostate=.false.
+           enddo
+!          do j=1,nbase
+!            do k=1,nmol
+!              if(ncombv(k,j).eq.i) ostate=.true.
+!            enddo
+!          enddo
+           if(ostate) then
+              write(fildet,203) trim(fragfile(i))
+              write(filvec,201) trim(fragfile(i))
+              if(ncorr.ne.0) then
+                 write(lfnout,604) fragLabel(i),                                &
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),                     &
+     &                nElectrons(i),ecasscf(i),ecaspt2(i),                      &
+     &                trim(fildet),                                             &
+     &                trim(filvec)
+              else
+                 write(lfnout,634) fragLabel(i),                                &
+     &                idetm(i),nactm(i),inactm(i),nbasm(i),                     &
+     &                nElectrons(i),ecasscf(i),                                 &
+     &                trim(fildet),                                             &
+     &                trim(filvec)
+              endif
+ 604        format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
+ 634        format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
           endif
         enddo
         write(lfnout,605) maxci,maxnact,maxvec
- 605    format(13x,' ------  ------',8x,'  ------',/,
+ 605    format(13x,' ------  ------',8x,'  ------',/,                           &
      &     '        max:',i8,i8,8x,i8)
       endif
- 201  format(a,'_',i3.3,'.vec')
- 203  format(a,'_',i3.3,'.det')
+ 201  format(a,'.vec')
+ 203  format(a,'.det')
 
       if(ipr.gt.0) then
         write(lfnout,606) (i,i=1,nbase)
- 606    format(/,' Molecular states included in this calculation',//,
+ 606    format(/,' Molecular states included in this calculation',//,           &
      &       ' State        : ',20i4)
         do i=1,nmol
           if(i.eq.1) then
-            write(lfnout,608) i,(ncombv(i,j),j=1,nbase)
+            write(lfnout,608) i,(fragLabel(ncombv(i,j)),j=1,nbase)
           else
-            write(lfnout,614) i,(ncombv(i,j),j=1,nbase)
+            write(lfnout,614) i,(fragLabel(ncombv(i,j)),j=1,nbase)
           endif
- 608      format(/,' Fragment',i4,' : ',20i4)
- 614      format(' Fragment',i4,' : ',20i4)
+ 608      format(/,' Fragment',i4,' : ',20(2x,a2))
+ 614      format(' Fragment',i4,' : ',20(2x,a2))
         enddo
       endif
 
@@ -222,20 +279,19 @@
         do i=1,mstates
           do j=1,idetm(i)
             if(j.eq.1) then
-              write(lfnout,610) i,j,civm(j,i),
+              write(lfnout,610) i,j,civm(j,i),                                  &
      &             (ioccm(k,j,i),k=1,nactm(i))
  610          format(/,2i8,f25.14,6x,32(i2,1x))
             else
-              write(lfnout,611) j,civm(j,i),
+              write(lfnout,611) j,civm(j,i),                                    &
      &             (ioccm(k,j,i),k=1,nactm(i))
  611          format(8x,i8,f25.14,6x,32(i2,1x))
             endif
           enddo
           if(ipr.ge.40) then
-            write(filvec,201) root(1:inp_strlen(root)),i
-            length=inp_strlen(filvec)
-            write(lfnout,612) filvec(1:length),nbasm(i)
- 612        format(/,' Vector File ',a,//,
+            write(filvec,201) trim(root),i
+            write(lfnout,612) trim(filvec),nbasm(i)
+ 612        format(/,' Vector File ',a,//,                                      &
      &          ' Number of basis functions ',i8,/)
             do j=1,nbasm(i)
               write(lfnout,613) j,(vecsm(k,j,i),k=1,nbasm(i))
@@ -246,24 +302,23 @@
       endif
       flush(lfnout)
 
-      write(filsym,202) root(1:inp_strlen(root))
- 202  format(a,'.sym')
-      length=inp_strlen(filsym)
-      open(unit=lfnsym,file=filsym(1:length),form='formatted',
+      write(filsys,202) trim(root)
+ 202  format(a,'.sys')
+      open(unit=lfnsys,file=trim(filsys),form='formatted',                      &
      &      status='old',err=995)
 
-      if(ipr.gt.0) write(lfnout,615) filsym(1:inp_strlen(filsym))
+      if(ipr.gt.0) write(lfnout,615) trim(filsys)
  615  format(/,' System information read from ',a)
 
       return
 
- 995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit(me,6,"Error reading determinants")
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit(me,6,"Error reading determinants")
- 999  write(lfnout,989) fildet(1:inp_strlen(fildet))
-      call errquit(me,6,"Error reading determinants")
- 985  format('Unable to open symmetry file ',a)
+ 995  write(lfnout,985) trim(filsys)
+      call gronor_abort(261,trim(filsys))
+ 997  write(lfnout,987) trim(filvec)
+      call gronor_abort(262,trim(filvec))
+ 999  write(lfnout,989) trim(fildet)
+      call gronor_abort(263,trim(fildet))
+ 985  format('Unable to open system file ',a)
  987  format('Unable to open vects  file ',a)
  989  format('Unable to open vecdet file ',a)
 

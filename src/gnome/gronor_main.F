@@ -19,10 +19,9 @@
 !>
 !> @todo     Maybe we could take out some parts and put them in
 !>           separate subroutines. A subroutine for reading the
-!>           input would be nice (with some extra checks on 
+!>           input would be nice (with some extra checks on
 !>           input errors)
 
-#include "tgt_guard.fh"
 #include "gronor_config.fh"
 
       subroutine gronor_main()
@@ -37,8 +36,7 @@
 !!     <tr><th>File name <th> File Description <th> String <th> Unit <th> Source
 !!     <tr><td>\$(root).inp <td> input file <td> filinp <td> lfninp <td>
 !!     <tr><td>\$(root).out <td> output file <td> filout <td> lfnout <td>
-!!     <tr><td>\$(root).sym <td> symmetry of MOs for different sets,
-!!                 coordinates, basis set <td> filsym <td> lfnsym <td> OpenMolcas Auxiliary
+!!     <tr><td>\$(root).sys <td> system file <td> filsys <td> lfnsys <td>
 !!     <tr><td>\$(root)_nnn.civ <td> CI vectors, one for every nnn=1,mstates
 !!                 <td> filciv <td> lfnciv <td> OpenMolcas Auxiliary
 !!     <tr><td>\$(root)_nnn.vec <td> MO vectors, one for every nnn=1,mstates
@@ -57,6 +55,7 @@
       use gnome_parameters
       use gnome_data
       use gnome_integrals
+      use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef CUSOLVER
       use cusolverDn
@@ -64,21 +63,21 @@
 #endif
 #ifdef _OPENACC
       use openacc
-c     use cuda_functions
+!     use cuda_functions
 #endif
-      
+
       implicit none
 
-      integer (kind=4) :: ierror,ierr
-      integer :: iarg,i,j,idum(51),k,l
+      integer (kind=4) :: ierror,ierr,ncount
+      integer (kind=8) :: iarg,i,j,jp,idum(55),k,l
       integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
-      character (len=255) :: string
+      character (len=255) :: string,target,compiler
       logical exist
 
       real(kind=8), external :: timer_wall_total
-      
+
       integer :: getcpucount
       external :: getcpucount
 
@@ -95,16 +94,23 @@ c     use cuda_functions
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
 
-      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib
+      integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
+      integer :: l2,nidet,njdet,n
+      integer, external :: ipopcnt
+
+      character (len=3) :: ident(3)
+      character (len=4) :: onlabel
       character (len=5) :: version
       character (len=64) :: version_type
+
+      integer :: major,minor
 
 #ifdef USE_POSIXF
       integer*4 len4,ierr4
 #endif
-      
-#ifdef CUDA
+
+#ifdef _OPENACC
       type(c_ptr) :: cpfre, cptot
 #endif
 
@@ -128,8 +134,13 @@ c     use cuda_functions
 #ifdef USE_POSIXF
         call pxfgetlogin(user,len4,ierr4)
 #else
-        call getlog(user)
+        call getenv("USER",user)
+!     call getlog(user)
+#ifdef IBM
+        call hostnm_(host)
+#else
         call hostnm(host)
+#endif
         call swatch(date,time)
         call getcwd(cwd)
 #endif
@@ -140,7 +151,7 @@ c     use cuda_functions
 
 !     input file: filinp with logical file number lfninp
 !     output file: filout with logical file number lfnout
-!     symmetry file: filsym with logical file number lfnsym
+!     system file: filsys with logical file number lfnsys
 !     what is on?: filciv with logical file number lfnciv
 !     what is on?: filvec with logical file number lfnvec
 
@@ -149,71 +160,75 @@ c     use cuda_functions
         iarg=1
         call getarg(iarg,string)
 
-        root=string(1:inp_strlen(string))
+        root=trim(string)
         if(index(string,'_').gt.0) root=string(1:index(string,'_')-1)
-        filinp=string(1:inp_strlen(string))//'.inp'
+        filinp=trim(string)//'.inp'
         lfninp=5
-        filout=string(1:inp_strlen(string))//'.out'
+        filout=trim(string)//'.out'
         lfnout=16
-        filsym=root(1:inp_strlen(root))//'.sym'
-        lfnsym=7
+        filsys=trim(root)//'.sys'
+        lfnsys=7
         lfnciv=9
         lfnvec=10
-        filint=root(1:inp_strlen(root))//'.int'
-        filone=root(1:inp_strlen(root))//'.one'
+        filint=trim(root)//'.int'
+        filone=trim(root)//'.one'
         lfnint=11
         lfnone=11
         lfntwo=12
         lfndbg=13
-        filpro=string(1:inp_strlen(string))//'.pro'
+        filpro=trim(string)//'.pro'
         lfnpro=14
-        fildat=string(1:inp_strlen(string))//'.dat'
+        fildat=trim(string)//'.dat'
         lfndat=15
         lfndet=17
-        filday=string(1:inp_strlen(string))//'.day'
+        filday=trim(string)//'.day'
         lfnday=18
-        filtst=string(1:inp_strlen(string))//'.tst'
+        filtst=trim(string)//'.tst'
         lfntst=19
-        fillog=root(1:inp_strlen(root))//'.log'
+        fillog=trim(root)//'.log'
         lfnlog=20
-        filcpr=string(1:inp_strlen(string))//'.cpr'
+        filcpr=trim(string)//'.cpr'
         lfncpr=21
-        filarx=string(1:inp_strlen(string))//'.arx'
+        filarx=trim(string)//'.arx'
         lfnarx=22
-        filrnk=string(1:inp_strlen(string))//'.rnk'
+        filrnk=trim(string)//'.rnk'
         lfnrnk=23
-        filcml=string(1:inp_strlen(string))//'.cml'
+        filcml=trim(string)//'.cml'
         lfncml=24
+        filtim=trim(string)//'.tim'
+        lfntim=25
+        lfnabt=26
+        lfnwrn=27
 
-        open(unit=lfnout,file=filout(1:inp_strlen(filout)),
+        open(unit=lfnout,file=trim(filout),                                     &
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfnpro,file=filpro(1:inp_strlen(filpro)),
+        open(unit=lfnpro,file=trim(filpro),                                     &
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfnday,file=filday(1:inp_strlen(filday)),
+        open(unit=lfnday,file=trim(filday),                                     &
      &       form='formatted',status='unknown',err=996)
-        
-        open(unit=lfntst,file=filtst(1:inp_strlen(filtst)),
+
+        open(unit=lfntst,file=trim(filtst),                                     &
      &       form='formatted',status='unknown',err=996)
-        
-        open(unit=lfncpr,file=filcpr(1:inp_strlen(filcpr)),
+
+        open(unit=lfncpr,file=trim(filcpr),                                     &
      &       form='unformatted',status='unknown',err=996)
-        
-        open(unit=lfnarx,file=filarx(1:inp_strlen(filarx)),
-     &       form='formatted',status='unknown',err=996)
-        
-        open(unit=lfnrnk,file=filrnk(1:inp_strlen(filrnk)),
+
+        open(unit=lfnarx,file=trim(filarx),                                     &
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfncml,file=filcml(1:inp_strlen(filcml)),
+        open(unit=lfnrnk,file=trim(filrnk),                                     &
+     &       form='formatted',status='unknown',err=996)
+
+        open(unit=lfncml,file=trim(filcml),                                     &
      &       form='formatted',status='unknown',err=996)
 
         call gronor_prelude_cml()
-        
+
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),             &
      &       '  :  Start of job'
  702    format(a8,2x,a8,f12.3,a)
         flush(lfnday)
@@ -221,7 +236,7 @@ c     use cuda_functions
 
 !>
 !!    <table>
-!!    <caption id="multi_row">Input derived variables</caption> 
+!!    <caption id="multi_row">Input derived variables</caption>
 !!    <tr><th> Variable <th> Description
 !!    <tr><td> npg <td> number of processes per group (default is 1)
 !!    <tr><td> nmol <td> number of molecules
@@ -238,7 +253,7 @@ c     use cuda_functions
 !!    <tr><td> idetm(mstates) <td> number of determinants per monomer/state
 !!    </table>
 
-!     
+!
 !     Set defaults
 
         npg=0
@@ -248,9 +263,9 @@ c     use cuda_functions
         mgr=1
         if(npg.eq.0) npg=(np-1)/mgr
         if(np.lt.mgr+1) then
-          write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,
+          write(*,'(a,i5,a,i5,a)') 'Error: Size specified (',mgr,               &
      &         ') cannot be supported by available ranks (',np,')'
-          call errquit(me,2,"Error in main")
+          call gronor_abort(200,"Error in main")
         endif
 
         nmol=0
@@ -263,16 +278,20 @@ c     use cuda_functions
 
         ntask=-1
         nbatch=-1
+        ntaska=-1
+        nbatcha=-1
+        load=1
+        loada=1
 
 !     Default is not to write a test file
-        
+
         itest=0
 
 !     Distribution of integrals
 !     0 : MPI_Bcast to all ranks (default)
-!     1 : MPI_Bcats to all nodes, followed by MPI_Bcast to ranks within nodes
+!     1 : MPI_Bcast to all nodes, followed by MPI_Bcast to ranks within nodes
 !     2 : MPI_Bcast to all nodes, followed by MPI_iSend/MPI_Recv to ranks within nodes
-        
+
         idist=0
 !        if(nnodes.ge.128.and.nnodes.le.2048.and.np/nnodes.gt.mgr)
 !     &       idist=2
@@ -280,34 +299,35 @@ c     use cuda_functions
         idevel=0
         ifault=1
 
-!     Default solvers are those included in the code
-        
-        isolver=0
-        jsolver=0
-        iaslvr=0
-        jaslvr=0
-        inslvr=0
-        jnslvr=0
+!     Set solvers undefined
+
+        isolver=-1
+        jsolver=-1
+        iaslvr=-1
+        jaslvr=-1
+        inslvr=-1
+        jnslvr=-1
 
         naccel=-1
         ncols=7
+        numgpu=0
         nummps=1
-        numomp=1
         ixpert=0
         iswsvj=15
         iswevj=15
+        nabort=64
 
 !     labels   0 : read labels from the integral file
 !     1 : use Molcas integral ordering
-        
+
         labels=1
-        
+
 #ifdef _OPENACC
         naccel=0
 #endif
 
 !     Default print flag set to medium (20)
-        
+
         ipr=20
 
 !     Default is not to turn timing on
@@ -326,11 +346,28 @@ c     use cuda_functions
         tolevj=1.0d-07
         lcpr=.false.
 
+        ngpus=1
+        if(machine.eq.'Juwels  '.and.numdev.eq.1) ngpus=4
+        if(machine.eq.'Summit  '.and.numdev.eq.1) ngpus=6
+        if(machine.eq.'Snellius'.and.numdev.eq.1) ngpus=4
+        if(machine.eq.'Crusher '.and.numdev.eq.1) ngpus=8
+
         call gronor_input()
 
         if(mgr.eq.0) then
-          if(npg.eq.0) call errquit(me,2,"Error in main")
+          if(npg.eq.0) call gronor_abort(201,"Error in main")
           mgr=(np-1)/npg
+        endif
+
+        if(nbatch.eq.-1) nbatch=32
+        if(nbatcha.eq.-1) nbatcha=0
+
+        if(ntaska.eq.-1) then
+          if(nbatcha.gt.0) then
+            ntaska=nbatcha
+          else
+            ntaska=32
+          endif
         endif
 
         if(ntask.eq.-1) then
@@ -341,94 +378,145 @@ c     use cuda_functions
           endif
         endif
 
-        if(nbatch.eq.-1) nbatch=32
-        if(nbatcha.eq.-1) nbatcha=0
-        
-        if(nbatcha.gt.ntask) nbatcha=ntask
+        if(nbatcha.gt.ntaska) nbatcha=ntaska
         if(nbatch.gt.ntask) nbatch=ntask
 
+!     Sanity check on the task size
+
+        if(numdev.gt.0.and.ntaska.eq.0)                                         &
+     &       call gronor_abort(202,"Error in main")
+        if(numdev.eq.0.and.ntask.eq.0)                                          &
+     &       call gronor_abort(202,"Error in main")
+        if(ntaska.eq.0.and.ntask.eq.0)                                          &
+     &       call gronor_abort(202,"Error in main")
+
 !     Unless the user is an expert let's check thresholds
-        
+
         if(ixpert.eq.0) then
           if(tau_CI.lt.1.0d-6) tau_CI=1.0d-6
           if(tau_CI.gt.1.0d-4) tau_CI=1.0d-4
         endif
 
-        if(_GRONOR_VERSION_MINOR_.eq.0.or.
-     &       _GRONOR_VERSION_MINOR_.gt.12) then
+        major=_GRONOR_VERSION_MAJOR_
+        minor=_GRONOR_VERSION_MINOR_
+
+        if(minor.eq.0.or.minor.gt.12) then
           version_type=" under active development"
         else
           version_type=" official release"
         endif
-        write(version,'(i2,a,i2.2)')_GRONOR_VERSION_MAJOR_,'.',
-     &       _GRONOR_VERSION_MINOR_
-        
-        if(ipr.gt.0) write(lfnout,600) _GRONOR_VERSION_MAJOR_,
-     &       _GRONOR_VERSION_MINOR_,trim(version_type)
- 600    format(/,
-     &       ' GronOR: Non-Orthogonal Configuration Interaction',//,
-     &       ' Version ',i2,'.',i2.2,a,//,
-     &       ' T. P. Straatsma',t50,'C. de Graaf',t82,'R. Broer',/,
-     &       t50,'A. Sanchez',t82,'R. K. Kathir',//,
-     &       ' National Center for Computational Sciences',t50,
-     &       'Quantum Chemistry Group',t82,
-     &       'Department of Theoretical Chemistry',/,
-     &       ' Oak Ridge National Laboratory',t50,
-     &       'University Rovira i Virgili',t82,
-     &       'University of Groningen',/,
-     &       ' Oak Ridge, Tennessee, USA',t50,
-     &       'Tarragona, Spain',t82,
-     &       'Groningen, the Netherlands',//,
-     &       ' Based on GNOME written by R. Broer-Braam, ',
-     &       'J. Th. van Montfort, and B. Vunderink',//,
-     &       ' Please cite the following reference when publishing ',
-     &       'results obtained using GronOR:',//,
-     &       ' T. P. Straatsma, R. Broer, S. Faraji,',
-     &       'R. W. A. Havenith, L. E. Aguilar Suarez, R. K. Kathir, ',
-     &       'M. Wibowo, and C.de Graaf',/,
-     &       ' "GronOR: Massively parallel and GPU-accelerated ',
-     &       'non-orthogonal configuration interaction for large ',
-     &       'molecular systems"',/,
-     &       ' Journal of Chemical Physics, 152 (2020), ',
-     &       'https://doi.org/10.1063/1.5141358',/)
+        write(version,'(i2,a,i2.2)') major,'.',minor
 
-        if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),
-     &       trim(host),nnodes,
-     &       date(1:8),nrsets,
-     &       time(1:8),nrnsets,numdev,
-     &       np,np/nnodes,np/nrsets,
+        if(ipr.gt.0) write(lfnout,600) major,minor,trim(version_type)
+ 600    format(/,                                                               &
+     &       ' GronOR: Non-Orthogonal Configuration Interaction',//,            &
+     &       ' Version ',i2,'.',i2.2,a,//,                                      &
+     &       ' T. P. Straatsma',t50,'C. de Graaf',t82,'R. Broer',/,             &
+     &       t50,'A. Sanchez',t82,'R. K. Kathir',//,                            &
+     &       ' National Center for Computational Sciences',t50,                 &
+     &       'Quantum Chemistry Group',t82,                                     &
+     &       'Department of Theoretical Chemistry',/,                           &
+     &       ' Oak Ridge National Laboratory',t50,                              &
+     &       'University Rovira i Virgili',t82,                                 &
+     &       'University of Groningen',/,                                       &
+     &       ' Oak Ridge, Tennessee, USA',t50,                                  &
+     &       'Tarragona, Spain',t82,                                            &
+     &       'Groningen, the Netherlands',//,                                   &
+     &       ' Based on GNOME written by R. Broer-Braam, ',                     &
+     &       'J. Th. van Montfort, and B. Vunderink',//,                        &
+     &       ' Please cite the following reference when publishing ',           &
+     &       'results obtained using GronOR:',//,                               &
+     &       ' T. P. Straatsma, R. Broer, A. Sanchez-Mansilla,',                &
+     &       'C. Sousa, and C.de Graaf',/,                                      &
+     &       ' "GronOR: Scalable and Accelerated Nonorthogonal ',               &
+     &       'Configuration Interaction for Molecular Wave ',                   &
+     &       'Functions"',/,                                                    &
+     &       ' Journal of Chemical Theory and Computation, 18, 3549-',          &
+     &       '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
+
+        target=' CPU'
+        compiler=' '
+#ifdef ACC
+#ifdef AMD
+        write(target,'(a)') " OpenACC AMD"
+#else
+        write(target,'(a)') " OpenACC NVIDIA"
+#endif
+#endif
+#ifdef OMPTGT
+#ifdef AMD
+        write(target,'(a)') " OpenMP target AMD"
+#else
+        write(target,'(a)') " OpenMP target NVIDIA"
+#endif
+#endif
+        if(ipr.ge.0) write(lfnout,645) trim(target)
+#if defined(CRAY)
+ 645    format(//,' Compiled with the CRAY CCE Compiler suite',a)
+        compiler='Cray CCE'
+#elif defined(IBM)
+ 645    format(//,' Compiled with the IBM XL Compiler suite',a)
+        compiler='IBM XL'
+#elif defined(PGI)
+ 645    format(//,' Compiled with the PGI Compiler suite',a)
+        compiler='PGI'
+#elif defined(NVIDIA)
+ 645    format(//,' Compiled with the NVIDIA Compiler suite',a)
+        compiler='NVIDIA'
+#elif defined(NVHPC)
+ 645    format(//,' Compiled with the NVIDIA NVHPC Compiler suite',a)
+        compiler='NVHPC'
+#elif defined(GNU)
+ 645    format(//,' Compiled with the GNU Compiler suite',a)
+        compiler='GNU'
+#elif defined(INTEL)
+ 645    format(//,' Compiled with the INTEL Compiler suite',a)
+        compiler='Intel'
+#else
+ 645    format(//,' Compiled with unknown compiler suite',a)
+#endif
+        onlabel='    '
+        if(machine.ne.'        ') onlabel=' on '
+
+        if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(),               &
+     &       trim(host),onlabel,trim(machine),nnodes,                           &
+     &       date(1:8),nrsets,                                                  &
+     &       time(1:8),nrnsets,numdev,ngpus,nummps,                             &
+     &       np,np/nnodes,np/nrsets,                                            &
      &       ncycls,num_threads
- 601    format(//,
-     &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,
-     &       ' Host',t30,a,t60,'Number of nodes',t100,i10,/,
-     &       ' Date',t30,a,t60,
-     &       'Number of resource sets',t100,i10,/,
-     &       ' Time',t30,a,t60,
-     &       'Number of resource sets per node',t100,i10,/,
-     &       t60,'Number of GPUs per resource set',t100,i10,/,
-     &       t60,'Number of MPI ranks',t100,i10,/,
-     &       t60,'Number of MPI ranks per node',t100,i10,/,
-     &       t60,'Number of MPI ranks per resource set',t100,i10,/,
-     &       t60,'Number of rank assignment cycles',t100,i10,/,
-     &       t60,'Number of OPENMP threads',t100,i10)
-        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602)
+ 601    format(//,                                                              &
+     &       ' User',t30,a,t60,'CPU count',t100,i10,/,/,                        &
+     &       ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/,                &
+     &       ' Date',t30,a,t60,                                                 &
+     &       'Number of resource sets',t100,i10,/,                              &
+     &       ' Time',t30,a,t60,                                                 &
+     &       'Number of resource sets per node',t100,i10,/,                     &
+     &       t60,'Number of GPUs per resource set',t100,i10,/,                  &
+     &       t60,'Number of GPUs per node',t100,i10,/,                          &
+     &       t60,'Number of MPI ranks per GPU (MPS)',t100,i10,/,                &
+     &       t60,'Number of MPI ranks',t100,i10,/,                              &
+     &       t60,'Number of MPI ranks per node',t100,i10,/,                     &
+     &       t60,'Number of MPI ranks per resource set',t100,i10,/,             &
+     &       t60,'Number of rank assignment cycles',t100,i10,/,                 &
+     &       t60,'Number of OPENMP threads per MPI rank',t100,i10)
+        if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602)                         &
      &       dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
- 602    format(t60,'Available memory on device',t90,f24.3,' GB',/,
+ 602    format(t60,'Available memory on device',t90,f24.3,' GB',/,              &
      &       t60,'Total memory on device',t90,f24.3,' GB')
-        if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),
-     &       filinp(1:inp_strlen(filinp)),filsym(1:inp_strlen(filsym)),
-     &       filout(1:inp_strlen(filout)),filone(1:inp_strlen(filone)),
-     &       root(1:inp_strlen(root)),
-     &       root(1:inp_strlen(root))
- 603    format(/,' Command argument',t30,a,/,
-     &       ' Current working directory',t30,a,//,
-     &       ' Input file is',t25,a,t60,
-     &       'Symmetry file is',t92,a,/,
-     &       ' Output file is',t25,a,t60,
-     &       'One electron integral file is',t92,a,//,
-     &       ' CI vector file(s) are',t25,a,'_nnn.det',/
+        if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd),                 &
+     &       trim(filinp),trim(filsys),                                         &
+     &       trim(filout),trim(filone),                                         &
+     &       trim(root),                                                        &
+     &       trim(root)
+ 603    format(/,' Command argument',t30,a,/,                                   &
+     &       ' Current working directory',t30,a,//,                             &
+     &       ' Input file is',t25,a,t60,                                        &
+     &       'System file is',t92,a,/,                                          &
+     &       ' Output file is',t25,a,t60,                                       &
+     &       'One electron integral file is',t92,a,//,                          &
+     &       ' CI vector file(s) are',t25,a,'_nnn.det',/                        &
      &       ' MO vector file(s) are',t25,a,'_nnn.vec')
-        
+
         call swatch(date,time)
         write(lfnarx,401) trim(user)
  401    format('User ',a)
@@ -436,30 +524,38 @@ c     use cuda_functions
  402    format('Date ',a)
         write(lfnarx,403) trim(time)
  403    format('Time ',a)
-        write(lfnarx,404) trim(host)
- 404    format('Host ',a)
-        write(lfnarx,405) root(1:inp_strlen(root))
+        write(lfnarx,404) trim(host),onlabel,trim(machine)
+ 404    format('Host ',a,a,a)
+        write(lfnarx,405) trim(root)
  405    format('Root ',a)
         write(lfnarx,406) nnodes,np
  406    format('Nodes',i10,i10)
 
         call gronor_number_integrals(numone,numtwo)
-        
+
         if(npg*mgr+1.gt.np) then
-          call errquit(me,2,"Requested ranks exceeds available")
-        endif
-        
-        allocate(nbasm(mstates))
-        allocate(nactm(mstates))
-        allocate(inactm(mstates))
-        allocate(idetm(mstates))
-        
-        iocc(1)=1
-        iocc(2)=2
-        iord(1)=0
-        iord(2)=0
-        indx(1)=0
-        indx(2)=0
+          call gronor_abort(203,"Requested ranks exceeds available")
+       endif
+
+       allocate(nbasm(mstates))
+       allocate(nactm(mstates))
+       allocate(inactm(mstates))
+       allocate(idetm(mstates))
+       allocate(iocc(nmol))
+       allocate(iord(nmol))
+       allocate(indx(nmol))
+       do i=1,nmol
+          iocc(i)=i
+          iord(i)=0
+          indx(i)=0
+       enddo
+
+!        iocc(1)=1
+!        iocc(2)=2
+!        iord(1)=0
+!        iord(2)=0
+!        indx(1)=0
+!        indx(2)=0
         icalc=0
         ins2=0
         ipvec=0
@@ -469,47 +565,45 @@ c     use cuda_functions
         corres=.false.
 
         if(ipr.ge.30) then
-          write(lfnout,604) nmol,ifault,mstates,itest,nbase,
+          write(lfnout,604) nmol,ifault,mstates,itest,nbase,                    &
      &         idevel,idist
- 604      format(/,' Number of fragments',t40,i10,
-     &         t60,'Fault tolerance wait time',t100,i10,' sec',/
-     &         ' Number of fragment wave functions',t40,i10,
-     &         t60,'Test option',t100,i10,/,
-     &         ' Number of many-electron base states',t40,i10,
-     &         t60,'Development option',t100,i10,/,
+ 604      format(/,' Number of fragments',t40,i10,                              &
+     &         t60,'Fault tolerance wait time',t100,i10,' sec',/                &
+     &         ' Number of fragment wave functions',t40,i10,                    &
+     &         t60,'Test option',t100,i10,/,                                    &
+     &         ' Number of many-electron base states',t40,i10,                  &
+     &         t60,'Development option',t100,i10,/,                             &
      &         t60,'Distribution option',t100,i10)
         else
           write(lfnout,605) nmol,mstates,nbase
- 605      format(/,' Number of fragments',t40,i10,/,
-     &       ' Number of fragment wave functions',t40,i10,/,
+ 605      format(/,' Number of fragments',t40,i10,/,                            &
+     &       ' Number of fragment wave functions',t40,i10,/,                    &
      &       ' Number of many-electron base states',t40,i10,/)
         endif
         if(ipr.ge.20) then
-          write(lfnout,606) ntask,mgr,
-     &         max(1,nbatcha),max(1,nbatch),numomp
- 606      format(' Task size',t40,i10,
-     &         t60,'Number of ranks per task',t100,i10,/,
-     &         ' Batch size',t40,i10,i6,
-     &         t60,'Number of OpenMP threads per rank',t100,i10)
-          if(numdev.gt.0) write(lfnout,638) nummps
- 638      format(t60,'Over-subscription of accelerators (MPS)',t100,i10)
+          write(lfnout,606) ntaska,ntask,mgr,                                   &
+     &         max(1,nbatcha),max(1,nbatch),loada,load
+ 606      format(' Task size',t40,i10,i6,                                       &
+     &         t60,'Number of ranks per task',t100,i10,/,                       &
+     &         ' Batch size',t40,i10,i6,/,                                      &
+     &         ' Load balancing',t40,i10,i6)
         endif
 
         call gronor_read_vectors_and_determinants()
-        
+
         if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_SIN
- 607    format(/,' Threshold common molecular orbital transformation ',
-     &       t55,1pe10.3,
-     &       /,' Threshold product MEBF expansion coefficients ',
-     &       t55,e10.3,
-     &       /,' Threshold determining singularities ',
+ 607    format(/,' Threshold common molecular orbital transformation ',         &
+     &       t55,1pe10.3,                                                       &
+     &       /,' Threshold product MEBF expansion coefficients ',               &
+     &       t55,e10.3,                                                         &
+     &       /,' Threshold determining singularities ',                         &
      &       t55,e10.3)
 
         if(ipr.gt.0) write(lfnout,609) nspin+1
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
-        
+
         call gronor_gnome_molcas_input() ! OpenMolcas
-        close(unit=lfnsym)
+        close(unit=lfnsys)
 
         call gronor_env_cml(version,version_type)
         call gronor_init_cml
@@ -522,12 +616,12 @@ c     use cuda_functions
         if(jnslvr.lt.0) jnslvr=jaslvr
       endif
 
-      
-      
+
+
 !     Distribute input data to all processes
 
       if(np.gt.1) then
-        
+
         if(me.eq.master) then
           idum(1)=nmol
           idum(2)=mstates
@@ -554,32 +648,38 @@ c     use cuda_functions
           idum(22)=nbas
           idum(23)=mclab
           idum(24)=ntask
-          idum(25)=mgr
-          idum(26)=itest
-          idum(27)=naccel
-          idum(28)=inpcib
-          idum(29)=ipro
-          idum(30)=int2
-          idum(31)=mpibuf
-          idum(32)=idbg
-          idum(33)=nummps
-          idum(34)=numomp
-          idum(35)=itim
-          idum(36)=iaslvr
-          idum(37)=jaslvr
-          idum(38)=inslvr
-          idum(39)=jnslvr
-          idum(40)=ifault
-          idum(41)=idevel
-          idum(42)=iswsvj
-          idum(43)=iswevj
-          idum(44)=nbatch
-          idum(45)=nbatcha
-          idum(46)=nspin
-          idum(47)=labels
-          idum(48)=mbuf
-          idum(49)=idist
-          
+          idum(25)=ntaska
+          idum(26)=mgr
+          idum(27)=itest
+          idum(28)=naccel
+          idum(29)=inpcib
+          idum(30)=ipro
+          idum(31)=int2
+          idum(32)=mpibuf
+          idum(33)=idbg
+          idum(34)=nummps
+          idum(35)=0
+          idum(36)=itim
+          idum(37)=iaslvr
+          idum(38)=jaslvr
+          idum(39)=inslvr
+          idum(40)=jnslvr
+          idum(41)=ifault
+          idum(42)=idevel
+          idum(43)=iswsvj
+          idum(44)=iswevj
+          idum(45)=nbatch
+          idum(46)=nbatcha
+          idum(47)=nspin
+          idum(48)=labels
+          idum(49)=mbuf
+          idum(50)=idist
+          idum(51)=load
+          idum(52)=loada
+          idum(53)=ngpus
+          idum(54)=num_threads
+          idum(55)=nabort
+
           rdum(1)=tau_CI
           rdum(2)=tau_CI
           rdum(3)=tau_SIN
@@ -587,72 +687,87 @@ c     use cuda_functions
           rdum(5)=tolevj
           rdum(6)=potnuc
         endif
-        
-        call MPI_Bcast(idum,49,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(rdum,6,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(root,255,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
-        
-        nmol   =idum(1)
-        mstates=idum(2)
-        nbase  =idum(3)
-        maxci  =idum(4)
-        maxvec =idum(5)
-        maxnact=idum(6)
-        iocc(1)=idum(7)
-        iocc(2)=idum(8)
-        iord(1)=idum(9)
-        iord(2)=idum(10)
-        indx(1)=idum(11)
-        indx(2)=idum(12)
-        icalc  =idum(13)
-        ipr    =idum(14)
-        ins2   =idum(15)
-        ipvec  =idum(16)
-        itp4   =idum(17)
-        numfiles=idum(18)
-        corres =idum(19).eq.1
-        npg    =idum(20)
-        nnucl  =idum(21)
-        nbas   =idum(22)
-        mclab  =idum(23)
-        ntask =idum(24)
-        mgr    =idum(25)
-        itest  =idum(26)
-        naccel =idum(27)
-        inpcib =idum(28)
-        ipro   =idum(29)
-        int2   =idum(30)
-        mpibuf =idum(31)
-        idbg   =idum(32)
-        nummps =idum(33)
-        numomp =idum(34)
-        itim   =idum(35)
-        iaslvr =idum(36)
-        jaslvr =idum(37)
-        inslvr =idum(38)
-        jnslvr =idum(39)
-        ifault =idum(40)
-        idevel =idum(41)
-        iswsvj =idum(42)
-        iswevj =idum(43)
-        nbatch =idum(44)
-        nbatcha=idum(45)
-        nspin  =idum(46)
-        labels =idum(47)
-        mbuf   =idum(48)
-        idist  =idum(49)
-        
+
+        ncount=55
+        call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,                         &
+     &       MPI_COMM_WORLD,ierr)
+        ncount=6
+        call MPI_Bcast(rdum,ncount,MPI_REAL8,master,                            &
+     &       MPI_COMM_WORLD,ierr)
+        ncount=255
+        call MPI_Bcast(root,ncount,MPI_CHAR,master,                             &
+     &       MPI_COMM_WORLD,ierr)
+
+        if(me.ne.master) then
+           nmol=idum(1)
+           mstates=idum(2)
+           nbase=idum(3)
+           maxci=idum(4)
+           maxvec=idum(5)
+           maxnact=idum(6)
+!     iocc(1)=idum(7)
+!     iocc(2)=idum(8)
+!     iord(1)=idum(9)
+!     iord(2)=idum(10)
+!     indx(1)=idum(11)
+!     indx(2)=idum(12)
+           icalc=idum(13)
+           ipr=idum(14)
+           ins2=idum(15)
+           ipvec=idum(16)
+           itp4=idum(17)
+           numfiles=idum(18)
+           corres=idum(19).eq.1
+           npg=idum(20)
+           nnucl=idum(21)
+           nbas=idum(22)
+           mclab=idum(23)
+           ntask=idum(24)
+           ntaska=idum(25)
+           mgr=idum(26)
+           itest=idum(27)
+           naccel=idum(28)
+           inpcib=idum(29)
+           ipro=idum(30)
+           int2=idum(31)
+           mpibuf=idum(32)
+           idbg=idum(33)
+           nummps=idum(34)
+
+           itim=idum(36)
+           iaslvr=idum(37)
+           jaslvr=idum(38)
+           inslvr=idum(39)
+           jnslvr=idum(40)
+           ifault=idum(41)
+           idevel=idum(42)
+           iswsvj=idum(43)
+           iswevj=idum(44)
+           nbatch=idum(45)
+           nbatcha=idum(46)
+           nspin=idum(47)
+           labels=idum(48)
+           mbuf=idum(49)
+           idist=idum(50)
+           load=idum(51)
+           loada=idum(52)
+           ngpus=idum(53)
+           num_threads=idum(54)
+           nabort=idum(55)
+
+        endif
+
         int1=(nbas*(nbas+1))/2
-        
+
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
-          write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+          write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),           &
      &         '  :  Input broadcasted'
           flush(lfnday)
           call timer_start(99)
         endif
-        
+
         tau_CI=rdum(1)
         tau_CI=rdum(2)
         tau_SIN=rdum(3)
@@ -661,35 +776,32 @@ c     use cuda_functions
         potnuc=rdum(6)
 
         if(numdev.gt.0) nbatch=nbatcha
-        
-      endif
 
-#ifdef _OPENMP
-      if(numomp.gt.0) num_threads=numomp
-      if(num_threads.gt.0) call omp_set_num_threads(num_threads)
-#endif
+      endif
 
       lfnone=11
       lfntwo=12
       lfndbg=13
+      lfnabt=26
+      lfnwrn=27
       if(idbg.gt.0) then
         write(fildbg,1300) me
  1300   format('GronOR_',i5.5,'.dbg ')
-        open(unit=lfndbg,file=fildbg(1:inp_strlen(fildbg)),
+        open(unit=lfndbg,file=trim(fildbg),                                     &
      &       form='formatted',status='unknown',err=996)
       endif
-      
+
       nacc0=naccel
       nacc1=naccel
 
       if(me.ne.master) then
-        nmol   =idum(1)
+        nmol=idum(1)
         mstates=idum(2)
-        nbase  =idum(3)
-        maxci  =idum(4)
-        maxvec =idum(5)
+        nbase=idum(3)
+        maxci=idum(4)
+        maxvec=idum(5)
         maxnact=idum(6)
-        
+
         allocate(ncombv(nmol,nbase))
         allocate(nbasm(mstates))
         allocate(nactm(mstates))
@@ -698,19 +810,23 @@ c     use cuda_functions
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
-        
+        if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
+        allocate(iocc(nmol))
+        allocate(indx(nmol))
+        allocate(iord(nmol))
+
         iocc(1)=idum(7)
         iocc(2)=idum(8)
         iord(1)=idum(9)
         iord(2)=idum(10)
         indx(1)=idum(11)
         indx(2)=idum(12)
-        icalc  =idum(13)
-        ipr    =idum(14)
-        ins2   =idum(15)
-        ipvec  =idum(16)
-        itp4   =idum(17)
-        corres =idum(19).eq.1
+        icalc=idum(13)
+        ipr=idum(14)
+        ins2=idum(15)
+        ipvec=idum(16)
+        itp4=idum(17)
+        corres=idum(19).eq.1
       endif
 
       allocate(nbuf(mstates,4))
@@ -721,16 +837,26 @@ c     use cuda_functions
         nbuf(i,4)=idetm(i)
       enddo
       if(np.gt.0) then
-        call MPI_Bcast(civm,maxci*mstates,MPI_REAL8,master,
+        ncount=maxci*mstates
+        call MPI_Bcast(civm,ncount,MPI_REAL8,master,                            &
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(vecsm,maxvec*maxvec*mstates,MPI_REAL8,master,
+        ncount=maxvec*maxvec*mstates
+        call MPI_Bcast(vecsm,ncount,MPI_REAL8,master,                           &
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(ioccm,maxnact*maxci*mstates,MPI_INTEGER8,master,
+        ncount=maxnact*maxci*mstates
+        call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,master,                        &
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(ncombv,nmol*nbase,MPI_INTEGER8,master,
+        ncount=nmol*nbase
+        call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,                       &
      &       MPI_COMM_WORLD,ierr)
-        call MPI_Bcast(nbuf,4*mstates,MPI_INTEGER8,master,
+        ncount=4*mstates
+        call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,                         &
      &       MPI_COMM_WORLD,ierr)
+        if(nmol.ge.3)then
+           ncount=(nmol-1)*nbase
+           call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,                  &
+     &          master,MPI_COMM_WORLD,ierr)
+        endif
       endif
       do i=1,mstates
         nbasm(i)=nbuf(i,1)
@@ -739,7 +865,7 @@ c     use cuda_functions
         idetm(i)=nbuf(i,4)
       enddo
       deallocate(nbuf)
-      
+
       nbasis=0
       mactb=0
       do i=1,nmol
@@ -750,7 +876,7 @@ c     use cuda_functions
       do i=1,mstates
         jspinmol(i)=0
         do j=1,nactm(i)
-          if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+
+          if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+                 &
      &         ioccm(j,1,i)
         enddo
       enddo
@@ -761,9 +887,10 @@ c     use cuda_functions
       allocate(vecsb(nbasis,nbasis,nbase))
       allocate(inactb(nbase))
       allocate(nactb(nbase))
-      allocate(idetb(nbase))      
+      allocate(idetb(nbase))
 
-      call gronor_determine_nci()
+      call gronor_determine_nci                                                 &
+     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
       call gronor_determine_maxcib()
 
       allocate(ioccb(maxcib,nbase))
@@ -771,61 +898,67 @@ c     use cuda_functions
 
       ngr=(np-1)/mgr
 
+!     On the JFZ Juwels Booster the slurm implementation sets the
+!     device on each ranks based on best affinity. As a result
+!     numdev from acc_get_num_devices returns 1 as each rank
+!     is already associated with the clostest gpu. To get the
+!     correct map2 entries, the ngpus is set to 4 and nummps
+!     multiplied by ngpus.
+
+      numgpu=nummps*ngpus
+
       allocate(ranks_heads(ngr+1))
 
-      if(ncycls.gt.1) then
-        j=0
         do i=1,np
-          if(map2(i,5).gt.0) j=j+1
-          if(i-1.eq.master) map2(i,5)=0
-        enddo
-        do i=1,min(np,nummps*j)
-          map2(i,5)=map2(i,1)
-          if(i-1.eq.master) map2(i,5)=0
-        enddo
-      else
-        node=map2(1,4)
-        j=nummps*map2(1,1)
-        do i=1,np
-          map2(i,2)=numomp
-          if(map2(i,4).eq.node) then
-            if(j.gt.0) then
-              map2(i,5)=map2(i,1)
-              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-              j=j-1
-            else
-              map2(i,5)=-map2(i,2)
-            endif
+          if(map2(i,1).gt.0) then
+            map2(i,5)=map2(i,1)
+            map2(i,2)=1
           else
-            node=map2(i,4)
-            j=nummps*map2(i,1)
-            if(j.gt.0) then
-              map2(i,5)=map2(i,1)
-              if(naccel.lt.0) map2(i,5)=-map2(i,2)
-              j=j-1
-            else
-              map2(i,5)=-map2(i,2)
-            endif
+            map2(i,5)=-map2(i,2)
           endif
-          if(i-1.eq.master) map2(i,5)=0
+        enddo
+
+      map2(master+1,5)=0
+      map2(master+1,2)=1
+
+!     Limit the number of accelerated ranks per node to naccel
+
+      if(naccel.gt.0) then
+        node=-1
+        do i=1,np
+          node=max(node,map2(i,6))
+        enddo
+        do i=1,node+1
+          k=0
+          do j=1,np
+            if(map2(j,6).eq.i-1.and.map2(j,5).gt.0) then
+              k=k+1
+              if(k.gt.naccel) map2(j,5)=-map2(j,2)
+            endif
+          enddo
         enddo
       endif
 
       numacc=0
       numnon=0
       do i=1,np
-        if(i-1.eq.master) map2(i,5)=0
+        if(map2(i,5).lt.0) map2(i,2)=num_threads
+        if(map2(i,5).ge.0) map2(i,2)=1
         if(map2(i,5).gt.0) numacc=numacc+1
         if(map2(i,5).lt.0) numnon=numnon+1
       enddo
       numacc=numacc/mgr
       numnon=numnon/mgr
       maxgrp=numacc+numnon
-      
+
+#ifdef _OPENMP
+      call omp_set_num_threads(map2(me+1,2))
+#endif
+
       allocate(thisgroup(mgr+1))
       allocate(allgroups(maxgrp+1,mgr+1))
       allocate(allheads(maxgrp+1))
-      
+
       numgrp=0
       igr=0
       do i=1,np
@@ -851,6 +984,9 @@ c     use cuda_functions
       enddo
 
       if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+      do i=1,np
+        map2(i,3)=0
+      enddo
       do i=1,numgrp
         allheads(i)=allgroups(i,2)
         do j=1,mgr
@@ -858,10 +994,10 @@ c     use cuda_functions
         enddo
       enddo
       allheads(numgrp+1)=master
-      
+
       if(numgrp.eq.0) then
         write(*,'(a)') 'Number of groups is zero'
-        call errquit(me,2,"Error in main")
+        call gronor_abort(201,"Error in main")
       endif
       do i=1,numgrp
         do j=1,mgr
@@ -872,7 +1008,7 @@ c     use cuda_functions
           endif
         enddo
       enddo
-      
+
       if(me.ne.master) then
         iamhead=0
         if(me.eq.thisgroup(2)) iamhead=1
@@ -883,7 +1019,7 @@ c     use cuda_functions
         myhead=master
         numdev=-1
       endif
-      
+
       mygroup=0
       do i=1,numgrp
         ranks_heads(i)=allgroups(i,2)
@@ -892,18 +1028,18 @@ c     use cuda_functions
         enddo
       enddo
       ranks_heads(numgrp+1)=master
-      
-      
+
+
       new=-1
-      
+
       call MPI_Comm_Group(MPI_COMM_WORLD,group_world,ierr)
-      
-      call MPI_Group_incl(group_world,int(numgrp+1,kind=4),ranks_heads,
+
+      call MPI_Group_incl(group_world,int(numgrp+1,kind=4),ranks_heads,         &
      &     group_heads,ierr)
       if(iamhead.eq.1) then
         call MPI_Group_Rank(group_heads,new,ierr)
       endif
-      
+
       if(me.eq.master) then
         nrg=0
         do j=1,numgrp
@@ -925,124 +1061,124 @@ c     use cuda_functions
         write(lfnrnk,730)
  730    format(//,' MPI Rank Assignments')
  734    format(' ')
- 735    format(/,' Accelerated Groups',/)
- 733    format(/,' Non-Accelerated Groups',/)
+ 735    format(/,' Accelerated Groups on ',i8,' ranks',/)
+ 733    format(/,' Non-Accelerated Groups on ',i8,' ranks',/)
         k=1
         l=min(k+npl,numacc)
         if(numacc.gt.0) then
-          write(lfnrnk,735)
+          write(lfnrnk,735) numacc
           do while (k.le.l)
             if(mgr.gt.1) write(lfnrnk,734)
-            do i=2,mgr+1                
+            do i=2,mgr+1
               if(nrg.lt.10) then
                 if(np.lt.10) then
-                  write(lfnrnk,6611)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6611)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6612)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6612)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6613)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6613)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6614)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6614)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6615)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6615)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.100) then
                 if(np.lt.10) then
-                  write(lfnrnk,6621)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6621)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6622)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6622)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6623)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6623)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6624)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6624)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6625)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6625)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.1000) then
                 if(np.lt.10) then
-                  write(lfnrnk,6631)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6631)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6632)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6632)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6633)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6633)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6634)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6634)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6635)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6635)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.10000) then
                 if(np.lt.10) then
-                  write(lfnrnk,6641)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6641)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6642)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6642)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6643)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6643)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6644)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6644)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6645)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6645)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               else
                 if(np.lt.10) then
-                  write(lfnrnk,6651)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6651)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6652)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6652)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6653)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6653)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6654)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6654)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6655)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6655)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               endif
             enddo
@@ -1051,8 +1187,9 @@ c     use cuda_functions
           enddo
           write(lfnrnk,734)
         endif
+        flush(lfnrnk)
         if(numnon.gt.0) then
-          write(lfnrnk,733)
+          write(lfnrnk,733) numnon
           k=l+1
           l=min(k+npl,numgrp)
           do while (k.le.l)
@@ -1085,113 +1222,113 @@ c     use cuda_functions
             do i=2,mgr+1
               if(nrg.lt.10) then
                 if(np.lt.10) then
-                  write(lfnrnk,6611)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6611)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6612)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6612)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6613)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6613)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6614)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6614)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6615)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6615)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.100) then
                 if(np.lt.10) then
-                  write(lfnrnk,6621)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6621)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6622)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6622)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6623)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6623)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6624)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6624)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6625)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6625)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.1000) then
                 if(np.lt.10) then
-                  write(lfnrnk,6631)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6631)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6632)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6632)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6633)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6633)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6634)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6634)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6635)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6635)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               elseif(nrg.lt.10000) then
                 if(np.lt.10) then
-                  write(lfnrnk,6641)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6641)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6642)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6642)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6643)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6643)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6644)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6644)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6645)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6645)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               else
                 if(np.lt.10) then
-                  write(lfnrnk,6651)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6651)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.100) then
-                  write(lfnrnk,6652)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6652)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.1000) then
-                  write(lfnrnk,6653)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6653)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 elseif(np.lt.10000) then
-                  write(lfnrnk,6654)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6654)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 else
-                  write(lfnrnk,6655)
-     &                 ((map2(allgroups(j,i)+1,4),
-     &                 allgroups(j,i)),j=k,l)
+                  write(lfnrnk,6655)                                            &
+     &                 (map2(allgroups(j,i)+1,4),                               &
+     &                 allgroups(j,i),j=k,l)
                 endif
               endif
             enddo
@@ -1199,20 +1336,57 @@ c     use cuda_functions
             l=min(k+npl,numgrp)
           enddo
         endif
+        flush(lfnrnk)
       endif
 
+      j=0
+      jp=-1
+      do i=1,np
+        if(map2(i,4).ne.jp) j=0
+        if(map2(i,5).gt.0.and.map2(i,1).gt.0) then
+          map2(i,7)=mod(j,map2(i,1))
+        else
+          map2(i,7)=-1
+        endif
+        j=j+1
+        jp=map2(i,4)
+      enddo
+
       if(me.eq.master) then
-        write(lfnrnk,6666) (i-1,(map2(i,j),j=1,6),i=1,np)
- 6666   format(//,' Rank map',//,
-     &       '    Rank  NumDev NumThrd   Group',
-     &       '    RSet     Act    Node',//,(7i8))
+        write(lfnrnk,6666)
+ 6666   format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr',                     &
+     &       ' Ac=Accel',//,                                                    &
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node  ',                 &
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node  ',                 &
+     &       '    Rank  ND DI NT   Group    RSet Ac    Node',/)
+        lc=np/3
+        i=np
+        mc=mod(i,3)
+        if(mc.gt.0) lc=lc+1
+        nc=3
+        do i=1,lc
+          if(mc.gt.0.and.i.eq.lc) nc=mc
+          write(ident(1),'(a3)') '   '
+          write(ident(2),'(a3)') '   '
+          write(ident(3),'(a3)') '   '
+          nnc=nc
+          if(i+(nc-1)*lc.gt.np) nnc=nnc-1
+          do j=1,nnc
+            if(map2(i+(j-1)*lc,5).gt.0)                                         &
+     &           write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
+          enddo
+          write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j),         &
+     &         (map2(i+(j-1)*lc,k),k=2,6),j=1,nnc)
+ 6667     format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
+        enddo
+        flush(lfnrnk)
       endif
-      
+
       if(me.eq.master) then
         flush(lfnout)
         flush(lfnrnk)
       endif
-      
+
       iamacc=0
       iamactive=0
       if(me.eq.master) iamactive=1
@@ -1226,76 +1400,95 @@ c     use cuda_functions
           if(me.eq.thisgroup(i+1)) iamactive=1
         enddo
       endif
-      
-!     if solvers were not specified use the default ones
-      
-      if(iaslvr.lt.0) iaslvr=0
-      if(jaslvr.lt.0) jaslvr=0
-      if(inslvr.lt.0) inslvr=0
-      if(jnslvr.lt.0) jnslvr=0
-      
+
+      numidle=0
+      do i=1,np
+        if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0))                   &
+     &       numidle=numidle+1
+      enddo
+
       if(iamacc.eq.1) then
 
 !     only accelerated ranks need to set device
 
+!     On the JFZ Juwels Booster the slurm implementation sets the
+!     device on each ranks based on best affinity. As a result
+!     no acc_set_device_num should be executed here.
+
 #ifdef _OPENACC
         if(numdev.gt.1) then
-          mydev=mod(me,numdev)
-          call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-          cpfre=c_loc(memfre)
-          cptot=c_loc(memtot)
-c          istat=cudaMemGetInfo(cpfre,cptot)
-          memavail=memfre
-          if(idbg.gt.0) then
-            call swatch(date,time)
-            write(lfndbg,1301) date(1:8),time(1:8),
-     &           ' Device set to ',mydev,' of ',numdev
- 1301       format(a,1x,a,1x,a,i3,a,i3)
+          mydev=map2(me+1,7)
+          if(mydev.ge.0) then
+#ifdef AMD
+            call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+#else
+            call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+#endif
+            cpfre=c_loc(memfre)
+            cptot=c_loc(memtot)
+!     istat=cudaMemGetInfo(cpfre,cptot)
+            memavail=memfre
+            if(idbg.gt.0) then
+              call swatch(date,time)
+              write(lfndbg,1301) date(1:8),time(1:8),                           &
+     &             ' Device set to ',mydev,' of ',numdev
+ 1301         format(a,1x,a,1x,a,i3,a,i3)
+              flush(lfndbg)
+            endif
+          else
+            iamacc=0
           endif
         endif
 #endif
-        
+
 !     only accelerated ranks need to define cusolver handles
-        
+
 #ifdef CUSOLVER
-        cusolver_status = cusolverDnCreate(cusolver_handle)
-        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)
+        cusolver_status=cusolverDnCreate(cusolver_handle)
+        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                          &
      &       print *, me,'cusolver_handle creation failed'
 
         if(numdev.gt.1) then
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
-c          istat=cudaMemGetInfo(cpfre,cptot)
+!          istat=cudaMemGetInfo(cpfre,cptot)
         endif
 
 #endif
 
-        isolver=iaslvr
-        jsolver=jaslvr
-        
-      else
+      endif
 
-        
-!     only non-accelerated ranks will use OpenMP threads
+#ifdef CUSOLVERJ
+        if(iaslvr.lt.0) iaslvr=2
+#endif
+#ifdef CUSOLVER
+        if(iaslvr.lt.0) iaslvr=0
+#endif
+        if(inslvr.lt.0) inslvr=0
+        if(jnslvr.lt.0) jnslvr=0
+        if(iaslvr.lt.0) iaslvr=0
+        if(jaslvr.lt.0) jaslvr=1
 
 #ifdef MKL
-
-!     if solvers were not specified use MKL solver for svd only
-        
         if(inslvr.lt.0) inslvr=1
+#endif
+        if(iaslvr.lt.0) iaslvr=0
+        if(jaslvr.lt.0) jaslvr=0
+        if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
 
-#endif
-
-        isolver=inslvr
-        jsolver=jnslvr
-        
-      endif
+        if(iamacc.eq.1) then
+          isolver=iaslvr
+          jsolver=jaslvr
+        else
+          isolver=inslvr
+          jsolver=jnslvr
+        endif
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)
  610    format(/,' Linear algebra solvers',/)
-        if(numdev.ne.0) then
+        if(numacc.gt.0) then
           if(iaslvr.eq.0) write(lfnout,611)
  611      format(' Accelerated ranks use GronOR SVD on CPU')
 #ifdef CUSOLVER
@@ -1330,91 +1523,119 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
  620    format(' Non-accelerated ranks use MKL QR dsyevd')
 #endif
       endif
-      
+
       if(me.eq.master) numdev=0
 
       call timer_stop(3)
       call timer_start(7)
-      
+
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99),            &
      &       '  :  Start of base state generation'
  1707   format(a8,2x,a8,f12.3,a)
         flush(lfnday)
         call timer_start(99)
       endif
-      
-      max_coef = 0.0
-      
+
+      max_coef=0.0
+      nci_copy=nci
       do i=1,nbase
 
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),               &
+     &           ' entering make_basestate for ibase ',i
+            flush(lfndbg)
+         endif
+
         call gronor_make_basestate(i)
-        
+
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),               &
+     &           ' returned from make_basestate for ibase ',i
+            flush(lfndbg)
+         endif
+
+        nci=nci_copy
         allocate(sort_coef(maxcib))
         allocate(sort_occ(maxcib))
-        sort_coef = 0.0
-        sort_occ = 0
-        do idet = 1, idetb(i)
-          sort_coef(idet) = civb(idet,i)
-          sort_occ(idet)  = ioccb(idet,i)
+
+        do j=1,maxcib
+        sort_coef(j)=0.0
+        sort_occ(j)=0
+      enddo
+
+        do idet=1, idetb(i)
+          sort_coef(idet)=civb(idet,i)
+          sort_occ(idet)=ioccb(idet,i)
         enddo
-        length = idetb(i)
+        length=idetb(i)
         call quicksort(sort_coef,sort_occ,length)
-        do idet = 1, idetb(i)
-          civb(idet,i)  = sort_coef(idet)
-          ioccb(idet,i) = sort_occ(idet)
+        do idet=1, idetb(i)
+          civb(idet,i)=sort_coef(idet)
+          ioccb(idet,i)=sort_occ(idet)
         enddo
         deallocate(sort_coef,sort_occ)
         if(max_coef.lt.abs(civb(1,i))) then
-          max_coef = abs(civb(1,i))
+          max_coef=abs(civb(1,i))
         endif
-        
+
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
-          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),
+          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),          &
      &         '  :  Base state ',i,' completed '
  1706     format(a8,2x,a8,f12.3,a,i4,a)
           flush(lfnday)
           call timer_start(99)
         endif
+
+         if(idbg.ge.50) then
+            call swatch(date,time)
+            write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),               &
+     &           ' Base state completed for ibase ',i
+            flush(lfndbg)
+         endif
       enddo
 
-      thres2 = tau_CI / max_coef
+      thres2=tau_CI / max_coef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
-      do ibase = 1, nbase
-        ndeti=idetb(ibase)
-        ndet_rev = 0
-        civb_aux = 0.0
-        occu_aux = 0
-        do idet = 1, idetb(ibase)
-          if(abs(civb(idet,ibase)).gt.thres2) then
-            ndet_rev = ndet_rev + 1
-            civb_aux(ndet_rev) = civb(idet,ibase)
-            occu_aux(ndet_rev) = ioccb(idet,ibase)
-          endif
-        enddo
-        civb(:,ibase) = 0.0
-        ioccb(:,ibase) = 0
-        do idet = 1, ndet_rev
-          civb(idet,ibase) = civb_aux(idet)
-          ioccb(idet,ibase) = occu_aux(idet)
-        enddo
-        idetb(ibase) = ndet_rev
-        if(me.eq.master) then
-          call timer_stop(99)
-          call swatch(date,time)
-          write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),
-     &         '  :  Base state ',ibase,
-     &         ' coefficient list reduced from    ',
-     &         ndeti,' to ',ndet_rev
- 1710     format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
-          flush(lfnday)
-          call timer_start(99)
-        endif
+      do ibase=1, nbase
+         ndeti=idetb(ibase)
+         ndet_rev=0
+         civb_aux=0.0
+         occu_aux=0
+         do idet=1,idetb(ibase)
+            if(abs(civb(idet,ibase)).gt.thres2) then
+               ndet_rev=ndet_rev + 1
+               civb_aux(ndet_rev)=civb(idet,ibase)
+               occu_aux(ndet_rev)=ioccb(idet,ibase)
+            endif
+         enddo
+         do idet=1,maxcib
+            civb(idet,ibase)=0.0
+            ioccb(idet,ibase)=0
+         enddo
+         do idet=1,ndet_rev
+            civb(idet,ibase)=civb_aux(idet)
+            ioccb(idet,ibase)=occu_aux(idet)
+         enddo
+         idetb(ibase)=ndet_rev
+         if(me.eq.master) then
+            call timer_stop(99)
+            call swatch(date,time)
+            write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),        &
+     &           '  :  Base state ',ibase,                                      &
+     &           ' coefficient list reduced from    ',                          &
+     &           ndeti,' to ',ndet_rev
+ 1710       format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
+            flush(lfnday)
+            call timer_start(99)
+         endif
       enddo
       deallocate(civb_aux,occu_aux)
 
@@ -1423,7 +1644,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           ndeti=idetb(i)
           nacti=nactb(i)
           write(lfndbg,1601) i,ndeti
- 1601     format(/,' Basestate ',i4,' wavefunction has ',i8,
+ 1601     format(/,' Basestate ',i4,' wavefunction has ',i8,                    &
      &         ' determinants:',/)
           do ib=1,ndeti
             call unpack(ioccb(ib,i),iocch,nacti)
@@ -1433,21 +1654,21 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
  1603     format(/,' Basestate ',i4,' vector ',2i8)
           do ivc=1,nactb(i)+inactb(i)
-            write(lfndbg,1604) '(',ivc,')',
+            write(lfndbg,1604) '(',ivc,')',                                     &
      &           (vecsb(ibas,ivc,i),ibas=1,nbas)
  1604       format(a2,i3,a1,(t9,10f12.8))
           enddo
           flush(lfndbg)
         endif
       enddo
-      
+
       call timer_stop(7)
       call timer_start(8)
-      
+
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),            &
      &       '  :  Start of ME list generation'
  1708   format(a8,2x,a8,f12.3,a)
         flush(lfnday)
@@ -1455,11 +1676,15 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(c2sum(nbase,nbase),nbdet(nbase,nbase))
-      
+
       numdet=0
+      memax=0
+      icur=0
+      jcur=0
       ndtot=0
       do ibase=1,nbase
         do jbase=1,ibase
+          melen=0
           ndeti=idetb(ibase)
           ndetj=idetb(jbase)
           ibd=0
@@ -1470,6 +1695,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
+                melen=melen+1
                 ibd=ibd+1
                 if(i.eq.j) then
                   c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
@@ -1484,6 +1710,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=1,ndetj
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
+                melen=melen+1
                 ibd=ibd+1
                 c2s=c2s+(civb(i,ibase)*civb(j,jbase))**2
               enddo
@@ -1493,14 +1720,15 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           nbdet(jbase,ibase)=ibd
           c2sum(ibase,jbase)=c2s
           c2sum(jbase,ibase)=c2s
+          memax=max(memax,melen)
         enddo
       enddo
 
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),
-     &       '  :  ME list dimension reduced from   ',
+        write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99),            &
+     &       '  :  ME list dimension reduced from   ',                          &
      &       ndtot,' to ',numdet
  1703   format(a8,2x,a8,f12.3,a,16x,i16,a,i16)
         flush(lfnday)
@@ -1508,7 +1736,6 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       allocate(ndxdet(nbase,nbase))
-      allocate(lstdet(numdet,2))
 
       numdet=0
       do ibase=1,nbase
@@ -1520,8 +1747,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=i,ndeti
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
-                lstdet(numdet,1)=i
-                lstdet(numdet,2)=j
+                melen=melen+1
               enddo
             enddo
           else
@@ -1529,8 +1755,7 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               do j=1,ndetj
                 if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
                 numdet=numdet+1
-                lstdet(numdet,1)=i
-                lstdet(numdet,2)=j
+                melen=melen+1
               enddo
             enddo
           endif
@@ -1549,16 +1774,16 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           enddo
         enddo
       endif
-      
+
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),             &
      &       '  :  Base states generated'
         flush(lfnday)
         call timer_start(99)
       endif
-      
+
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
       allocate(hev(nbase))
       allocate(nsing(nbase,nbase,5))
@@ -1596,42 +1821,45 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           endif
         enddo
  299    continue
+        backspace(lfncpr)
       endif
-      
+
 !     Define the process groups
-      
+
       if(npg.le.0) npg=1
-      if(npg.gt.np) npg=np
+      if(npg.gt.np) npg=np-numidle-1
       ngr=np/npg
-      
+
       if(me.eq.master.and.ipr.ge.0) then
-        write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr
- 621    format(/,' Process Distribution',//,
-     &       ' Number of processes',t40,i10,t60,
-     &       'Number of process groups',t100,i10,/,
-     &       ' Number of idle processes',t40,i10,t60,
-     &       'Number of processes per group',t100,i10)
+        write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr,numacc,numnon
+ 621    format(/,' Rank Distribution',//,                                       &
+     &       ' Number of ranks',t40,i10,t60,                                    &
+     &       'Number of rank groups',t100,i10,/,                                &
+     &       ' Number of idle ranks',t40,i10,t60,                               &
+     &       'Number of ranks per group',t100,i10,/,                            &
+     &       ' Number of accelerated ranks',t40,i10,/,                          &
+     &       ' Number of non-accelerated ranks',t40,i10)
       endif
-      
+
 
       call timer_stop(8)
       call timer_start(9)
 
 !     Read the integrals from lfnint
-      
+
       call gronor_read_integrals()
-      
+
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),             &
      &       '  :  Integrals read from file'
         flush(lfnday)
         call timer_start(99)
       endif
-      
+
       call timer_stop(9)
-      
+
       if(me.eq.master.and.ipr.ge.0) then
 #ifdef SINGLEP
         rint=dble(4*int2)*1.073741824d-9
@@ -1661,26 +1889,26 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
               write(lfnout,623) int1,rlab
               write(lfnout,624) int2,rint
               write(lfnout,641) numdet,rlst
- 622          format(/,' Number of basisfunctions',t50,i16,t80,
+ 622          format(/,' Number of basisfunctions',t50,i16,t80,                 &
      &             ' Size of index arrays',t115,f8.3,' GB')
- 623          format(' Number of one-electron integrals',t50,i16,t80,
+ 623          format(' Number of one-electron integrals',t50,i16,t80,           &
      &             ' Size of integral labels',t115,f8.3,' GB')
- 624          format(' Number of two-electron integrals',t50,i16,t80,
+ 624          format(' Number of two-electron integrals',t50,i16,t80,           &
      &             ' Size of two-electron integrals',t115,f8.3,' GB')
- 641          format(' Number of determinant pairs',t50,i16,t80,
+ 641          format(' Number of determinant pairs',t50,i16,t80,                &
      &             ' Size of determinant pair list',t115,f8.3,' GB')
             else
               write(lfnout,625) nbas,rndx
               write(lfnout,626) int1,rlab
               write(lfnout,627) int2,rint
               write(lfnout,642) numdet,rlst
- 625          format(/,' Number of basisfunctions',t50,i16,t80,
+ 625          format(/,' Number of basisfunctions',t50,i16,t80,                 &
      &             ' Size of index arrays',t115,f8.3,' MB')
- 626          format(' Number of one-electron integrals',t50,i16,t80,
+ 626          format(' Number of one-electron integrals',t50,i16,t80,           &
      &             ' Size of integral labels',t115,f8.3,' MB')
- 627          format(' Number of two-electron integrals',t50,i16,t80,
+ 627          format(' Number of two-electron integrals',t50,i16,t80,           &
      &             ' Size of two-electron integrals',t115,f8.3,' MB')
- 642          format(' Number of determinant pairs',t50,i16,t80,
+ 642          format(' Number of determinant pairs',t50,i16,t80,                &
      &             ' Size of determinant pair list',t115,f8.3,' MB')
             endif
           else
@@ -1703,13 +1931,13 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
  630      format(' Number of two-electron integrals',t50,i16)
         endif
       endif
-      
+
       if(me.eq.master.and.ipr.gt.0) then
         write(lfnout,631) nbase,nbase*(nbase+1)/2
- 631    format(' Number of base states',t50,i16,/,
+ 631    format(' Number of base states',t50,i16,/,                              &
      &       ' Number of unique Hamiltonian matrix elements',t50,i16)
       endif
-      
+
       if(me.eq.master.and.ipr.ge.30) then
 #ifdef SINGLEP
         write(lfnout,639)
@@ -1718,9 +1946,9 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         write(lfnout,640)
  640    format(/,' Integrals are used in double precision')
 #endif
-      endif 
+      endif
       if(me.eq.master) flush(lfnout)
-      
+
       if(me.eq.master) then
         allocate(numrecs(np))
         do i=1,np
@@ -1729,106 +1957,295 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       endif
 
       if(me.ne.master) call timer_start(98)
-      
+      call timer_start(4)
+
       if(idbg.gt.0) then
         call swatch(date,time)
-        write(lfndbg,'(a,1x,a,1x,a,10i5)') date(1:8),time(1:8),
-     &       ' NVIDIA ',numdev,mydev,iamacc,nummps,
+#ifdef AMD
+        write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),                 &
+     &       ' AMD    ',numdev,mydev,iamacc,nummps,numgpu,                      &
      &       (map2(me+1,i),i=1,5)
+#else
+        write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),                 &
+     &       ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,                      &
+     &       (map2(me+1,i),i=1,5)
+#endif
         flush(lfndbg)
       endif
 
       if(me.eq.master) then
         if(idbg.gt.0) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),                    &
      &         ' Calling GronOR_master'
           flush(lfndbg)
         endif
+        call gronor_memory_usage()
         call gronor_master()
       else
         if(idbg.gt.0) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a,2i5)') date(1:8),time(1:8),
-     &         ' iamactive, iamacc = ',iamactive,iamacc
+          write(lfndbg,'(a,1x,a,1x,a,2i5)') date(1:8),time(1:8),                &
+     &         ' iamactive, iamacc=',iamactive,iamacc
           flush(lfndbg)
         endif
         if(iamactive.eq.1) then
+
+          l2=0
+          mnact=0
+          mvec=0
+          do ibase=1,nbase
+            do jbase=1,ibase
+              nidet=idetb(ibase)
+              njdet=idetb(jbase)
+              if(ibase.eq.jbase) then
+                l2=max(l2,nidet*(nidet+1)/2)
+              else
+                l2=max(l2,nidet*njdet)
+              endif
+            enddo
+            mnact=max(mnact,nactb(ibase))
+            mvec=max(mvec,nactb(ibase)+inactb(ibase))
+          enddo
+
+          nelecs=0
+          nveca=0
+          n=0
+          do ibase=1,nbase
+            nveca=max(nveca,inactb(ibase)+nactb(ibase))
+            n=2*inactb(ibase)
+            n=n+ipopcnt(ioccb(1,ibase),nactb(ibase))
+            nelecs=max(nelecs,n)
+          enddo
+          nvecb=nveca
+          nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
+          mbasel=max(nelecs,nbas)
+
+          allocate(ioccup(mnact,2))
+          allocate(vec(mvec,mbasel,2))
+          allocate(vtemp(mvec,mbasel,2))
+          allocate(itemp(21),ioccn(20,2))
+          allocate(st(nstdim))
+
+          allocate(va(nveca,mbasel))
+          allocate(vb(nvecb,mbasel))
+          allocate(veca(mbasel))
+          allocate(vecb(mbasel))
+          allocate(ta(mbasel,max(mbasel,nveca)))
+          allocate(tat(mbasel,max(mbasel,nveca)))
+          allocate(taa(mbasel,max(mbasel,nveca)))
+          allocate(aaa(mbasel,max(mbasel,nveca)))
+          allocate(tb(mbasel,nvecb))
+          allocate(s12d(mbasel,mbasel))
+          allocate(tt(mbasel,max(mbasel,nveca)))
+          allocate(aat(mbasel,max(mbasel,nveca)))
+          allocate(sm(mbasel,max(mbasel,nveca)))
+
+          allocate(a(nelecs,nelecs))
+          allocate(u(nelecs,nelecs))
+          allocate(w(nelecs,nelecs))
+          allocate(ev(nelecs))
+          allocate(sdiag(max(nelecs,nbas,mbasel)))
+          allocate(diag(max(nelecs,nbas,mbasel)))
+          allocate(bsdiag(max(nelecs,nbas,mbasel)))
+          allocate(bdiag(max(nelecs,nbas,mbasel)))
+          allocate(csdiag(max(nelecs,nbas,mbasel)))
+          allocate(cdiag(max(nelecs,nbas,mbasel)))
+
+          if(nbatch.lt.0) then
+            allocate(prefac(ntask))
+            allocate(diagl(ntask,nbas))
+            allocate(bsdiagl(ntask,nbas))
+            allocate(bdiagl(ntask,nbas))
+            allocate(csdiagl(ntask,nbas))
+            allocate(sml(ntask,nbas,nbas))
+            allocate(tal(ntask,nbas,nbas))
+            allocate(ttl(ntask,nbas,nbas))
+            allocate(aatl(ntask,nbas,nbas))
+            allocate(aaal(ntask,nbas,nbas))
+            allocate(tatl(ntask,nbas,nbas))
+            allocate(prefac0(1))
+            allocate(sm0(1,1,1))
+            allocate(ta0(1,1,1))
+            allocate(tt0(1,1,1))
+            allocate(aat0(1,1,1))
+            allocate(aaa0(1,1,1))
+            allocate(prefac1(1))
+            allocate(diag1(1,1))
+            allocate(bsdiag1(1,1))
+            allocate(bdiag1(1,1))
+            allocate(csdiag1(1,1))
+            allocate(sm1(1,1,1))
+            allocate(ta1(1,1,1))
+            allocate(tt1(1,1,1))
+            allocate(aat1(1,1,1))
+            allocate(aaa1(1,1,1))
+          elseif(nbatch.eq.0) then
+            allocate(diagl(1,1))
+            allocate(bsdiagl(1,1))
+            allocate(bdiagl(1,1))
+            allocate(csdiagl(1,1))
+            allocate(sml(1,1,1))
+            allocate(tal(1,1,1))
+            allocate(ttl(1,1,1))
+            allocate(aatl(1,1,1))
+            allocate(aaal(1,1,1))
+            allocate(tatl(1,1,1))
+            allocate(prefac(1))
+            allocate(prefac0(1))
+            allocate(sm0(1,1,1))
+            allocate(ta0(1,1,1))
+            allocate(tt0(1,1,1))
+            allocate(aat0(1,1,1))
+            allocate(aaa0(1,1,1))
+            allocate(prefac1(1))
+            allocate(diag1(1,1))
+            allocate(bsdiag1(1,1))
+            allocate(bdiag1(1,1))
+            allocate(csdiag1(1,1))
+            allocate(sm1(1,1,1))
+            allocate(ta1(1,1,1))
+            allocate(tt1(1,1,1))
+            allocate(aat1(1,1,1))
+            allocate(aaa1(1,1,1))
+          else
+            allocate(prefac0(nbatch))
+            allocate(prefac1(nbatch))
+            if(iamacc.eq.0) then
+              allocate(sm0(nbatch,nbas,nbas))
+              allocate(ta0(nbatch,nbas,nbas))
+              allocate(tt0(nbatch,nbas,nbas))
+              allocate(aat0(nbatch,nbas,nbas))
+              allocate(aaa0(nbatch,nbas,nbas))
+              allocate(diag1(nbatch,nbas))
+              allocate(bsdiag1(nbatch,nbas))
+              allocate(bdiag1(nbatch,nbas))
+              allocate(csdiag1(nbatch,nbas))
+              allocate(sm1(nbatch,nbas,nbas))
+              allocate(ta1(nbatch,nbas,nbas))
+              allocate(tt1(nbatch,nbas,nbas))
+              allocate(aat1(nbatch,nbas,nbas))
+              allocate(aaa1(nbatch,nbas,nbas))
+            else
+              allocate(sm0(nbas,nbas,nbatch))
+              allocate(ta0(nbas,nbas,nbatch))
+              allocate(tt0(nbas,nbas,nbatch))
+              allocate(aat0(nbas,nbas,nbatch))
+              allocate(aaa0(nbas,nbas,nbatch))
+              allocate(diag1(nbas,nbatch))
+              allocate(bsdiag1(nbas,nbatch))
+              allocate(bdiag1(nbas,nbatch))
+              allocate(csdiag1(nbas,nbatch))
+              allocate(sm1(nbas,nbas,nbatch))
+              allocate(ta1(nbas,nbas,nbatch))
+              allocate(tt1(nbas,nbas,nbatch))
+              allocate(aat1(nbas,nbas,nbatch))
+              allocate(aaa1(nbas,nbas,nbatch))
+            endif
+            allocate(diagl(1,1))
+            allocate(bsdiagl(1,1))
+            allocate(bdiagl(1,1))
+            allocate(csdiagl(1,1))
+            allocate(sml(1,1,1))
+            allocate(tal(1,1,1))
+            allocate(ttl(1,1,1))
+            allocate(aatl(1,1,1))
+            allocate(aaal(1,1,1))
+            allocate(tatl(1,1,1))
+            allocate(prefac(1))
+          endif
+
+          allocate(w1(max(nelecs,nbas,mbasel)))
+          allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
+
+          allocate(temp(nelecs,nelecs))
+
           if(iamacc.eq.1) then
             if(idbg.gt.0) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),            &
      &             ' mint2= ',mint2
               flush(lfndbg)
-            endif            
-!_ACCTGT_($acc data copyin(g,lab,ndx,t,v,ndxtv))
-!_OMPTGT_($omp target data map(to:g,lab,ndx,t,v,ndxtv))
+            endif
+#ifdef ACC
+!$acc data copyin(g,lab,ndx,t,v,ndxtv,s)                                       &
+!$acc& create(a,ta,tb,w1,w2,taa,tat,u,w,ev)                                    &
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)              &
+!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)         &
+!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)                                       &
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+#endif
+#ifdef OMPTGT
+!$omp target data map(to:g,lab,ndx,t,v,ndxtv,s)                                &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev)                                 &
+!$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)           &
+!$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)          &
+!$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1)                                    &
+!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+#endif
             if(idbg.gt.0) then
               call swatch(date,time)
-              write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),
+              write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),                &
      &             ' Calling GronOR_worker'
               flush(lfndbg)
             endif
+            call gronor_memory_usage()
             call gronor_worker()
-!_ACCTGT_($acc end data)
-!_OMPTGT_($omp end target data)
-          else
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+          elseif(ntask.ne.0) then
             lwork=10
             allocate(work(lwork))
+            call gronor_memory_usage()
             call gronor_worker()
           endif
-        endif
+
+          if(nbatch.lt.0) then
+             deallocate(tal,tatl,aaal,aatl,ttl,sml)
+             deallocate(csdiagl,bdiagl,bsdiagl,diagl)
+             deallocate(prefac)
+          elseif(nbatch.eq.0) then
+             deallocate(tal,tatl,aaal,aatl,ttl,sml)
+             deallocate(csdiagl,bdiagl,bsdiagl,diagl)
+             deallocate(prefac)
+          else
+             deallocate(ta0,aaa0,aat0,tt0,sm0)
+             deallocate(prefac0)
+             deallocate(ta1,aaa1,aat1,tt1,sm1)
+             deallocate(csdiag1,bdiag1,bsdiag1,diag1)
+             deallocate(prefac1)
+          endif
+          deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
+          deallocate(aat,tt,sm)
+          deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
+          deallocate(s,st)
+          deallocate(temp)
+       endif
       endif
 
+      call timer_stop(4)
       call timer_stop(98)
-      
-      if(idbg.gt.0) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),
-     &       ' Closing ',trim(fildbg)
-        flush(lfndbg)
-        close(unit=lfndbg,status='keep')
-      endif
+
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,632)
- 632    format(//,' Hamiltonian Matrix unnormalized',/)
-
-        nk=nbase/ncols
-        if(mod(nbase,ncols).ne.0) nk=nk+1
-        do k=1,nk
-          ii=(k-1)*ncols+1
-          il=min(nbase,k*ncols)
-          write(lfnout,633) (i,i=ii,il)
-          do j=1,nbase
-            write(lfnout,634) j,(hbase(i,j),i=ii,il)
-          enddo
-          write(lfnout,*) ' '
-        enddo
-
-        nk=nbase/ncols
-        if(mod(nbase,ncols).ne.0) nk=nk+1
-        do k=1,nk
-          ii=(k-1)*ncols+1
-          il=min(nbase,k*ncols)
-          write(lfnout,635)
- 635      format(//,' Overlap Matrix unnormalized',/)
-          write(lfnout,633) (i,i=ii,il)
- 633      format(6x,7(6x,i8,6x))
-          do j=1,nbase
-            write(lfnout,634) j,(sbase(i,j),i=ii,il)
- 634        format(i5,1x,10f20.10)
-          enddo
-          write(lfnout,*) ' '
-        enddo
+ 632    format(//,' Hamiltonian Matrix unnormalized')
+        call gronor_print_matrix(lfnout,hbase,nbase)
+        write(lfnout,635)
+ 635    format(//,' Overlap Matrix unnormalized')
+        call gronor_print_matrix(lfnout,sbase,nbase)
       endif
 
       if(me.eq.master) then
         do i=1,nbase
           do j=1,i-1
-            hbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*
+            hbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*                               &
      &           dsqrt(sbase(j,j))))*hbase(i,j)
-            sbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*
+            sbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*                               &
      &           dsqrt(sbase(j,j))))*sbase(i,j)
             hbase(j,i)=hbase(i,j)
             sbase(j,i)=sbase(i,j)
@@ -1841,8 +2258,8 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         call gronor_print_results(hbase,sbase,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
-          hcorr = 0.0
-          call gronor_correlation_energy(
+          hcorr=0.0
+          call gronor_correlation_energy(                                       &
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
@@ -1850,46 +2267,50 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
           deallocate( hcorr )
         endif
 
-        inquire(file=fillog(1:inp_strlen(fillog)),exist=EXIST)
-        open(unit=lfnlog,file=fillog(1:inp_strlen(fillog)),
-     &       form='formatted',status='unknown',access='append',err=993)
+        inquire(file=trim(fillog),exist=EXIST)
+        open(unit=lfnlog,file=trim(fillog),                                     &
+     &       form='formatted',status='unknown',                                 &
+     &       position='append',err=993)
         call timer_stop(99)
         call swatch(date,time)
         if(.not.exist) then
           write(lfnlog,800)
- 800      format(
-     &         80x,'         ',20x,'      S',/,
-     &         80x,'         ',20x,'F  B  t',/,
-     &         80x,'        D',20x,'r  a  a',/,
-     &         80x,'M  O  M i',20x,'g  s  t',/
-     &         80x,'P  M  g s',20x,'m  e  e',/,
-     &         '  Date     Time      Setup        Main       ',
-     &         'Total  Nodes  Ranks    Acc nonAcc  S  P  r t '
-     &         'Solvers Task Batch s  s  s  tau_MO    ',
-     &         'tau_CI   User Jobname',/)
+ 800      format(                                                               &
+     &         80x,'      T     ',30x,'       ',/,                              &
+     &         80x,'      h     ',30x,'      S',/,                              &
+     &         80x,'      r     ',30x,'F  B  t',/,                              &
+     &         80x,'      e    D',30x,'r  a  a',/,                              &
+     &         80x,'M  G  a  M i',30x,'g  s  t',/                               &
+     &         80x,'P  P  d  g s',30x,'m  e  e',/,                              &
+     &         '  Date     Time      Setup        Main       ',                 &
+     &         'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ',              &
+     &         'Solvers   Task      Batch    s  s  s  tau_MO   ',               &
+     &         'tau_CI  User Jobname Command Host Compiler',/)
         endif
-        write(lfnlog,801) date(1:8),time(1:8),
-     &       timer_wall_total(99)-timer_wall_total(98),
-     &       timer_wall_total(98),timer_wall_total(99),
-     &       nnodes,np,numacc,numnon,nummps,numomp,mgr,
-     &       idist,iaslvr,jaslvr,inslvr,jnslvr,
-     &       ntask,max(1,nbatch),nmol,nbase,mstates,tau_MO,tau_CI,
-     &       user(1:inp_strlen(user)),string(1:inp_strlen(string))
- 801    format(a8,1x,a8,f9.3,2f12.3,4i7,3i3,5i2,2i5,3i3,
-     &       1pe10.3,e10.3,1x,a,1x,a)
+        write(lfnlog,801) date(1:8),time(1:8),                                  &
+     &       timer_wall_total(99)-timer_wall_total(98),                         &
+     &       timer_wall_total(98),timer_wall_total(99),                         &
+     &       nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr,             &
+     &       idist,iaslvr,jaslvr,inslvr,jnslvr,                                 &
+     &       ntaska,ntask,max(1,nbatcha),max(1,nbatch),                         &
+     &       nmol,nbase,mstates,tau_MO,tau_CI,                                  &
+     &       trim(user),trim(string),                                           &
+     &       trim(command),trim(host),trim(compiler),trim(target)
+ 801    format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,                        &
+     &       1pe9.2,e9.2,1x,a,1x,a,1x,a,1x,a,1x,a,1x,a)
         write(lfnlog,803) (hbase(i,i),i=1,nbase)
         if(nbase.gt.1) then
-          write(lfnlog,803)
+          write(lfnlog,803)                                                     &
      &         (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
-        endif
+!        endif
         write(lfnlog,803) (hev(i),i=1,nbase)
-*     Close the cml file after closing the remaining open tags
-        if(nbase.gt.1) then
+!     Close the cml file after closing the remaining open tags
+!        if(nbase.gt.1) then
           write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
         endif
         call gronor_finalize_cml
         close(unit=lfncml,status='keep')
-*
+!
  803    format(5x,8f20.10)
         write(lfnlog,804)
  804    format(' ')
@@ -1903,11 +2324,12 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
+      if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
       deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
 
-      deallocate(lstdet,ndxdet)
+      deallocate(ndxdet)
 
       deallocate(c2sum,nbdet)
 
@@ -1916,18 +2338,47 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
       if(me.eq.master) then
         call timer_stop(99)
         call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),
+        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),             &
      &       '  :  End of Hamiltonian calculation'
         flush(lfnday)
         call timer_start(99)
+
+        open(unit=lfntim,file=trim(filtim),                                     &
+     &       form='formatted',status='unknown',err=992)
+
       endif
 
+      call gronor_timings(lfnout,lfnday,lfntim)
 
-      call gronor_timings(lfnout,lfnday)
+      if(me.eq.master) then
+        flush(lfnout)
+        flush(lfnday)
+        flush(lfntim)
+      endif
+
+      if(me.eq.master) then
+        write(lfnrnk,4444)
+ 4444   format(//,' Number of tasks completed per rank',/)
+        nc=7
+        lc=np/nc
+        i=np
+        j=nc
+        mc=mod(i,j)
+        if(mc.gt.0) lc=lc+1
+        do i=1,lc
+          nnc=nc
+          do j=1,lc
+            if(i+(nnc-1)*lc.gt.np) nnc=nnc-1
+          enddo
+          write(lfnrnk,4445) (i+(j-1)*lc-1,numrecs(i+(j-1)*lc),j=1,nnc)
+ 4445     format(10(i6,': ',i8,3x))
+        enddo
+        flush(lfnrnk)
+      endif
 
       if(me.eq.master) deallocate(numrecs)
 
-      close(unit=lfndbg,status='keep')
+!      close(unit=lfndbg,status='keep')
       if(me.eq.master) then
         if(ipro.ge.3) then
           close(unit=lfnpro,status='keep')
@@ -1947,40 +2398,82 @@ c          istat=cudaMemGetInfo(cpfre,cptot)
         endif
         close(unit=lfnarx,status='keep')
         close(unit=lfncml,status='keep')
-        
-        call swatch(date,time)
-        if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
- 637    format(/,' Completion of run ',2a10,/)
-        
+        if(itim.eq.0) then
+          close(unit=lfntim,status='delete')
+        else
+          close(unit=lfntim,status='keep')
+        endif
+
+        flush(lfnout)
+
         close(unit=lfnrnk,status='keep')
-        close(unit=lfnout,status='keep')
       endif
 
-      if(me.eq.master.and.nalive.ne.npg) then
-        ierror=0
-        ierr=0
-        call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-      else
-        call mpi_finalize(ierr)
+      if(me.eq.master) then
+        if(np.gt.nabort.and.                                                    &
+     &       (nalive+numidle+1.ne.np.or.otimeout)) then
+          ierror=0
+          ierr=0
+          if(idbg.gt.0) then
+            write(lfndbg,'(a)') "Issuing mpi_abort"
+            flush(lfndbg)
+          endif
+          call swatch(date,time)
+          if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
+ 637      format(/,' Completion/abort of run ',2a10,/)
+          flush(lfnout)
+          close(unit=lfnout,status='keep')
+          call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+        else
+          call swatch(date,time)
+          if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
+ 638      format(/,' Completion/finalize of run ',2a10,/)
+          flush(lfnout)
+          close(unit=lfnout,status='keep')
+        endif
       endif
-      
+
+      if(idbg.gt.0) then
+         write(lfndbg,'(a)') "Issuing mpi_finalize"
+         flush(lfndbg)
+      endif
+
+      call mpi_finalize(ierr)
+
+      if(idbg.gt.0) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),                       &
+     &       ' Closing ',trim(fildbg)
+        flush(lfndbg)
+        close(unit=lfndbg,status='keep')
+      endif
+
       return
- 993  write(lfnout,984) fillog(1:inp_strlen(fillog))
-      call errquit(me,2,"Error in main")
- 994  write(lfnout,984) filsym(1:inp_strlen(fildbg))
-      call errquit(me,2,"Error in main")
- 995  write(lfnout,985) filsym(1:inp_strlen(filsym))
-      call errquit(me,2,"Error in main")
- 996  write(lfnout,986) filout(1:inp_strlen(filout))
-      call errquit(me,2,"Error in main")
- 997  write(lfnout,987) filvec(1:inp_strlen(filvec))
-      call errquit(me,2,"Error in main")
- 998  write(lfnout,988) filciv(1:inp_strlen(filciv))
-      call errquit(me,2,"Error in main")
+ 992  write(lfnout,983) trim(filtim)
+      call gronor_abort(204,trim(filtim))
+ 993  write(lfnout,984) trim(fillog)
+      call gronor_abort(205,trim(fillog))
+ 994  write(lfnout,984) trim(fildbg)
+      call gronor_abort(206,trim(fildbg))
+ 995  write(lfnout,985) trim(filsys)
+      call gronor_abort(207,trim(filsys))
+ 996  write(lfnout,986) trim(filout)
+      call gronor_abort(208,trim(filout))
+ 997  write(lfnout,987) trim(filvec)
+      call gronor_abort(209,trim(filvec))
+ 998  write(lfnout,988) trim(filciv)
+      call gronor_abort(210,trim(filciv))
+ 983  format('Unable to open timings file ',a)
  984  format('Unable to open debug file ',a)
- 985  format('Unable to open symmetry file ',a)
+ 985  format('Unable to open system file ',a)
  986  format('Unable to open output file ',a)
  987  format('Unable to open vects file ',a)
  988  format('Unable to open civec file ',a)
       end
-      
+
+#ifdef IBM
+      integer function getcpucount()
+      getcpucount=0
+      return
+      end
+#endif

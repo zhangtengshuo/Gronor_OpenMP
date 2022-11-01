@@ -11,11 +11,11 @@
 
 !     GronOR is copyright of the University of Groningen
 
-      subroutine remove_duplicates_fildet
+      subroutine remove_duplicates_fildet                                       &
      &     (ndetin,ndetout,cicoef,occ,tau_CI)
-      
+
       implicit none
-      
+
       integer      :: ndetin,ndetout
       integer      :: ndetaux
       integer      :: i,j
@@ -23,8 +23,8 @@
       real(kind=8) :: ciaux(ndetin)
       real(kind=8) :: tau_CI
       character(len=255)    :: occ(ndetin)
-      character(len=255)    :: occaux(ndetin)      
-      
+      character(len=255)    :: occaux(ndetin)
+
       do i=1,ndetin
          ciaux(i)=0.0d0
          occaux(i)=''
@@ -35,7 +35,7 @@
       outer : do i=2,ndetin
          do j=1,ndetout
             if(occaux(j).eq.occ(i))then
-               ciaux(j)=ciaux(j)+cicoef(i)               
+               ciaux(j)=ciaux(j)+cicoef(i)
                cycle outer
             endif
          enddo
@@ -43,19 +43,19 @@
          ciaux(ndetout)=cicoef(i)
          occaux(ndetout)=occ(i)
       enddo outer
- 
-      do i=1,ndetout   
+
+      do i=1,ndetout
          cicoef(i)=0.0d0
          occ(i)=''
       enddo
       ndetaux=ndetout
-      ndetout=0      
+      ndetout=0
       do i=1,ndetaux
          if(dabs(ciaux(i)).ge.tau_CI)then
             ndetout=ndetout+1
             cicoef(ndetout)=ciaux(i)
             occ(ndetout)=occaux(i)
          endif
-      enddo            
+      enddo
       return
       end

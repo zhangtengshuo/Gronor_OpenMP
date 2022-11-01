@@ -10,10 +10,10 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Several routines used in generating basestates
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @author  R. Havenith, RuG
 !! @author  C. de Graaf, URV
@@ -65,7 +65,7 @@
       ibita=ibitset(iocca,ia)
       ibitb=ibitset(ioccb,ib)
       nclosed=ibitc(iand(ibita,ibitb))
-      call seticlosed(iclosed,iand(ibita,ibitb),nclosed)
+      call gronor_seticlosed(iclosed,iand(ibita,ibitb),nclosed)
       nperm=0
       icl=1
       do i=1,nclosed
@@ -118,7 +118,7 @@
       return
       end
 
-      subroutine seticlosed(iclosed,in,nclosed)
+      subroutine gronor_seticlosed(iclosed,in,nclosed)
       use cidist
       implicit none
       integer :: nclosed,in,iclosed(nclosed)
@@ -133,7 +133,7 @@
        endif
       enddo
       if(jj.ne.nclosed) then
-        call errquit(me,9,"Problem in seticlosed")
+        call gronor_abort(290,"Problem in seticlosed")
       end if
       return
       end

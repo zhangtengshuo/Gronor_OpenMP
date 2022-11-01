@@ -10,14 +10,14 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief
 !! Determine number of integrals
-!!     
+!!
 !! @author  T. P. Straatsma, ORNL
 !! @date    2016
 !!
-  
+
       subroutine gronor_number_integrals(numone,numtwo)
 
       use inp
@@ -32,40 +32,40 @@
       integer :: mdum, numone, numtwo
       real (kind=8) :: sdum
 
-      open(unit=lfnint,file=filone,form='unformatted',status='old',
+      open(unit=lfnint,file=filone,form='unformatted',status='old',             &
      & err=1994)
       goto 1995
  1994 continue
-      open(unit=lfnint,file=filint,form='unformatted',status='old',
+      open(unit=lfnint,file=filint,form='unformatted',status='old',             &
      & err=994)
  1995 continue
       rewind(lfnint)
       read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mclab
       if(mclab.eq.1) labels=1
-      
+
       read(lfnint,err=993) sdum
       read(lfnint,err=993) sdum
       read(lfnint,err=993) sdum
-      
+
       int2=0
       read(lfnint,end=993) nt
       if(nt(2).eq.-1) read(lfnint) nt(2)
       read(lfnint,err=993) numfiles
-      
+
       numone=nt(1)
       numtwo=nt(2)
 
       int1=(nbas*(nbas+1))/2
       int2=numtwo
-      
+
       rewind(unit=lfnint)
       close(unit=lfnint)
 
       return
- 993  write(lfnout,983) filint(1:inp_strlen(filint))
-      call errquit(me,3,"Error in number integrals")
- 994  write(lfnout,984) filint(1:inp_strlen(filint))
-      call errquit(me,3,"Error in number integrals")
+ 993  write(lfnout,983) trim(filint)
+      call gronor_abort(230,trim(filint))
+ 994  write(lfnout,984) trim(filint)
+      call gronor_abort(231,trim(filint))
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)
       end

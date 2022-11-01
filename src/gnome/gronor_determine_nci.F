@@ -10,20 +10,25 @@
 !     under the license.
 
 !     GronOR is copyright of the University of Groningen
-      
+
 !> @brief   Update the number of determinants for a monomer function
-!>          by the action of the S- operator 
+!>          by the action of the S- operator
 !> @author  Coen de Graaf, URV
 !> @date    November 2020
 !>
 !> @details Rough estimate to stay on the save side, duplicates are
 !>          not taken into account
 
-      subroutine gronor_determine_nci()
+      subroutine gronor_determine_nci                                           &
+     &     (mstates,nactm,idetm,ioccm,dimnact,dimndet)
 
-      use cidef
+      use cidef,only : nci,lfnout
 
       implicit none
+
+      integer     :: mstates,dimnact,dimndet
+      integer     :: nactm(mstates),idetm(mstates)
+      integer     :: ioccm(dimnact,dimndet,mstates)
 
       integer     :: pascal,ms
       integer     :: state,det,act,alpha
@@ -31,7 +36,6 @@
       integer,allocatable  :: spin(:)
       integer,allocatable  :: ndets(:)
 
-      
       allocate( spin(mstates) )
       do state = 1, mstates
         spin(state) = 0                          ! spin of the monomer function
@@ -61,7 +65,6 @@
         end if
         nci = max(nci,ndets(state))
       end do
-      
       deallocate(spin)
       deallocate(ndets)
       return

@@ -1,162 +1,162 @@
-*> \brief \b ZLANSP returns the value of the 1-norm, or the Frobenius norm, or the infinity norm, or the element of largest absolute value of a symmetric matrix supplied in packed form.
-*
-*  =========== DOCUMENTATION ===========
-*
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
-*
-*> \htmlonly
-*> Download ZLANSP + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zlansp.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zlansp.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zlansp.f"> 
-*> [TXT]</a>
-*> \endhtmlonly 
-*
-*  Definition:
-*  ===========
-*
-*       DOUBLE PRECISION FUNCTION ZLANSP( NORM, UPLO, N, AP, WORK )
-* 
-*       .. Scalar Arguments ..
-*       CHARACTER          NORM, UPLO
-*       INTEGER            N
-*       ..
-*       .. Array Arguments ..
-*       DOUBLE PRECISION   WORK( * )
-*       COMPLEX*16         AP( * )
-*       ..
-*  
-*
-*> \par Purpose:
-*  =============
-*>
-*> \verbatim
-*>
-*> ZLANSP  returns the value of the one norm,  or the Frobenius norm, or
-*> the  infinity norm,  or the  element of  largest absolute value  of a
-*> complex symmetric matrix A,  supplied in packed form.
-*> \endverbatim
-*>
-*> \return ZLANSP
-*> \verbatim
-*>
-*>    ZLANSP = ( max(abs(A(i,j))), NORM = 'M' or 'm'
-*>             (
-*>             ( norm1(A),         NORM = '1', 'O' or 'o'
-*>             (
-*>             ( normI(A),         NORM = 'I' or 'i'
-*>             (
-*>             ( normF(A),         NORM = 'F', 'f', 'E' or 'e'
-*>
-*> where  norm1  denotes the  one norm of a matrix (maximum column sum),
-*> normI  denotes the  infinity norm  of a matrix  (maximum row sum) and
-*> normF  denotes the  Frobenius norm of a matrix (square root of sum of
-*> squares).  Note that  max(abs(A(i,j)))  is not a consistent matrix norm.
-*> \endverbatim
-*
-*  Arguments:
-*  ==========
-*
-*> \param[in] NORM
-*> \verbatim
-*>          NORM is CHARACTER*1
-*>          Specifies the value to be returned in ZLANSP as described
-*>          above.
-*> \endverbatim
-*>
-*> \param[in] UPLO
-*> \verbatim
-*>          UPLO is CHARACTER*1
-*>          Specifies whether the upper or lower triangular part of the
-*>          symmetric matrix A is supplied.
-*>          = 'U':  Upper triangular part of A is supplied
-*>          = 'L':  Lower triangular part of A is supplied
-*> \endverbatim
-*>
-*> \param[in] N
-*> \verbatim
-*>          N is INTEGER
-*>          The order of the matrix A.  N >= 0.  When N = 0, ZLANSP is
-*>          set to zero.
-*> \endverbatim
-*>
-*> \param[in] AP
-*> \verbatim
-*>          AP is COMPLEX*16 array, dimension (N*(N+1)/2)
-*>          The upper or lower triangle of the symmetric matrix A, packed
-*>          columnwise in a linear array.  The j-th column of A is stored
-*>          in the array AP as follows:
-*>          if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
-*>          if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
-*> \endverbatim
-*>
-*> \param[out] WORK
-*> \verbatim
-*>          WORK is DOUBLE PRECISION array, dimension (MAX(1,LWORK)),
-*>          where LWORK >= N when NORM = 'I' or '1' or 'O'; otherwise,
-*>          WORK is not referenced.
-*> \endverbatim
-*
-*  Authors:
-*  ========
-*
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
-*
-*> \date September 2012
-*
-*> \ingroup complex16OTHERauxiliary
-*
-*  =====================================================================
+!> \brief \b ZLANSP returns the value of the 1-norm, or the Frobenius norm, or the infinity norm, or the element of largest absolute value of a symmetric matrix supplied in packed form.
+!
+!  =========== DOCUMENTATION ===========
+!
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
+!
+!> \htmlonly
+!> Download ZLANSP + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zlansp.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zlansp.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zlansp.f">
+!> [TXT]</a>
+!> \endhtmlonly
+!
+!  Definition:
+!  ===========
+!
+!       DOUBLE PRECISION FUNCTION ZLANSP( NORM, UPLO, N, AP, WORK )
+!
+!       .. Scalar Arguments ..
+!       CHARACTER          NORM, UPLO
+!       INTEGER            N
+!       ..
+!       .. Array Arguments ..
+!       DOUBLE PRECISION   WORK( * )
+!       COMPLEX*16         AP( * )
+!       ..
+!
+!
+!> \par Purpose:
+!  =============
+!>
+!> \verbatim
+!>
+!> ZLANSP  returns the value of the one norm,  or the Frobenius norm, or
+!> the  infinity norm,  or the  element of  largest absolute value  of a
+!> complex symmetric matrix A,  supplied in packed form.
+!> \endverbatim
+!>
+!> \return ZLANSP
+!> \verbatim
+!>
+!>    ZLANSP = ( max(abs(A(i,j))), NORM = 'M' or 'm'
+!>             (
+!>             ( norm1(A),         NORM = '1', 'O' or 'o'
+!>             (
+!>             ( normI(A),         NORM = 'I' or 'i'
+!>             (
+!>             ( normF(A),         NORM = 'F', 'f', 'E' or 'e'
+!>
+!> where  norm1  denotes the  one norm of a matrix (maximum column sum),
+!> normI  denotes the  infinity norm  of a matrix  (maximum row sum) and
+!> normF  denotes the  Frobenius norm of a matrix (square root of sum of
+!> squares).  Note that  max(abs(A(i,j)))  is not a consistent matrix norm.
+!> \endverbatim
+!
+!  Arguments:
+!  ==========
+!
+!> \param[in] NORM
+!> \verbatim
+!>          NORM is CHARACTER*1
+!>          Specifies the value to be returned in ZLANSP as described
+!>          above.
+!> \endverbatim
+!>
+!> \param[in] UPLO
+!> \verbatim
+!>          UPLO is CHARACTER*1
+!>          Specifies whether the upper or lower triangular part of the
+!>          symmetric matrix A is supplied.
+!>          = 'U':  Upper triangular part of A is supplied
+!>          = 'L':  Lower triangular part of A is supplied
+!> \endverbatim
+!>
+!> \param[in] N
+!> \verbatim
+!>          N is INTEGER
+!>          The order of the matrix A.  N >= 0.  When N = 0, ZLANSP is
+!>          set to zero.
+!> \endverbatim
+!>
+!> \param[in] AP
+!> \verbatim
+!>          AP is COMPLEX*16 array, dimension (N*(N+1)/2)
+!>          The upper or lower triangle of the symmetric matrix A, packed
+!>          columnwise in a linear array.  The j-th column of A is stored
+!>          in the array AP as follows:
+!>          if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
+!>          if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
+!> \endverbatim
+!>
+!> \param[out] WORK
+!> \verbatim
+!>          WORK is DOUBLE PRECISION array, dimension (MAX(1,LWORK)),
+!>          where LWORK >= N when NORM = 'I' or '1' or 'O'; otherwise,
+!>          WORK is not referenced.
+!> \endverbatim
+!
+!  Authors:
+!  ========
+!
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
+!
+!> \date September 2012
+!
+!> \ingroup complex16OTHERauxiliary
+!
+!  =====================================================================
       DOUBLE PRECISION FUNCTION ZLANSP( NORM, UPLO, N, AP, WORK )
-*
-*  -- LAPACK auxiliary routine (version 3.4.2) --
-*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
-*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     September 2012
-*
-*     .. Scalar Arguments ..
+!
+!  -- LAPACK auxiliary routine (version 3.4.2) --
+!  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     September 2012
+!
+!     .. Scalar Arguments ..
       CHARACTER          NORM, UPLO
       INTEGER            N
-*     ..
-*     .. Array Arguments ..
+!     ..
+!     .. Array Arguments ..
       DOUBLE PRECISION   WORK( * )
       COMPLEX*16         AP( * )
-*     ..
-*
-* =====================================================================
-*
-*     .. Parameters ..
+!     ..
+!
+! =====================================================================
+!
+!     .. Parameters ..
       DOUBLE PRECISION   ONE, ZERO
       PARAMETER          ( ONE = 1.0D+0, ZERO = 0.0D+0 )
-*     ..
-*     .. Local Scalars ..
+!     ..
+!     .. Local Scalars ..
       INTEGER            I, J, K
       DOUBLE PRECISION   ABSA, SCALE, SUM, VALUE
-*     ..
-*     .. External Functions ..
+!     ..
+!     .. External Functions ..
       LOGICAL            LSAME, DISNAN
       EXTERNAL           LSAME, DISNAN
-*     ..
-*     .. External Subroutines ..
+!     ..
+!     .. External Subroutines ..
       EXTERNAL           ZLASSQ
-*     ..
-*     .. Intrinsic Functions ..
+!     ..
+!     .. Intrinsic Functions ..
       INTRINSIC          ABS, DBLE, DIMAG, SQRT
-*     ..
-*     .. Executable Statements ..
-*
+!     ..
+!     .. Executable Statements ..
+!
       IF( N.EQ.0 ) THEN
          VALUE = ZERO
       ELSE IF( LSAME( NORM, 'M' ) ) THEN
-*
-*        Find max(abs(A(i,j))).
-*
+!
+!        Find max(abs(A(i,j))).
+!
          VALUE = ZERO
          IF( LSAME( UPLO, 'U' ) ) THEN
             K = 1
@@ -177,11 +177,11 @@
                K = K + N - J + 1
    40       CONTINUE
          END IF
-      ELSE IF( ( LSAME( NORM, 'I' ) ) .OR. ( LSAME( NORM, 'O' ) ) .OR.
-     $         ( NORM.EQ.'1' ) ) THEN
-*
-*        Find normI(A) ( = norm1(A), since A is symmetric).
-*
+      ELSE IF( ( LSAME( NORM, 'I' ) ) .OR. ( LSAME( NORM, 'O' ) ) .OR.          &
+     &         ( NORM.EQ.'1' ) ) THEN
+!
+!        Find normI(A) ( = norm1(A), since A is symmetric).
+!
          VALUE = ZERO
          K = 1
          IF( LSAME( UPLO, 'U' ) ) THEN
@@ -217,9 +217,9 @@
   100       CONTINUE
          END IF
       ELSE IF( ( LSAME( NORM, 'F' ) ) .OR. ( LSAME( NORM, 'E' ) ) ) THEN
-*
-*        Find normF(A).
-*
+!
+!        Find normF(A).
+!
          SCALE = ZERO
          SUM = ONE
          K = 2
@@ -263,10 +263,10 @@
   130    CONTINUE
          VALUE = SCALE*SQRT( SUM )
       END IF
-*
+!
       ZLANSP = VALUE
       RETURN
-*
-*     End of ZLANSP
-*
+!
+!     End of ZLANSP
+!
       END

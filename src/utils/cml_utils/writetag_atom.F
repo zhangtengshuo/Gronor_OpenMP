@@ -4,7 +4,7 @@
 !>
 !>  @authors
 !>    Coen de Graaf (URV, Tarragona)
-!>    
+!>
 !>  @date
 !>    March 2021
 !>
@@ -33,8 +33,8 @@
       else
         write(fmt_1,'(3a)')'(',trim(ts),',11a)'
       end if
-      write(lfn,fmt=fmt_1)'<atom id="',trim(id),'" elementType="',
-     &  trim(element),'" x3="',trim(x3),'" y3="',trim(y3),'" z3="',
+      write(lfn,fmt=fmt_1)'<atom id="',trim(id),'" elementType="',              &
+     &  trim(element),'" x3="',trim(x3),'" y3="',trim(y3),'" z3="',             &
      &  trim(z3),'"/>'
-      
+
       end subroutine writetag_atom

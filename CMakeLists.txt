@@ -972,6 +972,9 @@ if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()
+message(STATUS "External libraries defined: '${EXTERNAL_LIBRARIES}")
+
+# Define the appropriate compiler flags
 
 if(DEFINED UTILS)
   message ("TESTING MKL FOR NON_UTILS")

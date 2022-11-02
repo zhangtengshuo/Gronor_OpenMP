@@ -91,15 +91,14 @@
       fourdet=4.0d0*deta
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
-          tat(k,i)=ta(k,i)
-          tt(i,k)=tat(k,i)
+          tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
@@ -108,7 +107,7 @@
 #endif
       do i=1,nbas
         do k=1,nbas
-          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
+          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
 #ifdef ACC
@@ -124,7 +123,7 @@
 
         tst=ts
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab)
 !$acc loop reduction (+:tst)
 #endif
 #ifdef OMPTGT
@@ -137,10 +136,10 @@
           l=lab(3,intg)
           n=lab(4,intg)
           tst=tst+g(intg)*(sm(k,i)*sm(n,l)                                      &
-     &         -aat(n,i)*aaa(l,k)-tt(n,i)*tat(l,k)                              &
-     &         -aaa(n,i)*aat(l,k)-tat(n,i)*tt(l,k)                              &
-     &         -aat(l,i)*aaa(n,k)-tt(l,i)*tat(n,k)                              &
-     &         -aaa(l,i)*aat(n,k)-tat(l,i)*tt(n,k))
+     &         -aat(n,i)*aaa(l,k)-tt(n,i)*ta(l,k)                               &
+     &         -aaa(n,i)*aat(l,k)-ta(n,i)*tt(l,k)                               &
+     &         -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)                               &
+     &         -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
         enddo
 #ifdef ACC
 !$acc end kernels
@@ -155,7 +154,7 @@
 
         e2t=e2
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g)                                  &
+!$acc kernels present(aat,aaa,tt,ta,sm,g)                                  &
 !$acc& present(lab,diag,bdiag,bsdiag,csdiag)
 !$acc loop reduction (+:e2t)
 #endif
@@ -189,11 +188,11 @@
      &         -bai*(aat(n,k)*aaj+aat(l,k)*aal)                                 &
      &         -bbi*(tt(n,k)*abj+tt(l,k)*abl)                                   &
      &         -baj*(aaa(n,i)*aak+aaa(n,k)*aai)                                 &
-     &         -bbj*(tat(n,i)*abk+tat(n,k)*abi)                                 &
+     &         -bbj*(ta(n,i)*abk+ta(n,k)*abi)                                   &
      &         -bak*(aat(n,i)*aaj+aat(l,i)*aal)                                 &
      &         -bbk*(tt(n,i)*abj+tt(l,i)*abl)                                   &
      &         -bal*(aaa(l,i)*aak+aaa(l,k)*aai)                                 &
-     &         -bbl*(tat(l,i)*abk+tat(l,k)*abi))
+     &         -bbl*(ta(l,i)*abk+ta(l,k)*abi))
         enddo
 #ifdef ACC
 !$acc end kernels
@@ -279,15 +278,14 @@
       fourdet=4.0d0*deta
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
-          tat(k,i)=ta(k,i)
-          tt(i,k)=tat(k,i)
+          tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
@@ -296,7 +294,7 @@
 #endif
       do i=1,nbas
         do k=1,nbas
-          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
+          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
 #ifdef ACC
@@ -314,7 +312,7 @@
         kl=nbas*(nbas+1)/2
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)                          &
 !$acc& copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
@@ -350,7 +348,7 @@
         kl=nbas*(nbas+1)/2
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)                              &
 !$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
@@ -385,11 +383,11 @@
      &           -bai*(aat(n,k)*aaj+aat(l,k)*aal)                               &
      &           -bbi*(tt(n,k)*abj+tt(l,k)*abl)                                 &
      &           -baj*(aaa(n,i)*aak+aaa(n,k)*aai)                               &
-     &           -bbj*(tat(n,i)*abk+tat(n,k)*abi)                               &
+     &           -bbj*(ta(n,i)*abk+ta(n,k)*abi)                                 &
      &           -bak*(aat(n,i)*aaj+aat(l,i)*aal)                               &
      &           -bbk*(tt(n,i)*abj+tt(l,i)*abl)                                 &
      &           -bal*(aaa(l,i)*aak+aaa(l,k)*aai)                               &
-     &           -bbl*(tat(l,i)*abk+tat(l,k)*abi))
+     &           -bbl*(ta(l,i)*abk+ta(l,k)*abi))
           enddo
         enddo
 #ifdef ACC
@@ -476,15 +474,14 @@
       fourdet=4.0d0*deta
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
 !$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
-          tat(k,i)=ta(k,i)
-          tt(i,k)=tat(k,i)
+          tt(i,k)=ta(k,i)
           aat(i,k)=aaa(k,i)
         enddo
       enddo
@@ -493,7 +490,7 @@
 #endif
       do i=1,nbas
         do k=1,nbas
-          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+tat(k,i)
+          sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
 #ifdef ACC
@@ -512,7 +509,7 @@
         intg=0
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)                              &
 !$acc& copyin(intg,nbas)
 #endif
 #ifdef OMPTGT
@@ -569,7 +566,7 @@
         intg=0
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,tat,sm,g,lab,ndx)                          &
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)                              &
 !$acc& present(diag,bdiag,bsdiag,csdiag)                                       &
 !$acc& copyin(intg,kl,intndx,jntndx)
 #endif
@@ -618,11 +615,11 @@
      &               -bai*(aat(n,k)*aaj+aat(l,k)*aal)                           &
      &               -bbi*(tt(n,k)*abj+tt(l,k)*abl)                             &
      &               -baj*(aaa(n,i)*aak+aaa(n,k)*aai)                           &
-     &               -bbj*(tat(n,i)*abk+tat(n,k)*abi)                           &
+     &               -bbj*(ta(n,i)*abk+ta(n,k)*abi)                             &
      &               -bak*(aat(n,i)*aaj+aat(l,i)*aal)                           &
      &               -bbk*(tt(n,i)*abj+tt(l,i)*abl)                             &
      &               -bal*(aaa(l,i)*aak+aaa(l,k)*aai)                           &
-     &               -bbl*(tat(l,i)*abk+tat(l,k)*abi))
+     &               -bbl*(ta(l,i)*abk+ta(l,k)*abi))
               enddo
               intg=intg+n+1-ls
               e2n=e2n+e2l

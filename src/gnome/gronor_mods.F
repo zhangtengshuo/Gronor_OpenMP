@@ -211,7 +211,7 @@
       real (kind=8), allocatable :: taa(:,:),ta(:,:)
       real (kind=8), allocatable :: sm(:,:)
       real (kind=8), allocatable :: aaa(:,:),aat(:,:)
-      real (kind=8), allocatable :: tt(:,:),tat(:,:)
+      real (kind=8), allocatable :: tt(:,:)
 #ifdef SINGLEP
       real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
       real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)

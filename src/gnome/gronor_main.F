@@ -2032,7 +2032,6 @@
           allocate(veca(mbasel))
           allocate(vecb(mbasel))
           allocate(ta(mbasel,max(mbasel,nveca)))
-          allocate(tat(mbasel,max(mbasel,nveca)))
           allocate(taa(mbasel,max(mbasel,nveca)))
           allocate(aaa(mbasel,max(mbasel,nveca)))
           allocate(tb(mbasel,nvecb))
@@ -2169,7 +2168,7 @@
             endif
 #ifdef ACC
 !$acc data copyin(g,lab,ndx,t,v,ndxtv,s)                                       &
-!$acc& create(a,ta,tb,w1,w2,taa,tat,u,w,ev)                                    &
+!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev)                                        &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)              &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)         &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)                                       &
@@ -2177,7 +2176,7 @@
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,ndxtv,s)                                &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev)                                 &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,ev)                                     &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)           &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)          &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1)                                    &

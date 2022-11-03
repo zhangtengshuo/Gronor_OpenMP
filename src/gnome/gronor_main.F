@@ -133,17 +133,19 @@
 
 #ifdef USE_POSIXF
         call pxfgetlogin(user,len4,ierr4)
-#else
-        call getenv("USER",user)
-!     call getlog(user)
-#ifdef IBM
+#elifdef IBM
         call hostnm_(host)
+        call getenv("USER",user)
+#elifdef CRAY
+        call hostnm(host)
+        call getlog(user)
 #else
         call hostnm(host)
+        call getlog(user)
 #endif
+
         call swatch(date,time)
         call getcwd(cwd)
-#endif
 
 !     Read a single string argument 'root' from the command line, that
 !     will be used to generate all other files used to read and write

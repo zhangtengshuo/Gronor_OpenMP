@@ -1,8 +1,0 @@
-# The fortran modules provided by this target.
-provides
- cidef.mod
- cidist.mod
- const.mod
- gnome_data.mod
- gnome_integrals.mod
- gnome_parameters.mod

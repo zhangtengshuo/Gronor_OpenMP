@@ -1,2 +1,0 @@
-/bin/ar qc lib/libinp.a CMakeFiles/inp.dir/src/inp/input_util.F.o
-/bin/ranlib lib/libinp.a

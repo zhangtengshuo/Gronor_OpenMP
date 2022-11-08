@@ -1,0 +1,571 @@
+The system is: Linux - 3.10.0-957.el7.x86_64 - x86_64
+Compiling the Fortran compiler identification source file "CMakeFortranCompilerId.F" succeeded.
+Compiler: /home/qq/coen/bin/nv/bin/mpifort 
+Build flags: -O2
+Id flags: -v 
+
+The output was:
+0
+mpifort for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort1 CMakeFortranCompilerId.F -opt 2 -nostatic -x 19 0x400000 -quad -x 59 4 -x 15 2 -x 49 0x400004 -x 51 0x20 -x 57 0x4c -x 58 0x10000 -x 124 0x1000 -x 129 2 -tp skylake -x 57 0xfb0000 -x 58 0x78031040 -x 70 0x6c00 -x 47 0x400000 -x 47 0x08 -x 48 4608 -x 49 0x100 -stdinc /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48:/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include:/usr/local/include:/usr/include -cmdline '+pgfortran CMakeFortranCompilerId.F -O2 -Mvect=simd -v -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include -L/home/qq/coen/bin/nv/lib -lmpifort -Wl,-rpath -Wl,/home/qq/coen/bin/nv/lib -lmpi' -def unix -def __unix -def __unix__ -def linux -def __linux -def __linux__ -def __NO_MATH_INLINES -def __LP64__ -def __x86_64 -def __x86_64__ -def __LONG_MAX__=9223372036854775807L -def '__SIZE_TYPE__=unsigned long int' -def '__PTRDIFF_TYPE__=long int' -def __amd64 -def __amd64__ -def __k8 -def __k8__ -def __MMX__ -def __SSE__ -def __SSE2__ -def __SSE3__ -def __SSSE3__ -def __SSE4_1__ -def __SSE4_2__ -def __AVX__ -def __AVX2__ -def __AVX512F__ -def __AVX512VL__ -def __FMA__ -def __XSAVE__ -def __POPCNT__ -def __FXSR__ -idir /home/qq/coen/bin/nv/include -idir /home/qq/coen/bin/nv/include -def __PGLLVM__ -def __NVCOMPILER_LLVM__ -def __extension__= -preprocess -nofreeform -vect 48 -x 54 1 -x 68 0x1 -x 70 0x40000000 -x 70 0x40000000 -x 68 0x1 -x 124 1 -x 195 0x8000 -y 163 0xc0000000 -x 189 0x10 -x 53 2 -stbfile /tmp/nvfortranQLTK_Ur5ykgF.stb -modexport /tmp/nvfortran6LTKUMFGrYTi.cmod -modindex /tmp/nvfortrankLTKECCPetMh.cmdx -output /tmp/nvfortranALTKofjRujOq.ilm
+  0 inform,   0 warnings,   0 severes, 0 fatal for cmakefortrancompilerid
+NVFORTRAN/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort2 /tmp/nvfortranALTKofjRujOq.ilm -fn CMakeFortranCompilerId.F -opt 2 -x 51 0x20 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -vect 56 -y 34 16 -x 34 0x8 -x 32 17301504 -y 19 8 -y 35 0 -x 42 0x30 -x 39 0x40 -x 39 0x80 -x 59 4 -x 129 2 -tp skylake -x 120 0x1000 -x 124 0x1400 -y 15 2 -x 57 0x3b0000 -x 58 0x48000000 -x 49 0x100 -astype 0 -x 121 1 -x 183 4 -x 121 0x800 -x 68 0x1 -x 8 0x40000000 -x 70 0x40000000 -x 56 0x10 -x 54 0x10 -x 249 90 -x 68 0x20 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -x 124 1 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 9 1 -x 72 0x1 -x 136 0x11 -x 37 0x481000 -cmdline '+pgfortran CMakeFortranCompilerId.F -O2 -Mvect=simd -v -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include -L/home/qq/coen/bin/nv/lib -lmpifort -Wl,-rpath -Wl,/home/qq/coen/bin/nv/lib -lmpi' -stbfile /tmp/nvfortranQLTK_Ur5ykgF.stb -asm /tmp/nvfortranQLTK_bah1lZW.ll
+  0 inform,   0 warnings,   0 severes, 0 fatal for cmakefortrancompilerid
+NVFORTRAN/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/opt -O2 /tmp/nvfortranQLTK_bah1lZW.ll -S -o /tmp/nvfortrankLTKEFcbfn0_.llvm
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvfortrankLTKEFcbfn0_.llvm -march=x86-64 -mcpu=native -O2 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o /tmp/nvfortran6LTKUra8VMZl.o
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/append -noerror /tmp/nvfortran6LTKUra8VMZl.o -name .IPDINFO /tmp/nvfortran6LTKUMFGrYTi.cmod -name .IPEINFO /tmp/nvfortrankLTKECCPetMh.cmdx
+
+/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/f90main.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 /tmp/nvfortran6LTKUra8VMZl.o -lmpifort -rpath /home/qq/coen/bin/nv/lib -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -lnvf -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lrt -lpthread -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o
+Unlinking /tmp/nvfortranALTKofjRujOq.ilm
+Unlinking /tmp/nvfortranQLTK_Ur5ykgF.stb
+Unlinking /tmp/nvfortran6LTKUMFGrYTi.cmod
+Unlinking /tmp/nvfortrankLTKECCPetMh.cmdx
+Unlinking /tmp/nvfortranALTKoaaIIoZT.s
+Unlinking /tmp/nvfortranQLTK_bah1lZW.ll
+Unlinking /tmp/nvfortran6LTKUra8VMZl.o
+Unlinking /tmp/nvfortrankLTKEFcbfn0_.llvm
+
+
+Compilation of the Fortran compiler identification source "CMakeFortranCompilerId.F" produced "a.out"
+
+The Fortran compiler identification is PGI, found in "/home/qq/mansilla/master/build/CMakeFiles/3.18.4/CompilerIdFortran/a.out"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /home/qq/coen/bin/nv/bin/mpicc 
+Build flags: -O2
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is PGI, found in "/home/qq/mansilla/master/build/CMakeFiles/3.18.4/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /home/qq/coen/bin/nv/bin/mpicxx 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is PGI, found in "/home/qq/mansilla/master/build/CMakeFiles/3.18.4/CompilerIdCXX/a.out"
+
+Detecting Fortran compiler ABI info compiled with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_e11c7/fast && /bin/gmake  -f CMakeFiles/cmTC_e11c7.dir/build.make CMakeFiles/cmTC_e11c7.dir/build
+gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o
+/home/qq/coen/bin/nv/bin/mpifort   -O2    -v -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o
+mpifort for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort1 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -opt 2 -nostatic -x 19 0x400000 -quad -x 59 4 -x 15 2 -x 49 0x400004 -x 51 0x20 -x 57 0x4c -x 58 0x10000 -x 124 0x1000 -x 129 2 -tp skylake -x 57 0xfb0000 -x 58 0x78031040 -x 70 0x6c00 -x 47 0x400000 -x 47 0x08 -x 48 4608 -x 49 0x100 -stdinc /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48:/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include:/usr/local/include:/usr/include -cmdline '+pgfortran /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -O2 -Mvect=simd -v -c -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include' -def unix -def __unix -def __unix__ -def linux -def __linux -def __linux__ -def __NO_MATH_INLINES -def __LP64__ -def __x86_64 -def __x86_64__ -def __LONG_MAX__=9223372036854775807L -def '__SIZE_TYPE__=unsigned long int' -def '__PTRDIFF_TYPE__=long int' -def __amd64 -def __amd64__ -def __k8 -def __k8__ -def __MMX__ -def __SSE__ -def __SSE2__ -def __SSE3__ -def __SSSE3__ -def __SSE4_1__ -def __SSE4_2__ -def __AVX__ -def __AVX2__ -def __AVX512F__ -def __AVX512VL__ -def __FMA__ -def __XSAVE__ -def __POPCNT__ -def __FXSR__ -idir /home/qq/coen/bin/nv/include -idir /home/qq/coen/bin/nv/include -def __PGLLVM__ -def __NVCOMPILER_LLVM__ -def __extension__= -preprocess -nofreeform -vect 48 -x 54 1 -x 68 0x1 -x 70 0x40000000 -x 70 0x40000000 -x 68 0x1 -x 124 1 -x 195 0x8000 -y 163 0xc0000000 -x 189 0x10 -x 53 2 -stbfile /tmp/nvfortranTgUKhH3Bl1CK.stb -modexport /tmp/nvfortranvgUK-PtLdQGo.cmod -modindex /tmp/nvfortran9gUK35qoa6Oj.cmdx -output /tmp/nvfortranfgUKpNc93J9R.ilm
+  0 inform,   0 warnings,   0 severes, 0 fatal for cmakefortrancompilerabi
+NVFORTRAN/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort2 /tmp/nvfortranfgUKpNc93J9R.ilm -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -opt 2 -x 51 0x20 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -vect 56 -y 34 16 -x 34 0x8 -x 32 17301504 -y 19 8 -y 35 0 -x 42 0x30 -x 39 0x40 -x 39 0x80 -x 59 4 -x 129 2 -tp skylake -x 120 0x1000 -x 124 0x1400 -y 15 2 -x 57 0x3b0000 -x 58 0x48000000 -x 49 0x100 -astype 0 -x 121 1 -x 183 4 -x 121 0x800 -x 68 0x1 -x 8 0x40000000 -x 70 0x40000000 -x 56 0x10 -x 54 0x10 -x 249 90 -x 68 0x20 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -x 124 1 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 9 1 -x 72 0x1 -x 136 0x11 -x 37 0x481000 -cmdline '+pgfortran /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -O2 -Mvect=simd -v -c -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include' -stbfile /tmp/nvfortranTgUKhH3Bl1CK.stb -asm /tmp/nvfortranngUKNozqU0XB.ll
+  0 inform,   0 warnings,   0 severes, 0 fatal for cmakefortrancompilerabi
+NVFORTRAN/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/opt -O2 /tmp/nvfortranngUKNozqU0XB.ll -S -o /tmp/nvfortran1gUKFddoAUZG.llvm
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvfortran1gUKFddoAUZG.llvm -march=x86-64 -mcpu=native -O2 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/append -noerror CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -name .IPDINFO /tmp/nvfortranvgUK-PtLdQGo.cmod -name .IPEINFO /tmp/nvfortran9gUK35qoa6Oj.cmdx
+Unlinking /tmp/nvfortranfgUKpNc93J9R.ilm
+Unlinking /tmp/nvfortranTgUKhH3Bl1CK.stb
+Unlinking /tmp/nvfortranvgUK-PtLdQGo.cmod
+Unlinking /tmp/nvfortran9gUK35qoa6Oj.cmdx
+Unlinking /tmp/nvfortranLgUKVi4YEfsL.s
+Unlinking /tmp/nvfortranngUKNozqU0XB.ll
+Unlinking /tmp/nvfortran1gUKFddoAUZG.llvm
+Linking Fortran executable cmTC_e11c7
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e11c7.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpifort  -v -O2  CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -o cmTC_e11c7 
+mpifort for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/f90main.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -lmpifort -rpath /home/qq/coen/bin/nv/lib -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_e11c7 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -lnvf -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lrt -lpthread -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o
+gmake[1]: Leaving directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Parsed Fortran implicit include dir info from above output: rv=start
+  warn: unable to parse implicit include dirs!
+
+
+Parsed Fortran implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/bin/gmake cmTC_e11c7/fast && /bin/gmake  -f CMakeFiles/cmTC_e11c7.dir/build.make CMakeFiles/cmTC_e11c7.dir/build]
+  ignore line: [gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building Fortran object CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpifort   -O2    -v -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [mpifort for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort1 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -opt 2 -nostatic -x 19 0x400000 -quad -x 59 4 -x 15 2 -x 49 0x400004 -x 51 0x20 -x 57 0x4c -x 58 0x10000 -x 124 0x1000 -x 129 2 -tp skylake -x 57 0xfb0000 -x 58 0x78031040 -x 70 0x6c00 -x 47 0x400000 -x 47 0x08 -x 48 4608 -x 49 0x100 -stdinc /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48:/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include:/usr/local/include:/usr/include -cmdline '+pgfortran /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -O2 -Mvect=simd -v -c -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include' -def unix -def __unix -def __unix__ -def linux -def __linux -def __linux__ -def __NO_MATH_INLINES -def __LP64__ -def __x86_64 -def __x86_64__ -def __LONG_MAX__=9223372036854775807L -def '__SIZE_TYPE__=unsigned long int' -def '__PTRDIFF_TYPE__=long int' -def __amd64 -def __amd64__ -def __k8 -def __k8__ -def __MMX__ -def __SSE__ -def __SSE2__ -def __SSE3__ -def __SSSE3__ -def __SSE4_1__ -def __SSE4_2__ -def __AVX__ -def __AVX2__ -def __AVX512F__ -def __AVX512VL__ -def __FMA__ -def __XSAVE__ -def __POPCNT__ -def __FXSR__ -idir /home/qq/coen/bin/nv/include -idir /home/qq/coen/bin/nv/include -def __PGLLVM__ -def __NVCOMPILER_LLVM__ -def __extension__= -preprocess -nofreeform -vect 48 -x 54 1 -x 68 0x1 -x 70 0x40000000 -x 70 0x40000000 -x 68 0x1 -x 124 1 -x 195 0x8000 -y 163 0xc0000000 -x 189 0x10 -x 53 2 -stbfile /tmp/nvfortranTgUKhH3Bl1CK.stb -modexport /tmp/nvfortranvgUK-PtLdQGo.cmod -modindex /tmp/nvfortran9gUK35qoa6Oj.cmdx -output /tmp/nvfortranfgUKpNc93J9R.ilm]
+  ignore line: [  0 inform    0 warnings    0 severes  0 fatal for cmakefortrancompilerabi]
+  ignore line: [NVFORTRAN/x86-64 Linux 20.9-0: compilation successful]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/fort2 /tmp/nvfortranfgUKpNc93J9R.ilm -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -opt 2 -x 51 0x20 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -vect 56 -y 34 16 -x 34 0x8 -x 32 17301504 -y 19 8 -y 35 0 -x 42 0x30 -x 39 0x40 -x 39 0x80 -x 59 4 -x 129 2 -tp skylake -x 120 0x1000 -x 124 0x1400 -y 15 2 -x 57 0x3b0000 -x 58 0x48000000 -x 49 0x100 -astype 0 -x 121 1 -x 183 4 -x 121 0x800 -x 68 0x1 -x 8 0x40000000 -x 70 0x40000000 -x 56 0x10 -x 54 0x10 -x 249 90 -x 68 0x20 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -x 124 1 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 9 1 -x 72 0x1 -x 136 0x11 -x 37 0x481000 -cmdline '+pgfortran /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeFortranCompilerABI.F -O2 -Mvect=simd -v -c -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -I/home/qq/coen/bin/nv/include -I/home/qq/coen/bin/nv/include' -stbfile /tmp/nvfortranTgUKhH3Bl1CK.stb -asm /tmp/nvfortranngUKNozqU0XB.ll]
+  ignore line: [  0 inform    0 warnings    0 severes  0 fatal for cmakefortrancompilerabi]
+  ignore line: [NVFORTRAN/x86-64 Linux 20.9-0: compilation successful]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/opt -O2 /tmp/nvfortranngUKNozqU0XB.ll -S -o /tmp/nvfortran1gUKFddoAUZG.llvm]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvfortran1gUKFddoAUZG.llvm -march=x86-64 -mcpu=native -O2 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/append -noerror CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -name .IPDINFO /tmp/nvfortranvgUK-PtLdQGo.cmod -name .IPEINFO /tmp/nvfortran9gUK35qoa6Oj.cmdx]
+  ignore line: [Unlinking /tmp/nvfortranfgUKpNc93J9R.ilm]
+  ignore line: [Unlinking /tmp/nvfortranTgUKhH3Bl1CK.stb]
+  ignore line: [Unlinking /tmp/nvfortranvgUK-PtLdQGo.cmod]
+  ignore line: [Unlinking /tmp/nvfortran9gUK35qoa6Oj.cmdx]
+  ignore line: [Unlinking /tmp/nvfortranLgUKVi4YEfsL.s]
+  ignore line: [Unlinking /tmp/nvfortranngUKNozqU0XB.ll]
+  ignore line: [Unlinking /tmp/nvfortran1gUKFddoAUZG.llvm]
+  ignore line: [Linking Fortran executable cmTC_e11c7]
+  ignore line: [/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e11c7.dir/link.txt --verbose=1]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpifort  -v -O2  CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -o cmTC_e11c7 ]
+  ignore line: [mpifort for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  link line: [/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/f90main.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o -lmpifort -rpath /home/qq/coen/bin/nv/lib -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_e11c7 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -lnvf -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lrt -lpthread -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o]
+    arg [/bin/ld] ==> ignore
+    arg [/usr/lib64/crt1.o] ==> ignore
+    arg [/usr/lib64/crti.o] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/f90main.o] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld] ==> ignore
+    arg [-L/home/qq/coen/bin/nv/lib] ==> dir [/home/qq/coen/bin/nv/lib]
+    arg [-L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+    arg [-L/usr/lib64] ==> dir [/usr/lib64]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+    arg [CMakeFiles/cmTC_e11c7.dir/CMakeFortranCompilerABI.F.o] ==> ignore
+    arg [-lmpifort] ==> lib [mpifort]
+    arg [-rpath] ==> ignore
+    arg [/home/qq/coen/bin/nv/lib] ==> ignore
+    arg [-lmpi] ==> lib [mpi]
+    arg [-rpath] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> ignore
+    arg [-rpath] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_e11c7] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64]
+    arg [-lnvf] ==> lib [nvf]
+    arg [-lnvomp] ==> lib [nvomp]
+    arg [-ldl] ==> lib [dl]
+    arg [-as-needed] ==> ignore
+    arg [-lnvhpcatm] ==> lib [nvhpcatm]
+    arg [-latomic] ==> lib [atomic]
+    arg [-no-as-needed] ==> ignore
+    arg [-lpthread] ==> lib [pthread]
+    arg [--start-group] ==> ignore
+    arg [-lnvcpumath] ==> lib [nvcpumath]
+    arg [-lnsnvc] ==> lib [nsnvc]
+    arg [-lnvc] ==> lib [nvc]
+    arg [--end-group] ==> ignore
+    arg [-lrt] ==> lib [rt]
+    arg [-lpthread] ==> lib [pthread]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o] ==> ignore
+    arg [/usr/lib64/crtn.o] ==> ignore
+  collapse library dir [/home/qq/coen/bin/nv/lib] ==> [/home/qq/coen/bin/nv/lib]
+  collapse library dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+  collapse library dir [/usr/lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> [/usr/lib64]
+  implicit libs: [mpifort;mpi;nvf;nvomp;dl;nvhpcatm;atomic;pthread;nvcpumath;nsnvc;nvc;rt;pthread;m;gcc;c;gcc;gcc_s]
+  implicit dirs: [/home/qq/coen/bin/nv/lib;/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib;/usr/lib64;/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  implicit fwks: []
+
+
+Determining if the Fortran compiler supports Fortran 90 passed with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_be540/fast && /bin/gmake  -f CMakeFiles/cmTC_be540.dir/build.make CMakeFiles/cmTC_be540.dir/build
+gmake[1]: se ingresa al directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_be540.dir/testFortranCompilerF90.f90.o
+/home/qq/coen/bin/nv/bin/mpifort   -O2  -c /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp/testFortranCompilerF90.f90 -o CMakeFiles/cmTC_be540.dir/testFortranCompilerF90.f90.o
+Linking Fortran executable cmTC_be540
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_be540.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpifort -O2  CMakeFiles/cmTC_be540.dir/testFortranCompilerF90.f90.o -o cmTC_be540 
+gmake[1]: se sale del directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_49f1a/fast && /bin/gmake  -f CMakeFiles/cmTC_49f1a.dir/build.make CMakeFiles/cmTC_49f1a.dir/build
+gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o
+/home/qq/coen/bin/nv/bin/mpicc   -O2    -v -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c
+mpicc for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp1 --llalign -Dunix -D__unix -D__unix__ -Dlinux -D__linux -D__linux__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE__ -D__SSE2__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__AVX__ -D__AVX2__ -D__AVX512F__ -D__AVX512VL__ -D__FMA__ -D__XSAVE__ -D__POPCNT__ -D__FXSR__ -D__PGI -D__NVCOMPILER -D_PGCG_SOURCE --c11 -I/home/qq/coen/bin/nv/include -I- -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= --c --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=40805 -D__pgnu_vsn=40805 -q -o /tmp/nvcC4UKu8ElLquJ.il /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp2 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c -opt 2 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -vect 56 -y 34 16 -x 34 0x8 -x 32 17301504 -y 19 8 -y 35 0 -x 42 0x30 -x 39 0x40 -x 39 0x80 -x 59 4 -x 129 2 -tp skylake -x 120 0x1000 -astype 0 -x 121 1 -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c -il /tmp/nvcC4UKu8ElLquJ.il -x 123 0x80000000 -x 123 4 -x 119 0x20 -def __pgnu_vsn=40805 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 122 0x400000 -y 125 0x100000 -autoinl 10 -x 168 400 -x 174 128000 -x 14 0x200000 -x 14 0x400000 -x 249 90 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 9 1 -x 72 0x1 -x 136 0x11 -x 37 0x481000 -gnuvsn 40805 -x 69 0x200 -x 123 0x400 -cmdline '+pgcc /tmp/nvcC4UKu8ElLquJ.il -O2 -Mvect=simd -v -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -c -I/home/qq/coen/bin/nv/include' -asm /tmp/nvcC4UKuvk_Fvwl.ll
+NVC++/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/opt -O2 /tmp/nvcC4UKuvk_Fvwl.ll -S -o /tmp/nvc84UK0-CTiqEb.llvm
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvc84UK0-CTiqEb.llvm -march=x86-64 -mcpu=native -O2 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o
+Unlinking /tmp/nvcC4UKu8ElLquJ.il
+Unlinking /tmp/nvc84UK0EwfN2l5.s
+Unlinking /tmp/nvcC4UKuvk_Fvwl.ll
+Unlinking /tmp/nvc84UK0-CTiqEb.llvm
+Linking C executable cmTC_49f1a
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_49f1a.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpicc -O2   -v CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -o cmTC_49f1a 
+mpicc for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -rpath /home/qq/coen/bin/nv/lib --enable-new-dtags -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_49f1a -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o
+gmake[1]: Leaving directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Parsed C implicit include dir info from above output: rv=start
+  warn: unable to parse implicit include dirs!
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/bin/gmake cmTC_49f1a/fast && /bin/gmake  -f CMakeFiles/cmTC_49f1a.dir/build.make CMakeFiles/cmTC_49f1a.dir/build]
+  ignore line: [gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpicc   -O2    -v -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c]
+  ignore line: [mpicc for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp1 --llalign -Dunix -D__unix -D__unix__ -Dlinux -D__linux -D__linux__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE__ -D__SSE2__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__AVX__ -D__AVX2__ -D__AVX512F__ -D__AVX512VL__ -D__FMA__ -D__XSAVE__ -D__POPCNT__ -D__FXSR__ -D__PGI -D__NVCOMPILER -D_PGCG_SOURCE --c11 -I/home/qq/coen/bin/nv/include -I- -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= --c --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=40805 -D__pgnu_vsn=40805 -q -o /tmp/nvcC4UKu8ElLquJ.il /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp2 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c -opt 2 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -vect 56 -y 34 16 -x 34 0x8 -x 32 17301504 -y 19 8 -y 35 0 -x 42 0x30 -x 39 0x40 -x 39 0x80 -x 59 4 -x 129 2 -tp skylake -x 120 0x1000 -astype 0 -x 121 1 -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCCompilerABI.c -il /tmp/nvcC4UKu8ElLquJ.il -x 123 0x80000000 -x 123 4 -x 119 0x20 -def __pgnu_vsn=40805 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 122 0x400000 -y 125 0x100000 -autoinl 10 -x 168 400 -x 174 128000 -x 14 0x200000 -x 14 0x400000 -x 249 90 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 9 1 -x 72 0x1 -x 136 0x11 -x 37 0x481000 -gnuvsn 40805 -x 69 0x200 -x 123 0x400 -cmdline '+pgcc /tmp/nvcC4UKu8ElLquJ.il -O2 -Mvect=simd -v -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -c -I/home/qq/coen/bin/nv/include' -asm /tmp/nvcC4UKuvk_Fvwl.ll]
+  ignore line: [NVC++/x86-64 Linux 20.9-0: compilation successful]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/opt -O2 /tmp/nvcC4UKuvk_Fvwl.ll -S -o /tmp/nvc84UK0-CTiqEb.llvm]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvc84UK0-CTiqEb.llvm -march=x86-64 -mcpu=native -O2 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o]
+  ignore line: [Unlinking /tmp/nvcC4UKu8ElLquJ.il]
+  ignore line: [Unlinking /tmp/nvc84UK0EwfN2l5.s]
+  ignore line: [Unlinking /tmp/nvcC4UKuvk_Fvwl.ll]
+  ignore line: [Unlinking /tmp/nvc84UK0-CTiqEb.llvm]
+  ignore line: [Linking C executable cmTC_49f1a]
+  ignore line: [/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_49f1a.dir/link.txt --verbose=1]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpicc -O2   -v CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -o cmTC_49f1a ]
+  ignore line: [mpicc for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  link line: [/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o -rpath /home/qq/coen/bin/nv/lib --enable-new-dtags -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_49f1a -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o]
+    arg [/bin/ld] ==> ignore
+    arg [/usr/lib64/crt1.o] ==> ignore
+    arg [/usr/lib64/crti.o] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld] ==> ignore
+    arg [-L/home/qq/coen/bin/nv/lib] ==> dir [/home/qq/coen/bin/nv/lib]
+    arg [-L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+    arg [-L/usr/lib64] ==> dir [/usr/lib64]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+    arg [CMakeFiles/cmTC_49f1a.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-rpath] ==> ignore
+    arg [/home/qq/coen/bin/nv/lib] ==> ignore
+    arg [--enable-new-dtags] ==> ignore
+    arg [-lmpi] ==> lib [mpi]
+    arg [-rpath] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> ignore
+    arg [-rpath] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_49f1a] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64]
+    arg [-lnvomp] ==> lib [nvomp]
+    arg [-ldl] ==> lib [dl]
+    arg [-as-needed] ==> ignore
+    arg [-lnvhpcatm] ==> lib [nvhpcatm]
+    arg [-latomic] ==> lib [atomic]
+    arg [-no-as-needed] ==> ignore
+    arg [-lpthread] ==> lib [pthread]
+    arg [--start-group] ==> ignore
+    arg [-lnvcpumath] ==> lib [nvcpumath]
+    arg [-lnsnvc] ==> lib [nsnvc]
+    arg [-lnvc] ==> lib [nvc]
+    arg [--end-group] ==> ignore
+    arg [-lm] ==> lib [m]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o] ==> ignore
+    arg [/usr/lib64/crtn.o] ==> ignore
+  collapse library dir [/home/qq/coen/bin/nv/lib] ==> [/home/qq/coen/bin/nv/lib]
+  collapse library dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+  collapse library dir [/usr/lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> [/usr/lib64]
+  implicit libs: [mpi;nvomp;dl;nvhpcatm;atomic;pthread;nvcpumath;nsnvc;nvc;m;gcc;c;gcc;gcc_s]
+  implicit dirs: [/home/qq/coen/bin/nv/lib;/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib;/usr/lib64;/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  implicit fwks: []
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_f5a15/fast && /bin/gmake  -f CMakeFiles/cmTC_f5a15.dir/build.make CMakeFiles/cmTC_f5a15.dir/build
+gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o
+/home/qq/coen/bin/nv/bin/mpicxx   -v -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp
+mpicxx for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp1 --llalign -Dunix -D__unix -D__unix__ -Dlinux -D__linux -D__linux__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE__ -D__SSE2__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__AVX__ -D__AVX2__ -D__AVX512F__ -D__AVX512VL__ -D__FMA__ -D__XSAVE__ -D__POPCNT__ -D__FXSR__ -D__PGI -D__NVCOMPILER -D_GNU_SOURCE -D_PGCG_SOURCE -I/home/qq/coen/bin/nv/include -I- -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=40805 -D__pgnu_vsn=40805 -q -o /tmp/nvc++_qVK649qhtLd.il /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp2 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp skylake -x 120 0x1000 -astype 0 -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp -il /tmp/nvc++_qVK649qhtLd.il -x 117 0x200 -x 123 0x80000000 -x 123 4 -x 119 0x20 -def __pgnu_vsn=40805 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 249 90 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -gnuvsn 40805 -x 69 0x200 -x 123 0x400 -cmdline '+pgc++ /tmp/nvc++_qVK649qhtLd.il -v -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -c -I/home/qq/coen/bin/nv/include' -asm /tmp/nvc++EqVKAbv8peGj.ll
+NVC++/x86-64 Linux 20.9-0: compilation successful
+
+/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvc++EqVKAbv8peGj.ll -march=x86-64 -mcpu=native -O1 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o
+Unlinking /tmp/nvc++_qVK649qhtLd.il
+Unlinking /tmp/nvc++UqVKkaTVhayt.s
+Unlinking /tmp/nvc++EqVKAbv8peGj.ll
+Unlinking /tmp/nvc++oqVKQm9L8HO_.llvm
+Linking CXX executable cmTC_f5a15
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f5a15.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpicxx  -v CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_f5a15 
+mpicxx for MPICH version 3.3.2
+Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/
+Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9
+Export PGI=/opt/nvidia/hpc_sdk
+
+/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -lmpicxx -rpath /home/qq/coen/bin/nv/lib --enable-new-dtags -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_f5a15 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -latomic -lnvhpcatm -lstdc++ -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o
+gmake[1]: Leaving directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Parsed CXX implicit include dir info from above output: rv=start
+  warn: unable to parse implicit include dirs!
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/bin/gmake cmTC_f5a15/fast && /bin/gmake  -f CMakeFiles/cmTC_f5a15.dir/build.make CMakeFiles/cmTC_f5a15.dir/build]
+  ignore line: [gmake[1]: Entering directory `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpicxx   -v -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -c /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [mpicxx for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp1 --llalign -Dunix -D__unix -D__unix__ -Dlinux -D__linux -D__linux__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE__ -D__SSE2__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__AVX__ -D__AVX2__ -D__AVX512F__ -D__AVX512VL__ -D__FMA__ -D__XSAVE__ -D__POPCNT__ -D__FXSR__ -D__PGI -D__NVCOMPILER -D_GNU_SOURCE -D_PGCG_SOURCE -I/home/qq/coen/bin/nv/include -I- -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/include/c++/4.8.5 -I/usr/include/c++/4.8.5/x86_64-redhat-linux -I/usr/include/c++/4.8.5/backward -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include-gcc48 -I/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/include -I/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I/usr/local/include -I/usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=40805 -D__pgnu_vsn=40805 -q -o /tmp/nvc++_qVK649qhtLd.il /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/tools/cpp2 /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp skylake -x 120 0x1000 -astype 0 -fn /home/programes/qq/cmake-3.18/share/cmake-3.18/Modules/CMakeCXXCompilerABI.cpp -il /tmp/nvc++_qVK649qhtLd.il -x 117 0x200 -x 123 0x80000000 -x 123 4 -x 119 0x20 -def __pgnu_vsn=40805 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 249 90 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 85 0x2000 -x 85 0x4000 -x 68 0x1 -x 39 4 -x 56 0x10 -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -gnuvsn 40805 -x 69 0x200 -x 123 0x400 -cmdline '+pgc++ /tmp/nvc++_qVK649qhtLd.il -v -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -c -I/home/qq/coen/bin/nv/include' -asm /tmp/nvc++EqVKAbv8peGj.ll]
+  ignore line: [NVC++/x86-64 Linux 20.9-0: compilation successful]
+  ignore line: []
+  ignore line: [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/share/llvm/bin/llc /tmp/nvc++EqVKAbv8peGj.ll -march=x86-64 -mcpu=native -O1 -fast-isel=0 -non-global-value-max-name-size=4294967295 -x86-cmov-converter=0 -filetype=obj -o CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [Unlinking /tmp/nvc++_qVK649qhtLd.il]
+  ignore line: [Unlinking /tmp/nvc++UqVKkaTVhayt.s]
+  ignore line: [Unlinking /tmp/nvc++EqVKAbv8peGj.ll]
+  ignore line: [Unlinking /tmp/nvc++oqVKQm9L8HO_.llvm]
+  ignore line: [Linking CXX executable cmTC_f5a15]
+  ignore line: [/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f5a15.dir/link.txt --verbose=1]
+  ignore line: [/home/qq/coen/bin/nv/bin/mpicxx  -v CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_f5a15 ]
+  ignore line: [mpicxx for MPICH version 3.3.2]
+  ignore line: [Export PGI_CURR_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/cuda/]
+  ignore line: [Export NVCOMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9]
+  ignore line: [Export PGI=/opt/nvidia/hpc_sdk]
+  ignore line: []
+  link line: [/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld -L/home/qq/coen/bin/nv/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o -lmpicxx -rpath /home/qq/coen/bin/nv/lib --enable-new-dtags -lmpi -rpath /opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib -rpath /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -o cmTC_f5a15 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -latomic -lnvhpcatm -lstdc++ -lnvomp -ldl -as-needed -lnvhpcatm -latomic -no-as-needed -lpthread --start-group -lnvcpumath -lnsnvc -lnvc --end-group -lm -lgcc -lc -lgcc -lgcc_s /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib64/crtn.o]
+    arg [/bin/ld] ==> ignore
+    arg [/usr/lib64/crt1.o] ==> ignore
+    arg [/usr/lib64/crti.o] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/trace_init.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib/nvhpc.ld] ==> ignore
+    arg [-L/home/qq/coen/bin/nv/lib] ==> dir [/home/qq/coen/bin/nv/lib]
+    arg [-L/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+    arg [-L/usr/lib64] ==> dir [/usr/lib64]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+    arg [CMakeFiles/cmTC_f5a15.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lmpicxx] ==> lib [mpicxx]
+    arg [-rpath] ==> ignore
+    arg [/home/qq/coen/bin/nv/lib] ==> ignore
+    arg [--enable-new-dtags] ==> ignore
+    arg [-lmpi] ==> lib [mpi]
+    arg [-rpath] ==> ignore
+    arg [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> ignore
+    arg [-rpath] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_f5a15] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64]
+    arg [-latomic] ==> lib [atomic]
+    arg [-lnvhpcatm] ==> lib [nvhpcatm]
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lnvomp] ==> lib [nvomp]
+    arg [-ldl] ==> lib [dl]
+    arg [-as-needed] ==> ignore
+    arg [-lnvhpcatm] ==> lib [nvhpcatm]
+    arg [-latomic] ==> lib [atomic]
+    arg [-no-as-needed] ==> ignore
+    arg [-lpthread] ==> lib [pthread]
+    arg [--start-group] ==> ignore
+    arg [-lnvcpumath] ==> lib [nvcpumath]
+    arg [-lnsnvc] ==> lib [nsnvc]
+    arg [-lnvc] ==> lib [nvc]
+    arg [--end-group] ==> ignore
+    arg [-lm] ==> lib [m]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o] ==> ignore
+    arg [/usr/lib64/crtn.o] ==> ignore
+  collapse library dir [/home/qq/coen/bin/nv/lib] ==> [/home/qq/coen/bin/nv/lib]
+  collapse library dir [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib] ==> [/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib]
+  collapse library dir [/usr/lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5] ==> [/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64] ==> [/usr/lib64]
+  implicit libs: [mpicxx;mpi;atomic;nvhpcatm;stdc++;nvomp;dl;nvhpcatm;atomic;pthread;nvcpumath;nsnvc;nvc;m;gcc;c;gcc;gcc_s]
+  implicit dirs: [/home/qq/coen/bin/nv/lib;/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib;/usr/lib64;/usr/lib/gcc/x86_64-redhat-linux/4.8.5]
+  implicit fwks: []
+
+
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_7a1e6/fast && /bin/gmake  -f CMakeFiles/cmTC_7a1e6.dir/build.make CMakeFiles/cmTC_7a1e6.dir/build
+gmake[1]: se ingresa al directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7a1e6.dir/CheckIncludeFile.c.o
+/home/qq/coen/bin/nv/bin/mpicc   -O2  -o CMakeFiles/cmTC_7a1e6.dir/CheckIncludeFile.c.o -c /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_7a1e6
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7a1e6.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpicc -O2  CMakeFiles/cmTC_7a1e6.dir/CheckIncludeFile.c.o -o cmTC_7a1e6 
+gmake[1]: se sale del directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD succeeded with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_1c9ea/fast && /bin/gmake  -f CMakeFiles/cmTC_1c9ea.dir/build.make CMakeFiles/cmTC_1c9ea.dir/build
+gmake[1]: se ingresa al directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1c9ea.dir/src.c.o
+/home/qq/coen/bin/nv/bin/mpicc   -O2 -DCMAKE_HAVE_LIBC_PTHREAD -o CMakeFiles/cmTC_1c9ea.dir/src.c.o -c /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_1c9ea
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1c9ea.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpicc -O2 -DCMAKE_HAVE_LIBC_PTHREAD CMakeFiles/cmTC_1c9ea.dir/src.c.o -o cmTC_1c9ea 
+gmake[1]: se sale del directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the Fortran sgemm exists passed with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_13e68/fast && /bin/gmake  -f CMakeFiles/cmTC_13e68.dir/build.make CMakeFiles/cmTC_13e68.dir/build
+gmake[1]: se ingresa al directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_13e68.dir/testFortranCompiler.f.o
+/home/qq/coen/bin/nv/bin/mpifort   -O2  -c /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_13e68.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_13e68
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_13e68.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpifort -O2  CMakeFiles/cmTC_13e68.dir/testFortranCompiler.f.o -o cmTC_13e68   -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64  -Wl,-rpath,/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64:/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core /opt/intel/composer_xe_2013.2.146/compiler/lib/intel64/libiomp5.so -lm -ldl 
+gmake[1]: se sale del directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+
+Determining if the Fortran cheev exists passed with the following output:
+Change Dir: /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/bin/gmake cmTC_44d62/fast && /bin/gmake  -f CMakeFiles/cmTC_44d62.dir/build.make CMakeFiles/cmTC_44d62.dir/build
+gmake[1]: se ingresa al directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_44d62.dir/testFortranCompiler.f.o
+/home/qq/coen/bin/nv/bin/mpifort   -O2  -c /home/qq/mansilla/master/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_44d62.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_44d62
+/home/programes/qq/cmake-3.18/bin/cmake -E cmake_link_script CMakeFiles/cmTC_44d62.dir/link.txt --verbose=1
+/home/qq/coen/bin/nv/bin/mpifort -O2  CMakeFiles/cmTC_44d62.dir/testFortranCompiler.f.o -o cmTC_44d62   -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64  -Wl,-rpath,/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64:/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core /opt/intel/composer_xe_2013.2.146/compiler/lib/intel64/libiomp5.so -lm -ldl -lm -ldl 
+gmake[1]: se sale del directorio `/home/qq/mansilla/master/build/CMakeFiles/CMakeTmp'
+
+
+

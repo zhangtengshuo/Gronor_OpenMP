@@ -123,6 +123,9 @@
             hbase(ibase,jbase)=0.0d0
             sbase(ibase,jbase)=0.0d0
             tbase(ibase,jbase)=0.0d0
+            do i=1,9
+              mbase(ibase,jbase,i)=0.0d0
+            enddo
             ntasks(ibase,jbase)=-1
             do i=1,5
               nsing(ibase,jbase,i)=0
@@ -296,7 +299,7 @@
 !     Wait for a request for a task from any worker group
 
             call timer_start(94)
-            ncount=8
+            ncount=17
             mpitag=1
             call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,               &
      &           mpitag,MPI_COMM_WORLD,status,ierr)
@@ -428,7 +431,15 @@
               nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
               nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
               nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
-
+              mbase(ibin,jbin,1)=mbase(ibin,jbin,1)+buffer(9)
+              mbase(ibin,jbin,2)=mbase(ibin,jbin,2)+buffer(10)
+              mbase(ibin,jbin,3)=mbase(ibin,jbin,3)+buffer(11)
+              mbase(ibin,jbin,4)=mbase(ibin,jbin,4)+buffer(12)
+              mbase(ibin,jbin,5)=mbase(ibin,jbin,5)+buffer(13)
+              mbase(ibin,jbin,6)=mbase(ibin,jbin,6)+buffer(14)
+              mbase(ibin,jbin,7)=mbase(ibin,jbin,7)+buffer(15)
+              mbase(ibin,jbin,8)=mbase(ibin,jbin,8)+buffer(16)
+              mbase(ibin,jbin,9)=mbase(ibin,jbin,9)+buffer(17)
 !     Total number of completed tasks and maximum time for a completed task
 
               numtasks=numtasks+1
@@ -683,7 +694,7 @@
 !     Wait for request from any remote rank
 
         call timer_start(96)
-        ncount=8
+        ncount=17
         mpitag=1
         call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,                   &
      &       mpitag,MPI_COMM_WORLD,status,ierr)
@@ -778,7 +789,15 @@
           nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
           nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
           nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
-
+          mbase(ibin,jbin,1)=mbase(ibin,jbin,1)+buffer(9)
+          mbase(ibin,jbin,2)=mbase(ibin,jbin,2)+buffer(10)
+          mbase(ibin,jbin,3)=mbase(ibin,jbin,3)+buffer(11)
+          mbase(ibin,jbin,4)=mbase(ibin,jbin,4)+buffer(12)
+          mbase(ibin,jbin,5)=mbase(ibin,jbin,5)+buffer(13)
+          mbase(ibin,jbin,6)=mbase(ibin,jbin,6)+buffer(14)
+          mbase(ibin,jbin,7)=mbase(ibin,jbin,7)+buffer(15)
+          mbase(ibin,jbin,8)=mbase(ibin,jbin,8)+buffer(16)
+          mbase(ibin,jbin,9)=mbase(ibin,jbin,9)+buffer(17)
 !     Decrement the tasks still to be done for base pair
 
           ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
@@ -1089,6 +1108,9 @@
         do j=i+1,nbase
           hbase(i,j)=hbase(j,i)
           sbase(i,j)=sbase(j,i)
+          do k=1,9
+            mbase(i,j,k)=mbase(j,i,k)
+          enddo
         enddo
       enddo
 

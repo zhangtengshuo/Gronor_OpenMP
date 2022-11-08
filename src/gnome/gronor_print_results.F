@@ -19,7 +19,7 @@
 !! @date    2020
 !!
 
-      subroutine gronor_print_results(hbase,sbase,nbase,hev)
+      subroutine gronor_print_results(hbase,sbase,mbase,mnuc,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
@@ -28,15 +28,23 @@
       implicit none
 
       integer,intent(in)            :: nbase
-      integer                       :: i,j,k,ii,ik,il
+      integer                       :: i,j,k,ii,ik,il,l,m
       integer                       :: nk,info,lwork
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
+      real(kind=8),intent(in)       :: mbase(nbase,nbase,9)
+      real(kind=8),intent(in)       :: mnuc(9)
+      real(kind=8),allocatable      :: noci(:,:)
+      real(kind=8),allocatable      :: mnoci(:,:,:)
+      real(kind=8),allocatable      :: obase(:,:)
+      real(kind=8),allocatable      :: onoci(:,:)
+      
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
       real(kind=8)                  :: hsave(nbase,nbase)
       real(kind=8)                  :: ssave(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
+      real(kind=8)                  :: Two3rds
       character(len=5)              :: token
 
       character(len=132)            :: info_cml,info_cml2,fmt_1,id
@@ -247,6 +255,169 @@
         enddo
       endif
 
+      allocate(noci(nbase,nbase))
+      allocate(mnoci(nbase,nbase,9))
+      allocate(obase(nbase,nbase))
+      allocate(onoci(nbase,nbase))
+      
+      if(nbase.eq.1)then
+        noci(1,1)=1.0d0
+      else
+        do i=1,nbase
+          do j=1,nbase
+            noci(j,i)=hsave(j,i)            
+          enddo
+        enddo
+      endif
+      
+      do i=1,9
+        do j=1,nbase
+          do k=1,nbase            
+            do l=1,nbase
+              do m=1,nbase
+                mnoci(k,j,i)=mnoci(k,j,i)+
+     &               noci(l,j)*noci(m,k)*mbase(m,l,i)                
+              enddo              
+            enddo
+          enddo
+        enddo
+      enddo
+      Two3rds=2.0d0/3.0d0
+      
+      do j=1,nbase
+        do k=1,j          
+          obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*
+     &         (mbase(k,j,1)**2+mbase(k,j,2)**2+
+     &         mbase(k,j,3)**2)
+        enddo        
+      enddo
+      
+      do j=1,nbase
+        do k=1,j          
+          onoci(k,j)=onoci(k,j)+Two3rds*(hev(j)-hev(k))*
+     &         (mnoci(k,j,1)**2+mnoci(k,j,2)**2+
+     &         mnoci(k,j,3)**2)
+        enddo        
+      enddo
+      
+
+      do j=1,nbase
+        do k=1,j
+          obase(j,k)=-obase(k,j)
+        enddo
+      enddo
+
+      do j=1,nbase
+        do k=1,j
+          onoci(j,k)=-onoci(k,j)
+        enddo
+      enddo
+
+      do i=1,9
+        do j=1,nbase
+          do k=1,nbase
+            mbase(k,j,i)=mbase(k,j,i)+mnuc(i)
+            mnoci(k,j,i)=mnoci(k,j,i)+mnuc(i)
+          enddo
+        enddo        
+      enddo           
+      
+ 6901 format(7x,i5,2x,
+     &     ' X:',2x,f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)
+ 6902 format(7x,a,' X:',2x,1f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)      
+ 6903 format(14x,' Total:',2x,1f20.10,/)
+      write(lfnout,691)
+ 691  format(//,' Dipole moment of MEBFs',/)
+      do j=1,nbase
+        if(.not.mebfLabels)then
+          write(lfnout,6901) j,(2.5412*mbase(j,j,k),k=1,3)          
+        else
+          write(lfnout,6902) mebfLabel(j),
+     &         (2.5412*mbase(j,j,k),k=1,3)
+        endif
+        write(lfnout,6903)2.5412*sqrt(mbase(j,j,1)**2+
+     &       mbase(j,j,2)**2+mbase(j,j,3)**2)
+      enddo      
+ 697  format(//,' Dipole moment of NOCI states',/)
+      write(lfnout,697)      
+      do j=1,nbase
+        write(lfnout,6901) j,(2.5412*mnoci(j,j,k),k=1,3)
+        write(lfnout,6903)2.5412*sqrt(mnoci(j,j,1)**2+
+     &       mnoci(j,j,2)**2+mnoci(j,j,3)**2)
+      enddo
+ 698  format(//,' Quadrupole moment of MEBFs',/)
+      write(lfnout,698)
+ 6904 format(7x,i5,2x,
+     &     ' XX:',2x,1f20.10,' XY:',2x,1f20.10,' XZ:',2x,1f20.10)      
+ 6905 format(14x,
+     &     ' YY:',2x,1f20.10,' YZ:',2x,1f20.10,' ZZ:',2x,1f20.10,/)      
+      do j=1,nbase
+        write(lfnout,6904) j,(2.5412*0.529177249*mbase(j,j,k),k=4,6)
+        write(lfnout,6905) (2.5412*0.529177249*mbase(j,j,k),k=7,9)
+      enddo
+
+      
+ 699  format(//,' Quadrupole moment of NOCI states',/)
+      write(lfnout,699)
+      do j=1,nbase
+        write(lfnout,6904) j,(2.5412*0.529177249*mnoci(j,j,k),k=4,6)
+        write(lfnout,6905) (2.5412*0.529177249*mnoci(j,j,k),k=7,9)
+      enddo
+ 700  format(//,' Oscillator strength of MEBFs',/)
+      write(lfnout,700)
+      nk=nbase/ncols
+      if(mod(nbase,ncols).ne.0) nk=nk+1
+      do k=1,nk
+        ii=(k-1)*ncols+1
+        il=min(nbase,k*ncols)
+        if (.not.mebfLabels) then
+          write(lfnout,671) (i,i=ii,il)
+        else
+          write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
+          write(lfnout,6712)'-------|',
+     &         ('--------------------',i=ii,il)
+        end if        
+        do j=1,nbase
+          if(j.eq.1) then
+            if (.not.mebfLabels) then
+              write(lfnout,672) 1,(obase(j,i),i=1,nbase)
+            else
+              write(lfnout,6721) mebfLabel(1),' |',
+     &             (obase(j,i),i=1,nbase)
+            end if            
+          else
+            ik=min(j-1,il)
+            if (.not.mebfLabels) then
+              write(lfnout,672) j,(obase(j,i),i=1,nbase)
+            else
+              write(lfnout,6721) mebfLabel(j),' |',
+     &             (obase(j,i),i=1,nbase)
+            end if
+          endif
+        enddo
+        write(lfnout,*) ' '
+      enddo
+      
+      
+ 701  format(//,' Oscillator strength of NOCI states',/)
+      write(lfnout,701)
+      nk=nbase/ncols
+      if(mod(nbase,ncols).ne.0) nk=nk+1
+      do k=1,nk
+        ii=(k-1)*ncols+1
+        il=min(nbase,k*ncols)
+        write(lfnout,671) (i,i=ii,il)
+        do j=1,nbase
+          if(j.eq.1) then            
+            write(lfnout,672) 1,(onoci(j,i),i=1,nbase)
+          else
+            ik=min(j-1,il)
+            write(lfnout,672) j,(onoci(j,i),i=1,nbase)
+          endif
+        enddo
+        write(lfnout,*) ' '
+      enddo
+
 !** Dumping the results in the cml file
       if (ncorr.eq.1) then
         if (nwt.eq.1) then
@@ -366,6 +537,11 @@
       end if
 
       flush(lfnarx)
+
+      deallocate(noci)
+      deallocate(mnoci)
+      deallocate(obase)
+      deallocate(onoci)
 
       return
 

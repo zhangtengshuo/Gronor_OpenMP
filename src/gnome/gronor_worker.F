@@ -43,7 +43,7 @@
       integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
       integer, external :: ipopcnt
-      real (kind=8) :: rbuf(8)
+      real (kind=8) :: rbuf(17)
 
       logical (kind=4) :: flag
 
@@ -270,7 +270,7 @@
 #endif
       endif
 
-      do i=1,8
+      do i=1,17
        rbuf(i)=0.0d0
       enddo
 
@@ -289,7 +289,7 @@
 !     If head thread signal master thread to start sending tasks
 
       if(iamhead.eq.1) then
-        ncount=8
+        ncount=17
         mpitag=1
        call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,                      &
      & MPI_COMM_WORLD,ireq,ierr)
@@ -480,10 +480,10 @@
           call timer_start(48)
           if(iamhead.eq.1) then
 !     call MPI_Wait(ireq,status,ierr)
-            do i=1,8
+            do i=1,17
               rbuf(i)=buffer(i)
             enddo
-            ncount=8
+            ncount=17
             mpitag=1
             call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,                 &
      &           MPI_COMM_WORLD,ireq,ierr)

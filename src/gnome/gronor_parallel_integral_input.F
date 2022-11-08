@@ -89,7 +89,7 @@
         allocate(s(nbas,nbas))
         allocate(t(int1))
         allocate(v(int1))
-
+        allocate(dqm(int1,9))
         read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
         do i=1,nbas
           do j=1,i
@@ -98,7 +98,9 @@
         end do
         read(lfnone,err=993) (t(i),i=1,int1)
         read(lfnone,err=993) (v(i),i=1,int1)
-
+        do j=1,9
+          read(lfnone,err=993) (dqm(i,j),i=1,int1)
+        enddo        
 !oen: this part is not valid anymore.
 !     although we'll loose backward compatibility, we might
 !     want to replace it with just "read(lfnone) int2"
@@ -126,6 +128,7 @@
         allocate(s(nbas,nbas))
         allocate(t(int1))
         allocate(v(int1))
+        allocate(dqm(int1,9))
       endif
 
 !     Broadcast the overlap and one-electron integrals
@@ -135,9 +138,11 @@
       call MPI_Bcast(t,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       ncount=int1
       call MPI_Bcast(v,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1*9
+      call MPI_Bcast(dqm,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       ncount=1
       call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,master,                       &
-     &     MPI_COMM_WORLD,ierr)
+     &     MPI_COMM_WORLD,ierr)      
 
       allocate(ifil(numfiles,2))
 

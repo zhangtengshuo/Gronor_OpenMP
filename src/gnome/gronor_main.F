@@ -1785,6 +1785,7 @@
       endif
 
       allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
+      allocate(mbase(nbase,nbase,9))      
       allocate(hev(nbase))
       allocate(nsing(nbase,nbase,5))
       allocate(bpdone(nbase,nbase))
@@ -1795,7 +1796,10 @@
             bpdone(i,j)=.false.
             hbase(i,j)=0.0d0
             sbase(i,j)=0.0d0
-            tbase(i,j)=0.0d0
+            tbase(i,j)=0.0d0            
+            do ksr=1,9
+              mbase(i,j,ksr)=0.0d0
+            enddo
             do ksr=1,4
               nsing(i,j,ksr)=-1
               nsing(j,i,ksr)=-1
@@ -2168,7 +2172,7 @@
               flush(lfndbg)
             endif
 #ifdef ACC
-!$acc data copyin(g,lab,ndx,t,v,ndxtv,s)                                       &
+!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)                                     &
 !$acc& create(a,ta,tb,w1,w2,taa,tat,u,w,ev)                                    &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)              &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)         &
@@ -2176,7 +2180,7 @@
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
 #endif
 #ifdef OMPTGT
-!$omp target data map(to:g,lab,ndx,t,v,ndxtv,s)                                &
+!$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s)                              &
 !$omp& map(alloc:a,ta,tb,w1,w2,taa,tat,u,w,ev)                                 &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)           &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)          &
@@ -2245,17 +2249,30 @@
           do j=1,i-1
             hbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*                               &
      &           dsqrt(sbase(j,j))))*hbase(i,j)
+            do k=1,9
+              mbase(i,j,k)=(1.0d0/(dsqrt(sbase(i,i))*                           &
+     &           dsqrt(sbase(j,j))))*mbase(i,j,k)
+            enddo
             sbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*                               &
      &           dsqrt(sbase(j,j))))*sbase(i,j)
+                        
             hbase(j,i)=hbase(i,j)
+            do k=1,9
+              mbase(j,i,k)=mbase(i,j,k)
+            enddo
             sbase(j,i)=sbase(i,j)
+            
           enddo
         enddo
         do i=1,nbase
           hbase(i,i)=(1.0d0/sbase(i,i))*hbase(i,i)
+          do j=1,9
+            mbase(i,i,j)=(1.0d0/sbase(i,i))*mbase(i,i,j)
+          enddo
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
-        call gronor_print_results(hbase,sbase,nbase,hev)
+        call gronor_multipoles_nuclear()
+        call gronor_print_results(hbase,sbase,mbase,mnuc,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
           hcorr=0.0
@@ -2263,7 +2280,7 @@
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
  636      format(//,'After applying a shift to the diagonal of H')
-          call gronor_print_results(hcorr,sbase,nbase,hev)
+          call gronor_print_results(hcorr,sbase,mbase,mnuc,nbase,hev)
           deallocate( hcorr )
         endif
 
@@ -2318,7 +2335,7 @@
         call timer_start(99)
       endif
 
-      deallocate(t,v,ndxtv)
+      deallocate(t,v,dqm,ndxtv)
       deallocate(lab,ndx,ig,g)
       deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
@@ -2327,7 +2344,7 @@
       if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)
 
-      deallocate(hbase,sbase,tbase,hev,nsing,bpdone)
+      deallocate(hbase,sbase,tbase,mbase,hev,nsing,bpdone)
 
       deallocate(ndxdet)
 

@@ -38,30 +38,29 @@ h.ano-s...2s1p.
  end of basis
 
 >>> COPY $CurrDir/COMMONORB INPORB
-
 &motra
+noorthogonalize
 LumOrb
 frozen
  0
 deleted
- 116
+ $deleted
 ctonly
 kpq
 
 >>> COPY $Project.RunFile $CurrDir/RUNFILE
->>> COPY $Project.OneInt  $CurrDir/ONEINT
->>> COPY $Project.TraOne  $CurrDir/TRAONE
->>> COPY $Project.ChVec1  $CurrDir/CHVEC1
->>> COPY $Project.ChRed   $CurrDir/CHRED
->>> COPY $Project.ChRst   $CurrDir/CHORST
->>> COPY $Project.ChMap   $CurrDir/CHOMAP
->>> COPY _CHMOT1          $CurrDir/_CHMOT0
->>> COPY tmp_1/_CHMOT1    $CurrDir/_CHMOT2
->>> COPY tmp_2/_CHMOT1    $CurrDir/_CHMOT3
->>> COPY tmp_3/_CHMOT1    $CurrDir/_CHMOT4
->>> COPY tmp_4/_CHMOT1    $CurrDir/_CHMOT5
->>> COPY tmp_5/_CHMOT1    $CurrDir/_CHMOT6
->>> COPY tmp_6/_CHMOT1    $CurrDir/_CHMOT7
->>> COPY tmp_7/_CHMOT1    $CurrDir/_CHMOT8
+>>> COPY $Project.OneInt $CurrDir/ONEINT
+>>> COPY $Project.TraOne $CurrDir/TRAONE
 
+
+>>> COPY $Project.ChRed  $CurrDir/CHRED
+>>> COPY $Project.ChVec1 $CurrDir/CHVEC1
+>>> COPY $Project.ChRst  $CurrDir/CHORST
+>>> COPY $Project.ChMap  $CurrDir/CHOMAP
+
+>>> COPY _CHMOT1 $CurrDir/_CHMOT1
+>>> eval NPROCS = $MOLCAS_NPROCS - 1
+>>> foreach L in (1 .. $NPROCS )
+>>> shell cat tmp_$L/_CHMOT1 >> $CurrDir/_CHMOT1
+>>> enddo
 

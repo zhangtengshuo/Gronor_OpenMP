@@ -32,8 +32,8 @@
       integer                       :: nk,info,lwork
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
-      real(kind=8),intent(in)       :: mbase(nbase,nbase,9)
       real(kind=8),intent(in)       :: mnuc(9)
+      real(kind=8),intent(inout)       :: mbase(nbase,nbase,9)
       real(kind=8),allocatable      :: noci(:,:)
       real(kind=8),allocatable      :: mnoci(:,:,:)
       real(kind=8),allocatable      :: obase(:,:)

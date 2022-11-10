@@ -81,7 +81,7 @@
          dsj3=0.0d0
          qsj1=0.0d0
          qsj2=0.0d0
-         dsj3=0.0d0
+         qsj3=0.0d0
          qsj4=0.0d0
          qsj5=0.0d0
          qsj6=0.0d0
@@ -90,15 +90,15 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
-          dsj1=dsj1+dqm(nn+k,1)*abjk
-          dsj2=dsj2+dqm(nn+k,2)*abjk
-          dsj3=dsj3+dqm(nn+k,3)*abjk
-          qsj1=qsj1+dqm(nn+k,1)*abjk
-          qsj2=qsj2+dqm(nn+k,2)*abjk
-          dsj3=qsj3+dqm(nn+k,3)*abjk
-          qsj4=qsj4+dqm(nn+k,4)*abjk
-          qsj5=qsj5+dqm(nn+k,5)*abjk
-          qsj6=qsj6+dqm(nn+k,6)*abjk
+          dsj1=dsj1-dqm(nn+k,1)*abjk
+          dsj2=dsj2-dqm(nn+k,2)*abjk
+          dsj3=dsj3-dqm(nn+k,3)*abjk
+          qsj1=qsj1-dqm(nn+k,4)*abjk
+          qsj2=qsj2-dqm(nn+k,5)*abjk
+          qsj3=qsj3-dqm(nn+k,6)*abjk
+          qsj4=qsj4-dqm(nn+k,7)*abjk
+          qsj5=qsj5-dqm(nn+k,8)*abjk
+          qsj6=qsj6-dqm(nn+k,9)*abjk
          enddo
          tsum=tsum+tsj
          vsum=vsum+vsj
@@ -130,7 +130,7 @@
          dsj3=0.0d0
          qsj1=0.0d0
          qsj2=0.0d0
-         dsj3=0.0d0
+         qsj3=0.0d0
          qsj4=0.0d0
          qsj5=0.0d0
          qsj6=0.0d0
@@ -140,15 +140,15 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
-          dsj1=dsj1+dqm(nn+k,1)*abjk
-          dsj2=dsj2+dqm(nn+k,2)*abjk
-          dsj3=dsj3+dqm(nn+k,3)*abjk
-          qsj1=qsj1+dqm(nn+k,1)*abjk
-          qsj2=qsj2+dqm(nn+k,2)*abjk
-          dsj3=qsj3+dqm(nn+k,3)*abjk
-          qsj4=qsj4+dqm(nn+k,4)*abjk
-          qsj5=qsj5+dqm(nn+k,5)*abjk
-          qsj6=qsj6+dqm(nn+k,6)*abjk
+          dsj1=dsj1-dqm(nn+k,1)*abjk
+          dsj2=dsj2-dqm(nn+k,2)*abjk
+          dsj3=dsj3-dqm(nn+k,3)*abjk
+          qsj1=qsj1-dqm(nn+k,4)*abjk
+          qsj2=qsj2-dqm(nn+k,5)*abjk
+          qsj3=qsj3-dqm(nn+k,6)*abjk
+          qsj4=qsj4-dqm(nn+k,7)*abjk
+          qsj5=qsj5-dqm(nn+k,8)*abjk
+          qsj6=qsj6-dqm(nn+k,9)*abjk
          enddo
          tsum=tsum+tsj
          vsum=vsum+vsj
@@ -236,7 +236,7 @@
          dsj3=0.0d0
          qsj1=0.0d0
          qsj2=0.0d0
-         dsj3=0.0d0
+         qsj3=0.0d0
          qsj4=0.0d0
          qsj5=0.0d0
          qsj6=0.0d0
@@ -245,15 +245,15 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
-          dsj1=dsj1+dqm(nn+k,1)*abjk
-          dsj2=dsj2+dqm(nn+k,2)*abjk
-          dsj3=dsj3+dqm(nn+k,3)*abjk
-          qsj1=qsj1+dqm(nn+k,4)*abjk
-          qsj2=qsj2+dqm(nn+k,5)*abjk
-          dsj3=qsj3+dqm(nn+k,6)*abjk
-          qsj4=qsj4+dqm(nn+k,7)*abjk
-          qsj5=qsj5+dqm(nn+k,8)*abjk
-          qsj6=qsj6+dqm(nn+k,9)*abjk
+          dsj1=dsj1-dqm(nn+k,1)*abjk
+          dsj2=dsj2-dqm(nn+k,2)*abjk
+          dsj3=dsj3-dqm(nn+k,3)*abjk
+          qsj1=qsj1-dqm(nn+k,4)*abjk
+          qsj2=qsj2-dqm(nn+k,5)*abjk
+          qsj3=qsj3-dqm(nn+k,6)*abjk
+          qsj4=qsj4-dqm(nn+k,7)*abjk
+          qsj5=qsj5-dqm(nn+k,8)*abjk
+          qsj6=qsj6-dqm(nn+k,9)*abjk
          enddo
          tsum=tsum+tsj
          vsum=vsum+vsj
@@ -284,7 +284,7 @@
          dsj3=0.0d0
          qsj1=0.0d0
          qsj2=0.0d0
-         dsj3=0.0d0
+         qsj3=0.0d0
          qsj4=0.0d0
          qsj5=0.0d0
          qsj6=0.0d0
@@ -294,15 +294,15 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
-          dsj1=dsj1+dqm(nn+k,1)*abjk
-          dsj2=dsj2+dqm(nn+k,2)*abjk
-          dsj3=dsj3+dqm(nn+k,3)*abjk
-          qsj1=qsj1+dqm(nn+k,1)*abjk
-          qsj2=qsj2+dqm(nn+k,2)*abjk
-          dsj3=qsj3+dqm(nn+k,3)*abjk
-          qsj4=qsj4+dqm(nn+k,4)*abjk
-          qsj5=qsj5+dqm(nn+k,5)*abjk
-          qsj6=qsj6+dqm(nn+k,6)*abjk
+          dsj1=dsj1-dqm(nn+k,1)*abjk
+          dsj2=dsj2-dqm(nn+k,2)*abjk
+          dsj3=dsj3-dqm(nn+k,3)*abjk
+          qsj1=qsj1-dqm(nn+k,4)*abjk
+          qsj2=qsj2-dqm(nn+k,5)*abjk
+          qsj3=qsj3-dqm(nn+k,6)*abjk
+          qsj4=qsj4-dqm(nn+k,7)*abjk
+          qsj5=qsj5-dqm(nn+k,8)*abjk
+          qsj6=qsj6-dqm(nn+k,9)*abjk
          enddo
          tsum=tsum+tsj
          vsum=vsum+vsj

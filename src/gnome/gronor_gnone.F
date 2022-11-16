@@ -179,14 +179,24 @@
       mpoles(9)=qsum6
       if(idbg.ge.12) then
        write(lfndbg,120)
-       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1
+       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1,dsum1,dsum2,dsum3,           &
+     &      qsum1,qsum2,qsum3,qsum4,qsum5,qsum6
   110  format(1x,2i4,5(2x,e20.10))
   120  format(///,1x,'The one electron matrix elements of h are :',//)
   130  format(15x,'Total overlap              : ',f20.12,//,                    &
      &        15x,'Kinetic energy term        : ',f20.12,//,                    &
      &        15x,'Nuclear attraction term    : ',f20.12,//,                    &
      &        15x,'Nuclear repulsion term     : ',f20.12,//,                    &
-     &        15x,'One-electron matrix element: ',f20.12,//)
+     &        15x,'One-electron matrix element: ',f20.12,//,                    &
+     &        15x,'Dipole moment x            : ',f20.12,//,                    &
+     &        15x,'Dipole moment y            : ',f20.12,//,                    &
+     &        15x,'Dipole moment y            : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xx       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xy       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xz       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yy       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yz       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment zz       : ',f20.12,//)
       endif
 
       return
@@ -333,14 +343,24 @@
       mpoles(9)=qsum6
       if(idbg.ge.12) then
        write(lfndbg,120)
-       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1
+       write(lfndbg,130) deta,tsum,vsum,potnuc1,e1,dsum1,dsum2,dsum3,           &
+     &      qsum1,qsum2,qsum3,qsum4,qsum5,qsum6
   110  format(1x,2i4,5(2x,e20.10))
   120  format(///,1x,'The one electron matrix elements of h are :',//)
   130  format(15x,'Total overlap              : ',f20.12,//,                    &
      &        15x,'Kinetic energy term        : ',f20.12,//,                    &
      &        15x,'Nuclear attraction term    : ',f20.12,//,                    &
      &        15x,'Nuclear repulsion term     : ',f20.12,//,                    &
-     &        15x,'One-electron matrix element: ',f20.12,//)
+     &        15x,'One-electron matrix element: ',f20.12,//,                    &
+     &        15x,'Dipole moment x            : ',f20.12,//,                    &
+     &        15x,'Dipole moment y            : ',f20.12,//,                    &
+     &        15x,'Dipole moment y            : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xx       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xy       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xz       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yy       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yz       : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment zz       : ',f20.12,//)
       endif
 
       return

@@ -354,7 +354,7 @@
                 etot=e1
                 e2buff(1)=e2buff(1)+fac*civb(i,ib)*civb(j,jb)*e2
                 do k=1,9
-                  e2buff(k+1)=mpoles(k)*fctr
+                  e2buff(k+1)=fac*civb(i,ib)*civb(j,jb)*mpoles(k)
                 enddo
               endif              
               if(iamhead.eq.1) then
@@ -372,13 +372,13 @@
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
           do k=1,9
-            buffer(k+8)=buffer(k+8)+mpoles(k)*fctr
+            buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
           enddo
         else
           
         endif
         buffer(ising+4)=buffer(ising+4)+1.0d0
-
+        
         if(iamhead.eq.1) e1tot=e1tot+e1*fctr
 
         call timer_stop(5)
@@ -389,13 +389,16 @@
         if(iamhead.eq.1) then
           buffer(1)=e1tot+etotb
           buffer(2)=sstot
+          do k=1,9
+            buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+          enddo
           do k=1,10
-            e2buff(k)=0.0d0          
+            e2buff(k)=0.0d0
           enddo
         else
           e2buff(1)=e1tot+etotb
           do k=1,9
-            e2buff(k+1)=mpoles(k)*fctr
+            e2buff(k+1)=fac*civb(i,ib)*civb(j,jb)*mpoles(k)
           enddo
         endif
 
@@ -419,7 +422,9 @@
      &             me,' received e2buf from',iremote
               flush(lfndbg)
             endif
-            e2buff=e2buff+e2summ
+            do k=1,10              
+              e2buff(k)=e2buff(k)+e2summ(k)
+            enddo
           enddo
         else
           ncount=10
@@ -427,7 +432,6 @@
           mpidest=thisgroup(2)
           call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,                       &
      &         mpitag,MPI_COMM_WORLD,ireq,ierr)
-
           if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),               &

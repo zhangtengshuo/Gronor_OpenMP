@@ -190,7 +190,7 @@
      &        15x,'One-electron matrix element: ',f20.12,//,                    &
      &        15x,'Dipole moment x            : ',f20.12,//,                    &
      &        15x,'Dipole moment y            : ',f20.12,//,                    &
-     &        15x,'Dipole moment y            : ',f20.12,//,                    &
+     &        15x,'Dipole moment z            : ',f20.12,//,                    &
      &        15x,'Quadrupole moment xx       : ',f20.12,//,                    &
      &        15x,'Quadrupole moment xy       : ',f20.12,//,                    &
      &        15x,'Quadrupole moment xz       : ',f20.12,//,                    &

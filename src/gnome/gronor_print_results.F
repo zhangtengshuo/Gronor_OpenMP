@@ -260,6 +260,17 @@
       allocate(obase(nbase,nbase))
       allocate(onoci(nbase,nbase))
       
+      do i=1,nbase
+        do j=1,nbase
+          noci(i,j)=0.0d0
+          obase(i,j)=0.0d0
+          onoci(i,j)=0.0d0
+          do k=1,9
+            mnoci=0.0d0
+          enddo
+        enddo
+      enddo
+      
       if(nbase.eq.1)then
         noci(1,1)=1.0d0
       else

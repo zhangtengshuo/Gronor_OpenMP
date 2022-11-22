@@ -266,7 +266,7 @@
           obase(i,j)=0.0d0
           onoci(i,j)=0.0d0
           do k=1,9
-            mnoci=0.0d0
+            mnoci(i,j,k)=0.0d0
           enddo
         enddo
       enddo

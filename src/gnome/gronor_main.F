@@ -133,15 +133,19 @@
 
 #ifdef USE_POSIXF
         call pxfgetlogin(user,len4,ierr4)
-#elifdef IBM
+#else
+#ifdef IBM
         call hostnm_(host)
         call getenv("USER",user)
-#elifdef CRAY
+#else
+#ifdef CRAY
         call hostnm(host)
-        call getlog(user)
+!        call getlog(user)
 #else
         call hostnm(host)
         call getlog(user)
+#endif
+#endif
 #endif
 
         call swatch(date,time)

@@ -32,15 +32,19 @@
       do i=1,9
         mnuc(i)=0.0d0
       enddo
-      do i=1,nnucl
-        xorig=xorig+znuc(i)*xcord(i)/zNucTot
-        yorig=yorig+znuc(i)*xcord(i)/zNucTot
-        zorig=zorig+znuc(i)*xcord(i)/zNucTot
-      enddo      
+      print*,"Origin for dipole: x y z"
+      print*,xorig,yorig,zorig      
       do i=1,nnucl
         mnuc(1)=mnuc(1)+znuc(i)*(xcord(i)-xorig)
         mnuc(2)=mnuc(2)+znuc(i)*(ycord(i)-yorig)
         mnuc(3)=mnuc(3)+znuc(i)*(zcord(i)-zorig)
+      enddo
+      xorig=CoM(1)
+      yorig=CoM(2)
+      zorig=CoM(3)
+      print*,"Origin for quadrupole: x y z"
+      print*,xorig,yorig,zorig
+      do i=1,nnucl
         mnuc(4)=mnuc(4)+                                                &
      &       znuc(i)*(xcord(i)-xorig)*(xcord(i)-xorig)                  
         mnuc(5)=mnuc(5)+                                                &
@@ -53,8 +57,8 @@
      &       znuc(i)*(ycord(i)-yorig)*(zcord(i)-zorig)
         mnuc(9)=mnuc(9)+                                                &
      &       znuc(i)*(zcord(i)-zorig)*(zcord(i)-zorig)
-      enddo
-      
+      enddo      
+
       if (idbg.ge.12) then
         write(lfndbg,120)
         write(lfndbg,130)mnuc(1),mnuc(2),mnuc(3)

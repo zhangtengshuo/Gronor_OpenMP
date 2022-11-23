@@ -38,6 +38,7 @@
       real(kind=8),allocatable      :: mnoci(:,:,:)
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
+      real(kind=8)                  :: Debye
       
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
       real(kind=8)                  :: hsave(nbase,nbase)
@@ -52,6 +53,8 @@
       character(len=1)              :: sep
       integer                       :: indent
 
+
+      Debye = 2.54174644986
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
       nk=nbase/ncols
@@ -341,19 +344,19 @@
  691  format(//,' Dipole moment of MEBFs',/)
       do j=1,nbase
         if(.not.mebfLabels)then
-          write(lfnout,6901) j,(2.5412*mbase(j,j,k),k=1,3)          
+          write(lfnout,6901) j,(Debye*mbase(j,j,k),k=1,3)          
         else
           write(lfnout,6902) mebfLabel(j),
-     &         (2.5412*mbase(j,j,k),k=1,3)
+     &         (Debye*mbase(j,j,k),k=1,3)
         endif
-        write(lfnout,6903)2.5412*sqrt(mbase(j,j,1)**2+
+        write(lfnout,6903)2.54174644986*sqrt(mbase(j,j,1)**2+
      &       mbase(j,j,2)**2+mbase(j,j,3)**2)
       enddo      
  697  format(//,' Dipole moment of NOCI states',/)
       write(lfnout,697)      
       do j=1,nbase
-        write(lfnout,6901) j,(2.5412*mnoci(j,j,k),k=1,3)
-        write(lfnout,6903)2.5412*sqrt(mnoci(j,j,1)**2+
+        write(lfnout,6901) j,(Debye*mnoci(j,j,k),k=1,3)
+        write(lfnout,6903)Debye*sqrt(mnoci(j,j,1)**2+
      &       mnoci(j,j,2)**2+mnoci(j,j,3)**2)
       enddo
  698  format(//,' Quadrupole moment of MEBFs',/)
@@ -363,16 +366,16 @@
  6905 format(14x,
      &     ' YY:',2x,1f20.10,' YZ:',2x,1f20.10,' ZZ:',2x,1f20.10,/)      
       do j=1,nbase
-        write(lfnout,6904) j,(2.5412*0.529177249*mbase(j,j,k),k=4,6)
-        write(lfnout,6905) (2.5412*0.529177249*mbase(j,j,k),k=7,9)
+        write(lfnout,6904) j,(Debye*0.529177249*mbase(j,j,k),k=4,6)
+        write(lfnout,6905) (Debye*0.529177249*mbase(j,j,k),k=7,9)
       enddo
 
       
  699  format(//,' Quadrupole moment of NOCI states',/)
       write(lfnout,699)
       do j=1,nbase
-        write(lfnout,6904) j,(2.5412*0.529177249*mnoci(j,j,k),k=4,6)
-        write(lfnout,6905) (2.5412*0.529177249*mnoci(j,j,k),k=7,9)
+        write(lfnout,6904) j,(Debye*0.529177249*mnoci(j,j,k),k=4,6)
+        write(lfnout,6905) (Debye*0.529177249*mnoci(j,j,k),k=7,9)
       enddo
  700  format(//,' Oscillator strength of MEBFs',/)
       write(lfnout,700)

@@ -180,7 +180,7 @@
       character (len=4), allocatable :: centn(:)
       real (kind=8), allocatable :: xcord(:),ycord(:),zcord(:)
       real (kind=8), allocatable :: znuc(:)
-
+      real (kind=8)              :: CoM(3)
 
       integer, allocatable :: ic(:),it(:),ictr(:)
       integer, allocatable :: icentn(:),itypen(:),icount(:),istand(:)

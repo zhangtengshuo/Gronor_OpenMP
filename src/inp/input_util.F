@@ -772,8 +772,11 @@
       end
       subroutine inp_prev_field()
       implicit none
+      integer (kind=8) :: ivalue
 
-      call inp_set_field(max(0,inp_cur_field()-1))
+      ivalue=max(0,inp_cur_field()-1)
+!      call inp_set_field(max(0,inp_cur_field()-1))
+      call inp_set_field(ivalue)
 
       end
 

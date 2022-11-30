@@ -188,15 +188,15 @@
      &        15x,'Nuclear attraction term    : ',f20.12,//,                    &
      &        15x,'Nuclear repulsion term     : ',f20.12,//,                    &
      &        15x,'One-electron matrix element: ',f20.12,//,                    &
-     &        15x,'Dipole moment x            : ',f20.12,//,                    &
-     &        15x,'Dipole moment y            : ',f20.12,//,                    &
-     &        15x,'Dipole moment z            : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xx       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xy       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xz       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yy       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yz       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment zz       : ',f20.12,//)
+     &        15x,'Dipole moment x (el)          : ',f20.12,//,                    &
+     &        15x,'Dipole moment y (el)           : ',f20.12,//,                    &
+     &        15x,'Dipole moment z (el)          : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xx (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xy (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xz (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yy (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yz (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment zz (el)      : ',f20.12,//)
       endif
 
       return
@@ -352,15 +352,16 @@
      &        15x,'Nuclear attraction term    : ',f20.12,//,                    &
      &        15x,'Nuclear repulsion term     : ',f20.12,//,                    &
      &        15x,'One-electron matrix element: ',f20.12,//,                    &
-     &        15x,'Dipole moment x            : ',f20.12,//,                    &
-     &        15x,'Dipole moment y            : ',f20.12,//,                    &
-     &        15x,'Dipole moment y            : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xx       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xy       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xz       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yy       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yz       : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment zz       : ',f20.12,//)
+     &        15x,'Dipole moment x (el,nuc)          : ',f20.12,//,                    &
+     &        15x,'Dipole moment y (el,nuc)           : ',f20.12,//,                    &
+     &        15x,'Dipole moment z (el,nuc)          : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xx (el,nuc)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xy (el,nuc)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xz (el,nuc)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yy (el,nuc)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment yz (el,nuc)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment zz (el,nuc)      : ',f20.12,//)
+
       endif
 
       return

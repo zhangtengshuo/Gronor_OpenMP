@@ -153,12 +153,14 @@
 
         i=melist(ij,1)
         j=melist(ij,2)
-
+        
         ihc=ij-id1+1
 
         hh=0.0d0
         ss=0.0d0
-
+        do k=1,9
+          mpoles(k)=0.0d0
+        enddo
         if(dabs(civb(i,ib)*civb(j,jb)).lt.tau_CI) then
           ising=4
         else
@@ -374,6 +376,10 @@
           do k=1,9
             buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
           enddo
+          if(idbg.ge.12)then
+            write(lfndbg,*)'Gronor calculate head rank contributions',           &
+     &           fac,(civb(i,ib)*civb(j,jb)*mpoles(k),k=1,9)
+          endif
         else
           
         endif
@@ -443,6 +449,10 @@
         do k=1,9
           buffer(k+8)=buffer(k+8)+e2buff(k+1)
         enddo
+        if(idbg.ge.12)then
+          write(lfndbg,*)'Gronor calculate non-head rank contributions',        &
+     &         (e2buff(k),k=1,10)
+        endif
       endif
       call timer_stop(37)
 

@@ -32,8 +32,6 @@
       do i=1,9
         mnuc(i)=0.0d0
       enddo
-      print*,"Origin for dipole: x y z"
-      print*,xorig,yorig,zorig      
       do i=1,nnucl
         mnuc(1)=mnuc(1)+znuc(i)*(xcord(i)-xorig)
         mnuc(2)=mnuc(2)+znuc(i)*(ycord(i)-yorig)
@@ -42,8 +40,6 @@
       xorig=CoM(1)
       yorig=CoM(2)
       zorig=CoM(3)
-      print*,"Origin for quadrupole: x y z"
-      print*,xorig,yorig,zorig
       do i=1,nnucl
         mnuc(4)=mnuc(4)+                                                &
      &       znuc(i)*(xcord(i)-xorig)*(xcord(i)-xorig)                  

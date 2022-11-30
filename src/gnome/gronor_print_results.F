@@ -22,6 +22,7 @@
       subroutine gronor_print_results(hbase,sbase,mbase,mnuc,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
+      use gnome_data      , only : CoM
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels
 
@@ -33,12 +34,13 @@
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
       real(kind=8),intent(in)       :: mnuc(9)
-      real(kind=8),intent(inout)       :: mbase(nbase,nbase,9)
+      real(kind=8),intent(inout)    :: mbase(nbase,nbase,9)
       real(kind=8),allocatable      :: noci(:,:)
       real(kind=8),allocatable      :: mnoci(:,:,:)
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
-      real(kind=8)                  :: Debye
+      real(kind=8),allocatable      :: qmtraceless(:,:,:)
+      real(kind=8)                  :: Debye,trace      
       
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
       real(kind=8)                  :: hsave(nbase,nbase)
@@ -257,11 +259,12 @@
           enddo
         enddo
       endif
-
+      
       allocate(noci(nbase,nbase))
       allocate(mnoci(nbase,nbase,9))
       allocate(obase(nbase,nbase))
       allocate(onoci(nbase,nbase))
+      allocate(qmtraceless(nbase,nbase,6))
       
       do i=1,nbase
         do j=1,nbase
@@ -270,6 +273,9 @@
           onoci(i,j)=0.0d0
           do k=1,9
             mnoci(i,j,k)=0.0d0
+          enddo
+          do k=1,6
+            qmtraceless(i,j,k)=0.0d0
           enddo
         enddo
       enddo
@@ -296,8 +302,7 @@
           enddo
         enddo
       enddo
-      Two3rds=2.0d0/3.0d0
-      
+      Two3rds=2.0d0/3.0d0      
       do j=1,nbase
         do k=1,j          
           obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*
@@ -334,14 +339,19 @@
             mnoci(k,j,i)=mnoci(k,j,i)+mnuc(i)
           enddo
         enddo        
-      enddo           
-      
+      enddo      
+      write(lfnout,*)'------- Multipoles calculation -------'
+      write(lfnout,*)'Origin of the dipole operator'
+      write(lfnout,'(3f20.4)')0.0d0,0.0d0,0.0d0
+      write(lfnout,*)'Origin of the quadrupole operator'
+      write(lfnout,'(3f20.4)')(CoM(j),j=1,3)      
  6901 format(7x,i5,2x,
      &     ' X:',2x,f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)
  6902 format(7x,a,' X:',2x,1f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)      
  6903 format(14x,' Total:',2x,1f20.10,/)
-      write(lfnout,691)
  691  format(//,' Dipole moment of MEBFs',/)
+      write(lfnout,691)
+      
       do j=1,nbase
         if(.not.mebfLabels)then
           write(lfnout,6901) j,(Debye*mbase(j,j,k),k=1,3)          
@@ -349,36 +359,72 @@
           write(lfnout,6902) mebfLabel(j),
      &         (Debye*mbase(j,j,k),k=1,3)
         endif
-        write(lfnout,6903)2.54174644986*sqrt(mbase(j,j,1)**2+
+        write(lfnout,6903) Debye*sqrt(mbase(j,j,1)**2+
      &       mbase(j,j,2)**2+mbase(j,j,3)**2)
-      enddo      
+      enddo
  697  format(//,' Dipole moment of NOCI states',/)
-      write(lfnout,697)      
+      write(lfnout,697)
       do j=1,nbase
         write(lfnout,6901) j,(Debye*mnoci(j,j,k),k=1,3)
         write(lfnout,6903)Debye*sqrt(mnoci(j,j,1)**2+
      &       mnoci(j,j,2)**2+mnoci(j,j,3)**2)
       enddo
+
+      
  698  format(//,' Quadrupole moment of MEBFs',/)
+ 699  format(//,' In traceless form',/)      
       write(lfnout,698)
+
  6904 format(7x,i5,2x,
      &     ' XX:',2x,1f20.10,' XY:',2x,1f20.10,' XZ:',2x,1f20.10)      
  6905 format(14x,
-     &     ' YY:',2x,1f20.10,' YZ:',2x,1f20.10,' ZZ:',2x,1f20.10,/)      
-      do j=1,nbase
+     &     ' YY:',2x,1f20.10,' YZ:',2x,1f20.10,' ZZ:',2x,1f20.10,/)            
+              
+      do j=1,nbase        
         write(lfnout,6904) j,(Debye*0.529177249*mbase(j,j,k),k=4,6)
         write(lfnout,6905) (Debye*0.529177249*mbase(j,j,k),k=7,9)
+      enddo      
+      write(lfnout,699)
+      do j=1,nbase        
+        trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3
+        do k=1,6
+          if(k.eq.1.or.k.eq.4.or.k.eq.6)then
+            qmtraceless(j,j,k)=mbase(j,j,k+3)-trace
+          else
+            qmtraceless(j,j,k)=mbase(j,j,k)
+          endif
+        enddo
+        write(lfnout,6904) j,(Debye*0.529177249*(qmtraceless(j,j,k)),       &
+     &       k=1,3)
+        write(lfnout,6905) (Debye*0.529177249*(qmtraceless(j,j,k)),         &
+     &       k=4,6)
       enddo
 
       
- 699  format(//,' Quadrupole moment of NOCI states',/)
-      write(lfnout,699)
+ 700  format(//,' Quadrupole moment of NOCI states',/)
+      write(lfnout,700)
       do j=1,nbase
         write(lfnout,6904) j,(Debye*0.529177249*mnoci(j,j,k),k=4,6)
         write(lfnout,6905) (Debye*0.529177249*mnoci(j,j,k),k=7,9)
       enddo
- 700  format(//,' Oscillator strength of MEBFs',/)
-      write(lfnout,700)
+      write(lfnout,699)      
+      
+      do j=1,nbase
+        trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3        
+        do k=1,6
+          if(k.eq.1.or.k.eq.4.or.k.eq.6)then
+            qmtraceless(j,j,k)=mnoci(j,j,k+3)-trace
+          else
+            qmtraceless(j,j,k)=mnoci(j,j,k)
+          endif
+        enddo
+        write(lfnout,6904) j,(Debye*0.529177249*(qmtraceless(j,j,k)),       &
+     &       k=1,3)
+        write(lfnout,6905) (Debye*0.529177249*(qmtraceless(j,j,k)),         &
+     &       k=4,6)
+      enddo
+ 701  format(//,' Oscillator strength of MEBFs',/)
+      write(lfnout,701)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
       do k=1,nk
@@ -410,11 +456,10 @@
           endif
         enddo
         write(lfnout,*) ' '
-      enddo
+      enddo      
       
-      
- 701  format(//,' Oscillator strength of NOCI states',/)
-      write(lfnout,701)
+ 702  format(//,' Oscillator strength of NOCI states',/)
+      write(lfnout,702)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
       do k=1,nk
@@ -556,6 +601,7 @@
       deallocate(mnoci)
       deallocate(obase)
       deallocate(onoci)
+      deallocate(qmtraceless)
 
       return
 

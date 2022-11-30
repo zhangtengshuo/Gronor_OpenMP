@@ -603,8 +603,7 @@
  609    format(/,' Spin multiplicity (2S+1)',t40,i10)
 
         call gronor_gnome_molcas_input() ! OpenMolcas
-        close(unit=lfnsys)
-
+        close(unit=lfnsys)        
         call gronor_env_cml(version,version_type)
         call gronor_init_cml
         call gronor_results_header_cml        ! this block is filled in gronor_print_results

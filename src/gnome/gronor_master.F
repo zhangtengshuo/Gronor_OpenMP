@@ -123,9 +123,15 @@
             hbase(ibase,jbase)=0.0d0
             sbase(ibase,jbase)=0.0d0
             tbase(ibase,jbase)=0.0d0
-            do i=1,9
-              mbase(ibase,jbase,i)=0.0d0
-            enddo
+            mbase(ibase,jbase,1)=0.0d0
+            mbase(ibase,jbase,2)=0.0d0
+            mbase(ibase,jbase,3)=0.0d0
+            mbase(ibase,jbase,4)=0.0d0
+            mbase(ibase,jbase,5)=0.0d0
+            mbase(ibase,jbase,6)=0.0d0
+            mbase(ibase,jbase,7)=0.0d0
+            mbase(ibase,jbase,8)=0.0d0
+            mbase(ibase,jbase,9)=0.0d0           
             ntasks(ibase,jbase)=-1
             do i=1,5
               nsing(ibase,jbase,i)=0

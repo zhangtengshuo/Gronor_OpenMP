@@ -13,7 +13,7 @@
 !     GronOR is copyright of the University of Groningen
 
 !>    Driver routine for worker ranks
-!!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
+!!    @brief Driver for ulation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)
 
 
@@ -474,8 +474,12 @@
           if(idbg.gt.30) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8),                  &
-     &           me,' Returned from gronor_calculate '
+     &           me,' Returned from gronor_calculate '            
             flush(lfndbg)
+          endif
+          if(idbg.ge.12) then
+            write(lfndbg,*)'Multipoles after multiplying the coeffs',           &
+     &           (buffer(i),i=9,17)          
           endif
           call timer_start(48)
           if(iamhead.eq.1) then

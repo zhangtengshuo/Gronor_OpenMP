@@ -344,8 +344,8 @@
         enddo        
       enddo
  688  format(//,'      ------- Multipoles -------',/)
- 689  format(//,' Origin of the dipole operator (x,y,z)',//,7x,3f10.4,//,         &
-     &     ' Origin of the quadrupole operator (x,y,z)',//,7x,3f10.4)          
+ 689  format(//,' Origin of the dipole operator (x,y,z)',//,7x,3f10.4,//        &
+     &     ,' Origin of the quadrupole operator (x,y,z)',//,7x,3f10.4)          
  690  format(//,' Dipole moment of MEBFs',/)
  691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
      &     ' Z:',2x,f10.4)

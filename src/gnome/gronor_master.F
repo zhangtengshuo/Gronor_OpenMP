@@ -469,7 +469,8 @@
      &               adjustr(mebfLabel(jbin)),                                  &
      &               idetb(ibin),idetb(jbin),                                   &
      &               ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),         &
-     &               hbase(ibin,jbin),sbase(ibin,jbin)
+     &               hbase(ibin,jbin),sbase(ibin,jbin),(mbase(ibin,jbin,        &
+     &               k),k=1,9)
 
                 call timer_stop(98)
                 call timer_stop(99)
@@ -521,7 +522,7 @@
                   endif
                   flush(lfnout)
  522              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
-     &                 2e20.13)
+     &                 11e20.13)
  608              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
  607              format(1x,2i5,'   <',a4,1x,a4,'> ',2i10,3i14,2i12,i14,        &
@@ -536,7 +537,8 @@
 
                 write(lfncpr) ibin,jbin,                                        &
      &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),        &
-     &               (nsing(ibin,jbin,k),k=1,4)
+     &               (nsing(ibin,jbin,k),k=1,4),                                &
+     &               (mbase(ibin,jbin,k),k=1,9)
                 flush(lfncpr)
 
 !     Write completion message to dayfile
@@ -825,7 +827,8 @@
      &           adjustr(mebfLabel(jbin)),                                      &
      &           idetb(ibin),idetb(jbin),                                       &
      &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
-     &           hbase(ibin,jbin),sbase(ibin,jbin)
+     &           hbase(ibin,jbin),sbase(ibin,jbin),(mbase(ibin,jbin,k),         &
+     &           k=1,9)
             if(ipr.ge.1) then
               if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                          &
      &             dabs(sbase(ibin,jbin)).lt.1.0e-06) then
@@ -877,7 +880,8 @@
             call swatch(date,time)
             write(lfncpr) ibin,jbin,                                            &
      &           hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),            &
-     &           (nsing(ibin,jbin,k),k=1,4)
+     &           (nsing(ibin,jbin,k),k=1,4),                                    &
+     &           (mbase(ibin,jbin,k),k=1,9)
             flush(lfncpr)
 
             if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                            &

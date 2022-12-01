@@ -92,7 +92,7 @@
       real(kind=8)             :: thres2,max_coef
       integer, allocatable     :: nbuf(:,:)
 
-      real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,c2s
+      real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,rm(9),c2s
 
       integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
@@ -1807,17 +1807,21 @@
         enddo
         rewind(lfncpr)
         do k=1,nbase*nbase
-          read(lfncpr,end=299) i,j,rh,rs,rt,nsr
+          read(lfncpr,end=299) i,j,rh,rs,rt,nsr,(rm(ksr),ksr=1,9)
           if(i.gt.0.and.j.gt.0) then
             hbase(i,j)=rh
             sbase(i,j)=rs
             tbase(i,j)=rt
             hbase(j,i)=rh
             sbase(j,i)=rs
-            tbase(j,i)=rt
+            tbase(j,i)=rt                          
             do ksr=1,4
               nsing(i,j,ksr)=nsr(ksr)
               nsing(j,i,ksr)=nsr(ksr)
+            enddo
+            do ksr=1,9
+              mbase(i,j,ksr)=rm(ksr)
+              mbase(j,i,ksr)=rm(ksr)
             enddo
             bpdone(i,j)=.true.
             bpdone(j,i)=.true.

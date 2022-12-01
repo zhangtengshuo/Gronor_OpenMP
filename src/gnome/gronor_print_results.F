@@ -299,7 +299,7 @@
           do k=1,nbase            
             do l=1,nbase
               do m=1,nbase
-                mnoci(k,j,i)=mnoci(k,j,i)+
+                mnoci(k,j,i)=mnoci(k,j,i)+                              &
      &               noci(l,j)*noci(m,k)*mbase(m,l,i)                
               enddo              
             enddo
@@ -309,21 +309,20 @@
 
       do j=1,nbase
         do k=1,j          
-          obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*
-     &         (mbase(k,j,1)**2+mbase(k,j,2)**2+
+          obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*                &
+     &         (mbase(k,j,1)**2+mbase(k,j,2)**2+                        &
      &         mbase(k,j,3)**2)
         enddo        
       enddo
       
       do j=1,nbase
         do k=1,j          
-          onoci(k,j)=onoci(k,j)+Two3rds*(hev(j)-hev(k))*
-     &         (mnoci(k,j,1)**2+mnoci(k,j,2)**2+
+          onoci(k,j)=onoci(k,j)+Two3rds*(hev(j)-hev(k))*                &
+     &         (mnoci(k,j,1)**2+mnoci(k,j,2)**2+                        &
      &         mnoci(k,j,3)**2)
         enddo        
       enddo
       
-
       do j=1,nbase
         do k=1,j
           obase(j,k)=-obase(k,j)
@@ -344,9 +343,9 @@
           enddo
         enddo        
       enddo
- 688  format(//,'------- Multipoles calculation -------',/)
- 689  format(//,'Origin of the dipole operator (x,y,z)',/,7x,3f10.4,//,         &
-     &     'Origin of the quadrupole operator (x,y,z)',/,7x,3f10.4)          
+ 688  format(//,'      ------- Multipoles -------',/)
+ 689  format(//,' Origin of the dipole operator (x,y,z)',//,7x,3f10.4,//,         &
+     &     ' Origin of the quadrupole operator (x,y,z)',//,7x,3f10.4)          
  690  format(//,' Dipole moment of MEBFs',/)
  691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
      &     ' Z:',2x,f10.4)
@@ -355,7 +354,7 @@
  693  format(14x,' Total:',2x,f10.4,/)
 
       write(lfnout,688)
-      write(lfnout,689)0.0d0,0.0d0,0.0d0,(CoM(j),j=1,3)
+      write(lfnout,689) 0.0d0,0.0d0,0.0d0,(CoM(j),j=1,3)
       write(lfnout,690)
       do j=1,nbase
         if(.not.mebfLabels)then
@@ -374,19 +373,16 @@
         write(lfnout,693) Debye*sqrt(mnoci(j,j,1)**2+                   &
      &       mnoci(j,j,2)**2+mnoci(j,j,3)**2)
       enddo
-
       
  695  format(//,' Quadrupole moment of MEBFs',/)
  696  format(//,' In traceless form',/)      
       write(lfnout,695)
-
  697  format(7x,i5,2x,                                                  &
      &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)      
  698  format(7x,a5,2x,                                                  &
      &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)       
  699  format(14x,                                                       &
-     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4,/)            
-
+     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4,/)
        
       do j=1,nbase        
         if(.not.mebfLabels)then
@@ -459,7 +455,7 @@
             if (.not.mebfLabels) then
               write(lfnout,672) 1,(obase(j,i),i=1,nbase)
             else
-              write(lfnout,6721) mebfLabel(1),' |',
+              write(lfnout,6721) mebfLabel(1),' |',                     &
      &             (obase(j,i),i=1,nbase)
             end if            
           else
@@ -467,7 +463,7 @@
             if (.not.mebfLabels) then
               write(lfnout,672) j,(obase(j,i),i=1,nbase)
             else
-              write(lfnout,6721) mebfLabel(j),' |',
+              write(lfnout,6721) mebfLabel(j),' |',                     &
      &             (obase(j,i),i=1,nbase)
             end if
           endif

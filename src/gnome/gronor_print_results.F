@@ -40,7 +40,7 @@
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
       real(kind=8),allocatable      :: qmtraceless(:,:,:)
-      real(kind=8)                  :: Debye,trace      
+      real(kind=8)                  :: Debye,Angstrom,trace      
       
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
       real(kind=8)                  :: hsave(nbase,nbase)
@@ -55,8 +55,12 @@
       character(len=1)              :: sep
       integer                       :: indent
 
-
-      Debye = 2.54174644986
+!     ------- Constants -------
+      Debye    = 2.54174644986
+      Angstrom = 0.529177249
+      Two3rds  = 2.0d0/3.0d0
+!     ------------------------
+      
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
       nk=nbase/ncols
@@ -302,7 +306,7 @@
           enddo
         enddo
       enddo
-      Two3rds=2.0d0/3.0d0      
+
       do j=1,nbase
         do k=1,j          
           obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*
@@ -339,52 +343,61 @@
             mnoci(k,j,i)=mnoci(k,j,i)+mnuc(i)
           enddo
         enddo        
-      enddo      
-      write(lfnout,*)'------- Multipoles calculation -------'
-      write(lfnout,*)'Origin of the dipole operator'
-      write(lfnout,'(3f20.4)')0.0d0,0.0d0,0.0d0
-      write(lfnout,*)'Origin of the quadrupole operator'
-      write(lfnout,'(3f20.4)')(CoM(j),j=1,3)      
- 6901 format(7x,i5,2x,
-     &     ' X:',2x,f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)
- 6902 format(7x,a,' X:',2x,1f20.10,' Y:',2x,1f20.10,' Z:',2x,1f20.10)      
- 6903 format(14x,' Total:',2x,1f20.10,/)
- 691  format(//,' Dipole moment of MEBFs',/)
-      write(lfnout,691)
-      
+      enddo
+ 688  format(//,'------- Multipoles calculation -------',/)
+ 689  format(//,'Origin of the dipole operator (x,y,z)',/,7x,3f10.4,//,         &
+     &     'Origin of the quadrupole operator (x,y,z)',/,7x,3f10.4)          
+ 690  format(//,' Dipole moment of MEBFs',/)
+ 691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
+     &     ' Z:',2x,f10.4)
+ 692  format(7x,a5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
+     &     ' Z:',2x,f10.4)
+ 693  format(14x,' Total:',2x,f10.4,/)
+
+      write(lfnout,688)
+      write(lfnout,689)0.0d0,0.0d0,0.0d0,(CoM(j),j=1,3)
+      write(lfnout,690)
       do j=1,nbase
         if(.not.mebfLabels)then
-          write(lfnout,6901) j,(Debye*mbase(j,j,k),k=1,3)          
+          write(lfnout,691) j,(Debye*mbase(j,j,k),k=1,3)          
         else
-          write(lfnout,6902) mebfLabel(j),
+          write(lfnout,692) mebfLabel(j),                               &
      &         (Debye*mbase(j,j,k),k=1,3)
         endif
-        write(lfnout,6903) Debye*sqrt(mbase(j,j,1)**2+
+        write(lfnout,693) Debye*sqrt(mbase(j,j,1)**2+                   &
      &       mbase(j,j,2)**2+mbase(j,j,3)**2)
       enddo
- 697  format(//,' Dipole moment of NOCI states',/)
-      write(lfnout,697)
+ 694  format(//,' Dipole moment of NOCI states',/)
+      write(lfnout,694)
       do j=1,nbase
-        write(lfnout,6901) j,(Debye*mnoci(j,j,k),k=1,3)
-        write(lfnout,6903)Debye*sqrt(mnoci(j,j,1)**2+
+        write(lfnout,691) j,(Debye*mnoci(j,j,k),k=1,3)
+        write(lfnout,693) Debye*sqrt(mnoci(j,j,1)**2+                   &
      &       mnoci(j,j,2)**2+mnoci(j,j,3)**2)
       enddo
 
       
- 698  format(//,' Quadrupole moment of MEBFs',/)
- 699  format(//,' In traceless form',/)      
-      write(lfnout,698)
+ 695  format(//,' Quadrupole moment of MEBFs',/)
+ 696  format(//,' In traceless form',/)      
+      write(lfnout,695)
 
- 6904 format(7x,i5,2x,
-     &     ' XX:',2x,1f20.10,' XY:',2x,1f20.10,' XZ:',2x,1f20.10)      
- 6905 format(14x,
-     &     ' YY:',2x,1f20.10,' YZ:',2x,1f20.10,' ZZ:',2x,1f20.10,/)            
-              
+ 697  format(7x,i5,2x,                                                  &
+     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)      
+ 698  format(7x,a5,2x,                                                  &
+     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)       
+ 699  format(14x,                                                       &
+     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4,/)            
+
+       
       do j=1,nbase        
-        write(lfnout,6904) j,(Debye*0.529177249*mbase(j,j,k),k=4,6)
-        write(lfnout,6905) (Debye*0.529177249*mbase(j,j,k),k=7,9)
+        if(.not.mebfLabels)then
+          write(lfnout,697) j,(Debye*Angstrom*mbase(j,j,k),k=4,6)
+        else
+          write(lfnout,698) mebfLabel(j),(Debye*Angstrom*mbase(j,j,k),  &
+     &         k=4,6)
+        endif        
+        write(lfnout,699) (Debye * Angstrom * mbase(j,j,k),k=7,9)
       enddo      
-      write(lfnout,699)
+      write(lfnout,696)
       do j=1,nbase        
         trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3
         do k=1,6
@@ -394,21 +407,25 @@
             qmtraceless(j,j,k)=mbase(j,j,k)
           endif
         enddo
-        write(lfnout,6904) j,(Debye*0.529177249*(qmtraceless(j,j,k)),       &
-     &       k=1,3)
-        write(lfnout,6905) (Debye*0.529177249*(qmtraceless(j,j,k)),         &
+        
+        if(.not.mebfLabels)then
+          write(lfnout,697) j,(Debye*Angstrom*(qmtraceless(j,j,k)),     &
+     &         k=1,3)
+        else
+          write(lfnout,698) mebfLabel(j),(Debye*Angstrom*               &
+     &         (qmtraceless(j,j,k)),k=1,3)
+        endif
+        write(lfnout,699) (Debye*Angstrom*(qmtraceless(j,j,k)),         &
      &       k=4,6)
       enddo
-
-      
+     
  700  format(//,' Quadrupole moment of NOCI states',/)
       write(lfnout,700)
       do j=1,nbase
-        write(lfnout,6904) j,(Debye*0.529177249*mnoci(j,j,k),k=4,6)
-        write(lfnout,6905) (Debye*0.529177249*mnoci(j,j,k),k=7,9)
+        write(lfnout,697) j,(Debye * Angstrom * mnoci(j,j,k),k=4,6)
+        write(lfnout,699) (Debye * Angstrom * mnoci(j,j,k),k=7,9)
       enddo
-      write(lfnout,699)      
-      
+      write(lfnout,696)      
       do j=1,nbase
         trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3        
         do k=1,6
@@ -418,9 +435,9 @@
             qmtraceless(j,j,k)=mnoci(j,j,k)
           endif
         enddo
-        write(lfnout,6904) j,(Debye*0.529177249*(qmtraceless(j,j,k)),       &
+        write(lfnout,697) j,(Debye * Angstrom * (qmtraceless(j,j,k)),    &
      &       k=1,3)
-        write(lfnout,6905) (Debye*0.529177249*(qmtraceless(j,j,k)),         &
+        write(lfnout,699) (Debye * Angstrom * (qmtraceless(j,j,k)),      &
      &       k=4,6)
       enddo
  701  format(//,' Oscillator strength of MEBFs',/)
@@ -434,7 +451,7 @@
           write(lfnout,671) (i,i=ii,il)
         else
           write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',
+          write(lfnout,6712)'-------|',                                 &
      &         ('--------------------',i=ii,il)
         end if        
         do j=1,nbase

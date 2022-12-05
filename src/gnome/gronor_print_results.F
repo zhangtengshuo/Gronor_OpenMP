@@ -434,7 +434,7 @@
       enddo
  704  format(/,' Transition dipole moments of MEBFs (Debye)',/)
  705  format(/,' Transition dipole moments of NOCI states (Debye)',/)     
- 703  format(/,' Component',a2,/)
+ 703  format(' Component',a2,/)
       
       write(lfnout,704)
       write(lfnout,703)'X'
@@ -590,7 +590,7 @@
       enddo
 
 
- 701  format(/,' Oscillator strength of MEBFs',/)
+ 701  format(' Oscillator strength of MEBFs',/)
       write(lfnout,701)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -625,7 +625,7 @@
         write(lfnout,*) ' '
       enddo      
       
- 702  format(/,' Oscillator strength of NOCI states',/)
+ 702  format(' Oscillator strength of NOCI states',/)
       write(lfnout,702)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1

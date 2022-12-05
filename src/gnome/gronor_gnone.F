@@ -90,9 +90,11 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
+!         dipole moment     
           dsj1=dsj1-dqm(nn+k,1)*abjk
           dsj2=dsj2-dqm(nn+k,2)*abjk
           dsj3=dsj3-dqm(nn+k,3)*abjk
+!         quadrupole moment
           qsj1=qsj1-dqm(nn+k,4)*abjk
           qsj2=qsj2-dqm(nn+k,5)*abjk
           qsj3=qsj3-dqm(nn+k,6)*abjk
@@ -140,9 +142,11 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
+!         dipole moment
           dsj1=dsj1-dqm(nn+k,1)*abjk
           dsj2=dsj2-dqm(nn+k,2)*abjk
           dsj3=dsj3-dqm(nn+k,3)*abjk
+!         quadrupole moment
           qsj1=qsj1-dqm(nn+k,4)*abjk
           qsj2=qsj2-dqm(nn+k,5)*abjk
           qsj3=qsj3-dqm(nn+k,6)*abjk
@@ -189,13 +193,13 @@
      &        15x,'Nuclear repulsion term     : ',f20.12,//,                    &
      &        15x,'One-electron matrix element: ',f20.12,//,                    &
      &        15x,'Dipole moment x (el)          : ',f20.12,//,                    &
-     &        15x,'Dipole moment y (el)           : ',f20.12,//,                    &
+     &        15x,'Dipole moment y (el)           : ',f20.12,//,                   &
      &        15x,'Dipole moment z (el)          : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xx (el)      : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xy (el)      : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment xz (el)      : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yy (el)      : ',f20.12,//,                    &
-     &        15x,'Quadrupole moment yz (el)      : ',f20.12,//,                    &
+     &        15x,'Quadrupole moment xx (el)      : ',f20.12,//,                   &
+     &        15x,'Quadrupole moment xy (el)      : ',f20.12,//,                   &
+     &        15x,'Quadrupole moment xz (el)      : ',f20.12,//,                   &
+     &        15x,'Quadrupole moment yy (el)      : ',f20.12,//,                   &
+     &        15x,'Quadrupole moment yz (el)      : ',f20.12,//,                   &
      &        15x,'Quadrupole moment zz (el)      : ',f20.12,//)
       endif
 
@@ -255,9 +259,11 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
+!         dipole moment
           dsj1=dsj1-dqm(nn+k,1)*abjk
           dsj2=dsj2-dqm(nn+k,2)*abjk
           dsj3=dsj3-dqm(nn+k,3)*abjk
+!         quadrupole moment
           qsj1=qsj1-dqm(nn+k,4)*abjk
           qsj2=qsj2-dqm(nn+k,5)*abjk
           qsj3=qsj3-dqm(nn+k,6)*abjk
@@ -304,9 +310,11 @@
 !         kinetic and nuclear attraction energies
           tsj=tsj+t(nn+k)*abjk
           vsj=vsj+v(nn+k)*abjk
+!         dipole moment
           dsj1=dsj1-dqm(nn+k,1)*abjk
           dsj2=dsj2-dqm(nn+k,2)*abjk
           dsj3=dsj3-dqm(nn+k,3)*abjk
+!         quadrupole moment
           qsj1=qsj1-dqm(nn+k,4)*abjk
           qsj2=qsj2-dqm(nn+k,5)*abjk
           qsj3=qsj3-dqm(nn+k,6)*abjk

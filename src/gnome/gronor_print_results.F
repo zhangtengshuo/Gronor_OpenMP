@@ -343,14 +343,14 @@
           enddo
         enddo        
       enddo
- 688  format(//,'      ------- Multipoles -------',//)
- 689  format(//,' Origin of the dipole operator (x,y,z)',//,7x,3f10.4,//        &
-     &     ,' Origin of the quadrupole operator (x,y,z)',//,7x,3f10.4)          
- 690  format(//,' Dipole moment of MEBFs (Debye)',/)
+ 688  format(//,'      ------- Multipoles -------',/)
+ 689  format(/,' Origin of the dipole operator (x,y,z)',7x,3f10.4,/        &
+     &     ,' Origin of the quadrupole operator (x,y,z)',7x,3f10.4)          
+ 690  format(/,' Dipole moment of MEBFs (Debye)',/)
  691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
-     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4,/)
+     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
  692  format(7x,a5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
-     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4,/)
+     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
       write(lfnout,688)
       write(lfnout,689) 0.0d0,0.0d0,0.0d0,(CoM(j),j=1,3)
       write(lfnout,690)
@@ -364,22 +364,22 @@
      &         sqrt(mbase(j,j,1)**2+mbase(j,j,2)**2+mbase(j,j,3)**2)
         endif        
       enddo
- 694  format(//,' Dipole moment of NOCI states (Debye)',/)
+ 694  format(/,' Dipole moment of NOCI states (Debye)',/)
       write(lfnout,694)
       do j=1,nbase
         write(lfnout,691) j,(Debye*mnoci(j,j,k),k=1,3),                 &
      &       Debye*sqrt(mnoci(j,j,1)**2+mnoci(j,j,2)**2+mnoci(j,j,3)**2)        
       enddo
       
- 695  format(//,' Quadrupole moment of MEBFs (Debye*Angstrom)',/)
- 696  format(//,' In traceless form',/)
+ 695  format(/,' Quadrupole moment of MEBFs (Debye*Angstrom)',/)
+ 696  format(/,' In traceless form',/)
       write(lfnout,695)
  697  format(7x,i5,2x,                                                  &
      &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)      
  698  format(7x,a5,2x,                                                  &
      &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)       
  699  format(14x,                                                       &
-     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4,/)       
+     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4)       
       do j=1,nbase        
         if(.not.mebfLabels)then
           write(lfnout,697) j,(Debye*Angstrom*mbase(j,j,k),k=4,6)
@@ -411,7 +411,7 @@
      &       k=4,6)
       enddo
      
- 700  format(//,' Quadrupole moment of NOCI states (Debye*Angstrom)',/)
+ 700  format(/,' Quadrupole moment of NOCI states (Debye*Angstrom)',/)
       write(lfnout,700)
       do j=1,nbase
         write(lfnout,697) j,(Debye * Angstrom * mnoci(j,j,k),k=4,6)
@@ -432,9 +432,9 @@
         write(lfnout,699) (Debye * Angstrom * (qmtraceless(j,j,k)),      &
      &       k=4,6)
       enddo
- 704  format(//,' Transition dipole moments of MEBFs (Debye)',/)
- 705  format(//,' Transition dipole moments of NOCI states (Debye)',/)     
- 703  format(//,' Component',a2,//)
+ 704  format(/,' Transition dipole moments of MEBFs (Debye)',/)
+ 705  format(/,' Transition dipole moments of NOCI states (Debye)',/)     
+ 703  format(/,' Component',a2,/)
       
       write(lfnout,704)
       write(lfnout,703)'X'
@@ -590,7 +590,7 @@
       enddo
 
 
- 701  format(//,' Oscillator strength of MEBFs',/)
+ 701  format(/,' Oscillator strength of MEBFs',/)
       write(lfnout,701)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1
@@ -625,7 +625,7 @@
         write(lfnout,*) ' '
       enddo      
       
- 702  format(//,' Oscillator strength of NOCI states',/)
+ 702  format(/,' Oscillator strength of NOCI states',/)
       write(lfnout,702)
       nk=nbase/ncols
       if(mod(nbase,ncols).ne.0) nk=nk+1

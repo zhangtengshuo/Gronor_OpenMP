@@ -45,6 +45,7 @@
       integer (kind=4) :: ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: irtim,nreqso,nreqsc
       integer (kind=8) :: nrecav
+      real (kind=8) :: recav
       character (len=255) :: date,time
       logical (kind=4) :: flag
       logical :: openrcv
@@ -339,12 +340,12 @@
           do i=1,np
             if(i-1.ne.master) nrecav=nrecav+numrecs(i)
           enddo
-          nrecav=int(dble(nrecav)/dble(nalive-1))
-          write(lfnout,633) nrecav,                                             &
-     &         int(taver(62))+int(taver(63)),                                   &
-     &         int(taver(64))+int(taver(65)),                                   &
-     &         int(taver(66)),int(taver(67))
- 633      format(1x,65('-'),/,' Avrg ',5i12)
+          recav=dble(nrecav)/dble(nalive)
+          write(lfnout,633) recav,                                              &
+     &         taver(62)+taver(63),                                             &
+     &         taver(64)+taver(65),                                             &
+     &         taver(66),taver(67)
+ 633      format(1x,68('-'),/,' Avrg    ',5f12.2)
 
           flush(lfnout)
 

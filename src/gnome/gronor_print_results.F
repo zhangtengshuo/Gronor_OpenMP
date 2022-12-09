@@ -19,35 +19,24 @@
 !! @date    2020
 !!
 
-      subroutine gronor_print_results(hbase,sbase,mbase,mnuc,nbase,hev)
+      subroutine gronor_print_results(hbase,sbase,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
-      use gnome_data      , only : CoM
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels
 
       implicit none
 
       integer,intent(in)            :: nbase
-      integer                       :: i,j,k,ii,ik,il,l,m
+      integer                       :: i,j,k,ii,ik,il
       integer                       :: nk,info,lwork
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
-      real(kind=8),intent(in)       :: mnuc(9)
-      real(kind=8),intent(inout)    :: mbase(nbase,nbase,9)
-      real(kind=8),allocatable      :: noci(:,:)
-      real(kind=8),allocatable      :: mnoci(:,:,:)
-      real(kind=8),allocatable      :: obase(:,:)
-      real(kind=8),allocatable      :: onoci(:,:)
-      real(kind=8),allocatable      :: qmtraceless(:,:,:)
-      real(kind=8)                  :: Debye,Angstrom,trace      
-      
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
       real(kind=8)                  :: hsave(nbase,nbase)
       real(kind=8)                  :: ssave(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
-      real(kind=8)                  :: Two3rds
       character(len=5)              :: token
 
       character(len=132)            :: info_cml,info_cml2,fmt_1,id
@@ -55,12 +44,6 @@
       character(len=1)              :: sep
       integer                       :: indent
 
-!     ------- Constants -------
-      Debye    = 2.54174644986
-      Angstrom = 0.529177249
-      Two3rds  = 2.0d0/3.0d0
-!     ------------------------
-      
       write(lfnarx,660) nbase,ncols
  660  format('Hamil',2i10)
       nk=nbase/ncols
@@ -263,386 +246,6 @@
           enddo
         enddo
       endif
-      
-      allocate(noci(nbase,nbase))
-      allocate(mnoci(nbase,nbase,9))
-      allocate(obase(nbase,nbase))
-      allocate(onoci(nbase,nbase))
-      allocate(qmtraceless(nbase,nbase,6))
-      
-      do i=1,nbase
-        do j=1,nbase
-          noci(i,j)=0.0d0
-          obase(i,j)=0.0d0
-          onoci(i,j)=0.0d0
-          do k=1,9
-            mnoci(i,j,k)=0.0d0
-          enddo
-          do k=1,6
-            qmtraceless(i,j,k)=0.0d0
-          enddo
-        enddo
-      enddo
-      
-      if(nbase.eq.1)then
-        noci(1,1)=1.0d0
-      else
-        do i=1,nbase
-          do j=1,nbase
-            noci(j,i)=hsave(j,i)            
-          enddo
-        enddo
-      endif
-      
-      do i=1,9
-        do j=1,nbase
-          do k=1,nbase            
-            do l=1,nbase
-              do m=1,nbase
-                mnoci(k,j,i)=mnoci(k,j,i)+                              &
-     &               noci(l,j)*noci(m,k)*mbase(m,l,i)                
-              enddo              
-            enddo
-          enddo
-        enddo
-      enddo
-
-      do j=1,nbase
-        do k=1,j          
-          obase(k,j)=obase(k,j)+Two3rds*(hev(j)-hev(k))*                &
-     &         (mbase(k,j,1)**2+mbase(k,j,2)**2+                        &
-     &         mbase(k,j,3)**2)
-        enddo        
-      enddo
-      
-      do j=1,nbase
-        do k=1,j          
-          onoci(k,j)=onoci(k,j)+Two3rds*(hev(j)-hev(k))*                &
-     &         (mnoci(k,j,1)**2+mnoci(k,j,2)**2+                        &
-     &         mnoci(k,j,3)**2)
-        enddo        
-      enddo
-      
-      do j=1,nbase
-        do k=1,j
-          obase(j,k)=-obase(k,j)
-        enddo
-      enddo
-
-      do j=1,nbase
-        do k=1,j
-          onoci(j,k)=-onoci(k,j)
-        enddo
-      enddo
-
-      do i=1,9
-        do j=1,nbase
-          do k=1,nbase
-            mbase(k,j,i)=mbase(k,j,i)+mnuc(i)
-            mnoci(k,j,i)=mnoci(k,j,i)+mnuc(i)
-          enddo
-        enddo        
-      enddo
- 688  format(//,'      ------- Multipoles -------',/)
- 689  format(/,' Origin of the dipole operator (x,y,z)',7x,3f10.4,/        &
-     &     ,' Origin of the quadrupole operator (x,y,z)',7x,3f10.4)          
- 690  format(/,' Dipole moment of MEBFs (Debye)',/)
- 691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
-     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
- 692  format(7x,a5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
-     &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
-      write(lfnout,688)
-      write(lfnout,689) 0.0d0,0.0d0,0.0d0,(CoM(j),j=1,3)
-      write(lfnout,690)
-      do j=1,nbase
-        if(.not.mebfLabels)then
-          write(lfnout,691) j,(Debye*mbase(j,j,k),k=1,3),Debye*         &
-     &         sqrt(mbase(j,j,1)**2+mbase(j,j,2)**2+mbase(j,j,3)**2)
-        else
-          write(lfnout,692) mebfLabel(j),                               &
-     &         (Debye*mbase(j,j,k),k=1,3),Debye*                        &
-     &         sqrt(mbase(j,j,1)**2+mbase(j,j,2)**2+mbase(j,j,3)**2)
-        endif        
-      enddo
- 694  format(/,' Dipole moment of NOCI states (Debye)',/)
-      write(lfnout,694)
-      do j=1,nbase
-        write(lfnout,691) j,(Debye*mnoci(j,j,k),k=1,3),                 &
-     &       Debye*sqrt(mnoci(j,j,1)**2+mnoci(j,j,2)**2+mnoci(j,j,3)**2)        
-      enddo
-      
- 695  format(/,' Quadrupole moment of MEBFs (Debye*Angstrom)',/)
- 696  format(/,' In traceless form',/)
-      write(lfnout,695)
- 697  format(7x,i5,2x,                                                  &
-     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)      
- 698  format(7x,a5,2x,                                                  &
-     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)       
- 699  format(14x,                                                       &
-     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4)       
-      do j=1,nbase        
-        if(.not.mebfLabels)then
-          write(lfnout,697) j,(Debye*Angstrom*mbase(j,j,k),k=4,6)
-        else
-          write(lfnout,698) mebfLabel(j),(Debye*Angstrom*mbase(j,j,k),  &
-     &         k=4,6)
-        endif        
-        write(lfnout,699) (Debye * Angstrom * mbase(j,j,k),k=7,9)
-      enddo      
-      write(lfnout,696)
-      do j=1,nbase        
-        trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3
-        do k=1,6
-          if(k.eq.1.or.k.eq.4.or.k.eq.6)then
-            qmtraceless(j,j,k)=mbase(j,j,k+3)-trace
-          else
-            qmtraceless(j,j,k)=mbase(j,j,k)
-          endif
-        enddo
-        
-        if(.not.mebfLabels)then
-          write(lfnout,697) j,(Debye*Angstrom*(qmtraceless(j,j,k)),     &
-     &         k=1,3)
-        else
-          write(lfnout,698) mebfLabel(j),(Debye*Angstrom*               &
-     &         (qmtraceless(j,j,k)),k=1,3)
-        endif
-        write(lfnout,699) (Debye*Angstrom*(qmtraceless(j,j,k)),         &
-     &       k=4,6)
-      enddo
-     
- 700  format(/,' Quadrupole moment of NOCI states (Debye*Angstrom)',/)
-      write(lfnout,700)
-      do j=1,nbase
-        write(lfnout,697) j,(Debye * Angstrom * mnoci(j,j,k),k=4,6)
-        write(lfnout,699) (Debye * Angstrom * mnoci(j,j,k),k=7,9)
-      enddo
-      write(lfnout,696)      
-      do j=1,nbase
-        trace=(mbase(j,j,4)+mbase(j,j,7)+mbase(j,j,9))/3        
-        do k=1,6
-          if(k.eq.1.or.k.eq.4.or.k.eq.6)then
-            qmtraceless(j,j,k)=mnoci(j,j,k+3)-trace
-          else
-            qmtraceless(j,j,k)=mnoci(j,j,k)
-          endif
-        enddo
-        write(lfnout,697) j,(Debye * Angstrom * (qmtraceless(j,j,k)),    &
-     &       k=1,3)
-        write(lfnout,699) (Debye * Angstrom * (qmtraceless(j,j,k)),      &
-     &       k=4,6)
-      enddo
- 704  format(/,' Transition dipole moments of MEBFs (Debye)',/)
- 705  format(/,' Transition dipole moments of NOCI states (Debye)',/)     
- 703  format(' Component',a2,/)
-      
-      write(lfnout,704)
-      write(lfnout,703)'X'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',                                 &
-     &         ('--------------------',i=ii,il)
-        end if        
-        do j=1,nbase
-          if(j.eq.1) then
-            if (.not.mebfLabels) then
-              write(lfnout,672) 1,(mbase(j,i,1),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(1),' |',                     &
-     &             (mbase(j,i,1),i=1,nbase)
-            end if            
-          else
-            ik=min(j-1,il)
-            if (.not.mebfLabels) then
-              write(lfnout,672) j,(mbase(j,i,1),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(j),' |',                     &
-     &             (mbase(j,i,1),i=1,nbase)
-            end if
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo
-      write(lfnout,703)'Y'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',                                 &
-     &         ('--------------------',i=ii,il)
-        end if        
-        do j=1,nbase
-          if(j.eq.1) then
-            if (.not.mebfLabels) then
-              write(lfnout,672) 1,(mbase(j,i,2),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(1),' |',                     &
-     &             (mbase(j,i,2),i=1,nbase)
-            end if            
-          else
-            ik=min(j-1,il)
-            if (.not.mebfLabels) then
-              write(lfnout,672) j,(mbase(j,i,2),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(j),' |',                     &
-     &             (mbase(j,i,2),i=1,nbase)
-            end if
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo            
-      write(lfnout,703)'Z'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',                                 &
-     &         ('--------------------',i=ii,il)
-        end if        
-        do j=1,nbase
-          if(j.eq.1) then
-            if (.not.mebfLabels) then
-              write(lfnout,672) 1,(mbase(j,i,3),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(1),' |',                     &
-     &             (mbase(j,i,3),i=1,nbase)
-            end if            
-          else
-            ik=min(j-1,il)
-            if (.not.mebfLabels) then
-              write(lfnout,672) j,(mbase(j,i,3),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(j),' |',                     &
-     &             (mbase(j,i,3),i=1,nbase)
-            end if
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo      
-      write(lfnout,705)
-      write(lfnout,703)'X'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,671) (i,i=ii,il)
-        do j=1,nbase
-          if(j.eq.1) then            
-            write(lfnout,672) 1,(mnoci(j,i,1),i=1,nbase)
-          else
-            ik=min(j-1,il)
-            write(lfnout,672) j,(mnoci(j,i,1),i=1,nbase)
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo
-      write(lfnout,703)'Y'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,671) (i,i=ii,il)
-        do j=1,nbase
-          if(j.eq.1) then            
-            write(lfnout,672) 1,(mnoci(j,i,2),i=1,nbase)
-          else
-            ik=min(j-1,il)
-            write(lfnout,672) j,(mnoci(j,i,2),i=1,nbase)
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo
-      write(lfnout,703)'Z'
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,671) (i,i=ii,il)
-        do j=1,nbase
-          if(j.eq.1) then            
-            write(lfnout,672) 1,(mnoci(j,i,3),i=1,nbase)
-          else
-            ik=min(j-1,il)
-            write(lfnout,672) j,(mnoci(j,i,3),i=1,nbase)
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo
-
-
- 701  format(' Oscillator strength of MEBFs',/)
-      write(lfnout,701)
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',                                 &
-     &         ('--------------------',i=ii,il)
-        end if        
-        do j=1,nbase
-          if(j.eq.1) then
-            if (.not.mebfLabels) then
-              write(lfnout,672) 1,(obase(j,i),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(1),' |',                     &
-     &             (obase(j,i),i=1,nbase)
-            end if            
-          else
-            ik=min(j-1,il)
-            if (.not.mebfLabels) then
-              write(lfnout,672) j,(obase(j,i),i=1,nbase)
-            else
-              write(lfnout,6721) mebfLabel(j),' |',                     &
-     &             (obase(j,i),i=1,nbase)
-            end if
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo      
-      
- 702  format(' Oscillator strength of NOCI states',/)
-      write(lfnout,702)
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,671) (i,i=ii,il)
-        do j=1,nbase
-          if(j.eq.1) then            
-            write(lfnout,672) 1,(onoci(j,i),i=1,nbase)
-          else
-            ik=min(j-1,il)
-            write(lfnout,672) j,(onoci(j,i),i=1,nbase)
-          endif
-        enddo
-        write(lfnout,*) ' '
-      enddo
 
 !** Dumping the results in the cml file
       if (ncorr.eq.1) then
@@ -763,12 +366,6 @@
       end if
 
       flush(lfnarx)
-
-      deallocate(noci)
-      deallocate(mnoci)
-      deallocate(obase)
-      deallocate(onoci)
-      deallocate(qmtraceless)
 
       return
 

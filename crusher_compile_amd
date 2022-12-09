@@ -2,7 +2,7 @@
 
 module purge
 
-module load PrgEnv-cray
+module load PrgEnv-amd
 module load craype-accel-amd-gfx90a rocm
 module load cmake
 
@@ -15,11 +15,11 @@ setenv PE_MPICH_GTL_LIBS_amd_gfx90a "-lmpi_gtl_hsa"
 
 setenv CRAY_CPU_TARGET "x86-64"
 
-rm -rf build_crusher
-mkdir build_crusher
-cd build_crusher
+rm -rf build_crusher_amd
+mkdir build_crusher_amd
+cd build_crusher_amd
 
-cmake -DOMPTGT=ON ../
+cmake -DOMPTGT=ON -DAMD=ON ../
 
 make -j 16
 

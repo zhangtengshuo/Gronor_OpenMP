@@ -370,48 +370,48 @@
             flush(lfndbg)
           endif
 
-       endif
+        endif
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
 
-       if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.                       &
-     &      ibuf(2).gt.0) then
-         if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
-         icur=iabs(ibuf(1))
-         jcur=ibuf(2)
-         if(icur.gt.0.and.jcur.gt.0) then
-           ndeti=idetb(icur)
-           ndetj=idetb(jcur)
-           k=0
-           if(icur.eq.jcur) then
-             do i=1,ndeti
-               do j=i,ndeti
-                 if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
-                 k=k+1
-                 melist(k,1)=i
-                 melist(k,2)=j
-               enddo
-             enddo
-           else
-             do i=1,ndeti
-               do j=1,ndetj
-                 if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
-                 k=k+1
-                 melist(k,1)=i
-                 melist(k,2)=j
-               enddo
-             enddo
-           endif
-         endif
-       endif
+        if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.                       &
+     &       ibuf(2).gt.0) then
+          if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
+          icur=iabs(ibuf(1))
+          jcur=ibuf(2)
+          if(icur.gt.0.and.jcur.gt.0) then
+            ndeti=idetb(icur)
+            ndetj=idetb(jcur)
+            k=0
+            if(icur.eq.jcur) then
+              do i=1,ndeti
+                do j=i,ndeti
+                  if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+                  k=k+1
+                  melist(k,1)=i
+                  melist(k,2)=j
+                enddo
+              enddo
+            else
+              do i=1,ndeti
+                do j=1,ndetj
+                  if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+                  k=k+1
+                  melist(k,1)=i
+                  melist(k,2)=j
+                enddo
+              enddo
+            endif
+          endif
+        endif
 
 !     Check if this is a duplicate
 
-!     oterm=.false.
         oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
         if(oterm) then
-           if(otreq) call MPI_Cancel(itreq,ierr)
-           return
+          if(otreq) call MPI_Cancel(itreq,ierr)
+          call timer_stop(39)
+          return
         endif
         odupl=ibuf(1).lt.0
         ibuf(1)=iabs(ibuf(1))
@@ -430,12 +430,13 @@
           endif
           call MPI_Test(itreq,flag,status,ierr)
           if(flag) then
-             call MPI_Cancel(itreq,ierr)
+            call MPI_Cancel(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),                   &
      &             ' Terminating in gronor_worker'
-          endif
+            endif
+            call timer_stop(39)
             oterm=.true.
             return
           endif

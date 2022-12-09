@@ -478,7 +478,11 @@
 #ifdef IBM
         mydev=omp_get_default_device()
 #else
+#ifdef AMD
+        mydev=omp_get_default_device()
+#else
         mydev=omp_get_device_num()
+#endif
 #endif
         map2(me+1,7)=mydev
       endif

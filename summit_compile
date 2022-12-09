@@ -13,10 +13,12 @@ setenv FC mpif90
 setenv CC mpicc
 setenv CXX mpicxx
 
-rm -rf build
-mkdir build
-cd build
+rm -rf build_summit_pgi
+mkdir build_summit_pgi
+cd build_summit_pgi
 
-cmake FC=mpif90 CC=mpicc CXX=mpicxx -DOPENACC=ON -DCUSOLVERJ=ON ../
+cmake FC=mpif90 CC=mpicc CXX=mpicxx -DCMAKE_INSTALL_PREFIX=$PROJWORK/chm154/tps -DACC=ON -DCUSOLVERJ=ON ../
 
 make -j 16
+
+make install

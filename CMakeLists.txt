@@ -780,6 +780,12 @@ set (FFLAGS_XL_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_XL_RELEASE "-O2")
 set (FFLAGS_XL_FAST "-fast -fastsse")
 
+# AMD Compilers
+
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
+set (FFLAGS_Flang_OPENMP "-DAMD -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx90a")
+
 # Test if a supported c compiler is used
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
   if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")

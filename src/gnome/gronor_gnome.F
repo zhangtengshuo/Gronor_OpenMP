@@ -184,7 +184,7 @@
           endif
 
           call timer_start(17)
-          call gronor_tramat()
+!          call gronor_tramat()
           call timer_stop(17)
 
           if(idipole.ne.0) then
@@ -290,7 +290,7 @@
           endif
 
           call timer_start(17)
-          call gronor_tramat_omp()
+!          call gronor_tramat_omp()
           call timer_stop(17)
 
           if(idipole.ne.0) then

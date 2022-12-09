@@ -106,12 +106,13 @@
 
       btemp=0.0d0
       btemp2=0.0d0
-      do i=1,8
+      do i=1,17
         buffer(i)=0.0d0
       enddo
-      e2summ=0.0d0
-      e2buff=0.0d0
-
+      do i=1,10
+        e2summ(i)=0.0d0
+        e2buff(i)=0.0d0
+      enddo
       nhc=id2-id1+1
       e1tot=0.0d0
       e2tot=0.0d0
@@ -152,12 +153,14 @@
 
         i=melist(ij,1)
         j=melist(ij,2)
-
+        
         ihc=ij-id1+1
 
         hh=0.0d0
         ss=0.0d0
-
+        do k=1,9
+          mpoles(k)=0.0d0
+        enddo
         if(dabs(civb(i,ib)*civb(j,jb)).lt.tau_CI) then
           ising=4
         else
@@ -299,7 +302,6 @@
                   iv=iv+1
                 endif
               enddo
-
               indexv=indexv+ncleff+nopeff
               nclose(idet)=ncleff
               nopen(idet)=nopeff
@@ -352,8 +354,11 @@
                 etot=e1+e2
               else
                 etot=e1
-                e2buff=e2buff+fac*civb(i,ib)*civb(j,jb)*e2
-              endif
+                e2buff(1)=e2buff(1)+fac*civb(i,ib)*civb(j,jb)*e2
+                do k=1,9
+                  e2buff(k+1)=fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+                enddo
+              endif              
               if(iamhead.eq.1) then
                 hh=etot-bias*deta
                 ss=deta
@@ -368,11 +373,18 @@
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
+          do k=1,9
+            buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+          enddo
+          if(idbg.ge.12)then
+            write(lfndbg,*)'Gronor calculate head rank contributions',           &
+     &           fac,(civb(i,ib)*civb(j,jb)*mpoles(k),k=1,9)
+          endif
         else
-
+          
         endif
         buffer(ising+4)=buffer(ising+4)+1.0d0
-
+        
         if(iamhead.eq.1) e1tot=e1tot+e1*fctr
 
         call timer_stop(5)
@@ -383,9 +395,17 @@
         if(iamhead.eq.1) then
           buffer(1)=e1tot+etotb
           buffer(2)=sstot
-          e2buff=0.0d0
+          do k=1,9
+            buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+          enddo
+          do k=1,10
+            e2buff(k)=0.0d0
+          enddo
         else
-          e2buff=e1tot+etotb
+          e2buff(1)=e1tot+etotb
+          do k=1,9
+            e2buff(k+1)=fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+          enddo
         endif
 
       endif
@@ -397,7 +417,7 @@
       if(mgr.gt.1) then
         if(iamhead.eq.1) then
           do ii=1,mgr-1
-            ncount=1
+            ncount=10
             mpitag=5
             call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,               &
      &           mpitag,MPI_COMM_WORLD,status,ierr)
@@ -408,24 +428,31 @@
      &             me,' received e2buf from',iremote
               flush(lfndbg)
             endif
-            e2buff=e2buff+e2summ
+            do k=1,10              
+              e2buff(k)=e2buff(k)+e2summ(k)
+            enddo
           enddo
         else
-          ncount=1
+          ncount=10
           mpitag=5
           mpidest=thisgroup(2)
           call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,                       &
      &         mpitag,MPI_COMM_WORLD,ireq,ierr)
-
           if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),               &
      &           me,' sent e2buf to',thisgroup(2)
             flush(lfndbg)
           endif
-
         endif
-        buffer(1)=buffer(1)+e2buff
+        buffer(1)=buffer(1)+e2buff(1)
+        do k=1,9
+          buffer(k+8)=buffer(k+8)+e2buff(k+1)
+        enddo
+        if(idbg.ge.12)then
+          write(lfndbg,*)'Gronor calculate non-head rank contributions',        &
+     &         (e2buff(k),k=1,10)
+        endif
       endif
       call timer_stop(37)
 

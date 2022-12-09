@@ -27,8 +27,6 @@
       data pi,twopi,dnorm/3.1415926535898d0,6.2831853071796d0,32.0d0/
       data piroot,piterm,enorm/0.88622692545276d0,34.986836655250d0,            &
      & 1.0d-12/
-      
-
       end module const
 
       module cidist
@@ -109,7 +107,6 @@
       integer (kind=8), allocatable :: ncombv(:,:),inactb(:)
       integer (kind=8), allocatable :: nactb(:), idetb(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
-      real (kind=8), allocatable :: mbase(:,:,:)
       real (kind=8), allocatable :: hev(:)
       logical, allocatable :: bpdone(:,:)
       integer, allocatable :: nsing(:,:,:)
@@ -120,7 +117,6 @@
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
-      real(kind=8)              :: mnuc(9)
       character(len=16),allocatable  :: fragLabel(:)
       character(len=128),allocatable  :: mebfLabel(:)
       logical                       :: mebfLabels
@@ -180,7 +176,7 @@
       character (len=4), allocatable :: centn(:)
       real (kind=8), allocatable :: xcord(:),ycord(:),zcord(:)
       real (kind=8), allocatable :: znuc(:)
-      real (kind=8)              :: CoM(3)
+
 
       integer, allocatable :: ic(:),it(:),ictr(:)
       integer, allocatable :: icentn(:),itypen(:),icount(:),istand(:)
@@ -195,10 +191,9 @@
       real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
       real (kind=8) :: bias,deta,smat,hmat
       real (kind=8) :: etot,e1,e2,e2c,etotb,fac,fctr
-      real (kind=8) :: mpoles(9)
       real (kind=8) :: e1tot,e2tot,sstot
       real (kind=8) :: hh,ss
-      real (kind=8) :: e2buff(10),e2summ(10)
+      real (kind=8) :: e2buff,e2summ
       integer :: ttest
 
       integer :: ntesta,ntestb
@@ -267,7 +262,7 @@
       real (kind=8), allocatable :: work(:)
       integer (kind=8) :: lwrk,lwork,info
 
-      real (kind=8) :: buffer(17)
+      real (kind=8) :: buffer(8)
 
       integer (kind=8) :: numdet,melen,memax,icur,jcur
       integer (kind=4), allocatable :: melist(:,:)
@@ -284,7 +279,7 @@
 
       integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
       integer :: igfr,igto
-      real (kind=8), allocatable :: s(:,:),t(:),v(:),dqm(:,:)
+      real (kind=8), allocatable :: s(:,:),t(:),v(:)
 #ifdef SINGLEP
       real (kind=4), allocatable :: g(:),gg(:)
 #else

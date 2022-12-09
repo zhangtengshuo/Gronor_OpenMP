@@ -70,9 +70,10 @@
      &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         zNucTot=zNucTot+zNuc(iAtom)
       enddo
-      read(lfnsys,'(A18,3F14.8)')text,(CoM(l),l=1,3)
+
       flush(lfnout)
  604  format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3)
 !      deallocate( nCntr )
+
       return
       end

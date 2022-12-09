@@ -40,9 +40,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_1
->>> COPY vecdet.1        $CurrDir/benzeneA_S0.det
+>>> COPY vecdet.1        $CurrDir/benzene_001.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_1
->>> COPY vecdet.1        $CurrDir/benzeneB_S0.det
+>>> COPY vecdet.1        $CurrDir/benzene_006.det
 
 
 &rasscf
@@ -62,9 +62,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_2
->>> COPY vecdet.2        $CurrDir/benzeneA_S1.det
+>>> COPY vecdet.2        $CurrDir/benzene_002.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_2
->>> COPY vecdet.2        $CurrDir/benzeneB_S1.det
+>>> COPY vecdet.2        $CurrDir/benzene_007.det
 
 
 &rasscf
@@ -81,9 +81,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_3
->>> COPY vecdet.1        $CurrDir/benzeneA_T1.det
+>>> COPY vecdet.1        $CurrDir/benzene_003.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_3
->>> COPY vecdet.1        $CurrDir/benzeneB_T1.det
+>>> COPY vecdet.1        $CurrDir/benzene_008.det
 
 
 &rasscf
@@ -100,9 +100,9 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_4
->>> COPY vecdet.1        $CurrDir/benzeneA_D+.det
+>>> COPY vecdet.1        $CurrDir/benzene_004.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_4
->>> COPY vecdet.1        $CurrDir/benzeneB_D+.det
+>>> COPY vecdet.1        $CurrDir/benzene_009.det
 
 
 &rasscf
@@ -119,6 +119,6 @@ prwf
 prsd
 
 >>> COPY $Project.RasOrb $CurrDir/INPORB.1_5
->>> COPY vecdet.1        $CurrDir/benzeneA_D-.det
+>>> COPY vecdet.1        $CurrDir/benzene_005.det
 >>> COPY $Project.RasOrb $CurrDir/INPORB.2_5
->>> COPY vecdet.1        $CurrDir/benzeneB_D-.det
+>>> COPY vecdet.1        $CurrDir/benzene_010.det

@@ -176,11 +176,26 @@
      &     ' Number of determinants above CI threshold',t50,i16)
 
       if(ipr.gt.0) then
-        write(lfnout,602)
+        if(ipr.lt.40) then
+          write(lfnout,602)
+        else
+          write(lfnout,1602)
+        endif
       endif
  602  format(//,' Calculation of Hamiltonian matrix elements',//,               &
      &     '  ------- Element ------- ',t35,                                    &
-     &     '      -------------- Determinants --------------',                 &
+     &     '      -------------- Determinants --------------',                  &
+     &     '  ------------- Unnormalized -------------  ',                      &
+     &     '         Normalized ',                                              &
+     &     '  Wall Clock  Wall Clock',/                                         &
+     &     '                          ',t35,                                    &
+     &     '      left     right         pairs     threshold',                  &
+     &     '      Hamiltonian              Overlap     ',                       &
+     &     '         Hamiltonian ',                                             &
+     &     '        Cost        Time',/)
+ 1602 format(//,' Calculation of Hamiltonian matrix elements',//,               &
+     &     '  ------- Element ------- ',t35,                                    &
+     &     '      -------------- Determinants --------------',                  &
      &     '          -------------- Singularities -------------',              &
      &     '  ------------- Unnormalized -------------  ',                      &
      &     '         Normalized ',                                              &
@@ -447,74 +462,141 @@
                   ltemp=idetb(ibin)*idetb(jbin)
                 endif
 
-                write(lfnarx,522) ibin,jbin,                                    &
-     &               trim(mebfLabel(ibin)),                                  &
-     &               trim(mebfLabel(jbin)),                                  &
-     &               idetb(ibin),idetb(jbin),                                   &
-     &               ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),         &
-     &               hbase(ibin,jbin),sbase(ibin,jbin)
+                if(ipr.lt.40) then
+                  write(lfnarx,522) ibin,jbin,                                  &
+     &                 trim(mebfLabel(ibin)),                                   &
+     &                 trim(mebfLabel(jbin)),                                   &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin)
+                else
+                  write(lfnarx,1522) ibin,jbin,                                 &
+     &                 trim(mebfLabel(ibin)),                                   &
+     &                 trim(mebfLabel(jbin)),                                   &
+     &                 idetb(ibin),idetb(jbin),                                 &
+     &                 ltemp,nbdet(ibin,jbin),                                  &
+     &                 (nsing(ibin,jbin,k),k=1,4),                              &
+     &                 hbase(ibin,jbin),sbase(ibin,jbin)
+                endif
 
                 call timer_stop(98)
                 call timer_stop(99)
 
                 if(ipr.ge.1) then
-                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                      &
-     &                 dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-                    if(ibin.ne.jbin) then
-                      write(lfnout,607) ibin,jbin,                              &
-     &                     trim(mebfLabel(ibin)),                            &
-     &                     trim(mebfLabel(jbin)),                            &
-     &                     idetb(ibin),idetb(jbin),                             &
-     &                     ltemp,nbdet(ibin,jbin),                              &
-     &                     (nsing(ibin,jbin,k),k=1,4),                          &
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
-     &                     tbase(ibin,jbin),timer_wall_total(98)
+                  if(ipr.lt.40) then
+                    if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                     &
+     &                   dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                      if(ibin.ne.jbin) then
+                        write(lfnout,607) ibin,jbin,                             &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,608) ibin,jbin,                             &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
                     else
-                      write(lfnout,608) ibin,jbin,                              &
-     &                     trim(mebfLabel(ibin)),                            &
-     &                     trim(mebfLabel(jbin)),                            &
-     &                     idetb(ibin),idetb(jbin),                             &
-     &                     ltemp,nbdet(ibin,jbin),                              &
-     &                     (nsing(ibin,jbin,k),k=1,4),                          &
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
-     &                     hbase(ibin,jbin)/sbase(ibin,jbin),                   &
-     &                     tbase(ibin,jbin),timer_wall_total(98)
+                      if(ibin.ne.jbin) then
+                        write(lfnout,617) ibin,jbin,                             &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,618) ibin,jbin,                             &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
                     endif
                   else
-                    if(ibin.ne.jbin) then
-                      write(lfnout,617) ibin,jbin,                              &
-     &                     trim(mebfLabel(ibin)),                               &
-     &                     trim(mebfLabel(jbin)),                               &
-     &                     idetb(ibin),idetb(jbin),                             &
-     &                     ltemp,nbdet(ibin,jbin),                              &
-     &                     (nsing(ibin,jbin,k),k=1,4),                          &
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
-     &                     tbase(ibin,jbin),timer_wall_total(98)
+                    if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                     &
+     &                   dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                      if(ibin.ne.jbin) then
+                        write(lfnout,1607) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       (nsing(ibin,jbin,k),k=1,4),                         &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,1608) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       (nsing(ibin,jbin,k),k=1,4),                         &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
                     else
-                      write(lfnout,618) ibin,jbin,                              &
-     &                     trim(mebfLabel(ibin)),                               &
-     &                     trim(mebfLabel(jbin)),                               &
-     &                     idetb(ibin),idetb(jbin),                             &
-     &                     ltemp,nbdet(ibin,jbin),                              &
-     &                     (nsing(ibin,jbin,k),k=1,4),                          &
-     &                     hbase(ibin,jbin),sbase(ibin,jbin),                   &
-     &                     hbase(ibin,jbin)/sbase(ibin,jbin),                   &
-     &                     tbase(ibin,jbin),timer_wall_total(98)
+                      if(ibin.ne.jbin) then
+                        write(lfnout,1617) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       (nsing(ibin,jbin,k),k=1,4),                         &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,1618) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                              &
+     &                       trim(mebfLabel(jbin)),                              &
+     &                       idetb(ibin),idetb(jbin),                            &
+     &                       ltemp,nbdet(ibin,jbin),                             &
+     &                       (nsing(ibin,jbin,k),k=1,4),                         &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                  &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                  &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
                     endif
                   endif
                   flush(lfnout)
  522              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,3i14,2i12,i14,2e20.13)
+     &                 t35,2i10,2i14,2e20.13)
  608              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 t35,2i10,2i14,                                           &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
  607              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 t35,2i10,2i14,                                           &
      &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
  618              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 t35,2i10,2i14,                                           &
      &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
  617              format(1x,2i5,'   <',a,'~',a,'> ',                            &
+     &                 t35,2i10,2i14,                                           &
+     &                 f18.10,4x,f18.10,4x,20x,2f12.1)
+ 1522              format(1x,2i5,'   <',a,'~',a,'> ',                           &
+     &                 t35,2i10,3i14,2i12,i14,2e20.13)
+ 1608              format(1x,2i5,'   <',a,'~',a,'> ',                           &
+     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
+ 1607              format(1x,2i5,'   <',a,'~',a,'> ',                           &
+     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
+ 1618              format(1x,2i5,'   <',a,'~',a,'> ',                           &
+     &                 t35,2i10,3i14,2i12,i14,                                  &
+     &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
+ 1617              format(1x,2i5,'   <',a,'~',a,'> ',                           &
      &                 t35,2i10,3i14,2i12,i14,                                  &
      &                 f18.10,4x,f18.10,4x,20x,2f12.1)
                 endif
@@ -800,58 +882,101 @@
               ltemp=idetb(ibin)*idetb(jbin)
             endif
                 write(lfnarx,522) ibin,jbin,                                    &
-     &           trim(mebfLabel(ibin)),                                      &
-     &           trim(mebfLabel(jbin)),                                      &
+     &           trim(mebfLabel(ibin)),                                         &
+     &           trim(mebfLabel(jbin)),                                         &
      &           idetb(ibin),idetb(jbin),                                       &
      &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
      &           hbase(ibin,jbin),sbase(ibin,jbin)
-            if(ipr.ge.1) then
-              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                          &
-     &             dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-                if(ibin.ne.jbin) then
-                  write(lfnout,607) ibin,jbin,                                  &
-     &                 trim(mebfLabel(ibin)),                                &
-     &                 trim(mebfLabel(jbin)),                                &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 (nsing(ibin,jbin,k),k=1,4),                              &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
-     &                 tbase(ibin,jbin),timer_wall_total(98)
-                else
-                  write(lfnout,608) ibin,jbin,                                  &
-     &                 trim(mebfLabel(ibin)),                                &
-     &                 trim(mebfLabel(jbin)),                                &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 (nsing(ibin,jbin,k),k=1,4),                              &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
-     &                 hbase(ibin,jbin)/sbase(ibin,jbin),                       &
-     &                 tbase(ibin,jbin),timer_wall_total(98)
+                if(ipr.ge.1) then
+                  if(ipr.lt.40) then
+                    if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                    &
+     &                   dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                      if(ibin.ne.jbin) then
+                        write(lfnout,607) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,608) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
+                    else
+                      if(ibin.ne.jbin) then
+                        write(lfnout,617) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,618) ibin,jbin,                            &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
+                    endif
+                  else
+                    if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                    &
+     &                   dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                      if(ibin.ne.jbin) then
+                        write(lfnout,1607) ibin,jbin,                           &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       (nsing(ibin,jbin,k),k=1,4),                        &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,1608) ibin,jbin,                           &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       (nsing(ibin,jbin,k),k=1,4),                        &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
+                    else
+                      if(ibin.ne.jbin) then
+                        write(lfnout,1617) ibin,jbin,                           &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       (nsing(ibin,jbin,k),k=1,4),                        &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      else
+                        write(lfnout,1618) ibin,jbin,                           &
+     &                       trim(mebfLabel(ibin)),                             &
+     &                       trim(mebfLabel(jbin)),                             &
+     &                       idetb(ibin),idetb(jbin),                           &
+     &                       ltemp,nbdet(ibin,jbin),                            &
+     &                       (nsing(ibin,jbin,k),k=1,4),                        &
+     &                       hbase(ibin,jbin),sbase(ibin,jbin),                 &
+     &                       hbase(ibin,jbin)/sbase(ibin,jbin),                 &
+     &                       tbase(ibin,jbin),timer_wall_total(98)
+                      endif
+                    endif
+                  endif
+                  flush(lfnout)
                 endif
-              else
-                if(ibin.ne.jbin) then
-                  write(lfnout,617) ibin,jbin,                                  &
-     &                 trim(mebfLabel(ibin)),                                &
-     &                 trim(mebfLabel(jbin)),                                &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 (nsing(ibin,jbin,k),k=1,4),                              &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
-     &                 tbase(ibin,jbin),timer_wall_total(98)
-                else
-                  write(lfnout,618) ibin,jbin,                                  &
-     &                 trim(mebfLabel(ibin)),                                &
-     &                 trim(mebfLabel(jbin)),                                &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 (nsing(ibin,jbin,k),k=1,4),                              &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin),                       &
-     &                 hbase(ibin,jbin)/sbase(ibin,jbin),                       &
-     &                 tbase(ibin,jbin),timer_wall_total(98)
-                endif
-              endif
-              flush(lfnout)
-            endif
 
             call swatch(date,time)
             write(lfncpr) ibin,jbin,                                            &
@@ -1148,11 +1273,20 @@
       call timer_stop(98)
       call timer_stop(99)
       if(ipr.gt.0) then
-        write(lfnout,615) mdet,nthdet,(nsingt(i),i=1,4),tsum,                   &
-     &       dble(mgr)*tsum/dble(np-1),timer_wall_total(98),                    &
-     &       100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+        if(ipr.lt.40) then
+          write(lfnout,615) mdet,nthdet,tsum,                                   &
+     &         dble(mgr)*tsum/dble(np-1),timer_wall_total(98),                  &
+     &         100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+        else
+          write(lfnout,1615) mdet,nthdet,(nsingt(i),i=1,4),tsum,                &
+     &         dble(mgr)*tsum/dble(np-1),timer_wall_total(98),                  &
+     &         100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+        endif
       endif
- 615  format(/,' Total',48x,3i14,2i12,i14,64x,1f12.1,/,                         &
+ 615  format(/,' Total',48x,2i14,64x,1f12.1,/,                                  &
+     &     /,' Total averaged per rank',t147,2f12.1,/,                          &
+     &     ' Task execution efficiency',t147,f12.1,' %')
+ 1615 format(/,' Total',48x,3i14,2i12,i14,64x,1f12.1,/,                         &
      &     /,' Total averaged per rank',t199,2f12.1,/,                          &
      &     ' Task execution efficiency',t199,f12.1,' %')
       call timer_start(98)

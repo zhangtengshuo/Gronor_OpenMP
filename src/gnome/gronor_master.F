@@ -881,7 +881,7 @@
             else
               ltemp=idetb(ibin)*idetb(jbin)
             endif
-                write(lfnarx,522) ibin,jbin,                                    &
+            write(lfnarx,1522) ibin,jbin,                                       &
      &           trim(mebfLabel(ibin)),                                         &
      &           trim(mebfLabel(jbin)),                                         &
      &           idetb(ibin),idetb(jbin),                                       &

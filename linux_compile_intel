@@ -1,30 +1,7 @@
 #!/usr/bin/tcsh
 
 module purge
-module load cmake intel/2022.2.0 mpich gronor molcas mkl ga
-
-setenv FC mpif90
-setenv CC mpicc
-setenv CXX mpicxx
-unsetenv MPI_ROOT
-
-env | grep MKL
-env | grep UTILS
-
-rm -rf build_intel-2022.2.0
-mkdir build_intel-2022.2.0
-cd build_intel-2022.2.0
-
-cmake -DOPENMP=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.2.0/mpich-4.0.2/gronor/23.00 ../
-
-make -j 12
-
-make install
-
-cd ../
-
-module purge
-module load cmake intel/2022.3.0 mpich gronor molcas mkl ga
+module load cmake intel mpich gronor molcas mkl ga
 
 setenv FC mpif90
 setenv CC mpicc

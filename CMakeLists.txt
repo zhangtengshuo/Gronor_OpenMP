@@ -213,7 +213,7 @@ if(NOT DEFINED ENV{MOLCAS})
   message (STATUS "Not found: molcas")
 else()
 #  string (REPLACE "/build" "" molcas_root $ENV{MOLCAS})
-  set(molcas_root $ENV{MOLCAS})
+  set(molcas_root $ENV{MOLCAS_BUILD})
   message (STATUS "Found Molcas: ${molcas_root}")
 endif()
 
@@ -780,12 +780,6 @@ set (FFLAGS_XL_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_XL_RELEASE "-O2")
 set (FFLAGS_XL_FAST "-fast -fastsse")
 
-# AMD Compilers
-
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
-set (FFLAGS_Flang_OPENMP "-DAMD -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx90a")
-
 # Test if a supported c compiler is used
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
   if (C_COMPILER STREQUAL "${CMAKE_C_COMPILER_ID}")
@@ -974,7 +968,7 @@ endif()
 
 # molcas dependent auxiliary programs need the molcas libraries
 if(DEFINED MOLCAS)
-  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS_BUILD}/lib -lmolcas")
+  list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()

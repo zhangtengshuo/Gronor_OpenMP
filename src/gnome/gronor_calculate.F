@@ -106,7 +106,7 @@
 
       btemp=0.0d0
       btemp2=0.0d0
-      do i=1,8
+      do i=1,17
         buffer(i)=0.0d0
       enddo
       e2summ=0.0d0
@@ -157,6 +157,9 @@
 
         hh=0.0d0
         ss=0.0d0
+        do k=1,9
+          mpoles(k)=0.0d0
+        enddo
 
         if(dabs(civb(i,ib)*civb(j,jb)).lt.tau_CI) then
           ising=4
@@ -368,6 +371,16 @@
           endif
           buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
           buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
+          if(iamhead.eq.1)then
+            do k=1,9
+              buffer(k+8)=                                                       &
+     &             buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+            enddo
+            if(idbg.ge.12)then
+              write(lfndbg,*)'Gronor calculate head rank contributions',           &
+     &             fac,(civb(i,ib)*civb(j,jb)*mpoles(k),k=1,9)
+            endif
+          endif
         else
 
         endif
@@ -383,6 +396,9 @@
         if(iamhead.eq.1) then
           buffer(1)=e1tot+etotb
           buffer(2)=sstot
+          do k=1,9
+            buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
+          enddo
           e2buff=0.0d0
         else
           e2buff=e1tot+etotb

@@ -56,12 +56,16 @@
       real (kind=8), dimension(nTraBuf) :: integrals
 
       real (kind=8), allocatable        :: s(:),sAO(:,:),aux(:,:)
+      real (kind=8), allocatable        :: DM(:,:,:),QM(:,:,:)
       real (kind=8), allocatable        :: vec(:,:)
       real (kind=8), allocatable        :: kinInt(:)
       real (kind=8), allocatable        :: fock(:)
       real (kind=8), allocatable        :: zero(:)
       real (kind=8), allocatable        :: dummy(:)
       real (kind=8), allocatable        :: coord(:),znuc(:)
+      real (kind=8), allocatable        :: dipole(:,:)
+      real (kind=8), allocatable        :: quadrupole(:,:)
+      real (kind=8), allocatable        :: CoM(:)
       character (len = 1), dimension(labelSize) :: basLabel
       character (len = LblL), allocatable   :: AtomLbl(:)
       character (len = LblL8), allocatable  :: BasfnLbl(:)
@@ -97,8 +101,13 @@
       lTriangle = 0.5 * nBas * (nBas + 1)
       allocate ( s(lTriangle) )
       allocate ( sAO(nBas,nBas) )
+      allocate ( DM(nBas,nBas,3) )
+      allocate ( QM(nBas,nBas,6) )
+
       s   = 0.0
       sAO = 0.0
+      DM = 0.0
+      QM =0.0      
       LuOne = 77
       iRc=-1
       iOpt=0
@@ -109,7 +118,7 @@
       iComponent = 1
       iSymLbl = 1
       call RdOne(iRC,iOpt,'Mltpl  0',iComponent,s,iSymLbl)
-      call ClsOne(iRc,iOpt)
+
       iCounter = 1
       do j = 1, nBas
         do k = 1, j
@@ -119,11 +128,98 @@
         end do
       end do
       if ( print_level .ge. 10 ) then
-        write (*,*) 'AO basis overlap'
+        write (*,*) 'AO basis overlap 0'
         do j = 1, nBas
           write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
         end do
       end if
+
+      s = 0.0
+      iCounter = 0                                        ! reset s and iCounter; s will be re-used for the MO overlap
+
+      do iComponent = 1,3
+        call RdOne(iRC,iOpt,'Mltpl  1',iComponent,s,iSymLbl)
+        iCounter = 1
+        do j = 1, nBas
+          do k = 1, j
+            DM(j,k,iComponent) = s(iCounter)
+            DM(k,j,iComponent) = s(iCounter)
+            iCounter = iCounter + 1
+          enddo
+        enddo
+      enddo
+      
+      if ( print_level .ge. 10 ) then
+        write (*,*) 'AO basis overlap 1'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
+        end do
+      end if
+      if ( print_level .ge. 10 ) then        
+        write (*,'(a)') 'Dipole moment X component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(DM(j,k,1),k = 1, j)
+        end do
+        write (*,'(a)') 'Dipole moment Y component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(DM(j,k,2),k = 1, j)
+        end do
+        write (*,'(a)') 'Dipole moment Z component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(DM(j,k,3),k = 1, j)
+        end do
+      end if
+
+      s = 0.0
+      iCounter = 0                                        ! reset s and iCounter; s will be re-used for the MO overlap
+      do iComponent = 1,6
+        call RdOne(iRC,iOpt,'Mltpl  2',iComponent,s,iSymLbl)
+        iCounter = 1
+        do j = 1, nBas
+          do k = 1, j
+            QM(j,k,iComponent) = s(iCounter)
+            QM(k,j,iComponent) = s(iCounter)
+            iCounter = iCounter + 1
+          enddo
+        enddo
+      enddo
+            
+      if ( print_level .ge. 10 ) then
+        write (*,*) 'AO basis overlap final'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
+        end do
+      end if
+      
+      if ( print_level .ge. 10 ) then        
+        write (*,'(a)') 'Quadrupole moment XX component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,1),k = 1, j)
+        end do
+        write (*,'(a)') 'Quadrupole moment XY component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,2),k = 1, j)
+        end do
+        write (*,'(a)') 'Quadrupole moment XZ component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,3),k = 1, j)
+        end do
+        write (*,'(a)') 'Quadrupole moment YY component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,4),k = 1, j)
+        end do
+        write (*,'(a)') 'Quadrupole moment YZ component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,5),k = 1, j)
+        end do
+        write (*,'(a)') 'Quadrupole moment ZZ component'
+        do j = 1, nBas
+          write(*,'(20F10.4)')(QM(j,k,6),k = 1, j)
+        end do
+      end if
+      
+      call ClsOne(iRc,iOpt)
+
       s = 0.0
       iCounter = 0                                        ! reset s and iCounter; s will be re-used for the MO overlap
 
@@ -212,6 +308,52 @@
         end do
       endif
 
+! Transform dipole moment integrals to the commonbasis
+      allocate ( dipole(nOrbtt,3) )
+      dipole = 0.0
+      do iComponent = 1, 3
+        iCounter = 1
+        do i = 1, nOrb
+          do j = 1, i          
+            do k = 1, nBas
+              do l=1, nBas
+                dipole(iCounter,iComponent)=dipole(iCounter,iComponent)+
+     &               vec(i,k)*vec(j,l)*DM(k,l,iComponent)
+              enddo
+            enddo
+            iCounter = iCounter + 1
+          enddo
+        enddo                
+      enddo
+      write(*,'(a)') 'dipole common basis'
+      do i = 1, nOrbtt
+        write(*,'(i4,3F14.8)') i,(dipole(i,iComponent),iComponent=1,3)
+      end do
+      iCounter = 1
+! Transform quadrupole moment integrals to the commonbasis
+      allocate ( quadrupole(nOrbtt,6) )
+      quadrupole = 0.0
+      do iComponent = 1,6
+        iCounter = 1
+        do i=1,nOrb
+          do j = 1, i          
+            do k = 1, nBas
+              do l= 1, nBas
+                quadrupole(iCounter,iComponent)=
+     &               quadrupole(iCounter,iComponent)+
+     &               vec(i,k)*vec(j,l)*QM(k,l,iComponent)
+              enddo
+            enddo
+            iCounter = iCounter + 1
+          enddo          
+        enddo
+      enddo
+      write(*,'(a)') 'quadrupole common basis'
+      do i = 1, nOrbtt
+        write(*,'(i4,6F14.8)') i,        
+     &       (quadrupole(i,iComponent),iComponent=1,6)
+      end do
+
 * Dump the one-electron integrals in 'filone'
       if (vectit(40:45).eq.'tau_MO') then
         title1 = 'Integrals in common MO basis ('
@@ -234,6 +376,15 @@
       write(luOne_GronOR) (s(i),i=1,nOrbtt)
       write(luOne_GronOR) (zero(i),i=1,nOrbtt)
       write(luOne_GronOR) (fock(i),i=1,nOrbtt)
+      write(luOne_GronOR) (dipole(i,1),i=1,nOrbtt)
+      write(luOne_GronOR) (dipole(i,2),i=1,nOrbtt)
+      write(luOne_GronOR) (dipole(i,3),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,1),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,2),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,3),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,4),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,5),i=1,nOrbtt)
+      write(luOne_GronOR) (quadrupole(i,6),i=1,nOrbtt)
       write(luOne_GronOR) (/8421,-1,1/)     !no idea what this is
 
 * open the file with the two-electron integrals (TRAINT)
@@ -418,10 +569,12 @@
       deallocate (s)
       deallocate (fock)
       deallocate (kinInt)
-
-
-* fill the sym file with info
-      write(filename,'(2a)')trim(Project),'.sym'
+      deallocate (DM)
+      deallocate (QM)
+      deallocate (dipole)
+      deallocate (quadrupole)
+* fill the sys file with info
+      write(filename,'(2a)')trim(Project),'.sys'
       open(15,file=trim(filename))
       write(15,'(A)') ' * * * General info from OpenMolcas to GronOR'
       Call Get_cArray('Seward Title',Header,144)
@@ -439,10 +592,15 @@
       allocate( BasfnLbl(nBas) )                              ! see comment 1
       allocate( zNuc(nAtoms) )
       allocate( nCntr(nAtoms,7) )
+      allocate ( CoM(3))
+      
       Call Get_Coord_All(coord,nAtoms)
       Call Get_cArray('Unique Atom Names',AtomLbl,LblL*nAtoms)
       Call Get_cArray('Unique Basis Name',BasfnLbl,nBas*LblL8)
       Call Get_dArray('Nuclear charge',zNuc,nAtoms)
+      call Get_dArray('Center of Mass',CoM,3)
+      print*,'Center of Mass'
+      print*,CoM
       nCntr = 0
       iAtom = 1
       if (BasfnLbl(1)(9:9).eq.'s') nCntr(1,1)=1
@@ -474,6 +632,7 @@
      &         l=1,7)
         iCounter = iCounter + 3
       end do
+      write(15,'(A18,3F14.8)')'Center of Mass:',(CoM(k),k=1,3)
  201  format (I4,2x,A6,3F14.8,2x,F7.2,3x,7I3)
       end
 

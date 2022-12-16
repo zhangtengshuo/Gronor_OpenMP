@@ -123,6 +123,15 @@
             hbase(ibase,jbase)=0.0d0
             sbase(ibase,jbase)=0.0d0
             tbase(ibase,jbase)=0.0d0
+            dqbase(ibase,jbase,1)=0.0d0
+            dqbase(ibase,jbase,2)=0.0d0
+            dqbase(ibase,jbase,3)=0.0d0
+            dqbase(ibase,jbase,4)=0.0d0
+            dqbase(ibase,jbase,5)=0.0d0
+            dqbase(ibase,jbase,6)=0.0d0
+            dqbase(ibase,jbase,7)=0.0d0
+            dqbase(ibase,jbase,8)=0.0d0
+            dqbase(ibase,jbase,9)=0.0d0
             ntasks(ibase,jbase)=-1
             do i=1,5
               nsing(ibase,jbase,i)=0
@@ -311,7 +320,7 @@
 !     Wait for a request for a task from any worker group
 
             call timer_start(94)
-            ncount=8
+            ncount=17
             mpitag=1
             call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,               &
      &           mpitag,MPI_COMM_WORLD,status,ierr)
@@ -443,6 +452,15 @@
               nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
               nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
               nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
+              dqbase(ibin,jbin,1)=dqbase(ibin,jbin,1)+buffer(9)
+              dqbase(ibin,jbin,2)=dqbase(ibin,jbin,2)+buffer(10)
+              dqbase(ibin,jbin,3)=dqbase(ibin,jbin,3)+buffer(11)
+              dqbase(ibin,jbin,4)=dqbase(ibin,jbin,4)+buffer(12)
+              dqbase(ibin,jbin,5)=dqbase(ibin,jbin,5)+buffer(13)
+              dqbase(ibin,jbin,6)=dqbase(ibin,jbin,6)+buffer(14)
+              dqbase(ibin,jbin,7)=dqbase(ibin,jbin,7)+buffer(15)
+              dqbase(ibin,jbin,8)=dqbase(ibin,jbin,8)+buffer(16)
+              dqbase(ibin,jbin,9)=dqbase(ibin,jbin,9)+buffer(17)
 
 !     Total number of completed tasks and maximum time for a completed task
 
@@ -462,22 +480,14 @@
                   ltemp=idetb(ibin)*idetb(jbin)
                 endif
 
-                if(ipr.lt.40) then
-                  write(lfnarx,522) ibin,jbin,                                  &
-     &                 trim(mebfLabel(ibin)),                                   &
-     &                 trim(mebfLabel(jbin)),                                   &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin)
-                else
-                  write(lfnarx,1522) ibin,jbin,                                 &
-     &                 trim(mebfLabel(ibin)),                                   &
-     &                 trim(mebfLabel(jbin)),                                   &
-     &                 idetb(ibin),idetb(jbin),                                 &
-     &                 ltemp,nbdet(ibin,jbin),                                  &
-     &                 (nsing(ibin,jbin,k),k=1,4),                              &
-     &                 hbase(ibin,jbin),sbase(ibin,jbin)
-                endif
+                write(lfnarx,1522) ibin,jbin,                                   &
+     &               trim(mebfLabel(ibin)),                                     &
+     &               trim(mebfLabel(jbin)),                                     &
+     &               idetb(ibin),idetb(jbin),                                   &
+     &               ltemp,nbdet(ibin,jbin),                                    &
+     &               (nsing(ibin,jbin,k),k=1,4),                                &
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
+                write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
 
                 call timer_stop(98)
                 call timer_stop(99)
@@ -587,6 +597,7 @@
      &                 f18.10,4x,f18.10,4x,20x,2f12.1)
  1522              format(1x,2i5,'   <',a,'~',a,'> ',                           &
      &                 t35,2i10,3i14,2i12,i14,2e20.13)
+ 1523              format(5e20.13)
  1608              format(1x,2i5,'   <',a,'~',a,'> ',                           &
      &                 t35,2i10,3i14,2i12,i14,                                  &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
@@ -605,7 +616,8 @@
 
                 write(lfncpr) ibin,jbin,                                        &
      &               hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),        &
-     &               (nsing(ibin,jbin,k),k=1,4)
+     &               (nsing(ibin,jbin,k),k=1,4),                                &
+     &               (dqbase(ibin,jbin,k),k=1,9)
                 flush(lfncpr)
 
 !     Write completion message to dayfile
@@ -769,7 +781,7 @@
 !     Wait for request from any remote rank
 
         call timer_start(96)
-        ncount=8
+        ncount=17
         mpitag=1
         call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,                   &
      &       mpitag,MPI_COMM_WORLD,status,ierr)
@@ -864,6 +876,15 @@
           nsing(ibin,jbin,3)=nsing(ibin,jbin,3)+int(buffer(6))
           nsing(ibin,jbin,4)=nsing(ibin,jbin,4)+int(buffer(7))
           nsing(ibin,jbin,5)=nsing(ibin,jbin,5)+int(buffer(8))
+          dqbase(ibin,jbin,1)=dqbase(ibin,jbin,1)+buffer(9)
+          dqbase(ibin,jbin,2)=dqbase(ibin,jbin,2)+buffer(10)
+          dqbase(ibin,jbin,3)=dqbase(ibin,jbin,3)+buffer(11)
+          dqbase(ibin,jbin,4)=dqbase(ibin,jbin,4)+buffer(12)
+          dqbase(ibin,jbin,5)=dqbase(ibin,jbin,5)+buffer(13)
+          dqbase(ibin,jbin,6)=dqbase(ibin,jbin,6)+buffer(14)
+          dqbase(ibin,jbin,7)=dqbase(ibin,jbin,7)+buffer(15)
+          dqbase(ibin,jbin,8)=dqbase(ibin,jbin,8)+buffer(16)
+          dqbase(ibin,jbin,9)=dqbase(ibin,jbin,9)+buffer(17)
 
 !     Decrement the tasks still to be done for base pair
 
@@ -887,6 +908,7 @@
      &           idetb(ibin),idetb(jbin),                                       &
      &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
      &           hbase(ibin,jbin),sbase(ibin,jbin)
+            write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
                 if(ipr.ge.1) then
                   if(ipr.lt.40) then
                     if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                    &
@@ -981,7 +1003,8 @@
             call swatch(date,time)
             write(lfncpr) ibin,jbin,                                            &
      &           hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),            &
-     &           (nsing(ibin,jbin,k),k=1,4)
+     &           (nsing(ibin,jbin,k),k=1,4),                                    &
+     &           (dqbase(ibin,jbin,k),k=1,9)
             flush(lfncpr)
 
             if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                            &
@@ -1218,6 +1241,9 @@
         do j=i+1,nbase
           hbase(i,j)=hbase(j,i)
           sbase(i,j)=sbase(j,i)
+          do k=1,9
+            dqbase(i,j,k)=dqbase(j,i,k)
+          enddo
         enddo
       enddo
 

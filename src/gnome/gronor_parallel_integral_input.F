@@ -103,7 +103,7 @@
           read(lfnone,err=993) (dqm(i,j),i=1,int1)
         enddo 
 
-        if(ipr.ge.20) then          
+        if(ipr.ge.80) then          
           write(lfnout,'(a)') ' One electron integrals from Molcas '
           write(lfnout,'(a)') 'Overlap matrix'
           do i=1,nbas

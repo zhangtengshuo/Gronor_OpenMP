@@ -1,12 +1,14 @@
 #!/usr/bin/tcsh
 
 module purge
-module load cmake intel mpich gronor molcas mkl ga
+module load cmake intel mpich gronor/23.00 molcas/2023 mkl ga
 
 setenv FC mpif90
 setenv CC mpicc
 setenv CXX mpicxx
 unsetenv MPI_ROOT
+
+git checkout tps
 
 env | grep MKL
 env | grep UTILS

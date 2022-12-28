@@ -2244,13 +2244,24 @@
       call timer_stop(98)
 
 
-      if(me.eq.master.and.ipr.ge.20) then
+      if(me.eq.master.and.ipr.ge.30) then
+        key='     '
+        header='Hamiltonian Matrix (unnormalized)'
+      call gronor_print_matrix(lfnout,0,0,header,key,                           &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7)
+        header='Overlap Matrix (unnormalized)'
+      call gronor_print_matrix(lfnout,0,0,header,key,                           &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
+
+
+
+      
         write(lfnout,632)
  632    format(//,' Hamiltonian Matrix unnormalized')
-        call gronor_print_matrix(lfnout,hbase,nbase)
+        call gronor_prtmat(lfnout,hbase,nbase)
         write(lfnout,635)
  635    format(//,' Overlap Matrix unnormalized')
-        call gronor_print_matrix(lfnout,sbase,nbase)
+        call gronor_prtmat(lfnout,sbase,nbase)
       endif
 
       if(me.eq.master) then
@@ -2279,17 +2290,18 @@
           sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
         enddo
         call gronor_multipoles_nuclear()
-        call gronor_print_results(hbase,sbase,dqbase,mnuc,nbase,hev)
+        call gronor_print_results(hbase,sbase,nbase,hev)
         if(ncorr.eq.1) then
           allocate( hcorr(nbase,nbase) )
           hcorr=0.0
           call gronor_correlation_energy(                                       &
      &         nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
           if(ipr.le.40) write(lfnout,636)
- 636      format(//,'After applying a shift to the diagonal of H')
+ 636      format(//,' After applying a shift to the diagonal of H')
           call gronor_print_results(hcorr,sbase,nbase,hev)
           deallocate( hcorr )
         endif
+        call gronor_print_dipole_moments(dqbase,mnuc,nbase,hev)
 
         inquire(file=trim(fillog),exist=EXIST)
         open(unit=lfnlog,file=trim(fillog),                                     &

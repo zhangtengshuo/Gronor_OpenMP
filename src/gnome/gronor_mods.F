@@ -120,8 +120,9 @@
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
       real(kind=8)              :: mnuc(9)
       character(len=16),allocatable  :: fragLabel(:)
-      character(len=128),allocatable  :: mebfLabel(:)
-      logical                       :: mebfLabels
+      character(len=128),allocatable :: mebfLabel(:)
+      character(len=128)             :: header,key
+      logical                        :: mebfLabels
       integer, allocatable  :: nCntr(:,:)
 
       end module cidef

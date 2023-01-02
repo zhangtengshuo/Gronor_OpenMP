@@ -289,7 +289,7 @@
             endif
           enddo
           if(ipr.ge.40) then
-            write(filvec,201) trim(root),i
+            write(filvec,201) trim(fragfile(i))
             write(lfnout,612) trim(filvec),nbasm(i)
  612        format(/,' Vector File ',a,//,                                      &
      &          ' Number of basis functions ',i8,/)

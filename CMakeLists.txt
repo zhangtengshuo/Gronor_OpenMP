@@ -11,7 +11,7 @@ cmake_minimum_required (VERSION 3.11.00)
 message ("Programming Environment:")
 message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
-project (GronOR VERSION 21.00 LANGUAGES Fortran C CXX)
+project (GronOR VERSION 23.00 LANGUAGES Fortran C CXX)
 
 # Set global session identifier
 

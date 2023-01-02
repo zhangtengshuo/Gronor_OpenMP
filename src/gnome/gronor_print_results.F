@@ -22,13 +22,14 @@
       subroutine gronor_print_results(hbase,sbase,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
+      use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
-     &                             nwt,mebfLabel,mebfLabels
+     &                             nwt,mebfLabel,mebfLabels,header,key
 
       implicit none
 
       integer,intent(in)            :: nbase
-      integer                       :: i,j,k,ii,ik,il
+      integer                       :: i,j,k,ii,ik,il,l,m
       integer                       :: nk,info,lwork
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
@@ -43,136 +44,50 @@
       character(len=20)             :: label
       character(len=1)              :: sep
       integer                       :: indent
+      
+      real(kind=8)                  :: debye,angstrom,trace
+      real(kind=8)                  :: two3rds
 
-      write(lfnarx,660) nbase,ncols
- 660  format('Hamil',2i10)
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,670)
-        write(lfntst,670)
- 670    format(//,' Hamiltonian Matrix',/)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',('--------------------',i=ii,il)
-        end if
-        write(lfntst,671) (i,i=ii,il)
-        write(lfnarx,671) (i,i=ii,il)
- 671    format(6x,7(6x,i8,6x))
- 6711   format(7x,a,7(9x,a6,5x))
- 6712   format(8a)
-        do j=1,nbase
-          if (.not.mebfLabels) then
-            write(lfnout,672) j,(hbase(i,j),i=ii,il)
-          else
-            write(lfnout,6721) mebfLabel(j),' |',(hbase(i,j),i=ii,il)
-          end if
-          write(lfnarx,662) j,(hbase(i,j),i=ii,il)
- 672      format(i5,1x,10f20.10)
- 6721     format(a6,a2,10f20.10)
- 662      format(i5,1x,10e20.13)
-          do i=ii,il
-            hbt(i)=hbase(i,j)
-            if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
-          enddo
-          write(lfntst,1672) j,(hbt(i),i=ii,il)
- 1672     format(i5,1x,10f20.6)
-        enddo
-        write(lfnout,*) ' '
-      enddo
-      write(lfnarx,663) nbase,ncols
- 663  format('Overl',2i10)
-      nk=nbase/ncols
-      if(mod(nbase,ncols).ne.0) nk=nk+1
-      do k=1,nk
-        ii=(k-1)*ncols+1
-        il=min(nbase,k*ncols)
-        write(lfnout,673)
-        write(lfntst,673)
- 673    format(//,' Overlap Matrix',/)
-        if (.not.mebfLabels) then
-          write(lfnout,671) (i,i=ii,il)
-        else
-          write(lfnout,6711) '|',(mebfLabel(i),i=ii,il)
-          write(lfnout,6712)'-------|',('--------------------',i=ii,il)
-        end if
-        write(lfntst,671) (i,i=ii,il)
-        write(lfnarx,671) (i,i=ii,il)
-        do j=1,nbase
-          if (.not.mebfLabels) then
-            write(lfnout,672) j,(sbase(i,j),i=ii,il)
-          else
-            write(lfnout,6721) mebfLabel(j),' |',(sbase(i,j),i=ii,il)
-          end if
-          write(lfnarx,662) j,(sbase(i,j),i=ii,il)
-          do i=ii,il
-            hbt(i)=sbase(i,j)
-            if(dabs(hbt(i)).lt.1.0d-08) hbt(i)=0.0d0
-          enddo
-          write(lfntst,1672) j,(hbt(i),i=ii,il)
-        enddo
-        write(lfnout,*) ' '
-      enddo
+      debye    = 2.54174644986
+      angstrom = 0.529177249
+      two3rds  = 2.0d0/3.0d0
+
+      key='Hamil'
+      header='Hamiltonian Matrix'
+      call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7)
+
+      key='Overl'
+      header='Overlap Matrix'
+      call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
 
       if(nbase.gt.1) then
-        tc = 0.0
+        do i=1,nbase
+          do j=1,nbase
+            tc(i,j)=0.0d0
+          enddo
+        enddo
         do i=2,nbase
           do j=1,i-1
             tc(i,j)=(hbase(i,j)                                                 &
      &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/                    &
      &           (1.0d0-sbase(i,j)*sbase(i,j))
+            tc(j,i)=tc(i,j)
           enddo
         enddo
 
-        write(lfnout,676)
-        write(lfnarx,666) nbase,ncols
- 666    format('Coupl',2i10)
- 676    format(//,' Electronic Couplings (meV)',/)
-        nk=nbase/ncols
-        if(mod(nbase,ncols).ne.0) nk=nk+1
-        do k=1,nk
-          ii=(k-1)*ncols+1
-          il=min(nbase,k*ncols)
-          if (.not.mebfLabels) then
-            write(lfnout,671) (i,i=ii,il)
-          else
-            write(lfnout,6711)  '|',(mebfLabel(i),i=ii,il)
-            write(lfnout,6712)'-------|',                                       &
-     &                     ('--------------------',i=ii,il)
-          end if
-          write(lfnarx,671) (i,i=ii,il)
-          do j=1,nbase
-            if(j.eq.1) then
-              if (.not.mebfLabels) then
-                write(lfnout,672) 1
-              else
-                write(lfnout,6721) mebfLabel(1),' |'
-              end if
-              write(lfnarx,662) 1
-            else
-              ik=min(j-1,il)
-              if (.not.mebfLabels) then
-                write(lfnout,672) j,(27.2114d3*tc(j,i),i=ii,ik)
-              else
-                write(lfnout,6721) mebfLabel(j),' |',                           &
-     &                             (27.2114d3*tc(j,i),i=ii,ik)
-              end if
-              write(lfnarx,662) j,(27.2114d3*tc(j,i),i=ii,ik)
-            endif
-          enddo
-          write(lfnout,*) ' '
-        enddo
+        key='Coupl'
+        header='Electronic Couplings (meV)'
+        call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+     &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
 
         if(nbase.gt.1) then
           info=0
-          lwork = 4 * nbase
+          lwork = 4*nbase
           do j=1,nbase
             do i=1,nbase
               hsave(i,j)=hbase(i,j)
@@ -247,7 +162,7 @@
         enddo
       endif
 
-!** Dumping the results in the cml file
+!   Dumping the results in the cml file
       if (ncorr.eq.1) then
         if (nwt.eq.1) then
           id = 'id="GNshifted"'

@@ -89,6 +89,7 @@
         allocate(s(nbas,nbas))
         allocate(t(int1))
         allocate(v(int1))
+        allocate(dqm(int1,9))
 
         read(lfnone,err=993) ((s(i,j),i=1,j),j=1,nbas)
         do i=1,nbas
@@ -98,12 +99,35 @@
         end do
         read(lfnone,err=993) (t(i),i=1,int1)
         read(lfnone,err=993) (v(i),i=1,int1)
+        do j=1,9
+          read(lfnone,err=993) (dqm(i,j),i=1,int1)
+        enddo 
 
-!oen: this part is not valid anymore.
-!     although we'll loose backward compatibility, we might
-!     want to replace it with just "read(lfnone) int2"
-!     The number of small integrals can be written by rdtraint
-!     and retrieved here, if considered useful info
+        if(ipr.ge.80) then          
+          write(lfnout,'(a)') ' One electron integrals from Molcas '
+          write(lfnout,'(a)') 'Overlap matrix'
+          do i=1,nbas
+            write(lfnout,'(20F10.4)')(s(i,j),j = 1, nbas)
+          enddo
+          write(lfnout,'(a)') 'T, V'
+          do i=1,int1
+            write(lfnout,'(i4,2F14.8)') i,t(i),v(i)
+          enddo
+          write(lfnout,'(a)') 'Dipole moment X, Y, Z'
+          do i=1,int1
+            write(lfnout,'(i4,3F14.8)') i,(dqm(i,j),j=1,3)
+          enddo
+          write(lfnout,'(a)') 'Quadrupole moment XX, XY, XZ, YY, YZ, ZZ'
+          do i=1,int1
+            write(lfnout,'(i4,6F14.8)') i,(dqm(i,j),j=4,9)
+          enddo
+        endif
+
+!Coen: this part is not valid anymore.
+!      although we'll loose backward compatibility, we might
+!      want to replace it with just "read(lfnone) int2"
+!      The number of small integrals can be written by rdtraint
+!      and retrieved here, if considered useful info
 
         read(lfnone,end=993) nt
         if (nt(2).eq.-1) read(lfnone) nt(2)
@@ -126,6 +150,7 @@
         allocate(s(nbas,nbas))
         allocate(t(int1))
         allocate(v(int1))
+        allocate(dqm(int1,9))
       endif
 
 !     Broadcast the overlap and one-electron integrals
@@ -135,6 +160,8 @@
       call MPI_Bcast(t,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       ncount=int1
       call MPI_Bcast(v,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+      ncount=int1*9
+      call MPI_Bcast(dqm,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
       ncount=1
       call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,master,                       &
      &     MPI_COMM_WORLD,ierr)
@@ -588,7 +615,10 @@
           ielem=ielem+1
         enddo
         t(ielem)=0.5d0*t(ielem)
-        v(ielem)=0.5d0*v(ielem)
+        v(ielem)=0.5d0*v(ielem)        
+        do i=1,9
+          dqm(ielem,i)=0.5d0*dqm(ielem,i)
+        enddo
       enddo
 
       flush(lfnout)

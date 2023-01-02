@@ -60,63 +60,69 @@
       call gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
 !     Lowdin orthogonalized Hamiltonian H'= (S^-1/2)' H (S^-1/2)
-      hcorr = matmul( transpose(slow),matmul(hbase,slow) )
+      hcorr=matmul( transpose(slow),matmul(hbase,slow) )
 
-      write(lfnout,*)
-      write(lfnout,*)
-      write(lfnout,*) ' Applying a shift on the diagonal'
-      write(lfnout,*)
-      write(lfnout,*) ' Hamiltonian in orthogonal MEBF basis'
- 671  format(6x,7(6x,i8,6x))
- 672  format(i5,1x,7f20.10,/,(6x,7f20.10))
-      call gronor_print_matrix(lfnout,hcorr,nbase)
-
-      if ( ipr .ge. 5 ) then
+      if (ipr.ge.40) then
+        write(lfnout,*)
+        write(lfnout,*)
+        write(lfnout,*) ' Applying a shift on the diagonal'
+        write(lfnout,*)
+        write(lfnout,*) ' Hamiltonian in orthogonal MEBF basis'
+ 671    format(6x,7(6x,i8,6x))
+ 672    format(i5,1x,7f20.10,/,(6x,7f20.10))
+        call gronor_prtmat(lfnout,hcorr,nbase)
  677    format(/,' S^-1/2              ')
         write(lfnout,677)
-        call gronor_print_matrix(lfnout,slow,nbase)
-      end if
+        call gronor_prtmat(lfnout,slow,nbase)
+      endif
 
       shft=0.0d0
-!     Calculate shifts in diagonal, printing needs a bit of an upgrade
+!     Calculate shifts in diagonal,printing needs a bit of an upgrade
 !     to make it more clear
-      do i = 1, nbase
-        do j = 1, nmol
-          shft(i) = shft(i) + ecorr(ncombv(j,i))
+      do i=1,nbase
+        do j=1,nmol
+          shft(i)=shft(i) + ecorr(ncombv(j,i))
         enddo
       enddo
-      write(lfnout,*) ' '
-      write(lfnout,*) ' Shifts applied on the diagonal of H'
-      write(lfnout,*) ' MEBF    Total shift            Monomer shifts'
-      write(lfnout,*) ' '
-      do i = 1, nbase
-        write(lfnout,679) i,shft(i),                                            &
+      
+      if (ipr.ge.40) then
+        write(lfnout,*) ' '
+        write(lfnout,*) ' Shifts applied on the diagonal of H'
+        write(lfnout,*) ' MEBF    Total shift            Monomer shifts'
+        write(lfnout,*) ' '
+        do i=1,nbase
+          write(lfnout,679) i,shft(i),                                           &
      &         (ncombv(j,i),ecorr(ncombv(j,i)),j=1,nmol)
-      end do
- 679  format(I4,F15.8,8x,5(I4,F15.8))
-      write(lfnout,*)
-
-      if ( nwt .eq. 1 ) then
-        call gronor_gnweight(nbase,wgn,slow,sbase)
- 678    format(/,' GN weights         ')
-        write(lfnout,678)
-        call gronor_print_matrix(lfnout,wgn,nbase)
-      else
-        wgn = 0.0
-        do i = 1, nbase
-          wgn(i,i) = 1.0
         end do
-      end if
+ 679    format(I4,F15.8,8x,5(I4,F15.8))
+        write(lfnout,*)
+      endif
 
-      do i = 1, nbase
-        do j = 1, nbase
-          hcorr(i,i) = hcorr(i,i) + (wgn(i,j)*shft(j))
+      if (nwt.eq.1) then
+        call gronor_gnweight(nbase,wgn,slow,sbase)
+        if (ipr.ge.40) then
+ 678      format(/,' GN weights         ')
+          write(lfnout,678)
+          call gronor_prtmat(lfnout,wgn,nbase)
+        endif
+      else
+        wgn=0.0
+        do i=1,nbase
+          wgn(i,i)=1.0
+        end do
+      endif
+
+      do i=1,nbase
+        do j=1,nbase
+          hcorr(i,i)=hcorr(i,i) + (wgn(i,j)*shft(j))
         enddo
       enddo
 
-      write(lfnout,*)
-      write(lfnout,*) ' Shifted Hamiltonian in orthogonal MEBF basis'
-      call gronor_print_matrix(lfnout,hcorr,nbase)
+      if (ipr.ge.40) then
+        write(lfnout,*)
+        write(lfnout,*) ' Shifted Hamiltonian in orthogonal MEBF basis'
+        call gronor_prtmat(lfnout,hcorr,nbase)
+      endif
 
 !     Convert shifted H back to original non-orthogonal basis
       allocate( work(nbase) )
@@ -147,43 +153,43 @@
 !     diagonalize S matrix:
       u=sbase
       allocate(work(4*nbase))
-      work = 0.0
-      info = 0
+      work=0.0
+      info=0
       call dsyev('V','L',nbase,u,nbase,ev,work,4*nbase,info)
       if ( info .ne. 0 ) then
         write(lfnout,*)'Something went wrong in dsyev in gronor_lowdin '
-        write(lfnout,*) 'info = ',info
+        write(lfnout,*) 'info=',info
         call gronor_abort(330,"Error in Gronor_Lowdin dsyev")
-      end if
+      endif
       deallocate(work)
 
-      if ( ipr .ge. 5 ) then
+      if (ipr.ge.40) then
  671    format(6x,7(6x,i8,6x))
  672    format(i5,1x,7f20.10,/,(6x,7f20.10))
         write(lfnout,*) ' '
         write(lfnout,*) 'U - Eigenvectors of S: '
-        call gronor_print_matrix(lfnout,u,nbase)
-      end if
+        call gronor_prtmat(lfnout,u,nbase)
+      endif
 
 !     S(diag)=U'SU
       ut=transpose(u)
       slow=matmul(ut,matmul(sbase,u))
-      if ( ipr .ge. 5 ) then
+      if (ipr.ge.40) then
         write(lfnout,*) ' '
         write(lfnout,*) 'U^ S U'
-        call gronor_print_matrix(lfnout,slow,nbase)
-      end if
+        call gronor_prtmat(lfnout,slow,nbase)
+      endif
 !     S(diag)^-1/2
       do j=1,nbase
         slow(j,j)=1.0d0/dsqrt(slow(j,j))
       enddo
 !     S^-1/2 = U S(diag)^-1/2 U'
       slow=matmul(u,matmul(slow,ut))
-      if ( ipr .ge. 5 ) then
+      if(ipr.ge.40) then
         write(lfnout,*) ' '
         write(lfnout,*) 'After normalization'
-        call gronor_print_matrix(lfnout,slow,nbase)
-      end if
+        call gronor_prtmat(lfnout,slow,nbase)
+      endif
 
       end subroutine gronor_lowdin
 
@@ -207,7 +213,7 @@
       wgn=0.0d0
 !     invert S matrix
       sinv=sbase
-      info = 0
+      info=0
       call dgetrf(nbase,nbase,sinv,nbase,ipiv,info)
       allocate(work(3*nbase))
       call dgetri(nbase,sinv,nbase,ipiv,work,3*nbase,info)
@@ -215,13 +221,13 @@
 
       csum=0
       wsum=0
-      do k = 1, nbase
-        do i = 1, nbase
-          csum(k) = csum(k) + (slow(k,i)*slow(k,i))
+      do k=1,nbase
+        do i=1,nbase
+          csum(k)=csum(k)+(slow(k,i)*slow(k,i))
         end do
-        ngn(k) = 1 / (csum(k)/sinv(k,k))
-        do i = 1, nbase
-          wgn(k,i) = ngn(k) * slow(k,i) * slow(k,i) / sinv(k,k)
+        ngn(k)=1/(csum(k)/sinv(k,k))
+        do i=1,nbase
+          wgn(k,i)=ngn(k)*slow(k,i)*slow(k,i)/sinv(k,k)
         end do
       end do
 

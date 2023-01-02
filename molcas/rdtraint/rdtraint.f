@@ -50,7 +50,8 @@
      &                                     percentage
       real (kind=8), dimension(nTraBuf) :: traBuf
 
-      real (kind=8), allocatable        :: s(:),sAO(:,:),aux(:,:)
+      real (kind=8), allocatable        :: mltpInts(:),sAO(:,:),aux(:,:)
+      real (kind=8), allocatable        :: sMO(:)
       real (kind=8), allocatable        :: DM(:,:,:),QM(:,:,:)
       real (kind=8), allocatable        :: vec(:,:)
       real (kind=8), allocatable        :: kinInt(:)
@@ -95,29 +96,31 @@
       end if
       call Get_iArray('nBas',nBas,nSym)
       lTriangle = nBas * (nBas + 1) / 2
-      allocate ( s(lTriangle) )
+      allocate ( mltpInts(lTriangle+4) )
       allocate ( sAO(nBas,nBas) )
       allocate ( DM(nBas,nBas,3) )
       allocate ( QM(nBas,nBas,6) )
-      s   = 0.0
-      sAO = 0.0
-      DM = 0.0
-      QM =0.0
+! open the ONEINT file
       LuOne = 77
       iRc=-1
       iOpt=0
       call OpnOne(iRC,iOpt,'ONEINT',LuOne)
       if (iRC.ne.0) write(6,*) 'Something went wrong opening ONEINT'
-      iRC =  0
+! read the overlap integrals in the AO basis
+      sAO = 0.0d0
+      iRC = -1
       iOpt = 2
       iComponent = 1
+      mltpInts = 0.0d0
       iSymLbl = 1
-      call RdOne(iRC,iOpt,'Mltpl  0',iComponent,s,iSymLbl)
+      call RdOne(iRC,iOpt,'Mltpl  0',iComponent,mltpInts,iSymLbl)
+      if (iRC.ne.0) write(6,*) 'Something went wrong reading the ',
+     &                              'overlap integrals from ONEINT'
       iCounter = 1
       do j = 1, nBas
         do k = 1, j
-          sAO(j,k) = s(iCounter)
-          sAO(k,j) = s(iCounter)
+          sAO(j,k) = mltpInts(iCounter)
+          sAO(k,j) = mltpInts(iCounter)
           iCounter = iCounter + 1
         end do
       end do
@@ -127,16 +130,22 @@
           write(*,'(20F10.4)')(sAO(j,k),k = 1, j)
         end do
       end if
-      s = 0.0
-! reset s; s will be re-used for reading the dipole moment integrals
+! read the dipole integrals in the AO basis
+      DM = 0.0d0
       do iComponent = 1,3
-        call RdOne(iRC,iOpt,'Mltpl  1',iComponent,s,iSymLbl)
+        mltpInts = 0.0d0
+        iRC = -1
+        iOpt = 2
+        iSymLbl = 1
+        call RdOne(iRC,iOpt,'Mltpl  1',iComponent,mltpInts,iSymLbl)
+        if (iRC.ne.0) write(6,*) 'Something went wrong reading the ',
+     &                              'dipole integrals from ONEINT'
         iCounter = 0
         do j = 1, nBas
           do k = 1, j
             iCounter = iCounter + 1
-            DM(j,k,iComponent) = s(iCounter)
-            DM(k,j,iComponent) = s(iCounter)
+            DM(j,k,iComponent) = mltpInts(iCounter)
+            DM(k,j,iComponent) = mltpInts(iCounter)
           enddo
         enddo
       enddo
@@ -154,16 +163,22 @@
           write(*,'(20F10.4)')(DM(j,k,3),k = 1, j)
         end do
       end if
-      s = 0.0
-! reset s; s will be re-used for reading the quadrupole moment integrals
+! read the quadrupole integrals in the AO basis
+      QM = 0.0d0
       do iComponent = 1,6
-        call RdOne(iRC,iOpt,'Mltpl  2',iComponent,s,iSymLbl)
+        mltpInts = 0.0d0
+        iRC = -1
+        iOpt = 2
+        iSymLbl = 1
+        call RdOne(iRC,iOpt,'Mltpl  2',iComponent,mltpInts,iSymLbl)
+        if (iRC.ne.0) write(6,*) 'Something went wrong reading the ',
+     &                              'quadrupole integrals from ONEINT'
         iCounter = 0
         do j = 1, nBas
           do k = 1, j
             iCounter = iCounter + 1
-            QM(j,k,iComponent) = s(iCounter)
-            QM(k,j,iComponent) = s(iCounter)
+            QM(j,k,iComponent) = mltpInts(iCounter)
+            QM(k,j,iComponent) = mltpInts(iCounter)
           enddo
         enddo
       enddo
@@ -193,14 +208,14 @@
           write(*,'(20F10.4)')(QM(j,k,6),k = 1, j)
         end do
       end if
- 
+! close the OneInt file 
+      iRC = -1
       iOpt = 0
       call ClsOne(iRc,iOpt)
+      if (iRC.ne.0) write(6,*) 'Something went wrong closing ONEINT'
+      deallocate( mltpInts )
 
-      s = 0.0
-      iCounter = 0                                        ! reset s and iCounter; s will be re-used for the MO overlap
-
-* open the file with the one-electron integrals (TRAONE)
+* open the file with the transformed one-electron integrals (TRAONE)
       luOne = 30
       call DANAME(luOne,'TRAONE')
 
@@ -244,6 +259,9 @@
         read(11,'(5E22.14)') (vec(j,k),k=1,nBas)
       end do
       allocate( aux(nOrb,nBas))
+      allocate( sMO(nOrbtt))
+      aux = 0.0d0
+      sMO = 0.0d0
       do k = 1, nOrb
         do l = 1, nBas
           do m = 1, nBas
@@ -251,14 +269,15 @@
           end do
         end do
       end do
+      iCounter = 0
       do j = 1, nOrb
         do k = 1, j
           iCounter = iCounter + 1
           do l = 1, nBas
-            s(iCounter) = s(iCounter) + vec(j,l) * aux(k,l)
+            sMO(iCounter) = sMO(iCounter) + vec(j,l) * aux(k,l)
           end do
           if ( print_level .ge. 10 ) write(*,'(i6,F22.14)') iCounter,
-     &                                             s(iCounter)
+     &                                         sMO(iCounter)
         end do
       end do 
       deallocate(dummy)
@@ -277,16 +296,16 @@
       if (print_level .ge. 10 ) then
         write(*,*) 'S, V and T'
         do i = 1, nOrbtt
-          write(*,'(i5,3F14.8)') i, s(i),fock(i),kinInt(i)
+          write(*,'(i5,3F14.8)') i, sMO(i),fock(i),kinInt(i)
         end do
       endif
 
 ! Transform the dipole moment integrals to the common basis
       allocate (dipole(nOrbtt,3))
-      dipole = 0.0
+      dipole = 0.0d0
       do iComponent = 1, 3
         iCounter = 0
-        aux = 0.0
+        aux = 0.0d0
         do k = 1, nOrb
           do l = 1, nBas
             do m = 1, nBas
@@ -313,10 +332,10 @@
       end if
 ! Transform the quadrupole moment integrals to the common basis
       allocate (quadrupole(nOrbtt,6))
-      quadrupole = 0.0
+      quadrupole = 0.0d0
       do iComponent = 1, 6
         iCounter = 0
-        aux = 0.0
+        aux = 0.0d0
         do k = 1, nOrb
           do l = 1, nBas
             do m = 1, nBas
@@ -362,7 +381,7 @@
       else
         write(luOne_GronOR) title1,title2,nOrbtt,potNuc,nOrb,nTraBuf,1
       end if
-      write(luOne_GronOR) (s(i),i=1,nOrbtt)
+      write(luOne_GronOR) (sMO(i),i=1,nOrbtt)
       write(luOne_GronOR) (zero(i),i=1,nOrbtt)
       write(luOne_GronOR) (fock(i),i=1,nOrbtt)
       write(luOne_GronOR) (dipole(i,1),i=1,nOrbtt)
@@ -555,7 +574,6 @@
 * deallocate
       deallocate (sAO)
       deallocate (vec)
-      deallocate (s)
       deallocate (fock)
       deallocate (kinInt)
       deallocate (zero)

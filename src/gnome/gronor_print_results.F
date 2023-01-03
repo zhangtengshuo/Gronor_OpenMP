@@ -24,7 +24,8 @@
       use gnome_parameters, only : itest,ncols
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
-     &                             nwt,mebfLabel,mebfLabels,header,key
+     &                             nwt,mebfLabel,mebfLabels,header,key,         &
+     &                             nociwf
 
       implicit none
 
@@ -34,8 +35,8 @@
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
-      real(kind=8)                  :: hsave(nbase,nbase)
-      real(kind=8)                  :: ssave(nbase,nbase)
+!      real(kind=8)                  :: hsave(nbase,nbase)
+      real(kind=8)                  :: nociovlp(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
       character(len=5)              :: token
@@ -66,7 +67,11 @@
       call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
 
-      if(nbase.gt.1) then
+      allocate( nociwf(nbase,nbase) )
+      if (nbase .eq. 1) then
+        hev(1)=hbase(1,1)/sbase(1,1)
+        nociwf(1,1) = 1.0d0
+      else
         do i=1,nbase
           do j=1,nbase
             tc(i,j)=0.0d0
@@ -89,28 +94,24 @@
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
 
-        if(nbase.gt.1) then
-          info=0
-          lwork = 4*nbase
-          do j=1,nbase
-            do i=1,nbase
-              hsave(i,j)=hbase(i,j)
-              ssave(i,j)=sbase(i,j)
-            enddo
+        info=0
+        lwork = 4*nbase
+        do j=1,nbase
+          do i=1,nbase
+            nociwf(i,j)=hbase(i,j)
+            nociovlp(i,j)=sbase(i,j)
           enddo
-          allocate(work(lwork))
-          call dsygv(1,'V','L',nbase,hsave,nbase,                               &
-     &         ssave,nbase,hev,work,lwork,info)
-          deallocate(work)
-          if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
-        else
-          hev(1)=hbase(1,1)/sbase(1,1)
-        endif
+        enddo
+        allocate(work(lwork))
+        call dsygv(1,'V','L',nbase,nociwf,nbase,                               &
+     &         nociovlp,nbase,hev,work,lwork,info)
+        deallocate(work)
+        if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
 
 ! Coen 2020/07/18
 ! Check if the eigenvectors come in rows or columns!
-! a transpose(hsave) might be needed
-! printing takes care of it now: hsave(j,i) instead of hsave(i,j)
+! a transpose(nociwf) might be needed
+! printing takes care of it now: nociwf(j,i) instead of nociwf(i,j)
 
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions')
@@ -138,27 +139,27 @@
           do j=1,nbase
              if(j.eq.1) then
                 if (.not.mebfLabels) then
-                   write(lfnout,683)token,j,(hsave(j,i),i=ii,il)
+                   write(lfnout,683)token,j,(nociwf(j,i),i=ii,il)
                 else
                    write(lfnout,685)token,mebfLabel(j),                         &
-     &                  (hsave(j,i),i=ii,il)
+     &                  (nociwf(j,i),i=ii,il)
                 endif
              else
                 if (.not.mebfLabels) then
-                   write(lfnout,684)token,j,(hsave(j,i),i=ii,il)
+                   write(lfnout,684)token,j,(nociwf(j,i),i=ii,il)
                 else
                    write(lfnout,686)token,mebfLabel(j),                         &
-     &                  (hsave(j,i),i=ii,il)
+     &                  (nociwf(j,i),i=ii,il)
                 endif
              endif
-            write(lfnarx,655) (hsave(j,i),i=ii,il)
+            write(lfnarx,655) (nociwf(j,i),i=ii,il)
  655        format(12f20.10)
  683        format(/,4x,a5,i5,t18,12f20.10)
  684        format(4x,a5,i5,t18,12f20.10)
  685        format(/,4x,a5,1x,a4,t18,12f20.10)
  686        format(4x,a5,1x,a4,t18,12f20.10)
             if(itest.eq.2) then
-              write(lfntst,687) token,j,(hsave(j,i),i=ii,il)
+              write(lfntst,687) token,j,(nociwf(j,i),i=ii,il)
  687          format(6x,a4,i5,t18,12f20.6)
             endif
             token="    "
@@ -244,8 +245,8 @@
           info_cml = 'dictRef="gr:mebfCoeff" '//trim(id)
           call open_tag(lfncml,label,info_cml,7)
           fmt_1 = 'f20.10'
-          call writetag_array_real(lfncml,info_cml,8,sep,hsave(i,:),            &
-     &              size(hsave,2),fmt_1)
+          call writetag_array_real(lfncml,info_cml,8,sep,nociwf(i,:),            &
+     &              size(nociwf,2),fmt_1)
           call close_tag(lfncml,label,7)
           label = 'propertyList'
           call close_tag(lfncml,label,6)

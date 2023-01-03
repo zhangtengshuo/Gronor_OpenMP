@@ -1273,9 +1273,9 @@
         write(lfnout,610) (i,i=1,nbase)
         do j=1,nbase
           if(nbase.le.7) then
-            write(lfnout,610) j,(sbase(i,j),i=1,nbase)
+            write(lfnout,612) j,(sbase(i,j),i=1,nbase)
           else
-            write(lfnout,611) j,(sbase(i,j),i=1,nbase)
+            write(lfnout,613) j,(sbase(i,j),i=1,nbase)
           endif
         enddo
       endif

@@ -109,9 +109,11 @@
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
       real (kind=8), allocatable :: dqbase(:,:,:)
       real (kind=8), allocatable :: hev(:)
+      real (kind=8), allocatable :: nociwf(:,:)
       logical, allocatable :: bpdone(:,:)
       integer, allocatable :: nsing(:,:,:)
       integer :: iocch(32)
+      character(len=255), allocatable :: occm_string(:,:)
 
       logical :: vecdet,lcpr
 

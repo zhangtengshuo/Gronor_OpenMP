@@ -47,19 +47,23 @@
       
       real(kind=8)                  :: debye,angstrom,trace
       real(kind=8)                  :: two3rds
+      integer                       :: lfnt
 
       debye    = 2.54174644986
       angstrom = 0.529177249
       two3rds  = 2.0d0/3.0d0
 
+      lfnt=0
+      if(itest.gt.0) lfnt=lfntst
+
       key='Hamil'
       header='Hamiltonian Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
      &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7)
 
       key='Overl'
       header='Overlap Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
 
       if(nbase.gt.1) then
@@ -79,7 +83,7 @@
 
         key='Coupl'
         header='Electronic Couplings (meV)'
-        call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
+        call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
      &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions

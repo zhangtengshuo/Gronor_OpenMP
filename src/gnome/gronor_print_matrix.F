@@ -36,8 +36,8 @@
           write(lfn1,603) ' -----------|',                                &
      &         ('--------------------',i=ii,il)
         endif
-        if(lfn2.gt.0) write(lfn2,603) (i,i=ii,il)
-        if(lfn3.gt.0) write(lfn3,603) (i,i=ii,il)
+        if(lfn2.gt.0) write(lfn2,'(17x,10(i4,16x))') (i,i=ii,il)
+        if(lfn3.gt.0) write(lfn3,'(17x,10(i4,16x))') (i,i=ii,il)
         do j=1,nrdim
           ik=il
           if(olower) ik=min(j-1,il)
@@ -52,13 +52,13 @@
           endif
           if(lfn2.gt.0) write(lfn2,607) j,(scale*rmat(i,j),i=ii,ik)
  607      format(i5,1x,10e20.13)
-        enddo
-        do i=ii,il
-          rt(i)=scale*rmat(i,j)
-          if(dabs(rt(i)).lt.1.0d-08) rt(i)=0.0d0
-        enddo
+          do i=ii,il
+            rt(i)=scale*rmat(i,j)
+            if(dabs(rt(i)).lt.1.0d-08) rt(i)=0.0d0
+          enddo
           if(lfn3.gt.0) write(lfn3,608) j,(rt(i),i=ii,il)
  608      format(i5,1x,10f20.6)
+        enddo
       enddo
       flush(lfn1)
       if(lfn2.gt.0) flush(lfn2)

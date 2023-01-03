@@ -24,7 +24,8 @@
       use gnome_parameters, only : itest,ncols
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
-     &                             nwt,mebfLabel,mebfLabels,header,key
+     &                             nwt,mebfLabel,mebfLabels,header,key,         & 
+     &                             nociwf
 
       implicit none
 
@@ -32,8 +33,8 @@
       integer                       :: i,j,k,ii,ik,il,l,m
       integer                       :: nk,info,lwork
       real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
-      real(kind=8)                  :: hsave(nbase,nbase)
-      real(kind=8)                  :: ssave(nbase,nbase)
+!      real(kind=8)                  :: hsave(nbase,nbase)
+!      real(kind=8)                  :: ssave(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
       character(len=5)              :: token
@@ -45,7 +46,7 @@
       
       real(kind=8),intent(in)       :: mnuc(9)
       real(kind=8),intent(inout)    :: dqbase(nbase,nbase,9)
-      real(kind=8),allocatable      :: noci(:,:)
+!      real(kind=8),allocatable      :: noci(:,:)
       real(kind=8),allocatable      :: dqnoci(:,:,:)
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
@@ -57,7 +58,7 @@
       angstrom = 0.529177249
       two3rds  = 2.0d0/3.0d0
 
-      allocate(noci(nbase,nbase))
+!      allocate(noci(nbase,nbase))
       allocate(dqnoci(nbase,nbase,9))
       allocate(obase(nbase,nbase))
       allocate(onoci(nbase,nbase))
@@ -65,7 +66,7 @@
       
       do i=1,nbase
         do j=1,nbase
-          noci(i,j)=0.0d0
+!          noci(i,j)=0.0d0
           obase(i,j)=0.0d0
           onoci(i,j)=0.0d0
           do k=1,9
@@ -76,16 +77,16 @@
           enddo
         enddo
       enddo
-      
-      if(nbase.eq.1) then
-        noci(1,1)=1.0d0
-      else
-        do i=1,nbase
-          do j=1,nbase
-            noci(j,i)=hsave(j,i)            
-          enddo
-        enddo
-      endif
+
+!      if(nbase.eq.1) then
+!        noci(1,1)=1.0d0
+!      else
+!        do i=1,nbase
+!          do j=1,nbase
+!            noci(j,i)=hsave(j,i)            
+!          enddo
+!        enddo
+!      endif
       
       do i=1,9
         do j=1,nbase
@@ -93,7 +94,7 @@
             do l=1,nbase
               do m=1,nbase
                 dqnoci(k,j,i)=dqnoci(k,j,i)+                              &
-     &               noci(l,j)*noci(m,k)*dqbase(m,l,i)                
+     &               nociwf(l,j)*nociwf(m,k)*dqbase(m,l,i)                
               enddo              
             enddo
           enddo
@@ -261,7 +262,7 @@
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
      &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7)
 
-      deallocate(noci)
+      deallocate(nociwf)
       deallocate(dqnoci)
       deallocate(obase)
       deallocate(onoci)

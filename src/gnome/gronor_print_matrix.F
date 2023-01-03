@@ -36,8 +36,8 @@
           write(lfn1,603) ' -----------|',                                &
      &         ('--------------------',i=ii,il)
         endif
-        if(lfn2.gt.0) write(lfn2,'(20x,10i4)') (i,i=ii,il)
-        if(lfn3.gt.0) write(lfn3,'(20x,10i4)') (i,i=ii,il)
+        if(lfn2.gt.0) write(lfn2,'(17x,10(i4,16x))') (i,i=ii,il)
+        if(lfn3.gt.0) write(lfn3,'(17x,10(i4,16x))') (i,i=ii,il)
         do j=1,nrdim
           ik=il
           if(olower) ik=min(j-1,il)

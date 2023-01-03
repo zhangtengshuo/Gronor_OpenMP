@@ -22,9 +22,9 @@
 !> @author  Coen de Graaf, URV
 !> @date    October 2020
 !> @param   idet_raw number of determinants for each monomer function
-!> @param   civ_raw  CI coefficients of the raw list of determinants
 !> @param   maxci_raw maximum number of raw determinants
-!> @param   occ_string ocupation string as read from the root_nnn.det
+!> @param   civ_raw  CI coefficients of the raw list of determinants
+!> @param   occ_raw ocupation string as read from the root_nnn.det
 !>          file
 
       subroutine gronor_read_vectors_and_determinants()
@@ -42,8 +42,8 @@
       real      (kind=8)               :: sdum,sume,sump,sumc
       real      (kind=8), allocatable  :: civ_raw(:,:)
       character (len=80)               :: dumstr
-      character (len=255), allocatable :: occ_string(:,:)
-      logical :: ostate
+      character (len=255), allocatable :: occ_raw(:,:)
+      logical                          :: ostate
 
       maxci=0
       maxci_raw=0
@@ -136,29 +136,58 @@
          write(lfnarx,617) mebflabel(j),nume,sume
       enddo
 
+! Read the CI vectors from the det files. The first loop over mstates 
+! counts the number of unique determinants, and the second loop
+! constructs the list by summing the coefficients of the duplicates.
+! This could be done in one shot at the cost of allocating civm and
+! ioccm with maxci_raw instead of maxci.
+! 
       allocate(civ_raw(maxci_raw,mstates))
-      allocate(occ_string(maxci_raw,mstates))          ! a string is printed in the vecdet
+      allocate(occ_raw(maxci_raw,mstates))          ! a string is printed in the vecdet
+      civ_raw = 0.0d0
+      occ_raw = ''
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
         open(unit=lfndet,file=trim(fildet),form='formatted',                    &
      &         status='old',err=999)
         read(lfndet,*)
         do j=1,idet_raw(i)
-          read(lfndet,*) civ_raw(j,i),occ_string(j,i)
-          occ_string(j,i)=adjustl(occ_string(j,i))
+          read(lfndet,*) civ_raw(j,i),occ_raw(j,i)
+          occ_raw(j,i)=adjustl(occ_raw(j,i))
         enddo
-        call remove_duplicates_fildet                                           &
-     &       (idet_raw(i),idetm(i),civ_raw(:,i),                                &
-     &       occ_string(:,i),tau_CI)
         close(unit=lfndet)
+        if (idet_raw(i) .gt. 1 ) then
+          call quicksort_string(civ_raw(:,i),occ_raw(:,i),idet_raw(i))
+        end if
+        idetm(i) = 1
+        do j = 2, idet_raw(i)
+          if ( occ_raw(j,i) .ne. occ_raw(j-1,i) ) then
+            idetm(i) = idetm(i) + 1
+          endif
+        end do
         maxci=max(maxci,idetm(i))
       enddo
-      allocate( civm(maxci,mstates) )               ! Now that the number of unique dets is known
-      allocate( ioccm(maxnact,maxci,mstates) )      ! civm and ioccm can be allocated
+! Now that the number of unique dets is known, civm and occm_string can
+! be allocated and the unique list of determinants constructed.
+! For the moment we keep ioccm, but this array is temporary
+      allocate( civm(maxci,mstates) )
+      allocate( occm_string(maxci,mstates) )
+      allocate( ioccm(maxnact,maxci,mstates) )
       do i=1,mstates
-        do j=1,idetm(i)
-          civm(j,i)=civ_raw(j,i)
-          dumstr=trim(adjustl(occ_string(j,i)))
+        k = 1
+        civm(1,i) = civ_raw(1,i)
+        occm_string(1,i) = occ_raw(1,i)
+        do j=2,idet_raw(i)
+          if ( occ_raw(j,i) .ne. occ_raw(j-1,i) ) then
+            k = k + 1
+            civm(k,i) = civ_raw(j,i)
+            occm_string(k,i) = occ_raw(j,i)
+          else
+            civm(k,i) = civm(k,i) + civ_raw(j,i)
+          end if
+        end do
+        do j = 1, idetm(i)
+          dumstr=trim(adjustl(occm_string(j,i)))
           do k=1,nactm(i)
             if(dumstr(k:k).eq.'2') then
               ioccm(k,j,i)=2
@@ -166,21 +195,15 @@
               ioccm(k,j,i)=1
             elseif(dumstr(k:k).eq.'b') then
               ioccm(k,j,i)=-1
-            elseif(dumstr(k:k).eq.'0') then
+            else 
               ioccm(k,j,i)=0
-            else
-              write(lfnout,601) dumstr
- 601          format(' Weird occupation in ',a)
-              write(lfnout,602) j,i
- 602          format(' Determinant ',i4,' of state ',i4)
-              call gronor_abort(260,"Inconsistent occupation")
             endif
           enddo
         enddo
       enddo
       deallocate(civ_raw)
       deallocate(idet_raw)
-      deallocate(occ_string)
+      deallocate(occ_raw)
 
 !     Next, reading the vectors
 
@@ -279,15 +302,14 @@
         do i=1,mstates
           do j=1,idetm(i)
             if(j.eq.1) then
-              write(lfnout,610) i,j,civm(j,i),                                  &
-     &             (ioccm(k,j,i),k=1,nactm(i))
- 610          format(/,2i8,f25.14,6x,32(i2,1x))
+              write(lfnout,610) i,j,civm(j,i),occm_string(j,i)
+ 610          format(/,2i8,f25.14,6x,a32)
             else
-              write(lfnout,611) j,civm(j,i),                                    &
-     &             (ioccm(k,j,i),k=1,nactm(i))
- 611          format(8x,i8,f25.14,6x,32(i2,1x))
+              write(lfnout,611) j,civm(j,i),occm_string(j,i)
+ 611          format(8x,i8,f25.14,6x,a32)
             endif
           enddo
+! format statements 610 and 611 assume a maximum of 32 active orbitals
           if(ipr.ge.40) then
             write(filvec,201) trim(fragfile(i))
             write(lfnout,612) trim(filvec),nbasm(i)

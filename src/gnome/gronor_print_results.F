@@ -63,7 +63,11 @@
       call gronor_print_matrix(lfnout,lfnarx,lfntst,header,key,           &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
 
-      if(nbase.gt.1) then
+      allocate( nociwf(nbase,nbase) )
+      if (nbase .eq. 1) then
+        hev(1)=hbase(1,1)/sbase(1,1)
+        nociwf(1,1) = 1.0d0
+      else
         do i=1,nbase
           do j=1,nbase
             tc(i,j)=0.0d0
@@ -86,24 +90,19 @@
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
 
-        allocate( nociwf(nbase,nbase) )
-        if(nbase.gt.1) then
-          info=0
-          lwork = 4*nbase
-          do j=1,nbase
-            do i=1,nbase
-              nociwf(i,j)=hbase(i,j)
-              nociovlp(i,j)=sbase(i,j)
-            enddo
+        info=0
+        lwork = 4*nbase
+        do j=1,nbase
+          do i=1,nbase
+            nociwf(i,j)=hbase(i,j)
+            nociovlp(i,j)=sbase(i,j)
           enddo
-          allocate(work(lwork))
-          call dsygv(1,'V','L',nbase,nociwf,nbase,                               &
+        enddo
+        allocate(work(lwork))
+        call dsygv(1,'V','L',nbase,nociwf,nbase,                               &
      &         nociovlp,nbase,hev,work,lwork,info)
-          deallocate(work)
-          if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
-        else
-          hev(1)=hbase(1,1)/sbase(1,1)
-        endif
+        deallocate(work)
+        if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
 
 ! Coen 2020/07/18
 ! Check if the eigenvectors come in rows or columns!

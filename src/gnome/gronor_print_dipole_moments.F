@@ -262,7 +262,7 @@
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
      &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7)
 
-      deallocate(nociwf)
+!      deallocate(nociwf)
       deallocate(dqnoci)
       deallocate(obase)
       deallocate(onoci)

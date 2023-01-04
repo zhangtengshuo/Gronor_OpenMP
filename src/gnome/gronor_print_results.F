@@ -67,7 +67,7 @@
       call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
 
-      allocate( nociwf(nbase,nbase) )
+!      allocate( nociwf(nbase,nbase) )
       if (nbase .eq. 1) then
         hev(1)=hbase(1,1)/sbase(1,1)
         nociwf(1,1) = 1.0d0
@@ -286,6 +286,8 @@
       end if
 
       flush(lfnarx)
+
+!      deallocate(nociwf)
 
       return
 

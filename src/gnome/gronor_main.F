@@ -2265,6 +2265,7 @@
       endif
 
       if(me.eq.master) then
+        allocate(nociwf(nbase,nbase))
         do i=1,nbase
           do j=1,i-1
             hbase(i,j)=(1.0d0/(dsqrt(sbase(i,i))*                               &
@@ -2352,6 +2353,7 @@
  804    format(' ')
         close(unit=lfnlog,status='keep')
         call timer_start(99)
+        deallocate(nociwf)
       endif
 
       deallocate(t,v,dqm,ndxtv)

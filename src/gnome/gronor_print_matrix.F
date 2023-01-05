@@ -1,10 +1,10 @@
       subroutine gronor_print_matrix                                      &
      &     (lfn1,lfn2,lfn3,header,key,olabel,labels,olower,scale,         &
-     &     rmat,nrdim,ncols)
+     &     rmat,nrdim,ncols,nds)
 
       implicit none
       
-      integer, intent(in) :: lfn1,lfn2,lfn3,nrdim,ncols
+      integer, intent(in) :: lfn1,lfn2,lfn3,nrdim,ncols,nds
       logical, intent(in) :: olabel,olower
       real(kind=8), intent(in) :: scale,rmat(nrdim,nrdim)
       character(len=128) :: header,key,labels(nrdim)
@@ -56,8 +56,15 @@
             rt(i)=scale*rmat(i,j)
             if(dabs(rt(i)).lt.1.0d-08) rt(i)=0.0d0
           enddo
-          if(lfn3.gt.0) write(lfn3,608) j,(rt(i),i=ii,il)
- 608      format(i5,1x,10f20.6)
+          if(lfn3.gt.0) then
+            if(nds.eq.3) then
+              write(lfn3,608) j,(rt(i),i=ii,il)
+            else
+              write(lfn3,609) j,(rt(i),i=ii,il)
+            endif
+          endif
+ 608      format(i5,1x,10f20.3)
+ 609      format(i5,1x,10f20.6)
         enddo
       enddo
       flush(lfn1)

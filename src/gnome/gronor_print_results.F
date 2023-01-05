@@ -25,7 +25,7 @@
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         &
-     &                             nociwf
+     &                             nociwf,lfnrep
 
       implicit none
 
@@ -60,12 +60,12 @@
       key='Hamil'
       header='Hamiltonian Matrix'
       call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
 
       key='Overl'
       header='Overlap Matrix'
       call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
 
 !      allocate( nociwf(nbase,nbase) )
       if (nbase .eq. 1) then
@@ -89,7 +89,7 @@
         key='Coupl'
         header='Electronic Couplings (meV)'
         call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7)
+     &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
@@ -116,6 +116,7 @@
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions')
         write(lfnarx,667) nbase,ncols
+        write(lfnrep,667) nbase,ncols
  667    format('NOCI ',2i10)
 
         nk=nbase/ncols
@@ -127,14 +128,17 @@
           write(lfnout,680) (i,i=ii,il)
  680      format(/,'          State:',t18,12(i15,5x))
           write(lfnarx,668) (i,i=ii,il)
+          write(lfnrep,668) (i,i=ii,il)
  668      format(7(6x,i8,6x))
           write(lfnout,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
           write(lfnarx,669) (hev(i),i=ii,il)
+          write(lfnrep,669) (hev(i),i=ii,il)
  669      format(10e20.13)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
           write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+          write(lfnrep,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
           token="MEBF:"
           do j=1,nbase
              if(j.eq.1) then
@@ -153,6 +157,7 @@
                 endif
              endif
             write(lfnarx,655) (nociwf(j,i),i=ii,il)
+            write(lfnrep,655) (nociwf(j,i),i=ii,il)
  655        format(12f20.10)
  683        format(/,4x,a5,i5,t18,12f20.10)
  684        format(4x,a5,i5,t18,12f20.10)
@@ -286,6 +291,7 @@
       end if
 
       flush(lfnarx)
+      flush(lfnrep)
 
 !      deallocate(nociwf)
 

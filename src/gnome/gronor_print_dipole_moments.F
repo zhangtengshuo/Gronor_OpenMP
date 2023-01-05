@@ -25,7 +25,7 @@
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         & 
-     &                             nociwf
+     &                             nociwf,lfnrep
 
       implicit none
 
@@ -234,16 +234,16 @@
       key='     '
       header='Component X'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7,6)
       header='Component Y'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7,6)
       header='Component Z'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7,6)
       header='Oscillator strength'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7)
+     &     mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7,6)
       
       
       write(lfnout,705)
@@ -251,16 +251,16 @@
       key='     '
       header='Component X'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7)
+     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7,6)
       header='Component Y'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7)
+     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7,6)
       header='Component Z'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7)
+     &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7,6)
       header='Oscillator strength'
       call gronor_print_matrix(lfnout,0,0,header,key,                   &
-     &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7)
+     &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7,6)
 
 !      deallocate(nociwf)
       deallocate(dqnoci)

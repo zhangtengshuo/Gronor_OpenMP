@@ -54,8 +54,10 @@
       if(ipr.gt.0) write(lfnout,602) lAO
 
       write(lfnarx,603) nNucl
+      write(lfnrep,603) nNucl
  603  format('Atoms',i10)
       write(lfnarx,602) lAO
+      write(lfnrep,602) lAO
  602  format(/,6x,'Atom',10x,'x',13x,'y',13x,'z',10x,                           &
      &     'Znuc',5x,a,/)
 
@@ -67,6 +69,8 @@
      &       write(lfnout,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),         &
      &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         write(lfnarx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),              &
+     &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
+        write(lfnrep,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom),              &
      &       zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
         zNucTot=zNucTot+zNuc(iAtom)
       enddo

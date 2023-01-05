@@ -217,6 +217,7 @@
      &     '        Cost        Time',/)
 
       write(lfnarx,521) nbase
+      write(lfnrep,521) nbase
  521  format('Data ',i10)
 
 !     Loop over all base state combinations
@@ -487,7 +488,15 @@
      &               ltemp,nbdet(ibin,jbin),                                    &
      &               (nsing(ibin,jbin,k),k=1,4),                                &
      &               hbase(ibin,jbin),sbase(ibin,jbin)
+                write(lfnrep,1522) ibin,jbin,                                   &
+     &               trim(mebfLabel(ibin)),                                     &
+     &               trim(mebfLabel(jbin)),                                     &
+     &               idetb(ibin),idetb(jbin),                                   &
+     &               ltemp,nbdet(ibin,jbin),                                    &
+     &               (nsing(ibin,jbin,k),k=1,4),                                &
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
                 write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
+                write(lfnrep,1523) (dqbase(ibin,jbin,k),k=1,9)
 
                 call timer_stop(98)
                 call timer_stop(99)
@@ -908,7 +917,14 @@
      &           idetb(ibin),idetb(jbin),                                       &
      &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
      &           hbase(ibin,jbin),sbase(ibin,jbin)
+            write(lfnrep,1522) ibin,jbin,                                       &
+     &           trim(mebfLabel(ibin)),                                         &
+     &           trim(mebfLabel(jbin)),                                         &
+     &           idetb(ibin),idetb(jbin),                                       &
+     &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
+     &           hbase(ibin,jbin),sbase(ibin,jbin)
             write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
+            write(lfnrep,1523) (dqbase(ibin,jbin,k),k=1,9)
                 if(ipr.ge.1) then
                   if(ipr.lt.40) then
                     if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                    &
@@ -1150,8 +1166,10 @@
 
       if(ncorr.gt.0) then
         write(lfnarx,523)
+        write(lfnrep,523)
  523    format('Ecorr')
         write(lfnarx,524) (ecorr(i),i=1,nbase)
+        write(lfnrep,524) (ecorr(i),i=1,nbase)
  524    format(10e20.12)
       endif
 

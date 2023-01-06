@@ -59,12 +59,12 @@
 
       key='Hamil'
       header='Hamiltonian Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,    &
      &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
 
       key='Overl'
       header='Overlap Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,    &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
 
 !      allocate( nociwf(nbase,nbase) )
@@ -79,8 +79,8 @@
         enddo
         do i=2,nbase
           do j=1,i-1
-            tc(i,j)=(hbase(i,j)                                                 &
-     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/                    &
+            tc(i,j)=(hbase(i,j)                                            &
+     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/               &
      &           (1.0d0-sbase(i,j)*sbase(i,j))
             tc(j,i)=tc(i,j)
           enddo
@@ -88,7 +88,7 @@
 
         key='Coupl'
         header='Electronic Couplings (meV)'
-        call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
+        call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,     &
      &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
@@ -103,7 +103,7 @@
           enddo
         enddo
         allocate(work(lwork))
-        call dsygv(1,'V','L',nbase,nociwf,nbase,                               &
+        call dsygv(1,'V','L',nbase,nociwf,nbase,                           &
      &         nociovlp,nbase,hev,work,lwork,info)
         deallocate(work)
         if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'

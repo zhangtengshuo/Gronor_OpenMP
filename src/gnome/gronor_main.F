@@ -2259,10 +2259,10 @@
       if(me.eq.master.and.ipr.ge.30) then
         key='     '
         header='Hamiltonian Matrix (unnormalized)'
-      call gronor_print_matrix(lfnout,0,0,header,key,                           &
+      call gronor_print_matrix(lfnout,0,0,0,header,key,                         &
      &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
         header='Overlap Matrix (unnormalized)'
-      call gronor_print_matrix(lfnout,0,0,header,key,                           &
+      call gronor_print_matrix(lfnout,0,0,0,header,key,                         &
      &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
 
 

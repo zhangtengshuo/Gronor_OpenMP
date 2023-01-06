@@ -42,7 +42,7 @@
       character(len=132)            :: info_cml,info_cml2,fmt_1,id
       character(len=20)             :: label
       character(len=1)              :: sep
-      integer                       :: indent
+      integer                       :: indent,lfnt
       
       real(kind=8),intent(in)       :: mnuc(9)
       real(kind=8),intent(inout)    :: dqbase(nbase,nbase,9)
@@ -58,6 +58,9 @@
       angstrom = 0.529177249
       two3rds  = 2.0d0/3.0d0
 
+      lfnt=0
+      if(itest.gt.0) lfnt=lfntst
+      
 !      allocate(noci(nbase,nbase))
       allocate(dqnoci(nbase,nbase,9))
       allocate(obase(nbase,nbase))
@@ -231,35 +234,41 @@
 
       write(lfnout,704)
  704  format(/,' Transition dipole moments of MEBFs (Debye)')
-      key='     '
+      key='dipMx'
       header='Component X'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7,6)
+      key='dipMy'
       header='Component Y'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7,6)
+      key='dipMz'
       header='Component Z'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7,6)
+      key='oscM '
       header='Oscillator strength'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7,6)
       
       
       write(lfnout,705)
  705  format(/,' Transition dipole moments of NOCI states (Debye)',/)
-      key='     '
+      key='dipNx'
       header='Component X'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7,6)
+      key='dipNy'
       header='Component Y'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7,6)
+      key='dipNz'
       header='Component Z'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7,6)
+      key='oscN '
       header='Oscillator strength'
-      call gronor_print_matrix(lfnout,0,0,header,key,                   &
+      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7,6)
 
 !      deallocate(nociwf)

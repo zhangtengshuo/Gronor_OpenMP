@@ -25,7 +25,7 @@
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         & 
-     &                             nociwf,lfnrep
+     &                             nociwf,lfnxrx
 
       implicit none
 
@@ -144,9 +144,9 @@
  689  format(/,' Origin of the dipole operator (x,y,z)',t50,3f10.4,/            &
      &     ,' Origin of the quadrupole operator (x,y,z)',t50,3f10.4)          
  690  format(/,' Dipole moment of MEBFs (Debye)',/)
- 691  format(7x,i5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
+ 691  format(1x,i15,t18,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
      &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
- 692  format(7x,a5,2x,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
+ 692  format(1x,a,t18,' X:',2x,f10.4,4x,' Y:',2x,f10.4,4x,                      &
      &     ' Z:',2x,f10.4,4x,' Total:',2x,f10.4)
       write(lfnout,688)
       write(lfnout,689) 0.0d0,0.0d0,0.0d0,(com(j),j=1,3)
@@ -156,7 +156,7 @@
           write(lfnout,691) j,(debye*dqbase(j,j,k),k=1,3),debye*                &
      &         sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
         else
-          write(lfnout,692) mebfLabel(j),                                       &
+          write(lfnout,692) trim(mebfLabel(j)),                                       &
      &         (debye*dqbase(j,j,k),k=1,3),debye*                               &
      &         sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
         endif        
@@ -172,20 +172,19 @@
  695  format(/,' Quadrupole moment of MEBFs (Debye*Angstrom)',/)
  696  format(/,' In traceless form',/)
       write(lfnout,695)
- 697  format(7x,i5,2x,                                                  &
-     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)      
- 698  format(7x,a5,2x,                                                  &
-     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4)       
- 699  format(14x,                                                       &
-     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4)       
+ 697  format(1x,i15,t18,                                                  &
+     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4,4x,      &
+     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4)
+ 698  format(1x,a,t18,                                                    &
+     &     ' XX:',2x,f10.4,4x,' XY:',2x,f10.4,4x,' XZ:',2x,f10.4,4x,      &
+     &     ' YY:',2x,f10.4,4x,' YZ:',2x,f10.4,4x,' ZZ:',2x,f10.4)      
       do j=1,nbase        
         if(.not.mebfLabels) then
-          write(lfnout,697) j,(debye*angstrom*dqbase(j,j,k),k=4,6)
+          write(lfnout,697) j,(debye*angstrom*dqbase(j,j,k),k=4,9)
         else
-          write(lfnout,698) mebfLabel(j),(debye*angstrom*dqbase(j,j,k),  &
-     &         k=4,6)
+          write(lfnout,698) trim(mebfLabel(j)),                         &
+     &                        (debye*angstrom*dqbase(j,j,k),k=4,9)
         endif        
-        write(lfnout,699) (debye*angstrom*dqbase(j,j,k),k=7,9)
       enddo      
       write(lfnout,696)
       do j=1,nbase        
@@ -200,20 +199,17 @@
         
         if(.not.mebfLabels) then
           write(lfnout,697) j,(debye*angstrom*(qtraceless(j,j,k)),      &
-     &         k=1,3)
+     &         k=1,6)
         else
-          write(lfnout,698) mebfLabel(j),(debye*angstrom*               &
-     &         (qtraceless(j,j,k)),k=1,3)
+          write(lfnout,698) trim(mebfLabel(j)),(debye*angstrom*         &
+     &         (qtraceless(j,j,k)),k=1,6)
         endif
-        write(lfnout,699) (debye*angstrom*(qtraceless(j,j,k)),          &
-     &       k=4,6)
       enddo
      
  700  format(/,' Quadrupole moment of NOCI states (Debye*Angstrom)',/)
       write(lfnout,700)
       do j=1,nbase
-        write(lfnout,697) j,(debye*angstrom*dqnoci(j,j,k),k=4,6)
-        write(lfnout,699) (debye*angstrom*dqnoci(j,j,k),k=7,9)
+        write(lfnout,697) j,(debye*angstrom*dqnoci(j,j,k),k=4,9)
       enddo
       write(lfnout,696)      
       do j=1,nbase
@@ -226,9 +222,7 @@
           endif
         enddo
         write(lfnout,697) j,(debye*angstrom*(qtraceless(j,j,k)),        &
-     &       k=1,3)
-        write(lfnout,699) (debye*angstrom*(qtraceless(j,j,k)),          &
-     &       k=4,6)
+     &       k=1,6)
       enddo     
  703  format(' Component',a2,/)
 
@@ -236,19 +230,19 @@
  704  format(/,' Transition dipole moments of MEBFs (Debye)')
       key='dipMx'
       header='Component X'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7,6)
       key='dipMy'
       header='Component Y'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7,6)
       key='dipMz'
       header='Component Z'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7,6)
       key='oscM '
       header='Oscillator strength'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7,6)
       
       
@@ -256,19 +250,19 @@
  705  format(/,' Transition dipole moments of NOCI states (Debye)',/)
       key='dipNx'
       header='Component X'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7,6)
       key='dipNy'
       header='Component Y'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7,6)
       key='dipNz'
       header='Component Z'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7,6)
       key='oscN '
       header='Oscillator strength'
-      call gronor_print_matrix(lfnout,lfnarx,lfnrep,lfnt,header,key,                 &
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
      &     .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7,6)
 
 !      deallocate(nociwf)

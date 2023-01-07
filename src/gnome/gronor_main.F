@@ -205,8 +205,8 @@
         lfntim=25
         lfnabt=26
         lfnwrn=27
-        filrep=trim(string)//'.rep'
-        lfnrep=28
+        filxrx=trim(string)//'.rep'
+        lfnxrx=28
 
         open(unit=lfnout,file=trim(filout),                                     &
      &       form='formatted',status='unknown',err=996)
@@ -226,7 +226,7 @@
         open(unit=lfnarx,file=trim(filarx),                                     &
      &       form='formatted',status='unknown',err=996)
 
-        open(unit=lfnrep,file=trim(filrep),                                     &
+        open(unit=lfnxrx,file=trim(filxrx),                                     &
      &       form='formatted',status='unknown',                                 &
      &       position='append',err=996)
 
@@ -531,22 +531,22 @@
 
         call swatch(date,time)
         write(lfnarx,401) trim(user)
-        write(lfnrep,401) trim(user)
+        write(lfnxrx,401) trim(user)
  401    format('User ',a)
         write(lfnarx,402) trim(date)
-        write(lfnrep,402) trim(date)
+        write(lfnxrx,402) trim(date)
  402    format('Date ',a)
         write(lfnarx,403) trim(time)
-        write(lfnrep,403) trim(time)
+        write(lfnxrx,403) trim(time)
  403    format('Time ',a)
         write(lfnarx,404) trim(host),onlabel,trim(machine)
-        write(lfnrep,404) trim(host),onlabel,trim(machine)
+        write(lfnxrx,404) trim(host),onlabel,trim(machine)
  404    format('Host ',a,a,a)
         write(lfnarx,405) trim(root)
-        write(lfnrep,405) trim(root)
+        write(lfnxrx,405) trim(root)
  405    format('Root ',a)
         write(lfnarx,406) nnodes,np
-        write(lfnrep,406) nnodes,np
+        write(lfnxrx,406) nnodes,np
  406    format('Nodes',i10,i10)
 
         call gronor_number_integrals(numone,numtwo)
@@ -2447,7 +2447,7 @@
           close(unit=lfncpr,status='delete')
         endif
         close(unit=lfnarx,status='keep')
-        close(unit=lfnrep,status='keep')
+        close(unit=lfnxrx,status='keep')
         close(unit=lfncml,status='keep')
         if(itim.eq.0) then
           close(unit=lfntim,status='delete')

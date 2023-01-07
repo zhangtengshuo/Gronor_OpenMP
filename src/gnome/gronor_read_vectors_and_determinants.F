@@ -125,7 +125,7 @@
          enddo
       endif
       write(lfnarx,701) nbase,nmol
-      write(lfnrep,701) nbase,nmol
+      write(lfnxrx,701) nbase,nmol
  701  format('State',2i10)
       do j=1,nbase
             nume=0
@@ -135,7 +135,7 @@
                sume=sume+ecasscf(ncombv(k,j))
             enddo
          write(lfnarx,617) mebflabel(j),nume,sume
-         write(lfnrep,617) mebflabel(j),nume,sume
+         write(lfnxrx,617) mebflabel(j),nume,sume
       enddo
 
 ! Read the CI vectors from the det files. The first loop over mstates 

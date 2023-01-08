@@ -25,7 +25,7 @@
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         &
-     &                             nociwf
+     &                             nociwf,lfnxrx
 
       implicit none
 
@@ -39,7 +39,6 @@
       real(kind=8)                  :: nociovlp(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
-      character(len=5)              :: token
 
       character(len=132)            :: info_cml,info_cml2,fmt_1,id
       character(len=20)             :: label
@@ -59,13 +58,13 @@
 
       key='Hamil'
       header='Hamiltonian Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7)
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,    &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
 
       key='Overl'
       header='Overlap Matrix'
-      call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7)
+      call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,    &
+     &     mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
 
 !      allocate( nociwf(nbase,nbase) )
       if (nbase .eq. 1) then
@@ -79,8 +78,8 @@
         enddo
         do i=2,nbase
           do j=1,i-1
-            tc(i,j)=(hbase(i,j)                                                 &
-     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/                    &
+            tc(i,j)=(hbase(i,j)                                            &
+     &           -0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/               &
      &           (1.0d0-sbase(i,j)*sbase(i,j))
             tc(j,i)=tc(i,j)
           enddo
@@ -88,8 +87,8 @@
 
         key='Coupl'
         header='Electronic Couplings (meV)'
-        call gronor_print_matrix(lfnout,lfnarx,lfnt,header,key,           &
-     &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7)
+        call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,     &
+     &       mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3)
 
 !     Diagonalize the NOCI matrix and print the energies and wave functions
 !     Don't touch hbase and sbase, needed again when shifting
@@ -103,7 +102,7 @@
           enddo
         enddo
         allocate(work(lwork))
-        call dsygv(1,'V','L',nbase,nociwf,nbase,                               &
+        call dsygv(1,'V','L',nbase,nociwf,nbase,                           &
      &         nociovlp,nbase,hev,work,lwork,info)
         deallocate(work)
         if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
@@ -116,6 +115,7 @@
         write(lfnout,677)
  677    format(//,' NOCI energies and wave functions')
         write(lfnarx,667) nbase,ncols
+        write(lfnxrx,667) nbase,ncols
  667    format('NOCI ',2i10)
 
         nk=nbase/ncols
@@ -127,42 +127,35 @@
           write(lfnout,680) (i,i=ii,il)
  680      format(/,'          State:',t18,12(i15,5x))
           write(lfnarx,668) (i,i=ii,il)
+          write(lfnxrx,668) (i,i=ii,il)
  668      format(7(6x,i8,6x))
           write(lfnout,681) (hev(i),i=ii,il)
  681      format('    Energy (Eh):',t18,12f20.10)
           write(lfnarx,669) (hev(i),i=ii,il)
+          write(lfnxrx,669) (hev(i),i=ii,il)
  669      format(10e20.13)
           write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
  682      format('  Relative (eV):',t18,12f20.10)
           write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
-          token="MEBF:"
+          write(lfnxrx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+          write(lfnout,683)
+ 683      format(1x)
           do j=1,nbase
-             if(j.eq.1) then
-                if (.not.mebfLabels) then
-                   write(lfnout,683)token,j,(nociwf(j,i),i=ii,il)
-                else
-                   write(lfnout,685)token,mebfLabel(j),                         &
-     &                  (nociwf(j,i),i=ii,il)
-                endif
-             else
-                if (.not.mebfLabels) then
-                   write(lfnout,684)token,j,(nociwf(j,i),i=ii,il)
-                else
-                   write(lfnout,686)token,mebfLabel(j),                         &
-     &                  (nociwf(j,i),i=ii,il)
-                endif
-             endif
+            if (.not.mebfLabels) then
+              write(lfnout,684) j,(nociwf(j,i),i=ii,il)
+ 684          format(i14,t18,12f20.10)
+            else
+              write(lfnout,685) trim(mebfLabel(j)),                        &
+     &             (nociwf(j,i),i=ii,il)
+ 685          format(1x,a,t18,12f20.10)
+            endif            
             write(lfnarx,655) (nociwf(j,i),i=ii,il)
+            write(lfnxrx,655) (nociwf(j,i),i=ii,il)
  655        format(12f20.10)
- 683        format(/,4x,a5,i5,t18,12f20.10)
- 684        format(4x,a5,i5,t18,12f20.10)
- 685        format(/,4x,a5,1x,a4,t18,12f20.10)
- 686        format(4x,a5,1x,a4,t18,12f20.10)
             if(itest.eq.2) then
-              write(lfntst,687) token,j,(nociwf(j,i),i=ii,il)
- 687          format(6x,a4,i5,t18,12f20.6)
+              write(lfntst,687) j,(nociwf(j,i),i=ii,il)
+ 687          format(i14,t18,12f20.6)
             endif
-            token="    "
           enddo
         enddo
       endif
@@ -286,6 +279,7 @@
       end if
 
       flush(lfnarx)
+      flush(lfnxrx)
 
 !      deallocate(nociwf)
 

@@ -82,7 +82,7 @@
       enddo
  1600 format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       allocate(mebfLabel(nbase))
-      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.3)) then
+      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.5)) then
          mebfLabels = .false.
          do j = 1, nbase
             write(mebfLabel(j),618) j
@@ -125,6 +125,7 @@
          enddo
       endif
       write(lfnarx,701) nbase,nmol
+      write(lfnxrx,701) nbase,nmol
  701  format('State',2i10)
       do j=1,nbase
             nume=0
@@ -134,6 +135,7 @@
                sume=sume+ecasscf(ncombv(k,j))
             enddo
          write(lfnarx,617) mebflabel(j),nume,sume
+         write(lfnxrx,617) mebflabel(j),nume,sume
       enddo
 
 ! Read the CI vectors from the det files. The first loop over mstates 

@@ -192,24 +192,24 @@
         endif
       endif
  602  format(//,' Calculation of Hamiltonian matrix elements',//,               &
-     &     '  ------- Element ------- ',t35,                                    &
+     &     '  ------- Element ------- ',t45,                                    &
      &     '      -------------- Determinants --------------',                  &
      &     '  ------------- Unnormalized -------------  ',                      &
      &     '         Normalized ',                                              &
      &     '  Wall Clock  Wall Clock',/                                         &
-     &     '                          ',t35,                                    &
+     &     '                          ',t45,                                    &
      &     '      left     right         pairs     threshold',                  &
      &     '      Hamiltonian              Overlap     ',                       &
      &     '         Hamiltonian ',                                             &
      &     '        Cost        Time',/)
  1602 format(//,' Calculation of Hamiltonian matrix elements',//,               &
-     &     '  ------- Element ------- ',t35,                                    &
+     &     '  ------- Element ------- ',t45,                                    &
      &     '      -------------- Determinants --------------',                  &
      &     '          -------------- Singularities -------------',              &
      &     '  ------------- Unnormalized -------------  ',                      &
      &     '         Normalized ',                                              &
      &     '  Wall Clock  Wall Clock',/                                         &
-     &     '                          ',t35,                                    &
+     &     '                          ',t45,                                    &
      &     '      left     right         pairs     threshold',                  &
      &     '          none           1           2            3+',              &
      &     '      Hamiltonian              Overlap     ',                       &
@@ -217,6 +217,7 @@
      &     '        Cost        Time',/)
 
       write(lfnarx,521) nbase
+      write(lfnxrx,521) nbase
  521  format('Data ',i10)
 
 !     Loop over all base state combinations
@@ -487,7 +488,15 @@
      &               ltemp,nbdet(ibin,jbin),                                    &
      &               (nsing(ibin,jbin,k),k=1,4),                                &
      &               hbase(ibin,jbin),sbase(ibin,jbin)
+                write(lfnxrx,1522) ibin,jbin,                                   &
+     &               trim(mebfLabel(ibin)),                                     &
+     &               trim(mebfLabel(jbin)),                                     &
+     &               idetb(ibin),idetb(jbin),                                   &
+     &               ltemp,nbdet(ibin,jbin),                                    &
+     &               (nsing(ibin,jbin,k),k=1,4),                                &
+     &               hbase(ibin,jbin),sbase(ibin,jbin)
                 write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
+                write(lfnxrx,1523) (dqbase(ibin,jbin,k),k=1,9)
 
                 call timer_stop(98)
                 call timer_stop(99)
@@ -581,34 +590,34 @@
                     endif
                   endif
                   flush(lfnout)
- 522              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,2i14,2e20.13)
- 608              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,2i14,                                           &
+ 522              format(1x,2i5,'   <',a,'.',a,'> ',                            &
+     &                 t45,2i10,2i14,2e20.13)
+ 608              format(1x,2i5,'   <',a,'.',a,'> ',                            &
+     &                 t45,2i10,2i14,                                           &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
- 607              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,2i14,                                           &
+ 607              format(1x,2i5,'   <',a,'.',a,'> ',                            &
+     &                 t45,2i10,2i14,                                           &
      &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
- 618              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,2i14,                                           &
+ 618              format(1x,2i5,'   <',a,'.',a,'> ',                            &
+     &                 t45,2i10,2i14,                                           &
      &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
- 617              format(1x,2i5,'   <',a,'~',a,'> ',                            &
-     &                 t35,2i10,2i14,                                           &
+ 617              format(1x,2i5,'   <',a,'.',a,'> ',                            &
+     &                 t45,2i10,2i14,                                           &
      &                 f18.10,4x,f18.10,4x,20x,2f12.1)
- 1522              format(1x,2i5,'   <',a,'~',a,'> ',                           &
-     &                 t35,2i10,3i14,2i12,i14,2e20.13)
- 1523              format(5e20.13)
- 1608              format(1x,2i5,'   <',a,'~',a,'> ',                           &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+ 1522              format(1x,2i5,'   <',a,'.',a,'> ',                           &
+     &                 t45,2i10,3i14,2i12,i14,/,t45,2e20.13)
+ 1523              format(t45,5e20.13)
+ 1608              format(1x,2i5,'   <',a,'.',a,'> ',                           &
+     &                 t45,2i10,3i14,2i12,i14,                                  &
      &                 4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
- 1607              format(1x,2i5,'   <',a,'~',a,'> ',                           &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+ 1607              format(1x,2i5,'   <',a,'.',a,'> ',                           &
+     &                 t45,2i10,3i14,2i12,i14,                                  &
      &                 4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
- 1618              format(1x,2i5,'   <',a,'~',a,'> ',                           &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+ 1618              format(1x,2i5,'   <',a,'.',a,'> ',                           &
+     &                 t45,2i10,3i14,2i12,i14,                                  &
      &                 f18.10,4x,f18.10,4x,f20.10,2f12.1)
- 1617              format(1x,2i5,'   <',a,'~',a,'> ',                           &
-     &                 t35,2i10,3i14,2i12,i14,                                  &
+ 1617              format(1x,2i5,'   <',a,'.',a,'> ',                           &
+     &                 t45,2i10,3i14,2i12,i14,                                  &
      &                 f18.10,4x,f18.10,4x,20x,2f12.1)
                 endif
 
@@ -908,7 +917,14 @@
      &           idetb(ibin),idetb(jbin),                                       &
      &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
      &           hbase(ibin,jbin),sbase(ibin,jbin)
+            write(lfnxrx,1522) ibin,jbin,                                       &
+     &           trim(mebfLabel(ibin)),                                         &
+     &           trim(mebfLabel(jbin)),                                         &
+     &           idetb(ibin),idetb(jbin),                                       &
+     &           ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4),             &
+     &           hbase(ibin,jbin),sbase(ibin,jbin)
             write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
+            write(lfnxrx,1523) (dqbase(ibin,jbin,k),k=1,9)
                 if(ipr.ge.1) then
                   if(ipr.lt.40) then
                     if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.                    &
@@ -1150,8 +1166,10 @@
 
       if(ncorr.gt.0) then
         write(lfnarx,523)
+        write(lfnxrx,523)
  523    format('Ecorr')
         write(lfnarx,524) (ecorr(i),i=1,nbase)
+        write(lfnxrx,524) (ecorr(i),i=1,nbase)
  524    format(10e20.12)
       endif
 

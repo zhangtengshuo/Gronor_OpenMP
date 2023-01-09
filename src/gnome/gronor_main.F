@@ -205,7 +205,7 @@
         lfntim=25
         lfnabt=26
         lfnwrn=27
-        filxrx=trim(string)//'.rep'
+        filxrx=trim(string)//'.xrx'
         lfnxrx=28
 
         open(unit=lfnout,file=trim(filout),                                     &

@@ -260,7 +260,7 @@
      &        "gronor_gnome: incompatibler nvecb"
       case(310)
          write(lfnabt,'(a)')                                                    &
-     &        "gronor_cofac1: no everlap between MOs"
+     &        "gronor_cofac1: no overlap between MOs"
       case(320)
          write(lfnabt,'(a)')                                                    &
      &        "gronor_moover: inconsistent number of electron spins"

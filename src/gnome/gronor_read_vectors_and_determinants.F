@@ -65,6 +65,7 @@
       allocate(nElectrons(mstates))
       allocate(spinm(mstates))
       ncorr=1
+      write(*,*)'spinm allocated?',allocated(spinm),size(spinm)
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
  2203   format(a,'.det')
@@ -89,6 +90,7 @@
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo
+      write(*,'(6i4)')spinm
  1600 format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       allocate(mebfLabel(nbase))
       if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.5)) then

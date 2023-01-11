@@ -47,6 +47,7 @@ use gnome_parameters, only : tau_CI
 use gnome_data      , only : nbasis
 use makebasedata
 use cidef
+use cidist          , only :  me,master
 
 implicit none
 
@@ -74,45 +75,58 @@ logical                         :: debug
 
 
 debug = .true.
-!  ==== Combining the vec files of the fragments
+!  ==== Combining the vec files of the fragments (only on the first pass)
 
-inactb(iMEBF)=0
-nactb(iMEBF)=0
-do i=1,nmol
-  inactb(iMEBF)=inactb(iMEBF)+inactm(ncombv(i,iMEBF))
-  nactb(iMEBF)=nactb(iMEBF)+nactm(ncombv(i,iMEBF))
-enddo
-
-do i=1,nbasis
-  do j=1,nbasis
-    vecsb(i,j,iMEBF)=0.0d0
+if (first_pass) then
+  write(*,*) 'allocated inactb  ?',allocated(inactb),size(inactb)
+  write(*,*) 'allocated inactm  ?',allocated(inactm),size(inactm)
+  write(*,*) 'allocated nactb   ?',allocated(nactb),size(nactb)
+  write(*,*) 'allocated nactm   ?',allocated(nactm),size(nactm)
+  write(*,'(a,20i10)') 'inactm: ',inactm
+  write(*,'(a,20i10)') 'nactm : ',nactm
+  inactb(iMEBF)=0
+  nactb(iMEBF)=0
+  do i=1,nmol
+    inactb(iMEBF)=inactb(iMEBF)+inactm(ncombv(i,iMEBF))
+    nactb(iMEBF)=nactb(iMEBF)+nactm(ncombv(i,iMEBF))
   enddo
-enddo
-jstart=1
-kstart=1
-do i=1,nmol
-  do j=1,inactm(ncombv(i,iMEBF))
-    do k=1,nbasm(ncombv(i,iMEBF))
-      vecsb(kstart+k-1,jstart+j-1,iMEBF)= vecsm(k,j,ncombv(i,iMEBF))
+  write(*,*) 'me master : ',me,master
+  write(*,*) 'first_pass: ',first_pass
+  write(*,'(a,i10)') 'iMEBF: ',iMEBF
+  write(*,'(a,20i10)') 'inactb: ',inactb
+  write(*,'(a,20i10)') 'nactb : ',nactb
+
+
+  do i=1,nbasis
+    do j=1,nbasis
+      vecsb(i,j,iMEBF)=0.0d0
     enddo
   enddo
-  kstart=kstart+nbasm(ncombv(i,iMEBF))
-  jstart=jstart+inactm(ncombv(i,iMEBF))
-enddo
-
-jstart=inactb(iMEBF)+1
-kstart=1
-
-do i=1,nmol
-  do j=1,nactm(ncombv(i,iMEBF))
-    do k=1,nbasm(ncombv(i,iMEBF))
-      vecsb(kstart+k-1,jstart+j-1,iMEBF)=vecsm(k,j+inactm(ncombv(i,iMEBF)),ncombv(i,iMEBF))
+  jstart=1
+  kstart=1
+  do i=1,nmol
+    do j=1,inactm(ncombv(i,iMEBF))
+      do k=1,nbasm(ncombv(i,iMEBF))
+        vecsb(kstart+k-1,jstart+j-1,iMEBF)= vecsm(k,j,ncombv(i,iMEBF))
+      enddo
     enddo
+    kstart=kstart+nbasm(ncombv(i,iMEBF))
+    jstart=jstart+inactm(ncombv(i,iMEBF))
   enddo
-  kstart=kstart+nbasm(ncombv(i,iMEBF))
-  jstart=jstart+nactm(ncombv(i,iMEBF))
-enddo
-
+  
+  jstart=inactb(iMEBF)+1
+  kstart=1
+  
+  do i=1,nmol
+    do j=1,nactm(ncombv(i,iMEBF))
+      do k=1,nbasm(ncombv(i,iMEBF))
+        vecsb(kstart+k-1,jstart+j-1,iMEBF)=vecsm(k,j+inactm(ncombv(i,iMEBF)),ncombv(i,iMEBF))
+      enddo
+    enddo
+    kstart=kstart+nbasm(ncombv(i,iMEBF))
+    jstart=jstart+nactm(ncombv(i,iMEBF))
+  enddo
+endif
 
 !  ==== Spin function ======
 ! First fragment, set the stage

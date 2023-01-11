@@ -70,7 +70,6 @@
 
       integer (kind=4) :: ierror,ierr,ncount
       integer (kind=8) :: iarg,i,j,jp,idum(55),k,l
-!      integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
       character (len=255) :: string,target,compiler
@@ -890,14 +889,6 @@
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
-!      allocate(jspinmol(mstates))
-!      do i=1,mstates
-!        jspinmol(i)=0
-!        do j=1,nactm(i)
-!          if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+                 &
-!     &         ioccm(j,1,i)
-!        enddo
-!      enddo
 
       call timer_stop(2)
       call timer_start(3)
@@ -906,6 +897,8 @@
       allocate(inactb(nbase))
       allocate(nactb(nbase))
       allocate(idetb(nbase))
+      inactb = 0
+      nactb = 0
 
 !      call gronor_determine_nci                                                 &
 !     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
@@ -2389,7 +2382,6 @@
 
       deallocate(t,v,dqm,ndxtv)
       deallocate(lab,ndx,ig,g)
-!      deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
       deallocate(ioccm,vecsm,civm)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)

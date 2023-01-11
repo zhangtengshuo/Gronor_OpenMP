@@ -75,6 +75,16 @@
 
       end module cidist
 
+      module makebasedata
+      implicit none
+      integer                        :: spinFrag
+      integer,allocatable            :: micro_ndets(:)
+      real(kind=8),allocatable       :: coef(:),micro_coef(:)
+      real(kind=8),allocatable       :: coef_new(:)
+      character(len=255),allocatable :: occ(:),micro_occ(:)
+      character(len=255),allocatable :: occ_new(:)
+      end module makebasedata
+
       module cidef
 
       implicit none
@@ -120,7 +130,7 @@
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
-      real(kind=8)              :: mnuc(9)
+      real(kind=8)              :: mnuc(9),maxcoef
       character(len=16),allocatable  :: fragLabel(:)
       character(len=128),allocatable :: mebfLabel(:)
       character(len=128)             :: header,key

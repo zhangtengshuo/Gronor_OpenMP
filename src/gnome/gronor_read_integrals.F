@@ -109,6 +109,7 @@
 
 !     Create communicators for each first, second, etc rank from each group
 
+
       if(idist.eq.0) then
         do i=1,mgr
           do j=1,numgrp
@@ -116,10 +117,14 @@
           enddo
           call MPI_Group_Incl(group_world,int(numgrp,kind=4),                   &
      &         ranks_list,new_group,ierr)
+          write(*,*) 'ok1'
           call MPI_Comm_Create(MPI_COMM_WORLD,new_group,                        &
      &         new_comm(i),ierr)
+          write(*,*) 'ok2'
         enddo
       endif
+
+      write(*,*) 'ok3'
 
 !     Create communicators for each first, second, etc rank from each first group per node
 

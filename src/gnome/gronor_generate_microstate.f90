@@ -24,7 +24,6 @@
 subroutine generate_microstates(ndets,microdets)
 use makebasedata
 use gnome_parameters, only : idbg
-use cidef           , only : lfndbg
 
 implicit none
 integer, intent(in)            :: ndets
@@ -36,16 +35,7 @@ real(kind=8),allocatable       :: coef_tmp(:)
 character(len=255)             :: occ_seed
 character(len=255),allocatable :: occ_tmp(:)
 
-if ( idbg .ge. 50 ) then
-  write(lfndbg,*) '--- GENERATE MICRO STATES ---'
-  flush(lfndbg)
-end if
-
 call determine_nci(ndets,nci)
-if ( idbg .ge. 50 ) then
-  write(lfndbg,'(a,2i4)')'ndets --> nci ',ndets,nci
-  flush(lfndbg)
-endif
 allocate(micro_coef(nci))
 allocate(micro_occ(nci))
 allocate(micro_ndets(spinFrag))
@@ -106,19 +96,6 @@ do ms = 2, spinFrag
 end do
 
 deallocate(coef_tmp,occ_tmp)
-
-if (idbg .ge. 50 ) then
-  write(lfndbg,'(a,l3,i5)') 'allocated micro_coef ?',allocated(micro_coef),size(micro_coef)
-  write(lfndbg,'(a,l3,i5)') 'allocated micro_occ  ?',allocated(micro_occ),size(micro_occ)
-  write(lfndbg,'(a,l3,i5)') 'allocated micro_ndets?',allocated(micro_ndets),size(micro_ndets)
-  write(lfndbg,'(a,l3,i5)') 'allocated coef_tmp   ?',allocated(coef_tmp),size(coef_tmp)
-  write(lfndbg,'(a,l3,i5)') 'allocated occ_tmp    ?',allocated(occ_tmp),size(occ_tmp)
-  write(lfndbg,'(a,20i6)') 'micro_ndets:',micro_ndets
-  write(lfndbg,'(a,20i6)') 'microdets :',microdets
-  
-  write(lfndbg,*) '--- END GENERATE MICRO STATES ---'
-  flush(lfndbg)
-endif
 
 return
 end subroutine generate_microstates

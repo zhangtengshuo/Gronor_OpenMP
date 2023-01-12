@@ -148,12 +148,23 @@ if ( idbg .ge. 50 ) then
   write(lfndbg,'(a,20i10)') 'spinm : ',spinm
   write(lfndbg,'(a,l3,2i5)') 'allocated civm ?',allocated(civm),size(civm,1),size(civm,2)
   write(lfndbg,'(a,l3,2i5)') 'allocated occm_string ?',allocated(occm_string),size(occm_string,1),size(occm_string,2)
+  write(lfndbg,'(a,l3,3i5)') 'allocated ioccm ?',allocated(ioccm),size(ioccm,1),size(ioccm,2),size(ioccm,3)
   flush(lfndbg)
 endif
 iFragWF = ncombv(1,iMEBF)
 ndets1   = idetm(iFragWF)
 spin1    = spinm(iFragWF)
 spinFrag = spin1
+do idet = 1, ndets1
+  dumstr = ''
+  do iAct = 1, nactm(iFragWF)
+    if ( ioccm(iAct,idet,iFragWF) .eq. 2 ) dumstr(iAct:iAct) = '2'
+    if ( ioccm(iAct,idet,iFragWF) .eq. 0 ) dumstr(iAct:iAct) = '0'
+    if ( ioccm(iAct,idet,iFragWF) .eq. 1 ) dumstr(iAct:iAct) = 'a'
+    if ( ioccm(iAct,idet,iFragWF) .eq.-1 ) dumstr(iAct:iAct) = 'b'
+  enddo
+  occm_string(idet,iFragWF) = dumstr
+end do
 allocate(coef(ndets1))
 allocate(occ(ndets1))
 allocate(micro_ndets1(spin1))
@@ -167,6 +178,9 @@ endif
 do idet = 1, ndets1
   coef(idet) = civm(idet,iFragWF)
   occ(idet) = occm_string(idet,iFragWF)
+  if (idbg .ge. 50 ) then
+    write(lfndbg,'(i4,f14.8,4x,a)')idet,coef(idet),trim(occ(idet))
+  endif
 end do
 micro_ndets1 = 0
 
@@ -268,6 +282,16 @@ do iFrag = 2, nmol
   ndets2 = idetm(iFragWF)
   spin2 = spinm(iFragWF)
   spinFrag = spin2
+  do idet = 1, ndets2
+    dumstr = ''
+    do iAct = 1, nactm(iFragWF)
+      if ( ioccm(iAct,idet,iFragWF) .eq. 2 ) dumstr(iAct:iAct) = '2'
+      if ( ioccm(iAct,idet,iFragWF) .eq. 0 ) dumstr(iAct:iAct) = '0'
+      if ( ioccm(iAct,idet,iFragWF) .eq. 1 ) dumstr(iAct:iAct) = 'a'
+      if ( ioccm(iAct,idet,iFragWF) .eq.-1 ) dumstr(iAct:iAct) = 'b'
+    enddo
+    occm_string(idet,iFragWF) = dumstr
+  end do
   allocate(coef(ndets2))
   allocate(occ(ndets2))
   allocate(micro_ndets2(spin2))
@@ -278,7 +302,8 @@ do iFrag = 2, nmol
   micro_ndets2 = 0
 
   if ( idbg .ge. 50 ) then
-    write(lfndbg,'(A,I3)') 'spin for frag 2', spin1
+  write(lfndbg,'(a,4i5)') 'iFragWF,ndets1,spin2,spinFrag : ',iFragWF,ndets2,spin2,spinFrag 
+    write(lfndbg,'(A,I3)') 'spin for frag 2', spin2
     write(lfndbg,*) 'determinants for frag 2'
     do idet = 1, ndets2
       write(lfndbg,'(I6,F15.8,3x,A)') idet,coef(idet),trim(occ(idet))
@@ -417,6 +442,16 @@ do iFrag = 2, nmol
     spin1 = inter_couplings(iFrag-1,iMEBF)
     spinFrag = spin1
     ndets1 = newdets
+    do idet = 1, ndets1
+      dumstr = ''
+      do iAct = 1, nactm(iFragWF)
+        if ( ioccm(iAct,idet,iFragWF) .eq. 2 ) dumstr(iAct:iAct) = '2'
+        if ( ioccm(iAct,idet,iFragWF) .eq. 0 ) dumstr(iAct:iAct) = '0'
+        if ( ioccm(iAct,idet,iFragWF) .eq. 1 ) dumstr(iAct:iAct) = 'a'
+        if ( ioccm(iAct,idet,iFragWF) .eq.-1 ) dumstr(iAct:iAct) = 'b'
+      enddo
+      occm_string(idet,iFragWF) = dumstr
+    end do
     allocate(coef(ndets1))
     allocate(occ(ndets1))
     allocate(micro_ndets1(spin1))
@@ -468,10 +503,10 @@ end do
 if (first_pass .and. nmol .ne. 1) then
   if (iMEBF.eq.1) then
     maxcib = newdets
-    idetb(1) = micro_dets1
+    idetb(1) = newdets
   else
     maxcib = max(maxcib,newdets)
-    idetb(iMEBF) = micro_dets1
+    idetb(iMEBF) = newdets
   endif
   if ( idbg .ge. 50 ) then
     write(lfndbg,*) 'First pass: finished with MEBF ',iMEBF

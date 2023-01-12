@@ -43,7 +43,7 @@
 !>
 
 subroutine gronor_make_basestate(iMEBF,first_pass)
-use gnome_parameters, only : tau_CI
+use gnome_parameters, only : tau_CI,idbg
 use gnome_data      , only : nbasis
 use makebasedata
 use cidef
@@ -78,25 +78,35 @@ debug = .true.
 !  ==== Combining the vec files of the fragments (only on the first pass)
 
 if (first_pass) then
-  write(*,*) 'allocated inactb  ?',allocated(inactb),size(inactb)
-  write(*,*) 'allocated inactm  ?',allocated(inactm),size(inactm)
-  write(*,*) 'allocated nactb   ?',allocated(nactb),size(nactb)
-  write(*,*) 'allocated nactm   ?',allocated(nactm),size(nactm)
-  write(*,'(a,20i10)') 'inactm: ',inactm
-  write(*,'(a,20i10)') 'nactm : ',nactm
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(a,l3,i5)') 'allocated inactb  ?',allocated(inactb),size(inactb)
+    write(lfndbg,'(a,l3,i5)') 'allocated inactm  ?',allocated(inactm),size(inactm)
+    write(lfndbg,'(a,l3,i5)') 'allocated nactb   ?',allocated(nactb),size(nactb)
+    write(lfndbg,'(a,l3,i5)') 'allocated nactm   ?',allocated(nactm),size(nactm)
+    write(lfndbg,'(a,l3,2i5)') 'allocated ncombv  ?',allocated(ncombv),size(ncombv,1),size(ncombv,2)
+    write(lfndbg,'(a,20i10)') 'inactm: ',inactm
+    write(lfndbg,'(a,20i10)') 'nactm : ',nactm
+    flush(lfndbg)
+  endif
   inactb(iMEBF)=0
   nactb(iMEBF)=0
   do i=1,nmol
     inactb(iMEBF)=inactb(iMEBF)+inactm(ncombv(i,iMEBF))
     nactb(iMEBF)=nactb(iMEBF)+nactm(ncombv(i,iMEBF))
   enddo
-  write(*,*) 'me master : ',me,master
-  write(*,*) 'first_pass: ',first_pass
-  write(*,'(a,i10)') 'iMEBF: ',iMEBF
-  write(*,'(a,20i10)') 'inactb: ',inactb
-  write(*,'(a,20i10)') 'nactb : ',nactb
-
-
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,*) 'first_pass: ',first_pass
+    write(lfndbg,'(a,i10)') 'iMEBF: ',iMEBF
+    write(lfndbg,'(a,20i10)') 'inactb: ',inactb
+    write(lfndbg,'(a,20i10)') 'nactb : ',nactb
+    write(lfndbg,'(a,20i10)') 'ncombv: ',ncombv
+ 
+    write(lfndbg,'(a,l3,3i5)') 'allocated vecsb ?',allocated(vecsb),size(vecsb,1),size(vecsb,2),size(vecsb,3)
+    write(lfndbg,'(a,l3,3i5)') 'allocated vecsm ?',allocated(vecsm),size(vecsm,1),size(vecsm,2),size(vecsm,3)
+    write(lfndbg,'(a,l3,3i5)') 'allocated nbasm ?',allocated(nbasm),size(nbasm)
+    write(lfndbg,'(a,20i10)') 'nbasm : ',nbasm
+    flush(lfndbg)
+  end if
   do i=1,nbasis
     do j=1,nbasis
       vecsb(i,j,iMEBF)=0.0d0
@@ -131,6 +141,15 @@ endif
 !  ==== Spin function ======
 ! First fragment, set the stage
 
+if ( idbg .ge. 50 ) then
+  write(lfndbg,'(a,l3,i5)') 'allocated idetm ?',allocated(idetm),size(idetm)
+  write(lfndbg,'(a,l3,i5)') 'allocated spinm ?',allocated(spinm),size(spinm)
+  write(lfndbg,'(a,20i10)') 'idetm : ',idetm
+  write(lfndbg,'(a,20i10)') 'spinm : ',spinm
+  write(lfndbg,'(a,l3,2i5)') 'allocated civm ?',allocated(civm),size(civm,1),size(civm,2)
+  write(lfndbg,'(a,l3,2i5)') 'allocated occm_string ?',allocated(occm_string),size(occm_string,1),size(occm_string,2)
+  flush(lfndbg)
+endif
 iFragWF = ncombv(1,iMEBF)
 ndets1   = idetm(iFragWF)
 spin1    = spinm(iFragWF)
@@ -138,18 +157,26 @@ spinFrag = spin1
 allocate(coef(ndets1))
 allocate(occ(ndets1))
 allocate(micro_ndets1(spin1))
+if ( idbg .ge. 50 ) then
+  write(lfndbg,'(a,4i5)') 'iFragWF,ndets1,spin1,spinFrag : ',iFragWF,ndets1,spin1,spinFrag 
+  write(lfndbg,'(a,l3,i5)') 'allocated coef ?',allocated(coef),size(coef)
+  write(lfndbg,'(a,l3,i5)') 'allocated occ  ?',allocated(occ),size(occ)
+  write(lfndbg,'(a,l3,i5)') 'allocated micro_ndets1 ?',allocated(micro_ndets1),size(micro_ndets1)
+  flush(lfndbg)
+endif
 do idet = 1, ndets1
   coef(idet) = civm(idet,iFragWF)
   occ(idet) = occm_string(idet,iFragWF)
 end do
 micro_ndets1 = 0
 
-if (debug) then
-  write(*,'(A,I3)') 'spin for frag 1', spin1
-  write(*,*) 'determinants for frag 1'
+if ( idbg .ge. 50 ) then
+  write(lfndbg,'(a,i3)') 'spin for frag 1', spin1
+  write(lfndbg,*) 'determinants for frag 1'
   do idet = 1, ndets1
-    write(*,'(I6,F15.8,3x,A)') idet,coef(idet),trim(occ(idet))
+    write(lfndbg,'(i6,f15.8,3x,a)') idet,coef(idet),trim(occ(idet))
   end do
+  flush(lfndbg)
 endif
 
 if (spin1 .gt. 1) then
@@ -163,11 +190,12 @@ if (spin1 .gt. 1) then
     coef1(idet) = micro_coef(idet)
     occ1(idet)  = micro_occ(idet)
   end do
-  if (debug) then
-    write(*,*) 'micro states of frag 1'
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,*) 'micro states of frag 1'
     do idet = 1, micro_dets1
-      write(*,'(I6,F15.8,3x,A)') idet,coef1(idet),trim(occ1(idet))
+      write(lfndbg,'(I6,F15.8,3x,A)') idet,coef1(idet),trim(occ1(idet))
     end do
+    flush(lfndbg)
   endif
 ! allocated in generate_microstates
   deallocate(micro_ndets,micro_coef,micro_occ)
@@ -182,6 +210,20 @@ else
   end do
 endif
 deallocate(coef,occ)
+if (idbg .ge. 50 ) then
+  write(lfndbg,*)'First fragment is initialized'
+  write(lfndbg,'(a,l3,i5)') 'allocated coef1?',allocated(coef1),size(coef1)
+  write(lfndbg,'(a,l3,i5)') 'allocated occ1 ?',allocated(occ1),size(occ1)
+  write(lfndbg,'(a,l3,i5)') 'allocated micro_ndets1 ?',allocated(micro_ndets1),size(micro_ndets1)
+  write(lfndbg,'(a,20i5)') 'micro_ndets1 : ',micro_ndets1
+  write(lfndbg,'(a,l3,i5)') 'allocated coef ?',allocated(coef),size(coef)
+  write(lfndbg,'(a,l3,i5)') 'allocated occ  ?',allocated(occ),size(occ)
+  write(lfndbg,'(a,l3,i5)') 'allocated micro_coef ?',allocated(micro_coef),size(micro_coef)
+  write(lfndbg,'(a,l3,i5)') 'allocated micro_occ  ?',allocated(micro_occ),size(micro_occ)
+  write(lfndbg,'(a,l3,i5)') 'allocated micro_ndets?',allocated(micro_ndets),size(micro_ndets)
+  flush(lfndbg)
+endif
+
 
 ! When there is only one fragment, not much has to be done
 if (nmol .eq. 1) then
@@ -194,7 +236,10 @@ if (nmol .eq. 1) then
       idetb(iMEBF) = micro_dets1
     endif
   else
-    if (debug) write(*,'(a,i3)') 'civb and occupations for MEBF ',iMEBF
+    if ( idbg .ge. 50 ) then
+      write(lfndbg,'(a,i3)') 'civb and occupations for MEBF ',iMEBF
+      flush(lfndbg)
+    end if
     allocate(occ_num(nactb(iMEBF)))
     do idet = 1, micro_dets1
       dumstr = occ1(idet)
@@ -208,8 +253,9 @@ if (nmol .eq. 1) then
       coef1(idet) = coef1(idet) * isetsign(occ_num,nactb(iMEBF))
       civb(idet,iMEBF) = coef1(idet)
       call pack(ioccb(idet,iMEBF),occ_num,nactb(iMEBF))
-      if (debug) then
-        write(*,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iAct),iAct=1,nactb(iMEBF))
+      if ( idbg .ge. 50 ) then
+        write(lfndbg,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iAct),iAct=1,nactb(iMEBF))
+        flush(lfndbg)
       endif
       maxcoef=max(maxcoef,abs(coef1(idet)))
     end do
@@ -231,12 +277,13 @@ do iFrag = 2, nmol
   end do
   micro_ndets2 = 0
 
-  if (debug ) then
-    write(*,'(A,I3)') 'spin for frag 2', spin1
-    write(*,*) 'determinants for frag 2'
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(A,I3)') 'spin for frag 2', spin1
+    write(lfndbg,*) 'determinants for frag 2'
     do idet = 1, ndets2
-      write(*,'(I6,F15.8,3x,A)') idet,coef(idet),trim(occ(idet))
+      write(lfndbg,'(I6,F15.8,3x,A)') idet,coef(idet),trim(occ(idet))
     end do
+    flush(lfndbg)
   endif
 
   if ( spin2 .gt. 1 ) then
@@ -250,11 +297,12 @@ do iFrag = 2, nmol
       coef2(idet) = micro_coef(idet)
       occ2(idet)  = micro_occ(idet)
     end do
-    if (debug) then
-      write(*,*) 'micro states of frag 2'
+    if ( idbg .ge. 50 ) then
+      write(lfndbg,*) 'micro states of frag 2'
       do idet = 1, micro_dets2
-        write(*,'(I6,F15.8,3x,A)') idet,coef2(idet),trim(occ2(idet))
+        write(lfndbg,'(I6,F15.8,3x,A)') idet,coef2(idet),trim(occ2(idet))
       end do
+      flush(lfndbg)
     endif
 !   allocated in generate_microstates
     deallocate(micro_ndets,micro_coef,micro_occ)
@@ -274,19 +322,23 @@ do iFrag = 2, nmol
 ! First counting the number of new determinants to correctly
 ! allocate the arrays
 !
-  if ( debug ) then
-    write(*,'(A,12I5)') 'micro states 1 ',micro_ndets1
-    write(*,'(A,12I5)') 'micro states 2 ',micro_ndets2
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(A,12I5)') 'micro states 1 ',micro_ndets1
+    write(lfndbg,'(A,12I5)') 'micro states 2 ',micro_ndets2
     if (nmol .gt. 2) then
-      write(*,'(A,I4)') 'target spin    ',inter_couplings(iFrag-1,iMEBF)
+      write(lfndbg,'(A,I4)') 'target spin    ',inter_couplings(iFrag-1,iMEBF)
     end if
+    flush(lfndbg)
   endif
   if (nmol .gt. 2) then
     target_spin = inter_couplings(iFrag-1,iMEBF)-1
   else
     target_spin = nspin
   end if
-  if ( debug ) write(*,'(a,i3)') 'Target spin is ',target_spin
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(a,i3)') 'Target spin is ',target_spin
+    flush(lfndbg)
+  endif
   newdets = 0
   first1  = 1
   last1   = 0
@@ -312,9 +364,10 @@ do iFrag = 2, nmol
     end do
     first1 = first1 + micro_ndets1(i)
   end do
-  if (debug) then
-    write(*,'(2(a,i2),a,i5)') 'number of determinants combining fragment ',    &
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(2(a,i2),a,i5)') 'number of determinants combining fragment ',    &
                          iFrag-1,' and ',iFrag,' : ',newdets
+    flush(lfndbg)
   endif
 ! create the new intermediate occupations and coefficients
   allocate(occmebf(newdets))
@@ -349,11 +402,12 @@ do iFrag = 2, nmol
     end do
     first1 = first1 + micro_ndets1(i)
   end do
-  if ( debug ) then
-    write(*,'(a,10i2)') 'MEBF after considering the fragments ',(i,i=1,iFrag)
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,'(a,10i2)') 'MEBF after considering the fragments ',(i,i=1,iFrag)
     do idet = 1, newdets
-      write(*,'(I6,F15.8,3x,A)') idet,coefmebf(idet),trim(occmebf(idet))
+      write(lfndbg,'(I6,F15.8,3x,A)') idet,coefmebf(idet),trim(occmebf(idet))
     end do
+    flush(lfndbg)
   endif
   deallocate(coef1,occ1,micro_ndets1,coef2,occ2,micro_ndets2)
 ! Copy coefmebf into coef for further processing if more fragments are
@@ -385,12 +439,13 @@ do iFrag = 2, nmol
         coef1(idet) = micro_coef(idet)
         occ1(idet) = micro_occ(idet)
       end do
-      if (debug) then
-        write(*,'(a)') 'micro states for the new fragment 1'
-        write(*,'(a,i3)') 'generated by merging until ',iFrag
+      if ( idbg .ge. 50 ) then
+        write(lfndbg,'(a)') 'micro states for the new fragment 1'
+        write(lfndbg,'(a,i3)') 'generated by merging until ',iFrag
         do idet = 1, micro_dets1
-          write(*,'(I6,F15.8,3x,A)') idet,coef1(idet),trim(occ1(idet))
+          write(lfndbg,'(I6,F15.8,3x,A)') idet,coef1(idet),trim(occ1(idet))
         end do
+        flush(lfndbg)
       endif
       deallocate(micro_ndets,micro_coef,micro_occ)
 !     allocated in generate_microstates
@@ -418,9 +473,10 @@ if (first_pass .and. nmol .ne. 1) then
     maxcib = max(maxcib,newdets)
     idetb(iMEBF) = micro_dets1
   endif
-  if (debug) then
-    write(*,*) 'First pass: finished with MEBF ',iMEBF
-    write(*,*) 'Maximum number of determinants so far: ',maxcib
+  if ( idbg .ge. 50 ) then
+    write(lfndbg,*) 'First pass: finished with MEBF ',iMEBF
+    write(lfndbg,*) 'Maximum number of determinants so far: ',maxcib
+    flush(lfndbg)
   endif
 endif
 if ( .not. first_pass .and. nmol .ne. 1) then
@@ -431,8 +487,11 @@ if ( .not. first_pass .and. nmol .ne. 1) then
   else
     maxcoef = max(maxcoef,abs(coefmebf(1)))
   endif
-  if (debug) write(*,*) 'Max abs coef: ',maxcoef
-  if (debug) write(*,'(a,i3)') 'civb and occupations for MEBF ',iMEBF
+  if ( idbg .ge. 50 ) then  
+    write(lfndbg,*) 'Max abs coef: ',maxcoef
+    write(lfndbg,'(a,i3)') 'civb and occupations for MEBF ',iMEBF
+    flush(lfndbg)
+  endif
   allocate(occ_num(nactb(iMEBF)))
   do idet = 1, newdets
     dumstr = occmebf(idet)
@@ -446,32 +505,36 @@ if ( .not. first_pass .and. nmol .ne. 1) then
     coefmebf(idet) = coefmebf(idet) * isetsign(occ_num,nactb(iMEBF))
     civb(idet,iMEBF) = coefmebf(idet)
     call pack(ioccb(idet,iMEBF),occ_num,nactb(iMEBF))
-    if (debug) then
-      write(*,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iAct),iAct=1,nactb(iMEBF))
+    if ( idbg .ge. 50 ) then
+      write(lfndbg,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iAct),iAct=1,nactb(iMEBF))
+      flush(lfndbg)
     endif 
   end do
   deallocate(occ_num,coefmebf,occmebf)
 end if
 
-write(*,*) 'Allocated in makebasestate, should all be deallocated'
-write(*,*) 'allocated micro_dets1 ?',allocated(micro_ndets1)
-write(*,*) 'allocated micro_dets2 ?',allocated(micro_ndets2)
-write(*,*) 'allocated occ_num     ?',allocated(occ_num)
-write(*,*) 'allocated coef1       ?',allocated(coef1)
-write(*,*) 'allocated coef2       ?',allocated(coef2)
-write(*,*) 'allocated occ1        ?',allocated(occ1)
-write(*,*) 'allocated occ2        ?',allocated(occ2)
-write(*,*) 'allocated coefmebf    ?',allocated(coefmebf)
-write(*,*) 'allocated occmebf     ?',allocated(occmebf)
-write(*,*) 'Allocated in gronor_main, should be allocated in the second pass'
-write(*,*) 'allocated civb        ?',allocated(civb),size(civb,1),size(civb,2)
-write(*,*) 'allocated ioccb       ?',allocated(ioccb),size(ioccb,1),size(ioccb,2)
-
-
-write(*,*) 'Allocated in generate_microstates, should be deallocated'
-write(*,*) 'Allocated micro_coef  ?',allocated(micro_coef),size(micro_coef)
-write(*,*) 'Allocated micro_occ   ?',allocated(micro_occ),size(micro_occ)
-write(*,*) 'Allocated micro_ndets ?',allocated(micro_ndets),size(micro_ndets)
+if ( idbg .ge. 50 ) then
+  write(lfndbg,*) 'Allocated in makebasestate, should all be deallocated'
+  write(lfndbg,*) 'allocated micro_dets1 ?',allocated(micro_ndets1)
+  write(lfndbg,*) 'allocated micro_dets2 ?',allocated(micro_ndets2)
+  write(lfndbg,*) 'allocated occ_num     ?',allocated(occ_num)
+  write(lfndbg,*) 'allocated coef1       ?',allocated(coef1)
+  write(lfndbg,*) 'allocated coef2       ?',allocated(coef2)
+  write(lfndbg,*) 'allocated occ1        ?',allocated(occ1)
+  write(lfndbg,*) 'allocated occ2        ?',allocated(occ2)
+  write(lfndbg,*) 'allocated coefmebf    ?',allocated(coefmebf)
+  write(lfndbg,*) 'allocated occmebf     ?',allocated(occmebf)
+  write(lfndbg,*) 'Allocated in gronor_main, should be allocated in the second pass'
+  write(lfndbg,*) 'allocated civb        ?',allocated(civb),size(civb,1),size(civb,2)
+  write(lfndbg,*) 'allocated ioccb       ?',allocated(ioccb),size(ioccb,1),size(ioccb,2)
+ 
+  
+  write(lfndbg,*) 'Allocated in generate_microstates, should be deallocated'
+  write(lfndbg,*) 'Allocated micro_coef  ?',allocated(micro_coef),size(micro_coef)
+  write(lfndbg,*) 'Allocated micro_occ   ?',allocated(micro_occ),size(micro_occ)
+  write(lfndbg,*) 'Allocated micro_ndets ?',allocated(micro_ndets),size(micro_ndets)
+  flush(lfndbg)
+endif
 
 
 

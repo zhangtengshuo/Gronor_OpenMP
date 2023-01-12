@@ -824,6 +824,7 @@
         allocate(nactm(mstates))
         allocate(inactm(mstates))
         allocate(idetm(mstates))
+        allocate(spinm(mstates))
         allocate(civm(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
@@ -846,12 +847,13 @@
         corres=idum(19).eq.1
       endif
 
-      allocate(nbuf(mstates,4))
+      allocate(nbuf(mstates,5))
       do i=1,mstates
         nbuf(i,1)=nbasm(i)
         nbuf(i,2)=nactm(i)
         nbuf(i,3)=inactm(i)
         nbuf(i,4)=idetm(i)
+        nbuf(i,5)=spinm(i)
       enddo
       if(np.gt.0) then
         ncount=maxci*mstates
@@ -866,7 +868,7 @@
         ncount=nmol*nbase
         call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,                       &
      &       MPI_COMM_WORLD,ierr)
-        ncount=4*mstates
+        ncount=5*mstates
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,                         &
      &       MPI_COMM_WORLD,ierr)
         if(nmol.ge.3)then
@@ -880,6 +882,7 @@
         nactm(i)=nbuf(i,2)
         inactm(i)=nbuf(i,3)
         idetm(i)=nbuf(i,4)
+        spinm(i)=nbuf(i,5)
       enddo
       deallocate(nbuf)
 

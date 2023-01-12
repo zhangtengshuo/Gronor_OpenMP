@@ -117,14 +117,23 @@
           enddo
           call MPI_Group_Incl(group_world,int(numgrp,kind=4),                   &
      &         ranks_list,new_group,ierr)
-          write(*,*) 'ok1'
+          if ( idbg .ge. 50 ) then
+            write(lfndbg,*) 'ok1'
+            flush(lfndbg)
+          endif
           call MPI_Comm_Create(MPI_COMM_WORLD,new_group,                        &
      &         new_comm(i),ierr)
-          write(*,*) 'ok2'
+          if ( idbg .ge. 50 ) then
+            write(lfndbg,*) 'ok2'
+            flush(lfndbg)
+          endif
         enddo
       endif
 
-      write(*,*) 'ok3'
+      if ( idbg .ge. 50 ) then
+        write(lfndbg,*) 'ok3'
+        flush(lfndbg)
+      endif
 
 !     Create communicators for each first, second, etc rank from each first group per node
 

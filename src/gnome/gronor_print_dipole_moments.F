@@ -134,10 +134,12 @@
 
       do i=1,9
         do j=1,nbase
-          do k=1,nbase
-            dqbase(k,j,i)=dqbase(k,j,i)+mnuc(i)
-            dqnoci(k,j,i)=dqnoci(k,j,i)+mnuc(i)
-          enddo
+!          do k=1,nbase
+            dqbase(j,j,i)=dqbase(j,j,i)+mnuc(i)
+            dqbase(j,j,i)=dqbase(j,j,i)+mnuc(i)
+!            dqnoci(k,j,i)=dqnoci(k,j,i)+mnuc(i)
+!            dqnoci(k,j,i)=dqnoci(k,j,i)+mnuc(i)
+!          enddo
         enddo        
       enddo
  688  format(//,' Multipole moments')

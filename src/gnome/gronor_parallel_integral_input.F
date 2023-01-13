@@ -408,7 +408,11 @@
       intndx=1
       jntndx=mlab
       if(igr.gt.1) intndx=nig(igr-1)+1
-      if(igr.lt.mgr) jntndx=nig(igr)
+      if(igr.gt.0.and.igr.lt.mgr) jntndx=nig(igr)
+      if(me.eq.master) then
+        intndx=-1
+        jntndx=-1
+      endif
 
 !     Distribute integrals and labels if more than one group
 

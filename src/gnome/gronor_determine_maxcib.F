@@ -111,7 +111,7 @@
      &           iocc_tmp,                                                      &
      &           occ_mspin(1,1,offsetm+1),                                      &
      &           idetm(istate),ndet_mspin(i,:),                                 &
-     &           spin(i),nactm(istate),nci,maxnact)
+     &           spin(i),nactm(istate),nci)
              deallocate(cicoef_tmp)
              deallocate(iocc_tmp)
             mspin(offsetm+1)=spin(i)

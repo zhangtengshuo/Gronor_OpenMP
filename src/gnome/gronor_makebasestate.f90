@@ -47,6 +47,7 @@ use gnome_parameters, only : tau_CI,idbg
 use gnome_data      , only : nbasis
 use makebasedata
 use cidef
+use cidist          , only : me,master
 
 implicit none
 
@@ -72,6 +73,7 @@ character(len=255),allocatable  :: occmebf(:)
 logical,intent(in)              :: first_pass
 logical                         :: debug
 
+real(kind=8),external           :: timer_wall_total
 
 debug = .true.
 !  ==== Combining the vec files of the fragments (only on the first pass)
@@ -282,6 +284,7 @@ do iFrag = 2, nmol
   endif
 
   newdets = 0
+  alldets(iMEBF) = 0
   first1  = 1
   last1   = 0
   do i = 1, spin1
@@ -299,6 +302,7 @@ do iFrag = 2, nmol
             if (abs(prod) .ge. tau_CI) then
               newdets = newdets + 1
             endif
+            alldets(iMEBF) = alldets(iMEBF) + 1
           end do
         end do
       endif
@@ -306,6 +310,7 @@ do iFrag = 2, nmol
     end do
     first1 = first1 + micro_ndets1(i)
   end do
+
   if ( idbg .ge. 20 ) then
     write(lfndbg,'(2(a,i2),a,i5)') 'number of determinants combining fragment ',    &
                          iFrag-1,' and ',iFrag,' : ',newdets
@@ -344,6 +349,8 @@ do iFrag = 2, nmol
     end do
     first1 = first1 + micro_ndets1(i)
   end do
+  deallocate(coef1,occ1,micro_ndets1,coef2,occ2,micro_ndets2)
+  
   if ( idbg .ge. 20 ) then
     write(lfndbg,'(a,10i2)') 'MEBF after considering the fragments ',(i,i=1,iFrag)
     do idet = 1, newdets
@@ -351,7 +358,6 @@ do iFrag = 2, nmol
     end do
     flush(lfndbg)
   endif
-  deallocate(coef1,occ1,micro_ndets1,coef2,occ2,micro_ndets2)
 ! Copy coefmebf into coef for further processing if more fragments are to be added.
 ! Same for occupations and spin to mimic a new "fragment 1" 
   if (iFrag .ne. nmol ) then
@@ -405,9 +411,10 @@ do iFrag = 2, nmol
 
   end if    
 end do
-! loop over the other fragments ends here and MEBF construction
-! completes
-! coefficients and occupations must be saved in civb and occb
+! Loop over the other fragments ends here and MEBF
+! MEBF construction completes.
+! Coefficients and occupations must be saved in civb and occb
+! ordered by increasing absolute value of civb.
 if (first_pass .and. nmol .ne. 1) then
   if (iMEBF.eq.1) then
     maxcib = newdets
@@ -448,6 +455,7 @@ if ( .not. first_pass .and. nmol .ne. 1) then
     endif 
   end do
   deallocate(occ_num,coefmebf,occmebf)
+
 end if
 
 end subroutine gronor_make_basestate

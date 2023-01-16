@@ -115,7 +115,7 @@
       real (kind=8), allocatable :: ecasscf(:), ecaspt2(:)
       integer, allocatable :: ioccb(:,:)
       integer (kind=8), allocatable :: ncombv(:,:),inactb(:)
-      integer (kind=8), allocatable :: nactb(:), idetb(:)
+      integer (kind=8), allocatable :: nactb(:), idetb(:), alldets(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
       real (kind=8), allocatable :: dqbase(:,:,:)
       real (kind=8), allocatable :: hev(:)

@@ -35,6 +35,8 @@ real(kind=8),allocatable       :: coef_tmp(:)
 character(len=255)             :: occ_seed
 character(len=255),allocatable :: occ_tmp(:)
 
+real(kind=8),external           :: timer_wall_total
+
 call determine_nci(ndets,nci)
 allocate(micro_coef(nci))
 allocate(micro_occ(nci))

@@ -1555,6 +1555,7 @@
       endif
 
       maxcoef=0.0
+      allocate(alldets(nbase))
 ! First pass through make_basestate to determine maxcib
       first_pass = .true.
       do i=1,nbase
@@ -1664,7 +1665,7 @@
             write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),        &
      &           '  :  Base state ',ibase,                                      &
      &           ' coefficient list reduced from    ',                          &
-     &           ndeti,' to ',ndet_rev
+     &           alldets(ibase),' to ',ndet_rev
  1710       format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
             flush(lfnday)
             call timer_start(99)

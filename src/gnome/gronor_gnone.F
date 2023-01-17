@@ -226,6 +226,15 @@
       nn=0
       tsum=0.0d0
       vsum=0.0d0
+      dsum1=0.0d0
+      dsum2=0.0d0
+      dsum3=0.0d0
+      qsum1=0.0d0
+      qsum2=0.0d0
+      qsum3=0.0d0
+      qsum4=0.0d0
+      qsum5=0.0d0
+      qsum6=0.0d0
       dsj1=0.0d0
       dsj2=0.0d0
       dsj3=0.0d0

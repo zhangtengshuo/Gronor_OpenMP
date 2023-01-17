@@ -1888,6 +1888,16 @@
       call timer_stop(8)
       call timer_start(9)
 
+      if(me.eq.master) then
+        call timer_stop(99)
+        call swatch(date,time)
+        write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),            &
+     &       '  :  Start reading integrals'
+ 1702   format(a8,2x,a8,f12.3,a)
+        flush(lfnday)
+        call timer_start(99)
+      endif
+      
 !     Read the integrals from lfnint
 
       call gronor_read_integrals()
@@ -1896,7 +1906,7 @@
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),             &
-     &       '  :  Integrals read from file'
+     &       '  :  Reading of integrals completed'
         flush(lfnday)
         call timer_start(99)
       endif

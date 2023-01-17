@@ -187,6 +187,8 @@ if (nmol .eq. 1) then
       idetb(iMEBF) = micro_dets1
     endif
   else
+    call normalize(coef1,micro_dets1)
+    call quicksort_number(coef1,occ1,micro_dets1)
     allocate(occ_num(nactb(iMEBF)))
     do idet = 1, micro_dets1
       dumstr = occ1(idet)
@@ -203,6 +205,7 @@ if (nmol .eq. 1) then
       maxcoef=max(maxcoef,abs(coef1(idet)))
     end do
   endif
+  alldets(iMEBF) = micro_dets1
 endif
 
 ! Now, the other fragments

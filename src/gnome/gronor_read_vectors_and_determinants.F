@@ -63,6 +63,7 @@
       allocate(ecaspt2(mstates))
       allocate(ecorr(mstates))
       allocate(nElectrons(mstates))
+      allocate(spinm(mstates))
       ncorr=1
       do i=1,mstates
         write(fildet,2203) trim(fragfile(i))
@@ -77,6 +78,14 @@
         nactm(i)=len_trim(dumstr)
         maxci_raw=max(maxci_raw,idet_raw(i))
         maxnact=max(maxnact,nactm(i))
+! determine the spin of the fragment wave function
+! spin multiplicity = (n_alpha - n_beta) + 1
+        spinm(i) = 0
+        do j = 1, nactm(i)
+          if ( dumstr(j:j) .eq. 'a' ) spinm(i) = spinm(i) + 1
+          if ( dumstr(j:j) .eq. 'b' ) spinm(i) = spinm(i) - 1
+        end do
+        spinm(i) = spinm(i) + 1
         inactm(i) = inactm(i) - nFrozen(i)
         close(lfndet)
       enddo

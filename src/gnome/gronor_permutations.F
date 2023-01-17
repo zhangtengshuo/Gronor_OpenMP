@@ -130,3 +130,59 @@
       enddo
       return
       end
+
+! =================================================
+! counts the number of permutations to move all
+! doubly occupied orbitals to the left and sets 
+! the sign accordingly: (-1)^p, where p is the 
+! number of permutations
+
+      integer function isetsign(occ,n)
+      implicit none
+      
+      integer  :: occ(n),n,i,nclosed,found,nperm,j,aux
+      integer  :: occ2(n),nocc
+      logical  :: permuted
+      
+      
+      occ2 = 0
+      nclosed = 0
+      nperm = 0
+      nocc = 0
+      do i = 1, n
+        if (occ(i).eq.2) nclosed = nclosed + 1
+        if (occ(i).ne.0) then
+          nocc = nocc + 1
+          occ2(nocc) = occ(i)
+        endif
+      end do
+      i = 0
+      found = 0
+      do while (found .lt. nclosed)
+        i = i + 1
+        if (occ2(i) .ne. 2) then
+          permuted = .false.
+          j = i + 1
+          do while (.not.permuted)
+            if (occ2(j).eq.2) then
+              aux = occ2(i)
+              occ2(i) = occ2(j)
+              occ2(j) = aux
+              permuted = .true.
+              found = found + 1
+              nperm = nperm + (j - i)
+            else
+              j = j + 1
+            endif
+          end do
+        else
+         found = found + 1
+        endif
+      end do
+      if (mod(nperm,2).eq.0) then
+        isetsign = 1
+      else
+        isetsign =-1
+      endif
+      return
+      end function isetsign

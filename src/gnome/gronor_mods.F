@@ -75,6 +75,16 @@
 
       end module cidist
 
+      module makebasedata
+      implicit none
+      integer                        :: spinFrag
+      integer,allocatable            :: micro_ndets(:)
+      real(kind=8),allocatable       :: coef(:),micro_coef(:)
+      real(kind=8),allocatable       :: coef_new(:)
+      character(len=255),allocatable :: occ(:),micro_occ(:)
+      character(len=255),allocatable :: occ_new(:)
+      end module makebasedata
+
       module cidef
 
       implicit none
@@ -94,7 +104,7 @@
       integer :: nprocs
       integer :: nciaux
 
-      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci,nci_copy
+      integer :: maxci,maxcib,maxnact,mactb,maxvec,nci
 
       real (kind=8), allocatable :: civm(:,:), vecsm(:,:,:)
       integer, allocatable :: ioccm(:,:,:), nbasm(:), nactm(:)
@@ -105,7 +115,7 @@
       real (kind=8), allocatable :: ecasscf(:), ecaspt2(:)
       integer, allocatable :: ioccb(:,:)
       integer (kind=8), allocatable :: ncombv(:,:),inactb(:)
-      integer (kind=8), allocatable :: nactb(:), idetb(:)
+      integer (kind=8), allocatable :: nactb(:), idetb(:), alldets(:)
       real (kind=8), allocatable :: hbase(:,:), sbase(:,:), tbase(:,:)
       real (kind=8), allocatable :: dqbase(:,:,:)
       real (kind=8), allocatable :: hev(:)
@@ -120,7 +130,7 @@
       integer :: ncorr,nwt
       real(kind=8), allocatable :: ecorr(:)           ! the shifts
       real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
-      real(kind=8)              :: mnuc(9)
+      real(kind=8)              :: mnuc(9),maxcoef
       character(len=16),allocatable  :: fragLabel(:)
       character(len=128),allocatable :: mebfLabel(:)
       character(len=128)             :: header,key

@@ -70,11 +70,10 @@
 
       integer (kind=4) :: ierror,ierr,ncount
       integer (kind=8) :: iarg,i,j,jp,idum(55),k,l
-      integer,allocatable :: jspinmol(:)
       integer :: node
       real (kind=8) :: rdum(6)
       character (len=255) :: string,target,compiler
-      logical exist
+      logical exist,first_pass
 
       real(kind=8), external :: timer_wall_total
 
@@ -825,7 +824,9 @@
         allocate(nactm(mstates))
         allocate(inactm(mstates))
         allocate(idetm(mstates))
+        allocate(spinm(mstates))
         allocate(civm(maxci,mstates))
+        allocate(occm_string(maxci,mstates))
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
         if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
@@ -847,12 +848,13 @@
         corres=idum(19).eq.1
       endif
 
-      allocate(nbuf(mstates,4))
+      allocate(nbuf(mstates,5))
       do i=1,mstates
         nbuf(i,1)=nbasm(i)
         nbuf(i,2)=nactm(i)
         nbuf(i,3)=inactm(i)
         nbuf(i,4)=idetm(i)
+        nbuf(i,5)=spinm(i)
       enddo
       if(np.gt.0) then
         ncount=maxci*mstates
@@ -867,7 +869,7 @@
         ncount=nmol*nbase
         call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,                       &
      &       MPI_COMM_WORLD,ierr)
-        ncount=4*mstates
+        ncount=5*mstates
         call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,                         &
      &       MPI_COMM_WORLD,ierr)
         if(nmol.ge.3)then
@@ -881,6 +883,7 @@
         nactm(i)=nbuf(i,2)
         inactm(i)=nbuf(i,3)
         idetm(i)=nbuf(i,4)
+        spinm(i)=nbuf(i,5)
       enddo
       deallocate(nbuf)
 
@@ -890,14 +893,6 @@
         nbasis=nbasis+nbasm(ncombv(i,1))
         mactb=mactb+nactm(ncombv(i,1))
       enddo
-      allocate(jspinmol(mstates))
-      do i=1,mstates
-        jspinmol(i)=0
-        do j=1,nactm(i)
-          if(abs((ioccm(j,1,i))).eq.1) jspinmol(i)=jspinmol(i)+                 &
-     &         ioccm(j,1,i)
-        enddo
-      enddo
 
       call timer_stop(2)
       call timer_start(3)
@@ -906,13 +901,15 @@
       allocate(inactb(nbase))
       allocate(nactb(nbase))
       allocate(idetb(nbase))
+      inactb = 0
+      nactb = 0
 
-      call gronor_determine_nci                                                 &
-     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
-      call gronor_determine_maxcib()
-
-      allocate(ioccb(maxcib,nbase))
-      allocate(civb(maxcib,nbase))
+!      call gronor_determine_nci                                                 &
+!     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
+!      call gronor_determine_maxcib()
+!
+!      allocate(ioccb(maxcib,nbase))
+!      allocate(civb(maxcib,nbase))
 
       ngr=(np-1)/mgr
 
@@ -1557,8 +1554,10 @@
         call timer_start(99)
       endif
 
-      max_coef=0.0
-      nci_copy=nci
+      maxcoef=0.0
+      allocate(alldets(nbase))
+! First pass through make_basestate to determine maxcib
+      first_pass = .true.
       do i=1,nbase
 
          if(idbg.ge.50) then
@@ -1568,7 +1567,7 @@
             flush(lfndbg)
          endif
 
-        call gronor_make_basestate(i)
+        call gronor_make_basestate(i,first_pass)
 
          if(idbg.ge.50) then
             call swatch(date,time)
@@ -1577,35 +1576,11 @@
             flush(lfndbg)
          endif
 
-        nci=nci_copy
-        allocate(sort_coef(maxcib))
-        allocate(sort_occ(maxcib))
-
-        do j=1,maxcib
-        sort_coef(j)=0.0
-        sort_occ(j)=0
-      enddo
-
-        do idet=1, idetb(i)
-          sort_coef(idet)=civb(idet,i)
-          sort_occ(idet)=ioccb(idet,i)
-        enddo
-        length=idetb(i)
-        call quicksort(sort_coef,sort_occ,length)
-        do idet=1, idetb(i)
-          civb(idet,i)=sort_coef(idet)
-          ioccb(idet,i)=sort_occ(idet)
-        enddo
-        deallocate(sort_coef,sort_occ)
-        if(max_coef.lt.abs(civb(1,i))) then
-          max_coef=abs(civb(1,i))
-        endif
-
         if(me.eq.master) then
           call timer_stop(99)
           call swatch(date,time)
           write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),          &
-     &         '  :  Base state ',i,' completed '
+     &         '  :  First pass for base state ',i,' completed '
  1706     format(a8,2x,a8,f12.3,a,i4,a)
           flush(lfnday)
           call timer_start(99)
@@ -1619,7 +1594,48 @@
          endif
       enddo
 
-      thres2=tau_CI / max_coef
+! Now that maxcib is known, civb and ioccb can be allocated
+      allocate(civb(maxcib,nbase))
+      allocate(ioccb(maxcib,nbase))
+
+! Second pass through make_basestate to actually fill civb and ioccb
+      first_pass = .false.
+      do i=1,nbase
+
+        if(idbg.ge.50) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),             &
+     &           ' entering make_basestate for ibase ',i
+          flush(lfndbg)
+        endif
+
+        call gronor_make_basestate(i,first_pass)
+
+        if(idbg.ge.50) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),             &
+     &           ' returned from make_basestate for ibase ',i
+          flush(lfndbg)
+        endif
+
+        if(me.eq.master) then
+          call timer_stop(99)
+          call swatch(date,time)
+          write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),      &
+     &         '  :  Second pass for base state ',i,' completed '
+          flush(lfnday)
+          call timer_start(99)
+        endif
+
+        if(idbg.ge.50) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8),             &
+     &           ' Base state completed for ibase ',i
+          flush(lfndbg)
+        endif
+      enddo
+
+      thres2=tau_CI / maxcoef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
       do ibase=1, nbase
@@ -1649,7 +1665,7 @@
             write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99),        &
      &           '  :  Base state ',ibase,                                      &
      &           ' coefficient list reduced from    ',                          &
-     &           ndeti,' to ',ndet_rev
+     &           alldets(ibase),' to ',ndet_rev
  1710       format(a8,2x,a8,f12.3,a,i4,a,i16,a,i16)
             flush(lfnday)
             call timer_start(99)
@@ -1866,7 +1882,8 @@
      &       ' Number of accelerated ranks',t40,i10,/,                          &
      &       ' Number of non-accelerated ranks',t40,i10)
       endif
-
+! to be removed
+      flush(lfnout)
 
       call timer_stop(8)
       call timer_start(9)
@@ -2380,9 +2397,8 @@
 
       deallocate(t,v,dqm,ndxtv)
       deallocate(lab,ndx,ig,g)
-      deallocate(jspinmol)
       deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
-      deallocate(ioccm,vecsm,civm)
+      deallocate(ioccm,vecsm,civm,occm_string)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       if(nmol.ge.3)deallocate(inter_couplings)
       deallocate(map2)

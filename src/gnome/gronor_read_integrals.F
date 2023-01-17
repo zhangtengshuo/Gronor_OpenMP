@@ -109,6 +109,7 @@
 
 !     Create communicators for each first, second, etc rank from each group
 
+
       if(idist.eq.0) then
         do i=1,mgr
           do j=1,numgrp

@@ -21,11 +21,11 @@
 
       subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev)
 
-      use gnome_parameters, only : itest,ncols
+      use gnome_parameters, only : itest,ncols,idbg
       use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         & 
-     &                             nociwf,lfnxrx
+     &                             nociwf,lfnxrx,lfndbg
 
       implicit none
 
@@ -81,6 +81,7 @@
         enddo
       enddo
 
+
 !      if(nbase.eq.1) then
 !        noci(1,1)=1.0d0
 !      else
@@ -132,14 +133,22 @@
         enddo
       enddo
 
+      if ( idbg .ge. 5 ) then
+        write(lfndbg,*)'Nuclear contribution'
+        write(lfndbg,'(9f18.10)')(mnuc(i),i=1,9)
+      endif
       do i=1,9
+
         do j=1,nbase
-          do k=1,nbase
-            dqbase(k,j,i)=dqbase(k,j,i)+mnuc(i)
-            dqnoci(k,j,i)=dqnoci(k,j,i)+mnuc(i)
-          enddo
+!          do k=1,nbase
+            dqbase(j,j,i)=dqbase(j,j,i)+mnuc(i)
+            dqnoci(j,j,i)=dqnoci(j,j,i)+mnuc(i)
+!            dqbase(k,j,i)=dqbase(k,j,i)+mnuc(i)
+!            dqnoci(k,j,i)=dqnoci(k,j,i)+mnuc(i)
+!          enddo
         enddo        
       enddo
+
  688  format(//,' Multipole moments')
  689  format(/,' Origin of the dipole operator (x,y,z)',t50,3f10.4,/            &
      &     ,' Origin of the quadrupole operator (x,y,z)',t50,3f10.4)          

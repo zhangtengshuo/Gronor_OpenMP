@@ -611,7 +611,7 @@
       integer                           :: iCounter,iComponent
       integer                           :: iRC,iOpt,iSymLbl,j,k
 
-      real (kind=8)                     :: s( n * (n + 1 ) / 2 )
+      real (kind=8)                     :: s(n*(n+1)/2 + 4)
       real (kind=8),intent(out)         :: sAO(n,n)
 
       character (len=255),intent(in)     :: filename

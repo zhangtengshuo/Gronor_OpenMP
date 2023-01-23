@@ -10,7 +10,7 @@
       character(len=128) :: header,key,labels(nrdim)
 
       real(kind=8), allocatable :: rt(:)
-      integer :: i,j,k,nk,ii,il,ik
+      integer :: i,j,k,nk,ii,il,ik,lenlab
 
       allocate(rt(nrdim))
 
@@ -22,6 +22,10 @@
       if(lfnt.gt.0) write(lfnt,600) trim(header)
       nk=nrdim/ncols
       if(mod(nrdim,ncols).ne.0) nk=nk+1
+      lenlab=0
+      do i=1,nrdim
+        lenlab=max(lenlab,len(trim(labels(i))))
+      enddo
       do k=1,nk
         ii=(k-1)*ncols+1
         il=min(nrdim,k*ncols)
@@ -32,10 +36,22 @@
      &         ('--------------------',i=ii,il)
  603      format(10a)
         else
-          write(lfno,604) '|',(trim(labels(i)),i=ii,il)
+          if(lenlab.le.10) then
+            write(lfno,604) '|',(trim(labels(i)),i=ii,il)
+            write(lfno,603) ' -----------|',                                &
+     &           ('--------------------',i=ii,il)
+          elseif(lenlab.le.20) then
+            write(lfno,1604) '|',(trim(labels(i)),i=ii,il)
+            write(lfno,603) ' ---------------------|',                      &
+     &           ('--------------------',i=ii,il)
+          else
+            write(lfno,2604) '|',(trim(labels(i)),i=ii,il)
+            write(lfno,603) ' -------------------------------|',            &
+     &           ('--------------------',i=ii,il)
+          endif
  604      format(/,12x,a,t22,a,t42,a,t62,a,t82,a,t102,a,t122,a,t142,a)
-          write(lfno,603) ' -----------|',                                &
-     &         ('--------------------',i=ii,il)
+ 1604     format(/,22x,a,t32,a,t52,a,t72,a,t92,a,t112,a,t132,a,t152,a)
+ 2604     format(/,32x,a,t42,a,t62,a,t82,a,t102,a,t122,a,t142,a,t162,a)
         endif
         if(lfna.gt.0) write(lfna,'(17x,10(i4,16x))') (i,i=ii,il)
         if(lfnr.gt.0) write(lfnr,'(17x,10(i4,16x))') (i,i=ii,il)
@@ -47,10 +63,22 @@
             write(lfno,605) j,(scale*rmat(i,j),i=ii,ik)
  605        format(1x,i4,1x,'|',10f20.10)
           else
-            write(lfno,606) trim(labels(j)),(scale*rmat(i,j),i=ii,ik)
+            if(lenlab.le.10) then
+              write(lfno,606) trim(labels(j)),(scale*rmat(i,j),i=ii,ik)
+            elseif(lenlab.le.20) then
+              write(lfno,1606) trim(labels(j)),(scale*rmat(i,j),i=ii,ik)
+            else
+              write(lfno,2606) trim(labels(j)),(scale*rmat(i,j),i=ii,ik)
+            endif
  606        format(1x,a,t13,'|',                                          &
      &           t14,f20.10,t34,f20.10,t54,f20.10,t74,f20.10,             &
      &           t94,f20.10,t114,f20.10,t134,f20.10)
+ 1606       format(1x,a,t23,'|',                                          &
+     &           t24,f20.10,t44,f20.10,t64,f20.10,t84,f20.10,             &
+     &           t104,f20.10,t124,f20.10,t144,f20.10)
+ 2606       format(1x,a,t33,'|',                                          &
+     &           t34,f20.10,t54,f20.10,t74,f20.10,t94,f20.10,             &
+     &           t114,f20.10,t134,f20.10,t154,f20.10)
           endif
           if(lfna.gt.0) write(lfna,607) j,(scale*rmat(i,j),i=ii,ik)
           if(lfnr.gt.0) write(lfnr,607) j,(scale*rmat(i,j),i=ii,ik)

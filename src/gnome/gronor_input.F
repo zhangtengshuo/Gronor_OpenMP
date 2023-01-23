@@ -70,6 +70,8 @@
         if(inp_compare(.false.,'MEBFs',item)) then
           if(.not.inp_a(mebfroot)) call gronor_abort(105,"Input error")
           if(.not.inp_i(nbase)) call gronor_abort(106,"Input error")
+          allocate(fragname(36))
+          allocate(fragstate(36,nbase))
           nmol=0
           do while(.true.)
             if(.not.inp_read()) call gronor_abort(107,"Input error")
@@ -90,6 +92,7 @@
               goto 3
             endif
             nmol=nmol+1
+            if(nmol.gt.36) call gronor_abort(109,"Dimension error")
             fragname(nmol)=trim(item)
             do i=1,nbase
               if(.not.inp_a(item)) call gronor_abort(108,"Input error")
@@ -362,6 +365,8 @@
 
       close(unit=lfninp)
 
+      deallocate(fragstate,fragname)
+      
       return
 
  999  write(lfnout,989) trim(filinp)

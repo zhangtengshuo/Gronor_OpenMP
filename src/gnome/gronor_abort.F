@@ -59,6 +59,10 @@
          write(lfnabt,'(a)')                                                    &
      &        "Input: MEBFs : MEBF spin state could not be read"
 
+      case(109)
+         write(lfnabt,'(a)')                                                    &
+     &        "Input: MEBFs : MEBF 1st dim fragname/state too small"
+
       case(110)
          write(lfnabt,'(a)')                                                    &
      &        "Input: Spin : Total spin not specified"

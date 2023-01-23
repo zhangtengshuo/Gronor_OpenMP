@@ -166,8 +166,8 @@
       logical :: corres
 
       character (len=128) :: mebfroot
-      character (len=16) :: fragname(12)
-      character (len=16) :: fragstate(12,24)
+      character (len=16), allocatable :: fragname(:)
+      character (len=16), allocatable :: fragstate(:,:)
       character (len=128), allocatable :: fragfile(:)
 
       end module gnome_parameters

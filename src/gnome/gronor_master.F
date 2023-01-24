@@ -268,18 +268,16 @@
  604        format(/,' Left wavefunction has ',i8,                              &
      &           ' determinants:',/)
             do i=1,ndeti
-              call unpack(ioccb(i,ibase),iocch,nacti)
               write(lfnout,605) i,civb(i,ibase),                                &
-     &             (iocch(k),k=1,nacti)
+     &             (iocc(i,ibase,k),k=1,nacti)
  605          format(i5,f25.15,35i3)
             enddo
             write(lfnout,606) ndetj
  606        format(//,' Right wavefunction has ',i8,                            &
      &           ' determinants:',/)
             do i=1,ndetj
-              call unpack(ioccb(i,jbase),iocch,nactj)
               write(lfnout,605) i,civb(i,jbase),                                &
-     &             (iocch(k),k=1,nactj)
+     &             (iocc(i,jbase,k),k=1,nactj)
             enddo
           endif
           flush(lfnout)

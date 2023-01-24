@@ -69,7 +69,7 @@
       implicit none
 
       integer (kind=4) :: ierror,ierr,ncount
-      integer (kind=8) :: iarg,i,j,jp,idum(55),k,l
+      integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
       integer :: node
       real (kind=8) :: rdum(6)
       character (len=255) :: string,target,compiler
@@ -87,6 +87,7 @@
 
       integer                  :: idet,length,ndet_rev
       integer, allocatable     :: sort_occ(:),occu_aux(:)
+      integer (kind=1), allocatable :: iocc_aux(:,:)
       real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
       real(kind=8)             :: thres2,max_coef
       integer, allocatable     :: nbuf(:,:)
@@ -96,7 +97,6 @@
       integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
       integer :: l2,nidet,njdet,n
-      integer, external :: ipopcnt
 
       character (len=3) :: ident(3)
       character (len=4) :: onlabel
@@ -552,27 +552,13 @@
 
         if(npg*mgr+1.gt.np) then
           call gronor_abort(203,"Requested ranks exceeds available")
-       endif
-
-       allocate(nbasm(mstates))
-       allocate(nactm(mstates))
-       allocate(inactm(mstates))
-       allocate(idetm(mstates))
-       allocate(iocc(nmol))
-       allocate(iord(nmol))
-       allocate(indx(nmol))
-       do i=1,nmol
-          iocc(i)=i
-          iord(i)=0
-          indx(i)=0
-       enddo
-
-!        iocc(1)=1
-!        iocc(2)=2
-!        iord(1)=0
-!        iord(2)=0
-!        indx(1)=0
-!        indx(2)=0
+        endif
+        
+        allocate(nbasm(mstates))
+        allocate(nactm(mstates))
+        allocate(inactm(mstates))
+        allocate(idetm(mstates))
+        
         icalc=0
         ins2=0
         ipvec=0
@@ -646,12 +632,12 @@
           idum(4)=maxci
           idum(5)=maxvec
           idum(6)=maxnact
-          idum(7)=iocc(1)
-          idum(8)=iocc(2)
-          idum(9)=iord(1)
-          idum(10)=iord(2)
-          idum(11)=indx(1)
-          idum(12)=indx(2)
+          idum(7)=0
+          idum(8)=0
+          idum(9)=0
+          idum(10)=0
+          idum(11)=0
+          idum(12)=0
           idum(13)=icalc
           idum(14)=ipr
           idum(15)=ins2
@@ -722,12 +708,6 @@
            maxci=idum(4)
            maxvec=idum(5)
            maxnact=idum(6)
-!     iocc(1)=idum(7)
-!     iocc(2)=idum(8)
-!     iord(1)=idum(9)
-!     iord(2)=idum(10)
-!     indx(1)=idum(11)
-!     indx(2)=idum(12)
            icalc=idum(13)
            ipr=idum(14)
            ins2=idum(15)
@@ -830,16 +810,6 @@
         allocate(vecsm(maxvec,maxvec,mstates))
         allocate(ioccm(maxnact,maxci,mstates))
         if(nmol.ge.3) allocate(inter_couplings(nmol-1,nbase))
-        allocate(iocc(nmol))
-        allocate(indx(nmol))
-        allocate(iord(nmol))
-
-        iocc(1)=idum(7)
-        iocc(2)=idum(8)
-        iord(1)=idum(9)
-        iord(2)=idum(10)
-        indx(1)=idum(11)
-        indx(2)=idum(12)
         icalc=idum(13)
         ipr=idum(14)
         ins2=idum(15)
@@ -903,13 +873,6 @@
       allocate(idetb(nbase))
       inactb = 0
       nactb = 0
-
-!      call gronor_determine_nci                                                 &
-!     &     (mstates,nactm,idetm,ioccm,maxnact,maxci)
-!      call gronor_determine_maxcib()
-!
-!      allocate(ioccb(maxcib,nbase))
-!      allocate(civb(maxcib,nbase))
 
       ngr=(np-1)/mgr
 
@@ -1592,13 +1555,13 @@
      &           ' Base state completed for ibase ',i
             flush(lfndbg)
          endif
-      enddo
+       enddo
 
-! Now that maxcib is known, civb and ioccb can be allocated
+! Now that maxcib is known, civb and iocc can be allocated
       allocate(civb(maxcib,nbase))
-      allocate(ioccb(maxcib,nbase))
+      allocate(iocc(maxcib,nbase,numact))
 
-! Second pass through make_basestate to actually fill civb and ioccb
+! Second pass through make_basestate to actually fill civb and iocc
       first_pass = .false.
       do i=1,nbase
 
@@ -1638,6 +1601,7 @@
       thres2=tau_CI / maxcoef
       allocate(civb_aux(maxcib))
       allocate(occu_aux(maxcib))
+      allocate(iocc_aux(maxcib,numact))
       do ibase=1, nbase
          ndeti=idetb(ibase)
          ndet_rev=0
@@ -1647,16 +1611,22 @@
             if(abs(civb(idet,ibase)).gt.thres2) then
                ndet_rev=ndet_rev + 1
                civb_aux(ndet_rev)=civb(idet,ibase)
-               occu_aux(ndet_rev)=ioccb(idet,ibase)
+               do iact=1,nactb(ibase)
+                 iocc_aux(ndet_rev,iact)=iocc(idet,ibase,iact)
+               enddo
             endif
          enddo
          do idet=1,maxcib
             civb(idet,ibase)=0.0
-            ioccb(idet,ibase)=0
+            do iact=1,numact
+              iocc(idet,ibase,iact)=0
+            enddo
          enddo
          do idet=1,ndet_rev
             civb(idet,ibase)=civb_aux(idet)
-            ioccb(idet,ibase)=occu_aux(idet)
+            do iact=1,numact
+              iocc(idet,ibase,iact)=iocc_aux(idet,iact)
+            enddo
          enddo
          idetb(ibase)=ndet_rev
          if(me.eq.master) then
@@ -1672,6 +1642,7 @@
          endif
       enddo
       deallocate(civb_aux,occu_aux)
+      deallocate(iocc_aux)
 
       do i=1,nbase
         if(idbg.gt.50) then
@@ -1681,8 +1652,7 @@
  1601     format(/,' Basestate ',i4,' wavefunction has ',i8,                    &
      &         ' determinants:',/)
           do ib=1,ndeti
-            call unpack(ioccb(ib,i),iocch,nacti)
-            write(lfndbg,1602) ib,civb(ib,i),(iocch(k),k=1,nacti)
+            write(lfndbg,1602) ib,civb(ib,i),(iocc(ib,i,k),k=1,nacti)
  1602       format(i5,f15.5,32i3)
           enddo
           write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
@@ -2067,9 +2037,12 @@
           do ibase=1,nbase
             nveca=max(nveca,inactb(ibase)+nactb(ibase))
             n=2*inactb(ibase)
-            n=n+ipopcnt(ioccb(1,ibase),nactb(ibase))
+            do iact=1,nactb(ibase)
+              n=n+iabs(iocc(1,ibase,iact))
+            enddo
             nelecs=max(nelecs,n)
           enddo
+
           nvecb=nveca
           nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
           mbasel=max(nelecs,nbas)
@@ -2397,7 +2370,7 @@
 
       deallocate(t,v,dqm,ndxtv)
       deallocate(lab,ndx,ig,g)
-      deallocate(idetb,nactb,inactb,ioccb,vecsb,civb)
+      deallocate(idetb,nactb,inactb,vecsb,civb,iocc)
       deallocate(ioccm,vecsm,civm,occm_string)
       deallocate(idetm,inactm,nactm,nbasm,ncombv)
       if(nmol.ge.3)deallocate(inter_couplings)

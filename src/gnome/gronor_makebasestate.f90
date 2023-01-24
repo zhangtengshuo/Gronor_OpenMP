@@ -57,7 +57,7 @@ integer,allocatable             :: micro_ndets1(:),micro_ndets2(:)
 integer,allocatable             :: occ_num(:)
 integer                         :: spin1,spin2,target_spin
 integer                         :: micro_dets1,micro_dets2
-integer                         :: i,j,k,idet,jdet,iFrag,iFragWF,iAct
+integer                         :: i,j,k,idet,jdet,iFrag,iFragWF,iact
 integer                         :: ms,ms1,ms2
 integer                         :: first1,first2,last1,last2
 integer                         :: jstart,kstart
@@ -79,11 +79,13 @@ debug = .true.
 !  ==== Combining the vec files of the fragments (only on the first pass)
 
 if (first_pass) then
+  numact=0
   inactb(iMEBF)=0
   nactb(iMEBF)=0
   do i=1,nmol
     inactb(iMEBF)=inactb(iMEBF)+inactm(ncombv(i,iMEBF))
     nactb(iMEBF)=nactb(iMEBF)+nactm(ncombv(i,iMEBF))
+    numact=max(numact,nactb(iMEBF))
   enddo
   do i=1,nbasis
     do j=1,nbasis
@@ -125,11 +127,11 @@ spin1    = spinm(iFragWF)
 spinFrag = spin1
 do idet = 1, ndets1
   dumstr = ''
-  do iAct = 1, nactm(iFragWF)
-    if ( ioccm(iAct,idet,iFragWF) .eq. 2 ) dumstr(iAct:iAct) = '2'
-    if ( ioccm(iAct,idet,iFragWF) .eq. 0 ) dumstr(iAct:iAct) = '0'
-    if ( ioccm(iAct,idet,iFragWF) .eq. 1 ) dumstr(iAct:iAct) = 'a'
-    if ( ioccm(iAct,idet,iFragWF) .eq.-1 ) dumstr(iAct:iAct) = 'b'
+  do iact = 1, nactm(iFragWF)
+    if ( ioccm(iact,idet,iFragWF) .eq. 2 ) dumstr(iact:iact) = '2'
+    if ( ioccm(iact,idet,iFragWF) .eq. 0 ) dumstr(iact:iact) = '0'
+    if ( ioccm(iact,idet,iFragWF) .eq. 1 ) dumstr(iact:iact) = 'a'
+    if ( ioccm(iact,idet,iFragWF) .eq.-1 ) dumstr(iact:iact) = 'b'
   enddo
   occm_string(idet,iFragWF) = dumstr
 end do
@@ -192,16 +194,18 @@ if (nmol .eq. 1) then
     allocate(occ_num(nactb(iMEBF)))
     do idet = 1, micro_dets1
       dumstr = occ1(idet)
-      do iAct = 1, nactb(iMEBF)
-        if (dumstr(iAct:iAct) .eq. '2') occ_num(iAct) = 2
-        if (dumstr(iAct:iAct) .eq. 'a') occ_num(iAct) = 1
-        if (dumstr(iAct:iAct) .eq. 'b') occ_num(iAct) =-1
-        if (dumstr(iAct:iAct) .eq. '0') occ_num(iAct) = 0
+      do iact = 1, nactb(iMEBF)
+        if (dumstr(iact:iact) .eq. '2') occ_num(iact) = 2
+        if (dumstr(iact:iact) .eq. 'a') occ_num(iact) = 1
+        if (dumstr(iact:iact) .eq. 'b') occ_num(iact) =-1
+        if (dumstr(iact:iact) .eq. '0') occ_num(iact) = 0
       end do 
       coef1(idet) = coef1(idet) * perm_ab(occ_num,nactb(iMEBF))
       coef1(idet) = coef1(idet) * isetsign(occ_num,nactb(iMEBF))
       civb(idet,iMEBF) = coef1(idet)
-      call pack(ioccb(idet,iMEBF),occ_num,nactb(iMEBF))
+      do iact=1,nactb(iMEBF)
+        iocc(idet,iMEBF,iact)=occ_num(iact)
+      enddo
       maxcoef=max(maxcoef,abs(coef1(idet)))
     end do
   endif
@@ -216,11 +220,11 @@ do iFrag = 2, nmol
   spinFrag = spin2
   do idet = 1, ndets2
     dumstr = ''
-    do iAct = 1, nactm(iFragWF)
-      if ( ioccm(iAct,idet,iFragWF) .eq. 2 ) dumstr(iAct:iAct) = '2'
-      if ( ioccm(iAct,idet,iFragWF) .eq. 0 ) dumstr(iAct:iAct) = '0'
-      if ( ioccm(iAct,idet,iFragWF) .eq. 1 ) dumstr(iAct:iAct) = 'a'
-      if ( ioccm(iAct,idet,iFragWF) .eq.-1 ) dumstr(iAct:iAct) = 'b'
+    do iact = 1, nactm(iFragWF)
+      if ( ioccm(iact,idet,iFragWF) .eq. 2 ) dumstr(iact:iact) = '2'
+      if ( ioccm(iact,idet,iFragWF) .eq. 0 ) dumstr(iact:iact) = '0'
+      if ( ioccm(iact,idet,iFragWF) .eq. 1 ) dumstr(iact:iact) = 'a'
+      if ( ioccm(iact,idet,iFragWF) .eq.-1 ) dumstr(iact:iact) = 'b'
     enddo
     occm_string(idet,iFragWF) = dumstr
   end do
@@ -442,18 +446,20 @@ if ( .not. first_pass .and. nmol .ne. 1) then
   allocate(occ_num(nactb(iMEBF)))
   do idet = 1, newdets
     dumstr = occmebf(idet)
-    do iAct = 1, nactb(iMEBF)
-      if (dumstr(iAct:iAct) .eq. '2') occ_num(iAct) = 2
-      if (dumstr(iAct:iAct) .eq. 'a') occ_num(iAct) = 1
-      if (dumstr(iAct:iAct) .eq. 'b') occ_num(iAct) =-1
-      if (dumstr(iAct:iAct) .eq. '0') occ_num(iAct) = 0
+    do iact = 1, nactb(iMEBF)
+      if (dumstr(iact:iact) .eq. '2') occ_num(iact) = 2
+      if (dumstr(iact:iact) .eq. 'a') occ_num(iact) = 1
+      if (dumstr(iact:iact) .eq. 'b') occ_num(iact) =-1
+      if (dumstr(iact:iact) .eq. '0') occ_num(iact) = 0
     end do 
     coefmebf(idet) = coefmebf(idet) * perm_ab(occ_num,nactb(iMEBF))
     coefmebf(idet) = coefmebf(idet) * isetsign(occ_num,nactb(iMEBF))
     civb(idet,iMEBF) = coefmebf(idet)
-    call pack(ioccb(idet,iMEBF),occ_num,nactb(iMEBF))
+    do iact=1,nactb(iMEBF)
+      iocc(idet,iMEBF,iact)=occ_num(iact)
+    enddo
     if ( idbg .ge. 20 ) then
-      write(lfndbg,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iAct),iAct=1,nactb(iMEBF))
+      write(lfndbg,'(i6,f14.8,32i3)')idet,civb(idet,iMEBF),(occ_num(iact),iact=1,nactb(iMEBF))
       flush(lfndbg)
     endif 
   end do
@@ -462,5 +468,3 @@ if ( .not. first_pass .and. nmol .ne. 1) then
 end if
 
 end subroutine gronor_make_basestate
-
-

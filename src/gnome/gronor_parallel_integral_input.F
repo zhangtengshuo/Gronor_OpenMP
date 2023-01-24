@@ -42,14 +42,14 @@
 #else
       integer (kind=4) :: nrecbd
 #endif
-      integer (kind=4) :: ierr,nrecb4,ncount,mpitag,mpidest,mpireq
+      integer (kind=4) :: ierr,ncount,mpitag,mpidest,mpireq
       integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
       integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
       integer (kind=8), allocatable :: ifil(:,:)
       real (kind=8), allocatable :: b(:)
       integer (kind=2), allocatable :: ibuf(:)
       integer (kind=8), allocatable :: ijbuf(:,:)
-      integer (kind=8) :: kint,kintbatch,mint,nint,jint,lint,jbuf(6)
+      integer (kind=8) :: kint,kintbatch,mint,nint,jint,lint
 
       integer (kind=8) :: numigr,idf,idr,ii,jj,kk,inode
 

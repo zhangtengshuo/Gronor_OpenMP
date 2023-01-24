@@ -8,8 +8,6 @@
 
       character*(*) :: string
       integer :: icode
-      integer (kind=4) :: ierror,ierr
-      integer (kind=4) :: irank
       character (len=255) :: filwrn
 !
 !     error termination

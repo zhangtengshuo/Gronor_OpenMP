@@ -47,7 +47,6 @@ use gnome_parameters, only : tau_CI,idbg
 use gnome_data      , only : nbasis
 use makebasedata
 use cidef
-use cidist          , only : me,master
 
 implicit none
 

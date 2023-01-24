@@ -36,7 +36,7 @@
 
       implicit none
 
-      integer                          :: i,j,k,istat,nume
+      integer                          :: i,j,k,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
       real      (kind=8)               :: sdum,sume,sump,sumc

@@ -80,16 +80,16 @@
       integer :: getcpucount
       external :: getcpucount
 
-      integer :: igr,numone,numtwo,maxgrp,nk,ii,il
+      integer :: igr,numone,numtwo,maxgrp
       integer (kind=4) :: new
 
       integer :: ibase,jbase,lnxt,lcur,ksr,nsr(4)
 
-      integer                  :: idet,length,ndet_rev
-      integer, allocatable     :: sort_occ(:),occu_aux(:)
+      integer                  :: idet,ndet_rev
+      integer, allocatable     :: occu_aux(:)
       integer (kind=1), allocatable :: iocc_aux(:,:)
-      real(kind=8),allocatable :: sort_coef(:),civb_aux(:)
-      real(kind=8)             :: thres2,max_coef
+      real(kind=8),allocatable :: civb_aux(:)
+      real(kind=8)             :: thres2
       integer, allocatable     :: nbuf(:,:)
 
       real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,rm(9),c2s

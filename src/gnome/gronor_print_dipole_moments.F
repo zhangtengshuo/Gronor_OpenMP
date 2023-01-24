@@ -21,28 +21,19 @@
 
       subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev)
 
-      use gnome_parameters, only : itest,ncols,idbg
+      use gnome_parameters, only : itest,idbg
       use gnome_data      , only : com
-      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
-     &                             nwt,mebfLabel,mebfLabels,header,key,         & 
+      use cidef           , only : lfnout,lfntst,lfnarx,                        &
+     &                             mebfLabel,mebfLabels,header,key,             & 
      &                             nociwf,lfnxrx,lfndbg
 
       implicit none
 
       integer,intent(in)            :: nbase
-      integer                       :: i,j,k,ii,ik,il,l,m
-      integer                       :: nk,info,lwork
-      real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
-!      real(kind=8)                  :: hsave(nbase,nbase)
-!      real(kind=8)                  :: ssave(nbase,nbase)
+      integer                       :: i,j,k,l,m
       real(kind=8)                  :: hev(nbase)
-      real(kind=8),allocatable      :: work(:)
-      character(len=5)              :: token
 
-      character(len=132)            :: info_cml,info_cml2,fmt_1,id
-      character(len=20)             :: label
-      character(len=1)              :: sep
-      integer                       :: indent,lfnt
+      integer                       :: lfnt
       
       real(kind=8),intent(in)       :: mnuc(9)
       real(kind=8),intent(inout)    :: dqbase(nbase,nbase,9)

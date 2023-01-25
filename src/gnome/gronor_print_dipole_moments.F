@@ -192,16 +192,26 @@
       enddo      
       write(lfnout,696)
       write(lfnout,699)
+
+!     Quadrupole moment traceless transformation
+!     
+!     1    0    0    -0.5  0   -0.5
+!     0    1.5  0     0    0     0
+!     0    0    1.5   0    0     0
+!    -0.5  0    0     1    0   -0.5
+!     0    0    0     0    1.5   0
+!    -0.5  0    0    -0.5  0     1
+
       do j=1,nbase        
-        trace=(dqbase(j,j,4)+dqbase(j,j,7)+dqbase(j,j,9))/3
-        do k=1,6
-          if(k.eq.1.or.k.eq.4.or.k.eq.6) then
-            qtraceless(j,j,k)=dqbase(j,j,k+3)-trace
-          else
-            qtraceless(j,j,k)=dqbase(j,j,k)
-          endif
-        enddo
-        
+        qtraceless(j,j,1) = dqbase(j,j,4)-0.5d0*dqbase(j,j,7)-          &
+     &       0.5d0*dqbase(j,j,9)
+        qtraceless(j,j,2) = 1.5d0*dqbase(j,j,5)
+        qtraceless(j,j,3) = 1.5d0*dqbase(j,j,6)
+        qtraceless(j,j,4) = -0.5d0*dqbase(j,j,4)+dqbase(j,j,7)-         &
+     &       0.5d0*dqbase(j,j,9)
+        qtraceless(j,j,5) = 1.5d0*dqbase(j,j,8)
+        qtraceless(j,j,6) = -0.5d0*dqbase(j,j,4)-0.5d0*dqbase(j,j,7)+   &
+     &       dqbase(j,j,9)        
         if(.not.mebfLabels) then
           write(lfnout,697) j,(debye*angstrom*(qtraceless(j,j,k)),      &
      &         k=1,6)
@@ -220,14 +230,15 @@
       write(lfnout,696)
       write(lfnout,699)      
       do j=1,nbase
-        trace=(dqbase(j,j,4)+dqbase(j,j,7)+dqbase(j,j,9))/3        
-        do k=1,6
-          if(k.eq.1.or.k.eq.4.or.k.eq.6) then
-            qtraceless(j,j,k)=dqnoci(j,j,k+3)-trace
-          else
-            qtraceless(j,j,k)=dqnoci(j,j,k)
-          endif
-        enddo
+        qtraceless(j,j,1) = dqnoci(j,j,4)-0.5d0*dqnoci(j,j,7)-          &
+     &       0.5d0*dqnoci(j,j,9)
+        qtraceless(j,j,2) = 1.5d0*dqnoci(j,j,5)
+        qtraceless(j,j,3) = 1.5d0*dqnoci(j,j,6)
+        qtraceless(j,j,4) = -0.5d0*dqnoci(j,j,4)+dqnoci(j,j,7)-         &
+     &       0.5d0*dqnoci(j,j,9)
+        qtraceless(j,j,5) = 1.5d0*dqnoci(j,j,8)
+        qtraceless(j,j,6) = -0.5d0*dqnoci(j,j,4)-0.5d0*dqnoci(j,j,7)+   &
+     &       dqnoci(j,j,9)        
         write(lfnout,697) j,(debye*angstrom*(qtraceless(j,j,k)),        &
      &       k=1,6)
       enddo     

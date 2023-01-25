@@ -18,10 +18,10 @@
       integer,dimension(maxFrag)    :: nFrozen,nVec
       real(kind=8)                  :: threshold
       logical                       :: extra_info,all_epsilons
-      logical                       :: debug,noAvgCore
+      logical                       :: debug,noAvgCore,AOIntegrals
       logical                       :: fragLabels,energy_on_INPORB
-      character (len=2),allocatable :: fragLabel(:)
-      character (len=255)            :: project
+      character (len=2),allocatable :: fragLabel(:),fragState(:)
+      character (len=255)           :: project
       end module input_data
 
 

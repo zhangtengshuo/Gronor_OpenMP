@@ -1518,6 +1518,7 @@
       endif
 
       maxcoef=0.0
+      numact = 0
       allocate(alldets(nbase))
 ! First pass through make_basestate to determine maxcib
       first_pass = .true.

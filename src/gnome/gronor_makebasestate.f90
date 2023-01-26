@@ -70,15 +70,12 @@ character(len=255)              :: dumstr
 character(len=255),allocatable  :: occ1(:),occ2(:)
 character(len=255),allocatable  :: occmebf(:)
 logical,intent(in)              :: first_pass
-logical                         :: debug
 
 real(kind=8),external           :: timer_wall_total
 
-debug = .true.
 !  ==== Combining the vec files of the fragments (only on the first pass)
 
 if (first_pass) then
-  numact=0
   inactb(iMEBF)=0
   nactb(iMEBF)=0
   do i=1,nmol

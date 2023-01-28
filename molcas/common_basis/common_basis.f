@@ -574,7 +574,7 @@
 * ===============================================================================
 
       subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
-      use input_data, only : nFrozen,energy_on_INPORB,project
+      use input_data, only : nFrozen,energy_on_INPORB,project,nVec
       use fragment_data
 * read the different vector files of fragment iFrag 
 * get the number of inactive and active orbitals from the vector file * (#INDEX)
@@ -587,7 +587,7 @@
 
       integer,intent(in)                    :: iFrag,iVec,n
       integer,intent(out)                   :: nOcc
-      integer                               :: j,k
+      integer                               :: j,k,startVec
 
       real(kind=8),intent(out)              :: frzVec(nFrozen(iFrag),n)
       real(kind=8),intent(out)              :: vec(n,n)
@@ -602,7 +602,11 @@
 
       base = project
       suffix = 'orb'
-      call getFilename(iVec,orbFilename,project,suffix)
+      startVec = 0
+      do j = 1, iFrag - 1
+        startVec = startVec + nVec(j)
+      end do
+      call getFilename(iVec+startVec,orbFilename,project,suffix)
       open( 35, file = orbFilename, status = 'old' )
 
       nOcc = 0

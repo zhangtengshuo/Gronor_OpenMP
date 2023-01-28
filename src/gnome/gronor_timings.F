@@ -33,7 +33,7 @@
 
       implicit none
 
-      integer (kind=8) :: lfnout,lfnday,lfntim,i,j,idum
+      integer (kind=8) :: lfnout,lfnday,lfntim,i,j
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total
       integer :: timer_calls

@@ -23,7 +23,6 @@
 
 subroutine generate_microstates(ndets,microdets)
 use makebasedata
-use gnome_parameters, only : idbg
 
 implicit none
 integer, intent(in)            :: ndets

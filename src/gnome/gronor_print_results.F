@@ -22,7 +22,6 @@
       subroutine gronor_print_results(hbase,sbase,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
-      use gnome_data      , only : com
       use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
      &                             nwt,mebfLabel,mebfLabels,header,key,         &
      &                             nociwf,lfnxrx
@@ -30,12 +29,11 @@
       implicit none
 
       integer,intent(in)            :: nbase
-      integer                       :: i,j,k,ii,ik,il,l,m
+      integer                       :: i,j,k,ii,il
       integer                       :: nk,info,lwork
       real(kind=8),intent(in)       :: hbase(nbase,nbase)
       real(kind=8),intent(in)       :: sbase(nbase,nbase)
-      real(kind=8)                  :: hbt(nbase),tc(nbase,nbase)
-!      real(kind=8)                  :: hsave(nbase,nbase)
+      real(kind=8)                  :: tc(nbase,nbase)
       real(kind=8)                  :: nociovlp(nbase,nbase)
       real(kind=8)                  :: hev(nbase)
       real(kind=8),allocatable      :: work(:)
@@ -45,7 +43,7 @@
       character(len=1)              :: sep
       integer                       :: indent
       
-      real(kind=8)                  :: debye,angstrom,trace
+      real(kind=8)                  :: debye,angstrom
       real(kind=8)                  :: two3rds
       integer                       :: lfnt
 

@@ -27,10 +27,9 @@
 
       implicit none
 
-      integer :: i,j,k,m,im,ib
+      integer :: i,j,m
       character (len=255) :: item,item2
       real (kind=8) value
-      integer, allocatable :: itemp(:,:)
       logical :: last
 
       open(unit=lfninp,file=filinp,form='formatted',status='old',               &

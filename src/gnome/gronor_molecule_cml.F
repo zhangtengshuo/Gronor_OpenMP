@@ -7,7 +7,7 @@
       real (kind=8), external :: atom_radius
       integer :: indent,i,j,l,numi,numj,nDiffEl,lmax
       integer,allocatable :: stoichio(:)
-      character(len=132)  :: info_cml,concise,info_cml2,info_cml3
+      character(len=132)  :: info_cml,concise
       character(len=80)   :: label,fmt_1,fmt_2
       character(len=4)    :: id,id1,id2,dummy
       character(len=2)    :: element_name

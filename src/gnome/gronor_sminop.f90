@@ -27,23 +27,23 @@ implicit none
 real(kind=8),intent(in)       :: coef_ms
 character(len=255),intent(in) :: occ_ms
 integer, intent(out)          :: new
-integer                       :: iAct,inew,nOrb
+integer                       :: iact,inew,nOrb
 character(len=255)            :: dumstr
 
 new = 0
 nOrb = len_trim(occ_ms)
-do iAct = 1, nOrb
-  if (occ_ms(iAct:iAct) .eq. 'a') new = new + 1
+do iact = 1, nOrb
+  if (occ_ms(iact:iact) .eq. 'a') new = new + 1
 end do
 if (new .ne. 0) then
   allocate(occ_new(new))
   allocate(coef_new(new))
   inew = 0
-  do iAct = 1, nOrb
-    if (occ_ms(iAct:iAct) .eq. 'a') then
+  do iact = 1, nOrb
+    if (occ_ms(iact:iact) .eq. 'a') then
       inew = inew + 1
       dumstr = occ_ms
-      dumstr(iAct:iAct) = 'b'
+      dumstr(iact:iact) = 'b'
       occ_new(inew) = dumstr
       coef_new(inew) = coef_ms
     endif

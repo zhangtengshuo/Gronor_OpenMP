@@ -225,7 +225,7 @@
  703  format(' Component',a2,/)
 
       write(lfnout,704)
- 704  format(/,' Transition dipole moments of MEBFs (Debye)')
+ 704  format(/,' Transition dipole moments of MEBFs (a.u.)')
       key='dipMx'
       header='Component X'
       call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &
@@ -245,7 +245,7 @@
       
       
       write(lfnout,705)
- 705  format(/,' Transition dipole moments of NOCI states (Debye)',/)
+ 705  format(/,' Transition dipole moments of NOCI states (a.u.)',/)
       key='dipNx'
       header='Component X'
       call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key,                 &

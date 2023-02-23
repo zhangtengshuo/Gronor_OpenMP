@@ -129,7 +129,6 @@
         write(lfndbg,'(9f18.10)')(mnuc(i),i=1,9)
       endif
       do i=1,9
-
         do j=1,nbase
             dqbase(j,j,i)=dqbase(j,j,i)+mnuc(i)
             dqnoci(j,j,i)=dqnoci(j,j,i)+mnuc(i)

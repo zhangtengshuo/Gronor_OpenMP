@@ -19,12 +19,13 @@
 !! @date    2020
 !!
 
-      subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev)
+      subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,     &
+     &                                                         hbase)
 
       use gnome_parameters, only : itest,idbg
       use gnome_data      , only : com
-      use cidef           , only : lfnout,lfntst,lfnarx,                        &
-     &                             mebfLabel,mebfLabels,header,key,             & 
+      use cidef           , only : lfnout,lfntst,lfnarx,                &
+     &                             mebfLabel,mebfLabels,header,key,     &
      &                             nociwf,lfnxrx,lfndbg
 
       implicit none
@@ -34,10 +35,9 @@
       real(kind=8)                  :: hev(nbase)
 
       integer                       :: lfnt
-      
-      real(kind=8),intent(in)       :: mnuc(9)
+
+      real(kind=8),intent(in)       :: mnuc(9),hbase(nbase,nbase)
       real(kind=8),intent(inout)    :: dqbase(nbase,nbase,9)
-!      real(kind=8),allocatable      :: noci(:,:)
       real(kind=8),allocatable      :: dqnoci(:,:,:)
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
@@ -52,7 +52,6 @@
       lfnt=0
       if(itest.gt.0) lfnt=lfntst
       
-!      allocate(noci(nbase,nbase))
       allocate(dqnoci(nbase,nbase,9))
       allocate(obase(nbase,nbase))
       allocate(onoci(nbase,nbase))
@@ -60,7 +59,6 @@
       
       do i=1,nbase
         do j=1,nbase
-!          noci(i,j)=0.0d0
           obase(i,j)=0.0d0
           onoci(i,j)=0.0d0
           do k=1,9
@@ -73,16 +71,6 @@
       enddo
 
 
-!      if(nbase.eq.1) then
-!        noci(1,1)=1.0d0
-!      else
-!        do i=1,nbase
-!          do j=1,nbase
-!            noci(j,i)=hsave(j,i)            
-!          enddo
-!        enddo
-!      endif
-      
       do i=1,9
         do j=1,nbase
           do k=1,nbase            
@@ -98,17 +86,15 @@
 
       do j=1,nbase
         do k=1,j          
-          obase(k,j)=obase(k,j)+two3rds*(hev(j)-hev(k))*                  &
-     &         (dqbase(k,j,1)**2+dqbase(k,j,2)**2+                        &
-     &         dqbase(k,j,3)**2)
+          obase(k,j)=two3rds*(hbase(j,j)-hbase(k,k))*(dqbase(k,j,1)**2+   &
+     &                           dqbase(k,j,2)**2+dqbase(k,j,3)**2)    
         enddo        
       enddo
       
       do j=1,nbase
         do k=1,j          
-          onoci(k,j)=onoci(k,j)+two3rds*(hev(j)-hev(k))*                  &
-     &         (dqnoci(k,j,1)**2+dqnoci(k,j,2)**2+                        &
-     &         dqnoci(k,j,3)**2)
+          onoci(k,j)=two3rds*(hev(j)-hev(k))*(dqnoci(k,j,1)**2+           &
+     &                           dqnoci(k,j,2)**2+dqnoci(k,j,3)**2) 
         enddo        
       enddo
       

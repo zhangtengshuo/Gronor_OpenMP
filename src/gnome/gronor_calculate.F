@@ -45,12 +45,11 @@
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest
-      integer :: ib,jb,id1,id2,ii,ihc,nhc
+      integer :: ib,jb,id1,id2,ii,ihc,nhc,iact
 
       integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
       integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,indexv
       logical :: osame
-      integer :: ipopcnt
       integer :: ntvc,ivc,ibas
 
       integer :: ioff
@@ -70,25 +69,21 @@
  601    format(/,' Left wavefunction has ',i8,' determinants:',/)
         if(idbg.gt.90) then
           do i=1,ndeti
-            call unpack(ioccb(i,ib),iocch,nacti)
-            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
  602        format(i5,f15.5,32i3)
           enddo
         else
           do i=1,min(ndeti,10)
-            call unpack(ioccb(i,ib),iocch,nacti)
-            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
           enddo
           do i=max(11,ndeti-10),ndeti
-            call unpack(ioccb(i,ib),iocch,nacti)
-            write(lfndbg,602) i,civb(i,ib),(iocch(k),k=1,nacti)
+            write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
           enddo
         endif
         write(lfndbg,603) ndetj
  603    format(//,' Right wavefunction has ',i8,' determinants:',/)
         do i=1,ndetj
-          call unpack(ioccb(i,jb),iocch,nactj)
-          write(lfndbg,602) i,civb(i,jb),(iocch(k),k=1,nactj)
+          write(lfndbg,602) i,civb(i,jb),(iocc(i,jb,k),k=1,nactj)
         enddo
       endif
 
@@ -184,8 +179,12 @@
 !     the following if statement should be removed once
 !     we have more than one symmetry representation
 
-          nelec(1)=nelec(1)+ipopcnt(ioccb(1,ib),nacti)
-          nelec(2)=nelec(2)+ipopcnt(ioccb(1,jb),nactj)
+          do iact=1,nacti
+            nelec(1)=nelec(1)+iabs(iocc(1,ib,iact))
+          enddo
+          do iact=1,nactj
+            nelec(2)=nelec(2)+iabs(iocc(1,jb,iact))
+          enddo
 
           if(nelec(1).ne.nelec(2))                                              &
      &         call gronor_abort(300,"Inconsistent number electrons")
@@ -213,15 +212,14 @@
           nact(1)=nacti
           nact(2)=nactj
 
-          call unpack(ioccb(i,ib),iocch,nact(1))
           do k=1,nact(1)
-            ioccup(k,1)=iocch(k)
-            iocopen(k,1)=iocch(k)
+            ioccup(k,1)=iocc(i,ib,k)
+            iocopen(k,1)=iocc(i,ib,k)
           enddo
-          call unpack(ioccb(j,jb),iocch,nact(2))
+
           do k=1,nact(2)
-            ioccup(k,2)=iocch(k)
-            iocopen(k,2)=iocch(k)
+            ioccup(k,2)=iocc(j,jb,k)
+            iocopen(k,2)=iocc(j,jb,k)
           enddo
 
           if(idbg.ge.40) then

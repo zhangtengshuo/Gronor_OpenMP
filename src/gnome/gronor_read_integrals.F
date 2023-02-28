@@ -35,15 +35,9 @@
       implicit none
 
       integer (kind=4) :: ierr
-      integer :: i,ig0,j,kl,k,n,nn,igr,ngi,mdum,ielem,jkoff
-      integer, allocatable :: idum(:)
-      real (kind=8) :: b(510)
-      integer :: status(MPI_STATUS_SIZE)
+      integer :: i,j,k,n
 
-      integer :: kint, kintbatch, mint,nint,jint,lint
-      integer :: nacc
-      integer :: ilast,ii,jj,myigr,lc,nc,mc,numc,nnc
-      integer(kind=2)::ibuf(1020)
+      integer :: myigr,lc,nc,mc,numc,nnc
 
       allocate(ig(mgr))
       allocate(ntarget(mgr))

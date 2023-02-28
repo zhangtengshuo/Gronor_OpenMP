@@ -16,7 +16,7 @@
       real(kind=8),allocatable  :: occNu     (:)
       real(kind=8)              :: thrs
 
-      character (len=255)         :: oneintName,runfileName
+      character (len=255)        :: oneintName,runfileName
 
       call readin
       write(*,'(A,E10.2)')'common MO basis with threshold:',threshold
@@ -52,7 +52,6 @@
       write(12,'(I8)') nBas
       write(12,'(A4)') '#ORB'
 
-
       superBasis = 0.0
       frozenOrbs = 0.0
       occNu = 0.0
@@ -60,6 +59,15 @@
       startBas = 0
       totalFrozen = 0
       lDim = 0
+      if ( AOIntegrals ) then
+        write(*,*) 'A set of unit vectors will be written to COMMONORB'
+        write(*,*)
+        do i = 1, nBas
+          superBasis(i,i) = 1.0
+        end do
+        startBas = nBas
+        startOrb = nBas
+      endif
       do iFrag = 1, nFragments
         if ( iFrag .le. 9 ) then
           write(runfileName,'(A6,I1)')'RUNFIL',iFrag
@@ -67,7 +75,7 @@
         else
           write(runfileName,'(A6,I2)')'RUNFIL',iFrag
           write(oneintName,'(A6,I2)') 'ONEINT',iFrag
-       end if
+        end if
         call NameRun(runfileName)
         call Get_iScalar('nSym',nSym)
         if ( nSym .ne. 1 ) then
@@ -80,24 +88,28 @@
 
         commonMOs = 0.0
         sDiag = 0.0
-        call common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,
-     &                         oneintName,nBasFrag,nBasFragMax,lDim)
-        do j = 1, lDim
-          do k = 1, nBasFrag
-            superBasis(startOrb + j, startBas + k)                     ! dump the common basis in the final set of 
-     &                               = commonMOs(j,k)                  ! MOs of the supermolecule
+        if ( .not. AOIntegrals ) then
+          call common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,
+     &                     oneintName,nBasFrag,nBasFragMax,lDim)
+          do j = 1, lDim
+            do k = 1, nBasFrag
+              superBasis(startOrb + j, startBas + k)                     ! dump the common basis in the final set of 
+     &                                 = commonMOs(j,k)                  ! MOs of the supermolecule
+            end do
+            occNu(startOrb + j) = sDiag(j)
           end do
-          occNu(startOrb + j) = sDiag(j)
-        end do
-        do j = 1, nFrozen(iFrag)
-          do k = 1, nBasFrag
-             frozenOrbs(totalFrozen + j, startBas + k)
-     &                              = frzFragorb(j,k)
+          do j = 1, nFrozen(iFrag)
+            do k = 1, nBasFrag
+               frozenOrbs(totalFrozen + j, startBas + k)
+     &                                = frzFragorb(j,k)
+            end do
           end do
-        end do
-        totalFrozen = totalFrozen + nFrozen(iFrag)
-        startOrb = startOrb + lDim
-        startBas = startBas + nBasFrag
+          totalFrozen = totalFrozen + nFrozen(iFrag)
+          startOrb = startOrb + lDim
+          startBas = startBas + nBasFrag
+        else
+          call generate_vecfiles(iFrag,nBasfrag)
+        end if
       end do
       if ( .not. noAvgCore .and. ( totalFrozen .ne. 0 ) ) then
         call ortho_frozen(frozenOrbs,totalFrozen,nBas)
@@ -213,12 +225,10 @@
 
       real (kind=8),allocatable       :: commonMO_debug (:,:)      ! only for debugging
 
-      real(kind=8) :: dummy
-
       character (len=3)               :: suffix
-      character (len=255)              :: vecFileName
-      character (len=255)              :: base
-      character (len=255)              :: oneintName
+      character (len=255)             :: vecFileName
+      character (len=255)             :: base
+      character (len=12)              :: oneintName
 
       allocate(     linDep(nBasFragMax   ,nBasFrag)       )
       allocate(        vec(nBasFrag      ,nBasFrag)       )
@@ -365,12 +375,13 @@
       end do
       suffix='vec'
       do iVec = 1, nVec(iFrag)
-        call getVecFilename(iVec+startVec,vecFilename,base,suffix)
+        call getFilename(iVec+startVec,vecFilename,base,suffix)
         open(36,file=vecFilename)
         vec = 0.0
         call read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
         sU = 0.0
         VsU = 0.0
+        tVsU = 0.0
         do j = 1, nOcc
           do k = 1, nBasFrag
             do l = 1, nBasFrag
@@ -405,7 +416,7 @@
       deallocate( sU         )
       deallocate( VsU        )
 
-
+      return
       end subroutine common_basis
 
 
@@ -417,17 +428,19 @@
       implicit none
 
       integer, parameter                   :: nKeys = 10
-      integer                              :: jj,iKey,iFrag
+      integer                              :: j,jj,iKey,iFrag
+      integer                              :: start
 
       character (len=4)                    :: key
       character (len=4), dimension(nKeys)  :: keyword
-      character (len=132)                  :: line
+      character (len=132)                  :: line,string
 
       logical                              :: all_ok = .true.
+      logical                              :: fragNameOK
       logical, dimension(nkeys)            :: hit = .false.
 
       data keyword /'THRE','FRAG','PROJ','EXTR','ALLE','FROZ',
-     &              'NOAV','DEBU','LABE','ENER'/
+     &              'NOAV','DEBU','LABE','AOIN'/
 
 * Defaults
       threshold    = 1.0e-6
@@ -439,6 +452,7 @@
       debug        = .false.
       noAvgCore    = .false.
       fragLabels   = .false.
+      AOIntegrals  = .false.
 
       do while (all_ok)
         read(5,*,iostat=jj) line
@@ -468,10 +482,11 @@
               end if
               read(*,*) (nVec(iFrag), iFrag = 1, nFragments)
               allocate( nElectrons(nFragments,maxval(nVec)) )
+              allocate( ener(nFragments,maxval(nVec)) )
             case(3)
               call locate('PROJ')
               read(*,*) project
-              project = trim(project)//'_'
+*              project = trim(project)//'_'
             case(4)
               extra_info = .true.
             case(5)
@@ -486,11 +501,46 @@
             case(9)
               call locate('LABE')
               fragLabels=.true.
+              allocate(fragName(nFragments))
               allocate(fragLabel(sum(nVec)))
-              read(*,*) (fragLabel(jj),jj=1,sum(nVec))
+              allocate(fragState(sum(nVec)))
+              fragName(:) =''
+              fragLabel(:)=''
+              fragState(:)=''
+              start = 0
+              do j = 1 , nFragments
+                start = start + 1
+                read(*,'(A)') line
+                string=adjustl(line)
+                fragNameOK = .false.
+                do jj=1,len(trim(string))
+                  if (string(jj:jj).ne.' ') then
+                    if (.not.fragNameOK) then
+                      write(fragName(j),'(a,a)')
+     &                      trim(adjustl(fragName(j))),string(jj:jj)
+                    else
+                      write(fragState(start),'(a,a)')
+     &                   trim(adjustl(fragState(start))),string(jj:jj)
+                    end if
+                  else
+                    if (fragNameOK) then
+                      if (string(jj-1:jj-1).ne.' ') start=start+1
+                    else
+                      fragnameOK = .true.
+                    end if
+                  end if
+                end do
+              end do
+              start = 1
+              do j = 1, nFragments
+                do jj = start,start+nVec(j)-1
+                  write(fragLabel(jj),'(a,a,a)')
+     &                trim(fragName(j)),'_',trim(fragState(jj))
+                end do
+                start = start + nVec(j)
+              end do
             case(10)
-              energy_on_INPORB = .true.
-              allocate( ener(nFragments,maxval(nVec)) )
+              AOIntegrals = .true.
           end select
         end if
       end do
@@ -511,6 +561,9 @@
 *     tetracene
 *  FROZen               ! excluding the C-1s orbitals from the calculation
 *   18 18
+*  Label                ! Labels of the fragment states, used for the definition of the MEBFs
+*   A  S0 S1 T1         !    labels of fragment A
+*   B  S0 S1 T1 T2      !    labels of fragment B
 *  EXTRa                ! print information on the size of the common MO basis for different thresholds
 *  ALLEpsilons          ! print all the eigenvalues of the sMO of the different fragments
 *  DEBUg                ! vast amount of useless info (unless you're debugging)
@@ -521,7 +574,7 @@
 * ===============================================================================
 
       subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
-      use input_data, only : nFrozen,energy_on_INPORB
+      use input_data, only : nFrozen,energy_on_INPORB,project,nVec
       use fragment_data
 * read the different vector files of fragment iFrag 
 * get the number of inactive and active orbitals from the vector file * (#INDEX)
@@ -534,20 +587,27 @@
 
       integer,intent(in)                    :: iFrag,iVec,n
       integer,intent(out)                   :: nOcc
-      integer                               :: j,k
+      integer                               :: j,k,startVec
 
       real(kind=8),intent(out)              :: frzVec(nFrozen(iFrag),n)
       real(kind=8),intent(out)              :: vec(n,n)
       real(kind=8)                          :: occ(n)
 
       character (len=6)                     :: mark
-      character (len=255)                    :: filename,base
+      character (len=20)                    :: base
+      character (len=255)                   :: orbFilename
       character (len=132)                   :: line,dummy
+      character (len=3)                     :: suffix
       character (len = 1 )                  :: orbLabel(n)
 
-      base = 'INPORB.'
-      call getFileName(iVec,iFrag,filename,base)
-      open( 35, file = filename, status = 'old' )
+      base = project
+      suffix = 'orb'
+      startVec = 0
+      do j = 1, iFrag - 1
+        startVec = startVec + nVec(j)
+      end do
+      call getFilename(iVec+startVec,orbFilename,project,suffix)
+      open( 35, file = orbFilename, status = 'old' )
 
       nOcc = 0
       mark = '#INDEX'
@@ -578,17 +638,16 @@
         read(35,'(A132)') line
         read(35,'(5E22.14)') (vec(j,k),k=1,n)
       end do
-      if (energy_on_INPORB) then
-        rewind(35)
-        mark = '#INFO'
- 48     read(35,'(A132)') line
-        if (line(1:5).ne.mark) goto 48
-        read(35,'(A132)') line
-        if (line(10:34).ne.'natural orbitals for root') then
-          energy_on_INPORB = .false.
-        else
-          read(line,'(a48,f22.12)')dummy,ener(iFrag,ivec)
-        end if
+      rewind(35)
+      energy_on_INPORB = .true.
+      mark = '#INFO'
+ 48   read(35,'(A132)') line
+      if (line(1:5).ne.mark) goto 48
+      read(35,'(A132)') line
+      if (line(10:34).ne.'natural orbitals for root') then
+        energy_on_INPORB = .false.
+      else
+        read(line,'(a48,f22.12)')dummy,ener(iFrag,ivec)
       end if
       rewind(35)
       mark = '#OCC'
@@ -611,10 +670,10 @@
       integer                           :: iCounter,iComponent
       integer                           :: iRC,iOpt,iSymLbl,j,k
 
-      real (kind=8)                     :: s(n*(n+1)/2 + 4)
+      real (kind=8)                     :: s( n * (n + 1 ) / 2 + 4)
       real (kind=8),intent(out)         :: sAO(n,n)
 
-      character (len=255),intent(in)     :: filename
+      character (len=12),intent(in)     :: filename
 
       s = 0.0
       sAO = 0.0
@@ -727,40 +786,18 @@
 
 * ===============================================================================
 
-      subroutine getFilename(iVec,iFrag,filename,base)
-      implicit none
-      integer,intent(in)              :: iVec,iFrag
-      character (len=255),intent(in)    :: base
-      character (len=255),intent(out)  :: filename
-
-      if ( iFrag .le. 9 .and. iVec .le. 9 ) then
-        write(filename,'(A7,I1,A1,I1)') base,iFrag,'_',iVec
-      end if
-      if ( iFrag .gt. 9 .and. iVec .le. 9 ) then
-        write(filename,'(A7,I2,A1,I1)') base,iFrag,'_',iVec
-      end if
-      if ( iFrag .le. 9 .and. iVec .gt. 9 ) then
-        write(filename,'(A7,I1,A1,I2)') base,iFrag,'_',iVec
-      end if
-      if ( iFrag .gt. 9 .and. iVec .gt. 9 ) then
-        write(filename,'(A7,I2,A1,I2)') base,iFrag,'_',iVec
-      end if
-      return
-      end subroutine getFilename
-
-* ===============================================================================
-
-      subroutine getVecFilename(iVec,filename,base,suffix)
+      subroutine getFilename(iVec,filename,base,suffix)
+      use input_data, only : fragLabel
       implicit none
       integer,intent(in)              :: iVec
       character (len=3),intent(in)    :: suffix
-      character (len=255),intent(in)   :: base
-      character (len=255),intent(out)  :: filename
+      character (len=20),intent(in)   :: base
+      character (len=255),intent(out) :: filename
 
-      write(filename,'(A,I0.3,2A)') trim(base),iVec,'.',suffix
+      write(filename,'(4A)') trim(base),trim(fragLabel(iVec)),'.',suffix
       filename = trim(filename)
       return
-      end subroutine getVecFilename
+      end subroutine getFilename
 
 * ===============================================================================
 
@@ -823,7 +860,7 @@
       real(kind=8),allocatable   :: work       (:)
       real(kind=8),allocatable   :: orbs_debug (:,:)
 
-      character (len=255)         :: oneintName
+      character (len=12)         :: oneintName
 
       lwork = 4 * totalFrozen
 
@@ -969,11 +1006,11 @@
       use fragment_data
       implicit none
 
-      integer :: idet,ndet,inactm,i,j,iVec,istat
-      real(kind=8),allocatable  :: coeff(:)
+      integer :: idet,ndet,inactm,i,j,iVec,istat,ndet_unique
+      real(kind=8),allocatable  :: coeff(:),coeff_unique(:)
       character(len=3)      :: suffix
-      character(len=255)     :: detFilename
-      character(len=255), allocatable :: occ(:)
+      character(len=255)    :: detFilename
+      character (len=255), allocatable :: occ(:),occ_unique(:)
 
       suffix = 'det'
       iVec = 0
@@ -981,11 +1018,7 @@
         do j = 1, nVec(i)
           ndet = 0
           iVec = iVec + 1
-          write(*,'(a,i10)') 'iVec=',iVec
-          write(*,*) trim(project)
-          write(*,*) trim(suffix)
-          call getVecFilename(iVec,detFilename,project,suffix)
-          write(*,*) trim(detFilename)
+          call getFilename(iVec,detFilename,project,suffix)     
           open(37,file=detFilename,status='old')
           read(37,*) inactm
           do
@@ -996,43 +1029,128 @@
             else
               ndet = ndet + 1
             endif
-         enddo
-          write(*,'(a,i10)') 'ndet=',ndet
-         if(allocated(coeff)) deallocate(coeff)
-         if(allocated(occ)) deallocate(occ)
-         allocate(coeff(ndet))
-         allocate(occ(ndet))
-c         print*,"occ allocated"
-          rewind(unit=37)
+          enddo
+          allocate(coeff(ndet))
+          allocate(coeff_unique(ndet))
+          allocate(occ(ndet))
+          allocate(occ_unique(ndet))
           read(37,*)
           do idet = 1, ndet
-             read(37,*) coeff(idet),occ(idet)
-c             write(*,'(e12.6,2x,a)') coeff(idet),trim(occ(idet))
+            read(37,*) coeff(idet),occ(idet)
           end do
           rewind(37)
+          call quicksort(coeff,occ,ndet)
+          ndet_unique = 1
+          occ_unique(1) = occ(1)
+          coeff_unique(1) = coeff(1)
+          do idet = 2, ndet
+            if ( occ(idet) .ne. occ(idet-1) ) then
+              ndet_unique = ndet_unique + 1
+              occ_unique(ndet_unique) = occ(idet)
+              coeff_unique(ndet_unique) = coeff(idet)
+            else
+              coeff_unique(ndet_unique) = coeff_unique(ndet_unique) +
+     &                                                      coeff(idet)
+            end if
+          end do
           if (fragLabels.and.energy_on_INPORB) then
-            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
+            write(37,1600) inactm,nFrozen(i),ndet_unique,
+     &              fragState(iVec),ener(i,j),nElectrons(i,j),threshold
           elseif (fragLabels) then
-            write(37,1600) inactm,nFrozen(i),ndet,fragLabel(iVec),
-     &           0.0,nElectrons(i,j),threshold,0.0d0
+            write(37,1600) inactm,nFrozen(i),ndet_unique,
+     &              fragState(iVec),0.0,nElectrons(i,j),threshold
           elseif (energy_on_INPORB) then
-            write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           ener(i,j),nElectrons(i,j),threshold,0.0d0
+            write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label',
+     &              ener(i,j),nElectrons(i,j),threshold
           else
-            write(37,1600) inactm,nFrozen(i),ndet,'no_label',
-     &           0.0,nElectrons(i,j),threshold,0.0d0
+            write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label',
+     &              0.0,nElectrons(i,j),threshold
           end if
-          do idet = 1, ndet
-            write(37,'(e15.8,6x,A)') coeff(idet),trim(occ(idet))
+          do idet = 1, ndet_unique
+            write(37,'(e15.8,6x,A)') coeff_unique(idet),
+     &                                trim(occ_unique(idet))
           end do
           close(37)
-c          deallocate(coeff)
           deallocate(coeff,occ)
+          deallocate(coeff_unique,occ_unique)
         end do
- 1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3,f22.12)
+ 1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3)
       end do
      
       end subroutine addInfo_on_detFiles
 
 * ===============================================================================
+
+      subroutine generate_vecfiles(iFrag,nBas)
+      use input_data, only : project,nVec
+      implicit none
+
+      integer                   :: i,j,iFrag,nBas,iVec,start
+      real(kind=8),allocatable  :: vec(:,:)
+      character(len=255)        :: filename
+
+      start = 0
+      if (iFrag .gt. 1) then
+        do i = 2, iFrag
+          start = start + nVec(i)
+        end do
+      end if
+      do iVec = 1, nVec(iFrag)
+        call getFilename(start+iVec,filename,project,'vec')
+        open(10,file=filename)
+        write(10,'(i4)')nBas
+        allocate(vec(nBas,nBas))
+        do i = 1, nBas
+          vec(i,i) = 1.0
+        end do
+        do i = 1, nBas
+          write(10,'(4F18.14)')(vec(i,j),j=1,nBas)
+        end do
+        deallocate(vec)
+      end do
+      end subroutine generate_vecfiles
+
+
+* ===============================================================================
+
+      recursive subroutine quicksort(coef,occu,n)
+      implicit none
+
+      real (kind = 8)    :: coef(n)
+      character(len=255)  :: occu(n),pivot,aux2
+      real (kind = 8)    :: random
+      real (kind = 8)    :: aux1
+      integer            :: n,left,right,marker
+
+      if (n .gt. 1) then
+        call random_number(random)
+        pivot = occu(int(random*real(n-1))+1)
+        left = 0
+        right = n + 1
+        do while (left .lt. right)
+          right = right - 1
+          do while ( occu(right) .lt. pivot )
+            right = right - 1
+          end do
+          left = left + 1
+          do while ( occu(left) .gt. pivot )
+            left = left + 1
+          end do
+          if ( left .lt. right) then
+            aux1 = coef(left)
+            coef(left) = coef(right)
+            coef(right) = aux1
+            aux2 = occu(left)
+            occu(left) = occu(right)
+            occu(right) = aux2
+          end if
+        end do
+        if (left .eq. right) then
+          marker = left + 1
+        else
+          marker = left
+        end if
+        call quicksort(coef(:marker-1),occu(:marker-1),marker-1)
+        call quicksort(coef(marker:),occu(marker:),n-marker+1)
+      end if
+      end subroutine quicksort

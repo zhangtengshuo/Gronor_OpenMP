@@ -31,7 +31,7 @@
 
       implicit none
 
-      integer :: lfndbg,idet,n,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
+      integer :: lfndbg,idet,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
       logical (kind=4) :: flag
       integer (kind=4) :: ierr,status(MPI_STATUS_SIZE)

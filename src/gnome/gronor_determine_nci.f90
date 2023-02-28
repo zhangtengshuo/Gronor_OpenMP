@@ -28,7 +28,7 @@ implicit none
 
 integer,intent(in)  :: ndets
 integer,intent(out) :: nci
-integer             :: idet,alpha,ms,pascal,iAct,nOrb
+integer             :: idet,alpha,ms,pascal,iact,nOrb
 character(len=255)  :: dumstr
 
 nOrb = len_trim(occ(1))
@@ -36,8 +36,8 @@ nci = 0
 do idet = 1, ndets
   alpha = 0
   dumstr=occ(idet)
-  do iAct = 1, nOrb
-      if (dumstr(iAct:iAct) .eq. 'a') alpha = alpha + 1
+  do iact = 1, nOrb
+      if (dumstr(iact:iact) .eq. 'a') alpha = alpha + 1
   end do
   do ms = 1, spinFrag
     nci = nci + pascal(alpha+1,ms)

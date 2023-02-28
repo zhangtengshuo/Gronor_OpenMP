@@ -36,7 +36,7 @@
 
       implicit none
 
-      integer                          :: i,j,k,istat,nume
+      integer                          :: i,j,k,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
       real      (kind=8)               :: sdum,sume,sump,sumc
@@ -91,7 +91,7 @@
       enddo
  1600 format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       allocate(mebfLabel(nbase))
-      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.5)) then
+      if ((fragLabel(1)(1:8).eq.'no_label').or.(nmol.gt.15)) then
          mebfLabels = .false.
          do j = 1, nbase
             write(mebfLabel(j),618) j

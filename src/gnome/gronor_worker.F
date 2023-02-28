@@ -38,11 +38,10 @@
       real(kind=8), external :: timer_wall_total, timer_wall
 
       integer :: ibase,jbase,idet,jdet,nidet,njdet
-      integer :: i,j,k,l2,n
+      integer :: i,j,k,l2,n,iact
       integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
       integer (kind=8) :: ibuf(4)
       integer (kind=4) :: status(MPI_STATUS_SIZE)
-      integer, external :: ipopcnt
       real (kind=8) :: rbuf(17)
 
       logical (kind=4) :: flag
@@ -76,9 +75,12 @@
       do ibase=1,nbase
        nveca=max(nveca,inactb(ibase)+nactb(ibase))
        n=2*inactb(ibase)
-       n=n+ipopcnt(ioccb(1,ibase),nactb(ibase))
+       do iact=1,nactb(ibase)
+         n=n+iabs(iocc(1,ibase,iact))
+       enddo
        nelecs=max(nelecs,n)
       enddo
+
       nvecb=nveca
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)

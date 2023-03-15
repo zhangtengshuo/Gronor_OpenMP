@@ -22,8 +22,8 @@
       subroutine gronor_print_results(hbase,sbase,nbase,hev)
 
       use gnome_parameters, only : itest,ncols
-      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,           &
-     &                             nwt,mebfLabel,mebfLabels,header,key,         &
+      use cidef           , only : lfnout,lfntst,lfnarx,lfncml,ncorr,     &
+     &                             nwt,mebfLabel,mebfLabels,header,key,   &
      &                             nociwf,lfnxrx
 
       implicit none
@@ -42,14 +42,13 @@
       character(len=20)             :: label
       character(len=1)              :: sep
       integer                       :: indent
-      
+
       real(kind=8)                  :: debye,angstrom
       real(kind=8)                  :: two3rds
       integer                       :: lfnt
 
       debye    = 2.54174644986
       angstrom = 0.529177249
-      two3rds  = 2.0d0/3.0d0
 
       lfnt=0
       if(itest.gt.0) lfnt=lfntst

@@ -1518,6 +1518,7 @@
       endif
 
       maxcoef=0.0
+      numact = 0
       allocate(alldets(nbase))
 ! First pass through make_basestate to determine maxcib
       first_pass = .true.
@@ -2314,7 +2315,7 @@
           call gronor_print_results(hcorr,sbase,nbase,hev)
           deallocate( hcorr )
         endif
-        call gronor_print_dipole_moments(dqbase,mnuc,nbase,hev)
+        call gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
 
         inquire(file=trim(fillog),exist=EXIST)
         open(unit=lfnlog,file=trim(fillog),                                     &

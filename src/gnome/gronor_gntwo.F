@@ -94,7 +94,7 @@
 !$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(i,k)
+!$omp target teams loop collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -103,13 +103,19 @@
         enddo
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(i,k)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -128,7 +134,7 @@
 #endif
 #ifdef OMPTGT
 !$omp taskwait
-!$omp target teams distribute parallel do reduction(+:tst)
+!$omp target teams loop reduction(+:tst)
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -141,6 +147,9 @@
      &         -aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k)                               &
      &         -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -159,7 +168,7 @@
 !$acc loop reduction (+:e2t)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do reduction(+:e2t)
+!$omp target teams loop reduction(+:e2t)
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -194,6 +203,9 @@
      &         -bal*(aaa(l,i)*aak+aaa(l,k)*aai)                                 &
      &         -bbl*(ta(l,i)*abk+ta(l,k)*abi))
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -281,7 +293,7 @@
 !$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(i,k)
+!$omp target teams loop collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -290,13 +302,19 @@
         enddo
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2)
 #endif
       do i=1,nbas
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -317,7 +335,7 @@
 #endif
 #ifdef OMPTGT
 !$omp taskwait
-!$omp target teams distribute parallel do reduction(+:tst)
+!$omp target teams loop reduction(+:tst)
 #endif
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -333,6 +351,9 @@
      &           -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -352,7 +373,7 @@
 !$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do reduction(+:e2t)
+!$omp target teams loop reduction(+:e2t)
 #endif
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -390,6 +411,9 @@
      &           -bbl*(ta(l,i)*abk+ta(l,k)*abi))
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -477,7 +501,7 @@
 !$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(i,k)
+!$omp target teams loop collapse(2) private(i,k)
 #endif
       do i=1,nbas
         do k=1,nbas
@@ -486,13 +510,19 @@
         enddo
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2)
 #endif
       do i=1,nbas
         do k=1,nbas
           sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -514,7 +544,7 @@
 #endif
 #ifdef OMPTGT
 !$omp taskwait
-!$omp target teams distribute parallel do reduction(+:tst)
+!$omp target teams loop reduction(+:tst)
 #endif
         do k=1,nbas
           do i=1,k
@@ -550,6 +580,9 @@
 !     &           -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
 !          enddo
 !        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -571,7 +604,7 @@
 !$acc& copyin(intg,kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do reduction(+:e2t)
+!$omp target teams loop reduction(+:e2t)
 #endif
 !        do ii=intndx,jntndx
 !          do jj=ii,kl
@@ -627,6 +660,9 @@
             e2t=e2t+e2n
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -720,7 +756,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(i)
+!$omp target teams loop private(i)
 #endif
           do i=1,nbas
             diagl(ibl,i)=diag(i)
@@ -728,6 +764,9 @@
             bsdiagl(ibl,i)=bsdiag(i)
             csdiagl(ibl,i)=csdiag(i)
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -736,7 +775,7 @@
 !$acc kernels present(aat,aaa,tt,ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
         do i=1,nbas
           do k=1,nbas
@@ -744,6 +783,9 @@
             aat(i,k)=aaa(k,i)
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -753,7 +795,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
         do k=1,nbas
           do i=1,nbas
@@ -764,6 +806,9 @@
             tatl(ibl,i,k)=ta(i,k)
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -814,7 +859,7 @@
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
           do intg=1,numint
             i=lab(1,intg)
@@ -836,6 +881,9 @@
      &             -tatl(ibl,l,i)*ttl(ibl,n,k))
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -852,7 +900,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
           do intg=1,numint
             i=lab(1,intg)
@@ -890,6 +938,9 @@
      &             +tatl(ibl,l,k)*bdiagl(ibl,i)))
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -971,7 +1022,7 @@
 
 !!_ACCTGT_($acc kernels present(diag,bdiag,bsdiag,csdiag))
 !!_ACCTGT_($acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl))
-!!_OMPTGT_($omp target teams distribute parallel do)
+!!_OMPTGT_($omp target teams loop)
 !        do i=1,nbas
 !          diagl(ibl,i)=diag(i)
 !          bdiagl(ibl,i)=bdiag(i)
@@ -988,7 +1039,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(k,i)
+!$omp target teams loop collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -999,6 +1050,9 @@
           tatl(ibl,i,k)=ta(i,k)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1057,7 +1111,7 @@
 !$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -1083,6 +1137,9 @@
               enddo
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1099,7 +1156,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -1140,6 +1197,9 @@
               enddo
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1219,7 +1279,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(k,i)
+!$omp target teams loop collapse(2) private(k,i)
 #endif
           do k=1,nbas
             do i=1,nbas
@@ -1230,6 +1290,9 @@
               tt0(i,k,nb0)=ta(k,i)
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1259,7 +1322,7 @@
 !$acc kernels present(aaal,aatl,ttl,tatl,tt,aat,aaa,ta,sml) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(k,i)
+!$omp target teams loop collapse(2) private(k,i)
 #endif
           do k=1,nbas
             do i=1,nbas
@@ -1270,6 +1333,9 @@
               tt1(i,k,nb1)=ta(k,i)
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1296,7 +1362,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
           do i=1,nbas
             diag1(nb1,i)=diag(i)
@@ -1304,6 +1370,9 @@
             bsdiag1(nb1,i)=bsdiag(i)
             csdiag1(nb1,i)=csdiag(i)
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1334,7 +1403,7 @@
 !$acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -1356,6 +1425,9 @@
      &           -ta0(l,i,ibl)*tt0(n,k,ibl))
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 !$acc end data
@@ -1388,7 +1460,7 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -1426,6 +1498,9 @@
      &           +ta1(l,k,ibl)*bdiag1(i,ibl)))
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 !$acc end data
@@ -1504,7 +1579,7 @@
 !$acc& copyin(nb0)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(k,i)
+!$omp target teams loop collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1515,6 +1590,9 @@
           tt0(i,k,nb0)=ta(k,i)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1546,7 +1624,7 @@
 !$acc& copyin(nb1)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(k,i)
+!$omp target teams loop collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1557,6 +1635,9 @@
           tt1(i,k,nb1)=ta(k,i)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1582,7 +1663,7 @@
 !$acc& present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
         do i=1,nbas
           diag1(nb1,i)=diag(i)
@@ -1590,6 +1671,9 @@
           bsdiag1(nb1,i)=bsdiag(i)
           csdiag1(nb1,i)=csdiag(i)
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1622,7 +1706,7 @@
 !$acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
         do ibl=1,nb0
           do ii=intndx,jntndx
@@ -1645,6 +1729,9 @@
             enddo
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -1681,7 +1768,7 @@
 !$acc& present(diag1,bdiag1,bsdiag1,csdiag1)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -1722,6 +1809,9 @@
             enddo
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif

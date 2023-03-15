@@ -46,7 +46,7 @@
 !$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(i,j)
+!$omp target teams loop collapse(2) private(i,j)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -56,12 +56,15 @@
         taa(j,i)=ta(j,i)
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
       if(ising.ne.0) then
 
 !     transformation of diag
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -94,11 +97,17 @@
         w1(j)=sum
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop
 #endif
        do j=1,nbas
         diag(j)=w1(j)
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 
@@ -107,7 +116,7 @@
 !     calculation of an intermediate array (w)
 
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -144,10 +153,13 @@
         w2(i,j)=sum
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 !     put w in the work-matrix (aa)
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -157,10 +169,13 @@
         taa(i,j)=w2(i,j)
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 !     calculation of the final matrix aa
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -197,10 +212,13 @@
         w2(i,j)=sum
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 !     put w back in the work-matrix aa
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -210,11 +228,14 @@
         taa(i,j)=w2(i,j)
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 !        transformation of sdiag
       if(ising.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -247,11 +268,17 @@
         w1(j)=sum
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop
 #endif
        do j=1,nbas
         sdiag(j)=w1(j)
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 #ifdef ACC

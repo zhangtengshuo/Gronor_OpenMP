@@ -56,7 +56,7 @@
 
         if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum,k)
+!$omp target teams loop private(sum,k)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -68,11 +68,14 @@
          enddo
          diag(j)=sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
        endif
 
        if(ntcla.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -85,12 +88,15 @@
          enddo
          bdiag(j)=sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
        endif
 
        if(nalfa.ne.nveca) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -103,11 +109,14 @@
          enddo
          bdiag(j)=bdiag(j)+sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
        endif
 
        if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -119,11 +128,14 @@
          enddo
          w1(j)=sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
        endif
 
        if(ntclb.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -136,12 +148,15 @@
          enddo
          bsdiag(j)=sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
        endif
 
        if(nalfa.ne.nvecb) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -154,14 +169,20 @@
          enddo
          bsdiag(j)=bsdiag(j)+sum
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 #ifdef OMPTGT
-!$omp target teams distribute parallel do
+!$omp target teams loop
 #endif
        do j=1,nbas
         csdiag(j)=w1(j)
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 !     transformation of the input-matrix a
@@ -170,7 +191,7 @@
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -188,7 +209,10 @@
         enddo
       enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -198,12 +222,15 @@
          ta(i,j)=w2(i,j)
         enddo
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
        do i=m1,nelecs
         do j=1,nbas
@@ -230,20 +257,26 @@
         enddo
        enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2)
 #endif
         do j=1,nbas
         do i=m1,nelecs
          ta(i,j)=w2(i,j)
         enddo
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 !     calculation of the two final matrices
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -260,11 +293,14 @@
          aaa(i,j)=sum
         enddo
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -294,7 +330,10 @@
         enddo
        enddo
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -304,9 +343,12 @@
          ta(i,j)=w2(i,j)
         enddo
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       else
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -316,6 +358,9 @@
          ta(i,j)=0.0d0
         enddo
        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 
 #ifdef ACC

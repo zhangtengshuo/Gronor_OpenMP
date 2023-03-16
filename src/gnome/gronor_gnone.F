@@ -68,7 +68,7 @@
 !$acc& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do simd                                  &
+!$omp target teams loop                                                         &
 !$omp& private(tsj,vsj,dsj1,dsj2,dsj3,                                          &
 !$omp& qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
 #endif
@@ -114,13 +114,16 @@
          qsum5=qsum5+qsj5
          qsum6=qsum6+qsj6
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       else
 #ifdef ACC
 !$acc loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3,                             &
 !$acc& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(tsj,vsj,                      &
+!$omp target teams loop private(tsj,vsj,                                        &
 !$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k)
 #endif
         do j=1,nbas
@@ -166,6 +169,9 @@
          qsum5=qsum5+qsj5
          qsum6=qsum6+qsj6
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
       endif
 #ifdef ACC
 !$acc end kernels

@@ -61,16 +61,19 @@
 !$acc kernels present(ta,tb,s,vb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2) private(iv,ib)
+!$omp target teams loop collapse(2) private(iv,ib)
 #endif
       do iv=1,nvecb
         do ib=1,nbas
           tb(ib,iv)=0.0d0
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
       do iv=1,nvecb
         do ib=1,nbas
@@ -81,18 +84,24 @@
           tb(ib,iv)=tb(ib,iv)+sum
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
       do le=1,nelecs
         do ie=1,nelecs
           ta(ie,le)=0.0d0
        enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 #ifdef ACC
 !$acc end kernels
@@ -103,7 +112,7 @@
 !$acc kernels present(va,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do ke=1,nalfa
           do ie=1,nalfa
@@ -114,6 +123,9 @@
             ta(ie,ke)=sum
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
 #ifdef ACC
 !$acc end kernels
@@ -129,7 +141,7 @@
 !$acc parallel loop present(ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(ii)
+!$omp target teams loop private(ii)
 #endif
         do i=1,ntcla
           ii=i+nalfa
@@ -141,6 +153,9 @@
             ta(ii,kk)=ta(i,k)
           enddo
         enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 
       endif
 
@@ -155,7 +170,7 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
           do k=1,ntclb
             kk=k+nalfa
@@ -167,6 +182,9 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -177,7 +195,7 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
           do k=nalfa+1,nvecb
             kk=k+ntclb
@@ -189,6 +207,9 @@
               ta(i+ntcla,kk)=sum
             enddo
           enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -201,7 +222,7 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do private(sum)
+!$omp target teams loop private(sum)
 #endif
         do i=1,ntcla
           do k=m1,nvecb
@@ -224,7 +245,7 @@
 !$acc kernels present(ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams distribute parallel do collapse(2)
+!$omp target teams loop collapse(2)
 #endif
       do i1=1,nelecs
         do i2=1,nelecs
@@ -232,6 +253,9 @@
           a(i1,i2)=ta(i1,i2)
         enddo
       enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif

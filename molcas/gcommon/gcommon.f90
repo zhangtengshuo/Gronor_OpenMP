@@ -22,6 +22,7 @@ module gcommon_input_data
   logical     :: fragLabels,energy_on_INPORB
   character (len=4),allocatable :: fragName(:),fragState(:)
   character (len=255),allocatable :: fragLabel(:)
+  character (len=32)      :: mebfLabel
   character (len=255)     :: project
 end module gcommon_input_data
 
@@ -97,11 +98,11 @@ program gcommon
   endif
   do iFrag=1,nFragments
     if(iFrag .le. 9) then
-      write(runfileName,'(A6,I1)')'RUNFIL',iFrag
-      write(oneintName,'(A6,I1)') 'ONEINT',iFrag
+      write(runfileName,'(a6,a)')'RUNFIL',trim(fragName(iFrag))
+      write(oneintName,'(a6,a)') 'ONEINT',trim(fragName(iFrag))
     else
-      write(runfileName,'(A6,I2)')'RUNFIL',iFrag
-      write(oneintName,'(A6,I2)') 'ONEINT',iFrag
+      write(runfileName,'(a6,a)')'RUNFIL',trim(fragName(iFrag))
+      write(oneintName,'(a6,a)') 'ONEINT',trim(fragName(iFrag))
     endif
     call NameRun(runfileName)
     call Get_iScalar('nSym',nSym)
@@ -111,12 +112,12 @@ program gcommon
       stop
     endif
     Call Get_iArray('nBas',nBasFrag,nSym)
-    nBasFragMax=nBasFrag * nVec(iFrag)
+    nBasFragMax=nBasFrag*nVec(iFrag)
 
     commonMOs=0.0
     sDiag=0.0
     if(.not. AOIntegrals) then
-      call common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas, &
+      call gcommon_common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas, &
          oneintName,nBasFrag,nBasFragMax,lDim)
       do j=1,lDim
         do k=1,nBasFrag
@@ -134,16 +135,14 @@ program gcommon
       startOrb=startOrb+lDim
       startBas=startBas+nBasFrag
     else
-      call generate_vecfiles(iFrag,nBasfrag)
+      call gcommon_generate_vecfiles(iFrag,nBasfrag)
     endif
   enddo
   if(.not. noAvgCore .and.(totalFrozen.ne.0)) then
-    call ortho_frozen(frozenOrbs,totalFrozen,nBas)
+    call gcommon_ortho_frozen(frozenOrbs,totalFrozen,nBas)
   endif
 
 ! Adding number of dets, fragment labels and changing the number of inactives (if frozen.ne.0)
-  
-  call addInfo_on_detFiles()
   
   write(*,'(A,I4)') 'Final number of orbitals in MO basis    : ',startOrb
   write(*,'(A,I4)') 'Sum of the number of AO basis functions : ',startBas
@@ -163,7 +162,7 @@ program gcommon
     thrs=0.1
     do i=1,maxbin-1
       write (*,'(E10.2,3x,I5)') thrs,freq(i)
-      thrs=thrs / 10
+      thrs=thrs/10
     enddo
   endif
   
@@ -206,7 +205,7 @@ program gcommon
 end program gcommon
 
 
-subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFrag,nBasFragMax,lDim)
+subroutine gcommon_common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFrag,nBasFragMax,lDim)
   use gcommon_input_data
   implicit none
 
@@ -257,7 +256,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
   allocate(frzDensity(nFrozen(iFrag),nFrozen(iFrag)))
   allocate(frzFragAvg(nFrozen(iFrag),nBasFrag))
   luOne=87
-  call getAtomicOverlap(oneintName,luOne,nBasFrag,sAO)
+  call gcommon_getAtomicOverlap(oneintName,luOne,nBasFrag,sAO)
   fragOrbTot=0
   linDep    =0.0
   frzDensity=0.0
@@ -266,7 +265,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
   do iVec=1,nVec(iFrag)
     vec   =0.0
     frzVec=0.0
-    call read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
+    call gcommon_read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
 !  Save the frozen orbitals of the first state, used to express the frozen density of the
 !  other states. In case of NOAV, these orbitals are directly used in the common basis.
     if(nFrozen(iFrag).ne.0) then
@@ -278,7 +277,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
         enddo
       endif
       if(.not. noAvgCore) then     ! accumulate the density of the frozen orbitals
-        call calc_frz_density(nVec(iFrag),nBasFrag,nFrozen(iFrag),sAO,froVec_1st,frzVec,frzDensity)
+        call gcommon_calc_frz_density(nVec(iFrag),nBasFrag,nFrozen(iFrag),sAO,froVec_1st,frzVec,frzDensity)
       endif
     endif
 ! add the other occupied vectors to the (linear dependent) common MO basis
@@ -300,7 +299,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
 
   if(nFrozen(iFrag).ne.0) then
     if(.not. noAvgCore) then
-      call average_frozen(nFrozen(iFrag),nBasFrag,frzDensity,froVec_1st,frzFragAvg)
+      call gcommon_average_frozen(nFrozen(iFrag),nBasFrag,frzDensity,froVec_1st,frzFragAvg)
       do j=1,nFrozen(iFrag)
         do k=1,nBasFrag
           frzFragOrb(j,k)=frzFragAvg(j,k)
@@ -324,7 +323,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
   allocate(work(lwork))
   allocate(eigenValues(fragOrbTot))
   allocate(basis(fragOrbTot,fragorbTot))
-  call calculate_sMO(linDep2,sMO,sAO,fragOrbTot,nBasFrag)
+  call gcommon_calculate_sMO(linDep2,sMO,sAO,fragOrbTot,nBasFrag)
   work =0.0
   eigenValues=0.0
   iRc=1
@@ -334,9 +333,9 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
     write(*,*) 'Something went wrong in dsyev'
     write(*,*) 'iRc=',iRc
   endif
-  call reverse_order(eigenValues,sMO,fragOrbTot)
-  if(extra_info) call printDim(eigenValues,fragOrbTot)
-  if(all_epsilons) call printepsilons(eigenValues,fragOrbTot,iFrag)
+  call gcommon_reverse_order(eigenValues,sMO,fragOrbTot)
+  if(extra_info) call gcommon_printDim(eigenValues,fragOrbTot)
+  if(all_epsilons) call gcommon_printepsilons(eigenValues,fragOrbTot,iFrag)
 ! remove the linear dependencies
   lDim=0
   do j=1,fragOrbTot
@@ -372,7 +371,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
         commonMO_debug(j,k)=commonMOs(j,k)
       enddo
     enddo
-    call calculate_sMO(commonMO_debug,sMO,sAO,lDim,nBasFrag)
+    call gcommon_calculate_sMO(commonMO_debug,sMO,sAO,lDim,nBasFrag)
     deallocate(commonMO_debug)
     deallocate(sMO)
   endif
@@ -387,24 +386,24 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
   enddo
   suffix='vec'
   do iVec=1,nVec(iFrag)
-    call getFilename(iVec+startVec,vecFilename,base,suffix)
+    call gcommon_getFilename(iVec+startVec,vecFilename,base,suffix)
     open(36,file=vecFilename)
     vec=0.0
-    call read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
+    call gcommon_read_vec(iFrag,iVec,nBasFrag,frzVec,vec,nOcc)
     sU=0.0
     VsU=0.0
     tVsU=0.0
     do j=1,nOcc
       do k=1,nBasFrag
         do l=1,nBasFrag
-          sU(j,k)=sU(j,k)+sAO(k,l) * vec(j,l)
+          sU(j,k)=sU(j,k)+sAO(k,l)*vec(j,l)
         enddo
       enddo
     enddo
     do j=1,lDim
       do k=1,nOcc
         do l=1,nBasFrag
-          VsU(j,k)=VsU(j,k)+commonMOs(j,l) * sU(k,l)
+          VsU(j,k)=VsU(j,k)+commonMOs(j,l)*sU(k,l)
         enddo
       enddo
     enddo
@@ -429,7 +428,7 @@ subroutine common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFra
   deallocate(VsU)
 
   return
-end subroutine common_basis
+end subroutine gcommon_common_basis
 
 
 subroutine gcommon_readin
@@ -466,7 +465,7 @@ subroutine gcommon_readin
   do while(all_ok)
     read(5,*,iostat=jj) line
     key=adjustl(line)
-    call capitalize(key)
+    call gcommon_capitalize(key)
     do iKey=1,nKeys
       if(key.eq.keyword(iKey)) hit(iKey)=.true.
     enddo
@@ -477,10 +476,10 @@ subroutine gcommon_readin
     if(hit(iKey)) then
       select case(iKey)
       case(1)
-        call locate('THRE')
+        call gcommon_locate('THRE')
         read(*,*) threshold
       case(2)
-        call locate('FRAG')
+        call gcommon_locate('FRAG')
         read(*,*) nFragments
         if(nFragments.gt.maxFrag) then
           write(*,*) 'Error: number of fragments is too large'
@@ -493,7 +492,7 @@ subroutine gcommon_readin
         allocate(nElectrons(nFragments,maxval(nVec)))
         allocate(ener(nFragments,maxval(nVec)))
       case(3)
-        call locate('PROJ')
+        call gcommon_locate('PROJ')
         read(*,*) project
  ! project=trim(project)//'_'
       case(4)
@@ -501,14 +500,14 @@ subroutine gcommon_readin
       case(5)
         all_epsilons=.true.
       case(6)
-        call locate('FROZ')
+        call gcommon_locate('FROZ')
         read(*,*) (nFrozen(iFrag),iFrag=1,nFragments)
       case(7)
         noAvgCore=.true.
       case(8)
         debug=.true.
       case(9)
-        call locate('LABE')
+        call gcommon_locate('LABE')
         fragLabels=.true.
         allocate(fragName(nFragments))
         allocate(fragLabel(sum(nVec)))
@@ -517,6 +516,7 @@ subroutine gcommon_readin
         fragLabel(:)=''
         fragState(:)=''
         start=0
+        mebfLabel=''
         do j=1,nFragments
           start=start+1
           read(*,'(A)') line
@@ -537,6 +537,7 @@ subroutine gcommon_readin
               endif
             endif
           enddo
+          write(mebfLabel,'(a,a)') trim(mebfLabel),trim(fragName(j))
         enddo
         start=1
         do j=1,nFragments
@@ -574,11 +575,11 @@ end subroutine gcommon_readin
 !  DEBUg    ! vast amount of useless info (unless you're debugging)
 
 
-subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
+subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   use gcommon_input_data, only : nFrozen,energy_on_INPORB,project,nVec
   use gcommon_fragment_data
 ! read the different vector files of fragment iFrag 
-! get the number of inactive and active orbitals from the vector file * (#INDEX)
+! get the number of inactive and active orbitals from the vector file*(#INDEX)
 
 ! n : length of the vectors (number of basis functions)
 ! frzVec  : frozen vectors (typically the core)
@@ -608,7 +609,7 @@ subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   do j=1,iFrag-1
     startVec=startVec+nVec(j)
   enddo
-  call getFilename(iVec+startVec,orbFilename,project,suffix)
+  call gcommon_getFilename(iVec+startVec,orbFilename,project,suffix)
   open(35,file=orbFilename,status='old')
 
   nOcc=0
@@ -660,17 +661,17 @@ subroutine read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   nElectrons(iFrag,ivec)=nint(sum(occ))
   close(35)
   return
-end subroutine read_vec
+end subroutine gcommon_read_vec
 
 
-subroutine getAtomicOverlap(filename,luOne,n,sAO)
+subroutine gcommon_getAtomicOverlap(filename,luOne,n,sAO)
   implicit none
 
   integer,intent(in)    :: n,luOne
   integer   :: iCounter,iComponent
   integer   :: iRC,iOpt,iSymLbl,j,k
 
-  real (kind=8)   :: s(n * (n+1) / 2+4)
+  real (kind=8)   :: s(n*(n+1)/2+4)
   real (kind=8),intent(out)   :: sAO(n,n)
 
   character (len=12),intent(in)     :: filename
@@ -697,10 +698,10 @@ subroutine getAtomicOverlap(filename,luOne,n,sAO)
   iOpt=0
   Call ClsOne(iRc,iOpt)
   return
-end subroutine getAtomicOverlap
+end subroutine gcommon_getAtomicOverlap
 
 
-subroutine calculate_sMO(a,sMO,sAO,n,m)
+subroutine gcommon_calculate_sMO(a,sMO,sAO,n,m)
   use gcommon_input_data, only : debug 
   implicit none
 
@@ -715,7 +716,7 @@ subroutine calculate_sMO(a,sMO,sAO,n,m)
     do j=1,i
       do k=1,m
         do l=1,m
-          sMO(i,j)=sMO(i,j)+a(i,k) * a(j,l) * sAO(k,l)
+          sMO(i,j)=sMO(i,j)+a(i,k)*a(j,l)*sAO(k,l)
         enddo
       enddo
       sMO(j,i)=sMO(i,j)
@@ -728,10 +729,10 @@ subroutine calculate_sMO(a,sMO,sAO,n,m)
     enddo
   endif
   return
-end subroutine calculate_sMO
+end subroutine gcommon_calculate_sMO
 
 
-subroutine reverse_order(a,b,n)
+subroutine gcommon_reverse_order(a,b,n)
   implicit none
 
   integer,intent(in)    :: n
@@ -751,10 +752,10 @@ subroutine reverse_order(a,b,n)
     enddo
   enddo
   return
-end subroutine reverse_order
+end subroutine gcommon_reverse_order
 
 
-subroutine capitalize(string)
+subroutine gcommon_capitalize(string)
   implicit none
   integer:: i
   character(*) string
@@ -765,37 +766,41 @@ subroutine capitalize(string)
     endif
   enddo
   return
-end subroutine capitalize
+end subroutine gcommon_capitalize
 
 
-subroutine locate(string)
+subroutine gcommon_locate(string)
   implicit none
   character(4)   ::  string,string2
   character(132) ::  line
   rewind(5)
 40 read(5,*) line
   string2=adjustl(line)
-  call capitalize(string2)
+  call gcommon_capitalize(string2)
   if(string2.ne.string) goto 40
   return
-end subroutine locate
+end subroutine gcommon_locate
 
 
-subroutine getFilename(iVec,filename,base,suffix)
-  use gcommon_input_data, only : fragLabel
+subroutine gcommon_getFilename(iVec,filename,base,suffix)
+  use gcommon_input_data, only : fragLabel, mebfLabel
   implicit none
   integer,intent(in)  :: iVec
   character (len=3),intent(in)    :: suffix
   character (len=20),intent(in)   :: base
   character (len=255),intent(out) :: filename
 
-  write(filename,'(4A)') trim(base),trim(fragLabel(iVec)),'.',suffix
+  if(trim(suffix).eq.'vec') then
+      write(filename,'(5A)') trim(base),trim(mebfLabel),trim(fragLabel(iVec)),'.',suffix
+    else
+      write(filename,'(4A)') trim(base),trim(fragLabel(iVec)),'.',suffix
+    endif
   filename=trim(filename)
   return
-end subroutine getFilename
+end subroutine gcommon_getFilename
 
 
-subroutine printDim(a,n)
+subroutine gcommon_printDim(a,n)
   use gcommon_histo_data
   implicit none
 
@@ -809,16 +814,16 @@ subroutine printDim(a,n)
   do i=1,n
     if(a(i).lt.thrs) then
       freq(bin)=freq(bin)+(i-1)
-      thrs=thrs / 10
+      thrs=thrs/10
       bin=bin+1
     endif
   enddo
   if(bin.gt.maxbin) maxbin=bin
   return
-end subroutine printDim
+end subroutine gcommon_printDim
 
 
-subroutine printepsilons(a,n,i)
+subroutine gcommon_printepsilons(a,n,i)
   implicit none
 
   integer,intent(in) :: n
@@ -831,10 +836,10 @@ subroutine printepsilons(a,n,i)
     write(*,'(I5,E20.12)') j,a(j)
   enddo
   return
-end subroutine printepsilons
+end subroutine gcommon_printepsilons
 
 
-subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
+subroutine gcommon_ortho_frozen(frozenOrbs,totalFrozen,nBas)
   use gcommon_input_data, only : debug
   implicit none
 
@@ -853,7 +858,7 @@ subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
 
   character (len=12)   :: oneintName
 
-  lwork=4 * totalFrozen
+  lwork=4*totalFrozen
 
 
   allocate(sAO(nBas,nBas))
@@ -873,8 +878,8 @@ subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
   call NameRun('RUNFILE')
   write(oneintName,'(A6)') 'ONEINT'
   luOne=88
-  call getAtomicOverlap(oneintName,luOne,nBas,sAO)
-  call calculate_sMO(aMatrix,sMO,sAO,totalFrozen,nBas)
+  call gcommon_getAtomicOverlap(oneintName,luOne,nBas,sAO)
+  call gcommon_calculate_sMO(aMatrix,sMO,sAO,totalFrozen,nBas)
   iRc=1
   call dsyev('V','L',totalFrozen,sMO,totalFrozen,eigenValues,work,lwork,iRc)
   if(iRc.ne.0) then
@@ -893,7 +898,7 @@ subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
   do j=1,totalFrozen
     do k=1,totalFrozen
       do l=1,nBas
-        frozenOrbs(j,l)=frozenOrbs(j,l)+sMO(j,k)*aMatrix(k,l) / sqrt(eigenValues(j))
+        frozenOrbs(j,l)=frozenOrbs(j,l)+sMO(j,k)*aMatrix(k,l)/sqrt(eigenValues(j))
       enddo
     enddo
   enddo
@@ -905,7 +910,7 @@ subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
       write(*,'(5E22.14)') frozenOrbs(j,:)
       orbs_debug(j,:)=frozenOrbs(j,:)
     enddo
-    call calculate_sMO(orbs_debug,sMO,sAO,totalFrozen,nBas)
+    call gcommon_calculate_sMO(orbs_debug,sMO,sAO,totalFrozen,nBas)
   endif
   deallocate(sAO)
   deallocate(sMO)
@@ -915,10 +920,10 @@ subroutine ortho_frozen(frozenOrbs,totalFrozen,nBas)
   deallocate(orbs_debug)
 
   return
-end subroutine ortho_frozen
+end subroutine gcommon_ortho_frozen
 
 
-subroutine calc_frz_density(n,nB,nF,sAO,froVec_1st,frzVec,frzDensity)
+subroutine gcommon_calc_frz_density(n,nB,nF,sAO,froVec_1st,frzVec,frzDensity)
   use gcommon_input_data, only : debug
   implicit none
 
@@ -930,7 +935,7 @@ subroutine calc_frz_density(n,nB,nF,sAO,froVec_1st,frzVec,frzDensity)
   real(kind=8)   :: mprod(nB,nF)
 
   mprod=matmul(sAO,transpose(frovec_1st))
-  frzDensity=frzDensity+matmul(frzVec,mprod) / n
+  frzDensity=frzDensity+matmul(frzVec,mprod)/n
   if(debug) then
     write(*,'(a)') '*  Accumulating the density matrices of the frozen orbitals'
     do j=1,nF
@@ -939,10 +944,10 @@ subroutine calc_frz_density(n,nB,nF,sAO,froVec_1st,frzVec,frzDensity)
   endif
 
   return
-end subroutine calc_frz_density
+end subroutine gcommon_calc_frz_density
 
 
-subroutine average_frozen(nF,nB,frzDensity,froVec_1st,frzFragAvg)
+subroutine gcommon_average_frozen(nF,nB,frzDensity,froVec_1st,frzFragAvg)
   use gcommon_input_data, only : debug
   implicit none
 
@@ -980,87 +985,10 @@ subroutine average_frozen(nF,nB,frzDensity,froVec_1st,frzFragAvg)
   endif
 
   return
-end subroutine average_frozen
+end subroutine gcommon_average_frozen
 
 
-subroutine addInfo_on_detFiles
-  use gcommon_input_data
-  use gcommon_fragment_data
-  implicit none
-
-  integer                   :: idet,ndet,inactm,i,j,iVec,istat,ndet_unique
-  real(kind=8),allocatable  :: coeff(:),coeff_unique(:)
-  character(len=3)          :: suffix
-  character(len=255)        :: detFilename
-  character (len=255), allocatable :: occ(:),occ_unique(:)
-
-  suffix='det'
-  iVec=0
-  do i=1,nFragments
-    do j=1,nVec(i)
-      ndet=0
-      iVec=iVec+1
-      call getFilename(iVec,detFilename,project,suffix)     
-      open(37,file=detFilename,status='old')
-      read(37,*) inactm
-      do
-        read(37,*,iostat=istat)
-        if(istat.ne.0) then
-          rewind(37)
-          exit
-        else
-          ndet=ndet+1
-        endif
-      enddo
-      allocate(coeff(ndet))
-      allocate(coeff_unique(ndet))
-      allocate(occ(ndet))
-      allocate(occ_unique(ndet))
-      read(37,*)
-      do idet=1,ndet
-        read(37,*) coeff(idet),occ(idet)
-      enddo
-      rewind(37)
-      call quicksort(coeff,occ,ndet)
-      ndet_unique=1
-      occ_unique(1)=occ(1)
-      coeff_unique(1)=coeff(1)
-      do idet=2,ndet
-        if(occ(idet).ne.occ(idet-1)) then
-          ndet_unique=ndet_unique+1
-          occ_unique(ndet_unique)=occ(idet)
-          coeff_unique(ndet_unique)=coeff(idet)
-        else
-          coeff_unique(ndet_unique)=coeff_unique(ndet_unique)+coeff(idet)
-        endif
-      enddo
-      if(fragLabels.and.energy_on_INPORB) then
-        write(37,1600) inactm,nFrozen(i),ndet_unique, &
-          fragState(iVec),ener(i,j),nElectrons(i,j),threshold
-      elseif(fragLabels) then
-        write(37,1600) inactm,nFrozen(i),ndet_unique, &
-          fragState(iVec),0.0,nElectrons(i,j),threshold
-      elseif(energy_on_INPORB) then
-        write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
-          ener(i,j),nElectrons(i,j),threshold
-      else
-        write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
-          0.0,nElectrons(i,j),threshold
-      endif
-      do idet=1,ndet_unique
-        write(37,'(e15.8,6x,A)') coeff_unique(idet),trim(occ_unique(idet))
-      enddo
-      close(37)
-      deallocate(coeff,occ)
-      deallocate(coeff_unique,occ_unique)
-    enddo
-1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3)
-  enddo
-
-end subroutine addInfo_on_detFiles
-
-
-subroutine generate_vecfiles(iFrag,nBas)
+subroutine gcommon_generate_vecfiles(iFrag,nBas)
   use gcommon_input_data, only : project,nVec
   implicit none
 
@@ -1075,7 +1003,7 @@ subroutine generate_vecfiles(iFrag,nBas)
     enddo
   endif
   do iVec=1,nVec(iFrag)
-    call getFilename(start+iVec,filename,project,'vec')
+    call gcommon_getFilename(start+iVec,filename,project,'vec')
     open(10,file=filename)
     write(10,'(i4)')nBas
     allocate(vec(nBas,nBas))
@@ -1087,10 +1015,10 @@ subroutine generate_vecfiles(iFrag,nBas)
     enddo
     deallocate(vec)
   enddo
-end subroutine generate_vecfiles
+end subroutine gcommon_generate_vecfiles
 
 
-recursive subroutine quicksort(coef,occu,n)
+recursive subroutine gcommon_quicksort(coef,occu,n)
   implicit none
 
   real (kind=8)    :: coef(n)
@@ -1127,7 +1055,7 @@ recursive subroutine quicksort(coef,occu,n)
     else
       marker=left
     endif
-    call quicksort(coef(:marker-1),occu(:marker-1),marker-1)
-    call quicksort(coef(marker:),occu(marker:),n-marker+1)
+    call gcommon_quicksort(coef(:marker-1),occu(:marker-1),marker-1)
+    call gcommon_quicksort(coef(marker:),occu(marker:),n-marker+1)
   endif
-end subroutine quicksort
+end subroutine gcommon_quicksort

@@ -180,10 +180,12 @@
 !     we have more than one symmetry representation
 
           do iact=1,nacti
-            nelec(1)=nelec(1)+iabs(iocc(1,ib,iact))
+            nelec(1)=nelec(1)+                                                  &
+     &           iabs(int(iocc(1,ib,iact),kind=kind(nelec(1))))
           enddo
           do iact=1,nactj
-            nelec(2)=nelec(2)+iabs(iocc(1,jb,iact))
+            nelec(2)=nelec(2)+                                                  &
+     &           iabs(int(iocc(1,jb,iact),kind=kind(nelec(2))))
           enddo
 
           if(nelec(1).ne.nelec(2))                                              &

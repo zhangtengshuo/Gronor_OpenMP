@@ -480,11 +480,11 @@ set (CFLAGS_Clang_RELEASE "-O2")
 set (CFLAGS_Clang_FAST "-O2")
 # Fortran compiler
 list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
-set (FFLAGS_Flang_BASIC "")
+set (FFLAGS_Flang_BASIC "-fbackslash")
 set (FFLAGS_Flang_PREPROCESS "")
 set (FFLAGS_Flang_OPENMP "-mp")
 set (FFLAGS_Flang_PROFILING "")
-set (FFLAGS_Flang_ILP64 "")
+set (FFLAGS_Flang_ILP64 "-fdefault-integer-8")
 # Fortran build targets
 set (FFLAGS_Flang_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_Flang_GARBLE "-O2 -gopt -Minform=warn")

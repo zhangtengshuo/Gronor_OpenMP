@@ -6,7 +6,6 @@
       use cidist
 
       implicit none
-!tps#include 'mpif.h'
 
       call gronor_environment()
 

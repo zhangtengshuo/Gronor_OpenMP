@@ -714,7 +714,7 @@ else()
 endif()
 set (FFLAGS_Cray_CUSOLVER "-DCUSOLVER -lcusolver")
 # Fortran build targets
-set (FFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_Cray_DEBUG "-O0 -g")
 set (FFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_Cray_RELEASE "-O2")

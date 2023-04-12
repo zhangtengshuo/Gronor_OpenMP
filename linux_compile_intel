@@ -8,8 +8,6 @@ setenv CC mpicc
 setenv CXX mpicxx
 unsetenv MPI_ROOT
 
-git checkout tps
-
 env | grep MKL
 env | grep UTILS
 

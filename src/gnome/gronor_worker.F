@@ -76,7 +76,7 @@
        nveca=max(nveca,inactb(ibase)+nactb(ibase))
        n=2*inactb(ibase)
        do iact=1,nactb(ibase)
-         n=n+iabs(iocc(1,ibase,iact))
+         n=n+iabs(int(iocc(1,ibase,iact),kind=kind(n)))
        enddo
        nelecs=max(nelecs,n)
       enddo

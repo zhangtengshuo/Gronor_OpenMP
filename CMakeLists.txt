@@ -28,7 +28,7 @@ if(DEFINED ENV{HOSTNAME})
 	  set(HOST "VEGA")
   endif()
   if($ENV{HOSTNAME} MATCHES ".crusher.olcf.ornl.gov$")
-	  set(HOST "CRUSHER"
+	  set(HOST "CRUSHER")
   endif()  
 else()
   message(STATUS "Not found: hostname")

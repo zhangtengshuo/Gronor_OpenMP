@@ -483,6 +483,9 @@
 #elif defined(INTEL)
  645    format(//,' Compiled with the INTEL Compiler suite',a)
         compiler='Intel'
+#elif defined(FLANG)
+ 645    format(//,' Compiled with the FLANG/CLANG Compiler suite',a)
+        compiler='Intel'
 #else
  645    format(//,' Compiled with unknown compiler suite',a)
 #endif

@@ -485,7 +485,10 @@
         compiler='Intel'
 #elif defined(FLANG)
  645    format(//,' Compiled with the FLANG/CLANG Compiler suite',a)
-        compiler='Intel'
+        compiler='FLANG'
+#elif defined(AMD)
+ 645    format(//,' Compiled with the AMD Compiler suite',a)
+        compiler='AMD'
 #else
  645    format(//,' Compiled with unknown compiler suite',a)
 #endif

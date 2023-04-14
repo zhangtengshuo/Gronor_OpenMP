@@ -485,7 +485,7 @@ set (CFLAGS_Clang_RELEASE "-O2")
 set (CFLAGS_Clang_FAST "-O2")
 # Fortran compiler
 list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
-set (FFLAGS_Flang_BASIC "-fbackslash")
+set (FFLAGS_Flang_BASIC "-DFLANG -fbackslash")
 set (FFLAGS_Flang_PREPROCESS "")
 set (FFLAGS_Flang_OPENMP "-mp")
 set (FFLAGS_Flang_PROFILING "")

@@ -19,7 +19,6 @@
 !! @date    2016
 !!
 
-
       subroutine gronor_cofac1(lfndbg)
       use cidist
       use gnome_parameters
@@ -211,9 +210,7 @@
 !$omp target update from(a)
 #endif
 #ifdef MKL
-
         ndimm=nelecs
-
         call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
      &       workspace_d,lwork1m,ierr)
 
@@ -227,7 +224,6 @@
             w(j,i)=temp(i,j)
           enddo
         enddo
-
 #else
          call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,                         &
      &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,           &
@@ -322,6 +318,9 @@
 #ifdef ACC
 !$acc update host (u,w,a,ev)
 #endif
+#ifdef OMPTGT 
+!$omp target update from(a,ev,u,w)
+#endif  
         write(lfndbg,601) (ev(i),i=1,nelecs)
  601    format(//,' Eigenvalues of diagonalized overlap matrix:',               &
      &       //,(3x,6e20.12))
@@ -481,13 +480,6 @@
 
 
       call timer_start(44)
-!c!_ACCTGT_($acc kernels present(diag))
-!cc!_OMPTGT_($omp target teams loop)
-!c      do i=1,nelecs
-!c        if(diag(i).lt.-1.999999d0) idetuw=-idetuw
-!c      enddo
-!c!_ACCTGT_($acc end kernels)
-!cc!_OMPTGT_($omp end target)
 
       cmax=0.0d0
 
@@ -495,7 +487,7 @@
 !$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop
+!$omp target teams loop reduction(max:cmax)
 #endif
 !     calculation of det(a) and x and y
       do i=1,nelecs
@@ -507,13 +499,6 @@
 #ifdef OMPTGT
 !$omp end target teams loop
 #endif
-
-!cc!_OMPTGT_($omp end target)
-!c!_OMPTGT_($omp target teams loop)
-!c      do i=1,nelecs
-!c        cdiag(i)=diag(i)
-!c        csdiag(i)=sdiag(i)
-!c     enddo
 
 #ifdef ACC
 !$acc end kernels
@@ -558,7 +543,7 @@
           coef=coef*coefu
         endif
       enddo
-!!_OMPTGT_($omp end target)
+
       ising=2
       if(nz2.le.0) then
         ising=1
@@ -567,7 +552,7 @@
           ising=0
 
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(coefu)
+!$omp target teams loop collapse(2) reduction(+:coefu)
 #endif
 #ifdef ACC
 !$acc parallel loop gang collapse(2) present(ta,u,w,ev)
@@ -596,7 +581,7 @@
 !$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(coefu)
+!$omp target teams loop reduction(+:coefu)
 #endif
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
@@ -614,12 +599,6 @@
 #ifdef OMPTGT
 !$omp end target teams loop
 #endif
-!c!_OMPTGT_($omp target teams loop)
-!c       do i=1,nelecs
-!c          cdiag(i)=diag(i)
-!c          csdiag(i)=sdiag(i)
-!c        enddo
-!cc!_OMPTGT_($omp end target)
 #ifdef ACC
 !$acc end kernels
 #endif

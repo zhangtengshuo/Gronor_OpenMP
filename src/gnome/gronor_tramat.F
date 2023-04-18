@@ -64,7 +64,7 @@
 
 !     transformation of diag
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -116,7 +116,7 @@
 !     calculation of an intermediate array (w)
 
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -175,7 +175,7 @@
 
 !     calculation of the final matrix aa
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum)
+!$omp target teams loop collapse(2) reduction(+:sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -235,7 +235,7 @@
 !        transformation of sdiag
       if(ising.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -326,7 +326,7 @@
 
 #ifdef OMP
 !$omp parallel do                                                                 &
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum)
+!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) reduction(+:sum)
 #endif
         do j=1,nbas
           sum=0.0d0
@@ -372,7 +372,7 @@
 #ifdef OMP
 !$omp parallel do                                                               &
 !$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)                     &
-!$omp& private(sum,kk) collapse(2)
+!$omp& reduction(+:sum) private(kk) collapse(2)
 #endif
       do j=1,nelecs
         do i=1,nbas
@@ -420,7 +420,7 @@
 #ifdef OMP
 !$omp parallel do                                                               &
 !$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)                          &
-!$omp& private(sum,kk) collapse(2)
+!$omp& reduction(+:sum) private(kk) collapse(2)
 #endif
       do i=1,nbas
         do j=1,nbas
@@ -469,7 +469,7 @@
 #ifdef OMP
 !$omp parallel do                                                                &
 !$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)                         &
-!$omp& private(sum,kk)
+!$omp& reduction(+:sum) private(kk)
 #endif
         do j=1,nbas
           sum=0.0d0

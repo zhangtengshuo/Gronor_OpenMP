@@ -56,7 +56,7 @@
 
         if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum,k)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -75,7 +75,7 @@
 
        if(ntcla.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -96,7 +96,7 @@
        if(nalfa.ne.nveca) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -116,7 +116,7 @@
 
        if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -135,7 +135,7 @@
 
        if(ntclb.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -156,7 +156,7 @@
        if(nalfa.ne.nvecb) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop reduction(+:sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -191,7 +191,7 @@
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum)
+!$omp target teams loop collapse(2) reduction(+:sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -230,7 +230,7 @@
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum)
+!$omp target teams loop collapse(2) reduction(+:sum)
 #endif
        do i=m1,nelecs
         do j=1,nbas
@@ -276,7 +276,7 @@
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum)
+!$omp target teams loop collapse(2) reduction(+:sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -300,7 +300,7 @@
 
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum)
+!$omp target teams loop collapse(2) reduction(+:sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -370,6 +370,9 @@
 #ifdef ACC
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
 #endif
+#ifdef OMPTGT
+!$omp target update from(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
+#endif
         write(lfndbg,1601) nbas,nelecs
  1601   format(//,' diag:',3i6,/)
         do i=1,nbas
@@ -414,6 +417,9 @@
       use gnome_data
       implicit none
       integer :: lfndbg
+      
+      real (kind=8) :: aaamax,tamax
+      real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
 
       integer :: i,j,k,kk,m1
       real (kind=8) :: sum
@@ -429,7 +435,7 @@
         if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,cdiag,va,diag) private(sum)
+!$omp& shared(nbas,nalfa,cdiag,va,diag) reduction(+:sum)
 #endif
           do j=1,nbas
             sum=0.0d0
@@ -483,7 +489,7 @@
        if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,vb,csdiag,w1) private(sum)
+!$omp& shared(nbas,nalfa,vb,csdiag,w1) reduction(+:sum)
 #endif
          do j=1,nbas
          sum=0.0d0
@@ -553,7 +559,7 @@
       if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,ta,vb,w2) private(sum) collapse(2)
+!$omp& shared(nbas,nalfa,ta,vb,w2) reduction(+:sum) collapse(2)
 #endif
         do i=1,nalfa
           do j=1,nbas
@@ -626,7 +632,7 @@
       if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) private(sum) collapse(2)
+!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) reduction(+:sum) collapse(2)
 #endif
         do j=1,nbas
           do i=1,nbas
@@ -692,6 +698,37 @@
 #ifdef OMP
 !$omp end parallel do
 #endif
+      endif
+      
+      if(idbg.gt.90) then
+        write(lfndbg,1601) nbas,nelecs
+ 1601   format(//,' diag:',3i6,/)
+        do i=1,nbas
+          write(lfndbg,1602) diag(i),bdiag(i),bsdiag(i),                        &
+     &         csdiag(i),sdiag(i)
+        enddo
+ 1602    format((3x,6e20.12))
+         tamax=0.0d0
+         aaamax=0.0d0
+         diagmax=0.0d0
+         bdiagmax=0.0d0
+         bsdiagmax=0.0d0
+         csdiagmax=0.0d0
+         sdiagmax=0.0d0
+         do j=1,nbas
+           diagmax=max(diagmax,diag(j))
+           bdiagmax=max(bdiagmax,bdiag(j))
+           bsdiagmax=max(bsdiagmax,bsdiag(j))
+           csdiagmax=max(csdiagmax,csdiag(j))
+           sdiagmax=max(sdiagmax,sdiag(j))
+          do i=1,nbas
+            tamax=max(tamax,ta(i,j))
+            aaamax=max(aaamax,aaa(i,j))
+          enddo
+        enddo
+        write(lfndbg,'(a,7f16.5)') 'Max=',tamax,aaamax,                         &
+     &       diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+        flush(lfndbg)
       endif
 
       return

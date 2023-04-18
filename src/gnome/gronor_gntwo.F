@@ -168,7 +168,9 @@
 !$acc loop reduction (+:e2t)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:e2t)
+!$omp target teams loop reduction(+:e2t)                                   &
+!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n)            &
+!$omp& private(bbi,aai,abi,bbj,sum2,bbk,bbl)
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -373,7 +375,9 @@
 !$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:e2t)
+!$omp target teams loop reduction(+:e2t)                                       &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2)              &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
 #endif
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -544,7 +548,7 @@
 #endif
 #ifdef OMPTGT
 !$omp taskwait
-!$omp target teams loop reduction(+:tst,tsn,tsl)
+!$omp target teams loop reduction(+:tst) private(tsn,tsl)
 #endif
         do k=1,nbas
           do i=1,k
@@ -604,7 +608,9 @@
 !$acc& copyin(intg,kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:e2t,e2n,e2l)
+!$omp target teams loop reduction(+:e2t)                                       &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n)                  &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
 #endif
 !        do ii=intndx,jntndx
 !          do jj=ii,kl
@@ -859,7 +865,8 @@
 !$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                      &
+!$omp& private(i,k,l,n)
 #endif
           do intg=1,numint
             i=lab(1,intg)
@@ -900,7 +907,8 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                     &
+!$omp& private(i,k,l,n)
 #endif
           do intg=1,numint
             i=lab(1,intg)
@@ -1111,7 +1119,8 @@
 !$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                      &
+!$omp& private(i,k,l,n)
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -1156,7 +1165,8 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                     &
+!$omp& private(i,k,l,n)
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -1403,7 +1413,8 @@
 !$acc kernels present(lab,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                      &
+!$omp& private(i,k,l,n)
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -1460,7 +1471,8 @@
 !$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                     &
+!$omp& private(i,k,l,n)
 #endif
         do intg=1,numint
           i=lab(1,intg)
@@ -1706,7 +1718,8 @@
 !$acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                      &
+!$omp& private(i,k,l,n,intg)
 #endif
         do ibl=1,nb0
           do ii=intndx,jntndx
@@ -1768,7 +1781,8 @@
 !$acc& present(diag1,bdiag1,bsdiag1,csdiag1)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:etotb)
+!$omp target teams loop reduction(+:etotb)                                     &
+!$omp& private(i,k,l,n,intg)
 #endif
         do ii=intndx,jntndx
           do jj=ii,kl
@@ -2528,10 +2542,10 @@
           call timer_start(36)
           kl=nbas*(nbas+1)/2
 #ifdef OMP
-!$omp parallel do reduction(+:etotb,etemp)                                           &
+!$omp parallel do reduction(+:etotb)                                           &
 !$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)                                    &
 !$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)          &
-!$omp& private(intg,i,k,l,n,ibl)
+!$omp& private(intg,i,k,l,n,ibl,etemp)
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -2593,10 +2607,10 @@
           call timer_start(35)
           kl=nbas*(nbas+1)/2
 #ifdef OMP
-!$omp parallel do reduction(+:etotb,etemp)                                      &
+!$omp parallel do reduction(+:etotb)                                            &
 !$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)                                     &
 !$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)           &
-!$omp& private(intg,i,k,l,n,ibl)
+!$omp& private(intg,i,k,l,n,ibl,etemp)
 #endif
           do ii=intndx,jntndx
             do jj=ii,kl
@@ -3255,10 +3269,10 @@
         call timer_start(32)
 
         intg=0
-!$omp parallel                                                                  &
-!$omp& shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac)
-!$omp do reduction(+:etotb,etemp)                                               &
-!$omp& private(intg,ibl)
+cc!$omp parallel                                                                  &
+cc!$omp& shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac)
+cc!$omp do reduction(+:etotb)                                                     &
+cc!$omp& private(intg,ibl,etemp)
         do k=1,nbas
           do i=1,k
             do n=k,nbas
@@ -3284,8 +3298,8 @@
             enddo
           enddo
         enddo
-!$omp end do
-!$omp end parallel
+cc!$omp end do
+cc!$omp end parallel
         kl=nbas*(nbas+1)/2
 
 !     Reset index in buffer to zero

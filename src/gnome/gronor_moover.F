@@ -141,7 +141,7 @@
 !$acc parallel loop present(ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(ii)
+!$omp target teams loop private(ii,kk)
 #endif
         do i=1,ntcla
           ii=i+nalfa
@@ -170,7 +170,7 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop private(sum,kk)
 #endif
           do k=1,ntclb
             kk=k+nalfa
@@ -195,7 +195,7 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+!$omp target teams loop private(sum,kk)
 #endif
           do k=nalfa+1,nvecb
             kk=k+ntclb

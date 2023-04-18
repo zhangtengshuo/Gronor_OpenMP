@@ -70,8 +70,9 @@
 #ifdef OMPTGT
 !$omp target teams loop                                                         &
 !$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,                                 &
-!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6,tsj,vsj,dsj1,dsj2,dsj3,              &      
-!$omp& qsj1,qsj2,qsj3,qsj4,qsj5,qsj6) 
+!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)                                     &
+!$omp& private(abjk,tsj,vsj,dsj1,dsj2,dsj3)                                     &
+!$omp& private(qsj1,qsj2,qsj3,qsj4,qsj5,qsj6) 
 #endif
         do j=1,nbas
          nn=ndxtv(j)
@@ -124,8 +125,9 @@
 !$acc& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:tsj,vsj,                                    &
-!$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,dsum1,dsum2,dsum3,          &
+!$omp target teams loop private(nn,tsj,vsj,abjk,                                &
+!$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6)                            &
+!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,                                 &
 !$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
         do j=1,nbas

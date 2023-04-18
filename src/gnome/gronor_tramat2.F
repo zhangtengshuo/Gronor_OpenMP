@@ -56,7 +56,7 @@
 
         if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -75,7 +75,7 @@
 
        if(ntcla.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -96,7 +96,7 @@
        if(nalfa.ne.nveca) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -116,7 +116,7 @@
 
        if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -135,7 +135,7 @@
 
        if(ntclb.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -156,7 +156,7 @@
        if(nalfa.ne.nvecb) then
          m1=nalfa+1
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -191,7 +191,7 @@
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -230,7 +230,7 @@
       m1=nalfa+1
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:sum)
+!$omp target teams loop collapse(2) private(sum,kk)
 #endif
        do i=m1,nelecs
         do j=1,nbas
@@ -276,7 +276,7 @@
 
       if(nalfa.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:sum)
+!$omp target teams loop collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -300,7 +300,7 @@
 
       if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:sum)
+!$omp target teams loop collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -435,7 +435,7 @@
         if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,cdiag,va,diag) reduction(+:sum)
+!$omp& shared(nbas,nalfa,cdiag,va,diag) private(sum)
 #endif
           do j=1,nbas
             sum=0.0d0
@@ -489,7 +489,7 @@
        if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,vb,csdiag,w1) reduction(+:sum)
+!$omp& shared(nbas,nalfa,vb,csdiag,w1) private(sum)
 #endif
          do j=1,nbas
          sum=0.0d0
@@ -559,7 +559,7 @@
       if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nalfa,ta,vb,w2) reduction(+:sum) collapse(2)
+!$omp& shared(nbas,nalfa,ta,vb,w2) private(sum) collapse(2)
 #endif
         do i=1,nalfa
           do j=1,nbas
@@ -632,7 +632,7 @@
       if(nalfa.ne.0) then
 #ifdef OMP
 !$omp parallel do                                                                &
-!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) reduction(+:sum) collapse(2)
+!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) private(sum) collapse(2)
 #endif
         do j=1,nbas
           do i=1,nbas

@@ -1,3 +1,4 @@
+
 !     This file is part of the GronOR software
 
 !     GronOR is free software, and can be used, re-distributed and/or modified under
@@ -552,7 +553,7 @@
           ising=0
 
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:coefu)
+!$omp target teams loop collapse(2) private(coefu)
 #endif
 #ifdef ACC
 !$acc parallel loop gang collapse(2) present(ta,u,w,ev)
@@ -581,13 +582,21 @@
 !$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:coefu)
+!$omp target teams loop
 #endif
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
           cdiag(i)=diag(i)
           csdiag(i)=sdiag(i)
+        enddo
+#ifdef OMPTGT
+!$omp end target teams loop
+#endif
+#ifdef OMPTGT
+!$omp target teams loop collapse(2) private(coefu)
+#endif
+        do i=1,nelecs
           do j=1,nelecs
             coefu=0.0d0
             do k=1,nelecs

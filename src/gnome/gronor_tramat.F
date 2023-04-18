@@ -64,7 +64,7 @@
 
 !     transformation of diag
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -116,7 +116,7 @@
 !     calculation of an intermediate array (w)
 
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -175,7 +175,7 @@
 
 !     calculation of the final matrix aa
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) reduction(+:sum)
+!$omp target teams loop collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -235,38 +235,38 @@
 !        transformation of sdiag
       if(ising.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop reduction(+:sum)
+!$omp target teams loop private(sum,kk)
 #endif
-       do j=1,nbas
-        sum=0.0d0
-        if(nalfa .ne. 0) then
+        do j=1,nbas
+          sum=0.0d0
+          if(nalfa .ne. 0) then
 #ifdef ACC
 !$acc loop seq reduction(+:sum)
 #endif
-         do k=1,nalfa
-          sum=sum+sdiag(k)*vb(k,j)
-         enddo
-         if(ntclb .ne. 0) then
+            do k=1,nalfa
+              sum=sum+sdiag(k)*vb(k,j)
+            enddo
+            if(ntclb .ne. 0) then
 #ifdef ACC
 !$acc loop seq reduction(+:sum)
 #endif
-          do k=1,ntclb
-           kk=k+nalfa
-           sum=sum+sdiag(kk)*vb(k,j)
-          enddo
-         endif
-        endif
-        if(nalfa .ne. nvecb) then
+              do k=1,ntclb
+                kk=k+nalfa
+                sum=sum+sdiag(kk)*vb(k,j)
+              enddo
+            endif
+          endif
+          if(nalfa .ne. nvecb) then
 #ifdef ACC
 !$acc loop seq reduction(+:sum)
 #endif
-         do k=m1,nvecb
-          kk=k+ntclb
-          sum=sum+sdiag(kk)*vb(k,j)
-         enddo
-        endif
-        w1(j)=sum
-      enddo
+            do k=m1,nvecb
+              kk=k+ntclb
+              sum=sum+sdiag(kk)*vb(k,j)
+            enddo
+          endif
+          w1(j)=sum
+        enddo
 #ifdef OMPTGT
 !$omp end target teams loop
 #endif
@@ -326,7 +326,7 @@
 
 #ifdef OMP
 !$omp parallel do                                                                 &
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) reduction(+:sum)
+!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum,kk)
 #endif
         do j=1,nbas
           sum=0.0d0
@@ -372,7 +372,7 @@
 #ifdef OMP
 !$omp parallel do                                                               &
 !$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)                     &
-!$omp& reduction(+:sum) private(kk) collapse(2)
+!$omp& private(sum,kk) collapse(2)
 #endif
       do j=1,nelecs
         do i=1,nbas
@@ -420,7 +420,7 @@
 #ifdef OMP
 !$omp parallel do                                                               &
 !$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)                          &
-!$omp& reduction(+:sum) private(kk) collapse(2)
+!$omp& private(sum,kk) collapse(2)
 #endif
       do i=1,nbas
         do j=1,nbas
@@ -469,7 +469,7 @@
 #ifdef OMP
 !$omp parallel do                                                                &
 !$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)                         &
-!$omp& reduction(+:sum) private(kk)
+!$omp& private(sum,kk)
 #endif
         do j=1,nbas
           sum=0.0d0

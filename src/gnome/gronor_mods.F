@@ -581,6 +581,15 @@
       end module cuda_cusolver
 #endif
 
+#ifdef ROCSOLVER
+      module amd_rocsolver
+      
+      type(rocblas_handle)   :: rocsolver_handle
+      integer (kind=4)       :: rocsolver_status
+      
+      end module amd_rocsolver
+#endif
+      
 #ifdef MKL
       module mkl_solver
 

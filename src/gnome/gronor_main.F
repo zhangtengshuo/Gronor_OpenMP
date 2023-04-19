@@ -61,6 +61,10 @@
       use cusolverDn
       use cuda_cusolver
 #endif
+#ifdef ROCSOLVER
+      use rocsolver
+      use amd_rocsolver
+#endif
 #ifdef _OPENACC
       use openacc
 !     use cuda_functions
@@ -1431,15 +1435,19 @@
         cusolver_status=cusolverDnCreate(cusolver_handle)
         if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                          &
      &       print *, me,'cusolver_handle creation failed'
-
         if(numdev.gt.1) then
           cpfre=c_loc(memfre)
           cptot=c_loc(memtot)
 !          istat=cudaMemGetInfo(cpfre,cptot)
         endif
-
 #endif
 
+!     only accelerated ranks need to define rocsolver handles
+
+#ifdef ROCSOLVER
+        call rocblas_create_handle(rocblas_handle)
+#endif
+        
       endif
 
 #ifdef CUSOLVERJ

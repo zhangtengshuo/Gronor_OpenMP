@@ -619,10 +619,10 @@
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
+!$omp target teams loop
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp target teams loop
 #endif
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef

@@ -505,7 +505,6 @@
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
 #endif
 #ifdef OMPTGT
-#ifdef OMP5
 !$omp target update from(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
 #endif
         write(lfndbg,1601) nbas,nelecs

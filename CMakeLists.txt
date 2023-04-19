@@ -995,7 +995,6 @@ if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{GA}/lib -lga -larmci")
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MKLLIB} -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lmkl_scalapack_ilp64")
 endif()
-message(STATUS "External libraries defined: '${EXTERNAL_LIBRARIES}")
 
 # Define the appropriate compiler flags
 
@@ -1008,6 +1007,24 @@ if(DEFINED UTILS)
   endif()
   include_directories ("$ENV{UTILS}/include")
 endif()
+
+message(STATUS "Host: ${HOST} $ENV{CRAY}")
+
+if(HOST STREQUAL "CRUSHER")
+  if($ENV{CRAY} MATCHES "Y")
+#   list (APPEND EXTERNAL_LIBRARIES "-ltcmalloc")
+#   message(STATUS "Adding tcmalloc")
+  endif()
+endif()
+
+if(HOST STREQUAL "FRONTIER")
+  if($ENV{CRAY} MATCHES "Y")
+#   list (APPEND EXTERNAL_LIBRARIES "-ltcmalloc")
+#   message(STATUS "Adding tcmalloc")
+  endif()
+endif()
+
+message(STATUS "External libraries defined: ${EXTERNAL_LIBRARIES}")
 
 # Define the appropriate compiler flags
 

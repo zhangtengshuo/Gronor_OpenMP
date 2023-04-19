@@ -153,10 +153,10 @@
 #ifdef OMPTGT
 !$omp taskwait
 #ifdef OMP5
+!$omp target teams loop
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp target teams loop
 !$omp& reduction(+:tst)
 #endif
         do intg=1,numint
@@ -200,8 +200,8 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:e2t)                                   &
-!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n)            &
+!$omp& reduction(+:e2t)
+!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n)
 !$omp& private(bbi,aai,abi,bbj,sum2,bbk,bbl)
 #endif
         do intg=1,numint
@@ -443,8 +443,8 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:e2t)                                       &
-!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2)              &
+!$omp& reduction(+:e2t)
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2)
 !$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
 #endif
         do ii=intndx,jntndx
@@ -712,8 +712,8 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:e2t)                                       &
-!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n)                  &
+!$omp& reduction(+:e2t)
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n)
 !$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
 #endif
 !        do ii=intndx,jntndx
@@ -1005,7 +1005,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                      &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
           do intg=1,numint
@@ -1056,7 +1056,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                     &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
           do intg=1,numint
@@ -1286,7 +1286,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                      &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
           do ii=intndx,jntndx
@@ -1341,7 +1341,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                     &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
           do ii=intndx,jntndx
@@ -1624,7 +1624,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                      &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
         do intg=1,numint
@@ -1691,7 +1691,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                     &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n)
 #endif
         do intg=1,numint
@@ -1973,7 +1973,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                      &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n,intg)
 #endif
         do ibl=1,nb0
@@ -2045,7 +2045,7 @@
 #else
 !$omp target teams distribute parallel do
 #endif
-!$omp& reduction(+:etotb)                                     &
+!$omp& reduction(+:etotb)
 !$omp& private(i,k,l,n,intg)
 #endif
         do ii=intndx,jntndx

@@ -136,7 +136,7 @@
 #ifdef OMP5
 !$omp target teams loop
 #else
-!$omp end target teams distribute parallel do
+!$omp target teams distribute parallel do
 #endif
 !$omp& private(nn,tsj,vsj,abjk,
 !$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6)

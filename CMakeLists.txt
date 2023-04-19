@@ -487,7 +487,7 @@ set (CFLAGS_Clang_FAST "-O2")
 list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
 set (FFLAGS_Flang_BASIC "-DFLANG -fbackslash")
 set (FFLAGS_Flang_PREPROCESS "")
-set (FFLAGS_Flang_OPENMP "-mp")
+#set (FFLAGS_Flang_OPENMP "-mp")
 set (FFLAGS_Flang_PROFILING "")
 set (FFLAGS_Flang_ILP64 "-fdefault-integer-8")
 # Fortran build targets
@@ -496,6 +496,16 @@ set (FFLAGS_Flang_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_Flang_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 set (FFLAGS_Flang_RELEASE "-O2")
 set (FFLAGS_Flang_FAST "-fast -fastsse")
+
+if(HOST STREQUAL "CRUSHER")
+set (FFLAGS_Flang_OPENMP "-DAMD -mp")
+else()
+if(HOST STREQUAL "FRONTIER")
+set (FFLAGS_Flang_OPENMP "-DAMD -mp")
+else()
+set (FFLAGS_Flang_OPENMP "-mp -h")
+endif()
+endif()
 
 # Intel C++/C/Fortran Compilers
 
@@ -709,7 +719,6 @@ list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
 #set (FFLAGS_Cray_BASIC "-Mbackslash")
 set (FFLAGS_Cray_BASIC "-DCRAY")
 #set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
-
 
 if(HOST STREQUAL "CRUSHER")
 set (FFLAGS_Cray_OPENMP "-DOMP5 -h omp -h list=a")

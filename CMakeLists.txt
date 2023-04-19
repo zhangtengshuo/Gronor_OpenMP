@@ -709,7 +709,18 @@ list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
 #set (FFLAGS_Cray_BASIC "-Mbackslash")
 set (FFLAGS_Cray_BASIC "-DCRAY")
 #set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
+
+
+if(HOST STREQUAL "CRUSHER")
+set (FFLAGS_Cray_OPENMP "-DOMP5 -h omp -h list=a")
+else()
+if(HOST STREQUAL "FRONTIER")
+set (FFLAGS_Cray_OPENMP "-DOMP5 -h omp -h list=a")
+else()
 set (FFLAGS_Cray_OPENMP "-h omp -h list=a")
+endif()
+endif()
+
 set (FFLAGS_Cray_PROFILING "")
 set (FFLAGS_Cray_ILP64 "-s integer64")
 if(${GPU} STREQUAL "AMD")

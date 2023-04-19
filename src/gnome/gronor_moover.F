@@ -61,7 +61,12 @@
 !$acc kernels present(ta,tb,s,vb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(iv,ib)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2) private(iv,ib)
 #endif
       do iv=1,nvecb
         do ib=1,nbas
@@ -69,11 +74,20 @@
         enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum)
 #endif
       do iv=1,nvecb
         do ib=1,nbas
@@ -85,14 +99,23 @@
         enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 !     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
 #ifdef OMPTGT
-!$omp target teams loop collapse(2)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
 #endif
       do le=1,nelecs
         do ie=1,nelecs
@@ -100,7 +123,11 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 #ifdef ACC
@@ -112,7 +139,12 @@
 !$acc kernels present(va,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum)
 #endif
         do ke=1,nalfa
           do ie=1,nalfa
@@ -124,7 +156,11 @@
           enddo
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 #ifdef ACC
@@ -141,7 +177,12 @@
 !$acc parallel loop present(ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(ii,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(ii,kk)
 #endif
         do i=1,ntcla
           ii=i+nalfa
@@ -154,7 +195,11 @@
           enddo
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
       endif
@@ -170,7 +215,12 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum,kk)
 #endif
           do k=1,ntclb
             kk=k+nalfa
@@ -183,7 +233,11 @@
             enddo
           enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end kernels
@@ -195,7 +249,12 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum,kk)
 #endif
           do k=nalfa+1,nvecb
             kk=k+ntclb
@@ -208,7 +267,11 @@
             enddo
           enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end kernels
@@ -222,7 +285,12 @@
 !$acc kernels present(va,ta,tb)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(sum)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum)
 #endif
         do i=1,ntcla
           do k=m1,nvecb
@@ -245,7 +313,12 @@
 !$acc kernels present(ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop collapse(2)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
 #endif
       do i1=1,nelecs
         do i2=1,nelecs
@@ -254,7 +327,11 @@
         enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end kernels

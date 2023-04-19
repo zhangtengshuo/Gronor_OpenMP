@@ -46,7 +46,12 @@
 !$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(i,j)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2) private(i,j)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -57,14 +62,23 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
       if(ising.ne.0) then
 
 !     transformation of diag
 #ifdef OMPTGT
-!$omp target teams loop private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum,kk)
 #endif
        do j=1,nbas
         sum=0.0d0
@@ -97,16 +111,28 @@
         w1(j)=sum
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
 #endif
        do j=1,nbas
         diag(j)=w1(j)
        enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
       endif
 
@@ -116,7 +142,12 @@
 !     calculation of an intermediate array (w)
 
 #ifdef OMPTGT
-!$omp target teams loop private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -154,12 +185,21 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 !     put w in the work-matrix (aa)
 #ifdef OMPTGT
-!$omp target teams loop collapse(2)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -170,12 +210,21 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 !     calculation of the final matrix aa
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -213,12 +262,21 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 !     put w back in the work-matrix aa
 #ifdef OMPTGT
-!$omp target teams loop collapse(2)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -229,13 +287,22 @@
        enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 !        transformation of sdiag
       if(ising.ne.0) then
 #ifdef OMPTGT
-!$omp target teams loop private(sum,kk)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(sum,kk)
 #endif
         do j=1,nbas
           sum=0.0d0
@@ -268,16 +335,28 @@
           w1(j)=sum
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
 #endif
        do j=1,nbas
         sdiag(j)=w1(j)
        enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
       endif
 

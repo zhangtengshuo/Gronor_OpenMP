@@ -243,7 +243,12 @@
 !$acc parallel loop gang present(u,w,a)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(coef)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coef)
 #endif
        do i=1,nelecs
          do j=1,i
@@ -256,7 +261,11 @@
          enddo
        enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end parallel loop
@@ -291,7 +300,12 @@
 !$acc kernels present(u,w,a)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(coef,k)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coef,k)
 #endif
       do i=1,nelecs
         do j=1,i
@@ -304,7 +318,11 @@
         enddo
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end kernels
@@ -488,7 +506,12 @@
 !$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop reduction(max:cmax)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& reduction(max:cmax)
 #endif
 !     calculation of det(a) and x and y
       do i=1,nelecs
@@ -498,7 +521,11 @@
         csdiag(i)=sdiag(i)
       enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 
 #ifdef ACC
@@ -553,7 +580,12 @@
           ising=0
 
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(coefu)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2) private(coefu)
 #endif
 #ifdef ACC
 !$acc parallel loop gang collapse(2) present(ta,u,w,ev)
@@ -568,7 +600,11 @@
             enddo
           enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end parallel loop
@@ -582,6 +618,10 @@
 !$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
 #endif
 #ifdef OMPTGT
+#ifdef OMP5
+#else
+!$omp target teams distribute parallel do
+#endif
 !$omp target teams loop
 #endif
         do i=1,nelecs
@@ -591,10 +631,19 @@
           csdiag(i)=sdiag(i)
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef OMPTGT
-!$omp target teams loop collapse(2) private(coefu)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2) private(coefu)
 #endif
         do i=1,nelecs
           do j=1,nelecs
@@ -606,7 +655,11 @@
           enddo
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 #ifdef ACC
 !$acc end kernels
@@ -622,7 +675,12 @@
 !$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
 #endif
 #ifdef OMPTGT
-!$omp target teams loop private(coefu)
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coefu)
 #endif
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
@@ -635,7 +693,11 @@
           enddo
         enddo
 #ifdef OMPTGT
+#ifdef OMP5
 !$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
 #endif
 !c!_OMPTGT_($omp target teams distribute parallel do)
 !c        do i=1,nelecs

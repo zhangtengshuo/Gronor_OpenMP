@@ -69,6 +69,7 @@
         if(inp_compare(.false.,'MEBFs',item)) then
           if(.not.inp_a(mebfroot)) call gronor_abort(105,"Input error")
           if(.not.inp_i(nbase)) call gronor_abort(106,"Input error")
+          if(.not.inp_a(combas)) combas=""
           allocate(fragname(36))
           allocate(fragstate(36,nbase))
           nmol=0
@@ -79,12 +80,20 @@
               allocate(ncombv(nmol,nbase))
               mstates=nmol*nbase
               allocate(fragfile(mstates))
+              allocate(vecfile(mstates))
               do i=1,nmol
                 do j=1,nbase
                   ncombv(i,j)=(i-1)*nbase+j
                   write(fragfile((i-1)*nbase+j),'(a,a,a,a)')                    &
      &                 trim(mebfroot),trim(fragname(i)),"_",                    &
      &                 trim(fragstate(i,j))
+                  if(len(trim(combas)).gt.0) then
+                    write(vecfile((i-1)*nbase+j),'(a,a,a,a,a)')                 &
+     &                   trim(mebfroot),trim(combas),trim(fragname(i)),         &
+     &                   "_",trim(fragstate(i,j))
+                  else
+                    vecfile((i-1)*nbase+j)=fragfile((i-1)*nbase+j)
+                  endif
                 enddo
               enddo
               if(last) goto 1

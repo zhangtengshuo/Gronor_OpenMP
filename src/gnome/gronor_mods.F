@@ -163,10 +163,11 @@
       logical :: odbg,odupl,oterm,otreq,otimeout
       logical :: corres
 
-      character (len=128) :: mebfroot
+      character (len=128) :: mebfroot,combas
       character (len=16), allocatable :: fragname(:)
       character (len=16), allocatable :: fragstate(:,:)
       character (len=128), allocatable :: fragfile(:)
+      character (len=128), allocatable :: vecfile(:)
 
       end module gnome_parameters
 

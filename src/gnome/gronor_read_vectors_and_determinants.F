@@ -219,7 +219,7 @@
 !     Next, reading the vectors
 
       do i=1,mstates
-        write(filvec,2201) trim(fragfile(i))
+        write(filvec,2201) trim(vecfile(i))
  2201   format(a,'.vec')
         open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
@@ -229,7 +229,7 @@
       enddo
       allocate( vecsm(maxvec,maxvec,mstates) )
       do i=1,mstates
-        write(filvec,2201) trim(fragfile(i))
+        write(filvec,2201) trim(vecfile(i))
         open(unit=lfnvec,file=trim(filvec),form='formatted',                    &
      &        status='old',err=997)
         read(lfnvec,*)
@@ -267,7 +267,7 @@
 !          enddo
            if(ostate) then
               write(fildet,203) trim(fragfile(i))
-              write(filvec,201) trim(fragfile(i))
+              write(filvec,201) trim(vecfile(i))
               if(ncorr.ne.0) then
                  write(lfnout,604) fragLabel(i),                                &
      &                idetm(i),nactm(i),inactm(i),nbasm(i),                     &
@@ -322,7 +322,7 @@
           enddo
 ! format statements 610 and 611 assume a maximum of 32 active orbitals
           if(ipr.ge.40) then
-            write(filvec,201) trim(fragfile(i))
+            write(filvec,201) trim(vecfile(i))
             write(lfnout,612) trim(filvec),nbasm(i)
  612        format(/,' Vector File ',a,//,                                      &
      &          ' Number of basis functions ',i8,/)

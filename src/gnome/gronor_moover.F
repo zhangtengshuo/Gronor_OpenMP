@@ -174,7 +174,7 @@
       if(ntcla.ne.0 .and. ntclb.ne.0) then
 
 #ifdef ACC
-!$acc parallel loop present(ta)
+!$acc parallel loop present(ta) private(ii,kk)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5

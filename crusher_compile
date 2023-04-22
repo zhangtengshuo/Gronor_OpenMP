@@ -2,7 +2,7 @@
 
 module purge
 
-module load PrgEnv-cray
+module load PrgEnv-amd
 module load craype-accel-amd-gfx90a rocm
 module load cmake
 
@@ -19,7 +19,8 @@ rm -rf build_crusher
 mkdir build_crusher
 cd build_crusher
 
-cmake -DOMPTGT=ON ../
+cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher ../
 
 make -j 16
 
+make install

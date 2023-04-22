@@ -62,7 +62,7 @@
       use cuda_cusolver
 #endif
 #ifdef ROCSOLVER
-      use rocsolver
+      use hipfort
       use amd_rocsolver
 #endif
 #ifdef _OPENACC
@@ -1445,7 +1445,7 @@
 !     only accelerated ranks need to define rocsolver handles
 
 #ifdef ROCSOLVER
-        call rocblas_create_handle(rocblas_handle)
+!        call rocblas_create_handle(rocblas_handle)
 #endif
         
       endif

@@ -411,7 +411,7 @@
 
         oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
         if(oterm) then
-          if(otreq) call MPI_Cancel(itreq,ierr)
+!          if(otreq) call MPI_Cancel(itreq,ierr)
           call timer_stop(39)
           return
         endif
@@ -432,7 +432,7 @@
           endif
           call MPI_Test(itreq,flag,status,ierr)
           if(flag) then
-            call MPI_Cancel(itreq,ierr)
+!            call MPI_Cancel(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),                   &

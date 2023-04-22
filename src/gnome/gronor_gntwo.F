@@ -114,6 +114,12 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
+#ifdef ACC
+!$acc end kernels
+#endif
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm)
+#endif
 #ifdef OMPTGT
 #ifdef OMP5
 !$omp target teams loop
@@ -350,6 +356,12 @@
 #else
 !$omp end target teams distribute parallel do
 #endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -596,6 +608,12 @@
 #else
 !$omp end target teams distribute parallel do
 #endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5

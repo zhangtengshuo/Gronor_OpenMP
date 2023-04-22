@@ -15,11 +15,12 @@ setenv PE_MPICH_GTL_LIBS_amd_gfx90a "-lmpi_gtl_hsa"
 
 setenv CRAY_CPU_TARGET "x86-64"
 
-rm -rf build_crusher
-mkdir build_crusher
-cd build_crusher
+rm -rf build_crusher_cray
+mkdir build_crusher_cray
+cd build_crusher_cray
 
-cmake -DOMPTGT=ON ../
+cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher_cray ../
 
 make -j 16
 
+make install

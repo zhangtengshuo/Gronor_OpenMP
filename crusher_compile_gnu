@@ -2,7 +2,7 @@
 
 module purge
 
-module load PrgEnv-amd
+module load PrgEnv-gnu
 module load craype-accel-amd-gfx90a rocm
 module load cmake
 
@@ -15,12 +15,12 @@ setenv PE_MPICH_GTL_LIBS_amd_gfx90a "-lmpi_gtl_hsa"
 
 setenv CRAY_CPU_TARGET "x86-64"
 
-rm -rf build_crusher_amd
-mkdir build_crusher_amd
-cd build_crusher_amd
+rm -rf build_crusher_gnu
+mkdir build_crusher_gnu
+cd build_crusher_gnu
 
-#cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher_amd ../
-cmake  -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher_amd ../
+#cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher_gnu ../
+cmake -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/crusher_gnu ../
 
 make -j 16
 

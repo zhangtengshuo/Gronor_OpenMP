@@ -63,6 +63,9 @@
 #endif
 !$omp& private(sum)
 #endif
+#ifdef ACC
+!$acc loop private(sum)
+#endif
         do j=1,nbas
          sum=0.0d0
 #ifdef ACC
@@ -90,6 +93,9 @@
 !$omp target teams distribute parallel do
 #endif
 !$omp& private(sum,kk)
+#endif
+#ifdef ACC
+!$acc loop private(sum)
 #endif
         do j=1,nbas
          sum=0.0d0
@@ -121,6 +127,9 @@
 #endif
 !$omp& private(sum,kk)
 #endif
+#ifdef ACC
+!$acc loop private(sum)
+#endif
         do j=1,nbas
          sum=0.0d0
 #ifdef ACC
@@ -150,6 +159,9 @@
 #endif
 !$omp& private(sum)
 #endif
+#ifdef ACC
+!$acc loop private(sum)
+#endif
         do j=1,nbas
          sum=0.0d0
 #ifdef ACC
@@ -178,10 +190,13 @@
 #endif
 !$omp& private(sum,kk)
 #endif
+#ifdef ACC
+!$acc loop private(sum)
+#endif
         do j=1,nbas
          sum=0.0d0
 #ifdef ACC
-!$acc loop reduction(+:sum)
+!$acc loop reduction(+:sum) private(kk)
 #endif
          do k=1,ntclb
           kk=k+nalfa
@@ -208,10 +223,13 @@
 #endif
 !$omp& private(sum,kk)
 #endif
+#ifdef ACC
+!$acc loop private(sum)
+#endif
         do j=1,nbas
          sum=0.0d0
 #ifdef ACC
-!$acc loop reduction(+:sum)
+!$acc loop reduction(+:sum) private(kk)
 #endif
          do k=m1,nvecb
           kk=k+ntclb
@@ -234,6 +252,9 @@
 #else
 !$omp target teams distribute parallel do
 #endif
+#endif
+#ifdef ACC
+!$acc loop
 #endif
        do j=1,nbas
         csdiag(j)=w1(j)
@@ -261,7 +282,7 @@
 !$omp& collapse(2) private(sum)
 #endif
 #ifdef ACC
-!$acc loop collapse(2)
+!$acc loop collapse(2) private(sum)
 #endif
        do i=1,nalfa
         do j=1,nbas
@@ -322,7 +343,7 @@
          sum=0.0d0
          if(ntclb.ne.0) then
 #ifdef ACC
-!$acc loop reduction(+:sum)
+!$acc loop reduction(+:sum) private(kk)
 #endif
           do k=1,ntclb
            kk=k+nalfa
@@ -331,7 +352,7 @@
          endif
          if(nalfa.ne.nvecb) then
 #ifdef ACC
-!$acc loop reduction(+:sum)
+!$acc loop reduction(+:sum) private(kk)
 #endif
           do k=m1,nvecb
            kk=k+ntclb
@@ -382,7 +403,7 @@
 !$omp& collapse(2) private(sum)
 #endif
 #ifdef ACC
-!$acc loop collapse(2)
+!$acc loop collapse(2) private(sum)
 #endif
        do j=1,nbas
         do i=1,nbas
@@ -415,14 +436,14 @@
 !$omp& collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
-!$acc loop collapse(2)
+!$acc loop collapse(2) private(sum)
 #endif
        do j=1,nbas
         do i=1,nbas
          sum=0.0d0
          if(ntcla.ne.0) then
 #ifdef ACC
-!$acc loop seq reduction(+:sum)
+!$acc loop seq reduction(+:sum) private(kk)
 #endif
           do k=1,ntcla
            kk=k+nalfa
@@ -431,7 +452,7 @@
          endif
          if(nalfa.ne.nveca) then
 #ifdef ACC
-!$acc loop seq reduction(+:sum)
+!$acc loop seq reduction(+:sum) private(kk)
 #endif
           do k=m1,nveca
            kk=k+ntcla

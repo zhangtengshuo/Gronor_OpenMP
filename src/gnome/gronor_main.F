@@ -55,14 +55,23 @@
       use gnome_parameters
       use gnome_data
       use gnome_integrals
-      use iso_c_binding, only : c_loc, c_ptr
+      use iso_c_binding
+      use iso_fortran_env
+!      use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef CUSOLVER
       use cusolverDn
       use cuda_cusolver
 #endif
+#ifdef HIPSOLVER
+      use hipsolver_enums
+      use amd_hipsolver
+#endif
 #ifdef ROCSOLVER
       use hipfort
+      use hipfort_check
+      use hipfort_hipblas
+!      use hipfort_rocsolver
       use amd_rocsolver
 #endif
 #ifdef _OPENACC
@@ -1442,9 +1451,20 @@
         endif
 #endif
 
+!     only accelerated ranks need to define hipsolver handles
+
+#ifdef HIPSOLVER
+        hipsolver_status=hipsolverCreate(hipsolver_handle)
+        if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                          &
+     &       print *, me,'hipsolver_handle creation failed'
+!        call hipblasCheck(hipBlasCreate(rocsolver_handle))
+!        call rocblas_create_handle(rocblas_handle)
+#endif
+
 !     only accelerated ranks need to define rocsolver handles
 
 #ifdef ROCSOLVER
+        call hipblasCheck(hipBlasCreate(rocsolver_handle))
 !        call rocblas_create_handle(rocblas_handle)
 #endif
         

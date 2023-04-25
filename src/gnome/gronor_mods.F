@@ -581,10 +581,178 @@
       end module cuda_cusolver
 #endif
 
+#ifdef HIPSOLVER
+      module hipsolver_enums
+      use iso_c_binding
+      
+!---------------------!
+!   hipSOLVER types   !
+!---------------------!
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_OP_N = 111
+      enumerator :: HIPSOLVER_OP_T = 112
+      enumerator :: HIPSOLVER_OP_C = 113
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_FILL_MODE_UPPER = 121
+      enumerator :: HIPSOLVER_FILL_MODE_LOWER = 122
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_SIDE_LEFT  = 141
+      enumerator :: HIPSOLVER_SIDE_RIGHT = 142
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_EIG_MODE_NOVECTOR = 201
+      enumerator :: HIPSOLVER_EIG_MODE_VECTOR   = 202
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_EIG_TYPE_1 = 211
+      enumerator :: HIPSOLVER_EIG_TYPE_2 = 212
+      enumerator :: HIPSOLVER_EIG_TYPE_3 = 213
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_EIG_RANGE_ALL = 221
+      enumerator :: HIPSOLVER_EIG_RANGE_V   = 222
+      enumerator :: HIPSOLVER_EIG_RANGE_I   = 223
+      end enum
+      
+      enum, bind(c)
+      enumerator :: HIPSOLVER_STATUS_SUCCESS           = 0
+      enumerator :: HIPSOLVER_STATUS_NOT_INITIALIZED   = 1
+      enumerator :: HIPSOLVER_STATUS_ALLOC_FAILED      = 2
+      enumerator :: HIPSOLVER_STATUS_INVALID_VALUE     = 3
+      enumerator :: HIPSOLVER_STATUS_MAPPING_ERROR     = 4
+      enumerator :: HIPSOLVER_STATUS_EXECUTION_FAILED  = 5
+      enumerator :: HIPSOLVER_STATUS_INTERNAL_ERROR    = 6
+      enumerator :: HIPSOLVER_STATUS_NOT_SUPPORTED     = 7
+      enumerator :: HIPSOLVER_STATUS_ARCH_MISMATCH     = 8
+      enumerator :: HIPSOLVER_STATUS_HANDLE_IS_NULLPTR = 9
+      enumerator :: HIPSOLVER_STATUS_INVALID_ENUM      = 10
+      enumerator :: HIPSOLVER_STATUS_UNKNOWN           = 11
+      end enum
+      
+      end module hipsolver_enums
+      
+      module amd_hipsolver
+      use iso_c_binding
+      use hipsolver_enums
+!      use hipsolverDn     
+!      type(hipsolverDnHandle) :: hipsolver_handle
+      
+       type(c_ptr)            :: hipsolver_handle
+       integer (kind=4)       :: hipsolver_status
+       integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+       real (kind=8)          :: tol,residual
+       integer (kind=4)       :: max_sweeps,exec_sweeps
+       integer (kind=4), parameter :: econ=0
+       real (kind=8), allocatable :: rwork(:)
+       real (kind=8), allocatable :: workspace_d(:)
+       integer (kind=4) :: dev_info_d
+!      integer(kind=cuda_stream_kind) :: stream
+       integer (kind=4) :: jobz
+       integer (kind=4) :: uplo=0
+
+       interface
+         function hipsolverCreate(handle)
+     &        bind(c, name = 'hipsolverCreate')
+         use iso_c_binding
+         use hipsolver_enums
+         implicit none
+         integer(kind(HIPSOLVER_STATUS_SUCCESS)) :: hipsolverCreate
+         type(c_ptr), value :: handle
+         end function hipsolverCreate
+      end interface
+
+      interface
+        function hipsolverDestroy(handle)
+     &       bind(c, name = 'hipsolverDestroy')
+        use iso_c_binding
+        use hipsolver_enums
+        implicit none
+        integer(kind(HIPSOLVER_STATUS_SUCCESS)) :: hipsolverDestroy
+        type(c_ptr), value :: handle
+        end function hipsolverDestroy
+      end interface
+    
+      interface
+        function hipsolverDgesvd_bufferSize
+     &       (handle, jobu, jobv, m, n, lwork)
+     &       bind(c, name = 'hipsolverDgesvd_bufferSize')
+        use iso_c_binding
+        use hipsolver_enums
+        implicit none
+        integer(kind(HIPSOLVER_STATUS_SUCCESS)) ::
+     &       hipsolverDgesvd_bufferSize
+        type(c_ptr), value :: handle
+        integer(c_signed_char), value :: jobu
+        integer(c_signed_char), value :: jobv
+        integer(c_int), value :: m
+        integer(c_int), value :: n
+        type(c_ptr), value :: lwork
+        end function hipsolverDgesvd_bufferSize
+      end interface
+
+      interface
+        function hipsolverDgesvd
+     &       (handle, jobu, jobv, m, n, A, lda, S, U, ldu, V, ldv, work,
+     &       lwork, rwork, info) bind(c, name = 'hipsolverDgesvd')
+        use iso_c_binding
+        use hipsolver_enums
+        implicit none
+        integer(kind(HIPSOLVER_STATUS_SUCCESS)) :: hipsolverDgesvd
+        type(c_ptr), value :: handle
+        integer(c_signed_char), value :: jobu
+        integer(c_signed_char), value :: jobv
+        integer(c_int), value :: m
+        integer(c_int), value :: n
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: S
+        type(c_ptr), value :: U
+        integer(c_int), value :: ldu
+        type(c_ptr), value :: V
+        integer(c_int), value :: ldv
+        type(c_ptr), value :: work
+        integer(c_int), value :: lwork
+        type(c_ptr), value :: rwork
+        type(c_ptr), value :: info
+        end function hipsolverDgesvd
+      end interface
+      
+      interface
+        function hipsolverDsyevd_bufferSize
+     &       (handle, jobz, uplo, n, A, lda, W, lwork)
+     &       bind(c, name = 'hipsolverDsyevd_bufferSize')
+        use iso_c_binding
+        use hipsolver_enums
+        implicit none
+        integer(kind(HIPSOLVER_STATUS_SUCCESS)) ::
+     &       hipsolverDsyevd_bufferSize
+        type(c_ptr), value :: handle
+        integer(kind(HIPSOLVER_EIG_MODE_NOVECTOR)), value :: jobz
+        integer(kind(HIPSOLVER_FILL_MODE_LOWER)), value :: uplo
+        integer(c_int), value :: n
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: W
+        type(c_ptr), value :: lwork
+        end function hipsolverDsyevd_bufferSize
+      end interface
+      
+      end module amd_hipsolver
+#endif
+      
 #ifdef ROCSOLVER
       module amd_rocsolver
-      
-!      type(rocblas_handle)   :: rocsolver_handle
+      use iso_c_binding
+      use iso_fortran_env
+      type(c_ptr)            :: rocsolver_handle
       integer (kind=4)       :: rocsolver_status
       
       end module amd_rocsolver

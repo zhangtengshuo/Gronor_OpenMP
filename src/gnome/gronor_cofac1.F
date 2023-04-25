@@ -33,6 +33,16 @@
       use cuda_cusolver
       use cudafor
 #endif
+#ifdef HIPSOLVER
+      use hipsolver_enums
+      use amd_hipsolver
+#endif
+#ifdef ROCSOLVER
+      use hipfort
+      use hipfort_check
+      use hipfort_hipblas
+      use hipfort_hipsolver
+#endif
       implicit none
       integer :: lfndbg
       integer :: i,ierr,j,idetuw,k
@@ -42,6 +52,11 @@
 
 #ifdef CUSOLVER
       character (len=1), target :: jobu, jobvt
+#endif
+
+#ifdef HIPSOLVER
+      integer (kind=1) :: jobu, jobvt
+      type(c_ptr) :: d_a
 #endif
 
       if(idbg.ge.30) write(lfndbg,600)
@@ -71,6 +86,9 @@
         flush(lfndbg)
       endif
 
+!++++++++++++++++++++++++
+
+      
 #ifdef CUSOLVER
 
        ndim=nelecs
@@ -85,12 +103,18 @@
 !$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,             &
      &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                      &
      &      lwork1,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
+#endif
+#ifdef OMPTGT
+!omp end target data
 #endif
        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                           &
      &      write(*,*) 'cusolverDnDgesvd failed',cusolver_status
@@ -154,6 +178,9 @@
 !$acc host_data
 !$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
         cusolver_status=cusolverDnDgesvdj                                       &
      &       (cusolver_handle,jobz,econ,                                        &
      &       ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                     &
@@ -161,6 +188,9 @@
 
 #ifdef ACC
 !$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
 #endif
         cusolver_status=cudaDeviceSynchronize()
 
@@ -270,15 +300,241 @@
 #ifdef ACC
 !$acc end parallel loop
 #endif
-#ifdef OMPTGT
-!$omp end target
-#endif
+!#ifdef OMPTGT
+!!$omp end target
+!#endif
        call timer_stop(42)
 
       endif
 
 #else
 
+!++++++++++++++++++++++++
+
+#ifdef HIPSOLVER
+
+       ndim=nelecs
+       mdim=mbasel
+
+       if(isolver.eq.1) then
+
+       jobu = 'A'  ! all m columns of U
+       jobvt= 'A'  ! all m columns of VT
+
+#ifdef ACC
+!$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
+!$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
+       hipsolver_status=hipsolverDgesvd(hipsolver_handle,jobu,jobvt,             &
+     &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                       &
+     &      lwork1,rwork,dev_info_d)
+#ifdef ACC
+!$acc end host_data
+!$acc wait
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+       if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                           &
+     &      write(*,*) 'hipsolverDgesvd failed',hipsolver_status
+
+      call timer_start(42)
+
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
+      do i=1,nelecs
+        do j=1,nelecs
+          temp(i,j)=w(j,i)
+        enddo
+      enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
+      do i=1,nelecs
+        do j=1,nelecs
+          w(i,j)=temp(i,j)
+        enddo
+      enddo
+#ifdef ACC
+!$acc end kernels
+!$acc parallel loop gang present(temp,u,w,a)
+#endif
+      do i=1,nelecs
+#ifdef ACC
+!$acc loop vector
+#endif
+        do j=1,i
+          coef=0.0d0
+#ifdef ACC
+!$acc loop seq
+#endif
+          do k=1,nelecs
+            coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+          enddo
+          a(i,j)=coef
+          a(j,i)=coef
+        enddo
+      enddo
+#ifdef ACC
+!$acc end parallel loop
+#endif
+      call timer_stop(42)
+
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef HIPSOLVERJ
+      elseif(isolver.eq.2) then
+
+        jobz=HIPSOLVER_EIG_MODE_VECTOR
+
+!     here the Jacobi svd from cusolver should be implemented
+
+#ifdef ACC
+!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
+!$acc host_data
+!$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        hipsolver_status=hipsolverDgesvdj                                       &
+     &       (hipsolver_handle,jobz,econ,                                        &
+     &       ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                     &
+     &       lwork1,dev_info_d,gesvdj_params)
+
+#ifdef ACC
+!$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        hipsolver_status=cudaDeviceSynchronize()
+
+        if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                          &
+     &       write(*,*) 'hipsolverDgesvdj failed',hipsolver_status
+
+        hipsolver_status = hipsolverXgesvdjGetSweeps                            &
+     &       (hipsolver_handle, gesvdj_params, exec_sweeps)
+        hipsolver_status = hipsolverXgesvdjGetResidual                          &
+     &       (hipsolver_handle, gesvdj_params, residual)
+
+        call timer_start(42)
+
+#ifdef ACC
+!$acc parallel loop gang present(temp,u,w,a)
+#endif
+        do i=1,nelecs
+#ifdef ACC
+!$acc loop vector
+#endif
+          do j=1,i
+            coef=0.0d0
+#ifdef ACC
+!$acc loop seq
+#endif
+            do k=1,nelecs
+              coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+            enddo
+            a(i,j)=coef
+            a(j,i)=coef
+          enddo
+        enddo
+#ifdef ACC
+!$acc end parallel loop
+#endif
+        call timer_stop(42)
+
+#ifdef ACC
+!$acc end data
+#endif
+      else
+#endif
+
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif
+#ifdef MKL
+        ndimm=nelecs
+        call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
+     &       workspace_d,lwork1m,ierr)
+
+        do i=1,nelecs
+          do j=1,nelecs
+            temp(i,j)=w(i,j)
+          enddo
+        enddo
+        do i=1,nelecs
+          do j=1,nelecs
+            w(j,i)=temp(i,j)
+          enddo
+        enddo
+#else
+         call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,                         &
+     &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,           &
+     &        ierr,sdiag,nelecs)
+#endif
+
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+       call timer_start(42)
+
+#ifdef ACC
+!$acc parallel loop gang present(u,w,a)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coef)
+#endif
+       do i=1,nelecs
+         do j=1,i
+           coef=0.0d0
+           do k=1,nelecs
+             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+           enddo
+           a(i,j)=coef
+           a(j,i)=coef
+         enddo
+       enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end parallel loop
+#endif
+!#ifdef OMPTGT
+!!$omp end target
+!#endif
+       call timer_stop(42)
+
+      endif
+
+#else
+
+!++++++++++++++++++++++++
+
+
+      
 #ifdef ACC
 !$acc update host (a)
 #endif
@@ -329,6 +585,7 @@
 #endif
       call timer_stop(42)
 
+#endif
 #endif
 
       call timer_stop(41)
@@ -383,6 +640,9 @@
 !$acc wait
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
         cusolver_status = cusolverDnDsyevd(cusolver_handle,                     &
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,                 &
      &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
@@ -390,7 +650,10 @@
 !$acc end host_data
 !$acc wait
 #endif
-       if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                           &
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                           &
      &       write(*,*) 'cusolverDnDsyevd failed',cusolver_status
 
         call timer_stop(43)
@@ -419,11 +682,17 @@
 !$acc data copy(dev_info_d,syevj_params) create(workspace_d)
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
         cusolver_status = cusolverDnDsyevj                                      &
      &       (cusolver_handle, jobz, uplo, ndim,a,ndim,diag,                    &
      &       workspace_d,lwork2,dev_info_d,syevj_params)
 #ifdef ACC
 !$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
 #endif
         cusolver_status=cudaDeviceSynchronize()
 

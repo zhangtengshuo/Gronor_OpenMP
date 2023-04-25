@@ -30,6 +30,10 @@
       use cuda_cusolver
       use cudafor
 #endif
+#ifdef HIPSOLVER
+      use hipsolver_enums
+      use amd_hipsolver
+#endif
 #ifdef MKL
       use mkl_solver
 #endif
@@ -45,6 +49,10 @@
       real (kind=8) :: rbuf(17)
 
       logical (kind=4) :: flag
+
+#ifdef HIPSOLVER
+      type(c_signed_char), target :: jobu, jobvt
+#endif
 
       flush(lfnout)
 
@@ -240,6 +248,168 @@
         allocate(rwork(nelecs))
 
 #endif
+
+!++++hipsolver++++++++++++++
+        
+#ifdef HIPSOLVER
+
+        ndim=nelecs
+        mdim=mbasel
+        lwork1=0
+        lwork2=0
+
+        jobu = 'A'              ! all m columns of U
+        jobvt= 'A'              ! all m columns of VT
+
+#ifdef HIPSOLVERJ
+        if(isolver.eq.1) then
+#endif
+          
+#ifdef ACC
+!$acc data copyin(w,ta) create(dev_info_d)
+!$acc host_data use_device(ta)
+#endif
+          hipsolver_status = hipsolverDgesvd_bufferSize                           &
+     &         (hipsolver_handle,jobu,jobvt,ndim,ndim,lwork1)
+#ifdef ACC
+!$acc end host_data
+#endif
+          if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                       &
+     &         write(*,*) 'hipsolverDgesvd_bufferSize failed'
+
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef HIPSOLVERJ
+        elseif(isolver.eq.2) then
+
+          ndim=nelecs
+          mdim=mbasel
+          tol = tolsvj
+          max_sweeps = iswsvj
+
+          jobz=HIPSOLVER_EIG_MODE_VECTOR
+
+#ifdef ACC
+!$acc data create(dev_info_d,u,w,ev,ta)
+#endif
+          hipsolver_status = cudaStreamCreateWithFlags                           &
+     &         (stream,cudaStreamNonBlocking)
+
+          hipsolver_status = hipsolverDnSetStream(cusolver_handle,stream)
+
+          hipsolver_status = hipsolverDnCreateGesvdjInfo(gesvdj_params)
+
+          hipsolver_status = hipsolverDnXgesvdjSetTolerance                       &
+     &         (gesvdj_params,tol)
+
+          hipsolver_status = hipsolverDnXgesvdjSetMaxSweeps                       &
+     &         (gesvdj_params,max_sweeps)
+
+#ifdef ACC
+!$acc host_data use_device(ta,ev,u,w)
+#endif
+          hipsolver_status = hipsolverDgesvdj_bufferSize                        &
+     &         (hipsolver_handle,jobz,econ,                                      &
+     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,                       &
+     &         gesvdj_params)
+
+#ifdef ACC
+!$acc end host_data
+#endif
+          if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"hipsolverDgesvdj_bufferSize failed",                   &
+     &         hipsolver_status
+
+#ifdef ACC
+!$acc end data
+#endif
+        endif
+#endif
+
+#ifdef HIPSOLVERJ
+        if(jsolver.eq.1) then
+#endif
+#ifdef ACC
+!$acc data copyin(w,ta) create(dev_info_d)
+!$acc host_data use_device(ta,w)
+#endif
+          hipsolver_status = hipsolverDsyevd_bufferSize                         &
+     &         (hipsolver_handle,HIPSOLVER_EIG_MODE_NOVECTOR,                     &
+     &         HIPSOLVER_FILL_MODE_LOWER,                                          &
+     &         ndim,ta,mdim,w,lwork2)
+#ifdef ACC
+!$acc end host_data
+#endif
+          if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"hipsolverDsyevd_bufferSize failed",                     &
+     &         hipsolver_status
+
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef HIPSOLVERJ
+        elseif(jsolver.eq.2) then
+
+! Jacobi EVD
+
+          ndim=nelecs
+          mdim=mbasel
+          tol = tolevj
+          max_sweeps = iswevj
+
+          jobz = HIPSOLVER_EIG_MODE_NOVECTOR
+          uplo = HIPSOLVER_FILL_MODE_LOWER
+
+#ifdef ACC
+!$acc data create(dev_info_d,w,ta,ev)
+#endif
+          hipsolver_status = cudaStreamCreateWithFlags                           &
+     &         (stream,cudaStreamNonBlocking)
+
+          hipsolver_status = hipsolverSetStream(cusolver_handle,stream)
+
+          hipsolver_status = hipsolverCreateSyevjInfo(syevj_params)
+
+          hipsolver_status = cusolverXsyevjSetTolerance                          &
+     &         (syevj_params,tol)
+
+          hipsolver_status = hipsolverXsyevjSetMaxSweeps                         &
+     &         (syevj_params,max_sweeps)
+
+#ifdef ACC
+!$acc host_data use_device(ta,w)
+#endif
+          hipsolver_status = hipsolverDsyevj_bufferSize                         &
+     &         (hipsolver_handle,jobz,uplo,                                      &
+     &         ndim,ta,mdim,ev,lwork2,                                          &
+     &         syevj_params)
+
+#ifdef ACC
+!$acc end host_data
+#endif
+          if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                       &
+     &         print *,"hipsolverDsyevj_bufferSize failed",                    &
+     &         hipsolver_status
+
+#ifdef ACC
+!$acc end data
+#endif
+        endif
+#endif
+
+        lwork1=max(lwork1,lwork2)
+
+        allocate(workspace_d(lwork1))
+        allocate(rwork(nelecs))
+
+#endif
+
+
+        
+!++++++++++++++++++
+
+        
       else
 #ifdef MKL
         ndimm=nelecs
@@ -512,6 +682,11 @@
         cusolver_status = cusolverDnDestroy(cusolver_handle)
         if (cusolver_status /= CUSOLVER_STATUS_SUCCESS)                         &
      &        write(*,*) 'cusolver_handle destruction failed'
+#endif
+#ifdef HIPSOLVER
+        hipsolver_status = hipsolverDestroy(hipsolver_handle)
+        if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                         &
+     &        write(*,*) 'hipsolver_handle destruction failed'
 #endif
       endif
 

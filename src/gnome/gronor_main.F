@@ -2218,7 +2218,7 @@
           allocate(w1(max(nelecs,nbas,mbasel)))
           allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
-          allocate(temp(nelecs,nelecs))
+          allocate(temp(nelecs,nelecs),rwork(nelecs))
 
           if(iamacc.eq.1) then
             if(idbg.gt.0) then
@@ -2229,7 +2229,7 @@
             endif
 #ifdef ACC
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)                                   &
-!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev)                                        &
+!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork)                             &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)              &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)         &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)                                       &
@@ -2237,7 +2237,7 @@
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s)                            &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,ev)                                     &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork)                          &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)           &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl)          &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1)                                    &

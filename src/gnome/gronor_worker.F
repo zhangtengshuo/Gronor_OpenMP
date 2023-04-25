@@ -51,7 +51,8 @@
       logical (kind=4) :: flag
 
 #ifdef HIPSOLVER
-      type(c_signed_char), target :: jobu, jobvt
+!      type(c_signed_char), target :: jobu, jobvt
+      integer (kind=1) :: jobu, jobvt
 #endif
 
       flush(lfnout)

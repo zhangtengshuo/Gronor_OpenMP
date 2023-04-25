@@ -711,7 +711,7 @@
         integer(c_signed_char), value :: jobv
         integer(c_int), value :: m
         integer(c_int), value :: n
-        type(c_ptr), value :: A
+        type(c_ptr) :: A
         integer(c_int), value :: lda
         type(c_ptr), value :: S
         type(c_ptr), value :: U

@@ -100,7 +100,7 @@
        jobvt= 'A'  ! all m columns of VT
 
 #ifdef ACC
-!$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
+!$acc data copy(dev_info_d) create(workspace_d)
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
@@ -174,7 +174,7 @@
 !     here the Jacobi svd from cusolver should be implemented
 
 #ifdef ACC
-!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
+!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
 !$acc host_data
 !$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
@@ -322,11 +322,11 @@
        jobvt= 'A'  ! all m columns of VT
 
 #ifdef ACC
-!$acc data copy(dev_info_d) create(temp,workspace_d,rwork)
+!$acc data copy(dev_info_d) create(workspace_d)
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
        hipsolver_status=hipsolverDgesvd(hipsolver_handle,jobu,jobvt,             &
      &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                       &
@@ -441,12 +441,13 @@
 !     here the Jacobi svd from cusolver should be implemented
 
 #ifdef ACC
-!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d,temp)
+!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
 !$acc host_data
 !$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data map(alloc:dev_info_d,workspace_d)
+!$omp& use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         hipsolver_status=hipsolverDgesvdj                                       &
      &       (hipsolver_handle,jobz,econ,                                        &

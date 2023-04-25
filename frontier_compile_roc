@@ -28,9 +28,9 @@ rm -rf build_frontier
 mkdir build_frontier
 cd build_frontier
 
-#cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 #cmake -DOMPTGT=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+#cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 
 make -j 16
 

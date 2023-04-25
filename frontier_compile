@@ -9,12 +9,13 @@ module load rocm
 
 module load cmake
 
-#module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
+module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
 
-#module load hipfort
+module load hipfort
 
 module list
 
+setenv OLCF_HIPFORT_ROOT /lustre/orion/world-shared/stf006/reubendb/sw/frontier/hipfort/cce_15.0.1-rocm_5.3.0
 #unsetenv MPI_ROOT
 
 setenv PE_MPICH_GTL_DIR_amd_gfx90a "-L${CRAY_MPICH_ROOTDIR}/gtl/lib"
@@ -27,8 +28,9 @@ rm -rf build_frontier
 mkdir build_frontier
 cd build_frontier
 
-#cmake -DOMPTGT=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+#cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+cmake -DOMPTGT=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+#cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 
 make -j 16
 

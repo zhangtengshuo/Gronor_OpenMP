@@ -31,8 +31,18 @@
       use cudafor
 #endif
 #ifdef HIPSOLVER
+      use hipvars
       use hipsolver_enums
       use amd_hipsolver
+#endif
+#ifdef ROCSOLVER
+      use rocvars
+      use hipfort
+      use hipfort_hipmalloc
+      use hipfort_rocblas_enums
+      use hipfort_rocblas
+      use hipfort_rocsolver_enums
+      use hipfort_rocsolver
 #endif
 #ifdef MKL
       use mkl_solver

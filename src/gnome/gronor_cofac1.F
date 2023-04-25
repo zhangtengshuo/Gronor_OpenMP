@@ -34,14 +34,18 @@
       use cudafor
 #endif
 #ifdef HIPSOLVER
+      use hipvars
       use hipsolver_enums
       use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
+      use rocvars
       use hipfort
-      use hipfort_check
-      use hipfort_hipblas
-      use hipfort_hipsolver
+      use hipfort_hipmalloc
+      use hipfort_rocblas_enums
+      use hipfort_rocblas
+      use hipfort_rocsolver_enums
+      use hipfort_rocsolver
 #endif
       implicit none
       integer :: lfndbg
@@ -56,7 +60,10 @@
 
 #ifdef HIPSOLVER
       integer (kind=1) :: jobu, jobvt
-      type(c_ptr) :: d_a
+#endif
+
+#ifdef ROCSOLVER
+      integer :: jobu, jobvt, jobz
 #endif
 
       if(idbg.ge.30) write(lfndbg,600)
@@ -579,6 +586,275 @@
 
 !++++++++++++++++++++++++
 
+#ifdef ROCSOLVER
+
+
+       ndim=nelecs
+       mdim=mbasel
+
+       if(isolver.eq.1) then
+
+       jobu = rocblas_svect_all  ! all m columns of U
+       jobvt= ROCBLAS_SVECT_ALL ! all m columns of VT
+       workmode = rocblas_outofplace
+
+#ifdef ACC
+!$acc data copy(dev_info_d) create(workspace_d)
+!$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+#endif
+       rocsolver_status=rocsolver_dgesvd(rocsolver_handle,jobu,jobvt,             &
+     &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workptr,workmode,rocinfo)
+#ifdef ACC
+!$acc end host_data
+!$acc wait
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+       if(rocsolver_status /= ROCBLAS_STATUS_SUCCESS)                             &
+     &      write(*,*) 'rocsolver_dgesvd failed',rocsolver_status
+
+      call timer_start(42)
+
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
+#endif
+      do i=1,nelecs
+        do j=1,nelecs
+          temp(i,j)=w(j,i)
+        enddo
+      enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& collapse(2)
+#endif
+      do i=1,nelecs
+        do j=1,nelecs
+          w(i,j)=temp(i,j)
+        enddo
+      enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+!$acc parallel loop gang present(temp,u,w,a)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coef)
+#endif
+      do i=1,nelecs
+#ifdef ACC
+!$acc loop vector
+#endif
+        do j=1,i
+          coef=0.0d0
+#ifdef ACC
+!$acc loop seq
+#endif
+          do k=1,nelecs
+            coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+          enddo
+          a(i,j)=coef
+          a(j,i)=coef
+        enddo
+      enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end parallel loop
+#endif
+      call timer_stop(42)
+
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef HIPSOLVERJ
+      elseif(isolver.eq.2) then
+
+        jobz=HIPSOLVER_EIG_MODE_VECTOR
+
+!     here the Jacobi svd from cusolver should be implemented
+
+#ifdef ACC
+!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
+!$acc host_data
+!$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data map(alloc:dev_info_d,workspace_d)
+!$omp& use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        hipsolver_status=hipsolverDgesvdj                                       &
+     &       (hipsolver_handle,jobz,econ,                                        &
+     &       ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                     &
+     &       lwork1,dev_info_d,gesvdj_params)
+
+#ifdef ACC
+!$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        hipsolver_status=cudaDeviceSynchronize()
+
+        if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                          &
+     &       write(*,*) 'hipsolverDgesvdj failed',hipsolver_status
+
+        hipsolver_status = hipsolverXgesvdjGetSweeps                            &
+     &       (hipsolver_handle, gesvdj_params, exec_sweeps)
+        hipsolver_status = hipsolverXgesvdjGetResidual                          &
+     &       (hipsolver_handle, gesvdj_params, residual)
+
+        call timer_start(42)
+
+#ifdef ACC
+!$acc parallel loop gang present(temp,u,w,a)
+#endif
+        do i=1,nelecs
+#ifdef ACC
+!$acc loop vector
+#endif
+          do j=1,i
+            coef=0.0d0
+#ifdef ACC
+!$acc loop seq
+#endif
+            do k=1,nelecs
+              coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+            enddo
+            a(i,j)=coef
+            a(j,i)=coef
+          enddo
+        enddo
+#ifdef ACC
+!$acc end parallel loop
+#endif
+        call timer_stop(42)
+
+#ifdef ACC
+!$acc end data
+#endif
+      else
+#endif
+
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif
+#ifdef MKL
+        ndimm=nelecs
+        call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
+     &       workspace_d,lwork1m,ierr)
+
+        do i=1,nelecs
+          do j=1,nelecs
+            temp(i,j)=w(i,j)
+          enddo
+        enddo
+        do i=1,nelecs
+          do j=1,nelecs
+            w(j,i)=temp(i,j)
+          enddo
+        enddo
+#else
+         call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,                         &
+     &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,           &
+     &        ierr,sdiag,nelecs)
+#endif
+
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+       call timer_start(42)
+
+#ifdef ACC
+!$acc parallel loop gang present(u,w,a)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+!$omp& private(coef)
+#endif
+       do i=1,nelecs
+         do j=1,i
+           coef=0.0d0
+           do k=1,nelecs
+             coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+           enddo
+           a(i,j)=coef
+           a(j,i)=coef
+         enddo
+       enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end parallel loop
+#endif
+!#ifdef OMPTGT
+!!$omp end target
+!#endif
+       call timer_stop(42)
+
+      endif
+
+
+
+      
+#else
 
       
 #ifdef ACC
@@ -631,6 +907,7 @@
 #endif
       call timer_stop(42)
 
+#endif
 #endif
 #endif
 
@@ -792,6 +1069,267 @@
 #endif
 #else
 
+#ifdef HIPSOLVER
+
+
+#ifdef ACC
+!$acc data copy(dev_info_d)                                                    &
+!$acc& create(workspace_d)
+#endif
+      if(jsolver.eq.1) then
+
+        ndim=nelecs
+        mdim=mbasel
+
+        jobz = HIPSOLVER_EIG_MODE_NOVECTOR
+        uplo = HIPSOLVER_FILL_MODE_LOWER
+        call timer_start(43)
+
+#ifdef ACC
+!$acc wait
+!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        hipsolver_status = hipsolverdsyevd(hipsolver_handle,                      &
+     &       jobz,uplo,                                                           &
+     &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
+#ifdef ACC
+!$acc end host_data
+!$acc wait
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                           &
+     &       write(*,*) 'chipsolverDnDsyevd failed',hipsolver_status
+
+        call timer_stop(43)
+
+#ifdef ACC
+!$acc kernels present(sdiag)
+#endif
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
+#ifdef ACC
+!$acc end kernels
+#endif
+#ifdef CUSOLVERJ
+      elseif(jsolver.eq.2) then
+
+        ndim=nelecs
+        mdim=mbasel
+
+        jobz = HIPSOLVER_EIG_MODE_NOVECTOR
+        uplo = HIPBLAS_FILL_MODE_LOWER
+
+        call timer_start(43)
+
+#ifdef ACC
+!$acc data copy(dev_info_d,syevj_params) create(workspace_d)
+!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        hipsolver_status = hipsolverdsyevj                                      &
+     &       (hipsolver_handle, jobz, uplo, ndim,a,ndim,diag,                    &
+     &       workspace_d,lwork2,dev_info_d,syevj_params)
+#ifdef ACC
+!$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        hipsolver_status=cudaDeviceSynchronize()
+
+       if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                           &
+     &       write(*,*) 'hipsolverDnDsyevj failed',hipsolver_status
+
+        call timer_stop(43)
+
+#ifdef ACC
+!$acc kernels present(sdiag)
+#endif
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
+#ifdef ACC
+!$acc end kernels
+!$acc end data
+#endif
+#endif
+      else
+
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif
+        call timer_start(43)
+#ifdef MKL
+        ndimm=nelecs
+        call dsyevd('N','L',ndimm,a,nelecs,diag,                                &
+     &       workspace_d,lwork1m,                                               &
+     &       workspace_i,lworki,ierr)
+#else
+        call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,                          &
+     &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,                       &
+     &       a,nelecs,nelecs,ierr)
+#endif
+        call timer_stop(43)
+#ifdef ACC
+!$acc update device (a,diag,sdiag)
+#endif
+#ifdef OMPTGT
+!$omp target update to(a,diag,sdiag)
+#endif
+      endif
+
+#ifdef ACC
+!$acc end data
+#endif
+
+
+      
+#else
+
+#ifdef ROCSOLVER
+
+
+#ifdef ACC
+!$acc data copy(dev_info_d)                                                    &
+!$acc& create(workspace_d)
+#endif
+      if(jsolver.eq.1) then
+
+        ndim=nelecs
+        mdim=mbasel
+        uplo = rocblas_fill_lower
+        evect= rocblas_evect_original
+
+        call timer_start(43)
+
+#ifdef ACC
+!$acc wait
+!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        rocsolver_status = rocsolver_dsyevd(rocsolver_handle,                     &
+     &       evect,uplo,                                                          &
+     &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
+#ifdef ACC
+!$acc end host_data
+!$acc wait
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        if(rocsolver_status /= ROCBLAS_STATUS_SUCCESS)                           &
+     &       write(*,*) 'rocsolverDnDsyevd failed',rocsolver_status
+
+        call timer_stop(43)
+
+#ifdef ACC
+!$acc kernels present(sdiag)
+#endif
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
+#ifdef ACC
+!$acc end kernels
+#endif
+#ifdef ROCSOLVERJ
+      elseif(jsolver.eq.2) then
+
+        ndim=nelecs
+        mdim=mbasel
+
+        jobz = ROCSOLVER_EIG_MODE_NOVECTOR
+        uplo = rocblas_fill_lower
+        esort= rocblas_esort_ascending
+        evect= rocblas_evect_original
+
+        call timer_start(43)
+
+#ifdef ACC
+!$acc data copy(dev_info_d,syevj_params) create(workspace_d)
+!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+#endif
+        rocsolver_status = rocsolver_dsyevj                                      &
+     &       (rocsolver_handle, esort, evect, uplo, ndim,a,ndim,diag,                    &
+     &       workspace_d,lwork2,dev_info_d,syevj_params)
+#ifdef ACC
+!$acc end host_data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+        rocsolver_status=cudaDeviceSynchronize()
+
+       if(rocsolver_status /= ROCBLAS_STATUS_SUCCESS)                           &
+     &       write(*,*) 'rocsolverDnDsyevj failed',rocsolver_status
+
+        call timer_stop(43)
+
+#ifdef ACC
+!$acc kernels present(sdiag)
+#endif
+        do i=1,ndim
+          sdiag(i)=0.0d0
+        enddo
+#ifdef ACC
+!$acc end kernels
+!$acc end data
+#endif
+#endif
+      else
+
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif
+        call timer_start(43)
+#ifdef MKL
+        ndimm=nelecs
+        call dsyevd('N','L',ndimm,a,nelecs,diag,                                &
+     &       workspace_d,lwork1m,                                               &
+     &       workspace_i,lworki,ierr)
+#else
+        call tred2(nelecs,nelecs,a,nelecs,nelecs,diag,                          &
+     &       nelecs,sdiag,nelecs,a,nelecs,nelecs)
+        call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,                       &
+     &       a,nelecs,nelecs,ierr)
+#endif
+        call timer_stop(43)
+#ifdef ACC
+!$acc update device (a,diag,sdiag)
+#endif
+#ifdef OMPTGT
+!$omp target update to(a,diag,sdiag)
+#endif
+      endif
+
+#ifdef ACC
+!$acc end data
+#endif
+
+
+
+      
+#else
+
 #ifdef ACC
 !$acc update host (a)
 #endif
@@ -811,7 +1349,16 @@
 !$omp target update to(a,diag,sdiag)
 #endif
 #endif
+#endif
+#endif
 
+
+
+
+
+
+
+      
 
       call timer_start(44)
 

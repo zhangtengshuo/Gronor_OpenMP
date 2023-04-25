@@ -64,15 +64,18 @@
       use cuda_cusolver
 #endif
 #ifdef HIPSOLVER
+      use hipvars
       use hipsolver_enums
       use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
+      use rocvars
       use hipfort
-      use hipfort_check
-      use hipfort_hipblas
-!      use hipfort_rocsolver
-      use amd_rocsolver
+      use hipfort_hipmalloc
+      use hipfort_rocblas_enums
+      use hipfort_rocblas
+      use hipfort_rocsolver_enums
+      use hipfort_rocsolver
 #endif
 #ifdef _OPENACC
       use openacc
@@ -1457,15 +1460,14 @@
         hipsolver_status=hipsolverCreate(hipsolver_handle)
         if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                          &
      &       print *, me,'hipsolver_handle creation failed'
-!        call hipblasCheck(hipBlasCreate(rocsolver_handle))
-!        call rocblas_create_handle(rocblas_handle)
 #endif
 
 !     only accelerated ranks need to define rocsolver handles
 
 #ifdef ROCSOLVER
-        call hipblasCheck(hipBlasCreate(rocsolver_handle))
-!        call rocblas_create_handle(rocblas_handle)
+        rocsolver_status=rocblas_create_handle(rocsolver_handle)
+        if(rocsolver_status /= ROCBLAS_STATUS_SUCCESS)                             &
+     &       print *, me,'rocsolver_handle creation failed'
 #endif
         
       endif

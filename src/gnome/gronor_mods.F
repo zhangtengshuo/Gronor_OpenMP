@@ -638,6 +638,22 @@
       end enum
       
       end module hipsolver_enums
+
+      module hipvars
+      use iso_c_binding
+      type(c_ptr)            :: hipsolver_handle
+      integer (kind=4)       :: hipsolver_status
+      integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+      real (kind=8)          :: tol,residual
+      integer (kind=4)       :: max_sweeps,exec_sweeps
+      integer (kind=4), parameter :: econ=0
+      real (kind=8), allocatable :: rwork(:)
+      real (kind=8), allocatable :: workspace_d(:)
+      integer (kind=4) :: dev_info_d
+!     integer(kind=cuda_stream_kind) :: stream
+      integer (kind=4) :: jobz
+      integer (kind=4) :: uplo=0      
+      end module hipvars
       
       module amd_hipsolver
       use iso_c_binding
@@ -645,18 +661,18 @@
 !      use hipsolverDn     
 !      type(hipsolverDnHandle) :: hipsolver_handle
       
-       type(c_ptr)            :: hipsolver_handle
-       integer (kind=4)       :: hipsolver_status
-       integer (kind=4)       :: lwork1,lwork2,ndim,mdim
-       real (kind=8)          :: tol,residual
-       integer (kind=4)       :: max_sweeps,exec_sweeps
-       integer (kind=4), parameter :: econ=0
-       real (kind=8), allocatable :: rwork(:)
-       real (kind=8), allocatable :: workspace_d(:)
-       integer (kind=4) :: dev_info_d
-!      integer(kind=cuda_stream_kind) :: stream
-       integer (kind=4) :: jobz
-       integer (kind=4) :: uplo=0
+!       type(c_ptr)            :: hipsolver_handle
+!       integer (kind=4)       :: hipsolver_status
+!       integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+!       real (kind=8)          :: tol,residual
+!       integer (kind=4)       :: max_sweeps,exec_sweeps
+!       integer (kind=4), parameter :: econ=0
+!       real (kind=8), allocatable :: rwork(:)
+!       real (kind=8), allocatable :: workspace_d(:)
+!       integer (kind=4) :: dev_info_d
+!!      integer(kind=cuda_stream_kind) :: stream
+!       integer (kind=4) :: jobz
+!       integer (kind=4) :: uplo=0
 
        interface
          function hipsolverCreate(handle)
@@ -749,12 +765,26 @@
 #endif
       
 #ifdef ROCSOLVER
-      module amd_rocsolver
+      module rocvars
       use iso_c_binding
-      use iso_fortran_env
       type(c_ptr)            :: rocsolver_handle
       integer (kind=4)       :: rocsolver_status
+      integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+      real (kind=8)          :: tol,residual
+      integer (kind=4)       :: max_sweeps,exec_sweeps
+      integer (kind=4), parameter :: econ=0
+      real (kind=8), allocatable :: rwork(:)
+      real (kind=8), allocatable :: workspace_d(:)
+      integer (kind=4) :: dev_info_d
+!     integer(kind=cuda_stream_kind) :: stream
+      integer (kind=4) :: esort, evect
+      integer (kind=4) :: uplo=0
+      integer (kind=4) :: rocinfo,workmode
+      type(c_ptr)      :: workptr
+      end module rocvars
       
+      module amd_rocsolver
+      use iso_c_binding
       end module amd_rocsolver
 #endif
       

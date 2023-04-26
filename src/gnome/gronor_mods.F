@@ -805,7 +805,7 @@
       interface
         function hipsolverDsyevj
      &       (handle,jobz,uplo,n,A,lda,W,work,lwork,info,params)
-        bind(c, name = 'hipsolverDsyevj')
+     &       bind(c, name = 'hipsolverDsyevj')
         use iso_c_binding
         use hipsolver_enums
         implicit none

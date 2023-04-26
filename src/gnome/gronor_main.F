@@ -479,7 +479,6 @@
         write(target,'(a)') " OpenMP target NVIDIA"
 #endif
 #endif
-        write(lfnout,'(a,i6)') "DEVICES ",numdev
         if(ipr.ge.0) write(lfnout,645) trim(target)
 #if defined(CRAY)
  645    format(//,' Compiled with the CRAY CCE Compiler suite',a)

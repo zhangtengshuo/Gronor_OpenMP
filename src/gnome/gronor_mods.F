@@ -759,6 +759,27 @@
         type(c_ptr), value :: lwork
         end function hipsolverDsyevd_bufferSize
       end interface
+
+      interface
+        function hipsolverDsyevd
+     &       (handle, jobz, uplo, n, A, lda, W, work, lwork, info)
+     &       bind(c, name = 'hipsolverDsyevd')
+        use iso_c_binding
+        use hipsolver_enums
+        implicit none
+        integer(kind(HIPSOLVER_STATUS_SUCCESS)) :: hipsolverDsyevd
+        type(c_ptr), value :: handle
+        integer(kind(HIPSOLVER_EIG_MODE_NOVECTOR)), value :: jobz
+        integer(kind(HIPSOLVER_FILL_MODE_LOWER)), value :: uplo
+        integer(c_int), value :: n
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: W
+        type(c_ptr), value :: work
+        integer(c_int), value :: lwork
+        type(c_ptr), value :: info
+        end function hipsolverDsyevd
+      end interface
       
       end module amd_hipsolver
 #endif

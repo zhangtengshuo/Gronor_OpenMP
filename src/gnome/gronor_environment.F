@@ -126,6 +126,13 @@
         machine='Crusher '
       endif
 
+!     Trim the Frontier node name
+      if(nodename(1:8).eq.'frontier') then
+        nodename(1:5)=nodename(9:13)
+        length=5
+        machine='Frontier'
+      endif
+
 !     Trim the OLCF Summit node name
       if(ichar(nodename(1:1)).ge.97.and.                                        &
      &     ichar(nodename(1:1)).le.122.and.                                     &
@@ -145,14 +152,14 @@
 
 !     Set the device number
 
-      numdev=0
+      numdev=-1
       num_threads=1
 
       memfre=0
       memtot=0
 
 #ifdef _OPENACC
-#ifdef AMD
+#ifdef GPUAMD
       numdev=acc_get_num_devices(ACC_DEVICE_AMD)
       if(numdev.gt.1) then
         if(machine.ne.'Juwels  ') then
@@ -464,7 +471,7 @@
 
 #ifdef _OPENACC
       if(numdev.ge.1) then
-#ifdef AMD
+#ifdef GPUAMD
         mydev=acc_get_device_num(ACC_DEVICE_AMD)
 #else
         mydev=acc_get_device_num(ACC_DEVICE_NVIDIA)
@@ -478,7 +485,7 @@
 #ifdef IBM
         mydev=omp_get_default_device()
 #else
-#ifdef AMD
+#ifdef GPUAMD
         mydev=omp_get_default_device()
 #else
         mydev=omp_get_device_num()

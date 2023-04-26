@@ -373,11 +373,13 @@
         tolevj=1.0d-07
         lcpr=.false.
 
-        ngpus=1
+        ngpus=0
+        if(numdev.ge.1) ngpus=1
         if(machine.eq.'Juwels  '.and.numdev.eq.1) ngpus=4
         if(machine.eq.'Summit  '.and.numdev.eq.1) ngpus=6
         if(machine.eq.'Snellius'.and.numdev.eq.1) ngpus=4
         if(machine.eq.'Crusher '.and.numdev.eq.1) ngpus=8
+        if(machine.eq.'Frontier'.and.numdev.eq.1) ngpus=8
 
         call gronor_input()
 
@@ -464,19 +466,20 @@
         target=' CPU'
         compiler=' '
 #ifdef ACC
-#ifdef AMD
+#ifdef GPUAMD
         write(target,'(a)') " OpenACC AMD"
 #else
         write(target,'(a)') " OpenACC NVIDIA"
 #endif
 #endif
 #ifdef OMPTGT
-#ifdef AMD
+#ifdef GPUAMD
         write(target,'(a)') " OpenMP target AMD"
 #else
         write(target,'(a)') " OpenMP target NVIDIA"
 #endif
 #endif
+        write(lfnout,'(a,i6)') "DEVICES ",numdev
         if(ipr.ge.0) write(lfnout,645) trim(target)
 #if defined(CRAY)
  645    format(//,' Compiled with the CRAY CCE Compiler suite',a)
@@ -1419,7 +1422,7 @@
         if(numdev.gt.1) then
           mydev=map2(me+1,7)
           if(mydev.ge.0) then
-#ifdef AMD
+#ifdef GPUAMD
             call acc_set_device_num(mydev,ACC_DEVICE_AMD)
 #else
             call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
@@ -2021,7 +2024,7 @@
 
       if(idbg.gt.0) then
         call swatch(date,time)
-#ifdef AMD
+#ifdef GPUAMD
         write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8),                 &
      &       ' AMD    ',numdev,mydev,iamacc,nummps,numgpu,                      &
      &       (map2(me+1,i),i=1,5)

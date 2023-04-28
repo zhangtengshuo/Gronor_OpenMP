@@ -214,8 +214,21 @@
 
       integer :: ntesta,ntestb
       integer :: nelecs,n1bas,nstdim,mbasel,ijend
-      real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),a(:,:)
-      real (kind=8), allocatable :: u(:,:),w(:,:),ev(:),sdiag(:),diag(:)
+      real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
+#ifdef HIPSOLVER
+      real (kind=8), allocatable, target :: a(:,:)
+      real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+#else
+#ifdef ROCSOLVER
+      real (kind=8), allocatable, target :: a(:,:)
+      real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+#else
+      real (kind=8), allocatable :: a(:,:)
+      real (kind=8), allocatable :: u(:,:),w(:,:),ev(:)
+#endif
+#endif
+      real (kind=8), allocatable :: sdiag(:)
+      real (kind=8), allocatable, target :: diag(:)
       real (kind=8), allocatable :: bsdiag(:),bdiag(:)
       real (kind=8), allocatable :: csdiag(:),cdiag(:)
       real (kind=8), allocatable :: st(:)
@@ -224,7 +237,16 @@
       real (kind=8), allocatable :: w1(:),w2(:,:)
       real (kind=8), allocatable :: temp(:,:)
 
-      real (kind=8), allocatable :: taa(:,:),ta(:,:)
+      real (kind=8), allocatable :: taa(:,:)
+#ifdef HIPSOLVER
+      real (kind=8), allocatable, target :: ta(:,:)
+#else
+#ifdef ROCSOLVER
+      real (kind=8), allocatable, target :: ta(:,:)
+#else
+      real (kind=8), allocatable :: ta(:,:)
+#endif
+#endif
       real (kind=8), allocatable :: sm(:,:)
       real (kind=8), allocatable :: aaa(:,:),aat(:,:)
       real (kind=8), allocatable :: tt(:,:)
@@ -288,7 +310,15 @@
 
       real (kind=8), allocatable :: c2sum(:,:)
       integer (kind=8), allocatable :: nbdet(:,:)
+#ifdef ROCSOLVER 
+      real (kind=8), allocatable, target :: rwork(:)
+#else
+#ifdef HIPSOLVER 
+      real (kind=8), allocatable, target :: rwork(:)
+#else
       real (kind=8), allocatable :: rwork(:)
+#endif
+#endif
 
       end module gnome_data
 
@@ -643,15 +673,17 @@
       use iso_c_binding
       type(c_ptr)            :: hipsolver_handle
       integer (kind=4)       :: hipsolver_status
-      integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+      integer (kind=4)       :: lwork1,mdim
+      integer (kind=4)       :: lwork2
+      integer (kind=4)       :: ndim
       real (kind=8)          :: tol,residual
       integer (kind=4)       :: max_sweeps,exec_sweeps
       integer (kind=4), parameter :: econ=0
-      real (kind=8), allocatable :: workspace_d(:)
+      real (kind=8), allocatable, target :: workspace_d(:)
       integer (kind=4) :: dev_info_d
 !     integer(kind=cuda_stream_kind) :: stream
-      integer (kind=4) :: jobz
-      integer (kind=4) :: uplo=0      
+      integer (kind=8) :: jobz
+      integer (kind=8) :: uplo=0      
       end module hipvars
       
       module amd_hipsolver
@@ -709,7 +741,8 @@
         integer(c_signed_char), value :: jobv
         integer(c_int), value :: m
         integer(c_int), value :: n
-        type(c_ptr), value :: lwork
+        integer(c_int), value :: lwork
+!        type(c_ptr), value :: lwork
         end function hipsolverDgesvd_bufferSize
       end interface
 
@@ -756,7 +789,7 @@
         type(c_ptr), value :: A
         integer(c_int), value :: lda
         type(c_ptr), value :: W
-        type(c_ptr), value :: lwork
+        integer(c_int), value :: lwork
         end function hipsolverDsyevd_bufferSize
       end interface
 
@@ -797,7 +830,8 @@
         type(c_ptr), value :: A
         integer(c_int), value :: lda
         type(c_ptr), value :: W
-        type(c_ptr), value :: lwork
+!        type(c_ptr), value :: lwork
+        integer(c_int), value :: lwork
         type(c_ptr), value :: params
         end function hipsolverDsyevj_bufferSize
       end interface
@@ -836,7 +870,7 @@
       real (kind=8)          :: tol,residual
       integer (kind=4)       :: max_sweeps,exec_sweeps
       integer (kind=4), parameter :: econ=0
-      real (kind=8), allocatable :: workspace_d(:)
+      real (kind=8), allocatable, target :: workspace_d(:)
       integer (kind=4) :: dev_info_d
 !     integer(kind=cuda_stream_kind) :: stream
       integer (kind=4) :: esort, evect

@@ -2,16 +2,16 @@
 
 module purge
 
-module load PrgEnv-cray
+module load PrgEnv-cray-amd
 module load craype-accel-amd-gfx90a
 module load rocm
 
 
 module load cmake
 
-module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
+#module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
 
-module load hipfort
+#module load hipfort
 
 module list
 
@@ -30,7 +30,8 @@ cd build_frontier
 
 #cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 #cmake -DOMPTGT=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier_omp ../
+#cmake -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 
 make -j 16
 

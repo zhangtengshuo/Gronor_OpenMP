@@ -254,9 +254,8 @@
 #endif
 
         lwork1=max(lwork1,lwork2)
-
         allocate(workspace_d(lwork1))
-        allocate(rwork(nelecs))
+!        allocate(rwork(nelecs))
 
 #endif
 
@@ -280,8 +279,15 @@
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta)
 #endif
+#ifdef OMPTGT
+!$omp target data map(alloc:dev_info_d) map(to:ta)
+!$omp& use_device_addr(ta)
+#endif
           hipsolver_status = hipsolverDgesvd_bufferSize                           &
      &         (hipsolver_handle,jobu,jobvt,ndim,ndim,lwork1)
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc end host_data
 #endif
@@ -304,6 +310,9 @@
 #ifdef ACC
 !$acc data create(dev_info_d,u,w,ev,ta)
 #endif
+#ifdef OMPTGT
+!$omp target data map(alloc:dev_info_d,u,w,ev,ta)
+#endif
           hipsolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
 
@@ -316,15 +325,22 @@
 
           hipsolver_status = hipsolverDnXgesvdjSetMaxSweeps                       &
      &         (gesvdj_params,max_sweeps)
-
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc host_data use_device(ta,ev,u,w)
 #endif
-          hipsolver_status = hipsolverDgesvdj_bufferSize                        &
+#ifdef OMPTGT
+!$omp target data use_device_addr(ta,w,u,w)
+#endif
+          hipsolver_status = hipsolverDgesvdj_bufferSize                         &
      &         (hipsolver_handle,jobz,econ,                                      &
-     &         ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,                       &
-     &         gesvdj_params)
-
+     &         ndim,ndim,c_loc(ta),mdim,c_loc(ev),c_loc(u),ndim,w,ndim,
+     &         lwork1,gesvdj_params)
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc end host_data
 #endif
@@ -345,10 +361,17 @@
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta,w)
 #endif
+#ifdef OMPTGT
+!$omp target data map(alloc:dev_info_d) map(to:w,ta,lwork2)
+!$omp& use_device_addr(ta,w)
+#endif
           hipsolver_status = hipsolverDsyevd_bufferSize                         &
      &         (hipsolver_handle,HIPSOLVER_EIG_MODE_NOVECTOR,                     &
      &         HIPSOLVER_FILL_MODE_LOWER,                                          &
-     &         ndim,ta,mdim,w,lwork2)
+     &         ndim,c_loc(ta),mdim,c_loc(w),lwork2)
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc end host_data
 #endif
@@ -375,6 +398,9 @@
 #ifdef ACC
 !$acc data create(dev_info_d,w,ta,ev)
 #endif
+#ifdef OMPTGT
+!$omp target data map(alloc:dev_info_d,w,ev,ta)
+#endif
           hipsolver_status = cudaStreamCreateWithFlags                           &
      &         (stream,cudaStreamNonBlocking)
 
@@ -387,15 +413,22 @@
 
           hipsolver_status = hipsolverXsyevjSetMaxSweeps                         &
      &         (syevj_params,max_sweeps)
-
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc host_data use_device(ta,w)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_addr(ta,w,lwork2)
 #endif
           hipsolver_status = hipsolverDsyevj_bufferSize                         &
      &         (hipsolver_handle,jobz,uplo,                                      &
      &         ndim,ta,mdim,ev,lwork2,                                          &
      &         syevj_params)
-
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc end host_data
 #endif
@@ -412,7 +445,7 @@
         lwork1=max(lwork1,lwork2)
 
         allocate(workspace_d(lwork1))
-        allocate(rwork(nelecs))
+!        allocate(rwork(nelecs))
 
 #endif
 

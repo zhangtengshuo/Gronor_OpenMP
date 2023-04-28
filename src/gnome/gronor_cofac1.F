@@ -111,7 +111,7 @@
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
        cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt,             &
      &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                      &
@@ -186,7 +186,7 @@
 !$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
         cusolver_status=cusolverDnDgesvdj                                       &
      &       (cusolver_handle,jobz,econ,                                        &
@@ -333,11 +333,13 @@
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data map(alloc:workspace_d)
+!$omp& use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
        hipsolver_status=hipsolverDgesvd(hipsolver_handle,jobu,jobvt,             &
-     &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                       &
-     &      lwork1,rwork,dev_info_d)
+     &      ndim,ndim,c_loc(a),ndim,c_loc(ev),c_loc(u),ndim,c_loc(w),            &
+     &      ndim,c_loc(workspace_d),                                             &
+     &      lwork1,c_loc(rwork),c_loc(dev_info_d))
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -454,11 +456,12 @@
 #endif
 #ifdef OMPTGT
 !$omp target data map(alloc:dev_info_d,workspace_d)
-!$omp& use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp& use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
-        hipsolver_status=hipsolverDgesvdj                                       &
+        hipsolver_status=hipsolverDgesvdj                                        &
      &       (hipsolver_handle,jobz,econ,                                        &
-     &       ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,                     &
+     &       ndim,ndim,c_loc(a),ndim,c_loc(ev),c_loc(u),ndim,c_loc(w),           &
+     &       ndim,c_loc(workspace_d),                                            &
      &       lwork1,dev_info_d,gesvdj_params)
 
 #ifdef ACC
@@ -603,10 +606,11 @@
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data use_device_addr(a,ev,u,w,rwork)
 #endif
        rocsolver_status=rocsolver_dgesvd(rocsolver_handle,jobu,jobvt,             &
-     &      ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workptr,workmode,rocinfo)
+     &      ndim,ndim,c_loc(a),ndim,c_loc(ev),c_loc(u),ndim,c_loc(w),             &
+     &      ndim,c_loc(rwork),workmode,rocinfo)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -723,7 +727,7 @@
 #endif
 #ifdef OMPTGT
 !$omp target data map(alloc:dev_info_d,workspace_d)
-!$omp& use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp& use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         hipsolver_status=hipsolverDgesvdj                                       &
      &       (hipsolver_handle,jobz,econ,                                        &
@@ -964,7 +968,7 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         cusolver_status = cusolverDnDsyevd(cusolver_handle,                     &
      &       CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER,                 &
@@ -1006,7 +1010,7 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         cusolver_status = cusolverDnDsyevj                                      &
      &       (cusolver_handle, jobz, uplo, ndim,a,ndim,diag,                    &
@@ -1090,11 +1094,12 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         hipsolver_status = hipsolverdsyevd(hipsolver_handle,                      &
      &       jobz,uplo,                                                           &
-     &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
+     &       ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),lwork2,            &
+     &       c_loc(dev_info_d))
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -1132,7 +1137,7 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         hipsolver_status = hipsolverdsyevj                                      &
      &       (hipsolver_handle, jobz, uplo, ndim,a,ndim,diag,                    &
@@ -1219,11 +1224,11 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         rocsolver_status = rocsolver_dsyevd(rocsolver_handle,                     &
      &       evect,uplo,                                                          &
-     &       ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
+     &       ndim,c_loc(a),ndim,diag,workspace_d,lwork2,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -1263,7 +1268,7 @@
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_ptr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif
         rocsolver_status = rocsolver_dsyevj                                      &
      &       (rocsolver_handle, esort, evect, uplo, ndim,a,ndim,diag,                    &

@@ -4,14 +4,14 @@ module purge
 
 module load PrgEnv-cray
 module load craype-accel-amd-gfx90a
-module load rocm
+module load amd-mixed rocm
 
 
 module load cmake
 
-module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
+#module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
 
-module load hipfort
+#module load hipfort
 
 module list
 

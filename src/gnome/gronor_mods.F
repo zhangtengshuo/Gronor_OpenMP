@@ -894,3 +894,20 @@
 
       end module mkl_solver
 #endif
+
+      module gnome_solvers
+      enum, bind(c)
+       enumerator SOLVER_EISPACK
+       enumerator SOLVER_LAPACK
+       enumerator SOLVER_MKL
+       enumerator SOLVER_CUSOLVER
+       enumerator SOLVER_CUSOLVERJ
+       enumerator SOLVER_HIPSOLVER
+       enumerator SOLVER_HIPSOLVERJ
+       enumerator SOLVER_ROCSOLVER
+       enumerator SOLVER_ROCSOLVERJ
+       enumerator SOLVER_MAGMA
+       enumerator SOLVER_SLATE
+       enumerator SOLVER_CRAYLIBSCI
+      end enum
+      end module gnome_solvers

@@ -57,6 +57,7 @@
       use gnome_integrals
       use iso_c_binding
       use iso_fortran_env
+      use gnome_solvers
 !      use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef CUSOLVER
@@ -1480,64 +1481,65 @@
 #ifdef CUSOLVER
         if(iaslvr.lt.0) iaslvr=0
 #endif
+#ifdef MKL
+        if(inslvr.lt.0) inslvr=1
+        if(jnslvr.lt.0) jnslvr=1
+#endif
         if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
         if(iaslvr.lt.0) iaslvr=0
         if(jaslvr.lt.0) jaslvr=1
 
-#ifdef MKL
-        if(inslvr.lt.0) inslvr=1
-#endif
         if(iaslvr.lt.0) iaslvr=0
         if(jaslvr.lt.0) jaslvr=0
         if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
 
         if(iamacc.eq.1) then
-          isolver=iaslvr
-          jsolver=jaslvr
+          isolver=SOLVER_EISPACK
+          if(iaslvr.eq.0) isolver=SOLVER_EISPACK
+          if(iaslvr.eq.1) isolver=SOLVER_CUSOLVER
+          if(iaslvr.eq.2) isolver=SOLVER_CUSOLVERJ
+          jsolver=SOLVER_EISPACK
+          if(jaslvr.eq.0) jsolver=SOLVER_EISPACK
+          if(jaslvr.eq.1) jsolver=SOLVER_CUSOLVER
+          if(jaslvr.eq.2) jsolver=SOLVER_CUSOLVERJ
         else
-          isolver=inslvr
-          jsolver=jnslvr
+          isolver=SOLVER_EISPACK
+          if(inslvr.eq.0) isolver=SOLVER_EISPACK
+          if(inslvr.eq.1) isolver=SOLVER_MKL
+          jsolver=SOLVER_EISPACK
+          if(jnslvr.eq.0) jsolver=SOLVER_EISPACK
+          if(jnslvr.eq.1) jsolver=SOLVER_MKL
         endif
 
       if(me.eq.master.and.ipr.ge.20) then
         write(lfnout,610)
  610    format(/,' Linear algebra solvers',/)
         if(numacc.gt.0) then
-          if(iaslvr.eq.0) write(lfnout,611)
- 611      format(' Accelerated ranks use GronOR SVD on CPU')
-#ifdef CUSOLVER
-          if(iaslvr.eq.1) write(lfnout,612)
+          if(iaslvr.eq.SOLVER_EISPACK) write(lfnout,611)
+ 611      format(' Accelerated ranks use EISPACK SVD on CPU')
+          if(iaslvr.eq.SOLVER_CUSOLVER) write(lfnout,612)
  612      format(' Accelerated ranks use CUSOLVER QR gesvd')
-#endif
-#ifdef CUSOLVERJ
-          if(iaslvr.eq.2) write(lfnout,613)
+          if(iaslvr.eq.SOLVER_CUSOLVERJ) write(lfnout,613)
  613      format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
-#endif
-          if(jaslvr.eq.0) write(lfnout,614)
- 614      format(' Accelerated ranks use GronOR TRED2/TQL on CPU')
-#ifdef CUSOLVER
-          if(jaslvr.eq.1) write(lfnout,615)
+
+          if(jaslvr.eq.SOLVER_EISPACK) write(lfnout,614)
+ 614      format(' Accelerated ranks use EISPACK TRED2/TQL on CPU')
+          if(jaslvr.eq.SOLVER_CUSOLVER) write(lfnout,615)
  615      format(' Accelerated ranks use CUSOLVER QR syevd')
-#endif
-#ifdef CUSOLVERJ
-          if(jaslvr.eq.2) write(lfnout,616)
+          if(jaslvr.eq.SOLVER_CUSOLVER) write(lfnout,616)
  616      format(' Accelerated ranks use CUSOLVER Jacobi syevj')
-#endif
+
         endif
-        if(inslvr.eq.0) write(lfnout,617)
- 617    format(' Non-accelerated ranks use GronOR SVD')
-#ifdef MKL
-        if(inslvr.eq.1) write(lfnout,618)
+        if(inslvr.eq.SOLVER_EISPACK) write(lfnout,617)
+ 617    format(' Non-accelerated ranks use EISPACK SVD')
+        if(inslvr.eq.SOLVER_MKL) write(lfnout,618)
  618    format(' Non-accelerated ranks use MKL QR dgesvd')
-#endif
-        if(jnslvr.eq.0) write(lfnout,619)
- 619    format(' Non-accelerated ranks use GronOR TRED2/TQL on CPU')
-#ifdef MKL
-        if(jnslvr.eq.1) write(lfnout,620)
+        if(jnslvr.eq.SOLVER_EISPACK) write(lfnout,619)
+ 619    format(' Non-accelerated ranks use EISPACK TRED2/TQL on CPU')
+        if(jnslvr.eq.SOLVER_MKL) write(lfnout,620)
  620    format(' Non-accelerated ranks use MKL QR dsyevd')
-#endif
       endif
 
       if(me.eq.master) numdev=0

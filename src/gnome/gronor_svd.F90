@@ -187,6 +187,7 @@ subroutine gronor_svd(lfndbg)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
+!$acc end data
 #endif
 #ifdef OMPTGT
 !omp end target data
@@ -227,8 +228,7 @@ subroutine gronor_svd(lfndbg)
     jobz=CUSOLVER_EIG_MODE_VECTOR
 #ifdef ACC
 !$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
-!$acc host_data
-!$acc& use_device(a,ev,u,w,dev_info_d,workspace_d)
+!$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
@@ -238,6 +238,7 @@ subroutine gronor_svd(lfndbg)
                lwork1,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
+!$acc end data
 #endif
 #ifdef OMPTGT
 !$omp end target data

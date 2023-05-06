@@ -60,24 +60,6 @@
       use gnome_solvers
 !      use iso_c_binding, only : c_loc, c_ptr
 
-#ifdef CUSOLVER
-      use cusolverDn
-      use cuda_cusolver
-#endif
-#ifdef HIPSOLVER
-      use hipvars
-      use hipsolver_enums
-      use amd_hipsolver
-#endif
-#ifdef ROCSOLVER
-      use rocvars
-      use hipfort
-      use hipfort_hipmalloc
-      use hipfort_rocblas_enums
-      use hipfort_rocblas
-      use hipfort_rocsolver_enums
-      use hipfort_rocsolver
-#endif
 #ifdef _OPENACC
       use openacc
 !     use cuda_functions
@@ -1444,34 +1426,7 @@
         endif
 #endif
 
-!     only accelerated ranks need to define cusolver handles
-
-#ifdef CUSOLVER
-        cusolver_status=cusolverDnCreate(cusolver_handle)
-        if(cusolver_status /= CUSOLVER_STATUS_SUCCESS)                          &
-     &       print *, me,'cusolver_handle creation failed'
-        if(numdev.gt.1) then
-          cpfre=c_loc(memfre)
-          cptot=c_loc(memtot)
-!          istat=cudaMemGetInfo(cpfre,cptot)
-        endif
-#endif
-
-!     only accelerated ranks need to define hipsolver handles
-
-#ifdef HIPSOLVER
-        hipsolver_status=hipsolverCreate(hipsolver_handle)
-        if(hipsolver_status /= HIPSOLVER_STATUS_SUCCESS)                          &
-     &       print *, me,'hipsolver_handle creation failed'
-#endif
-
-!     only accelerated ranks need to define rocsolver handles
-
-#ifdef ROCSOLVER
-        rocsolver_status=rocblas_create_handle(rocsolver_handle)
-        if(rocsolver_status /= ROCBLAS_STATUS_SUCCESS)                             &
-     &       print *, me,'rocsolver_handle creation failed'
-#endif
+        call gronor_solver_create_handle()
         
       endif
 
@@ -1479,7 +1434,8 @@
         if(iaslvr.lt.0) iaslvr=2
 #endif
 #ifdef CUSOLVER
-        if(iaslvr.lt.0) iaslvr=0
+        if(iaslvr.lt.0) iaslvr=1
+        if(jaslvr.lt.0) jaslvr=1
 #endif
 #ifdef MKL
         if(inslvr.lt.0) inslvr=1
@@ -1488,7 +1444,7 @@
         if(inslvr.lt.0) inslvr=0
         if(jnslvr.lt.0) jnslvr=0
         if(iaslvr.lt.0) iaslvr=0
-        if(jaslvr.lt.0) jaslvr=1
+        if(jaslvr.lt.0) jaslvr=0
 
         if(iaslvr.lt.0) iaslvr=0
         if(jaslvr.lt.0) jaslvr=0

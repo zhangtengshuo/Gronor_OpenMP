@@ -68,7 +68,7 @@
       character (len = 5)               :: mark
       character (len = 19)              :: lAO
       character (len = 80)              :: title1,title2
-      character (len = 80)              :: Project
+      character (len = 80)              :: Project,combas
       character (len = 84)              :: filename
       character (len = 80), allocatable   :: filename_two_el(:)
       character (len = 132)             :: line,vectit
@@ -84,7 +84,7 @@
       logical              :: write_labels
 
       call read_input(Project,print_level,write_labels,nTraRec,
-     &                                            almostZero)
+     &                                       almostZero,combas)
 * open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
       nBas = 0
       call NameRun('RUNFILE')              ! ONEINT cannot be accessed without RUNFILE
@@ -425,8 +425,8 @@
       do iFile = 1, nFiles
         nRecs_onFile(iFile) = nTraRec 
         nInts_onFile(iFile) = nTraRec * nTraBuf
-        write(filename_two_el(iFile),'(2a,i3.3,a)')
-     &            trim(Project),'_',iFile,'.two'
+        write(filename_two_el(iFile),'(3a,i3.3,a)')
+     &     trim(Project),trim(combas),'_',iFile,'.two'
         filename = filename_two_el(iFile)
         stat = 0
         open( luTwo_GronOR, iostat=stat, file=filename, status='old' )
@@ -671,11 +671,12 @@
 
 
       subroutine read_input(Project,print_level,write_labels,nTraRec,
-     &                                                      almostZero)
+     &                                             almostZero,combas)
       implicit none
 
-      integer, parameter                   :: nKeys = 5
-      integer                              :: iKey,jj
+      integer, parameter                   :: nKeys = 7
+      integer                              :: iKey,jj,iFrag,nFrags
+      character (len = 80)                 :: combas
       integer                              :: nTraRec
       integer                              :: print_level
       logical                              :: write_labels
@@ -686,8 +687,9 @@
       character (len=4), dimension(nKeys)  :: keyword
       character (len=132)                  :: line
       real (kind=8)                        :: almostZero,filesize
+      character (len=3)                    :: lFrag
 
-      data keyword /'PROJ','FILE','PRIN','WRIT','SMAL'/
+      data keyword /'PROJ','FILE','PRIN','WRIT','SMAL','FRAG','LABE'/
 
 * * Keywords * * * * 
 *
@@ -721,7 +723,7 @@
         if (  jj .lt. 0 ) all_ok = .false.
       end do
 
-
+      combas=""
       do iKey = 1, nKeys
         if ( hit(iKey) ) then
           select case(iKey)
@@ -741,6 +743,15 @@
             case(5)
               call locate('SMAL')
               read(*,*) almostZero
+            case(6)
+              call locate('FRAG')
+              read(*,*) nFrags
+            case(7)
+              call locate('LABE')
+              do iFrag=1,nFrags
+                read(*,*) lFrag
+                combas=trim(combas)//trim(lFrag)
+              enddo
           end select
         end if
       end do

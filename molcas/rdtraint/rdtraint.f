@@ -84,7 +84,8 @@
       logical              :: write_labels
 
       call read_input(Project,print_level,write_labels,nTraRec,
-     &                                       almostZero,combas)
+     &     almostZero,combas)
+      write(*,'(a,a)') 'combas=',trim(combas)
 * open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
       nBas = 0
       call NameRun('RUNFILE')              ! ONEINT cannot be accessed without RUNFILE
@@ -374,7 +375,7 @@
       write(*,*) title1
       write(*,*) title2
       luOne_GronOR = 31
-      write(filename,'(a,a4)')trim(Project),'.one'
+      write(filename,'(a,a,a4)')trim(Project),trim(combas),'.one'
       open(luOne_GronOR, file = filename, form = 'unformatted')
       if ( write_labels ) then
         write(luOne_GronOR) title1,title2,nOrbtt,potNuc,nOrb,nTraBuf,0
@@ -440,8 +441,8 @@
         if ( onLastRecord .gt. 0 ) nLastRecords = nLastRecords + 1
         nRecs_onFile(nFiles) = nLastRecords
         nInts_onFile(nFiles) = onLastFile  
-        write(filename_two_el(iFile),'(2a,i3.3,a)')
-     &            trim(Project),'_',iFile,'.two'
+        write(filename_two_el(iFile),'(3a,i3.3,a)')
+     &            trim(Project),trim(combas),'_',iFile,'.two'
         filename = filename_two_el(iFile)
         open( luTwo_GronOR, iostat=stat, file=filename, status='old' )
         if (stat .eq. 0) close(luTwo_GronOr, status='delete')
@@ -588,7 +589,7 @@
       deallocate (kl)
 
 * fill the sys file with info
-      write(filename,'(2a)')trim(Project),'.sys'
+      write(filename,'(3a)')trim(Project),trim(combas),'.sys'
       open(15,file=trim(filename),position='append')
       write(15,'(A)') ' * * * General info from OpenMolcas to GronOR'
       Call Get_cArray('Seward Title',Header,144)

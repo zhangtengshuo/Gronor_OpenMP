@@ -8,7 +8,7 @@ end module gcommon_histo_data
 module gcommon_fragment_data
   implicit none
   integer,allocatable     :: nElectrons(:,:)
-  real(kind=8),allocatable:: ener(:,:)
+  real(kind=8),allocatable:: ener(:,:),enerpt(:,:)
 end module gcommon_fragment_data
 
 module gcommon_input_data
@@ -56,7 +56,7 @@ program gcommon
   write(*,*)' frozen orbitals by Aitor Sanchez-Mansilla, URV (2020)'
   write(*,*)
 
-  call NameRun('RUNFILE')
+  call NameRun('RUNFIL')
   call Get_iScalar('nSym',nSym)
   if(nSym.ne.1) then
     write(*,*) '  Symmetry is not implemented in GronOR'
@@ -492,6 +492,9 @@ subroutine gcommon_readin
         read(*,*) (nVec(iFrag),iFrag=1,nFragments)
         allocate(nElectrons(nFragments,maxval(nVec)))
         allocate(ener(nFragments,maxval(nVec)))
+        allocate(enerpt(nFragments,maxval(nVec)))
+        ener=0.0
+        enerpt=0.0
       case(3)
         call gcommon_locate('PROJ')
         read(*,*) project
@@ -651,7 +654,9 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   if(line(10:34).ne.'natural orbitals for root') then
     energy_on_INPORB=.false.
   else
-    read(line,'(a48,f22.12)')dummy,ener(iFrag,ivec)
+    read(line,'(a32,f22.12,15x,f22.12)') &
+        dummy,ener(iFrag,ivec),enerpt(iFrag,ivec)
+    write(*,'(2f22.12)') ener(iFrag,ivec),enerpt(iFrag,ivec)
   endif
   rewind(35)
   mark='#OCC'
@@ -876,7 +881,7 @@ subroutine gcommon_ortho_frozen(frozenOrbs,totalFrozen,nBas)
   enddo
   frozenOrbs=0.0
 
-  call NameRun('RUNFILE')
+  call NameRun('RUNFIL')
   write(oneintName,'(A6)') 'ONEINT'
   luOne=88
   call gcommon_getAtomicOverlap(oneintName,luOne,nBas,sAO)
@@ -1008,7 +1013,8 @@ subroutine gcommon_add_detinfo()
       iVec = iVec + 1
       call gcommon_getFilename(iVec,detFilename,project,suffix)
       open(37,file=detFilename,status='old')
-      read(37,*) inactm
+      read(37,1500) inactm,ener(i,j),enerpt(i,j)
+1500 format(i5,27x,f22.12,15x,f22.12)
       do
         read(37,*,iostat=istat)
         if (istat .ne. 0) then
@@ -1041,18 +1047,19 @@ subroutine gcommon_add_detinfo()
               coeff(idet)
         end if
       end do
+      write(*,'(2i4,2f22.12)') i,j,ener(i,j),enerpt(i,j)
       if (fragLabels.and.energy_on_INPORB) then
         write(37,1600) inactm,nFrozen(i),ndet_unique, &
-            fragState(iVec),ener(i,j),nElectrons(i,j),threshold
+            fragState(iVec),ener(i,j),nElectrons(i,j),threshold,enerpt(i,j)
       elseif (fragLabels) then
         write(37,1600) inactm,nFrozen(i),ndet_unique, &
-            fragState(iVec),0.0,nElectrons(i,j),threshold
+            fragState(iVec),ener(i,j),nElectrons(i,j),threshold,enerpt(i,j)
       elseif (energy_on_INPORB) then
         write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
-            ener(i,j),nElectrons(i,j),threshold
+            ener(i,j),nElectrons(i,j),threshold,enerpt(i,j)
       else
         write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
-            0.0,nElectrons(i,j),threshold
+            ener(i,j),nElectrons(i,j),threshold,enerpt(i,j)
       end if
       do idet = 1, ndet_unique
         write(37,'(e15.8,6x,A)') coeff_unique(idet),trim(occ_unique(idet))
@@ -1061,7 +1068,7 @@ subroutine gcommon_add_detinfo()
       deallocate(coeff,occ)
       deallocate(coeff_unique,occ_unique)
     end do
-1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3)
+1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3,0pf22.12)
   end do
   
 end subroutine gcommon_add_detinfo

@@ -145,6 +145,7 @@ subroutine gronor_evd(lfndbg)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
+!$acc end data   
 #endif
 #ifdef OMPTGT
 !omp end target data
@@ -175,6 +176,7 @@ subroutine gronor_evd(lfndbg)
         workspace_d,lwork2,dev_info_d,syevj_params)
 #ifdef ACC
 !$acc end host_data
+!$acc end data   
 #endif
 #ifdef OMPTGT
 !$omp end target data

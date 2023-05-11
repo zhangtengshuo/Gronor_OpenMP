@@ -255,8 +255,8 @@ subroutine gronor_solver_create_handle()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         print *, me,'cusolver_handle creation failed'
     if(numdev.gt.1) then
-      cpfre=c_loc(memfre)
-      cptot=c_loc(memtot)
+!      cpfre=c_loc(memfre)
+!      cptot=c_loc(memtot)
       ! istat=cudaMemGetInfo(cpfre,cptot)
     endif
 #endif

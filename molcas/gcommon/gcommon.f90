@@ -143,6 +143,7 @@ program gcommon
   endif
 
 ! Adding number of dets, fragment labels and changing the number of inactives (if frozen.ne.0)
+  call gcommon_add_detinfo()
   
   write(*,'(A,I4)') 'Final number of orbitals in MO basis    : ',startOrb
   write(*,'(A,I4)') 'Sum of the number of AO basis functions : ',startBas
@@ -987,6 +988,83 @@ subroutine gcommon_average_frozen(nF,nB,frzDensity,froVec_1st,frzFragAvg)
   return
 end subroutine gcommon_average_frozen
 
+
+subroutine gcommon_add_detinfo()
+  use gcommon_input_data
+  use gcommon_fragment_data
+  implicit none
+  
+  integer :: idet,ndet,inactm,i,j,iVec,istat,ndet_unique
+  real(kind=8),allocatable  :: coeff(:),coeff_unique(:)
+  character(len=3)      :: suffix
+  character(len=255)    :: detFilename
+  character (len=255), allocatable :: occ(:),occ_unique(:)
+
+  suffix = 'det'
+  iVec = 0
+  do i = 1, nFragments
+    do j = 1, nVec(i)
+      ndet = 0
+      iVec = iVec + 1
+      call gcommon_getFilename(iVec,detFilename,project,suffix)
+      open(37,file=detFilename,status='old')
+      read(37,*) inactm
+      do
+        read(37,*,iostat=istat)
+        if (istat .ne. 0) then
+          rewind(37)
+          exit
+        else
+          ndet = ndet + 1
+        endif
+      enddo
+      allocate(coeff(ndet))
+      allocate(coeff_unique(ndet))
+      allocate(occ(ndet))
+      allocate(occ_unique(ndet))
+      read(37,*)
+      do idet = 1, ndet
+        read(37,*) coeff(idet),occ(idet)
+      end do
+      rewind(37)
+      call gcommon_quicksort(coeff,occ,ndet)
+      ndet_unique = 1
+      occ_unique(1) = occ(1)
+      coeff_unique(1) = coeff(1)
+      do idet = 2, ndet
+        if ( occ(idet) .ne. occ(idet-1) ) then
+          ndet_unique = ndet_unique + 1
+          occ_unique(ndet_unique) = occ(idet)
+          coeff_unique(ndet_unique) = coeff(idet)
+        else
+          coeff_unique(ndet_unique) = coeff_unique(ndet_unique) + &
+              coeff(idet)
+        end if
+      end do
+      if (fragLabels.and.energy_on_INPORB) then
+        write(37,1600) inactm,nFrozen(i),ndet_unique, &
+            fragState(iVec),ener(i,j),nElectrons(i,j),threshold
+      elseif (fragLabels) then
+        write(37,1600) inactm,nFrozen(i),ndet_unique, &
+            fragState(iVec),0.0,nElectrons(i,j),threshold
+      elseif (energy_on_INPORB) then
+        write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
+            ener(i,j),nElectrons(i,j),threshold
+      else
+        write(37,1600) inactm,nFrozen(i),ndet_unique,'no_label', &
+            0.0,nElectrons(i,j),threshold
+      end if
+      do idet = 1, ndet_unique
+        write(37,'(e15.8,6x,A)') coeff_unique(idet),trim(occ_unique(idet))
+      end do
+      close(37)
+      deallocate(coeff,occ)
+      deallocate(coeff_unique,occ_unique)
+    end do
+1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3)
+  end do
+  
+end subroutine gcommon_add_detinfo
 
 subroutine gcommon_generate_vecfiles(iFrag,nBas)
   use gcommon_input_data, only : project,nVec

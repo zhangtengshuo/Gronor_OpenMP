@@ -653,10 +653,10 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   read(35,'(A132)') line
   if(line(10:34).ne.'natural orbitals for root') then
     energy_on_INPORB=.false.
+    print*,"FALSE"
   else
-    read(line,'(a32,f22.12,15x,f22.12)') &
-        dummy,ener(iFrag,ivec),enerpt(iFrag,ivec)
-    write(*,'(2f22.12)') ener(iFrag,ivec),enerpt(iFrag,ivec)
+    read(line,'(48x,f22.12)') ener(iFrag,ivec)
+    write(*,'(2f22.12)') ener(iFrag,ivec)
   endif
   rewind(35)
   mark='#OCC'

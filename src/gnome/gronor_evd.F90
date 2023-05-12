@@ -253,8 +253,7 @@ subroutine gronor_evd_omp(lfndbg)
 
   if(jsolver.eq.SOLVER_EISPACK) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sdiag)
+!$omp parallel do shared(sdiag)
 #endif
     do i=1,nelecs
       sdiag(i)=0.0d0

@@ -62,11 +62,10 @@
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(coef,k)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(coef,k)
 #endif
-!$omp& private(coef,k)
 #endif
       do i=1,nelecs
         do j=1,i
@@ -137,11 +136,10 @@
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(max:cmax)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(max:cmax)
 #endif
-!$omp& reduction(max:cmax)
 #endif
 !     calculation of det(a) and x and y
       do i=1,nelecs
@@ -211,11 +209,10 @@
 
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(coefu)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(coefu)
 #endif
-!$omp& collapse(2) private(coefu)
 #endif
 #ifdef ACC
 !$acc parallel loop gang collapse(2) present(ta,u,w,ev)
@@ -269,11 +266,10 @@
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(coefu)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(coefu)
 #endif
-!$omp& collapse(2) private(coefu)
 #endif
         do i=1,nelecs
           do j=1,nelecs
@@ -306,11 +302,10 @@
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(coefu)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(coefu)
 #endif
-!$omp& private(coefu)
 #endif
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef

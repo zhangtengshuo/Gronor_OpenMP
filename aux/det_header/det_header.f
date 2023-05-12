@@ -6,7 +6,7 @@
       integer :: ninact,nfrozen,nraw,nelecs
       character (len=255) :: card,filout,fildet
       real(kind=8) :: ecasscf, ecaspt2
-      character (len=6) :: label
+      character (len=6) :: label,str
       real (kind=8) :: energy,ecorr,tau
       real (kind=8), allocatable :: coef(:)
       character (len=50), allocatable :: occ(:)
@@ -44,11 +44,25 @@
 
       open(unit=11,file=trim(fildet),form="formatted",status="old")
 
-      read(11,100) ninact,nfrozen,nraw,label,energy,nelecs,tau
- 100  format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
+!      read(11,100) ninact,nfrozen,nraw,label,energy,nelecs,tau
+! 100  format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
+      read(11,100) ninact
+ 100  format(i4)
 
+      nfrozen=0
+      tau=0.0d0
+      nelecs=0
+      nraw=0
+ 103  continue
+      read(11,'(a)',end=104) str
+      nraw=nraw+1
+      goto 103
+ 104  continue
+      
       allocate(coef(nraw),occ(nraw))
 
+      rewind(unit=11)
+      read(11,100) ninact
       do i=1,nraw
          read(11,101) coef(i),occ(i)
  101     format(e15.8,a)

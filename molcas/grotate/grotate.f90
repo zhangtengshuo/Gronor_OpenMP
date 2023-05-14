@@ -185,7 +185,8 @@ program grotate
       end do
 
       !  open(14,file='transrot.xyz')
-      open(14,file=trim(xyzfile(2)))
+      Write(*,'(a,a)') "Writing new coordinates to ",trim(xyzfile(1))
+      open(14,file=trim(xyzfile(1)))
       write(14,'(I5)') nAtoms(2)
       write(14,'(A)') 'Translated and rotated molecule'
       do j = 1, nAtoms(2)

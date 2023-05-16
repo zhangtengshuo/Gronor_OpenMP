@@ -1325,12 +1325,12 @@
      &         100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
         endif
       endif
- 615  format(/,' Total',48x,2i14,64x,1f12.1,/,                                  &
-     &     /,' Total averaged per rank',t147,2f12.1,/,                          &
-     &     ' Task execution efficiency',t147,f12.1,' %')
- 1615 format(/,' Total',48x,3i14,2i12,i14,64x,1f12.1,/,                         &
-     &     /,' Total averaged per rank',t199,2f12.1,/,                          &
-     &     ' Task execution efficiency',t199,f12.1,' %')
+ 615  format(/,' Total',t65,2i14,64x,1f12.1,/,                                  &
+     &     /,' Total averaged per rank',t157,2f12.1,/,                          &
+     &     ' Task execution efficiency',t157,f12.1,' %')
+ 1615 format(/,' Total',t65,3i14,2i12,i14,64x,1f12.1,/,                         &
+     &     /,' Total averaged per rank',t209,2f12.1,/,                          &
+     &     ' Task execution efficiency',t209,f12.1,' %')
       call timer_start(98)
       call timer_start(99)
 

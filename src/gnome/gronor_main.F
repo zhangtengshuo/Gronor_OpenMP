@@ -1540,7 +1540,7 @@
           call timer_stop(99)
           call swatch(date,time)
           write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99),          &
-     &         '  :  First pass for base state ',i,' completed '
+     &         '  :  First pass for base state  ',i,' completed '
  1706     format(a8,2x,a8,f12.3,a,i4,a)
           flush(lfnday)
           call timer_start(99)

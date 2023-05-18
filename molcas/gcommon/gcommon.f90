@@ -32,6 +32,10 @@ program gcommon
   use gcommon_input_data
   implicit none
 
+  external :: gcommon_readin,gcommon_add_detinfo,gcommon_ortho_frozen
+  external :: gcommon_generate_vecfiles,gcommon_common_basis
+  external :: NameRun,Get_iScalar,Get_iArray
+  
   integer:: nBas,nSym,lDim,totalFrozen
   integer:: iFrag,nBasFrag,nBasFragMax
   integer:: startOrb,startBas
@@ -206,13 +210,17 @@ program gcommon
 end program gcommon
 
 
-subroutine gcommon_common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFrag,nBasFragMax,lDim)
+subroutine gcommon_common_basis &
+    (iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFrag,nBasFragMax,lDim)
   use gcommon_input_data
   implicit none
-  
+
+  external :: dsyev
   external :: gcommon_getAtomicOverlap,gcommon_getFilename
   external :: gcommon_read_vec,gcommon_calculate_sMO
   external :: NameRun
+  external :: gcommon_printepsilons,gcommon_printDim,gcommon_reverse_order
+  external :: gcommon_calc_frz_density,gcommon_average_frozen
   
   integer,intent(in)     :: iFrag,nBas
   integer,intent(out)    :: lDim
@@ -441,6 +449,8 @@ subroutine gcommon_readin
   use gcommon_fragment_data
   implicit none
 
+  external :: gcommon_capitalize,gcommon_locate
+  
   integer, parameter :: nKeys=10
   integer:: j,jj,iKey,iFrag
   integer:: start
@@ -595,7 +605,9 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
 ! nOcc    : number of occupied orbitals (corrected for the number of frozen)
   
   implicit none
- 
+
+  external :: gcommon_getFilename
+  
   integer,intent(in)  :: iFrag,iVec,n
   integer,intent(out) :: nOcc
   integer :: j,k,startVec
@@ -607,7 +619,7 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   character (len=6)   :: mark
   character (len=20)  :: base
   character (len=255) :: orbFilename
-  character (len=132) :: line,dummy
+  character (len=132) :: line
   character (len=3)   :: suffix
   character (len=1):: orbLabel(n)
 
@@ -677,6 +689,8 @@ end subroutine gcommon_read_vec
 subroutine gcommon_getAtomicOverlap(filename,luOne,n,sAO)
   implicit none
 
+  external :: OpnOne,RdOne,ClsOne
+  
   integer,intent(in)    :: n,luOne
   integer   :: iCounter,iComponent
   integer   :: iRC,iOpt,iSymLbl,j,k
@@ -781,6 +795,7 @@ end subroutine gcommon_capitalize
 
 subroutine gcommon_locate(string)
   implicit none
+  external :: gcommon_capitalize
   character(4)   ::  string,string2
   character(132) ::  line
   rewind(5)
@@ -853,6 +868,9 @@ subroutine gcommon_ortho_frozen(frozenOrbs,totalFrozen,nBas)
   use gcommon_input_data, only : debug
   implicit none
 
+  external :: NameRun,dsyev
+  external :: gcommon_getAtomicOverlap,gcommon_calculate_sMO
+  
   integer,intent(in)   :: nBas,totalFrozen
   integer  :: j,k,l
   integer  :: iRc,lwork
@@ -961,6 +979,8 @@ subroutine gcommon_average_frozen(nF,nB,frzDensity,froVec_1st,frzFragAvg)
   use gcommon_input_data, only : debug
   implicit none
 
+  external :: dsyev
+  
   integer,intent(in)    :: nF,nB
   integer               :: j
   integer               :: iRc
@@ -1002,6 +1022,8 @@ subroutine gcommon_add_detinfo()
   use gcommon_input_data
   use gcommon_fragment_data
   implicit none
+
+  external :: gcommon_getFilename,gcommon_quicksort
   
   integer :: idet,ndet,inactm,i,j,iVec,istat,ndet_unique
   real(kind=8),allocatable  :: coeff(:),coeff_unique(:)
@@ -1081,6 +1103,8 @@ subroutine gcommon_generate_vecfiles(iFrag,nBas)
   use gcommon_input_data, only : project,nVec
   implicit none
 
+  external :: gcommon_getFilename
+  
   integer :: i,j,iFrag,nBas,iVec,start
   real(kind=8),allocatable  :: vec(:,:)
   character(len=255)  :: filename

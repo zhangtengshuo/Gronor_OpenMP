@@ -36,6 +36,8 @@
 
       implicit none
 
+      external :: MPI_iSend,MPI_Recv
+
       integer (kind=8) :: ni,nr,membuf(9)
       real (kind=8) ::gb
       integer (kind=4) :: ireq,ierr,istat(MPI_STATUS_SIZE)

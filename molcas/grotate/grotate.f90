@@ -87,6 +87,12 @@ program grotate
   use grotate_files_data
   use grotate_orbital_data
   implicit none
+
+  external :: write_rotvec,rotate_atoms
+  external :: Get_iScalar,nameRun,Get_iArray
+  external :: grotate_readin,grotate_get_coordinates
+  external :: grotate_readvec,grotate_get_basis_info
+  external :: grotate_put_on_x,grotate_put_on_xy,rotate_vec
   
   real(kind=8),dimension(2) :: alpha, beta, delta
   real(kind=8),dimension(2) :: xcenter,ycenter,zcenter
@@ -213,6 +219,7 @@ subroutine grotate_readin
 use grotate_files_data
 implicit none
 
+external :: locate,capitalize
 integer, parameter                  :: nKeys = 4
 integer                             :: iKey,jj,lc,bc
 
@@ -397,7 +404,11 @@ use grotate_basis_set_data
 use grotate_orbital_data, only : nBas
 use grotate_files_data , only : nAtoms
 
-integer                           :: j
+implicit none
+
+external Get_cArray
+
+integer                           :: i,j,jj
 character(len=LblL8), allocatable :: AtomLbl(:)
 
 
@@ -551,7 +562,8 @@ end subroutine capitalize
 ! ===============================================================================
 
 subroutine locate(string)
-implicit none
+  implicit none
+  external :: capitalize
 character(4)   ::  string,string2
 character(132) ::  line
 rewind(5)
@@ -566,6 +578,9 @@ end subroutine locate
 subroutine rotate_harmonics
 use grotate_rotation_data
 implicit none
+
+external :: u,v,w,capU,capV,capW
+external :: init_rotmat
 
 integer       :: i,j,l,m1,m2
 real(kind=8)  :: r(3,3)
@@ -618,15 +633,19 @@ end subroutine rotate_harmonics
 ! ===============================================================================
 
 function capU(l,m1,m2) result(x)
-implicit none
-integer       :: l,m1,m2
+  implicit none
+  
+  external :: P
+  integer       :: l,m1,m2
+  
 real(kind=8)  :: x,P
 x = P(0,l,m1,m2)
 !   write(*,'(A,2I4,F15.8)')'U',m1,m2,x
 end function capU
 
 function capV(l,m1,m2) result(x)
-implicit none
+  implicit none
+  external :: delta,P
 integer       :: l,m1,m2,delta
 real(kind=8)  :: x,a,b,c,P
 x=0
@@ -650,7 +669,8 @@ end function capV
        
    
 function capW(l,m1,m2) result(x)
-implicit none
+  implicit none
+  external :: P
 integer       :: l,m1,m2
 real(kind=8)  :: x,P
 x=0
@@ -712,7 +732,8 @@ end function u
 
 
 function v(l,m1,m2) result(x2)
-implicit none
+  implicit none
+  external :: delta
 integer, intent(in)   :: l,m1,m2
 real(kind=8)          :: num,denom,x1,x2
 integer               :: delta
@@ -732,7 +753,8 @@ end function v
 
 
 function w(l,m1,m2) result(x2)
-implicit none
+  implicit none
+  external :: delta
 integer, intent(in)   :: l,m1,m2
 real(kind=8)          :: num,denom,x1,x2
 integer               :: delta
@@ -785,6 +807,8 @@ end subroutine init_rotmat
 subroutine rotate_atoms(i,a,b,c)
 use grotate_files_data
 implicit none
+
+external :: init_rotmat
 
 integer        :: i,j
 real(kind=8)   :: a,b,c,xnew,ynew,znew

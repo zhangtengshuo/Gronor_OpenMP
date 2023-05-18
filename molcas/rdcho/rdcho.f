@@ -14,6 +14,9 @@
 
       implicit none
 
+      external :: daclos,ddafile,Cho_X_nVecRS,GetMem,daname
+      external :: Get_iArray,NameRun,Cho_X_Init
+      
       integer                    :: iVrs,nVrs,iRc,luChVec,idisk
       integer                    :: luTra,iad50
       integer                    :: i,j,i1,i2

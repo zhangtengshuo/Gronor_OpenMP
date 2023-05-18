@@ -20,7 +20,7 @@
 !! @date    2016
 !!
 
-subroutine gronor_svd(lfndbg)
+subroutine gronor_svd()
   use cidist
   use gnome_parameters
   use gnome_data
@@ -58,7 +58,6 @@ subroutine gronor_svd(lfndbg)
 
   external :: svd,dgesvd
   
-  integer :: lfndbg
   integer :: i,j
   integer :: ierr
 
@@ -298,7 +297,7 @@ end subroutine gronor_svd
 
 
 
-subroutine gronor_svd_omp(lfndbg)
+subroutine gronor_svd_omp()
   use cidist
   use gnome_parameters
   use gnome_data
@@ -313,7 +312,9 @@ subroutine gronor_svd_omp(lfndbg)
   ! variable declarations
 
   implicit none
-  integer :: lfndbg
+  
+  external :: svd,dgesvd
+  
   integer :: i,j
   integer :: ierr
 

@@ -37,8 +37,12 @@
 
       implicit none
 
+      external :: hostnm
+      external :: MPI_AllReduce
+      
       integer :: i,j,k,node
-      integer (kind=4) :: length, ierr, istat, ncount
+      integer (kind=4) :: length, ierr, ncount
+!      integer (kind=4) :: istat
 
       integer :: getcpucount
       external :: getcpucount

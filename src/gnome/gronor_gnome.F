@@ -31,6 +31,35 @@
 
       implicit none
 
+      external :: timer_start,timer_stop
+      external :: gronor_gntwo_omp_mlab
+      external :: gronor_gntwo_omp
+      external :: gronor_gntwo_omp_batch2_nolab
+      external :: gronor_gntwo_omp_batch2_mlab
+      external :: gronor_gntwo_omp_batch2
+      external :: gronor_gntwo_omp_batch_mlab
+      external :: gronor_gntwo_omp_batch
+      external :: gronor_gnone_omp
+      external :: gronor_tramat2_omp
+      external :: gronor_dipole
+      external :: gronor_cororb
+      external :: gronor_cofac1_omp
+      external :: gronor_moover_omp
+      external :: gronor_gntwo_nolab
+      external :: gronor_gntwo_mlab
+      external :: gronor_gntwo
+      external :: gronor_gntwo_batch2_mlab
+      external :: gronor_gntwo_batch2
+      external :: gronor_gntwo_batch_mlab
+      external :: gronor_gntwo_batch
+      external :: gronor_gnone
+      external :: gronor_tramat2
+      external :: gronor_cofac1
+      external :: gronor_moover
+      external :: gronor_abort
+      external :: gronor_tranout
+      external :: gronor_transvc
+
       integer :: lfndbg,idet,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
 
       logical (kind=4) :: flag

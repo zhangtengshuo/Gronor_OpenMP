@@ -42,6 +42,10 @@
 
       implicit none
 
+      external :: swatch,timer_start,timer_stop
+      external :: MPI_iSend,MPI_Recv
+      external :: gronor_gnome,gronor_abort,iloop_init
+
       integer (kind=4) :: ireq,ierr
       integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
       integer (kind=4) :: ncount,mpitag,mpidest

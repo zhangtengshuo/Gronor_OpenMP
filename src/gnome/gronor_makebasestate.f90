@@ -50,6 +50,9 @@ use cidef
 
 implicit none
 
+external :: gronor_quicksort_number,normalize,gronor_generate_microstates
+external :: clebsch_gordon,isetsign,perm_ab
+
 integer,intent(in)              :: iMEBF
 integer                         :: ndets1,ndets2,newdets
 integer,allocatable             :: micro_ndets1(:),micro_ndets2(:)
@@ -150,7 +153,7 @@ if ( idbg .ge. 20 ) then
 endif
 
 if (spin1 .gt. 1 .and. nmol .ne. 1) then
-  call generate_microstates(ndets1,micro_dets1)
+  call gronor_generate_microstates(ndets1,micro_dets1)
   allocate(coef1(micro_dets1))
   allocate(occ1(micro_dets1))
   do ms = 1, spin1
@@ -160,7 +163,7 @@ if (spin1 .gt. 1 .and. nmol .ne. 1) then
     coef1(idet) = micro_coef(idet)
     occ1(idet)  = micro_occ(idet)
   end do
-! allocated in generate_microstates
+! allocated in gronor_generate_microstates
   deallocate(micro_ndets,micro_coef,micro_occ)
 else
   micro_dets1 = ndets1
@@ -186,7 +189,7 @@ if (nmol .eq. 1) then
     endif
   else
     call normalize(coef1,micro_dets1)
-    call quicksort_number(coef1,occ1,micro_dets1)
+    call gronor_quicksort_number(coef1,occ1,micro_dets1)
     allocate(occ_num(nactb(iMEBF)))
     do idet = 1, micro_dets1
       dumstr = occ1(idet)
@@ -243,7 +246,7 @@ do iFrag = 2, nmol
   endif
 
   if ( spin2 .gt. 1 ) then
-    call generate_microstates(ndets2,micro_dets2)
+    call gronor_generate_microstates(ndets2,micro_dets2)
     allocate(coef2(micro_dets2))
     allocate(occ2(micro_dets2))
     do ms = 1, spin2
@@ -253,7 +256,7 @@ do iFrag = 2, nmol
       coef2(idet) = micro_coef(idet)
       occ2(idet)  = micro_occ(idet)
     end do
-!   allocated in generate_microstates
+!   allocated in gronor_generate_microstates
     deallocate(micro_ndets,micro_coef,micro_occ)
   else
     micro_dets2 = ndets2
@@ -379,7 +382,7 @@ do iFrag = 2, nmol
       micro_ndets1(ms) = 0
     end do
     if (spin1 .gt. 1) then
-      call generate_microstates(ndets1,micro_dets1)
+      call gronor_generate_microstates(ndets1,micro_dets1)
       allocate(coef1(micro_dets1))
       allocate(occ1(micro_dets1)) 
       do ms = 1, spin1
@@ -390,7 +393,7 @@ do iFrag = 2, nmol
         occ1(idet) = micro_occ(idet)
       end do
       deallocate(micro_ndets,micro_coef,micro_occ)
-!     allocated in generate_microstates
+!     allocated in gronor_generate_microstates
     else
       micro_dets1 = ndets1
       allocate(coef1(micro_dets1))
@@ -429,14 +432,16 @@ if (first_pass .and. nmol .ne. 1) then
 endif
 if ( .not. first_pass .and. nmol .ne. 1) then
   call normalize(coefmebf,newdets)
-  call quicksort_number(coefmebf,occmebf,newdets)
+  call gronor_quicksort_number(coefmebf,occmebf,newdets)
   if (iMEBF.eq.1) then
     maxcoef = abs(coefmebf(1))
   else
     maxcoef = max(maxcoef,abs(coefmebf(1)))
   endif
   if ( idbg .ge. 20 ) then  
-    write(lfndbg,'(a,i3)') 'civb and occupations after permutations and normalization for MEBF ',iMEBF
+    write(lfndbg,'(a,i3)') &
+        'civb and occupations after permutations and normalization for MEBF ',iMEBF
+    
     flush(lfndbg)
   endif
   allocate(occ_num(nactb(iMEBF)))

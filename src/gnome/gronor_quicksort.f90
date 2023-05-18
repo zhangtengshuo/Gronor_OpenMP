@@ -14,7 +14,7 @@
 ! ===============================================================================
 ! sorting on the occupation string
 
-recursive subroutine quicksort_string(coef,occu,n)
+recursive subroutine gronor_quicksort_string(coef,occu,n)
 implicit none
 
 real (kind = 8)    :: coef(n)
@@ -51,16 +51,16 @@ if (n .gt. 1) then
   else
     marker = left
   endif
-  call quicksort_string(coef(:marker-1),occu(:marker-1),marker-1)
-  call quicksort_string(coef(marker:),occu(marker:),n-marker+1)
+  call gronor_quicksort_string(coef(:marker-1),occu(:marker-1),marker-1)
+  call gronor_quicksort_string(coef(marker:),occu(marker:),n-marker+1)
 endif
-end subroutine quicksort_string
+end subroutine gronor_quicksort_string
 
 
 ! ===============================================================================
 ! sorting on the absolute value of the coefficients
 
-recursive subroutine quicksort_number(coef,occu,n)
+recursive subroutine gronor_quicksort_number(coef,occu,n)
 implicit none
 
 real (kind = 8)    :: coef(n),pivot
@@ -97,8 +97,8 @@ if (n .gt. 1) then
   else
     marker = left
   endif
-  call quicksort_number(coef(:marker-1),occu(:marker-1),marker-1)
-  call quicksort_number(coef(marker:),occu(marker:),n-marker+1)
+  call gronor_quicksort_number(coef(:marker-1),occu(:marker-1),marker-1)
+  call gronor_quicksort_number(coef(marker:),occu(marker:),n-marker+1)
 endif
-end subroutine quicksort_number
+end subroutine gronor_quicksort_number
 

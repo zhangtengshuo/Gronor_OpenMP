@@ -30,6 +30,8 @@
 
       implicit none
 
+      external :: gronor_print_matrix
+
       integer,intent(in)            :: nbase
       integer                       :: i,j,k,l,m
       real(kind=8)                  :: hev(nbase)
@@ -42,7 +44,7 @@
       real(kind=8),allocatable      :: obase(:,:)
       real(kind=8),allocatable      :: onoci(:,:)
       real(kind=8),allocatable      :: qtraceless(:,:,:)
-      real(kind=8)                  :: debye,angstrom,trace
+      real(kind=8)                  :: debye,angstrom
       real(kind=8)                  :: two3rds
 
       debye    = 2.54174644986

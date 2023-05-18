@@ -45,6 +45,9 @@
 
       implicit none
 
+      external :: gronor_abort,gronor_prtmat
+      external :: gronor_gnweight,gronor_lowdin
+      external :: dgetrf,dgetri
 
       integer                              :: i,j,info
       integer, intent(in)                  :: mstates,nbase,nmol,nwt
@@ -139,8 +142,11 @@
 
       implicit none
 
+      external :: gronor_prtmat,gronor_abort
+      external :: dsyev
+      
       integer, intent(in)        :: nbase,lfnout,ipr
-      integer                    :: info,i,j
+      integer                    :: info,j
 
       real(kind=8), intent(in)   :: sbase(nbase,nbase)
       real(kind=8), intent(out)  :: slow (nbase,nbase)
@@ -196,6 +202,8 @@
       subroutine gronor_gnweight(nbase,wgn,slow,sbase)
       implicit none
 
+      external :: dgetrf,dgetri
+      
 !     compute the Gallup-Norbeck weights
       integer, intent(in)       :: nbase
       integer                   :: i,k,info

@@ -2,8 +2,12 @@
 !
 ! $Id: dgefa.f 19707 2010-10-29 17:59:36Z d3y133 $
 !
-      integer lda,n,ipvt(1),info
-      double precision a(lda,1)
+      implicit none
+
+      external :: idamax,dscal,daxpy
+      
+      integer :: lda,n,ipvt(1),info
+      real (kind=8) :: a(lda,1)
 !
 !     dgefa factors a double precision matrix by gaussian elimination.
 !

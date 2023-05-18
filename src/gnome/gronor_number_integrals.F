@@ -29,7 +29,9 @@
 
       implicit none
 
-      integer :: mdum, numone, numtwo
+      external :: gronor_abort
+
+      integer :: numone, numtwo
       real (kind=8) :: sdum
 
       open(unit=lfnint,file=filone,form='unformatted',status='old',             &
@@ -68,4 +70,5 @@
       call gronor_abort(231,trim(filint))
  983  format('Error reading integral file ',a)
  984  format('Unable to open integral file ',a)
-      end
+      
+      end subroutine gronor_number_integrals

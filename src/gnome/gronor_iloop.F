@@ -36,6 +36,9 @@
       integer function iloop(ij,mode)
       use cidist
       implicit none
+
+      external :: gronor_abort
+      
       integer ij,mode,ni,nj
       integer :: ndeti,ndetj
       logical osame

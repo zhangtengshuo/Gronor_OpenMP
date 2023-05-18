@@ -2,6 +2,8 @@
 !     Returns the requested Clebsch-Gordan coefficient
       implicit none
 
+      external :: factorial,A0,recurrence_factor
+      
       integer           :: factorial
       real(kind=8)      :: s1,s2,s
       real(kind=8)      :: m1,m2,m
@@ -40,7 +42,7 @@
        endif
        clebsch_gordon=cg
       return
-      end
+      end function clebsch_gordon
 
       real(kind=8) function recurrence_factor(s,m,s1,s2)
       implicit none

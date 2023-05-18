@@ -15,6 +15,7 @@
 !     ********** machep is a machine dependent parameter specifying
 !                the relative precision of floating point arithmetic.
 
+      nm=m
       ierr=0
       if(n.eq.1) goto 160
 

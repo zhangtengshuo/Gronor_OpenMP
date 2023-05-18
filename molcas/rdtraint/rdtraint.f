@@ -19,16 +19,20 @@
 
       implicit none
 
-      external :: locate,capitalize
-      external :: Get_cArray,Get_dArray,Get_iScalar
-      external :: DACLOS,dDAFILE,DANAM_MF,iDAFILE
+      external :: rdtraint_locate,rdtraint_capitalize,scal
+      external :: Get_cArray,Get_dArray,Get_iScalar,Get_iArray
+      external :: DACLOS,dDAFILE,DANAME_MF,iDAFILE,DANAME
+      external :: WR_MOTRA_Info,OpnOne,RdOne,ClsOne,NAMERUN
+      external :: rdtraint_read_input
       
       integer, parameter                :: nToc = 64
       integer, parameter                :: nTraToc = 106
       integer, parameter                :: mxSym = 1, maxBfn = 10000
       integer, parameter                :: labelSize = 2 * maxBfn * 4
-      integer, parameter                :: LblL  = 6           !LenIN  in OpenMolcas
-      integer, parameter                :: LblL8 = lblL + 8    !LenIN8 in OpenMolcas
+      integer, parameter                :: LblL  = 6
+!     LenIN  in OpenMolcas
+      integer, parameter                :: LblL8 = lblL + 8
+!     LenIN8 in OpenMolcas
       integer, parameter                :: nTraBuf = 9600
       integer                           :: luTra, luOne, iAd30, iAd50
       integer                           :: luOne_GronOR,luTwo_GronOR
@@ -87,12 +91,13 @@
       integer              :: iRec,nInts,onLastFile,stat
       logical              :: write_labels
 
-      call read_input(Project,print_level,write_labels,nTraRec,
-     &     almostZero,combas)
+      call rdtraint_read_input
+     &     (Project,print_level,write_labels,nTraRec,almostZero,combas)
       write(*,'(a,a)') 'combas=',trim(combas)
-* open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
+! open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
       nBas = 0
-      call NameRun('RUNFILE')              ! ONEINT cannot be accessed without RUNFILE
+      call NameRun('RUNFILE')
+!     ONEINT cannot be accessed without RUNFILE
       call Get_iScalar('nSym',nSym)
       if ( nSym .ne. 1 ) then
         write(*,*) '  Symmetry is not implemented in GronOR'
@@ -234,10 +239,12 @@
         write(*,*)'Info from TRAONE'
         write(*,'(A,I4)')'nBas    :',nBas
         write(*,'(A,I4)')'nFrozen :',nFrozen
-        write(*,'(A,I4)')'nOrb    :',nOrb            ! number of basis functions in the common MO basis
+        write(*,'(A,I4)')'nOrb    :',nOrb
+!     number of basis functions in the common MO basis
         write(*,'(A,I4)')'nDeleted:',nDMO
       end if
-      nOrbtt = (nOrb * (nOrb + 1)) / 2             ! number of elements in the  lower triangle
+      nOrbtt = (nOrb * (nOrb + 1)) / 2
+!     number of elements in the  lower triangle
 
 * open the file with the molecular orbitals and calculate sMO (not necessarily a unit matrix with NOCI)
       allocate( dummy(nBas) )
@@ -255,7 +262,8 @@
       mark = '#ORB'
  64   read(11,'(A132)') line
       if (line(1:4).ne.mark) goto 64
-      do j = 1, nFrozen                                ! Skip the frozen orbitals, if any
+      do j = 1, nFrozen
+!     Skip the frozen orbitals, if any
         read(11,'(A132)') line
         read(11,'(5E22.14)') (dummy(k),k=1,nBas)
       end do
@@ -419,7 +427,8 @@
           nt = nt - 1
         end do
       end do
-      nFiles = int( ltuvx / (nTraBuf * nTraRec))                       ! number of completely filled 2-el. files
+      nFiles = int( ltuvx / (nTraBuf * nTraRec))
+!     number of completely filled 2-el. files
       allocate ( nRecs_onFile(nFiles+1) )
       allocate ( nInts_onFile(nFiles+1) )
       allocate ( filename_two_el(nFiles+1) )
@@ -435,13 +444,17 @@
         filename = filename_two_el(iFile)
         stat = 0
         open( luTwo_GronOR, iostat=stat, file=filename, status='old' )
-        if (stat .eq. 0) close(luTwo_GronOr, status='delete')          ! delete exisiting two-el files
+        if (stat .eq. 0) close(luTwo_GronOr, status='delete')
+!     delete exisiting two-el files
       end do
-      onLastFile = ltuvx - nFiles * nTraRec * nTraBuf                  ! number of integrals on the last file
+      onLastFile = ltuvx - nFiles * nTraRec * nTraBuf
+!     number of integrals on the last file
       if ( onLastFile .gt. 0 ) then
         nFiles = nFiles + 1 
-        nLastRecords = int(onLastFile/nTraBuf)                         ! number of records on the last file
-        onLastRecord = onLastFile - nLastRecords*nTraBuf               ! integrals on the last record
+        nLastRecords = int(onLastFile/nTraBuf)
+!     number of records on the last file
+        onLastRecord = onLastFile - nLastRecords*nTraBuf
+!     integrals on the last record
         if ( onLastRecord .gt. 0 ) nLastRecords = nLastRecords + 1
         nRecs_onFile(nFiles) = nLastRecords
         nInts_onFile(nFiles) = onLastFile  
@@ -455,8 +468,10 @@
 * some additional info on the 2-el ints is expected on luOne_GronOR
       write(luOne_GronOR) ltuvx
       write(luOne_GronOR) nFiles
-      write(luOne_GronOR) (nRecs_onFile(iFile),iFile=1,nFiles)         ! number of records per file
-      write(luOne_Gronor) (nInts_onFile(iFile),iFile=1,nFiles) ! number of integrals per file
+      write(luOne_GronOR) (nRecs_onFile(iFile),iFile=1,nFiles)
+!     number of records per file
+      write(luOne_Gronor) (nInts_onFile(iFile),iFile=1,nFiles)
+!     number of integrals per file
       close(luOne_Gronor)
       write(*,*)' Number of 2 el. integrals          :',ltuvx
       write(*,*)' Number of integral files           :',nFiles
@@ -477,7 +492,7 @@
       end if 
       write(*,*)
 
-* set up a small array for generating the labels i, j, k and l label of the 2-el integrals
+! set up a small array for generating the labels i, j, k and l label of the 2-el integrals
       allocate( kl(nOrbtt,2) )
       kl = 0
       iCounter = 0
@@ -554,7 +569,8 @@
  59       ii_start = ii
           jj_start = jj 
           iCounter = 0
-          if ( write_labels ) then                                 !  Dump the integrals on the 2-el file
+!     Dump the integrals on the 2-el file
+          if ( write_labels ) then
             write(luTwo_GronOR,rec=recNumber2)(traBuf(n),n=1,nInts),
      &                      (labels(n),n=1,4*nInts),nInts,ilast
           else
@@ -572,11 +588,11 @@
       else
         write(*,'(A,F6.2,A)') '(less than ',1e-2,' % of the total)'
       end if
-* close the files
+! close the files
       call DACLOS(luOne)
       call DACLOS(luTra)
 
-* deallocate
+! deallocate
       deallocate (sAO)
       deallocate (vec)
       deallocate (fock)
@@ -609,7 +625,7 @@
       write(15,'(A,I4)') 'number of atoms: ',nAtoms
       allocate( coord(3*nAtoms) )
       allocate( AtomLbl(nAtoms) )
-      allocate( BasfnLbl(nBas) )                              ! see comment 1
+      allocate( BasfnLbl(nBas) )
       allocate( zNuc(nAtoms) )
       allocate( nCntr(nAtoms,7) )
       allocate ( CoM(3))
@@ -675,10 +691,12 @@
 ! available through common blocks.
 
 
-      subroutine read_input(Project,print_level,write_labels,nTraRec,
-     &                                             almostZero,combas)
+      subroutine rdtraint_read_input
+     &     (Project,print_level,write_labels,nTraRec,almostZero,combas)
       implicit none
 
+      external :: rdtraint_locate,rdtraint_capitalize
+      
       integer, parameter                   :: nKeys = 7
       integer                              :: iKey,jj,iFrag,nFrags
       character (len = 80)                 :: combas
@@ -696,23 +714,24 @@
 
       data keyword /'PROJ','FILE','PRIN','WRIT','SMAL','FRAG','LABE'/
 
-* * Keywords * * * * 
-*
-*      PROJect         : prefix for all filename generated by rdtraint
-*      FILEsize        : Maximum size in MBytes (approx) of the 2-el. integral files
-*      PRINT level     : x < 10 , standard
-*                        10 =< x < 20  extra (debug) info, e.g. overal AO basis and 1-el. integrals
-*                        x >= 20 all integrals are printed
-*      WRITe labels    : Integral labels will be written on the 2-el. integral file(s)
-*                      : Default is not to write the labels
-*      SMALl integrals : Threshold for considering an integral small,
-*                        for info only (all integrals are written to file)
-*
-*********************
+! * Keywords * * * * 
+!
+!      PROJect         : prefix for all filename generated by rdtraint
+!      FILEsize        : Maximum size in MBytes (approx) of the 2-el. integral files
+!      PRINT level     : x < 10 , standard
+!                        10 =< x < 20  extra (debug) info, e.g. overal AO basis and 1-el. integrals
+!                        x >= 20 all integrals are printed
+!      WRITe labels    : Integral labels will be written on the 2-el. integral file(s)
+!                      : Default is not to write the labels
+!      SMALl integrals : Threshold for considering an integral small,
+!                        for info only (all integrals are written to file)
+!
+!********************
 
-* defaults
+! defaults
       Project      = project
-      filesize     = 2000           ! 2000 MByte (Approx)
+      filesize     = 2000
+!     2000 MByte (Approx)
       print_level  = 1
       write_labels = .false.
       almostZero   = 1.0e-10
@@ -721,7 +740,7 @@
       do while (all_ok)
         read(5,*,iostat=jj) line
         key = adjustl(line)
-        call capitalize(key)
+        call rdtraint_capitalize(key)
         do iKey = 1, nKeys
           if ( key .eq. keyword(iKey) ) hit(iKey) = .true.
         end do
@@ -733,26 +752,26 @@
         if ( hit(iKey) ) then
           select case(iKey)
             case(1)
-              call locate('PROJ')
+              call rdtraint_locate('PROJ')
               read(*,*) project
               project = trim(project)
             case(2)
-              call locate('FILE')
+              call rdtraint_locate('FILE')
               read(*,*) filesize 
             case(3)
-              call locate('PRIN')
+              call rdtraint_locate('PRIN')
               read(*,*) print_level
             case(4)
-              call locate('WRIT')
+              call rdtraint_locate('WRIT')
               write_labels = .true.
             case(5)
-              call locate('SMAL')
+              call rdtraint_locate('SMAL')
               read(*,*) almostZero
             case(6)
-              call locate('FRAG')
+              call rdtraint_locate('FRAG')
               read(*,*) nFrags
             case(7)
-              call locate('LABE')
+              call rdtraint_locate('LABE')
               do iFrag=1,nFrags
                 read(*,*) lFrag
                 combas=trim(combas)//trim(lFrag)
@@ -769,24 +788,24 @@
         nTraRec = int(filesize / (8*9600) )
       endif  
       return
-      end subroutine read_input        
+      end subroutine rdtraint_read_input        
 
 
-
-      subroutine locate(string)
+      subroutine rdtraint_locate(string)
       implicit none
+      external :: rdtraint_capitalize
       character(4)   ::  string,string2
       character(132) ::  line
       rewind(5)
  40   read(5,*) line
       string2=adjustl(line)
-      call capitalize(string2)
+      call rdtraint_capitalize(string2)
       if (string2.ne.string) goto 40
       return
-      end subroutine locate
+      end subroutine rdtraint_locate
 
 
-      subroutine capitalize(string)
+      subroutine rdtraint_capitalize(string)
       implicit none
       integer      :: i
       character(*) string
@@ -797,4 +816,4 @@
         endif
       end do
       return
-      end subroutine capitalize 
+      end subroutine rdtraint_capitalize 

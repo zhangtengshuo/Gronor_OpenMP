@@ -20,7 +20,7 @@
 !>  @brief
 !>    Application of the S- operator on a determinant
 
-subroutine sminop(coef_ms,occ_ms,new)
+subroutine gronor_sminop(coef_ms,occ_ms,new)
 use makebasedata, only : occ_new,coef_new
 implicit none
 
@@ -51,4 +51,4 @@ if (new .ne. 0) then
 endif
 
 return
-end subroutine sminop
+end subroutine gronor_sminop

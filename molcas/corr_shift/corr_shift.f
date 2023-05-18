@@ -2,14 +2,17 @@
       use input_data2
 
       implicit none
+
+      external :: readin,couplings,print_Ham,lowdin,gnweight
+      external :: dgetrf,dgetri,nocifunction,superNOCI
+
       real( kind = 8 ), allocatable :: H_ortho(:,:),H_shift(:,:),
      &                                 H_wshift(:,:),weight(:,:)
       real( kind = 8 ), allocatable :: s_lowdin(:,:)
       real (kind = 8 ), allocatable :: ssave(:,:),hsave(:,:)
       real( kind = 8 ), allocatable :: shift(:),work(:)
       real( kind = 8 )              :: wshift
-      integer, allocatable          :: iRoots(:,:),nRoots(:)
-      integer                       :: i,j,k,info
+      integer                       :: i,j,info
       integer, allocatable          :: ipiv(:)
       character (len = 120)         :: title1,title2,title3
       logical                       :: dump_in_out
@@ -135,6 +138,9 @@
 
       subroutine nocifunction(title,h,s,n,dump_in_out)
       implicit none
+
+      external :: dsygv
+      
       real ( kind = 8 ), intent(in)  :: h(n,n),s(n,n)
       real ( kind = 8 )              :: eps(n)
       real ( kind = 8 ), allocatable :: work(:)
@@ -220,9 +226,11 @@
       subroutine lowdin(nbase,sbase,slow)
       implicit none
 
+      external :: dsyev
+
       integer, intent(in)        :: nbase
 !      integer                    :: ipiv(nbase)
-      integer                    :: info,i,j
+      integer                    :: info,j
 
       real(kind=8), intent(in)   :: sbase(nbase,nbase)
       real(kind=8), intent(out)  :: slow (nbase,nbase)
@@ -261,6 +269,8 @@
       subroutine gnweight(nbase,wgn,slow,sbase)
       implicit none
 
+      external :: dgetrf,dgetri
+      
 !     compute the Gallup-Norbeck weights
       integer, intent(in)       :: nbase
       integer                   :: i,k,info
@@ -339,6 +349,8 @@
       subroutine superNOCI
       use input_data2
       implicit none
+
+      external :: couplings,print_Ham,dsygv
 
       integer                      :: i,j,k,l,info,lwork,jj
       real (kind=8), allocatable   :: h_block(:,:)
@@ -479,6 +491,8 @@
       use input_data2
       implicit none
 
+      external :: corr_shift_locate,corr_shift_capitalize
+
       integer,parameter    :: nKeys = 7
       integer              :: jj,iKey,i,j
 
@@ -498,7 +512,7 @@
       do while (all_ok)
         read(5,*,iostat=jj) line
         key = adjustl(line)
-        call capitalize(key)
+        call corr_shift_capitalize(key)
         do iKey = 1, nKeys
           if ( key .eq. keyword(iKey) ) hit(iKey) = .true.
         end do
@@ -509,7 +523,7 @@
         if ( hit(iKey) ) then
           select case(iKey)
             case(1)
-              call locate(5,'MEBF')
+              call corr_shift_locate(5,'MEBF')
               read(*,*) nbase
               if ( nbase .eq. 1 ) then
                 write(*,*)'nothing to be done for only one MEBF'
@@ -520,45 +534,46 @@
               read(*,*)(ncombv(2,j),j=1,nbase)
               nstates = max(maxval(ncombv(1,:)),maxval(ncombv(2,:)))
             case(2)
-              call locate(5,'PROJ')
+              call corr_shift_locate(5,'PROJ')
               read(*,*) project
               project = trim(project)
-              hit(4) = .false.                            ! deactivate reading H and S from input
+              hit(4) = .false.
+!     deactivate reading H and S from input
               hit(5) = .false.
               write(filename,'(2a)')trim(Project),'.arx'
               write(*,'(2a)') 'H and S are read from ',filename
               open(11,file=filename,err=9000)
               allocate( h(nbase,nbase) )
               allocate( s(nbase,nbase) )
-              call locate(11,'Hami')
+              call corr_shift_locate(11,'Hami')
               read(11,*) line
               do i = 1, nbase
                 read(11,662)jj,(h(i,j),j=1,nbase)
               end do
  662          format(i5,1x,10e20.13)
-              call locate(11,'Over')
+              call corr_shift_locate(11,'Over')
               read(11,*) line
               do i = 1, nbase
                 read(11,662)jj,(s(i,j),j=1,nbase)
               end do
             case(3)
-              call locate(5,'SHIF')
+              call corr_shift_locate(5,'SHIF')
               allocate( ecorr(nstates) )
               read(*,*)(ecorr(i),i=1,nstates)
             case(4)
-              call locate(5,'HAMI')
+              call corr_shift_locate(5,'HAMI')
               allocate( h(nbase,nbase) )
               do i = 1, nbase
                 read(*,*)(h(i,j),j=1,nbase)
               end do
             case(5)
-              call locate(5,'OVER')
+              call corr_shift_locate(5,'OVER')
               allocate( s(nbase,nbase) )
               do i = 1, nbase
                 read(*,*)(s(i,j),j=1,nbase)
               end do
             case(6)
-              call locate(5,'BLOC')
+              call corr_shift_locate(5,'BLOC')
               read(*,*) nBlocks
               allocate( dimens(nBlocks) )
               allocate( blocks(nBlocks,nbase) )
@@ -571,7 +586,7 @@
               end do
               extra = .true.
             case(7)
-              call locate(5,'SELE')
+              call corr_shift_locate(5,'SELE')
               read(*,*) reduced_extraDim
               allocate( ovlp_mebfs(reduced_extraDim) )
               ovlp_mebfs = 0
@@ -618,7 +633,7 @@
 ! Hamiltonian and Overlap should be read from binary file in the near future
 
 
-      subroutine capitalize(string)
+      subroutine corr_shift_capitalize(string)
       implicit none
       integer      :: i
       character(*) string
@@ -629,19 +644,20 @@
         endif
       end do
       return
-      end subroutine capitalize
+      end subroutine corr_shift_capitalize
 
 
-      subroutine locate(lu,string)
+      subroutine corr_shift_locate(lu,string)
       implicit none
+      external :: corr_shift_capitalize
       integer        ::  lu
       character(4)   ::  string,string2
       character(132) ::  line
       rewind(lu)
  40   read(lu,*) line
       string2=adjustl(line)
-      if (lu.eq.5) call capitalize(string2)
+      if (lu.eq.5) call corr_shift_capitalize(string2)
       if (string2.ne.string) goto 40
       return
-      end subroutine locate
+      end subroutine corr_shift_locate
 

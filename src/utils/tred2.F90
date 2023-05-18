@@ -9,6 +9,8 @@
       integer :: i,j,k,l,jp1,ii
       real (kind=8) :: hh,h,scale,f,g
 
+      nm=n
+      
       do i=1,n
        do j=1,i
         z(i,j)=a(i,j)

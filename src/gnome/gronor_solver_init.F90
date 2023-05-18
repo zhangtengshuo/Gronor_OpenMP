@@ -37,6 +37,7 @@ subroutine gronor_solver_init()
   implicit none
   
 #ifdef MKL
+  external :: dgesvd,dsyevd
   integer (kind=4) :: ierr
 #endif
   

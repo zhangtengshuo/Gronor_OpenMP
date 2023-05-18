@@ -34,6 +34,8 @@
 
       implicit none
 
+      external :: gronor_abort,gronor_parallel_integral_input
+      
       integer (kind=4) :: ierr
       integer :: i,j,k,n
 

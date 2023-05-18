@@ -51,6 +51,8 @@
 
       implicit none
 
+      external :: timer_start,timer_stop
+
       integer :: lfndbg,i,k,l,n,intg
 
       real(kind=8) :: e2n,tsn,sum2,ts,fourdet
@@ -274,7 +276,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo
 
       subroutine gronor_gntwo_mlab(lfndbg)
 
@@ -293,6 +295,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,ii,jj,k,l,n,kl,intg
 
@@ -526,7 +530,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_mlab
 
       subroutine gronor_gntwo_nolab(lfndbg)
 
@@ -546,7 +550,10 @@
 
       implicit none
 
-      integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,intl,ls
+      external :: timer_start,timer_stop
+
+      integer :: lfndbg,i,k,l,n,kl,intg,intl,ls
+!     integer :: ii,jj
 
       real(kind=8) :: sum1,sum2,ts,fourdet
 
@@ -819,7 +826,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_nolab
 
       subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 
@@ -834,6 +841,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
@@ -1138,7 +1147,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_batch
 
       subroutine gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
 
@@ -1153,6 +1162,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,ihc,nhc,ibl
 
@@ -1425,7 +1436,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_batch_mlab
 
       subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 
@@ -1440,6 +1451,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
@@ -1771,7 +1784,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_batch2
 
       subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
 
@@ -1786,6 +1799,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,ihc,nhc,ibl
 
@@ -2131,7 +2146,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_batch2_mlab
 
       subroutine gronor_gntwo_omp(lfndbg)
 
@@ -2146,6 +2161,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,k,l,n,intg
 
@@ -2265,7 +2282,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_omp
 
       subroutine gronor_gntwo_omp_mlab(lfndbg)
 
@@ -2280,6 +2297,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg
 
@@ -2414,7 +2433,7 @@
       call timer_stop(38)
 
       return
-      end
+      end subroutine gronor_gntwo_omp_mlab
 
       subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
 
@@ -2429,6 +2448,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,k,l,n,intg,ihc,nhc,ibl
 
@@ -2668,7 +2689,7 @@
       endif
 
       return
-      end
+      end subroutine gronor_gntwo_omp_batch
 
       subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
 
@@ -2683,6 +2704,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg,i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj
 
@@ -2945,7 +2968,7 @@
       endif
 
       return
-      end
+      end subroutine gronor_gntwo_omp_batch_mlab
 
       subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
 
@@ -2960,6 +2983,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg
 
@@ -3201,7 +3226,7 @@
       endif
 
       return
-      end
+      end subroutine gronor_gntwo_omp_batch2
 
       subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
 
@@ -3216,6 +3241,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg
 
@@ -3430,7 +3457,7 @@
       endif
 
       return
-      end
+      end subroutine gronor_gntwo_omp_batch2_mlab
 
 
       subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
@@ -3446,6 +3473,8 @@
 #endif
 
       implicit none
+
+      external :: timer_start,timer_stop
 
       integer :: lfndbg
 
@@ -3658,6 +3687,6 @@ cc!$omp end parallel
       endif
 
       return
-      end
+      end subroutine gronor_gntwo_omp_batch2_nolab
 
 

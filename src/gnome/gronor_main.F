@@ -58,6 +58,9 @@
       use iso_c_binding
       use iso_fortran_env
       use gnome_solvers
+#ifdef _OPENMP
+      use omp_lib
+#endif
 !      use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef _OPENACC
@@ -67,6 +70,25 @@
 
       implicit none
 
+      external :: gronor_abort
+      external :: swatch,timer_init,timer_start,timer_stop
+      external :: gronor_timings,gronor_finalize_cml
+      external :: gronor_print_dipole_moments,gronor_print_results
+      external :: gronor_correlation_energy,gronor_multipoles_nuclear
+      external :: gronor_prtmat,gronor_print_matrix
+      external :: gronor_worker,gronor_memory_usage
+      external :: gronor_master,gronor_read_integrals
+      external :: gronor_make_basestate
+      external :: gronor_solver_create_handle
+      external :: gronor_results_header_cml,gronor_init_cml
+      external :: gronor_env_cml,gronor_gnome_molcas_input
+      external :: gronor_read_vectors_and_determinants
+      external :: gronor_number_integrals
+      external :: gronor_input,gronor_prelude_cml
+      external :: getcwd,getlog,hostnm
+
+      external :: MPI_Bcast
+      
       integer (kind=4) :: ierror,ierr,ncount
       integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
       integer :: node
@@ -617,7 +639,8 @@
 
         call gronor_env_cml(version,version_type)
         call gronor_init_cml
-        call gronor_results_header_cml        ! this block is filled in gronor_print_results
+!     this block is filled in gronor_print_results
+        call gronor_results_header_cml
 
       endif
 
@@ -937,7 +960,7 @@
       maxgrp=numacc+numnon
 
 #ifdef _OPENMP
-      call omp_set_num_threads(map2(me+1,2))
+      call omp_set_num_threads(int(map2(me+1,2),kind=4))
 #endif
 
       allocate(thisgroup(mgr+1))

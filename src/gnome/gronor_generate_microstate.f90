@@ -21,10 +21,13 @@
 !>    Generate all M_s components (micro states) of a determinant with
 !>    maximum M_s
 
-subroutine generate_microstates(ndets,microdets)
+subroutine gronor_generate_microstates(ndets,microdets)
 use makebasedata
 
 implicit none
+
+external :: gronor_quicksort_string,gronor_sminop,gronor_determine_nci
+
 integer, intent(in)            :: ndets
 integer, intent(out)           :: microdets
 integer                        :: idet,jdet,ms,nci
@@ -36,7 +39,7 @@ character(len=255),allocatable :: occ_tmp(:)
 
 real(kind=8),external           :: timer_wall_total
 
-call determine_nci(ndets,nci)
+call gronor_determine_nci(ndets,nci)
 allocate(micro_coef(nci))
 allocate(micro_occ(nci))
 allocate(micro_ndets(spinFrag))
@@ -68,16 +71,16 @@ do ms = 2, spinFrag
   do idet = first,last
     ci_seed = micro_coef(idet)
     occ_seed = micro_occ(idet)
-    call sminop(ci_seed,occ_seed,new)
+    call gronor_sminop(ci_seed,occ_seed,new)
     do jdet = 1, new
       coef_tmp(jdet + all_new) = coef_new(jdet)
       occ_tmp(jdet + all_new) = occ_new(jdet)
     end do
     all_new = all_new + new
     deallocate(occ_new,coef_new)
-! occ_new and coef_new are allocated in sminop
+! occ_new and coef_new are allocated in gronor_sminop
   end do
-  call quicksort_string(coef_tmp,occ_tmp,all_new)
+  call gronor_quicksort_string(coef_tmp,occ_tmp,all_new)
   micro_ndets(ms) = 1
   micro_coef(microdets + micro_ndets(ms)) = coef_tmp(1)
   micro_occ(microdets + micro_ndets(ms)) = occ_tmp(1)
@@ -99,4 +102,4 @@ end do
 deallocate(coef_tmp,occ_tmp)
 
 return
-end subroutine generate_microstates
+end subroutine gronor_generate_microstates

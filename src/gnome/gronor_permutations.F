@@ -31,6 +31,8 @@
 !     permutes the determinant in the alpha-beta order
       implicit none
 
+      external :: gronor_alphastoend
+      
       integer :: nact,nelec
       integer :: nperm,i,j
       integer :: occ(nact)
@@ -67,7 +69,7 @@
          endif
       enddo
       if(ms.gt.0)then
-         call alphastoend(occ2,nelec,nperm,ms)
+         call gronor_alphastoend(occ2,nelec,nperm,ms)
       endif
       do i=1,nelec-ms-1
          pos1=mod(i-1,2)
@@ -104,7 +106,7 @@
       return
       end
 
-      subroutine alphastoend(occ,nact,nperm,ms)
+      subroutine gronor_alphastoend(occ,nact,nperm,ms)
 
       implicit none
 
@@ -129,7 +131,7 @@
          endif
       enddo
       return
-      end
+      end subroutine gronor_alphastoend
 
 ! =================================================
 ! counts the number of permutations to move all

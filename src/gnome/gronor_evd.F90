@@ -1,4 +1,4 @@
-
+!
 !     This file is part of the GronOR software
 
 !     GronOR is free software, and can be used, re-distributed and/or modified under
@@ -20,7 +20,7 @@
 !! @date    2016
 !!
 
-subroutine gronor_evd(lfndbg)
+subroutine gronor_evd()
   use cidist
   use gnome_parameters
   use gnome_data
@@ -41,8 +41,13 @@ subroutine gronor_evd(lfndbg)
   ! variable declarations
 
   implicit none
-  integer :: lfndbg
-  integer :: i,j
+
+  external :: tred2,tql2
+#ifdef MKL
+  external :: dsyevd
+#endif
+  
+  integer :: i
   integer :: ierr
 
   ! library specific declarations
@@ -229,7 +234,7 @@ end subroutine gronor_evd
 
 
 
-subroutine gronor_evd_omp(lfndbg)
+subroutine gronor_evd_omp()
   use cidist
   use gnome_parameters
   use gnome_data
@@ -244,8 +249,12 @@ subroutine gronor_evd_omp(lfndbg)
   ! variable declarations
 
   implicit none
+
+  external :: tred2,tql2
+#ifdef MKL
+  external :: dsyevd
+#endif
   
-  integer :: lfndbg
   integer :: i
   integer :: ierr
 

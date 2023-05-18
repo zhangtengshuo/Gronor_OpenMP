@@ -37,8 +37,11 @@
 
       implicit none
 
+      external :: MPI_Recv,MPI_iSend
+
       external :: MPI_Bcast
       external :: gronor_abort
+      external :: swatch
 
 #ifdef CRAY
       integer :: nrecbd

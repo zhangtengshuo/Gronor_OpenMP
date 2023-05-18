@@ -27,8 +27,13 @@
       use gnome_solvers
       
       implicit none
+
+      external :: timer_start,timer_stop
+      external :: gronor_abort
+      external :: gronor_svd,gronor_evd
+      
       integer :: lfndbg
-      integer :: i,ierr,j,idetuw,k
+      integer :: i,j,idetuw,k
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
@@ -53,7 +58,7 @@
 
       call timer_start(41)
       
-      call gronor_svd(lfndbg)
+      call gronor_svd()
 
       call timer_stop(41)
       
@@ -123,7 +128,7 @@
 
       call timer_start(43)
       
-      call gronor_evd(lfndbg)
+      call gronor_evd()
 
       call timer_stop(43)
       
@@ -340,7 +345,7 @@
       call timer_stop(44)
 
       return
-      end
+      end subroutine gronor_cofac1
 
       subroutine gronor_cofac1_omp(lfndbg)
       use cidist
@@ -352,8 +357,13 @@
 #endif
 
       implicit none
+      
+      external :: timer_start,timer_stop
+      external :: gronor_abort
+      external :: gronor_svd_omp,gronor_evd_omp
+      
       integer :: lfndbg
-      integer :: i,ierr,j,idetuw,k
+      integer :: i,j,idetuw,k
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
@@ -372,7 +382,7 @@
         enddo
       endif
 
-call gronor_svd_omp(lfndbg)
+call gronor_svd_omp()
             
       call timer_start(42)
 
@@ -406,7 +416,7 @@ call gronor_svd_omp(lfndbg)
 
       call timer_start(43)
 
-      call gronor_evd_omp(lfndbg)
+      call gronor_evd_omp()
 
       call timer_stop(43)
 
@@ -549,4 +559,4 @@ call gronor_svd_omp(lfndbg)
       call timer_stop(44)
 
       return
-      end
+      end subroutine gronor_cofac1_omp

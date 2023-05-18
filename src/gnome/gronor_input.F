@@ -27,6 +27,8 @@
 
       implicit none
 
+      external :: gronor_abort
+
       integer :: i,j,m
       character (len=255) :: item,item2
       real (kind=8) value

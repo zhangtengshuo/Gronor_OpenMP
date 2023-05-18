@@ -8,16 +8,15 @@
 !>  @date
 !>    March 2021
 !>
-      subroutine writetag_scalar_real(lfn,info,indent,num,                      &
-     &                      numfmt)
+      subroutine writetag_scalar_real(lfn,info,indent,num,numfmt)
       implicit none
+
       integer  :: lfn,indent
       real(kind=8) :: num
       character(len=80)  :: num2
       character(len=4)  :: ts
       character(len=4), external :: t_spaces
       character(len=132)   :: info,fmt_1,fmt_2,fmt_3,numfmt
-      logical  :: scientific_format
 
       write(fmt_3,'(3a)')'(',trim(adjustl(numfmt)),')'
       write(num2,fmt=fmt_3)num

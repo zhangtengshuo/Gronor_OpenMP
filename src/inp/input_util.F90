@@ -107,8 +107,8 @@
 
 !     set field to be read next (ivalue=0,...,inp_n_field())
 
-      if (ivalue.lt.0 .or. ivalue.gt.inp_n_field())                             &
-     & call inpquit('inp_set_field: stupid field value',ivalue)
+      if (ivalue.lt.0 .or. ivalue.gt.inp_n_field()) &
+       call inpquit('inp_set_field: stupid field value',ivalue)
       jrec = ivalue
 
       ierrpos = -1
@@ -212,23 +212,19 @@
 
 !     Check for . * eof at beginning of line to indicate EOF
 
-      if (lenja.eq.1 .and. (ja(1:1).eq.'.' .or. ja(1:1).eq.'*'))                &
-     &     goto 300
-      if (lenja.eq.3 .and. inp_compare(.false., 'eof', ja(1:3)))                &
-     &     goto 300
+      if (lenja.eq.1 .and. (ja(1:1).eq.'.' .or. ja(1:1).eq.'*')) goto 300
+      if (lenja.eq.3 .and. inp_compare(.false., 'eof', ja(1:3))) goto 300
 
 !     Handle include statement
 
       if (inp_compare(.false.,ja(1:7),'include')) then
-         if (include_level .eq. max_include_level) call inpquit                 &
-     &     ('inp_read: include nested too deep ', include_level)
+         if (include_level .eq. max_include_level) & 
+             call inpquit('inp_read: include nested too deep ', include_level)
          include_level = include_level + 1
          include_file_name(include_level) = ja(9:)
-         write(6,*) ' include: start of ',                                      &
-     &        trim(include_file_name(include_level))
-         open(80+include_level,                                                 &
-     &        file=trim(include_file_name(include_level)),                      &
-     &        form='formatted', status='old', err=105)
+         write(6,*) ' include: start of ',trim(include_file_name(include_level))
+         open(80+include_level,file=trim(include_file_name(include_level)), &
+             form='formatted', status='old', err=105)
 !     call inp_save_state()
          iopt=6
          call inp_init(80+include_level,iopt)
@@ -328,8 +324,9 @@
  151  continue
       do j = i, iwidth
          if (.not. ois_ws(ia(j:j))) goto 152
-      enddo
-      goto 155                  ! Done
+       enddo
+       ! Done
+      goto 155
  152  i = j
 
       jump = jump + 1
@@ -374,8 +371,7 @@
 
  300  if (include_level .gt. 0) then ! End of file detected
          close(80+include_level)
-         write(6,*) ' include: end of ',                                        &
-     &        trim(include_file_name(include_level))
+         write(6,*) ' include: end of ',trim(include_file_name(include_level))
          include_level = include_level - 1
 !         call inp_restore_state()
          goto 1
@@ -532,8 +528,7 @@
       integer (kind=8) :: i1, i2, ie2, isign, ie, iexp, ie1, itmp, i, j
       logical :: orep
       character (len=1) :: xchar(17)
-      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
-     &     ,'+','-','.','e','d','E','D'/
+      data xchar /'0','1','2','3','4','5','6','7','8','9','+','-','.','e','d','E','D'/
       data ten/10.0d0/
 
       ierrpos = -1
@@ -555,8 +550,8 @@
       if (ia(i1:i1).eq.xchar(12).or.ia(i1:i1).eq.xchar(11)) i1=i1+1
 !...  exponent
       do ie=i1+1,i2
-         if (ia(ie:ie).eq.xchar(14) .or. ia(ie:ie).eq.xchar(15) .OR.            &
-     &      ia(ie:ie).eq.xchar(16) .or. ia(ie:ie).eq.xchar(17)) goto 20
+         if (ia(ie:ie).eq.xchar(14) .or. ia(ie:ie).eq.xchar(15) .OR. &
+             ia(ie:ie).eq.xchar(16) .or. ia(ie:ie).eq.xchar(17)) goto 20
       enddo
       iexp=0
       go to 50
@@ -564,8 +559,7 @@
       iexp=1
       ie1=ie+1
       if (ia(ie1:ie1).eq.xchar(12))iexp=-1
-      if (ia(ie1:ie1).eq.xchar(12).or.ia(ie1:ie1).eq.xchar(11))                 &
-     &     ie1=ie1+1
+      if (ia(ie1:ie1).eq.xchar(12).or.ia(ie1:ie1).eq.xchar(11)) ie1=ie1+1
       itmp=0
       do i=ie1,ie2
          do j=1,10
@@ -619,8 +613,7 @@
       integer (kind=8) :: n, ifact, ist, nstrt, i, j
       character (len=1) :: xtemp
       integer :: jbuf, jtmp
-      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
-     &     ,'+','-'/
+      data xchar /'0','1','2','3','4','5','6','7','8','9','+','-'/
 
 !     subroutine for reading integers from the array ia,
 !     starting at ia(istrt(jrec)) and going on for inumb(jrec))
@@ -713,11 +706,8 @@
             if (inp_match) then
                inp_match = .false. ! Ambiguity
                ind = 0
-
                write(6,1) test(1:l), (array(j),j=1,nrec)
- 1             format('inp: ambiguous match for ', a,', in:'/                   &
-     &              100(1x,a/))
-
+ 1             format('inp: ambiguous match for ', a,', in:',/,100(1x,a/))
                return
             else
                inp_match = .true. ! First match
@@ -814,14 +804,13 @@
       shift = lca - uca
 
       ivalue=0
-      if (shift .eq. 0)                                                         &
-     & call inpquit('inp_lcase: check case of program source',ivalue)
+      if (shift .eq. 0) &
+          call inpquit('inp_lcase: check case of program source',ivalue)
 
       length = len(string)
       do i = 1, length
          test = ichar(string(i:i))
-         if (test.ge.uca .and. test.le.ucz)                                     &
-     &        string(i:i) = char(test+shift)
+         if (test.ge.uca .and. test.le.ucz) string(i:i) = char(test+shift)
       enddo
 
       end
@@ -862,14 +851,12 @@
       shift = uca - lca
 
       ivalue=0
-      if (shift .eq. 0)                                                         &
-     & call inpquit('inp_ucase: check case of program source',ivalue)
+      if (shift .eq. 0) call inpquit('inp_ucase: check case of program source',ivalue)
 
       length = len(string)
       do i = 1, length
          test = ichar(string(i:i))
-         if (test.ge.lca .and. test.le.lcz)                                     &
-     &        string(i:i) = char(test+shift)
+         if (test.ge.lca .and. test.le.lcz) string(i:i) = char(test+shift)
       enddo
 
       end
@@ -886,8 +873,7 @@
       parameter (maxz = 100)
       integer (kind=8) :: length(maxz)
 
-      if (maxz .lt. nz)                                                         &
-     &     call inpquit('inp_search: hard dim fail',nz)
+      if (maxz .lt. nz) call inpquit('inp_search: hard dim fail',nz)
       do i = 1, nz
          length(i)=len(trim(z(i)))
       enddo
@@ -934,8 +920,7 @@
          backspace(iread)       ! Re-read line with full input routine
          input_line = input_line - 1
          ivalue=0
-         if (.not. inp_read())                                                  &
-     &    call inpquit('inp_search_fast: inp?',ivalue)
+         if (.not. inp_read()) call inpquit('inp_search_fast: inp?',ivalue)
          inp_search_fast = .true.
          return
       endif
@@ -1066,8 +1051,7 @@
          Do I = First, Last, Stride
             N = N + 1
             If ( N .le. MaxList) List(N) = I
-            If ( N .eq. MaxList+1) call inp_mark_err                            &
-     &          ('insufficient space for integer list')
+            If ( N .eq. MaxList+1) call inp_mark_err('insufficient space for integer list')
          EndDo
          goto 10
       EndIf
@@ -1122,8 +1106,7 @@
       integer (kind=8) :: jFirst, JLast, JStride, jtmp(3), term
       logical :: Expect_Sep, Expect_Dig
       character (len=1) :: xchar(13)
-      data xchar /'0','1','2','3','4','5','6','7','8','9'                       &
-     &     ,'+','-',':'/
+      data xchar /'0','1','2','3','4','5','6','7','8','9','+','-',':'/
 
 !     subroutine for reading an integer range specification (in Fortran90-
 !     style triplet notation, stride optional) from the array ia,

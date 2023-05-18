@@ -36,6 +36,8 @@
 
       implicit none
 
+      external :: gronor_abort,gronor_quicksort_string
+
       integer                          :: i,j,k,nume
       integer                          :: maxci_raw
       integer           , allocatable  :: idet_raw(:)
@@ -154,7 +156,8 @@
 ! ioccm with maxci_raw instead of maxci.
 ! 
       allocate(civ_raw(maxci_raw,mstates))
-      allocate(occ_raw(maxci_raw,mstates))          ! a string is printed in the vecdet
+      allocate(occ_raw(maxci_raw,mstates))
+!     a string is printed in the vecdet
       civ_raw = 0.0d0
       occ_raw = ''
       do i=1,mstates
@@ -168,7 +171,8 @@
         enddo
         close(unit=lfndet)
         if (idet_raw(i) .gt. 1 ) then
-          call quicksort_string(civ_raw(:,i),occ_raw(:,i),idet_raw(i))
+          call gronor_quicksort_string
+     & (civ_raw(:,i),occ_raw(:,i),idet_raw(i))
         end if
         idetm(i) = 1
         do j = 2, idet_raw(i)

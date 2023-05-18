@@ -28,6 +28,11 @@
 
       implicit none
 
+      external :: close_tag,open_tag
+      external :: writetag_matrix_real,writetag_array_real
+      external :: writetag_scalar_real,writetag_scalar_integer
+      external :: gronor_print_matrix,dsygv
+      
       integer,intent(in)            :: nbase
       integer                       :: i,j,k,ii,il
       integer                       :: nk,info,lwork
@@ -44,7 +49,6 @@
       integer                       :: indent
 
       real(kind=8)                  :: debye,angstrom
-      real(kind=8)                  :: two3rds
       integer                       :: lfnt
 
       debye    = 2.54174644986

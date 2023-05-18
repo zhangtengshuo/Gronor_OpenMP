@@ -39,6 +39,9 @@
       program main
       implicit none
 
+      external :: dgesvd,ClsOne,RdOne,OpnOne,Get_cArray,Get_iArray
+      external :: NameRun
+      
       integer                       :: iSym,nSym
       integer                       :: lDim
       integer                       :: j,k,l,m1,m2,m3,jOrb
@@ -60,7 +63,7 @@
       real (kind = 8), allocatable  :: occNu3(:,:)
       real (kind = 8), allocatable  :: s(:),sAO(:,:,:),sMO(:,:)
       real (kind = 8), allocatable  :: U(:,:),VT(:,:),V(:,:)
-      real (kind = 8), allocatable  :: aux(:,:),e(:),work(:)
+      real (kind = 8), allocatable  :: aux(:,:),work(:)
       real (kind = 8), allocatable  :: sigma(:)
 
       character (len = 132)         :: line,title,command_line

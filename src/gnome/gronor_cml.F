@@ -24,6 +24,14 @@
       use cidef
 
       implicit none
+
+      external :: swatch
+      external :: open_tag,close_tag
+      external :: writetag_scalar_real,writetag_scalar_string
+      external :: writetag_array_integer,writetag_array_string
+      external :: writetag_matrix_integer
+      external :: gronor_molecule_cml
+      
       character(len=132)   :: info_cml
 
       write(lfncml,'(a38)')'<?xml version="1.0" encoding="UTF-8"?>'
@@ -67,6 +75,13 @@
       use cidist
 
       implicit none
+
+      external :: swatch
+      external :: open_tag,close_tag
+      external :: writetag_scalar_string
+      external :: writetag_scalar_integer
+      external :: gronor_molecule_cml
+      
       character(len=5)    :: version
       character(len=6)    :: programName
       character(len=18)   :: runDate
@@ -178,6 +193,13 @@
       use cidef
 
       implicit none
+      
+      external :: open_tag,close_tag
+      external :: writetag_scalar_string,writetag_scalar_real
+      external :: writetag_scalar_integer,writetag_matrix_integer
+      external :: writetag_array_integer,writetag_array_string
+      external :: gronor_molecule_cml
+      
       character(len=1)    :: sep
       character(len=20)   :: label,method,pointgroup,wavefunctionType
       character(len=132)  :: info_cml,fmt_1
@@ -326,6 +348,9 @@
       use cidef
 
       implicit none
+
+      external :: open_tag
+
       character(len=132)   :: info_cml
       character(len=20)    :: label
 
@@ -340,6 +365,11 @@
       use cidef
 
       implicit none
+
+      external :: swatch
+      external :: open_tag,close_tag
+      external :: writetag_scalar_string,writetag_scalar_real
+      
       integer              :: indent
       character(len=132)   :: info_cml,fmt_1
       character(len=20)    :: label

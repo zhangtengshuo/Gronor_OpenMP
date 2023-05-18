@@ -3,6 +3,12 @@
       use gnome_data
 
       implicit none
+
+      external :: close_tag,open_tag
+      external :: writetag_array_integer,writetag_array_string
+      external :: writetag_scalar_string,write_simpletag
+      external :: writetag_bond,writetag_atom
+      
       character(len=2), external :: element
       real (kind=8), external :: atom_radius
       integer :: indent,i,j,l,numi,numj,nDiffEl,lmax

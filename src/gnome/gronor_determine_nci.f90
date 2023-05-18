@@ -22,13 +22,15 @@
 !wave
 !>    function, not taking into the duplicates to stay on the save side.
 
-subroutine determine_nci(ndets,nci)
+subroutine gronor_determine_nci(ndets,nci)
 use makebasedata, only  : spinFrag,occ
 implicit none
 
+external :: gronor_pascal
+
 integer,intent(in)  :: ndets
 integer,intent(out) :: nci
-integer             :: idet,alpha,ms,pascal,iact,nOrb
+integer             :: idet,alpha,ms,gronor_pascal,iact,nOrb
 character(len=255)  :: dumstr
 
 nOrb = len_trim(occ(1))
@@ -40,15 +42,15 @@ do idet = 1, ndets
       if (dumstr(iact:iact) .eq. 'a') alpha = alpha + 1
   end do
   do ms = 1, spinFrag
-    nci = nci + pascal(alpha+1,ms)
+    nci = nci + gronor_pascal(alpha+1,ms)
   end do
 end do
 return
-end subroutine determine_nci
+end subroutine gronor_determine_nci
 
 ! ===============================================================================
 
-integer function pascal(i,j)
+integer function gronor_pascal(i,j)
 implicit none
 integer                :: i,j,ii,jj
 integer, allocatable   :: table(:,:)
@@ -62,7 +64,7 @@ do ii = 2, i
     table(ii,jj) = table(ii-1,jj-1)+table(ii-1,jj)
   end do
 end do
-pascal = table(i,j)
+gronor_pascal = table(i,j)
 deallocate(table)
 return
-end function
+end function gronor_pascal

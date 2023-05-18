@@ -40,6 +40,9 @@
 
       implicit none
 
+      external :: swatch,timer_start,timer_stop
+      external :: MPI_iSend,MPI_Recv
+
       integer :: ibase,jbase,mdet,ibin,jbin
       integer :: l2,i,j,k,l,ndone,nleft,nrb
       integer :: igrp, ltemp, last, nthdet

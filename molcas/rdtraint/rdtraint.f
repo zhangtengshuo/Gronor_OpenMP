@@ -19,6 +19,10 @@
 
       implicit none
 
+      external :: locate,capitalize
+      external :: Get_cArray,Get_dArray,Get_iScalar
+      external :: DACLOS,dDAFILE,DANAM_MF,iDAFILE
+      
       integer, parameter                :: nToc = 64
       integer, parameter                :: nTraToc = 106
       integer, parameter                :: mxSym = 1, maxBfn = 10000

@@ -7,7 +7,7 @@
       character (len=255) :: card,filout,fildet
       real(kind=8) :: ecasscf, ecaspt2
       character (len=6) :: label,str
-      real (kind=8) :: energy,ecorr,tau
+      real (kind=8) :: tau
       real (kind=8), allocatable :: coef(:)
       character (len=50), allocatable :: occ(:)
       character (len=50) :: string3
@@ -44,8 +44,6 @@
 
       open(unit=11,file=trim(fildet),form="formatted",status="old")
 
-!      read(11,100) ninact,nfrozen,nraw,label,energy,nelecs,tau
-! 100  format(2i5,i12,4x,a6,f22.12,i5,e10.3,f22.12)
       read(11,100) ninact
  100  format(i4)
 

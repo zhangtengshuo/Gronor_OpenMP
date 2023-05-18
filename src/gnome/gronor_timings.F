@@ -33,6 +33,9 @@
 
       implicit none
 
+      external :: swatch,timer_start,timer_stop
+      external :: MPI_iRecv,MPI_iSend
+      
       integer (kind=8) :: lfnout,lfnday,lfntim,i,j
       external :: timer_wall_total,timer_calls
       real (kind=8) :: timer_wall_total

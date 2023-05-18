@@ -37,6 +37,9 @@
 
       implicit none
 
+      external :: MPI_Bcast
+      external :: gronor_abort
+
 #ifdef CRAY
       integer :: nrecbd
 #else

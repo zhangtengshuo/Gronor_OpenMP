@@ -42,6 +42,11 @@
       use decisions
       implicit none
 
+      external :: read_input,read_vectorfiles,read_info
+      external :: read_coeff_add,read_coeff_split,read_label
+      external :: superimpose,split,capitalize,find_mark
+      external :: NameRun,Get_iArray,daname,ddafile
+
       character (len=4)    :: order
 
       call read_input(order)

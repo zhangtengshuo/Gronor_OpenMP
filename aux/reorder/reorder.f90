@@ -2,12 +2,12 @@
 
       implicit none
 
-      integer :: iarg,i,j,k,m,ic,jc,it,jt,num,ir,jr,iq,jq,ip,jp
+      external :: reorder_analyze
+      
+      integer :: iarg,i,j,k,m,num
       integer :: lfn1,lfn2,lfn3
       integer :: natoms
       integer :: natoms2
-      integer :: iswap,jswap,nswap
-      real (kind=8) :: d,dmax,dnew
 
       character (len=255) :: file1,file2,file3
       character (len=255) :: card1,card2
@@ -46,8 +46,6 @@
       integer (kind=8), allocatable :: no2(:)
       integer (kind=8), allocatable :: id2(:)
       
-      logical :: done
-
       iarg=1
       call getarg(iarg,file1)
       iarg=2
@@ -115,7 +113,7 @@
       close(unit=lfn2)
 
 !      write(*,'(a)') "Reference"
-      call analyze(natoms,name1,coord1,nb,ib,id)
+      call reorder_analyze(natoms,name1,coord1,nb,ib,id)
 
       do i=1,natoms
          if(trim(name1(i)).ne.trim(name2(ndx2(i)))) then
@@ -145,7 +143,7 @@
       enddo
 
 !      write(*,'(a)') "Target"
-      call analyze(natoms,name2,coord2,nb2,ib2,id2)
+      call reorder_analyze(natoms,name2,coord2,nb2,ib2,id2)
       
       m=0
       do i=1,natoms
@@ -207,7 +205,7 @@
             
       end
       
-      subroutine analyze(natoms,name,coord,nb,ib,id)
+      subroutine reorder_analyze(natoms,name,coord,nb,ib,id)
         
         implicit none
 
@@ -388,5 +386,5 @@
         
         return
 
-      end subroutine analyze
+      end subroutine reorder_analyze
 

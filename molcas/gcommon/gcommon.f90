@@ -209,7 +209,11 @@ end program gcommon
 subroutine gcommon_common_basis(iFrag,frzFragOrb,commonMOs,sDiag,nBas,oneintName,nBasFrag,nBasFragMax,lDim)
   use gcommon_input_data
   implicit none
-
+  
+  external :: gcommon_getAtomicOverlap,gcommon_getFilename
+  external :: gcommon_read_vec,gcommon_calculate_sMO
+  external :: NameRun
+  
   integer,intent(in)     :: iFrag,nBas
   integer,intent(out)    :: lDim
   integer    :: iVec

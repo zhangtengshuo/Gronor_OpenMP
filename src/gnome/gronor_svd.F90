@@ -1,4 +1,4 @@
-
+!
 !     This file is part of the GronOR software
 
 !     GronOR is free software, and can be used, re-distributed and/or modified under
@@ -55,6 +55,9 @@ subroutine gronor_svd(lfndbg)
   ! variable declarations
 
   implicit none
+
+  external :: svd,dgesvd
+  
   integer :: lfndbg
   integer :: i,j
   integer :: ierr

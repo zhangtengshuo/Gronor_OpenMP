@@ -30,6 +30,8 @@
 
       implicit none
 
+      external :: gronor_abort
+
       integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
       integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
       real (kind=8) :: sum

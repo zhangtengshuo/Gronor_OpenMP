@@ -850,6 +850,8 @@ use grotate_basis_set_data
 use grotate_rotation_data
 implicit none
 
+external :: r_times_v,rotate_harmonics
+
 integer        :: i,j
 real(kind=8)   :: a,b,c
 

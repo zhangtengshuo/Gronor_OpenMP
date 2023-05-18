@@ -160,7 +160,7 @@
 #else
 #ifdef CRAY
         call hostnm(host)
-!        call getlog(user)
+        call getenv("USER",user)
 #else
         call hostnm(host)
         call getlog(user)

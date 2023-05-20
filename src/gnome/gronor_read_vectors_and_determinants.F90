@@ -166,8 +166,7 @@ subroutine gronor_read_vectors_and_determinants()
     enddo
     close(unit=lfndet)
     if (idet_raw(i) .gt. 1 ) then
-      call gronor_quicksort_string
-      & (civ_raw(:,i),occ_raw(:,i),idet_raw(i))
+      call gronor_quicksort_string(civ_raw(:,i),occ_raw(:,i),idet_raw(i))
     end if
     idetm(i) = 1
     do j = 2, idet_raw(i)

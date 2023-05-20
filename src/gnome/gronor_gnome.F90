@@ -169,10 +169,10 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   if(iamacc.gt.0) then
 
 #ifdef ACC
-    !$acc data copyin(va,vb)
+!$acc data copyin(va,vb)
 #endif
 #ifdef OMPTGT
-    !$omp target data map(to:va,vb)
+!$omp target data map(to:va,vb)
 #endif
     !     Calculations of the overlap matrices
 
@@ -275,10 +275,10 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     endif
 
 #ifdef ACC
-    !$acc end data
+!$acc end data
 #endif
 #ifdef OMPTGT
-    !$omp end target data
+!$omp end target data
 #endif
   else
 

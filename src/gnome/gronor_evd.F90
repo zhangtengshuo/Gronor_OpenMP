@@ -119,7 +119,7 @@ subroutine gronor_evd()
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
-      !$acc update device (ev,u,w)
+!$acc update device (ev,u,w)
 #endif
 #ifdef OMPTGT
 !$omp target update to(ev,u,w)

@@ -132,10 +132,10 @@ subroutine gronor_svd()
   if(isolver.eq.SOLVER_MKL) then
     if(iamacc.eq.1) then
 #ifdef ACC
-      !$acc update host (a)
+!$acc update host (a)
 #endif
 #ifdef OMPTGT
-      !$omp target update from(a)
+!$omp target update from(a)
 #endif    
     endif
     ndimm=nelecs
@@ -143,10 +143,10 @@ subroutine gronor_svd()
         &       workspace_d,lwork1m,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
-      !$acc update device (ev,u,w)
+!$acc update device (ev,u,w)
 #endif
 #ifdef OMPTGT
-      !$omp target update to(ev,u,w)
+!$omp target update to(ev,u,w)
 #endif
     endif
     do i=1,nelecs

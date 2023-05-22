@@ -2067,11 +2067,11 @@ subroutine gronor_main()
           flush(lfndbg)
         endif
 #ifdef ACC
-!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)
-!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork)
-!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
-!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal)
-!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1)
+!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
+!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork) &
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
+!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
+!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
 #endif
 #ifdef OMPTGT

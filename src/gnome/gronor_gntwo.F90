@@ -196,8 +196,7 @@ subroutine gronor_gntwo(lfndbg)
 
     e2t=e2
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g)                                  &
-!$acc& present(lab,diag,bdiag,bsdiag,csdiag)
+!$acc kernels present(aat,aaa,tt,ta,sm,g) present(lab,diag,bdiag,bsdiag,csdiag)
 !$acc loop reduction (+:e2t)
 #endif
 #ifdef OMPTGT
@@ -395,8 +394,7 @@ subroutine gronor_gntwo_mlab(lfndbg)
     kl=nbas*(nbas+1)/2
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)
-!$acc& copyin(kl,intndx,jntndx)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
 !$omp taskwait
@@ -441,7 +439,7 @@ subroutine gronor_gntwo_mlab(lfndbg)
     kl=nbas*(nbas+1)/2
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
 !$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
@@ -644,8 +642,7 @@ subroutine gronor_gntwo_nolab(lfndbg)
     intg=0
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)
-!$acc& copyin(intg,nbas)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(intg,nbas)
 #endif
 #ifdef OMPTGT
 !$omp taskwait
@@ -711,8 +708,7 @@ subroutine gronor_gntwo_nolab(lfndbg)
     intg=0
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx)
-!$acc& present(diag,bdiag,bsdiag,csdiag)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
 !$acc& copyin(intg,kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
@@ -871,8 +867,7 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
     if(ising.gt.0) then
 
 #ifdef ACC
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!$acc kernels present(diag,bdiag,bsdiag,csdiag) present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1048,8 +1043,7 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
       call timer_start(34)
 
 #ifdef ACC
-!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!$acc kernels present(lab,g,sml,aatl,aaal,ttl,tatl,prefac) present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1319,8 +1313,7 @@ subroutine gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
       kl=nbas*(nbas+1)/2
       intg=0
 #ifdef ACC
-!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac)                 &
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!$acc kernels present(lab,ndx,g,sml,aatl,aaal,ttl,tatl,prefac) present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1544,8 +1537,7 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
       !!     END ASSEMBLY ON CPU
 
 #ifdef ACC
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
+!$acc kernels present(diag,bdiag,bsdiag,csdiag) present(diagl,bdiagl,bsdiagl,csdiagl) copyin(ibl)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1656,8 +1648,7 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 !$omp target data map(to:prefac1)
 #endif
 #ifdef ACC
-!$acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,prefac1)
-!$acc& present(diagl,bdiagl,bsdiagl,csdiagl)
+!$acc kernels present(lab,g,sm1,aat1,aaa1,tt1,ta1,prefac1) present(diagl,bdiagl,bsdiagl,csdiagl)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1774,8 +1765,7 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
       !     ASSEMBLE ARRAYS ON GPU
 
 #ifdef ACC
-!$acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0)
-!$acc& copyin(nb0)
+!$acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0) copyin(nb0)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1828,8 +1818,7 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
       !     ASSEMBLE ARRAYS ON GPU
 
 #ifdef ACC
-!$acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1)
-!$acc& copyin(nb1)
+!$acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1) copyin(nb1)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1876,8 +1865,7 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
       !!     END ASSEMBLY ON CPU
 
 #ifdef ACC
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)                                &
-!$acc& present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1)
+!$acc kernels present(diag,bdiag,bsdiag,csdiag) present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -1994,8 +1982,7 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
     kl=nbas*(nbas+1)/2
 
 #ifdef ACC
-!$acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1)
-!$acc& present(diag1,bdiag1,bsdiag1,csdiag1)
+!$acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1) present(diag1,bdiag1,bsdiag1,csdiag1)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5

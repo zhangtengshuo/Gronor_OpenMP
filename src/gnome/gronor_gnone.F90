@@ -129,8 +129,7 @@ subroutine gronor_gnone(lfndbg)
 #endif
   else
 #ifdef ACC
-!$acc loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3,
-!$acc& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
+!$acc loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5

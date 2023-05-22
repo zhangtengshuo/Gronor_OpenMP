@@ -62,11 +62,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(iv,ib)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(iv,ib)
 #endif
-!$omp& collapse(2) private(iv,ib)
 #endif
   do iv=1,nvecb
     do ib=1,nbas
@@ -83,11 +82,10 @@ subroutine gronor_moover(lfndbg)
 
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum)
 #endif
-!$omp& private(sum)
 #endif
   do iv=1,nvecb
     do ib=1,nbas
@@ -111,11 +109,10 @@ subroutine gronor_moover(lfndbg)
 
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
   do le=1,nelecs
     do ie=1,nelecs
@@ -140,11 +137,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum)
 #endif
-!$omp& private(sum)
 #endif
     do ke=1,nalfa
       do ie=1,nalfa
@@ -178,11 +174,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(ii,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(ii,kk)
 #endif
-!$omp& private(ii,kk)
 #endif
     do i=1,ntcla
       ii=i+nalfa
@@ -216,11 +211,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
       do k=1,ntclb
         kk=k+nalfa
@@ -250,11 +244,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
       do k=nalfa+1,nvecb
         kk=k+ntclb
@@ -286,11 +279,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum)
 #endif
-!$omp& private(sum)
 #endif
     do i=1,ntcla
       do k=m1,nvecb
@@ -314,11 +306,10 @@ subroutine gronor_moover(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
   do i1=1,nelecs
     do i2=1,nelecs
@@ -376,9 +367,7 @@ subroutine gronor_moover_omp(lfndbg)
 602 format('  itypen icentn jtype jcent   icount      indbas     ', &
         ' indbas         overlap',//)
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(tb)
-!$omp& collapse(2)
+!$omp parallel do shared(tb) collapse(2)
 #endif
   do iv=1,nvecb
     do ib=1,nbas
@@ -389,9 +378,7 @@ subroutine gronor_moover_omp(lfndbg)
 !$omp end parallel do
 #endif
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(s,vb,tb) private(sum)
-!$omp& collapse(2)
+!$omp parallel do shared(s,vb,tb) private(sum) collapse(2)
 #endif
   do iv=1,nvecb
     do ib=1,nbas
@@ -409,9 +396,7 @@ subroutine gronor_moover_omp(lfndbg)
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(ta)
-!$omp& collapse(2)
+!$omp parallel do shared(ta) collapse(2)
 #endif
   do le=1,nelecs
     do ie=1,nelecs
@@ -424,9 +409,7 @@ subroutine gronor_moover_omp(lfndbg)
   if(nalfa.ne.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(va,ta,tb) private(sum)
-!$omp& collapse(2)
+!$omp parallel do shared(va,ta,tb) private(sum) collapse(2)
 #endif
     do ke=1,nalfa
       do ie=1,nalfa
@@ -448,8 +431,7 @@ subroutine gronor_moover_omp(lfndbg)
   if(ntcla.ne.0.and.ntclb.ne.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nalfa,ta,ntclb) private(ii,kk)
+!$omp parallel do shared(nalfa,ta,ntclb) private(ii,kk)
 #endif
     do i=1,ntcla
       ii=i+nalfa
@@ -472,8 +454,7 @@ subroutine gronor_moover_omp(lfndbg)
     if(ntclb.gt.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nveca,va,tb,ntclb) private(sum,ii,kk)
+!$omp parallel do shared(nveca,va,tb,ntclb) private(sum,ii,kk)
 #endif
       do k=1,ntclb
         kk=k+nalfa
@@ -493,8 +474,7 @@ subroutine gronor_moover_omp(lfndbg)
     if(nvecb.gt.nalfa) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nveca,va,ta,tb,ntclb) private(sum,kk)
+!$omp parallel do shared(nveca,va,ta,tb,ntclb) private(sum,kk)
 #endif
       do k=nalfa+1,nvecb
         kk=k+ntclb
@@ -516,8 +496,7 @@ subroutine gronor_moover_omp(lfndbg)
   if(nvecb.ne.nalfa.and.ntcla.ne.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nvecb,va,ta,tb,ntclb) private(sum) collapse(2)
+!$omp parallel do shared(nvecb,va,ta,tb,ntclb) private(sum) collapse(2)
 #endif
     do i=1,ntcla
       do k=m1,nvecb
@@ -537,8 +516,7 @@ subroutine gronor_moover_omp(lfndbg)
 !     of size 1e-13. therefore all elements < 1e-10 are set to zero
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nelecs,ta,a) collapse(2)
+!$omp parallel do shared(nelecs,ta,a) collapse(2)
 #endif
   do i1=1,nelecs
     do i2=1,nelecs

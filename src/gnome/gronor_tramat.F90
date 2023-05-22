@@ -47,11 +47,10 @@ subroutine gronor_tramat()
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(i,j)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(i,j)
 #endif
-!$omp& collapse(2) private(i,j)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -74,11 +73,10 @@ subroutine gronor_tramat()
     !     transformation of diag
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
     do j=1,nbas
       sum=0.0d0
@@ -143,11 +141,10 @@ subroutine gronor_tramat()
 
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -195,11 +192,10 @@ subroutine gronor_tramat()
   !     put w in the work-matrix (aa)
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -220,11 +216,10 @@ subroutine gronor_tramat()
   !     calculation of the final matrix aa
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(sum,kk)
 #endif
-!$omp& collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -272,11 +267,10 @@ subroutine gronor_tramat()
   !     put w back in the work-matrix aa
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -298,11 +292,10 @@ subroutine gronor_tramat()
   if(ising.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
     do j=1,nbas
       sum=0.0d0
@@ -388,8 +381,7 @@ subroutine gronor_tramat_omp()
 
   m1=nalfa+1
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nelecs,ta,taa) collapse(2)
+!$omp parallel do shared(nelecs,ta,taa) collapse(2)
 #endif
   do i=1,nelecs
     do j=1,nelecs
@@ -404,8 +396,7 @@ subroutine gronor_tramat_omp()
     !     transformation of diag
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum,kk)
+!$omp parallel do shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w1) private(sum,kk)
 #endif
     do j=1,nbas
       sum=0.0d0
@@ -432,8 +423,7 @@ subroutine gronor_tramat_omp()
 !$omp end parallel do
 #endif
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diag,w1)
+!$omp parallel do shared(diag,w1)
 #endif
     do j=1,nbas
       diag(j)=w1(j)
@@ -449,9 +439,7 @@ subroutine gronor_tramat_omp()
   !     calculation of an intermediate array (w)
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa)
-!$omp& private(sum,kk) collapse(2)
+!$omp parallel do shared(nbas,nalfa,ntcla,nveca,nelecs,diag,va,w2,taa) private(sum,kk) collapse(2)
 #endif
   do j=1,nelecs
     do i=1,nbas
@@ -482,9 +470,7 @@ subroutine gronor_tramat_omp()
   !     put w in the work-matrix (aa)
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nelecs,w2,taa)
-!$omp& private(sum,kk) collapse(2)
+!$omp parallel do shared(nbas,nelecs,w2,taa) private(sum,kk) collapse(2)
 #endif
   do j=1,nelecs
     do i=1,nbas
@@ -497,9 +483,7 @@ subroutine gronor_tramat_omp()
   !     calculation of the final matrix aa
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb)
-!$omp& private(sum,kk) collapse(2)
+!$omp parallel do shared(nbas,nelecs,nalfa,ntclb,nvecb,w2,taa,vb) private(sum,kk) collapse(2)
 #endif
   do i=1,nbas
     do j=1,nbas
@@ -530,9 +514,7 @@ subroutine gronor_tramat_omp()
   !     put w back in the work-matrix aa
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,w2,taa)
-!$omp& collapse(2)
+!$omp parallel do shared(nbas,w2,taa) collapse(2)
 #endif
   do j=1,nbas
     do i=1,nbas
@@ -546,9 +528,7 @@ subroutine gronor_tramat_omp()
 
   if(ising.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag)
-!$omp& private(sum,kk)
+!$omp parallel do shared(nbas,nelecs,nalfa,ntclb,nvecb,w1,vb,sdiag) private(sum,kk)
 #endif
     do j=1,nbas
       sum=0.0d0
@@ -575,8 +555,7 @@ subroutine gronor_tramat_omp()
 !$omp end parallel do
 #endif
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,sdiag,w1)
+!$omp parallel do shared(nbas,sdiag,w1)
 #endif
     do j=1,nbas
       sdiag(j)=w1(j)

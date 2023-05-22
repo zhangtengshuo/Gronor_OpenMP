@@ -56,11 +56,10 @@ subroutine gronor_tramat2(lfndbg)
     if(nalfa.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum)
 #endif
-!$omp& private(sum)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -87,11 +86,10 @@ subroutine gronor_tramat2(lfndbg)
     if(ntcla.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -120,11 +118,10 @@ subroutine gronor_tramat2(lfndbg)
       m1=nalfa+1
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -152,11 +149,10 @@ subroutine gronor_tramat2(lfndbg)
     if(nalfa.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum)
 #endif
-!$omp& private(sum)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -183,11 +179,10 @@ subroutine gronor_tramat2(lfndbg)
     if(ntclb.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -216,11 +211,10 @@ subroutine gronor_tramat2(lfndbg)
       m1=nalfa+1
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(sum,kk)
 #endif
-!$omp& private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop private(sum)
@@ -274,11 +268,10 @@ subroutine gronor_tramat2(lfndbg)
   if(nalfa.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
-!$omp& collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2) private(sum)
@@ -304,11 +297,10 @@ subroutine gronor_tramat2(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -331,11 +323,10 @@ subroutine gronor_tramat2(lfndbg)
   if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(sum,kk)
 #endif
-!$omp& collapse(2) private(sum,kk)
 #endif
     do i=m1,nelecs
       do j=1,nbas
@@ -370,11 +361,10 @@ subroutine gronor_tramat2(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
     do j=1,nbas
       do i=m1,nelecs
@@ -395,11 +385,10 @@ subroutine gronor_tramat2(lfndbg)
   if(nalfa.ne.0) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(sum)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(sum)
 #endif
-!$omp& collapse(2) private(sum)
 #endif
 #ifdef ACC
 !$acc loop collapse(2) private(sum)
@@ -428,11 +417,10 @@ subroutine gronor_tramat2(lfndbg)
   if(nalfa.ne.nelecs) then
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(sum,kk)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(sum,kk)
 #endif
-!$omp& collapse(2) private(sum,kk)
 #endif
 #ifdef ACC
 !$acc loop collapse(2) private(sum)
@@ -470,11 +458,10 @@ subroutine gronor_tramat2(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -494,11 +481,10 @@ subroutine gronor_tramat2(lfndbg)
   else
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
 #ifdef ACC
 !$acc loop collapse(2)
@@ -586,8 +572,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
     if(nalfa.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,cdiag,va,diag) private(sum)
+!$omp parallel do shared(nbas,nalfa,cdiag,va,diag) private(sum)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -603,8 +588,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
     if(ntcla.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ntcla,cdiag,va,bdiag) private(sum,kk)
+!$omp parallel do shared(nbas,nalfa,ntcla,cdiag,va,bdiag) private(sum,kk)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -622,8 +606,7 @@ subroutine gronor_tramat2_omp(lfndbg)
     if(nalfa.ne.nveca) then
       m1=nalfa+1
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,ntcla,cdiag,va,bdiag,m1) private(sum,kk,k)
+!$omp parallel do shared(nbas,ntcla,cdiag,va,bdiag,m1) private(sum,kk,k)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -640,8 +623,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
     if(nalfa.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,vb,csdiag,w1) private(sum)
+!$omp parallel do shared(nbas,nalfa,vb,csdiag,w1) private(sum)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -657,8 +639,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
     if(ntclb.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,ntclb,nalfa,vb,bsdiag,csdiag,w1) private(sum,kk)
+!$omp parallel do shared(nbas,ntclb,nalfa,vb,bsdiag,csdiag,w1) private(sum,kk)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -676,8 +657,7 @@ subroutine gronor_tramat2_omp(lfndbg)
     if(nalfa.ne.nvecb) then
       m1=nalfa+1
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,ntclb,vb,bsdiag,csdiag) private(sum,kk)
+!$omp parallel do shared(nbas,ntclb,vb,bsdiag,csdiag) private(sum,kk)
 #endif
       do j=1,nbas
         sum=0.0d0
@@ -693,8 +673,7 @@ subroutine gronor_tramat2_omp(lfndbg)
     endif
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,csdiag,w1)
+!$omp parallel do shared(nbas,csdiag,w1)
 #endif
     do j=1,nbas
       csdiag(j)=w1(j)
@@ -710,8 +689,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
   if(nalfa.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ta,vb,w2) private(sum) collapse(2)
+!$omp parallel do shared(nbas,nalfa,ta,vb,w2) private(sum) collapse(2)
 #endif
     do i=1,nalfa
       do j=1,nbas
@@ -724,8 +702,7 @@ subroutine gronor_tramat2_omp(lfndbg)
     enddo
 #ifdef OMP
 !$omp end parallel do
-!$omp parallel do
-!$omp& shared(nbas,nalfa,ta,w2) collapse(2)
+!$omp parallel do shared(nbas,nalfa,ta,w2) collapse(2)
 #endif
     do j=1,nbas
       do i=1,nalfa
@@ -740,9 +717,7 @@ subroutine gronor_tramat2_omp(lfndbg)
   m1=nalfa+1
   if(nalfa.ne.nelecs) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nalfa,nvecb,ntclb,m1,ta,vb,w2)
-!$omp& private(kk,sum) collapse(2)
+!$omp parallel do shared(nbas,nalfa,nvecb,ntclb,m1,ta,vb,w2) private(kk,sum) collapse(2)
 #endif
     do i=m1,nelecs
       do j=1,nbas
@@ -766,8 +741,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 !$omp end parallel do
 #ifdef OMP
 #endif
-!$omp parallel do
-!$omp& shared(nbas,nelecs,m1,ta,w2) collapse(2)
+!$omp parallel do shared(nbas,nelecs,m1,ta,w2) collapse(2)
 #endif
     do j=1,nbas
       do i=m1,nelecs
@@ -783,8 +757,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
   if(nalfa.ne.0) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,nelecs,nalfa,ta,va,aaa) private(sum) collapse(2)
+!$omp parallel do shared(nbas,nelecs,nalfa,ta,va,aaa) private(sum) collapse(2)
 #endif
     do j=1,nbas
       do i=1,nbas
@@ -802,9 +775,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 
   if(nalfa.ne.nelecs) then
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,ntcla,nalfa,nveca,ta,va,w2)
-!$omp& private(sum,kk) collapse(2)
+!$omp parallel do shared(nbas,ntcla,nalfa,nveca,ta,va,w2) private(sum,kk) collapse(2)
 #endif
     do j=1,nbas
       do i=1,nbas
@@ -826,8 +797,7 @@ subroutine gronor_tramat2_omp(lfndbg)
     enddo
 #ifdef OMP
 !$omp end parallel do
-!$omp parallel do
-!$omp& shared(nbas,ta,w2) collapse(2)
+!$omp parallel do shared(nbas,ta,w2) collapse(2)
 #endif
     do j=1,nbas
       do i=1,nbas
@@ -839,8 +809,7 @@ subroutine gronor_tramat2_omp(lfndbg)
 #endif
   else
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(nbas,ta) collapse(2)
+!$omp parallel do shared(nbas,ta) collapse(2)
 #endif
     do j=1,nbas
       do i=1,nbas

@@ -69,14 +69,14 @@ subroutine gronor_gnone(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3, &
+!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6) &
+!$omp& private(abjk,tsj,vsj,dsj1,dsj2,dsj3) private(qsj1,qsj2,qsj3,qsj4,qsj5,qsj6)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:tsum,vsum,dsum1,dsum2,dsum3, &
+!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6) &
+!$omp& private(abjk,tsj,vsj,dsj1,dsj2,dsj3) private(qsj1,qsj2,qsj3,qsj4,qsj5,qsj6)
 #endif
-!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,
-!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
-!$omp& private(abjk,tsj,vsj,dsj1,dsj2,dsj3)
-!$omp& private(qsj1,qsj2,qsj3,qsj4,qsj5,qsj6) 
 #endif
     do j=1,nbas
       nn=ndxtv(j)
@@ -133,14 +133,14 @@ subroutine gronor_gnone(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(nn,tsj,vsj,abjk, &
+!$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6) &
+!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(nn,tsj,vsj,abjk, &
+!$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6) &
+!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
-!$omp& private(nn,tsj,vsj,abjk,
-!$omp& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6)
-!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,
-!$omp& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
     do j=1,nbas
       nn=ndxtv(j)
@@ -273,8 +273,7 @@ subroutine gronor_gnone_omp(lfndbg)
 
   if(ising.eq.0) then
 #ifdef OMP
-!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,
-!$omp& qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
+!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
 #endif
     do j=1,nbas
       nn=ndxtv(j)
@@ -323,8 +322,7 @@ subroutine gronor_gnone_omp(lfndbg)
 #endif
   else
 #ifdef OMP
-!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,
-!$omp& qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k)
+!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k)
 #endif
     do j=1,nbas
       nn=ndxtv(j)

@@ -97,11 +97,10 @@ subroutine gronor_gntwo(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(i,k)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
-!$omp& collapse(2) private(i,k)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -124,11 +123,10 @@ subroutine gronor_gntwo(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(i,k)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
-!$omp& collapse(2) private(i,k)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -161,11 +159,10 @@ subroutine gronor_gntwo(lfndbg)
 #ifdef OMPTGT
 !$omp taskwait
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:tst)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:tst)
 #endif
-!$omp& reduction(+:tst)
 #endif
     do intg=1,numint
       i=lab(1,intg)
@@ -201,13 +198,14 @@ subroutine gronor_gntwo(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
-!$omp& reduction(+:e2t)
-!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n)
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n) &
 !$omp& private(bbi,aai,abi,bbj,sum2,bbk,bbl)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(baj,bai,abj,aal,aak,aaj,abk,abl,bak,bal,i,k,l,n) &
+!$omp& private(bbi,aai,abi,bbj,sum2,bbk,bbl)
+#endif
 #endif
     do intg=1,numint
       i=lab(1,intg)
@@ -334,11 +332,10 @@ subroutine gronor_gntwo_mlab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(i,k)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
-!$omp& collapse(2) private(i,k)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -361,11 +358,10 @@ subroutine gronor_gntwo_mlab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -399,11 +395,10 @@ subroutine gronor_gntwo_mlab(lfndbg)
 #ifdef OMPTGT
 !$omp taskwait
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:tst)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:tst)
 #endif
-!$omp& reduction(+:tst)
 #endif
     do ii=intndx,jntndx
       do jj=ii,kl
@@ -444,13 +439,14 @@ subroutine gronor_gntwo_mlab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
-!$omp& reduction(+:e2t)
-!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2)
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
 !$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#endif
 #endif
     do ii=intndx,jntndx
       do jj=ii,kl
@@ -581,11 +577,10 @@ subroutine gronor_gntwo_nolab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(i,k)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(i,k)
 #endif
-!$omp& collapse(2) private(i,k)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -608,11 +603,10 @@ subroutine gronor_gntwo_nolab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
   do i=1,nbas
     do k=1,nbas
@@ -647,11 +641,10 @@ subroutine gronor_gntwo_nolab(lfndbg)
 #ifdef OMPTGT
 !$omp taskwait
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:tst) private(tsn,tsl)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:tst) private(tsn,tsl)
 #endif
-!$omp& reduction(+:tst) private(tsn,tsl)
 #endif
     do k=1,nbas
       do i=1,k
@@ -713,13 +706,14 @@ subroutine gronor_gntwo_nolab(lfndbg)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
-!$omp& reduction(+:e2t)
-!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n)
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
 !$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#endif
 #endif
     !        do ii=intndx,jntndx
     !          do jj=ii,kl
@@ -871,11 +865,10 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop private(i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do private(i)
 #endif
-!$omp& private(i)
 #endif
       do i=1,nbas
         diagl(ibl,i)=diag(i)
@@ -899,11 +892,10 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
     do i=1,nbas
       do k=1,nbas
@@ -928,11 +920,10 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2)
 #endif
-!$omp& collapse(2)
 #endif
     do k=1,nbas
       do i=1,nbas
@@ -1001,12 +992,10 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
       do intg=1,numint
         i=lab(1,intg)
@@ -1047,12 +1036,10 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
       do intg=1,numint
         i=lab(1,intg)
@@ -1187,11 +1174,10 @@ subroutine gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(k,i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
-!$omp& collapse(2) private(k,i)
 #endif
     do k=1,nbas
       do i=1,nbas
@@ -1268,12 +1254,10 @@ subroutine gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
       do ii=intndx,jntndx
         do jj=ii,kl
@@ -1317,12 +1301,10 @@ subroutine gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
       do ii=intndx,jntndx
         do jj=ii,kl
@@ -1441,11 +1423,10 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(k,i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
-!$omp& collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1493,11 +1474,10 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(k,i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
-!$omp& collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1590,12 +1570,10 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
     do intg=1,numint
       i=lab(1,intg)
@@ -1652,12 +1630,10 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n)
 #endif
     do intg=1,numint
       i=lab(1,intg)
@@ -1769,11 +1745,10 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(k,i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
-!$omp& collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1822,11 +1797,10 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop collapse(2) private(k,i)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(2) private(k,i)
 #endif
-!$omp& collapse(2) private(k,i)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -1920,12 +1894,10 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n,intg)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n,intg)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n,intg)
 #endif
     do ibl=1,nb0
       do ii=intndx,jntndx
@@ -1986,12 +1958,10 @@ subroutine gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
-!$omp target teams loop
+!$omp target teams loop reduction(+:etotb) private(i,k,l,n,intg)
 #else
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do reduction(+:etotb) private(i,k,l,n,intg)
 #endif
-!$omp& reduction(+:etotb)
-!$omp& private(i,k,l,n,intg)
 #endif
     do ii=intndx,jntndx
       do jj=ii,kl
@@ -2108,9 +2078,7 @@ subroutine gronor_gntwo_omp(lfndbg)
 
     call timer_start(32)
 #ifdef OMP
-!$omp parallel do reduction(+:ts)
-!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n)
+!$omp parallel do reduction(+:ts) shared(sm,aat,aaa,tt,ta,g,lab,numint) private(intg,i,k,l,n)
 #endif
     do intg=1,numint
       i=lab(1,intg)
@@ -2131,9 +2099,8 @@ subroutine gronor_gntwo_omp(lfndbg)
     call timer_start(35)
 
 #ifdef OMP
-!$omp parallel do reduction(+:e2)
-!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$omp parallel do reduction(+:e2) shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk) &
 !$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl)
 #endif
     do intg=1,numint
@@ -2244,9 +2211,7 @@ subroutine gronor_gntwo_omp_mlab(lfndbg)
     kl=nbas*(nbas+1)/2
     intg=0
 #ifdef OMP
-!$omp parallel do reduction(+:ts)
-!$omp& shared(sm,aat,aaa,tt,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n,ii,jj)
+!$omp parallel do reduction(+:ts) shared(sm,aat,aaa,tt,ta,g,lab,numint) private(intg,i,k,l,n,ii,jj)
 #endif
     do ii=intndx,jntndx
       do jj=ii,kl
@@ -2272,9 +2237,8 @@ subroutine gronor_gntwo_omp_mlab(lfndbg)
     kl=nbas*(nbas+1)/2
     intg=0
 #ifdef OMP
-!$omp parallel do reduction(+:e2)
-!$omp& shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint)
-!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk)
+!$omp parallel do reduction(+:e2) shared(diag,bdiag,csdiag,bsdiag,sm,aat,tt,aaa,ta,g,lab,numint) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk) &
 !$omp& private(aaj,abj,baj,bbj,sum2,aal,abl,bal,bbl,ii,jj)
 #endif
     do ii=intndx,jntndx
@@ -2391,9 +2355,7 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
     enddo
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k)
 #endif
     do k=1,nbas
       do i=1,nbas
@@ -2410,9 +2372,7 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
     if(ising.gt.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$omp& private(i)
+!$omp parallel do shared(diagl,bdiagl,csdiagl,bsdiagl,nbas) private(i)
 #endif
       do i=1,nbas
         diagl(ibl,i)=diag(i)
@@ -2441,8 +2401,7 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
       call timer_start(32)
 
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp parallel do reduction(+:etotb) shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -2467,9 +2426,8 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
     if(nb0.gt.0.and.nb1.gt.0) then
       call timer_start(36)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -2509,9 +2467,8 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
     if(nb0.le.0.and.nb1.gt.0) then
       call timer_start(35)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -2627,9 +2584,7 @@ subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
     enddo
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k)
 #endif
     do k=1,nbas
       do i=1,nbas
@@ -2646,9 +2601,7 @@ subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
     if(ising.gt.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$omp& private(i)
+!$omp parallel do shared(diagl,bdiagl,csdiagl,bsdiagl,nbas) private(i)
 #endif
       do i=1,nbas
         diagl(ibl,i)=diag(i)
@@ -2679,10 +2632,8 @@ subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
       kl=nbas*(nbas+1)/2
       do ii=intndx,jntndx
 #ifdef OMP
-!$omp parallel
-!$omp& shared(ii,sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
-!$omp do reduction(+:etotb,etemp)
-!$omp& private(intg,jj,i,k,l,n,ibl)
+!$omp parallel shared(ii,sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp do reduction(+:etotb,etemp) private(intg,jj,i,k,l,n,ibl)
 #endif
         do jj=ii,kl
           intg=ndx(ii)+jj
@@ -2718,9 +2669,8 @@ subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
       call timer_start(36)
       kl=nbas*(nbas+1)/2
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl,etemp)
 #endif
       do ii=intndx,jntndx
@@ -2783,9 +2733,8 @@ subroutine gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
       call timer_start(35)
       kl=nbas*(nbas+1)/2
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl,etemp)
 #endif
       do ii=intndx,jntndx
@@ -2908,9 +2857,7 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
     enddo
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k)
 #endif
     do k=1,nbas
       do i=1,nbas
@@ -2927,9 +2874,7 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
     if(ising.gt.0) then
 
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$omp& private(i)
+!$omp parallel do shared(diagl,bdiagl,csdiagl,bsdiagl,nbas) private(i)
 #endif
       do i=1,nbas
         diagl(ibl,i)=diag(i)
@@ -2958,8 +2903,7 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
       call timer_start(32)
 
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac)
+!$omp parallel do reduction(+:etotb) shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -2988,9 +2932,8 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
     if(nb0.gt.0.and.nb1.gt.0) then
       call timer_start(36)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -3046,9 +2989,8 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
     if(nb0.le.0.and.nb1.gt.0) then
       call timer_start(35)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb)
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac)
+!$omp parallel do reduction(+:etotb) shared(diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sml,aatl,aaal,ttl,tatl,g,lab,numint,nb0,nhc,nb1,prefac) &
 !$omp& private(intg,i,k,l,n,ibl)
 #endif
       do intg=1,numint
@@ -3154,9 +3096,7 @@ subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
       nb0=nb0+1
       prefac0(nb0)=4.0d0*deta*fctr
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k) collapse(2)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k) collapse(2)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -3173,9 +3113,7 @@ subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
       nb1=nb1+1
       prefac1(nb1)=fctr
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k) collapse(2)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k) collapse(2)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -3189,9 +3127,7 @@ subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
 !$omp end parallel do
 #endif
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$omp& private(i)
+!$omp parallel do shared(diagl,bdiagl,csdiagl,bsdiagl,nbas) private(i)
 #endif
       do i=1,nbas
         diag1(nb1,i)=diag(i)
@@ -3223,10 +3159,8 @@ subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
       i=lab(1,ii)
       k=lab(2,ii)
 #ifdef OMP
-!$omp parallel
-!$omp& shared(igg,i,k,ii,sm0,aaa0,tt0,g,lab,nb0,prefac)
-!$omp do reduction(+:etotb,etemp)
-!$omp& private(intg,jj,l,n,ibl)
+!$omp parallel shared(igg,i,k,ii,sm0,aaa0,tt0,g,lab,nb0,prefac)
+!$omp do reduction(+:etotb,etemp) private(intg,jj,l,n,ibl)
 #endif
       do jj=ii,kl
         intg=igg+jj
@@ -3272,10 +3206,8 @@ subroutine gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
       i=lab(1,ii)
       k=lab(2,ii)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb,etemp)
-!$omp& shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac)
-!$omp& private(intg,l,n,ibl)
+!$omp parallel do reduction(+:etotb,etemp) shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac) private(intg,l,n,ibl)
 #endif
       do jj=ii,kl
         intg=igg+jj
@@ -3386,9 +3318,7 @@ subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
       nb0=nb0+1
       prefac0(nb0)=4.0d0*deta*fctr
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k) collapse(2)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k) collapse(2)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -3406,9 +3336,7 @@ subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
       nb1=nb1+1
       prefac1(nb1)=fctr
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas)
-!$omp& private(i,k) collapse(2)
+!$omp parallel do shared(sml,aat,aaa,tt,ta,aaal,aatl,ttl,tatl,nbas) private(i,k) collapse(2)
 #endif
       do k=1,nbas
         do i=1,nbas
@@ -3422,9 +3350,7 @@ subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
 !$omp end parallel do
 #endif
 #ifdef OMP
-!$omp parallel do
-!$omp& shared(diagl,bdiagl,csdiagl,bsdiagl,nbas)
-!$omp& private(i)
+!$omp parallel do shared(diagl,bdiagl,csdiagl,bsdiagl,nbas) private(i)
 #endif
       do i=1,nbas
         diag1(nb1,i)=diag(i)
@@ -3502,10 +3428,8 @@ subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
       i=lab(1,ii)
       k=lab(2,ii)
 #ifdef OMP
-!$omp parallel do reduction(+:etotb,etemp)
-!$omp& shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl)
-!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac)
-!$omp& private(intg,l,n,ibl)
+!$omp parallel do reduction(+:etotb,etemp) shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac) private(intg,l,n,ibl)
 #endif
       do jj=ii,kl
         intg=igg+jj

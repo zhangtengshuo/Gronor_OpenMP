@@ -1255,7 +1255,7 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
 
   integer :: lfndbg
 
-  integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj,igg,ls
+  integer :: i,ii,k,l,n,kl,intg,ihc,nhc,ibl,jj,igg,ls,noff
 
   real (kind=8) :: etemp
 
@@ -1364,8 +1364,8 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
         do n=k,nbas
           ls=1
           if(n.eq.k) ls=i
+          noff=intg+1-ls
           do l=ls,n
-            intg=intg+1
             etemp=0.0d0
             do ibl=1,nb0
               etemp=etemp+prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l) &
@@ -1374,8 +1374,9 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
                   -ta0(ibl,n,i)*tt0(ibl,l,k)-tt0(ibl,n,i)*ta0(ibl,l,k) &
                   -ta0(ibl,l,i)*tt0(ibl,n,k)-tt0(ibl,l,i)*ta0(ibl,n,k))
             enddo
-            etotb=etotb+g(intg)*etemp
+            etotb=etotb+g(noff+l)*etemp
           enddo
+          intg=noff+n
         enddo
       enddo
     enddo

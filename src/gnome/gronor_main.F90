@@ -113,7 +113,7 @@ subroutine gronor_main()
   real(kind=8)             :: thres2
   integer, allocatable     :: nbuf(:,:)
 
-  real (kind=8) :: rint,rlab,rndx,rlst,rh,rs,rt,rm(9),c2s
+  real (kind=8) :: rint,rndx,rlst,rh,rs,rt,rm(9),c2s
 
   integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
@@ -337,11 +337,6 @@ subroutine gronor_main()
     iswsvj=15
     iswevj=15
     nabort=64
-
-    !     labels   0 : read labels from the integral file
-    !     1 : use Molcas integral ordering
-
-    labels=1
 
 #ifdef _OPENACC
     naccel=0
@@ -685,7 +680,7 @@ subroutine gronor_main()
       idum(45)=nbatch
       idum(46)=nbatcha
       idum(47)=nspin
-      idum(48)=labels
+      idum(48)=0
       idum(49)=mbuf
       idum(50)=idist
       idum(51)=load
@@ -751,7 +746,7 @@ subroutine gronor_main()
       nbatch=idum(45)
       nbatcha=idum(46)
       nspin=idum(47)
-      labels=idum(48)
+
       mbuf=idum(49)
       idist=idum(50)
       load=idum(51)
@@ -1767,68 +1762,47 @@ subroutine gronor_main()
 #else
     rint=dble(8*int2)*1.073741824d-9
 #endif
-    if(labels.eq.0) then
-      rlab=dble(8*int2)*1.073741824d-9
-      rndx=0.0d0
-    else
-      rlab=0.0d0
-      rndx=(dble(mlab*4)+dble(mlab*4))*1.073741824d-09
-    endif
+    rndx=(dble(mlab*4)+dble(mlab*4))*1.073741824d-09
     rlst=dble(2*8*numdet)*1.073741824d-9
     igb=1
-    if(max(rint,rlab,rndx,rlst).lt.1.0d0) then
+    if(max(rint,rndx,rlst).lt.1.0d0) then
       igb=0
       rint=rint*1024.0
-      rlab=rlab*1024.0
       rndx=rndx*1024.0
       rlst=rlst*1024.0
     endif
     if(ipr.ge.3) then
-      if(labels.eq.0) then
-        if(igb.eq.1) then
-          write(lfnout,622) nbas,rndx
-          write(lfnout,623) int1,rlab
-          write(lfnout,624) int2,rint
-          write(lfnout,641) numdet,rlst
-622       format(/,' Number of basisfunctions',t50,i16,t80, &
-              ' Size of index arrays',t115,f8.3,' GB')
-623       format(' Number of one-electron integrals',t50,i16,t80, &
-              ' Size of integral labels',t115,f8.3,' GB')
-624       format(' Number of two-electron integrals',t50,i16,t80, &
-              ' Size of two-electron integrals',t115,f8.3,' GB')
-641       format(' Number of determinant pairs',t50,i16,t80, &
-              ' Size of determinant pair list',t115,f8.3,' GB')
-        else
-          write(lfnout,625) nbas,rndx
-          write(lfnout,626) int1,rlab
-          write(lfnout,627) int2,rint
-          write(lfnout,642) numdet,rlst
-625       format(/,' Number of basisfunctions',t50,i16,t80, &
-              ' Size of index arrays',t115,f8.3,' MB')
-626       format(' Number of one-electron integrals',t50,i16,t80, &
-              ' Size of integral labels',t115,f8.3,' MB')
-627       format(' Number of two-electron integrals',t50,i16,t80, &
-              ' Size of two-electron integrals',t115,f8.3,' MB')
-642       format(' Number of determinant pairs',t50,i16,t80, &
-              ' Size of determinant pair list',t115,f8.3,' MB')
-        endif
+      if(igb.eq.1) then
+        write(lfnout,622) nbas,rndx
+        write(lfnout,623) int1
+        write(lfnout,624) int2,rint
+        write(lfnout,641) numdet,rlst
+622     format(/,' Number of basisfunctions',t50,i16,t80, &
+            ' Size of index arrays',t115,f8.3,' GB')
+623     format(' Number of one-electron integrals',t50,i16,t123,' GB')
+624     format(' Number of two-electron integrals',t50,i16,t80, &
+            ' Size of two-electron integrals',t115,f8.3,' GB')
+641     format(' Number of determinant pairs',t50,i16,t80, &
+            ' Size of determinant pair list',t115,f8.3,' GB')
       else
-        write(lfnout,628) nbas
-        write(lfnout,629) int1
-628     format(/,' Number of basisfunctions',t50,i16)
-629     format(' Number of one-electron integrals',t50,i16)
-        if(igb.eq.1) then
-          write(lfnout,624) int2,rint
-          write(lfnout,641) numdet,rlst
-        else
-          write(lfnout,627) int2,rint
-          write(lfnout,642) numdet,rlst
-        endif
+        write(lfnout,625) nbas,rndx
+        write(lfnout,626) int1
+        write(lfnout,627) int2,rint
+        write(lfnout,642) numdet,rlst
+625     format(/,' Number of basisfunctions',t50,i16,t80, &
+            ' Size of index arrays',t115,f8.3,' MB')
+626     format(' Number of one-electron integrals',t50,i16,t123,' MB')
+627     format(' Number of two-electron integrals',t50,i16,t80, &
+            ' Size of two-electron integrals',t115,f8.3,' MB')
+642     format(' Number of determinant pairs',t50,i16,t80, &
+            ' Size of determinant pair list',t115,f8.3,' MB')
       endif
     else
       write(lfnout,628) nbas
       write(lfnout,629) int1
       write(lfnout,630) int2
+628   format(/,' Number of basisfunctions',t50,i16)
+629   format(' Number of one-electron integrals',t50,i16)
 630   format(' Number of two-electron integrals',t50,i16)
     endif
   endif

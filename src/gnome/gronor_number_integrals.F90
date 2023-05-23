@@ -41,7 +41,6 @@ subroutine gronor_number_integrals(numone,numtwo)
 1995 continue
   rewind(lfnint)
   read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mclab
-  if(mclab.eq.1) labels=1
 
   read(lfnint,err=993) sdum
   read(lfnint,err=993) sdum

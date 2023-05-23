@@ -82,13 +82,9 @@ subroutine gronor_memory_usage()
     gb=real(8*nr)/real(1073741824)
     write(lfnout,601) "One-electron integrals",gb
 
-    if(labels.eq.0) then
-      ni=4*mint2
-    else
-      ni=3*nbas*(nbas+1)/2
-    endif
+    ni=3*nbas*(nbas+1)/2
     gb=real(8*ni)/real(1073741824)
-    write(lfnout,601) "Two-electron labels",gb
+    write(lfnout,601) "Two-electron label index length",gb
 
     nr=int2
     gb=real(8*nr)/real(1073741824*mgr)

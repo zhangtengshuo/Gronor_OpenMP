@@ -343,7 +343,6 @@ module gnome_integrals
   integer, allocatable :: ntarget(:)
 
   integer (kind=8) :: mlab,icomm1
-  integer :: labels
 
   logical :: lcomm1
 

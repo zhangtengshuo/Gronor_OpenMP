@@ -22,8 +22,8 @@
 !! After the integrals are read, an MPI broadcast copies them to the corresponding
 !! ranks in other worker groups.
 !!
-!! The integrals may be read from multiple files, with or witjout integral labels.
-!! If used without labels, the canonical order as defined by OpenMolcas is assumed.
+!! The integrals may be read from multiple files, without integral labels.
+!! The canonical order as defined by OpenMolcas is assumed.
 
 subroutine gronor_parallel_integral_input()
 
@@ -73,7 +73,6 @@ subroutine gronor_parallel_integral_input()
     !     rewind(lfnone)
     mclab=0
     read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
-    if(mclab.eq.1) labels=1
 
     if(ipr.gt.0) then
       write(lfnout,601) namint
@@ -84,11 +83,10 @@ subroutine gronor_parallel_integral_input()
     endif
     int1=(nbas*(nbas+1))/2
     if(ipr.ge.30) then
-      write(lfnout,603) mclab,labels
-603   format(/,' Two electron integral labels option on file ',t50,i16, &
-          /,' Two electron integral labels input option ',t50,i16)
+      write(lfnout,603) mclab
+603   format(/,' Two electron integral labels option on file ',t50,i16)
     endif
-    !oen: maybe here a check to be sure that mclab and labels are coherent
+    if(mclab.ne.1) call gronor_abort(252,trim(filone))
 
     allocate(s(nbas,nbas))
     allocate(t(int1))
@@ -339,12 +337,8 @@ subroutine gronor_parallel_integral_input()
     allocate(g(1),lab(1,1),ndx(1))
   else
     allocate(g(mint2))
-    if(labels.eq.0) then
-      allocate(lab(4,mint2),ndx(1))
-    else
-      mlab=nbas*(nbas+1)/2
-      allocate(lab(2,mlab),ndx(mlab))
-    endif
+    mlab=nbas*(nbas+1)/2
+    allocate(lab(2,mlab),ndx(mlab))
   endif
 
   !     Only the first group reads the integrals from file
@@ -373,27 +367,20 @@ subroutine gronor_parallel_integral_input()
         do idg=idgi,idgf
           k=k+1
           g(k)=b(idg)
-          if(labels.eq.0) then
-            do n=1,4
-              lab(n,k)=ibuf((k-1)*4+n)
-            enddo
-          endif
         enddo
 
       enddo
       close(unit=lfntwo,status='keep')
     enddo
     deallocate(b,ibuf)
-    if(labels.ne.0) then
-      kl=0
-      do i=1,nbas
-        do k=1,i
-          kl=kl+1
-          lab(1,kl)=k
-          lab(2,kl)=i
-        enddo
+    kl=0
+    do i=1,nbas
+      do k=1,i
+        kl=kl+1
+        lab(1,kl)=k
+        lab(2,kl)=i
       enddo
-    endif
+    enddo
   endif
 
   intndx=1
@@ -482,42 +469,6 @@ subroutine gronor_parallel_integral_input()
           endif
 #endif
         endif
-        if(labels.eq.0) then
-          if(idist.eq.0) then
-            ncount=4*lint
-            mpitag=0
-            call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,mpitag,new_comm(igr),ierr)
-          else
-            ncount=4*lint
-            mpitag=0
-            if(lcomm1.and.nnodes.gt.1) then
-              call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,mpitag,new_comm1(igr),ierr)
-            endif
-            if(idist.eq.1) then
-              ncount=4*lint
-              mpitag=0
-              call MPI_Bcast(lab(1,nint),ncount,MPI_INTEGER2,mpitag,new_comm2(igr,inode),ierr)
-            else
-              if(numgrn.gt.1) then
-                if(igrn(1).eq.me) then
-                  do i=2,numgrn
-                    ncount=4*lint
-                    mpitag=21
-                    mpidest=igrn(i)
-                    call MPI_iSend(lab(1,nint),ncount,MPI_INTEGER2, &
-                        mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
-                  enddo
-                else
-                  ncount=4*lint
-                  mpitag=21
-                  mpidest=igrn(1)
-                  call MPI_Recv(lab(1,nint),ncount,MPI_INTEGER2, &
-                      mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
-                endif
-              endif
-            endif
-          endif
-        endif
 
         if(idbg.gt.10) then
           call swatch(date,time)
@@ -525,48 +476,44 @@ subroutine gronor_parallel_integral_input()
 130       format(a,1x,a,1x,' Integrals broadcasted for batch ',i5)
           flush(lfndbg)
         endif
-
         nint=nint+lint
         mint=mint-lint
       enddo
-
-      if(labels.eq.1) then
-        if(idist.eq.0) then
+      
+      if(idist.eq.0) then
+        ncount=2*mlab
+        mpitag=0
+        call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm(igr),ierr)
+      else
+        ncount=2*mlab
+        mpitag=0
+        if(lcomm1.and.nnodes.gt.1) then
+          call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm1(igr),ierr)
+        endif
+        if(idist.eq.1) then
           ncount=2*mlab
           mpitag=0
-          call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm(igr),ierr)
+          call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm2(igr,inode),ierr)
         else
-          ncount=2*mlab
-          mpitag=0
-          if(lcomm1.and.nnodes.gt.1) then
-            call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm1(igr),ierr)
-          endif
-          if(idist.eq.1) then
-            ncount=2*mlab
-            mpitag=0
-            call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm2(igr,inode),ierr)
-          else
-            if(numgrn.gt.1) then
-              if(igrn(1).eq.me) then
-                do i=2,numgrn
-                  ncount=2*mlab
-                  mpitag=21
-                  mpidest=igrn(i)
-                  call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
-                      mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
-                enddo
-              else
+          if(numgrn.gt.1) then
+            if(igrn(1).eq.me) then
+              do i=2,numgrn
                 ncount=2*mlab
                 mpitag=21
-                mpidest=igrn(1)
-                call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2, &
-                    mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
-              endif
+                mpidest=igrn(i)
+                call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
+                    mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+              enddo
+            else
+              ncount=2*mlab
+              mpitag=21
+              mpidest=igrn(1)
+              call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2, &
+                  mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
             endif
           endif
         endif
       endif
-
     endif
   endif
   
@@ -579,7 +526,7 @@ subroutine gronor_parallel_integral_input()
     ndxtv(i)=ndxtv(i-1)+i-1
   enddo
 
-  if(me.ne.master.and.iamactive.eq.1.and.labels.eq.1) then
+  if(me.ne.master.and.iamactive.eq.1) then
     kk=1
     do ii=intndx,jntndx
       ndx(ii)=kk-ii

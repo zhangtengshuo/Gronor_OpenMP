@@ -141,11 +141,6 @@ subroutine gronor_input()
       goto 2
     endif
 
-    if(inp_compare(.false.,'Labels',item)) then
-      if(.not.inp_i(labels)) call gronor_abort(113,"Input error")
-      goto 2
-    endif
-
     if(inp_compare(.false.,'Expert',item)) then
       if(.not.inp_i(ixpert)) call gronor_abort(114,"Input error")
       goto 2

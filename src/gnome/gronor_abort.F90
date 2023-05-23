@@ -61,9 +61,6 @@
       case(112)
          write(lfnabt,'(a)') "Input: Threshold : CI threshold not specified"
 
-      case(113)
-         write(lfnabt,'(a)') "Input: Labels : labels option not specified"
-
       case(114)
          write(lfnabt,'(a)') "Input: Expert : expert option not specified"
 
@@ -162,6 +159,10 @@
       case(251)
          write(lfnabt,'(a,a)') "gronor_read_integrals: error reading two-electron", &
              " integrals from ",trim(string)
+         
+      case(252)
+         write(lfnabt,'(a,a)') "gronor_read_integrals: integrals not in canonical order on", &
+             trim(string)
 
       case(260)
          write(lfnabt,'(a,a)') "gronor_read_vectors_and_determinants: ", &

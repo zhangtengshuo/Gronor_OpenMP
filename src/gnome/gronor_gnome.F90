@@ -32,12 +32,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   implicit none
 
   external :: timer_start,timer_stop
-  external :: gronor_gntwo_omp_mlab
   external :: gronor_gntwo_omp
   external :: gronor_gntwo_omp_batch2_nolab
-  external :: gronor_gntwo_omp_batch2_mlab
   external :: gronor_gntwo_omp_batch2
-  external :: gronor_gntwo_omp_batch_mlab
   external :: gronor_gntwo_omp_batch
   external :: gronor_gnone_omp
   external :: gronor_tramat2_omp
@@ -46,11 +43,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   external :: gronor_cofac1_omp
   external :: gronor_moover_omp
   external :: gronor_gntwo_nolab
-  external :: gronor_gntwo_mlab
   external :: gronor_gntwo
-  external :: gronor_gntwo_batch2_mlab
   external :: gronor_gntwo_batch2
-  external :: gronor_gntwo_batch_mlab
   external :: gronor_gntwo_batch
   external :: gronor_gnone
   external :: gronor_tramat2
@@ -248,26 +242,14 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       call timer_start(22)
       !           call nvtxStartRange("gntwo")
       if(nbatch.lt.0) then
-        if(labels.eq.0) then
-          call gronor_gntwo_batch(lfndbg,ihc,nhc)
-        else
-          call gronor_gntwo_batch_mlab(lfndbg,ihc,nhc)
-        endif
+        call gronor_gntwo_batch(lfndbg,ihc,nhc)
       elseif(nbatch.gt.0) then
-        if(labels.eq.0) then
-          call gronor_gntwo_batch2(lfndbg,ihc,nhc)
-        else
-          call gronor_gntwo_batch2_mlab(lfndbg,ihc,nhc)
-        endif
+        call gronor_gntwo_batch2(lfndbg,ihc,nhc)
       else
-        if(labels.eq.0) then
+        if(idevel.eq.0.or.mgr.gt.1) then
           if(ising.le.2) call gronor_gntwo(lfndbg)
         else
-          if(idevel.eq.0.or.mgr.gt.1) then
-            if(ising.le.2) call gronor_gntwo_mlab(lfndbg)
-          else
-            if(ising.le.2) call gronor_gntwo_nolab(lfndbg)
-          endif
+          if(ising.le.2) call gronor_gntwo_nolab(lfndbg)
         endif
       endif
       !         call nvtxEndRange
@@ -348,31 +330,19 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
     endif
     !     Calculation of the two-electron matrix elements
-
+    
     if((icalc.eq.2.or.icalc.eq.0)) then
       call timer_start(22)
       if(nbatch.lt.0) then
-        if(labels.eq.0) then
-          call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
-        else
-          call gronor_gntwo_omp_batch_mlab(lfndbg,ihc,nhc)
-        endif
+        call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
       elseif(nbatch.gt.0) then
-        if(labels.eq.0) then
+        if(itest.eq.0) then
           call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
         else
-          if(itest.eq.0) then
-            call gronor_gntwo_omp_batch2_mlab(lfndbg,ihc,nhc)
-          else
-            call gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
-          endif
+          call gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
         endif
       else
-        if(labels.eq.0) then
-          call gronor_gntwo_omp(lfndbg)
-        else
-          call gronor_gntwo_omp_mlab(lfndbg)
-        endif
+        call gronor_gntwo_omp(lfndbg)
       endif
       call timer_stop(22)
     endif

@@ -272,7 +272,7 @@ subroutine gronor_gntwo(lfndbg)
   return
 end subroutine gronor_gntwo
 
-subroutine gronor_gntwo_nolab(lfndbg)
+subroutine gronor_gntwo_canonical(lfndbg)
 
   use mpi
   use cidist
@@ -554,7 +554,7 @@ subroutine gronor_gntwo_nolab(lfndbg)
   call timer_stop(38)
 
   return
-end subroutine gronor_gntwo_nolab
+end subroutine gronor_gntwo_canonical
 
 subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
 
@@ -823,7 +823,7 @@ subroutine gronor_gntwo_batch(lfndbg,ihc,nhc)
   return
 end subroutine gronor_gntwo_batch
 
-subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
+subroutine gronor_gntwo_batch2_indexed(lfndbg,ihc,nhc)
 
   use mpi
   use cidist
@@ -1157,7 +1157,7 @@ subroutine gronor_gntwo_batch2(lfndbg,ihc,nhc)
   call timer_stop(38)
 
   return
-end subroutine gronor_gntwo_batch2
+end subroutine gronor_gntwo_batch2_indexed
 
 subroutine gronor_gntwo_omp(lfndbg)
 
@@ -1537,7 +1537,7 @@ subroutine gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
   return
 end subroutine gronor_gntwo_omp_batch
 
-subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+subroutine gronor_gntwo_omp_batch2_indexed(lfndbg,ihc,nhc)
 
   use mpi
   use cidist
@@ -1739,9 +1739,9 @@ subroutine gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
   endif
 
   return
-end subroutine gronor_gntwo_omp_batch2
+end subroutine gronor_gntwo_omp_batch2_indexed
 
-subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
+subroutine gronor_gntwo_omp_batch2_canonical(lfndbg,ihc,nhc)
 
   use mpi
   use cidist
@@ -1943,4 +1943,4 @@ subroutine gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
   endif
 
   return
-end subroutine gronor_gntwo_omp_batch2_nolab
+end subroutine gronor_gntwo_omp_batch2_canonical

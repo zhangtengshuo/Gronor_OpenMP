@@ -33,8 +33,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
   external :: timer_start,timer_stop
   external :: gronor_gntwo_omp
-  external :: gronor_gntwo_omp_batch2_nolab
-  external :: gronor_gntwo_omp_batch2
+  external :: gronor_gntwo_omp_batch2_canonical
+  external :: gronor_gntwo_omp_batch2_indexed
   external :: gronor_gntwo_omp_batch
   external :: gronor_gnone_omp
   external :: gronor_tramat2_omp
@@ -42,9 +42,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   external :: gronor_cororb
   external :: gronor_cofac1_omp
   external :: gronor_moover_omp
-  external :: gronor_gntwo_nolab
+  external :: gronor_gntwo_canonical
   external :: gronor_gntwo
-  external :: gronor_gntwo_batch2
+  external :: gronor_gntwo_batch2_indexed
   external :: gronor_gntwo_batch
   external :: gronor_gnone
   external :: gronor_tramat2
@@ -244,12 +244,12 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       if(nbatch.lt.0) then
         call gronor_gntwo_batch(lfndbg,ihc,nhc)
       elseif(nbatch.gt.0) then
-        call gronor_gntwo_batch2(lfndbg,ihc,nhc)
+        call gronor_gntwo_batch2_indexed(lfndbg,ihc,nhc)
       else
         if(idevel.eq.0.or.mgr.gt.1) then
           if(ising.le.2) call gronor_gntwo(lfndbg)
         else
-          if(ising.le.2) call gronor_gntwo_nolab(lfndbg)
+          if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
         endif
       endif
       !         call nvtxEndRange
@@ -337,9 +337,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
         call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
       elseif(nbatch.gt.0) then
         if(itest.eq.0) then
-          call gronor_gntwo_omp_batch2(lfndbg,ihc,nhc)
+          call gronor_gntwo_omp_batch2_indexed(lfndbg,ihc,nhc)
         else
-          call gronor_gntwo_omp_batch2_nolab(lfndbg,ihc,nhc)
+          call gronor_gntwo_omp_batch2_canonical(lfndbg,ihc,nhc)
         endif
       else
         call gronor_gntwo_omp(lfndbg)

@@ -336,7 +336,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       if(nbatch.lt.0) then
         call gronor_gntwo_omp_batch(lfndbg,ihc,nhc)
       elseif(nbatch.gt.0) then
-        if(itest.eq.0) then
+        if(mgr.gt.1) then
           call gronor_gntwo_omp_batch2_indexed(lfndbg,ihc,nhc)
         else
           call gronor_gntwo_omp_batch2_canonical(lfndbg,ihc,nhc)

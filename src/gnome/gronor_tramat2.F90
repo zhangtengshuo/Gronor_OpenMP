@@ -739,8 +739,8 @@ subroutine gronor_tramat2_omp(lfndbg)
     enddo
 #ifdef OMP
 !$omp end parallel do
-#ifdef OMP
 #endif
+#ifdef OMP    
 !$omp parallel do shared(nbas,nelecs,m1,ta,w2) collapse(2)
 #endif
     do j=1,nbas

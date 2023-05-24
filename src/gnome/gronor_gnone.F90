@@ -273,7 +273,9 @@ subroutine gronor_gnone_omp(lfndbg)
 
   if(ising.eq.0) then
 #ifdef OMP
-!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
+!$omp parallel do private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn) &
+!$omp& shared(aaa,ta,deta,t,v,dqm,ndxtv) schedule(dynamic) &
+!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
 #endif
     do j=1,nbas
       nn=ndxtv(j)
@@ -318,12 +320,15 @@ subroutine gronor_gnone_omp(lfndbg)
       qsum6=qsum6+qsj6
     enddo
 #ifdef OMP
-!$omp end parallel do simd
+!$omp end parallel do
 #endif
   else
 #ifdef OMP
-!$omp parallel do simd private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k)
+!$omp parallel do private(tsj,vsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn) &
+!$omp& shared(diag,csdiag,bdiag,bsdiag,t,v,dqm,ndxtv) schedule(dynamic) &
+!$omp& reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)     
 #endif
+    
     do j=1,nbas
       nn=ndxtv(j)
       tsj=0.0d0
@@ -367,7 +372,7 @@ subroutine gronor_gnone_omp(lfndbg)
       qsum6=qsum6+qsj6
     enddo
 #ifdef OMP
-!$omp end parallel do simd
+!$omp end parallel do
 #endif
   endif
 

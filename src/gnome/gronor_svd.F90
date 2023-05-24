@@ -342,7 +342,8 @@ subroutine gronor_svd_omp()
     ndimm=nelecs
     call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
 #ifdef OMP
-!$omp parallel do shared(temp,w) collapse(2)
+!$omp parallel shared(temp,w,nelecs)
+!$omp do collapse(2)
 #endif
     do i=1,nelecs
       do j=1,nelecs
@@ -350,8 +351,8 @@ subroutine gronor_svd_omp()
       enddo
     enddo
 #ifdef OMP
-!$omp end parallel do
-!$omp parallel do shared(temp,w) collapse(2)
+!$omp end do
+!$omp do collapse(2)
 #endif
     do i=1,nelecs
       do j=1,nelecs
@@ -359,7 +360,8 @@ subroutine gronor_svd_omp()
       enddo
     enddo
 #ifdef OMP
-!$omp end parallel do
+!$omp end do
+!$omp end parallel
 #endif
   endif
 #endif 

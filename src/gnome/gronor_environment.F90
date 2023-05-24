@@ -186,7 +186,7 @@ subroutine gronor_environment()
       memavail=memfre
     endif
 #endif
-#ifdef OMP
+#ifdef OMPTGT
     numdev=omp_get_num_devices()
 #endif
 
@@ -482,7 +482,7 @@ subroutine gronor_environment()
     endif
 #endif
 
-#ifdef OMP
+#ifdef OMPTGT
     if(numdev.ge.1) then
 #ifdef IBM
       mydev=omp_get_default_device()

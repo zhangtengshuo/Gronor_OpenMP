@@ -454,7 +454,7 @@ subroutine gronor_moover_omp(lfndbg)
     if(ntclb.gt.0) then
 
 #ifdef OMP
-!$omp parallel do shared(nveca,va,tb,ntclb) private(sum,ii,kk)
+!$omp parallel do shared(nveca,va,tb,ntclb,nalfa) private(sum,ii,kk)
 #endif
       do k=1,ntclb
         kk=k+nalfa
@@ -474,7 +474,7 @@ subroutine gronor_moover_omp(lfndbg)
     if(nvecb.gt.nalfa) then
 
 #ifdef OMP
-!$omp parallel do shared(nveca,va,ta,tb,ntclb) private(sum,kk)
+!$omp parallel do shared(nveca,va,ta,tb,ntclb,m1,nalfa) private(sum,kk)
 #endif
       do k=nalfa+1,nvecb
         kk=k+ntclb
@@ -496,7 +496,7 @@ subroutine gronor_moover_omp(lfndbg)
   if(nvecb.ne.nalfa.and.ntcla.ne.0) then
 
 #ifdef OMP
-!$omp parallel do shared(nvecb,va,ta,tb,ntclb) private(sum) collapse(2)
+!$omp parallel do shared(nvecb,va,ta,tb,ntclb,m1) private(sum) collapse(2)
 #endif
     do i=1,ntcla
       do k=m1,nvecb

@@ -382,12 +382,12 @@
         enddo
       endif
 
-call gronor_svd_omp()
+      call gronor_svd_omp()
             
       call timer_start(42)
 
 #ifdef OMP
-!$omp parallel do shared(a,u,w) private(coef)
+!$omp parallel do shared(a,u,w) private(coef) schedule(dynamic)
 #endif
       do i=1,nelecs
         do j=1,i

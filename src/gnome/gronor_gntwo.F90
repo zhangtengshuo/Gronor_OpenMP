@@ -1355,33 +1355,32 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
     call timer_start(32)
 
     intg=0
-    !cc!$omp parallel
-    !cc!$omp& shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac)
-    !cc!$omp do reduction(+:etotb)
-    !cc!$omp& private(intg,ibl,etemp)
+    
+!$omp parallel shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac,ndxk)
+!$omp do reduction(+:etotb) private(intg,ibl,ls,noff) schedule(dynamic)
     do k=1,nbas
+      intg=ndxk(k)
       do i=1,k
         do n=k,nbas
           ls=1
           if(n.eq.k) ls=i
           noff=intg+1-ls
           do l=ls,n
-            etemp=0.0d0
             do ibl=1,nb0
-              etemp=etemp+prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l) &
+              etotb=etotb+g(noff+l)*prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l) &
                   -aat0(ibl,n,i)*aaa0(ibl,l,k)-aaa0(ibl,n,i)*aat0(ibl,l,k) &
                   -aat0(ibl,l,i)*aaa0(ibl,n,k)-aaa0(ibl,l,i)*aat0(ibl,n,k) &
                   -ta0(ibl,n,i)*tt0(ibl,l,k)-tt0(ibl,n,i)*ta0(ibl,l,k) &
                   -ta0(ibl,l,i)*tt0(ibl,n,k)-tt0(ibl,l,i)*ta0(ibl,n,k))
             enddo
-            etotb=etotb+g(noff+l)*etemp
           enddo
           intg=noff+n
         enddo
       enddo
     enddo
-    !cc!$omp end do
-    !cc!$omp end parallel
+!$omp end do
+!$omp end parallel
+    
     kl=nbas*(nbas+1)/2
 
     !     Reset index in buffer to zero

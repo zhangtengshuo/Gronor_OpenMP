@@ -49,7 +49,7 @@ subroutine gronor_parallel_integral_input()
   integer (kind=4) :: nrecbd
 #endif
   integer (kind=4) :: ierr,ncount,mpitag,mpidest,mpireq
-  integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi
+  integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,ls
   integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
   integer (kind=8), allocatable :: ifil(:,:)
   real (kind=8), allocatable :: b(:)
@@ -334,11 +334,11 @@ subroutine gronor_parallel_integral_input()
   !     Allocate the arrays to hold integrals and labels
 
   if(me.eq.master.or.iamactive.eq.0) then
-    allocate(g(1),lab(1,1),ndx(1))
+    allocate(g(1),lab(1,1),ndx(1),ndxk(1))
   else
     allocate(g(mint2))
     mlab=nbas*(nbas+1)/2
-    allocate(lab(2,mlab),ndx(mlab))
+    allocate(lab(2,mlab),ndx(mlab),ndxk(nbas))
   endif
 
   !     Only the first group reads the integrals from file
@@ -532,6 +532,17 @@ subroutine gronor_parallel_integral_input()
       ndx(ii)=kk-ii
       do jj=ii,mlab
         kk=kk+1
+      enddo
+    enddo
+    kk=0
+    do k=1,nbas
+      ndxk(k)=kk
+      do i=1,k
+        do n=k,nbas
+          ls=1
+          if(n.eq.k) ls=i
+          kk=kk+1-ls+n
+        enddo
       enddo
     enddo
   endif

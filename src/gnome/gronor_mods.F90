@@ -333,6 +333,7 @@ module gnome_integrals
 #endif
   integer (kind=2), allocatable :: lab(:,:)
   integer (kind=8), allocatable :: ndx(:)
+  integer (kind=8), allocatable :: ndxk(:)
   integer, allocatable :: ig(:)
   integer (kind=4), allocatable :: ndxtv(:)
   integer :: mbuf,mclab

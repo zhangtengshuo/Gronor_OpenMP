@@ -1358,7 +1358,7 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
     
 #ifdef OMP
 !$omp parallel shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac,ndxk)
-!$omp do reduction(+:etotb) private(intg,ibl,ls,noff) schedule(dynamic)
+!$omp do reduction(+:etotb) private(intg,ibl,ls,noff,etemp) schedule(dynamic)
 #endif
     do k=1,nbas
       intg=ndxk(k)
@@ -1368,13 +1368,15 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
           if(n.eq.k) ls=i
           noff=intg+1-ls
           do l=ls,n
+            etemp=0.0d0
             do ibl=1,nb0
-              etotb=etotb+g(noff+l)*prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l) &
+              etemp=etemp+prefac0(ibl)*(sm0(ibl,k,i)*sm0(ibl,n,l) &
                   -aat0(ibl,n,i)*aaa0(ibl,l,k)-aaa0(ibl,n,i)*aat0(ibl,l,k) &
                   -aat0(ibl,l,i)*aaa0(ibl,n,k)-aaa0(ibl,l,i)*aat0(ibl,n,k) &
                   -ta0(ibl,n,i)*tt0(ibl,l,k)-tt0(ibl,n,i)*ta0(ibl,l,k) &
                   -ta0(ibl,l,i)*tt0(ibl,n,k)-tt0(ibl,l,i)*ta0(ibl,n,k))
             enddo
+            etotb=etotb+etemp*g(noff+l)
           enddo
           intg=noff+n
         enddo

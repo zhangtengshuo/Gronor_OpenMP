@@ -1356,8 +1356,10 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
 
     intg=0
     
+#ifdef OMP
 !$omp parallel shared(sm0,aaa0,aat0,tt0,ta0,g,nb0,prefac,ndxk)
 !$omp do reduction(+:etotb) private(intg,ibl,ls,noff) schedule(dynamic)
+#endif
     do k=1,nbas
       intg=ndxk(k)
       do i=1,k
@@ -1378,8 +1380,10 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
         enddo
       enddo
     enddo
+#ifdef OMP
 !$omp end do
 !$omp end parallel
+#endif
     
     kl=nbas*(nbas+1)/2
 

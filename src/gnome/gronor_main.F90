@@ -197,7 +197,6 @@ subroutine gronor_main()
     lfnciv=9
     lfnvec=10
     filint=trim(root)//'.int'
-    filone=trim(root)//'.one'
     lfnint=11
     lfnone=11
     lfntwo=12
@@ -372,6 +371,8 @@ subroutine gronor_main()
 
     call gronor_input()
 
+    write(filone,'(a,a,a)') trim(mebfroot),trim(combas),".one"
+    
     if(mgr.eq.0) then
       if(npg.eq.0) call gronor_abort(201,"Error in main")
       mgr=(np-1)/npg
@@ -525,16 +526,16 @@ subroutine gronor_main()
     if(ipr.gt.0) write(lfnout,603) trim(command),trim(cwd), &
         trim(filinp),trim(filsys), &
         trim(filout),trim(filone), &
-        trim(root), &
-        trim(root)
+        trim(mebfroot),trim(combas), &
+        trim(mebfroot),trim(combas)
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &
         'System file is',t92,a,/, &
         ' Output file is',t25,a,t60, &
         'One electron integral file is',t92,a,//, &
-        ' CI vector file(s) are',t25,a,'_nnn.det',/ &
-        ' MO vector file(s) are',t25,a,'_nnn.vec')
+        ' CI vector file(s) are',t25,a,a,'_lbl.det',/ &
+        ' MO vector file(s) are',t25,a,a,'_lbl.vec')
 
     call swatch(date,time)
     write(lfnarx,401) trim(user)
@@ -703,6 +704,10 @@ subroutine gronor_main()
     call MPI_Bcast(rdum,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
     ncount=255
     call MPI_Bcast(root,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+    ncount=255
+    call MPI_Bcast(mebfroot,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+    ncount=255
+    call MPI_Bcast(combas,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
 
     if(me.ne.master) then
       nmol=idum(1)

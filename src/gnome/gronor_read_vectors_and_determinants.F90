@@ -68,9 +68,7 @@ subroutine gronor_read_vectors_and_determinants()
   allocate(spinm(mstates))
   ncorr=1
   do i=1,mstates
-    write(fildet,2203) trim(fragfile(i))
-2203 format(a,'.det')
-    open(unit=lfndet,file=trim(fildet),form='formatted',status='old',err=999)
+    open(unit=lfndet,file=trim(detfile(i)),form='formatted',status='old',err=999)
     read(lfndet,1600) inactm(i),nFrozen(i),idet_raw(i), &
         fragLabel(i),ecasscf(i),nElectrons(i),tau_MO, ecaspt2(i)
     if(ecaspt2(i).ge.0.0d0) ncorr=0
@@ -157,8 +155,7 @@ subroutine gronor_read_vectors_and_determinants()
   civ_raw = 0.0d0
   occ_raw = ''
   do i=1,mstates
-    write(fildet,2203) trim(fragfile(i))
-    open(unit=lfndet,file=trim(fildet),form='formatted',status='old',err=999)
+    open(unit=lfndet,file=trim(detfile(i)),form='formatted',status='old',err=999)
     read(lfndet,*)
     do j=1,idet_raw(i)
       read(lfndet,*) civ_raw(j,i),occ_raw(j,i)
@@ -217,17 +214,14 @@ subroutine gronor_read_vectors_and_determinants()
   !     Next, reading the vectors
 
   do i=1,mstates
-    write(filvec,2201) trim(vecfile(i))
-2201 format(a,'.vec')
-    open(unit=lfnvec,file=trim(filvec),form='formatted',status='old',err=997)
+    open(unit=lfnvec,file=trim(vecfile(i)),form='formatted',status='old',err=997)
     read(lfnvec,*)nbasm(i)
     maxvec=max(maxvec,nbasm(i))
     close(unit=lfnvec)
   enddo
   allocate( vecsm(maxvec,maxvec,mstates) )
   do i=1,mstates
-    write(filvec,2201) trim(vecfile(i))
-    open(unit=lfnvec,file=trim(filvec),form='formatted',status='old',err=997)
+    open(unit=lfnvec,file=trim(vecfile(i)),form='formatted',status='old',err=997)
     read(lfnvec,*)
     do j=1,nbasm(i)
       read(lfnvec,1003) (vecsm(k,j,i),k=1,nbasm(i))
@@ -319,8 +313,7 @@ subroutine gronor_read_vectors_and_determinants()
   endif
   flush(lfnout)
 
-  write(filsys,202) trim(root)
-202 format(a,'.sys')
+  write(filsys,'(a,a,a)') trim(mebfroot),trim(combas),".sys"
   open(unit=lfnsys,file=trim(filsys),form='formatted',status='old',err=995)
 
   if(ipr.gt.0) write(lfnout,615) trim(filsys)

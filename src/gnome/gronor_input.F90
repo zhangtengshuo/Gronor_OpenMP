@@ -30,9 +30,9 @@ subroutine gronor_input()
   external :: gronor_abort
 
   integer :: i,j,m
-  character (len=255) :: item,item2
+  character (len=255) :: item,item2,fil
   real (kind=8) value
-  logical :: last
+  logical :: last,exist
 
   open(unit=lfninp,file=filinp,form='formatted',status='old',err=999)
 
@@ -82,17 +82,35 @@ subroutine gronor_input()
           mstates=nmol*nbase
           allocate(fragfile(mstates))
           allocate(vecfile(mstates))
+          allocate(detfile(mstates))
+          if(len(trim(combas)).eq.0) then
+            do i=1,nmol
+              write(combas,'(a,a)') trim(combas),trim(fragname(i))
+            enddo
+            write(fil,'(a,a,a)') trim(mebfroot),trim(combas),".sys"
+            inquire(file=trim(fil),exist=EXIST)
+            if(.not.exist) combas=""
+          endif
           do i=1,nmol
             do j=1,nbase
               ncombv(i,j)=(i-1)*nbase+j
               write(fragfile((i-1)*nbase+j),'(a,a,a,a)') &
                   trim(mebfroot),trim(fragname(i)),"_",trim(fragstate(i,j))
               if(len(trim(combas)).gt.0) then
-                write(vecfile((i-1)*nbase+j),'(a,a,a,a,a)') &
-                    trim(mebfroot),trim(combas),trim(fragname(i)),"_",trim(fragstate(i,j))
+                write(vecfile((i-1)*nbase+j),'(a,a,a,a,a,a)') &
+                    trim(mebfroot),trim(combas),trim(fragname(i)),"_",trim(fragstate(i,j)),'.vec'
+                write(detfile((i-1)*nbase+j),'(a,a,a,a,a,a)') &
+                    trim(mebfroot),trim(combas),trim(fragname(i)),"_",trim(fragstate(i,j)),'.det'
               else
-                vecfile((i-1)*nbase+j)=fragfile((i-1)*nbase+j)
+                vecfile((i-1)*nbase+j)=fragfile((i-1)*nbase+j)//'.vec'
+                detfile((i-1)*nbase+j)=fragfile((i-1)*nbase+j)//'.det'
               endif
+              write(fil,'(a,a,a)') trim(fragfile((i-1)*nbase+j)),".vec"
+              inquire(file=trim(fil),exist=EXIST)
+              if(exist) vecfile((i-1)*nbase+j)=fil
+              write(fil,'(a,a,a)') trim(fragfile((i-1)*nbase+j)),".det"
+              inquire(file=trim(fil),exist=EXIST)
+              if(exist) detfile((i-1)*nbase+j)=fil
             enddo
           enddo
           if(last) goto 1

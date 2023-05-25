@@ -181,7 +181,7 @@ subroutine gronor_parallel_integral_input()
     if(ipr.ge.2) then
       write(lfnout,607)
       do i=1,numfiles
-        write(filtwo,'(a,a,i3.3,a)') trim(root),'_',i,'.two'
+        write(filtwo,'(a,a,a,i3.3,a)') trim(mebfroot),trim(combas),'_',i,'.two'
         write(lfnout,608) i,ifil(i,1),ifil(i,2),trim(filtwo)
       enddo
       write(lfnout,609) nrectot,ninttot
@@ -352,7 +352,7 @@ subroutine gronor_parallel_integral_input()
       idrf=ifil(idf,1)
       if(idf.ne.ndxf(igr,1)) idri=1
       if(idf.eq.ndxf(igr,2)) idrf=ndxf(igr,4)
-      write(filtwo,'(a,a,i3.3,a)') trim(root),'_',idf,'.two'
+      write(filtwo,'(a,a,a,i3.3,a)') trim(mebfroot),trim(combas),'_',idf,'.two'
       open(unit=lfntwo,file=filtwo,access='direct',form='unformatted',recl=nrecl,status='old')
       do idr=idri,idrf
         if(mclab.eq.0) then

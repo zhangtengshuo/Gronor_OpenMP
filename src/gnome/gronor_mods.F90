@@ -167,6 +167,7 @@ module gnome_parameters
   character (len=16), allocatable :: fragstate(:,:)
   character (len=128), allocatable :: fragfile(:)
   character (len=128), allocatable :: vecfile(:)
+  character (len=128), allocatable :: detfile(:)
 
 end module gnome_parameters
 

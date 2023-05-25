@@ -669,10 +669,8 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   read(35,'(A132)') line
   if(line(10:34).ne.'natural orbitals for root') then
     energy_on_INPORB=.false.
-    print*,"FALSE"
   else
     read(line,'(48x,f22.12)') ener(iFrag,ivec)
-    write(*,'(2f22.12)') ener(iFrag,ivec)
   endif
   rewind(35)
   mark='#OCC'
@@ -816,7 +814,7 @@ subroutine gcommon_getFilename(iVec,filename,base,suffix)
   character (len=255),intent(out) :: filename
 
   if(trim(suffix).eq.'vec') then
-      write(filename,'(5A)') trim(base),trim(mebfLabel),trim(fragLabel(iVec)),'.',suffix
+      write(filename,'(5A)') trim(base),trim(fragLabel(iVec)),'.',suffix
     else
       write(filename,'(4A)') trim(base),trim(fragLabel(iVec)),'.',suffix
     endif
@@ -1073,7 +1071,6 @@ subroutine gcommon_add_detinfo()
               coeff(idet)
         end if
       end do
-      write(*,'(2i4,2f22.12)') i,j,ener(i,j),enerpt(i,j)
       if (fragLabels.and.energy_on_INPORB) then
         write(37,1600) inactm,nFrozen(i),ndet_unique, &
             fragState(iVec),ener(i,j),nElectrons(i,j),threshold,enerpt(i,j)

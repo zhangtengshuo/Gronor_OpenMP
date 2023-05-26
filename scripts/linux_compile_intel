@@ -1,0 +1,23 @@
+#!/usr/bin/tcsh
+
+module purge
+module load cmake intel mpich gronor/23.00 molcas/2023 mkl ga
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+unsetenv MPI_ROOT
+
+env | grep MKL
+env | grep UTILS
+
+rm -rf build_intel-2022.3.0
+mkdir build_intel-2022.3.0
+cd build_intel-2022.3.0
+
+cmake -DOPENMP=ON -DMKL=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/gronor/23.00 ../
+#cmake -DOPENMP=ON  -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/gronor/23.00 ../
+
+make -j 12
+
+make install

@@ -1,12 +1,13 @@
       program molcas_input
 
-      implicit none
+        implicit none
+
+        external molcas_rotate
 
       integer (kind=4) :: iarg
       integer (kind=8) :: lfninp, lfnout, lfnxyz, lfnnwo
-      character (len=255) :: filename, filinp, filout, filxyz, filnwo
+      character (len=255) :: filename, filinp, filxyz, filnwo
       character (len=255) :: card, options
-      character (len=128) :: ofile,ifile,xfile
       integer :: i,j,k,m,num,nt,nt0,ne,no,nelecs,nel(25),mol1,mol2,numa
       character (len=2) :: atom(100),elem(25),nam(25)
       real (kind=8) :: a,x1(100,3),x2(100,3),xc(3),v(3),w(3),angle,x(3),y(3)
@@ -350,7 +351,7 @@
             x(1)=x1(i,1)
             x(2)=x1(i,2)
             x(3)=x1(i,3)
-            call rotate(v,w,angle,x,y)
+            call molcas_rotate(v,w,angle,x,y)
             x1(i,1)=y(1)
             x1(i,2)=y(2)
             x1(i,3)=y(3)
@@ -440,7 +441,7 @@
             x(1)=x2(i,1)
             x(2)=x2(i,2)
             x(3)=x2(i,3)
-            call rotate(v,w,angle,x,y)
+            call molcas_rotate(v,w,angle,x,y)
             x2(i,1)=y(1)
             x2(i,2)=y(2)
             x2(i,3)=y(3)
@@ -1137,7 +1138,7 @@
 
       end
       
-      subroutine rotate(v,w,g,x,y)
+      subroutine molcas_rotate(v,w,g,x,y)
 
         implicit none
 
@@ -1194,4 +1195,4 @@
           y(i)=xx(1)*t(i,1)+xx(2)*t(i,2)+xx(3)*t(i,3)+v(i)
         enddo
         return
-      end subroutine rotate
+      end subroutine molcas_rotate

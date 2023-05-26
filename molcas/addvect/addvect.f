@@ -42,9 +42,12 @@
       use decisions
       implicit none
 
+      external :: addv_read_input,read_vectorfiles,read_info
+      external :: superimpose,split
+
       character (len=4)    :: order
 
-      call read_input(order)
+      call addv_read_input(order)
       call read_vectorfiles
       if ( add ) then
         call superimpose(order)
@@ -62,10 +65,14 @@
 
 
 
-      subroutine read_input(order)
+      subroutine addv_read_input(order)
       use fileInfo
       use decisions
+      
       implicit none
+
+      external :: capitalize
+      
       character(len=4)      :: order        
       character(len=5)      :: split_or_add
 
@@ -83,7 +90,7 @@
       add = .true.
       if ( split_or_add(1:5) .eq. 'SPLIT' ) add = .false.
 
-      end subroutine read_input
+      end subroutine addv_read_input
 
 
 
@@ -92,6 +99,9 @@
       use decisions
       implicit none
 
+      external :: read_info,read_coeff_add,read_coeff_split
+      external :: read_label
+      
       character (len=25)  :: filename
 
       filename = 'INPORB'
@@ -122,8 +132,10 @@
       use genInfo
       use decisions
       implicit none
+
+      external :: find_mark
+      
       character(len=80)     :: dummy
-      character(len=132)    :: line
       integer               :: idummy,i,nSym,nBasA,nBasB
 
       symmetry_is_lowered = .false.
@@ -184,6 +196,8 @@
       use genInfo
       use decisions
       implicit none
+
+      external :: find_mark,countOcc
 
       character, allocatable :: label(:)
       character(len=80)      :: dummy
@@ -253,6 +267,8 @@
       use coefficients
       implicit none
 
+      external :: find_mark
+
       integer            :: i,j,k
       character(len=80)  :: dummy
 
@@ -287,6 +303,8 @@
       use decisions
       use coefficients
       implicit none
+
+      external :: find_mark
 
       integer            :: i,j,k,n,nSym
       character(len=80)  :: dummy

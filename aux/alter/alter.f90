@@ -3,8 +3,8 @@ program alter
   character (len=255) :: card,filout,filalt
   real (kind=8) :: occ(1000)
   character (len=5) :: orb(1000)
-  integer :: num, iarg, ndx, nocc, nalt, ndxz,ndxn, ncas
-  integer :: iz(1000),inz(1000)
+  integer :: num, iarg, ndx, nocc, nalt, ndxz, ncas
+  integer :: iz(1000)
   integer :: ialt(12,2)
 
   iarg=1

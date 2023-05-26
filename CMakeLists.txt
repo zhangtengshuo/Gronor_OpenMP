@@ -284,7 +284,7 @@ option (CTEST "Enable CTest." OFF)
 option (SINGLEP "Enable single precision." OFF)
 option (PROFILING "Enable profiling." OFF)
 option (DEBUG "Debugging." OFF)
-option (AVX521 "Compiler option for AVX512." OFF)
+option (AVX512 "Compiler option for AVX512." OFF)
 option (GPU "GPU Vendor" NVIDIA)
 
 #     Note: build and debug options
@@ -550,7 +550,7 @@ set (FFLAGS_Intel_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check 
 set (FFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
 set (FFLAGS_Intel_RELEASE "-O2 -traceback")
 set (FFLAGS_Intel_FAST "-xHOST")
-set (FFLAGS_Intel_AVX521 "-xCOMMON-AVX512")
+set (FFLAGS_Intel_AVX512 "-xCOMMON-AVX512")
 # Intel versions prior to 15 used -openmp
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
@@ -1103,7 +1103,7 @@ endif ()
 if (AVX512)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS_${CXXCID}_AVX512}")
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_${CCID}_AVX512}")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_AVX521}")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_AVX512}")
 endif ()
 
 if (FAST)

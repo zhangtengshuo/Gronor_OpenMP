@@ -189,7 +189,7 @@ subroutine gronor_master()
       &     ' Number of determinants above CI threshold',t50,i16)
 
   if(ipr.gt.0) then
-    if(ipr.lt.20) then
+    if(ipr.lt.30) then
       write(lfnout,602)
     else
       write(lfnout,1602)
@@ -456,7 +456,7 @@ subroutine gronor_master()
             call timer_stop(99)
             
             if(ipr.ge.1) then
-              if(ipr.lt.20) then
+              if(ipr.lt.30) then
                 if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                   if(ibin.ne.jbin) then
                     write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &

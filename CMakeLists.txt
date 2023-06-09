@@ -263,7 +263,6 @@ else()
   message (STATUS "Molcas dependent auxiliary programs will not be compiled")
 endif()
 
-
 # Set defaults for optional arguments to cmake
 #    Note: MPI is not optional and removed from options list
 
@@ -286,6 +285,7 @@ option (PROFILING "Enable profiling." OFF)
 option (DEBUG "Debugging." OFF)
 option (AVX512 "Compiler option for AVX512." OFF)
 option (GPU "GPU Vendor" NVIDIA)
+option (GUI "Graphical User Interface" OFF)
 
 #     Note: build and debug options
 
@@ -294,6 +294,32 @@ option (DEBUGTRACE "Enable tracing print statements for debugging." OFF)
 
 option (BUILD_SHARED_LIBS "Build dynamically-linked GronOR library." OFF)
 option (BUILD_STATIC_LIB "Build statically-linked GronOR library too." OFF)
+
+if(GUI)
+  message ("Configuring Java Programming Environment")
+  find_package(Java REQUIRED)
+  include(UseJava)
+  if(DEFINED ENV{JAVA_CLASSES})
+    set(CLASSDIR $ENV{JAVA_CLASSES})
+    file (GLOB dir_jars "${CLASSDIR}" "${CLASSDIR}/*")
+    list (LENGTH dir_jars num_dir_jars)
+    foreach (jardir ${dir_jars})
+      file (GLOB jars "${jardir}/*.jar")
+      foreach (jarfile ${jars})
+        if(${jarfile} MATCHES "cformat.jar$")
+          list (APPEND JAVA_EXTERNAL_JARS ${jarfile})
+        endif()
+        if(${jarfile} MATCHES "plotapplication.jar$")
+          list (APPEND JAVA_EXTERNAL_JARS ${jarfile})
+        endif()
+      endforeach(jarfile)
+    endforeach(jardir)
+  endif()
+  list (LENGTH JAVA_EXTERNAL_JARS numjars)
+  message(STATUS "JAVA_EXTERNAL_JARS ${numjars} ${JAVA_EXTERNAL_JARS}")
+  set (JAR_NAME gronor_gui)
+  set (JAVA_SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 if (DEFINED BUILD_SHARED_LIBS)
   mark_as_advanced (CLEAR BUILD_STATIC_LIB)
@@ -1536,18 +1562,30 @@ endforeach(dir)
 
 message (STATUS "Programs constructed: ${programs}")
 
+message ("Configuring java list:")
+
+foreach (dir ${source_roots})
+  file (GLOB dir_src RELATIVE "${PROJECT_SOURCE_DIR}/${dir}" "${PROJECT_SOURCE_DIR}/${dir}/[^.]*")
+  list(REMOVE_ITEM dir_src "config") 
+  list(REMOVE_ITEM dir_src "include") 
+  foreach (srcdir ${dir_src})
+    set (fildir ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
+    file (GLOB_RECURSE javafiles RELATIVE "${PROJECT_SOURCE_DIR}" "${fildir}/*.java")
+    set (SRCDIRPATH ${PROJECT_SOURCE_DIR}/${dir}/${srcdir})
+    list (LENGTH javafiles numjava)
+    if(numjava GREATER 0)
+      message (STATUS "Create java classes for ${SRCDIRPATH}: ${numjava} java files ${javafiles}")
+      list (APPEND JAVA_SOURCE_FILES ${javafiles})
+    endif()
+  endforeach(srcdir)
+endforeach(dir)
+
 message ("Configuring install list:")
 
-#add_library(blas lapack inp chem util)
 install(TARGETS ${libraries})
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 install(TARGETS ${programs})
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/bin")
-
-#message(STATUS "Install targets: ${libraries}")
-#set(MODULE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
-#install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY} DESTINATION ${MODULE_INSTALL_DIR})
-
 
 enable_testing()
 
@@ -1570,3 +1608,9 @@ endforeach(dir)
 message ("Finalization:")
 set (LINK_DIRECTORIES ${LIBRARY_OUTPUT_PATH})
 message (STATUS "Link directories: ${LINK_DIRECTORIES}")
+
+
+if(GUI AND ${numjars} GREATER 1)
+  add_jar(${JAR_NAME} SOURCES ${JAVA_SOURCE_FILES} INCLUDE_JARS ${JAVA_EXTERNAL_JARS} ENTRY_POINT gronor.gronor_Main)
+  install_jar(${JAR_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/jar")
+endif()

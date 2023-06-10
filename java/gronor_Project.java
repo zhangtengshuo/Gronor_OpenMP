@@ -13,7 +13,7 @@ import ptolemy.plot.*;
 
 import cformat.PrintfWriter;
 
-public class gronor_Project extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseListener{
+public class gronor_Project extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseListener, ItemListener{
 	
 	private static final long serialVersionUID = 4L;
 
@@ -22,9 +22,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	String projectName, projectFile;
 
 	JPanel parametersPanel;
+	JPanel optionsPanel;
 	JPanel dimensionPanel;
+	JPanel jobPanel;
+	JPanel expansionPanel;
 	JPanel numberPanel;
 	JPanel threshPanel;
+	JPanel basisPanel;
 	JPanel statesPanel;
 	JPanel fragmentsPanel;
 	JPanel fragmentsButtonsPanel;
@@ -48,10 +52,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer[] lenStateList = new Integer[maxSets];				// Number of states included from list for state set
 	Integer[] spinStateList = new Integer[maxSets];				// Spin of states included from list for state set
 	Integer[][] ndxStateList = new Integer[maxSets][15];		// Index to stateNames[] for each state in state set
-	Integer[] fragmentStates = new Integer[25];					// Index to stateNames[] for each unique fragment state used
+	Integer[] fragmentStates = new Integer[35];					// Index to stateNames[] for each unique fragment state used
 	
-	Integer[] ndxMebfTable = new Integer[25];					// Index of each state into into MEBF table 
-	Integer[] ndxMebfState = new Integer[25];					// Index into MEBF table for each state in MEBF 
+	Integer[] ndxMebfTable = new Integer[35];					// Index of each state into into MEBF table 
+	Integer[] ndxMebfState = new Integer[35];					// Index into MEBF table for each state in MEBF 
 	
 	Integer[][] dimFragments = new Integer[maxFragments][11];	// Dimensions of fragments: number of atoms, states, electrons, etc.
 	String[] namFragments = new String[maxFragments];			// Names of fragments used to determine xyz-formatted coordinate origin 
@@ -63,26 +67,32 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Object[][] dimensionData;
 	
 	Integer numRanks=12;		// Number of ranks in internal mpirun
+	Integer numThreads=12;
 	Integer memory=2048;
-	Integer numTBD1=0;
-	Integer numTBD2=0;
-	Integer numTBD3=0;
+	Integer expansion=0;
+	Integer basisSet=0;
+	Integer contract=1;
+	Integer cholesky=2;
+	
+	String account="chm154";
+	String jobName="GronOR";
+	String timeLimit="00:30:00";
 	
 	Integer numEnergies = 0;	// Number of energy entries
 
 	Integer numMEBFRows = 0;
     Integer numMEBFs = 0;
     Integer newMEBFs = 0;
-    Integer maxMEBFs = 32;
-    Integer maxMer = 3;
-    Integer maxMEBFstates=18;
+    Integer maxMEBFs = 36;
+    Integer maxMer = 5;
+    Integer maxMEBFstates=34;
     
     Integer numStateLabels = 12;
 
 	Integer[][] numEnergiesGronOR = new Integer[maxMEBFs][2];		// Number of GronORenergy entries
-	Double[][][] energiesGronOR = new Double[25][maxMEBFs][2];
-	Double[][][] energiesRelGronOR = new Double[25][maxMEBFs][2];
-	Double[][][] coefGronOR = new Double[25][25][maxMEBFs];
+	Double[][][] energiesGronOR = new Double[35][maxMEBFs][2];
+	Double[][][] energiesRelGronOR = new Double[35][maxMEBFs][2];
+	Double[][][] coefGronOR = new Double[35][35][maxMEBFs];
 
     String[] stateListLabels = new String[] {"ID","Num","Spin","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
     String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt"};
@@ -90,10 +100,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     String[] energyNames = new String[] {"E(DFT)", "E(SCF)", "E(CASSCF)", "E(CASPT2)"};
     String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+"," "," "};
 
-    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-"};
-	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19" };
+    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","Q1"};
+    Integer[] stateSpins = new Integer[] {1,1,1,2,2,3,3,1,2,3,1,2,3,5};
+	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
+	String[] expMEBF = new String[] {"small", "medium", "high"};
+	String[] basisSets = new String[] {"ano-s", "ano-l", "ano-ccr", "ano-ccr-vdzp"};
+	String[] contracts = new String[] {"s", "m","l"};
+	String[] choleskys = new String[] {"high", "medium", "low", "none"};
+	
 	Integer[] stateLabelIndex = new Integer[numStateLabels+3];
 	
     JTable statesTable;
@@ -101,8 +117,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     JTable energiesTable;
     JTable mebfsTable;
 	JTable dimensionTable = new JTable();
+	JTable jobTable = new JTable();
 	JTable numberTable = new JTable();
 	JTable threshTable = new JTable();
+	JTable basisTable = new JTable();
+	JTable expansionTable = new JTable();
+	JTable contractTable = new JTable();
+	JTable choleskyTable = new JTable();
     JTable nociEnergiesTable;
 	DefaultTableModel nociEnergiesTableModel = new DefaultTableModel();
     
@@ -117,14 +138,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Object[][] stateDefinitions = new Object[maxSets][18];
     Object[][] fragmentDefinitions = new Object[maxFragments][15];
     Object[][] stateEnergies = new Object[4*maxFragments][12];
-    Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][25];
+    Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][maxMEBFstates+6];
     Object[][] mebfEnergies = new Object[maxMEBFs][10];
-    Object[][] nociEnergies = new Object[25][maxMEBFs];
+    Object[][] nociEnergies = new Object[maxMEBFstates][maxMEBFs];
     
     Integer[][] mebfIndex = new Integer[maxMEBFs*maxMer][2];
-    Integer[][] mebfSpecification = new Integer[maxMEBFs][5];	 		// 0: n-mer; 1: spin; 2: charge; 3:number of states to include 4:fragment; 
-    String[] mebfName = new String[maxMEBFs];							// name of mefb, e.g. AB for fragment A,B combination
-    Integer[][][] mebfFragments = new Integer[maxMEBFs][maxMer][19];	// index to fragment states included in this mebf
+    Integer[][] mebfSpecification = new Integer[maxMEBFs][5];	 	        	// 0: n-mer; 1: spin; 2: charge; 3:number of states to include 4:fragment; 
+    String[] mebfName = new String[maxMEBFs];							        // name of mefb, e.g. AB for fragment A,B combination
+    Integer[][][] mebfFragments = new Integer[maxMEBFs][maxMer][maxMEBFstates];	// index to fragment states included in this mebf
     
     Integer numberStateEnergies = 0;
     Integer numberMebfDefinitions = 0;
@@ -139,27 +160,27 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Double[] RandT = new Double[6];
     
     Double thresh_CI = 1.0e-5;
-    Double thresh_MO = 1.0e-5;
+    Double thresh_MO = 1.0e-4;
+    Double ipea = 0.25;
 
     Integer noci0=0;
     Integer noci1=0;
-	
-	
+
+    Integer[][][][] couple3 = new Integer[5][5][5][5];		        // indices: target spin; frag 1,2,3 spin;
+    Integer[][][][][][] couple4 = new Integer[5][5][5][5][5][2];	// indices: target spin; frag 1,2,3,4 spin; coupling 1,2
+    
     JFrame dialogFrame;
 
     JFileChooser chooser;
     extensionFilter filter;
     String prjFile;
-    
-    
+        
     Integer numAtoms=12, numStates=0, newFragments=0, newSets=0;
-
-       
+   
     String[] methods = new String[] {"SCF", "CASSCF", "CASPT2"};
     JLabel[] methodLabel = new JLabel[3];
     
     Integer[] fragments;
-
 	
     Integer numDFT=0, numSCF=0, numCASSCF=0, numCASPT2=0;
     
@@ -169,11 +190,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Plot energyDiagram = new Plot();
     
     Container container = null;
-
+    
 	gronor_Project(String pName){
 		
 		super("GronOR Project "+pName);
-	    super.setSize(1000,900);
+	    super.setSize(1200,900);
 	    super.setLocation(150,150);
 	    super.setBackground(Color.lightGray);
 	    super.setForeground(Color.blue);
@@ -195,12 +216,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	    	  writeClearScripts();
 	    }});
 
-		
+
 		if(!readProjectFile(projectFile)) initializeProject();
 		
 		initializeWindow();
 		
 	    setVisible(true);
+	    
 	}
 
 	private void writeClearScripts() {
@@ -208,25 +230,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		try {
 			PrintfWriter clearFile = new PrintfWriter(new FileWriter(fileName));
 			clearFile.println("#!/usr/bin/tcsh");
-			clearFile.println("rm -f "+projectName.trim()+"*.input");
-			clearFile.println("rm -f "+projectName.trim()+"*.inp");
-			clearFile.println("rm -f "+projectName.trim()+"*.nw");
-			clearFile.println("rm -f "+projectName.trim()+"*.run");
-			clearFile.println("rm -f "+projectName.trim()+"*.xyz");
-			clearFile.close();
-		} catch(IOException ei) {
-		}
-		fileName = "clearall.run";
-		try {
-			PrintfWriter clearFile = new PrintfWriter(new FileWriter(fileName));
-			clearFile.println("#!/usr/bin/tcsh");
-			clearFile.println("rm -f *.input");
-			clearFile.println("rm -f *.inp");
-			clearFile.println("rm -f *.nw");
 			clearFile.println("rm -f *.LprOrb");
-			clearFile.println("rm -f *.ONEINT");
+			clearFile.println("rm -f *.oneint");
 			clearFile.println("rm -f *.RasOrb*");
+			clearFile.println("rm -f INPORB");
 			clearFile.println("rm -f *.INPORB*");
+			clearFile.println("rm -f *.ROTORB*");
 			clearFile.println("rm -f *.output");
 			clearFile.println("rm -f *.RUNFIL");
 			clearFile.println("rm -f *.RUNFILE");
@@ -237,7 +246,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.status");
 			clearFile.println("rm -f *.one");
 			clearFile.println("rm -f *.two");
-			clearFile.println("rm -f *.sym");
+			clearFile.println("rm -f *.sys");
 			clearFile.println("rm -f *.nwout");
 			clearFile.println("rm -f *.hess");
 			clearFile.println("rm -f *.TRAONE");
@@ -256,14 +265,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.SpdOrb*");
 			clearFile.println("rm -f *.zmat");
 			clearFile.println("rm -f *.b*");
-			clearFile.println("rm -f *A.xyz");
-			clearFile.println("rm -f *B.xyz");
 			clearFile.println("rm -f ONEINT*");
 			clearFile.println("rm -f RUNFIL*");
 			clearFile.println("rm -f TRA*");
 			clearFile.println("rm -f xml*");
 			clearFile.println("rm -f *.arx");
-			clearFile.println("rm -f *.inp");
+			clearFile.println("rm -f *.lus");
 			clearFile.println("rm -f *.out");
 			clearFile.println("rm -f *.day");
 			clearFile.println("rm -f *.cml");
@@ -272,9 +279,84 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
 			clearFile.println("rm -f *.xmldump");
-			clearFile.println("mv "+projectName.trim()+".prj KEEPTHIS");
-			clearFile.println("rm -f "+projectName.trim()+"*");
-			clearFile.println("mv KEEPTHIS "+projectName.trim()+".prj");
+			for(int i=0; i<numFragments; i++) {
+				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
+			}
+			for(int i=0; i<numMEBFs; i++) {
+				clearFile.println("rm -f "+projectName.trim()+mebfName[i]+".xyz");
+			}
+			clearFile.close();
+		} catch(IOException ei) {
+		}
+		fileName = "clearall.run";
+		try {
+			PrintfWriter clearFile = new PrintfWriter(new FileWriter(fileName));
+			clearFile.println("#!/usr/bin/tcsh");
+			clearFile.println("rm -f "+projectName.trim()+"*.input");
+			clearFile.println("rm -f "+projectName.trim()+"*.inp");
+			clearFile.println("rm -f "+projectName.trim()+"*.nw");
+			clearFile.println("rm -f "+projectName.trim()+"*.run");
+			clearFile.println("rm -f "+projectName.trim()+"*.lsf");
+			clearFile.println("rm -f "+projectName.trim()+"*.slurm");
+			clearFile.println("rm -f *.LprOrb");
+			clearFile.println("rm -f *.oneint");
+			clearFile.println("rm -f *.RasOrb*");
+			clearFile.println("rm -f INPORB");
+			clearFile.println("rm -f *.INPORB*");
+			clearFile.println("rm -f *.ROTORB*");
+			clearFile.println("rm -f *.output");
+			clearFile.println("rm -f *.RUNFIL");
+			clearFile.println("rm -f *.RUNFILE");
+			clearFile.println("rm -f *.VecDet*");
+			clearFile.println("rm -f *.molden*");
+			clearFile.println("rm -f *.det");
+			clearFile.println("rm -f *.vec");
+			clearFile.println("rm -f *.status");
+			clearFile.println("rm -f *.one");
+			clearFile.println("rm -f *.two");
+			clearFile.println("rm -f *.sys");
+			clearFile.println("rm -f *.nwout");
+			clearFile.println("rm -f *.hess");
+			clearFile.println("rm -f *.TRAONE");
+			clearFile.println("rm -f *.c");
+			clearFile.println("rm -f *.db");
+			clearFile.println("rm -f *.movecs");
+			clearFile.println("rm -f *.p");
+			clearFile.println("rm -f CH*");
+			clearFile.println("rm -f _CHMOT*");
+			clearFile.println("rm -f COMMON*");
+			clearFile.println("rm -f *.GssOrb");
+			clearFile.println("rm -f *_CHMOT*");
+			clearFile.println("rm -f *.CH*");
+			clearFile.println("rm -f *.COMMON*");
+			clearFile.println("rm -f *.ScfOrb");
+			clearFile.println("rm -f *.SpdOrb*");
+			clearFile.println("rm -f *.zmat");
+			clearFile.println("rm -f *.b*");
+			clearFile.println("rm -f ONEINT*");
+			clearFile.println("rm -f RUNFIL*");
+			clearFile.println("rm -f TRA*");
+			clearFile.println("rm -f xml*");
+			clearFile.println("rm -f *.arx");
+			clearFile.println("rm -f *.lus");
+			clearFile.println("rm -f *.out");
+			clearFile.println("rm -f *.day");
+			clearFile.println("rm -f *.cml");
+			clearFile.println("rm -f *.pro");
+			clearFile.println("rm -f *.rnk");
+			clearFile.println("rm -f *.tst");
+			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xmldump");
+			clearFile.println("rm -f *.orb");
+			clearFile.println("rm -f *.runfil");
+			clearFile.println("rm -f *.comorb");
+			clearFile.println("rm -f *.ONEINT");
+			for(int i=0; i<numFragments; i++) {
+				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
+			}
+			for(int i=0; i<numMEBFs; i++) {
+				clearFile.println("rm -f "+projectName.trim()+mebfName[i]+".xyz");
+			}
 			clearFile.close();
 		} catch(IOException ei) {
 		}
@@ -284,6 +366,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		try {
 		    	BufferedReader br = new BufferedReader(new FileReader(fileName));
 		    	String card;
+			    card=br.readLine();
+			    jobName=card.trim();
+			    card=br.readLine();
+			    account=card.trim();
+			    card=br.readLine();
+			    timeLimit=card.trim();
 		    	card=br.readLine();
 			    numSets = Integer.valueOf(card.substring(0,6).trim());
 		    	newSets = numSets;
@@ -292,8 +380,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	numMEBFs = Integer.valueOf(card.substring(12,18).trim());
 		    	newMEBFs = numMEBFs;
 		    	numRanks = Integer.valueOf(card.substring(18,24).trim());
-		    	thresh_MO=Double.valueOf(card.substring(24,44)).doubleValue();
-		    	thresh_CI=Double.valueOf(card.substring(44,64)).doubleValue();
+		    	numThreads = Integer.valueOf(card.substring(24,30).trim());
+		    	basisSet  = Integer.valueOf(card.substring(30,36).trim());
+		    	contract  = Integer.valueOf(card.substring(36,42).trim());
+		    	cholesky  = Integer.valueOf(card.substring(42,48).trim());
+		    	expansion = Integer.valueOf(card.substring(48,54).trim());
+		    	thresh_MO = Double.valueOf(card.substring(54,74)).doubleValue();
+		    	thresh_CI = Double.valueOf(card.substring(74,94)).doubleValue();
+		    	ipea      = Double.valueOf(card.substring(94,100)).doubleValue();
 			    
 		    	for(int i=0; i<numSets; i++) {
 		    		card=br.readLine();
@@ -320,6 +414,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    	dimFragments[i][8]=Integer.valueOf(card.substring(48,54).trim());  // Number of CASSCF energies
 			    	dimFragments[i][9]=Integer.valueOf(card.substring(54,60).trim());  // Number of CASPT2 energies
 			    	dimFragments[i][10]=Integer.valueOf(card.substring(60,66).trim()); // Number of orbital alterations
+			    	fragmentDefinitions[i][1]=card.substring(71,72).trim(); // Source fragment number
 			    	card=br.readLine();
 //			    	if(dimFragments[i][6]>0) energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
 //			    	if(dimFragments[i][7]>0) energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
@@ -339,7 +434,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					Integer nmer = mebfSpecification[i][0];
 					for(int j=0; j<nmer; j++) {
 				    	card=br.readLine();
-						for(int k=0; k<19; k++) mebfFragments[i][j][k]=Integer.valueOf(card.substring(k*6,k*6+6).trim());
+						for(int k=0; k<maxMEBFstates; k++) mebfFragments[i][j][k]=Integer.valueOf(card.substring(k*6,k*6+6).trim());
 					}
 				}
 				
@@ -355,12 +450,21 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		try {
 			    PrintfWriter fw = new PrintfWriter(new FileWriter(fileName));
 			    if(newFragments<numFragments) numFragments=newFragments;
+			    fw.println(jobName.trim());
+			    fw.println(account.trim());
+			    fw.println(timeLimit.trim());
 			    fw.printf("%6d",newSets);
 			    fw.printf("%6d",newFragments);
 			    fw.printf("%6d",numMEBFs);
 			    fw.printf("%6d",numRanks);
+			    fw.printf("%6d",numThreads);
+			    fw.printf("%6d",basisSet);
+			    fw.printf("%6d",contract);
+			    fw.printf("%6d",cholesky);
+			    fw.printf("%6d",expansion);
 			    fw.printf("%20.10f",thresh_MO);
 			    fw.printf("%20.10f",thresh_CI);
+			    fw.printf("%6.3f",ipea);
 			    fw.println();
 		    	for(int i=0; i<numSets; i++) {
 		    		fw.printf("%6d",lenStateList[i]);
@@ -375,6 +479,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					for(int j=0; j<6; j++) fw.printf("%20.10f",movFragments[i][j]);
 				    fw.println();
 				    for(int j=0; j<11; j++) fw.printf("%6d",dimFragments[i][j]);
+				    String name = (String) fragmentDefinitions[i][1];
+				    fw.printf("%s","     "); fw.printf("%s",name.trim());
 				    fw.println();
 				    if(dimFragments[i][6]>0) {
 				    	fw.printf("%20.10f",energiesDFT[i]);
@@ -415,7 +521,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					for(int j=0; j<5; j++) fw.printf("%6d",mebfSpecification[i][j]); fw.println();
 					Integer nmer = mebfSpecification[i][0];
 					for(int j=0; j<nmer; j++) {
-						for(int k=0; k<19; k++) fw.printf("%6d",mebfFragments[i][j][k]); fw.println();
+						for(int k=0; k<maxMEBFstates; k++) fw.printf("%6d",mebfFragments[i][j][k]); fw.println();
 					}
 				}
 				
@@ -458,7 +564,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			ndxStateList[1][3]=9;
 //			ndxStateList[1][4]=10;
 //			ndxStateList[1][5]=12;
-			
 		}
 	}
 	
@@ -658,9 +763,98 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			return 0;
 		}
 	}
+	
+	private void dimers() {
+		
+		Integer n=0;
+		for(int i=0; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				n++;
+			}
+		}
+		newMEBFs=n;
+		dimensionData[2][1]=newMEBFs;
+		update();
+		
+		n=0;
+		for(int i=0; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				mebfFragments[n][0][0]=i;
+				mebfFragments[n][1][0]=j;
+				n++;
+			}
+		}
 
+		if(numMEBFs>0) {
+			for(int i=0; i<numMEBFs; i++) {
+				Integer mebf = mebfIndex[i][0];
+				mebf=i;
+				Integer nmer = mebfSpecification[i][0];
+				Integer spin = mebfSpecification[i][1];
+				Integer chrg = mebfSpecification[i][2];
+				Integer stat = mebfSpecification[i][3];
+				mebfSpecification[i][0]=2;
+				selectMEBFStates(mebf,nmer,spin,chrg,stat);	
+			}
+		}
+		
+		n=0;
+		for(int i=0; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				mebfFragments[n][0][0]=i;
+				mebfFragments[n][1][0]=j;
+				n++;
+			}
+		}
+
+	}
+
+	private void dimers_noA() {
+		
+		Integer n=0;
+		for(int i=1; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				n++;
+			}
+		}
+		newMEBFs=n;
+		dimensionData[2][1]=newMEBFs;
+		update();
+		
+		n=0;
+		for(int i=1; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				mebfFragments[n][0][0]=i;
+				mebfFragments[n][1][0]=j;
+				n++;
+			}
+		}
+
+		if(numMEBFs>0) {
+			for(int i=0; i<numMEBFs; i++) {
+				Integer mebf = mebfIndex[i][0];
+				mebf=i;
+				Integer nmer = mebfSpecification[i][0];
+				Integer spin = mebfSpecification[i][1];
+				Integer chrg = mebfSpecification[i][2];
+				Integer stat = mebfSpecification[i][3];
+				mebfSpecification[i][0]=2;
+				selectMEBFStates(mebf,nmer,spin,chrg,stat);	
+			}
+		}
+		
+		n=0;
+		for(int i=1; i<numFragments-1; i++) {
+			for(int j=i+1; j<numFragments; j++) {
+				mebfFragments[n][0][0]=i;
+				mebfFragments[n][1][0]=j;
+				n++;
+			}
+		}
+
+	}
 	private void update() {
-
+		
 		updateStatesList();
 		updateFragmentList();
 		updateFragmentDefinitions();
@@ -675,6 +869,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer stat = mebfSpecification[mebf][3];
 			if(stat<=0) selectMEBFStates(mebf,nmer,spin,chrg,stat);
 		}
+		
 		updateNOCIEnergies();
 		updateHints();
 		
@@ -721,6 +916,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		parametersPanel.repaint();
 		dimensionPanel.repaint();
+		jobPanel.repaint();
 		numberPanel.repaint();
 		threshPanel.repaint();
 		statesPanel.repaint();
@@ -739,7 +935,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	
 	private void updateStatesList() {
 
-		if(newSets>numSets) {			
+		if(newSets>numSets) {
+			System.out.println("New State List");
 			for(int i=numSets; i<newSets; i++) {
 		    	lenStateList[i]=0;
 		    	spinStateList[i]=0;
@@ -755,7 +952,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(spinStateList[i]==2 && (dimFragments[i][3] % 2)==1) count[i]++;
 			}
 		}
-		
+
 		for(int i=0; i<numFragments; i++) {
 			Boolean addSet = true;
 			for(int j=0; j<numSets; j++) {
@@ -786,7 +983,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 			numberStateDefinitions=numSets;
 		}
-		
+
 		if(newSets>numberStateDefinitions) {
 			for(int i=numberStateDefinitions; i<newSets; i++) {
 				statesTableModel.addRow(stateDefinitions[i]);
@@ -844,8 +1041,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-"};
-		
+	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","Q1"};
+
 		for(int i=0; i<numSets; i++) {
 			for(int j=0; j<18; j++) stateDefinitions[i][j]=" ";
 			stateDefinitions[i][0]=(i+1);
@@ -858,7 +1055,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				statesTableModel.setValueAt(stateDefinitions[i][j],i,j);
 			}
 		}
-		numberStateDefinitions=numSets;		
+		numberStateDefinitions=numSets;	
 	}
 	
 	private void updateFragmentList() {
@@ -869,19 +1066,19 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 			numberFragmentDefinitions=numFragments;
 		}
-		
+
 		if(newFragments>numberFragmentDefinitions) {
 			for(int i=numberFragmentDefinitions; i<newFragments; i++) {
 				fragmentsTableModel.addRow(fragmentDefinitions[i]);
 			}
 		}
-		
+
 		if(newFragments>0 && newFragments<numberFragmentDefinitions) {
 			for(int i=newFragments; i<numberFragmentDefinitions; i++) {
 				fragmentsTableModel.removeRow(numberFragmentDefinitions-1-i);
 			}
 		}
-		
+
 		if(newFragments>numFragments) {			
 			for(int i=numFragments; i<newFragments; i++) {
 		    	namFragments[i]="";
@@ -910,10 +1107,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		
 		numFragments=newFragments;
-		
+
 		for(int i=0; i<numFragments; i++) {
 			fragmentDefinitions[i][0]=fragmentNames[i];
-			fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
+			if(fragmentDefinitions[i][1]==null) fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
 			fragmentDefinitions[i][2]=namFragments[i];
 			fragmentDefinitions[i][3]=dimFragments[i][1];
 			fragmentDefinitions[i][4]=dimFragments[i][2]+1;
@@ -937,7 +1134,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		numberFragmentDefinitions=numFragments;
 		
 		// Update the Fragment Energies table headers
-		
+
 		numFragmentStates=0;
 		for(int i=0; i<numStateLabels; i++) {
 			stateLabels[i]=" ";
@@ -984,15 +1181,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 		
-		// Do not repeatedly apply rotations and translation to the same fragment
 		for(int i=0; i<numFragments; i++) {
-			if(fragmentNames[i].trim().equals(fragmentDefinitions[dimFragments[i][0]][0])) {
-				for(int j=0; j<6; j++) movFragments[i][j]=0.0;
-			}
-		}
-		
-		for(int i=0; i<numFragments; i++) {
-			fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
+			if(fragmentDefinitions[i][1]==null) fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
 			fragmentDefinitions[i][2]=namFragments[i];
 			fragmentDefinitions[i][3]=dimFragments[i][1];
 			fragmentDefinitions[i][4]=dimFragments[i][2]+1;
@@ -1055,9 +1245,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(nameB.trim().equals(nameA.trim())) {
 				nameB=" ";
 			} else {
-				nameF=nameP.trim();
+//				Why setting fragment name to project name???
+//				nameF=nameP.trim();
 			}
-			fragment.initialize(nameP,nameA,nameF,nameB,dimFragments[i][3],RandT);
+			fragment.initialize(nameP,nameF,nameA,nameB,dimFragments[i][3],RandT);
 
 		}
 		numberStateEnergies=numEnergies;
@@ -1072,6 +1263,20 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		for(int i=0; i<numEnergies; i++) {
 			for(int j=0; j<12; j++) stateEnergies[i][j]=" ";
+		}
+		
+		for(int i=0; i<numFragments-1; i++) {
+				for(int j=i+1; j<numFragments; j++) {
+					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1])) {
+						if(fragmentDefinitions[j][1].equals(fragmentDefinitions[i][0])) {
+							istat=dimFragments[i][2];
+							for(int k=0; k<lenStateList[istat]; k++) {
+							energiesCASSCF[j][k]=energiesCASSCF[i][k];
+							energiesCASPT2[j][k]=energiesCASPT2[i][k];
+						}
+					}
+				}
+			}
 		}
 		
 		for(int i=0; i<numEnergies; i++) {
@@ -1153,12 +1358,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 			
 			if(noci0>0) {
-			for(int i=0; i<noci0; i++) {
-				for(int j=0; j<noci1; j++) {
-					nociEnergies[i][j]=" ";
-					nociEnergiesTableModel.setValueAt(nociEnergies[i][j],j,i);
+				for(int i=0; i<noci0; i++) {
+					for(int j=0; j<noci1; j++) {
+						nociEnergies[i][j]=" ";
+						nociEnergiesTableModel.setValueAt(nociEnergies[i][j],j,i);
+					}
 				}
-			}
 			}
 	
 			for(int j=0; j<numMEBFs; j++) {
@@ -1336,46 +1541,63 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(dimFragments[energyFragment[i][0]][0]>numRunDFT) numRunDFT = dimFragments[energyFragment[i][0]][0];
 			if(energyFragment[i][0]>numRunMolcas) numRunMolcas = energyFragment[i][0];
 		}
-		
+
 		for(int i=0; i<=numRunDFT; i++) {
 			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
 			nameP=projectName.trim();
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
 			Integer mult=1;
-			if(stateNames[ndxStateList[i][0]].startsWith("D")) mult=2;
-			if(stateNames[ndxStateList[i][0]].startsWith("T")) mult=3;
-			nameF=projectName.trim()+nameA.trim();
-			fragment.write_NWChem_DFT(nameF,mult,numRanks);
+			if(stateNames[ndxStateList[dimFragments[i][2]][0]].startsWith("D")) mult=2;
+			if(stateNames[ndxStateList[dimFragments[i][2]][0]].startsWith("T")) mult=3;
+//			nameF=projectName.trim()+nameA.trim();
+			int last=namFragments[i].indexOf("_");
+			nameF=namFragments[i].substring(0,last)+nameA.trim();
+			nameP=projectName.trim()+nameA.trim();
+			fragment.write_NWChem_DFT(nameF,nameP,mult,numRanks,RandT,memory,account,jobName,timeLimit);
 		}
-		
+
 		for(int i=0; i<=numRunMolcas; i++) {
 			for(int j=0; j<6; j++) RandT[j]=movFragments[i][j];
 			nameP=projectName.trim();
 			nameA= (String) fragmentDefinitions[i][0];
 			stateIndex=dimFragments[i][2];
-			withCASPT2=(fragmentDefinitions[i][0]==fragmentDefinitions[i][1]);
-
+//			withCASPT2=fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]);
+			withCASPT2=true;
 			Integer mult=1;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("D")) mult=2;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("T")) mult=3;
-			nameF=projectName.trim()+nameA.trim();
-			fragment.write_Molcas_Int(nameF);
-			fragment.write_Molcas_SCF(nameF,mult);
-			
+			if(stateNames[ndxStateList[stateIndex][0]].startsWith("q")) mult=4;
+			if(stateNames[ndxStateList[stateIndex][0]].startsWith("Q")) mult=5;
+			int last=namFragments[i].indexOf("_");
+			nameF=namFragments[i].substring(0,last)+nameA.trim();
+			nameP=projectName.trim()+nameA.trim();
+			fragment.write_Molcas_Int(nameF,nameP,basisSets[basisSet],contracts[contract],cholesky);
+			fragment.write_Molcas_SCF(nameF,nameP,mult);
+
 			if(lenStateList[stateIndex]>0) {
 				withAlter=true;
 				for(int j=0; j<lenStateList[stateIndex]; j++) {
 					nameS=stateNames[ndxStateList[stateIndex][j]];
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
-					fragment.write_Molcas_CASSCF(nameF,nameS,withCASPT2,numCASe,numCASo,withAlter);
+					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numCASe,numCASo,withAlter,ipea);
 					withAlter=false;
 				}		
 			}
 		}
-		
+
 		for(int i=0; i<numFragments; i++) {
-			fragment.write_Run_Script_Fragments(i,dimFragments[i][2],lenStateList,ndxStateList,numRanks,memory);
+			nameA=(String) fragmentDefinitions[i][0];
+			String nameB=(String) fragmentDefinitions[i][1];
+			int last=namFragments[i].indexOf("_");
+			nameF=namFragments[i].substring(0,last);
+			nameP=projectName.trim();
+			if(fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]) || !dimFragments[i][4].equals(dimFragments[dimFragments[i][0]][4]) || !dimFragments[i][5].equals(dimFragments[dimFragments[i][0]][5])) {
+				fragment.write_Run_Script_Fragments(nameF,nameP,nameA,i,dimFragments[i][2],lenStateList,ndxStateList,numRanks,memory,account,jobName,timeLimit);
+			} else {
+				fragment.write_rotharm_input(nameP,nameA,nameB,dimFragments[i][2],lenStateList,ndxStateList);
+				fragment.write_Rotate_Script_Fragments(nameF,nameP,nameA,i,dimFragments[i][2],lenStateList,ndxStateList,fragmentDefinitions[i][0],fragmentDefinitions[i][1],fragmentDefinitions[i][2],numRanks,memory,account,jobName,timeLimit);
+			}
 		}
 		write_Molcas_MEBF_files();
 		write_GronOR_NOCI();
@@ -1414,7 +1636,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			nameA=" ";
 			nameB=(String) fragmentDefinitions[dimFragments[i][0]][1];
 
-			fragment.initialize(nameP, nameA, nameF, nameB, dimFragments[i][3], RandT);
+			fragment.initialize(nameP, nameF, nameA, nameB, dimFragments[i][3], RandT);
 			
 			dimFragments[i][6]=0;
 			dimFragments[i][7]=0;
@@ -1428,7 +1650,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			} 
 			
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
-			numAlt=fragment.read_Alt(nameA);
+			numAlt=fragment.read_Alt(nameP,nameA);
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
@@ -1452,7 +1674,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 						dimFragments[i][9]=j+1;
 					}
 				}
-				
 			}
 		}		
 //		read_GronOR_arx();
@@ -1472,7 +1693,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfName[i]=fragmentNames[0];	// mebf name (default name of first fragment)
 				for(int j=0; j<maxMer; j++) {
 					mebfFragments[i][j][0]=j;		// fragment index
-					for(int k=1; k<19; k++) {
+					for(int k=1; k<maxMEBFstates; k++) {
 						mebfFragments[i][j][k]=0;
 					}
 				}
@@ -1506,7 +1727,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		numMEBFs=newMEBFs;
 
 		for(int i=0; i<numRows; i++) {
-			for(int k=0; k<25; k++) {
+			for(int k=0; k<maxMEBFstates+6; k++) {
 				mebfDefinitions[i][k]=" ";
 			}
 		}
@@ -1524,7 +1745,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(index>1) mebfName[i]=mebfName[i].trim()+"1";
 			}
 		}
-		
+
 		//Fill the mebfDefinitions table
 		index=0;
 		for(int i=0; i<numMEBFs; i++) {
@@ -1545,10 +1766,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				index++;
 			}
 		}
-		
 		//Fill the Table Model
 		for(int i=0; i<numRows; i++) {
-			for(int j=0; j<25; j++) {
+			for(int j=0; j<maxMEBFstates+6; j++) {
 				mebfsTableModel.setValueAt(mebfDefinitions[i][j],i,j);
 			}
 		}
@@ -1576,6 +1796,36 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		parametersBorder.setTitleColor(Color.black);
 		parametersPanel.setBorder(parametersBorder);
 
+		JPanel optionsPanel = new JPanel();
+		optionsPanel.setLayout(new BoxLayout(optionsPanel,BoxLayout.Y_AXIS));
+		optionsPanel.setPreferredSize(new Dimension(115,70));
+		optionsPanel.setMinimumSize(new Dimension(115,70));
+		optionsPanel.setMaximumSize(new Dimension(115,70));
+		LineBorder optionsBorder = new LineBorder(Color.black);
+		optionsPanel.setBorder(optionsBorder);
+		JButton dimersButton = new JButton("Dimers");
+		dimersButton.setPreferredSize(new Dimension(110,20));
+		dimersButton.setMinimumSize(new Dimension(110,20));
+		dimersButton.setMaximumSize(new Dimension(110,20));
+		dimersButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dimers();
+				update();
+				System.out.println("Constructed dimers");
+			}
+		});
+		JButton dimersNoAButton = new JButton("Dimers -A");
+		dimersNoAButton.setPreferredSize(new Dimension(110,20));
+		dimersNoAButton.setMinimumSize(new Dimension(110,20));
+		dimersNoAButton.setMaximumSize(new Dimension(110,20));
+		dimersNoAButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dimers_noA();
+				update();
+				System.out.println("Constructed dimers excluding A");
+			}
+		});
+		
 		dimensionPanel = new JPanel();
 		dimensionPanel.setLayout(new BoxLayout(dimensionPanel,BoxLayout.X_AXIS));
 		dimensionPanel.setPreferredSize(new Dimension(120,70));
@@ -1645,8 +1895,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		numberPanel.setBorder(numberBorder);
 		Object[][] numberData = new Object[][] {
 			{"Ranks", numRanks},
-			{"Memory", memory},
-			{"TBD", numTBD2}
+			{"Threads", numThreads},
+			{"Memory", memory}
 		};
 		String[] numberColumns = new String[] {" "," "};
 		numberTable = new JTable(numberData,numberColumns);
@@ -1667,14 +1917,21 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 				if(numberTable.getSelectedRow()==1) {
 					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new number of threads");
+					if(value.length()>0) numThreads=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(numberTable.getSelectedRow()==2) {
+					try {
 					value = JOptionPane.showInputDialog(jf,"Enter new memory");
 					if(value.length()>0) memory=Integer.valueOf(value);
 					} catch(NullPointerException e1) {
 					}
 				}
 				numberData[0][1]=numRanks;
-				numberData[1][1]=memory;
-				numberData[2][1]=0;
+				numberData[1][1]=numThreads;
+				numberData[2][1]=memory;
 				update();
 			}
 		});
@@ -1689,7 +1946,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Object[][] threshData = new Object[][] {
 			{"thr_MO", thresh_MO},
 			{"thr_CI", thresh_CI},
-			{"TBD", numTBD3}
+			{"IPEA", ipea}
 		};
 		String[] threshColumns = new String[] {" "," "};
 		threshTable = new JTable(threshData,threshColumns);
@@ -1711,16 +1968,277 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(threshTable.getSelectedRow()==1) {
 					try {
 					value = JOptionPane.showInputDialog(jf,"Enter new threshold for CI coefficients");
-					if(value.length()>0) thresh_MO=Double.valueOf(value);
+					if(value.length()>0) thresh_CI=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(threshTable.getSelectedRow()==2) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new CASPT2 IPEA shift");
+					if(value.length()>0) ipea=Double.valueOf(value);
 					} catch(NullPointerException e1) {
 					}
 				}
 				threshData[0][1]=thresh_MO;
 				threshData[1][1]=thresh_CI;
-				threshData[2][1]=0;
+				threshData[2][1]=ipea;
 				update();
 			}
 		});
+		
+		expansionPanel = new JPanel();
+		expansionPanel.setLayout(new BoxLayout(expansionPanel,BoxLayout.Y_AXIS));
+		expansionPanel.setPreferredSize(new Dimension(140,70));
+		expansionPanel.setMinimumSize(new Dimension(140,70));
+		expansionPanel.setMaximumSize(new Dimension(140,70));
+		LineBorder expansionBorder = new LineBorder(Color.black);
+		expansionPanel.setBorder(expansionBorder);
+
+		Object[][] expansionData = new Object[][] {
+			{"Expansion", expMEBF[expansion]}
+		};
+		String[] expansionColumns = new String[] {" "," "};
+		expansionTable = new JTable(expansionData,expansionColumns);
+		expansionTable.setCellSelectionEnabled(true);
+		expansionTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		expansionTable.getColumnModel().getColumn(1).setMaxWidth(100);
+
+		
+		DefaultComboBoxModel expansionComboModel = new DefaultComboBoxModel(expMEBF);
+		JComboBox expansionCombo = new JComboBox();
+		expansionCombo.setMaximumRowCount(3);
+		expansionCombo.setModel(expansionComboModel);
+		TableColumn expansionColumn = expansionTable.getColumnModel().getColumn(1);
+		expansionColumn.setCellEditor(new DefaultCellEditor(expansionCombo));
+		expansionCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = expansionTable.getEditingColumn();
+				Integer row = expansionTable.getEditingRow();
+				expansion=expansionCombo.getSelectedIndex();
+//			    	                    if(row==1) contract=basisSetCombo.getSelectedIndex();
+//			        	                if(row==2) cholesky=basisSetCombo.getSelectedIndex();
+				update();
+				for(int i=0; i<numMEBFs; i++) {
+					Integer nmer = mebfSpecification[i][0];
+					Integer spin = mebfSpecification[i][1];
+					Integer chrg = mebfSpecification[i][2];
+					Integer stat = mebfSpecification[i][3];
+					selectMEBFStates(i,nmer,spin,chrg,stat);
+				}
+			}
+		});
+
+		
+		basisPanel = new JPanel();
+		basisPanel.setLayout(new BoxLayout(basisPanel,BoxLayout.Y_AXIS));
+		basisPanel.setPreferredSize(new Dimension(140,70));
+		basisPanel.setMinimumSize(new Dimension(140,70));
+		basisPanel.setMaximumSize(new Dimension(140,70));
+		LineBorder basisBorder = new LineBorder(Color.black);
+		basisPanel.setBorder(basisBorder);
+		
+		Object[][] basisData = new Object[][] {
+			{"Basis Set", basisSets[basisSet]}
+		};
+		String[] basisColumns = new String[] {" "," "};
+		basisTable = new JTable(basisData,basisColumns);
+		basisTable.setCellSelectionEnabled(true);
+		basisTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		basisTable.getColumnModel().getColumn(1).setMaxWidth(100);
+//		ListSelectionModel basisSelectionModel = basisTable.getSelectionModel();
+		
+//		ListSelectionModel basisSelectionModel = basisTable.getSelectionModel();
+		
+//		basisSelectionModel.addListSelectionListener(new ListSelectionListener() {
+//			public void valueChanged(ListSelectionEvent e) {
+				
+		DefaultComboBoxModel basisSetComboModel = new DefaultComboBoxModel(basisSets);
+		JComboBox basisSetCombo = new JComboBox();
+		basisSetCombo.setMaximumRowCount(3);
+		basisSetCombo.setModel(basisSetComboModel);
+		TableColumn basisSetColumn = basisTable.getColumnModel().getColumn(1);
+		basisSetColumn.setCellEditor(new DefaultCellEditor(basisSetCombo));
+		basisSetCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = basisTable.getEditingColumn();
+				Integer row = basisTable.getEditingRow();
+				basisSet=basisSetCombo.getSelectedIndex();
+//			    	                    if(row==1) contract=basisSetCombo.getSelectedIndex();
+//			        	                if(row==2) cholesky=basisSetCombo.getSelectedIndex();
+				update();
+			}
+		});
+
+		/*
+		contractPanel = new JPanel();
+		contractPanel.setLayout(new BoxLayout(contractPanel,BoxLayout.X_AXIS));
+		contractPanel.setPreferredSize(new Dimension(140,70));
+		contractPanel.setMinimumSize(new Dimension(140,70));
+		contractPanel.setMaximumSize(new Dimension(140,70));
+		LineBorder contractBorder = new LineBorder(Color.black);
+		contractPanel.setBorder(contractBorder);
+		*/
+		
+		Object[][] contractData = new Object[][] {
+			{"Contraction", contracts[contract]}
+		};
+		String[] contractColumns = new String[] {" "," "};
+		contractTable = new JTable(contractData,contractColumns);
+		contractTable.setCellSelectionEnabled(true);
+		contractTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		contractTable.getColumnModel().getColumn(1).setMaxWidth(100);
+		
+		DefaultComboBoxModel contractComboModel = new DefaultComboBoxModel(contracts);
+		JComboBox contractCombo = new JComboBox();
+		contractCombo.setMaximumRowCount(3);
+		contractCombo.setModel(contractComboModel);
+		TableColumn contractColumn = contractTable.getColumnModel().getColumn(1);
+		contractColumn.setCellEditor(new DefaultCellEditor(contractCombo));
+		contractCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = contractTable.getEditingColumn();
+				Integer row = contractTable.getEditingRow();
+//			    	                    if(row==0) basisSet=basisSetCombo.getSelectedIndex();
+				contract=contractCombo.getSelectedIndex();
+//			    	                    if(row==2) cholesky=basisSetCombo.getSelectedIndex();
+				update();
+			}
+		});	
+				
+/*
+		choleskyPanel = new JPanel();
+		choleskyPanel.setLayout(new BoxLayout(choleskyPanel,BoxLayout.X_AXIS));
+		choleskyPanel.setPreferredSize(new Dimension(140,70));
+		choleskyPanel.setMinimumSize(new Dimension(140,70));
+		choleskyPanel.setMaximumSize(new Dimension(140,70));
+		LineBorder choleskyBorder = new LineBorder(Color.black);
+		choleskyPanel.setBorder(choleskyBorder);
+		*/
+		
+		Object[][] choleskyData = new Object[][] {
+			{"Cholesky", choleskys[cholesky]}
+		};
+		String[] choleskyColumns = new String[] {" "," "};
+		choleskyTable = new JTable(choleskyData,choleskyColumns);
+		choleskyTable.setCellSelectionEnabled(true);
+		choleskyTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		choleskyTable.getColumnModel().getColumn(1).setMaxWidth(100);
+				
+		DefaultComboBoxModel choleskyComboModel = new DefaultComboBoxModel(choleskys);
+		JComboBox choleskyCombo = new JComboBox();
+		choleskyCombo.setMaximumRowCount(3);
+		choleskyCombo.setModel(choleskyComboModel);
+		TableColumn choleskyColumn = choleskyTable.getColumnModel().getColumn(1);
+		choleskyColumn.setCellEditor(new DefaultCellEditor(choleskyCombo));
+		choleskyCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = choleskyTable.getEditingColumn();
+				Integer row = choleskyTable.getEditingRow();
+//			    	                    if(row==0) basisSet=basisSetCombo.getSelectedIndex();
+//			        	                if(row==1) contract=basisSetCombo.getSelectedIndex();
+				cholesky=choleskyCombo.getSelectedIndex();
+				update();
+			}
+		});	
+		
+		jobPanel = new JPanel();
+		jobPanel.setLayout(new BoxLayout(jobPanel,BoxLayout.Y_AXIS));
+		jobPanel.setPreferredSize(new Dimension(140,70));
+		jobPanel.setMinimumSize(new Dimension(140,70));
+		jobPanel.setMaximumSize(new Dimension(140,70));
+		LineBorder jobBorder = new LineBorder(Color.black);
+		jobPanel.setBorder(jobBorder);
+		Object[][] jobData = new Object[][] {
+			{"Account", account},
+			{"Job Name", jobName},
+			{"Time Limit", timeLimit}
+		};
+		String[] jobColumns = new String[] {" "," "};
+		jobTable = new JTable(jobData,jobColumns);
+		jobTable.setCellSelectionEnabled(true);
+		jobTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		jobTable.getColumnModel().getColumn(1).setMaxWidth(100);
+		jobTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(java.awt.event.MouseEvent e) {
+				Integer row=jobTable.getSelectedRow();
+				Integer col=jobTable.getSelectedColumn();
+				JFrame jf = new JFrame();
+				String value;
+				if(row==0 && col==1) {
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter account");
+						if(value.length()>0) account=value.trim();
+						jobData[0][1]=account;
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(row==1 && col==1) {
+					try {
+						value = JOptionPane.showInputDialog(jf,"Job name");
+						if(value.length()>0) jobName=value.trim();
+						jobData[1][1]=jobName;
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(row==2 && col==1) {
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter time limit");
+						if(value.length()>0) timeLimit=value.trim();
+						jobData[2][1]=timeLimit;
+					} catch(NullPointerException e1) {
+					}
+				}
+				update();
+			}
+		});
+		/*
+        DefaultComboBoxModel basisSetComboModel = new DefaultComboBoxModel(basisSets);
+        JComboBox basisSetCombo = new JComboBox();
+        basisSetCombo.setMaximumRowCount(3);
+        basisSetCombo.setModel(basisSetComboModel);
+        
+        TableCell basisSetCell = basisTable.getTableView();
+//        TableColumn basisSetColumn = basisTable.getColumnModel().getColumn(1);
+//        basisSetColumn.setCellEditor(new DefaultCellEditor(basisSetCombo));
+        
+        basisSetCombo.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent item){
+                        Integer row = basisTable.getSelectedRow();
+                        Integer col = basisTable.getSelectedColumn();
+                        if(row==0) basisSet=basisSetCombo.getSelectedIndex();
+                        if(row==1) contract=basisSetCombo.getSelectedIndex();
+                        if(row==2) cholesky=basisSetCombo.getSelectedIndex();
+                        update();
+            }
+        });
+*/
+
+		/*
+		basisSelectionModel.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item) {
+				JFrame jf = new JFrame();
+				String value;
+				if(basisTable.getSelectedRow()==0) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new threshold for common MO basis");
+					if(value.length()>0) thresh_MO=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(basisTable.getSelectedRow()==1) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter new threshold for CI coefficients");
+					if(value.length()>0) thresh_MO=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				basisData[0][1]=basisSets[basisSet];
+				basisData[1][1]=contracts[contract];
+				basisData[2][1]=choleskys[cholesky];
+				update();
+			}
+		});
+		*/
 		
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.Y_AXIS));
@@ -1736,6 +2254,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		updateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				update();
+				System.out.println("Data updated");
 			}
 		});
 
@@ -1748,23 +2267,45 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				update();
 				writeInputFiles();
 				writeClearScripts();
+				System.out.println("Files generated");
 			}
 		});
+		
+		optionsPanel.add(Box.createRigidArea(new Dimension(5,5)));
+		optionsPanel.add(dimersButton);
+		optionsPanel.add(dimersNoAButton);
+		optionsPanel.add(Box.createVerticalGlue());
 		dimensionPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		dimensionPanel.add(dimensionTable);
 		numberPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		numberPanel.add(numberTable);
 		threshPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		threshPanel.add(threshTable);
+		basisPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		basisPanel.add(basisTable);
+		basisPanel.add(contractTable);
+		basisPanel.add(choleskyTable);
+		expansionPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		expansionPanel.add(expansionTable);
+		jobPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		jobPanel.add(jobTable);
 		buttonPanel.add(Box.createRigidArea(new Dimension(5,5)));
 		buttonPanel.add(updateButton);
 		buttonPanel.add(generateButton);
 		buttonPanel.add(Box.createVerticalGlue());
 		parametersPanel.add(dimensionPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(optionsPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(numberPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(threshPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(expansionPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(basisPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(jobPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(buttonPanel);
 		
@@ -1808,14 +2349,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			TableColumn setColumn = statesTable.getColumnModel().getColumn(3+i);
 			setColumn.setCellEditor(new DefaultCellEditor(setCombo));
 		}
-		setCombo.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				Integer row = statesTable.getSelectedRow();
-				Integer col = statesTable.getSelectedColumn();
-				if(row>=0 && col>=3) {
-					ndxStateList[row][(col-2)]=setCombo.getSelectedIndex();
+		setCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item) {
+				Integer row = statesTable.getEditingRow();
+				Integer col = statesTable.getEditingColumn();
+				if(row>=0 && col>=3 && item.getStateChange()==ItemEvent.SELECTED) {
+					ndxStateList[row][(col-3)]=setCombo.getSelectedIndex();
+					update();
 				}
-				update();
 			}
 		});
 		
@@ -1860,27 +2401,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				JFrame jf = new JFrame();
 				String value;
 				String nameA, nameB, nameP, nameF;
-				// change fragment equivalence
-				if(col==1) {
-					String newID = fragmentDefinitions[row][col].toString().trim();
-					for(int i=0; i<numFragments; i++) {
-						if(newID.equals(fragmentDefinitions[i][0].toString().trim())){
-							dimFragments[row][0]=i;
-							namFragments[row]=namFragments[i];
-							dimFragments[row][1]=getNumAxyz(namFragments[row]);
-							dimFragments[row][3]=getNumExyz(namFragments[row]);
-							Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
-							if(numXA<dimFragments[row][4]) {
-								numCASe=Math.max(4,numXA);
-								numCASo=Math.max(4,numXA);
-								dimFragments[row][4]=numCASe;
-								dimFragments[row][5]=numCASo;
-							}
-						}
-					}
-				}
+				
 				// xyz coordinate file
 				if(col==2) {
+					for(int j=0; j<numFragments; j++) {
+					}
 					String newFile = getFileRoot(".xyz");
 					if(newFile.length()>0) {
 						fragmentDefinitions[row][col]=newFile.trim();
@@ -1914,7 +2439,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 									dimFragments[j][3]=dimFragments[row][3];
 									dimFragments[j][4]=dimFragments[row][4];
 									dimFragments[j][5]=dimFragments[row][5];
-									namFragments[j]=namFragments[row];						
+									namFragments[j]=namFragments[row];
 								}
 							}
 						}
@@ -1999,12 +2524,28 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					nameF=namFragments[row].trim();
 					nameA= (String) fragmentDefinitions[dimFragments[row][0]][0];
 					nameB= (String) namFragments[row];
-					fragment.initialize(nameP,nameA,nameF,nameB,dimFragments[row][3],RandT);
+					fragment.initialize(nameP,nameF, nameA,nameB,dimFragments[row][3],RandT);
 				}
 				update();
 			}
 		});
-	
+
+		
+		DefaultComboBoxModel equivalenceComboModel = new DefaultComboBoxModel(fragmentNames);
+		JComboBox equivalenceCombo = new JComboBox();
+		equivalenceCombo.setMaximumRowCount(numFragments);
+		equivalenceCombo.setModel(equivalenceComboModel);
+		TableColumn equivalenceColumn = fragmentsTable.getColumnModel().getColumn(1);
+		equivalenceColumn.setCellEditor(new DefaultCellEditor(equivalenceCombo));
+		equivalenceCombo.addItemListener(new ItemListener() {
+		    public void itemStateChanged(ItemEvent item){
+				Integer row = fragmentsTable.getEditingRow();
+				Integer col = fragmentsTable.getEditingColumn();
+				fragmentDefinitions[row][col]=fragmentNames[equivalenceCombo.getSelectedIndex()];
+				update();
+		    }
+		});
+		
 		JScrollPane fragmentScroll = new JScrollPane(fragmentsTable);
 		fragmentsPanel.add(fragmentScroll);
 		baseBox.add(fragmentsPanel);
@@ -2058,10 +2599,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		fragmentCombo.setModel(fragmentComboModel);
 		TableColumn fragmentColumn = mebfsTable.getColumnModel().getColumn(5);
 		fragmentColumn.setCellEditor(new DefaultCellEditor(fragmentCombo));
-		fragmentCombo.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				Integer row = mebfsTable.getSelectedRow();
-				Integer col = mebfsTable.getSelectedColumn();
+		fragmentCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item) {
+				Integer row = mebfsTable.getEditingRow();
+				Integer col = mebfsTable.getEditingColumn();
 				if(row>=0 && col==5) {
 					Integer mymebf = mebfIndex[row][0];
 					Integer mynmer = mebfIndex[row][1];
@@ -2073,18 +2614,20 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		DefaultComboBoxModel stateComboModel = new DefaultComboBoxModel(stateNames);
 		JComboBox stateCombo = new JComboBox();
 		stateCombo.setModel(stateComboModel);
-		for(int i=0; i<19; i++) {
+		for(int i=0; i<maxMEBFstates; i++) {
 			TableColumn stateColumn = mebfsTable.getColumnModel().getColumn(6+i);
 			stateColumn.setCellEditor(new DefaultCellEditor(stateCombo));
 		}
-		stateCombo.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				Integer row = mebfsTable.getSelectedRow();
-				Integer col = mebfsTable.getSelectedColumn();
+		stateCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item) {
+				Integer row = mebfsTable.getEditingRow();
+				Integer col = mebfsTable.getEditingColumn();
 				if(row>=0 && col>=5) {
 					Integer mymebf = mebfIndex[row][0];
 					Integer mynmer = mebfIndex[row][1];
 					mebfFragments[mymebf][mynmer][col-4] = stateCombo.getSelectedIndex();
+					mebfDefinitions[row][col]=stateNames[mebfFragments[mymebf][mynmer][col-4]];
+					mebfsPanel.revalidate();
 				}
 				update();
 			}
@@ -2198,18 +2741,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer prev=nums;
 		Integer curr=mebfSpecification[mebf][3];
 		Integer count = 0;
-		Integer[] lens = new Integer[2];
-		Integer[] ndxs = new Integer[2];
-		String[] sw1 = new String[] {"S","D","T"};
-		String[] sw2 = new String[] {"D","S","T"};
-		String[][] sw = new String[2][3];
+		Integer[] lens = new Integer[5];
+		Integer[] ndxs = new Integer[5];
+		String[] sw1 = new String[] {"S","D","T","q","Q"};
+		String[] sw2 = new String[] {"D","S","T","q","Q"};
+		String[][] sw = new String[5][5];
 		Boolean include = false;
 		
 		if(mebfSpecification[mebf][0]>maxMer) mebfSpecification[mebf][0]=maxMer;
 		
 		if(mebfSpecification[mebf][0]>nmer) {
 			for(int i=nmer; i<mebfSpecification[mebf][0]; i++) {
-				for(int k=0; k<19; k++) {
+				for(int k=0; k<maxMEBFstates; k++) {
 					mebfFragments[mebf][i][k]=0;
 				}
 				for(int k=0; k<mebfSpecification[mebf][4]+1; k++) {
@@ -2359,22 +2902,22 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<2; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3 || spinStateList[ndxs[k]]==5) {
+					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
 				} else {
-					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
 				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
 			} else {
 				count=0;
-				for(int i=0; i<3; i++) {
+				for(int i=0; i<5; i++) {
 					for(int j0=0; j0<lens[0]; j0++) {
 						for(int j1=0; j1<lens[0]; j1++) {
 							include=stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith(sw[0][i]) && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith(sw[1][i]);
 							if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")<0) include=false;
-							if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")<0) include=false;							
+							if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")<0) include=false;
 							if(include) {
 								mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
 								mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
@@ -2484,6 +3027,401 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}	
 		}
 		
+		// For trimer with spin 1
+		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==1) {
+			for(int k=0; k<3; k++) {
+				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				lens[k]=lenStateList[ndxs[k]];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
+				}
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int j0=0; j0<lens[0]; j0++) {
+					for(int j1=0; j1<lens[1]; j1++) {
+						for(int j2=0; j2<lens[2]; j2++) {
+							include=false;
+							int nS=0;
+							int nT=0;
+							int nD=0;
+							int nS1=0;
+							int nq=0;
+							int nQ=0;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S")) nS++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("T")) nT++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("D")) nD++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S1")) nS1++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("q")) nq++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("q")) nq++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("q")) nq++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("Q")) nQ++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("Q")) nQ++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("Q")) nQ++;
+							
+							if(nS==3) include=true;
+							if(nS==1 && nT==2) include=true;
+							if(nS==1 && nD==2) include=true;
+							if(nS==1 && nQ==2) include=true;
+							
+							if(expansion==0 && nD>0) include=false;
+							if(expansion<2 && nS1>1) include=false;
+							if(expansion<2 && nS1>0 && nD>0) include=false;
+							if(expansion<2 && nS1>0 && nT>0) include=false;
+
+							if(charge==0) {
+								int chg=0;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("-")>=0) chg--;
+								if(chg!=charge) include=false;
+							}
+							if(include) {
+								mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
+								mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
+								mebfFragments[mebf][2][count+1]=ndxStateList[ndxs[2]][j2];
+								count++;
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		// For trimer with spin 2 Disabled for now
+		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==22) {
+			for(int k=0; k<3; k++) {
+				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				lens[k]=lenStateList[ndxs[k]];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int j0=0; j0<lens[0]; j0++) {
+					for(int j1=0; j1<lens[1]; j1++) {
+						for(int j2=0; j2<lens[2]; j2++) {
+							include=false;
+							int nS=0;
+							int nT=0;
+							int nD=0;
+							int nS1=0;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S")) nS++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("T")) nT++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("D")) nD++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S1")) nS1++;
+							
+							if(nS==2 && nD==1) include=true;
+							if(nT==2 && nD==1) include=true;
+							
+							if(expansion==0 && nT>1 &&nD>1) include=false;
+							if(expansion<2 && nS1>0 && nT>0) include=false;
+							
+							if(charge==0) {
+								int chg=0;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("-")>=0) chg--;
+								if(chg!=charge) include=false;
+							}
+							if(include) {
+								mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
+								mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
+								mebfFragments[mebf][2][count+1]=ndxStateList[ndxs[2]][j2];
+								count++;
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		// For trimer with spin 3
+		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==3) {
+			for(int k=0; k<3; k++) {
+				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				lens[k]=lenStateList[ndxs[k]];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int j0=0; j0<lens[0]; j0++) {
+					for(int j1=0; j1<lens[1]; j1++) {
+						for(int j2=0; j2<lens[2]; j2++) {
+							include=false;
+							int nS=0;
+							int nT=0;
+							int nD=0;
+							int nS1=0;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) nS++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S")) nS++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) nT++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("T")) nT++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) nD++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("D")) nD++;
+							
+							if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S1")) nS1++;
+							if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S1")) nS1++;
+							
+							if(nS==2 && nT==1) include=true;
+							if(nT==3) include=true;
+							if(nT==1 && nD==2) include=true;
+							
+							if(nS1>1) include=false;
+							if(nT>0 && nS1>0) include=false;
+							if(nD>0 && nS1>0) include=false;
+							
+							if(charge==0) {
+								int chg=0;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("+")>=0) chg++;
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")>=0) chg--;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("-")>=0) chg--;
+								if(chg!=charge) include=false;
+							}
+							if(include) {
+								mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
+								mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
+								mebfFragments[mebf][2][count+1]=ndxStateList[ndxs[2]][j2];
+								count++;
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		// For tetramer with spin 1
+		if(mebfSpecification[mebf][0]==4 && mebfSpecification[mebf][1]==1) {
+			for(int k=0; k<4; k++) {
+				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				lens[k]=lenStateList[ndxs[k]];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int j0=0; j0<lens[0]; j0++) {
+					for(int j1=0; j1<lens[1]; j1++) {
+						for(int j2=0; j2<lens[2]; j2++) {
+							for(int j3=0; j3<lens[3]; j3++) {
+								include=false;
+								int nS=0;
+								int nT=0;
+								int nD=0;
+								int nS1=0;
+								
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S")) nS++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) nS++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S")) nS++;
+								if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("S")) nS++;
+								
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T")) nT++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) nT++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("T")) nT++;
+								if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("T")) nT++;
+								
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D")) nD++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) nD++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("D")) nD++;
+								if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("D")) nD++;
+								
+								if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S1")) nS1++;
+								if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S1")) nS1++;
+								if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S1")) nS1++;
+								if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("S1")) nS1++;
+								
+								if(nS==4) include=true;
+								if(nS==2 && nD==2) include=true;
+								if(nS==2 && nT==2) include=true;
+								if(nD==2 && nT==2) include=true;
+								
+								if(expansion==0 && nS1>0 && nT>0) include=false;
+								if(expansion==0 && nD>0) include=false;
+																
+								if(expansion<2 && nS1>1) include=false;
+								if(expansion<2 && nD>2) include=false;
+								if(expansion<2 && nD>0 && nS1>0) include=false;
+								if(expansion<2 && nD>0 && nT>0) include=false;
+								if(expansion<2 && nS1>0 && nT>0) include=false;
+							
+								if(charge==0) {
+									int chg=0;
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")>=0) chg++;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("+")>=0) chg++;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().indexOf("+")>=0) chg++;
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0) chg--;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")>=0) chg--;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("-")>=0) chg--;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().indexOf("-")>=0) chg--;
+									if(chg!=charge) include=false;
+								}
+								if(include && count<maxMEBFstates-1) {
+									mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
+									mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
+									mebfFragments[mebf][2][count+1]=ndxStateList[ndxs[2]][j2];
+									mebfFragments[mebf][3][count+1]=ndxStateList[ndxs[3]][j3];
+									count++;
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		// For pentamer with spin 1
+		if(mebfSpecification[mebf][0]==5 && mebfSpecification[mebf][1]==1) {
+			for(int k=0; k<5; k++) {
+				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				lens[k]=lenStateList[ndxs[k]];
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int j0=0; j0<lens[0]; j0++) {
+					for(int j1=0; j1<lens[1]; j1++) {
+						for(int j2=0; j2<lens[2]; j2++) {
+							for(int j3=0; j3<lens[3]; j3++) {
+								for(int j4=0; j4<lens[4]; j4++) {
+									include=false;
+									int nS=0;
+									int nT=0;
+									int nD=0;
+									int nS1=0;
+									
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S")) nS++;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) nS++;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S")) nS++;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("S")) nS++;
+									if(stateNames[ndxStateList[ndxs[4]][j4]].trim().startsWith("S")) nS++;
+									
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T")) nT++;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) nT++;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("T")) nT++;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("T")) nT++;
+									if(stateNames[ndxStateList[ndxs[4]][j4]].trim().startsWith("T")) nT++;
+									
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D")) nD++;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) nD++;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("D")) nD++;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("D")) nD++;
+									if(stateNames[ndxStateList[ndxs[4]][j4]].trim().startsWith("D")) nD++;
+									
+									if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S1")) nS1++;
+									if(stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S1")) nS1++;
+									if(stateNames[ndxStateList[ndxs[2]][j2]].trim().startsWith("S1")) nS1++;
+									if(stateNames[ndxStateList[ndxs[3]][j3]].trim().startsWith("S1")) nS1++;
+									if(stateNames[ndxStateList[ndxs[4]][j4]].trim().startsWith("S1")) nS1++;
+									
+									if(nS==5 && nS1==0) include=true;
+									if(nS==5 && nS1==1) include=true;
+									if(nS==3 && nD==2) include=true;
+									if(nS==2 && nT==2 && nS1==0) include=true;
+																	
+									if(charge==0) {
+										int chg=0;
+										if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
+										if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")>=0) chg++;
+										if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("+")>=0) chg++;
+										if(stateNames[ndxStateList[ndxs[3]][j3]].trim().indexOf("+")>=0) chg++;
+										if(stateNames[ndxStateList[ndxs[4]][j4]].trim().indexOf("+")>=0) chg++;
+										if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0) chg--;
+										if(stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")>=0) chg--;
+										if(stateNames[ndxStateList[ndxs[2]][j2]].trim().indexOf("-")>=0) chg--;
+										if(stateNames[ndxStateList[ndxs[3]][j3]].trim().indexOf("-")>=0) chg--;
+										if(stateNames[ndxStateList[ndxs[4]][j4]].trim().indexOf("-")>=0) chg--;
+										if(chg!=charge) include=false;
+									}
+									if(include && count<maxMEBFstates-1) {
+										mebfFragments[mebf][0][count+1]=ndxStateList[ndxs[0]][j0];
+										mebfFragments[mebf][1][count+1]=ndxStateList[ndxs[1]][j1];
+										mebfFragments[mebf][2][count+1]=ndxStateList[ndxs[2]][j2];
+										mebfFragments[mebf][3][count+1]=ndxStateList[ndxs[3]][j3];
+										mebfFragments[mebf][4][count+1]=ndxStateList[ndxs[4]][j4];
+										count++;
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
 		update();
 	}
 	
@@ -2557,23 +3495,29 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer nfrags = mebfSpecification[i][0];
 			String pName = " ";
 			String[] frags = new String[nfrags];
+			String[] source = new String[nfrags];
+			String[] fname = new String[nfrags];
 			Integer[] fstat = new Integer[nfrags];
 			Integer[] nums = new Integer[nfrags];
 			Double[][] randt = new Double[nfrags][6];
 			String fileName = projectName.trim()+mebfName[i].trim();
 			if(nfrags==1) fileName=fileName.trim()+mebfName[i].trim();
 			for(int j=0; j<nfrags; j++) {
+				int last=namFragments[j].indexOf("_");
+				fname[j]=namFragments[j].substring(0,last);
 				frags[j]=fragmentNames[mebfFragments[i][j][0]];
+				source[j]=fragmentNames[mebfFragments[i][j][1]];
+//				System.out.println("FRAG "+j+" : "+frags[j]+" SOURCE "+source[j]);
 				fstat[j]=dimFragments[j][2];
 				nums[j]=lenStateList[dimFragments[j][2]];
 				pName = projectName.trim();
 				for(int k=0; k<6; k++) randt[j][k]=movFragments[mebfFragments[i][j][0]][k];
 			}
-			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, frags)) {
-				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, frags);	
-				fragment.write_Molcas_MEBF_CB(fileName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
-				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, frags);
-				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, frags, fstat, lenStateList, ndxStateList, numRanks,memory);
+			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, fname, frags, randt)) {
+				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);	
+				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
+				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
 			}
 		}
 	}
@@ -2582,7 +3526,87 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer numME =0;
 		Integer nmer = 0;
 		Integer spin = 1;
-		Integer m=0;
+		Integer isp1, isp2, isp3, isp4;
+		
+		for(int i=0; i<5; i++) {
+			for(int j=0; j<5; j++) {
+				for(int k=0; k<5; k++) {
+					for(int m=0; m<5; m++) {
+						couple3[i][j][k][m]=9;
+					}
+				}
+			}
+		}
+		couple3[0][0][0][0]=1; // S,S,S
+		couple3[0][0][1][1]=2; // S,D,D
+		couple3[0][1][0][1]=2; // D,S,D
+		couple3[0][1][1][0]=1; // D,D,S
+		couple3[0][0][2][2]=3; // S,T,T
+		couple3[0][2][0][2]=3; // T,S,T
+		couple3[0][2][2][0]=1; // T,T,S
+		couple3[0][0][4][4]=5; // S,Q,Q
+		couple3[0][4][0][4]=5; // Q,S,Q
+		couple3[0][4][4][0]=1; // Q,Q,S
+		
+		couple3[1][1][0][0]=2; // D,S,S
+		couple3[1][0][1][0]=2; // S,D,S
+		couple3[1][0][0][1]=1; // S,S,D
+		couple3[1][1][1][1]=1; // D,D,D
+		
+		couple3[2][0][0][2]=1; // S,S,T
+		couple3[2][0][2][0]=3; // S,T,S
+		couple3[2][2][0][0]=3; // T,S,S
+		couple3[2][2][2][2]=1; // T,T,T
+		
+		couple3[2][1][1][2]=1; // D,D,T
+		couple3[2][1][2][1]=2; // D,T,D
+		couple3[2][2][1][1]=2; // T,D,D
+		
+		couple3[2][2][2][2]=1; // T,T,T
+
+		for(int i=0; i<5; i++) {
+			for(int j=0; j<5; j++) {
+				for(int k=0; k<5; k++) {
+					for(int m=0; m<5; m++) {
+						for(int n=0; n<5; n++) {
+							for(int l=0; l<2; l++) {
+								couple4[i][j][k][m][n][l]=9;
+							}
+						}
+					}
+				}
+			}
+		}
+		couple4[0][0][0][0][0][0]=1; // S,S,S,S
+		couple4[0][0][0][0][0][1]=1;
+		
+		couple4[0][0][0][1][1][0]=1; // S,S,D,D
+		couple4[0][0][0][1][1][1]=2;
+		couple4[0][0][1][0][1][0]=2; // S,D,S,D
+		couple4[0][0][1][0][1][1]=2;
+		couple4[0][0][1][1][0][0]=2; // S,D,D,S
+		couple4[0][0][1][1][0][1]=1;
+		couple4[0][1][0][0][1][0]=2; // D,S,S,D
+		couple4[0][1][0][0][1][1]=2;
+		couple4[0][1][0][1][0][0]=2; // D,S,D,S
+		couple4[0][1][0][1][0][1]=1;
+		couple4[0][1][1][0][0][0]=1; // D,D,S,S
+		couple4[0][1][1][0][0][1]=1;
+		
+		couple4[0][0][0][2][2][0]=1; // S,S,T,T
+		couple4[0][0][0][2][2][1]=3;
+		couple4[0][0][2][0][2][0]=3; // S,T,S,T
+		couple4[0][0][2][0][2][1]=3;
+		couple4[0][0][2][2][0][0]=3; // S,T,T,S
+		couple4[0][0][2][2][0][1]=1;
+		couple4[0][2][0][0][2][0]=3; // T,S,S,T
+		couple4[0][2][0][0][2][1]=3;
+		couple4[0][2][0][2][0][0]=3; // T,S,T,S
+		couple4[0][2][0][2][0][1]=1;
+		couple4[0][2][2][0][0][0]=1; // T,T,S,S
+		couple4[0][2][2][0][0][1]=1;
+		
+		
 		for(int i=0; i<numMEBFs; i++) {
 			String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.inp";
 			numME=mebfSpecification[i][3];
@@ -2590,17 +3614,46 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			spin=mebfSpecification[i][1];
 			try {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
-				inputFile.println("MEBFs "+projectName.trim()+mebfName[i].trim()+" "+numME);
+				inputFile.println("MEBFs "+projectName.trim()+" "+numME);
 				for(int j=0; j<nmer; j++) {
 					inputFile.print(fragmentNames[mebfFragments[i][j][0]]+" ");
 					for(int k=0; k<numME; k++) inputFile.print(" "+stateNames[mebfFragments[i][j][k+1]]);
 					inputFile.println();
 				}
-				inputFile.println("Ecorr");
-				for(int j=0; j<nmer; j++) {
-					m=dimFragments[j][0];
-					for(int k=0; k<lenStateList[m]; k++) inputFile.println(fragmentNames[j]+" "+stateNames[ndxStateList[m][k]]+" "+(energiesCASPT2[m][k]-energiesCASSCF[m][k]));
+				if(nmer==3) {
+					inputFile.println("Couplings ");
+					inputFile.print("  ");
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						inputFile.print("  "+couple3[spin-1][isp1][isp2][isp3]);
+					}
+					inputFile.println();
 				}
+				if(nmer==4) {
+					inputFile.println("Couplings ");
+					for(int l=0; l<2; l++) {
+						inputFile.print("  ");
+						for(int k=0; k<numME; k++) {
+							isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+							isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+							inputFile.print("  "+couple4[spin-1][isp1][isp2][isp3][isp4][l]);
+						}
+						inputFile.println();
+					}
+				}
+//				inputFile.println("Ecorr");
+//				for(int j=0; j<nmer; j++) {
+////					m=dimFragments[j][0];
+//					int mf=mebfFragments[i][j][0];
+//					int ms=dimFragments[mf][2];
+//					int ls=lenStateList[ms];
+//					for(int k=0; k<ls; k++) inputFile.print(" "+(energiesCASPT2[mf][k]-energiesCASSCF[mf][k]));
+//					inputFile.println();
+//				}
 				inputFile.println("Spin "+spin);
 				inputFile.println("Threshold "+thresh_CI);
 				inputFile.println("Print medium");
@@ -2699,7 +3752,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	    	}
 	    	br.close();
 		} catch(Exception ee) {
-//				System.out.println("Arx file "+fileName+" does not exist");
 			return false;
 		}
     	return true;
@@ -2732,5 +3784,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     public void mouseEntered(MouseEvent mouse){}
 
     public void mouseExited(MouseEvent mouse){}
+    
+    public void itemStateChanged(ItemEvent item){}
     
 }

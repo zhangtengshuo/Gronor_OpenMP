@@ -879,9 +879,9 @@ public class gronor_Fragment {
 				xyzFile.println("Coordinates in Angstrom");
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
-					xyzFile.printf("%12.8f",coordinates[i][0]);
-					xyzFile.printf("%12.8f",coordinates[i][1]);
-					xyzFile.printf("%12.8f",coordinates[i][2]);
+					xyzFile.printf("%16.8f",coordinates[i][0]);
+					xyzFile.printf("%16.8f",coordinates[i][1]);
+					xyzFile.printf("%16.8f",coordinates[i][2]);
 					xyzFile.println();
 				}
 				xyzFile.close();
@@ -901,9 +901,9 @@ public class gronor_Fragment {
 				xyzFile.println("DFT converged coordinates in Angstrom");
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
-					xyzFile.printf("%12.8f",coordinates[i][0]);
-					xyzFile.printf("%12.8f",coordinates[i][1]);
-					xyzFile.printf("%12.8f",coordinates[i][2]);
+					xyzFile.printf("%16.8f",coordinates[i][0]);
+					xyzFile.printf("%16.8f",coordinates[i][1]);
+					xyzFile.printf("%16.8f",coordinates[i][2]);
 					xyzFile.println();
 				}
 				xyzFile.close();

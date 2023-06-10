@@ -857,8 +857,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		updateStatesList();
 		updateFragmentList();
-		updateFragmentDefinitions();
 		readOutputFiles();
+		updateFragmentDefinitions();
 		updateFragmentEnergies();
 		updateMEBFDefinitions();
 		for(int i=0; i<numMEBFs; i++) {
@@ -1651,6 +1651,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
 			numAlt=fragment.read_Alt(nameP,nameA);
+			dimFragments[i][10]=numAlt;
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);

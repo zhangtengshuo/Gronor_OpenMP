@@ -1209,9 +1209,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					energyFragment[index][1]=j;
 					index++;
 				}
-			} else {
-				numEnergies=numEnergies+1;
-				for(int j=2; j<3; j++) {
+			} else if(!dimFragments[i][4].equals(dimFragments[dimFragments[i][0]][4]) || !dimFragments[i][5].equals(dimFragments[dimFragments[i][0]][5])) {
+				numEnergies=numEnergies+2;
+				for(int j=2; j<4; j++) {
 					stateEnergies[index][0]=(String) fragmentNames[i]+":"+energyNames[j];
 					energyFragment[index][0]=i;
 					energyFragment[index][1]=j;
@@ -1267,7 +1267,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		for(int i=0; i<numFragments-1; i++) {
 				for(int j=i+1; j<numFragments; j++) {
-					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1])) {
+					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1]) && dimFragments[j][4].equals(dimFragments[dimFragments[j][0]][4]) && dimFragments[j][5].equals(dimFragments[dimFragments[j][0]][5])) {
 						if(fragmentDefinitions[j][1].equals(fragmentDefinitions[i][0])) {
 							istat=dimFragments[i][2];
 							for(int k=0; k<lenStateList[istat]; k++) {

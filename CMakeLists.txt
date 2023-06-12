@@ -1610,7 +1610,9 @@ set (LINK_DIRECTORIES ${LIBRARY_OUTPUT_PATH})
 message (STATUS "Link directories: ${LINK_DIRECTORIES}")
 
 
-if(GUI AND ${numjars} GREATER 1)
-  add_jar(${JAR_NAME} SOURCES ${JAVA_SOURCE_FILES} INCLUDE_JARS ${JAVA_EXTERNAL_JARS} ENTRY_POINT gronor.gronor_Main)
-  install_jar(${JAR_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/jar")
+if(GUI)
+  if(${numjars} GREATER 1)
+    add_jar(${JAR_NAME} SOURCES ${JAVA_SOURCE_FILES} INCLUDE_JARS ${JAVA_EXTERNAL_JARS} ENTRY_POINT gronor.gronor_Main)
+    install_jar(${JAR_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/jar")
+  endif()
 endif()

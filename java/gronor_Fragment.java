@@ -1263,7 +1263,7 @@ public class gronor_Fragment {
 		}
 	}
 	
-	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
+	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numElec, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
 		Molcas_numAlt(nameF, nameP);
 		String fileName=nameP.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameP.trim();
@@ -1272,7 +1272,7 @@ public class gronor_Fragment {
 		String ext = "_"+nameS.trim();
 		altDone=!withAlter;
 		try {
-			Integer Inact = numOcc - numCASe/2;
+			Integer Inact = (numElec - numCASe)/2;
 			if(nameS.trim().equals("S0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");

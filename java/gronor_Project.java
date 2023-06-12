@@ -1217,6 +1217,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					energyFragment[index][1]=j;
 					index++;
 				}
+			} else {
+				numEnergies=numEnergies+1;
+				for(int j=2; j<3; j++) {
+					stateEnergies[index][0]=(String) fragmentNames[i]+":"+energyNames[j];
+					energyFragment[index][0]=i;
+					energyFragment[index][1]=j;
+					index++;
+				}
 			}
 		}
 		
@@ -1528,7 +1536,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	private void writeInputFiles() {
 
 		String nameA, nameP, nameF, nameS;
-		Integer numCASe=0, numCASo=0;
+		Integer numCASe=0, numCASo=0, numElec=0;
 		Boolean withCASPT2=false;
 		Boolean withAlter=true;
 		
@@ -1536,6 +1544,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		Integer numRunDFT = -1;
 		Integer numRunMolcas = -1;
+		
 
 		for(int i=0; i<numEnergies; i++) {
 			if(dimFragments[energyFragment[i][0]][0]>numRunDFT) numRunDFT = dimFragments[energyFragment[i][0]][0];
@@ -1580,7 +1589,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					nameS=stateNames[ndxStateList[stateIndex][j]];
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
-					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numCASe,numCASo,withAlter,ipea);
+					numElec=dimFragments[i][3];
+					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,ipea);
 					withAlter=false;
 				}		
 			}

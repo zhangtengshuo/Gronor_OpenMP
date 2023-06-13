@@ -1757,6 +1757,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 		
+		for(int i=0; i<numMEBFs; i++) {
+			Integer sumCharges=0;
+			for(int j=0; j<mebfSpecification[i][0]; j++) {
+				sumCharges=sumCharges+dimFragments[mebfFragments[i][j][0]][11];
+			}
+			mebfSpecification[i][2]=sumCharges;
+		}
 		
 		if(numMEBFs>1) {
 			for(int i=0; i<numMEBFs; i++) {
@@ -3454,7 +3461,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfSpecification[mebf][3]=count;
 			}
 		}
-
 		update();
 	}
 	

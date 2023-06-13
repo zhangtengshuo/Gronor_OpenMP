@@ -827,6 +827,7 @@ public class gronor_Fragment {
 			card=br.readLine();
 			st = new StringTokenizer(card," ");
 			numAtoms=Integer.valueOf(st.nextToken());
+//			System.out.println("READING "+fileName+" : "+numAtoms);
 			card=br.readLine();
 			for(int i=0; i<numAtoms; i++) {
 				card=br.readLine();
@@ -867,6 +868,7 @@ public class gronor_Fragment {
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
+//		System.out.println("WRITING "+fileName+" : "+numAtoms);
 		File f = new File(fileName);
 		Boolean skip=true;
 		for(int i=0; i<6; i++) if(RandT[i]!=0.0) skip=false;
@@ -1232,10 +1234,10 @@ public class gronor_Fragment {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
 			if(chrg!=0) {
-				if(mult==1) inputFile.println(" charge "+chrg);
+				if(mult==1) { inputFile.println(" charge "); inputFile.println("  "+chrg);}
 			} else {
 				if(mult==2 || mult==4) {
-					inputFile.println(" charge 1");
+					inputFile.println(" charge");inputFile.println("  1");
 //					inputFile.println(" uhf");
 //					inputFile.println(" spin "+mult);
 				}
@@ -1815,11 +1817,11 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
 				inputFile.println("&grid_it");
-				inputFile.println("name=T-");
+				inputFile.println("name=q1");
 				inputFile.println("select");
 				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
 				inputFile.println("dense");
-				inputFile.println(">>> COPY "+rootName.trim()+".T-.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				inputFile.println(">>> COPY "+rootName.trim()+".q1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
 					inputFile.println("maxiter = 30");
@@ -1853,11 +1855,11 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
 				inputFile.println("&grid_it");
-				inputFile.println("name=T-");
+				inputFile.println("name=Q1");
 				inputFile.println("select");
 				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
 				inputFile.println("dense");
-				inputFile.println(">>> COPY "+rootName.trim()+".T-.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				inputFile.println(">>> COPY "+rootName.trim()+".Q1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
 					inputFile.println("maxiter = 30");

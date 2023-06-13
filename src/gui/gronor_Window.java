@@ -27,8 +27,6 @@ public class gronor_Window extends JFrame implements ActionListener, ChangeListe
 
 	    this.setJMenuBar(menubar);
 
-	    gronor_Project project;
-
 	    JMenu select = new JMenu("File");
 	    menubar.add(select);
 
@@ -79,21 +77,6 @@ public class gronor_Window extends JFrame implements ActionListener, ChangeListe
 		setVisible(false); System.exit(0); }});
 	    
 	    super.setVisible(true);
-	    
-		File prjF = new File("./");
-	    FilenameFilter fnFilter = new FilenameFilter() {
-	    	public boolean accept(File f, String name) {
-	    		return name.endsWith(".prj");
-	    	}
-	    };
-	    File[] files = prjF.listFiles(fnFilter);
-	    if(files.length==1) {
-		    String prjFile;
-		    String projectName;
-	    	prjFile=files[0].getName();
-			projectName=prjFile.substring(prjFile.lastIndexOf("/")+1,prjFile.indexOf(".prj"));
-			project = new gronor_Project(projectName);
-	    }
 	    
 	}
 

@@ -857,8 +857,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		updateStatesList();
 		updateFragmentList();
-		readOutputFiles();
 		updateFragmentDefinitions();
+		readOutputFiles();
 		updateFragmentEnergies();
 		updateMEBFDefinitions();
 		for(int i=0; i<numMEBFs; i++) {
@@ -1209,14 +1209,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					energyFragment[index][1]=j;
 					index++;
 				}
-			} else if(!dimFragments[i][4].equals(dimFragments[dimFragments[i][0]][4]) || !dimFragments[i][5].equals(dimFragments[dimFragments[i][0]][5])) {
-				numEnergies=numEnergies+2;
-				for(int j=2; j<4; j++) {
-					stateEnergies[index][0]=(String) fragmentNames[i]+":"+energyNames[j];
-					energyFragment[index][0]=i;
-					energyFragment[index][1]=j;
-					index++;
-				}
 			} else {
 				numEnergies=numEnergies+1;
 				for(int j=2; j<3; j++) {
@@ -1275,7 +1267,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		for(int i=0; i<numFragments-1; i++) {
 				for(int j=i+1; j<numFragments; j++) {
-					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1]) && dimFragments[j][4].equals(dimFragments[dimFragments[j][0]][4]) && dimFragments[j][5].equals(dimFragments[dimFragments[j][0]][5])) {
+					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1])) {
 						if(fragmentDefinitions[j][1].equals(fragmentDefinitions[i][0])) {
 							istat=dimFragments[i][2];
 							for(int k=0; k<lenStateList[istat]; k++) {
@@ -1536,7 +1528,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	private void writeInputFiles() {
 
 		String nameA, nameP, nameF, nameS;
-		Integer numCASe=0, numCASo=0, numElec=0;
+		Integer numCASe=0, numCASo=0;
 		Boolean withCASPT2=false;
 		Boolean withAlter=true;
 		
@@ -1544,7 +1536,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		Integer numRunDFT = -1;
 		Integer numRunMolcas = -1;
-		
 
 		for(int i=0; i<numEnergies; i++) {
 			if(dimFragments[energyFragment[i][0]][0]>numRunDFT) numRunDFT = dimFragments[energyFragment[i][0]][0];
@@ -1570,8 +1561,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			nameP=projectName.trim();
 			nameA= (String) fragmentDefinitions[i][0];
 			stateIndex=dimFragments[i][2];
-//			withCASPT2=fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]);
-			withCASPT2=true;
+			withCASPT2=fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]);
+
 			Integer mult=1;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("D")) mult=2;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("T")) mult=3;
@@ -1589,8 +1580,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					nameS=stateNames[ndxStateList[stateIndex][j]];
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
-					numElec=dimFragments[i][3];
-					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,ipea);
+					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numCASe,numCASo,withAlter,ipea);
 					withAlter=false;
 				}		
 			}
@@ -1602,7 +1592,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			int last=namFragments[i].indexOf("_");
 			nameF=namFragments[i].substring(0,last);
 			nameP=projectName.trim();
-			if(fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]) || !dimFragments[i][4].equals(dimFragments[dimFragments[i][0]][4]) || !dimFragments[i][5].equals(dimFragments[dimFragments[i][0]][5])) {
+			if(fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1])) {
 				fragment.write_Run_Script_Fragments(nameF,nameP,nameA,i,dimFragments[i][2],lenStateList,ndxStateList,numRanks,memory,account,jobName,timeLimit);
 			} else {
 				fragment.write_rotharm_input(nameP,nameA,nameB,dimFragments[i][2],lenStateList,ndxStateList);
@@ -1661,7 +1651,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
 			numAlt=fragment.read_Alt(nameP,nameA);
-			dimFragments[i][10]=numAlt;
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);

@@ -189,7 +189,7 @@ subroutine gronor_master()
       &     ' Number of determinants above CI threshold',t50,i16)
 
   if(ipr.gt.0) then
-    if(ipr.lt.20) then
+    if(ipr.lt.30) then
       write(lfnout,602)
     else
       write(lfnout,1602)
@@ -456,7 +456,7 @@ subroutine gronor_master()
             call timer_stop(99)
             
             if(ipr.ge.1) then
-              if(ipr.lt.20) then
+              if(ipr.lt.30) then
                 if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
                   if(ibin.ne.jbin) then
                     write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
@@ -796,7 +796,7 @@ subroutine gronor_master()
         write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
         write(lfnxrx,1523) (dqbase(ibin,jbin,k),k=1,9)
         if(ipr.ge.1) then
-          if(ipr.lt.20) then
+          if(ipr.lt.30) then
             if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
               if(ibin.ne.jbin) then
                 write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
@@ -1124,7 +1124,7 @@ subroutine gronor_master()
   call timer_stop(98)
   call timer_stop(99)
   if(ipr.gt.0) then
-    if(ipr.lt.20) then
+    if(ipr.lt.30) then
       write(lfnout,615) mdet,nthdet,tsum,dble(mgr)*tsum/dble(np-1), &
           timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
     else

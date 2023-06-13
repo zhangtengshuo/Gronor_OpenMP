@@ -227,11 +227,11 @@ subroutine gronor_main()
     filxrx=trim(string)//'.xrx'
     lfnxrx=28
 
-    open(unit=lfnout,file=trim(filout),form='formatted',status='unknown',err=996)
+    open(unit=lfnout,file=trim(filout),form='formatted',status='replace',err=996)
 
     open(unit=lfnpro,file=trim(filpro),form='formatted',status='unknown',err=996)
 
-    open(unit=lfnday,file=trim(filday),form='formatted',status='unknown',err=996)
+    open(unit=lfnday,file=trim(filday),form='formatted',status='replace',err=996)
 
     open(unit=lfntst,file=trim(filtst),form='formatted',status='unknown',err=996)
 
@@ -241,9 +241,9 @@ subroutine gronor_main()
 
     open(unit=lfnxrx,file=trim(filxrx),form='formatted',status='unknown',position='append',err=996)
 
-    open(unit=lfnrnk,file=trim(filrnk),form='formatted',status='unknown',err=996)
+    open(unit=lfnrnk,file=trim(filrnk),form='formatted',status='replace',err=996)
 
-    open(unit=lfncml,file=trim(filcml),form='formatted',status='unknown',err=996)
+    open(unit=lfncml,file=trim(filcml),form='formatted',status='replace',err=996)
 
     call gronor_prelude_cml()
 

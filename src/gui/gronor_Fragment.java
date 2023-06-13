@@ -879,9 +879,9 @@ public class gronor_Fragment {
 				xyzFile.println("Coordinates in Angstrom");
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
-					xyzFile.printf("%16.8f",coordinates[i][0]);
-					xyzFile.printf("%16.8f",coordinates[i][1]);
-					xyzFile.printf("%16.8f",coordinates[i][2]);
+					xyzFile.printf("%12.8f",coordinates[i][0]);
+					xyzFile.printf("%12.8f",coordinates[i][1]);
+					xyzFile.printf("%12.8f",coordinates[i][2]);
 					xyzFile.println();
 				}
 				xyzFile.close();
@@ -901,9 +901,9 @@ public class gronor_Fragment {
 				xyzFile.println("DFT converged coordinates in Angstrom");
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
-					xyzFile.printf("%16.8f",coordinates[i][0]);
-					xyzFile.printf("%16.8f",coordinates[i][1]);
-					xyzFile.printf("%16.8f",coordinates[i][2]);
+					xyzFile.printf("%12.8f",coordinates[i][0]);
+					xyzFile.printf("%12.8f",coordinates[i][1]);
+					xyzFile.printf("%12.8f",coordinates[i][2]);
 					xyzFile.println();
 				}
 				xyzFile.close();
@@ -1098,9 +1098,9 @@ public class gronor_Fragment {
 			nwFile.println("geometry units angstrom autosym");
 		    for(int i=0; i<numAtoms; i++) {
 		    	nwFile.print(atomLabel[i]+" "); 
-				nwFile.printf("%16.8f",coordinates[i][0]);
-				nwFile.printf("%16.8f",coordinates[i][1]);
-				nwFile.printf("%16.8f",coordinates[i][2]);
+				nwFile.printf("%12.8f",coordinates[i][0]);
+				nwFile.printf("%12.8f",coordinates[i][1]);
+				nwFile.printf("%12.8f",coordinates[i][2]);
 				nwFile.println();
 		    }
 		    nwFile.println("end");
@@ -1206,9 +1206,9 @@ public class gronor_Fragment {
 		    	}
 		    	count++;
 		    	inputFile.print(atomLabel[i].trim()+count+" "); 
-				inputFile.printf("%16.8f",coordinates[i][0]);
-				inputFile.printf("%16.8f",coordinates[i][1]);
-				inputFile.printf("%16.8f",coordinates[i][2]);
+				inputFile.printf("%12.8f",coordinates[i][0]);
+				inputFile.printf("%12.8f",coordinates[i][1]);
+				inputFile.printf("%12.8f",coordinates[i][2]);
 				inputFile.println(" Angstrom");
 				previous=atomLabel[i].trim();
 		    }
@@ -1263,7 +1263,7 @@ public class gronor_Fragment {
 		}
 	}
 	
-	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numElec, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
+	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
 		Molcas_numAlt(nameF, nameP);
 		String fileName=nameP.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameP.trim();
@@ -1272,7 +1272,7 @@ public class gronor_Fragment {
 		String ext = "_"+nameS.trim();
 		altDone=!withAlter;
 		try {
-			Integer Inact = (numElec - numCASe)/2;
+			Integer Inact = numOcc - numCASe/2;
 			if(nameS.trim().equals("S0")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
@@ -2139,9 +2139,9 @@ public class gronor_Fragment {
 				initialize3(fname[j], frags[j], 2);
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
-					xyzFile.printf("%16.8f",coordinates[i][0]);
-					xyzFile.printf("%16.8f",coordinates[i][1]);
-					xyzFile.printf("%16.8f",coordinates[i][2]);
+					xyzFile.printf("%12.8f",coordinates[i][0]);
+					xyzFile.printf("%12.8f",coordinates[i][1]);
+					xyzFile.printf("%12.8f",coordinates[i][2]);
 					xyzFile.println();
 				}
 			}
@@ -2194,9 +2194,9 @@ public class gronor_Fragment {
 			    	}
 			    	counts[atom]++;
 			    	inputFile.print(atomLabel[i].trim()+counts[atom]+" "); 
-					inputFile.printf("%16.8f",coordinates[i][0]);
-					inputFile.printf("%16.8f",coordinates[i][1]);
-					inputFile.printf("%16.8f",coordinates[i][2]);
+					inputFile.printf("%12.8f",coordinates[i][0]);
+					inputFile.printf("%12.8f",coordinates[i][1]);
+					inputFile.printf("%12.8f",coordinates[i][2]);
 					inputFile.println(" Angstrom");
 					previous=atomLabel[i].trim();
 			    }
@@ -2252,9 +2252,9 @@ public class gronor_Fragment {
 			    	}
 			    	counts[atom]++;
 			    	inputFile.print(atomLabel[i].trim()+counts[atom]+" "); 
-					inputFile.printf("%16.8f",coordinates[i][0]);
-					inputFile.printf("%16.8f",coordinates[i][1]);
-					inputFile.printf("%16.8f",coordinates[i][2]);
+					inputFile.printf("%12.8f",coordinates[i][0]);
+					inputFile.printf("%12.8f",coordinates[i][1]);
+					inputFile.printf("%12.8f",coordinates[i][2]);
 					inputFile.println(" Angstrom");
 					previous=atomLabel[i].trim();
 			    }

@@ -253,7 +253,7 @@ subroutine gronor_read_vectors_and_determinants()
       !            enddo
       !          enddo
       if(ostate) then
-        write(fildet,203) trim(fragfile(i))
+        write(fildet,203) trim(detfile(i))
         write(filvec,201) trim(vecfile(i))
         if(ncorr.ne.0) then
           write(lfnout,604) fragLabel(i),idetm(i),nactm(i),inactm(i),nbasm(i), &
@@ -269,20 +269,20 @@ subroutine gronor_read_vectors_and_determinants()
     write(lfnout,605) maxci,maxnact,maxvec
 605 format(13x,' ------  ------',8x,'  ------',/,'        max:',i8,i8,8x,i8)
   endif
-201 format(a,'.vec')
-203 format(a,'.det')
+201 format(a)
+203 format(a)
 
   if(ipr.gt.0) then
     write(lfnout,606) (i,i=1,nbase)
 606 format(/,' Molecular states included in this calculation',//,' State        : ',20i4)
     do i=1,nmol
       if(i.eq.1) then
-        write(lfnout,608) i,(fragLabel(ncombv(i,j)),j=1,nbase)
+        write(lfnout,608) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
       else
-        write(lfnout,614) i,(fragLabel(ncombv(i,j)),j=1,nbase)
+        write(lfnout,614) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
       endif
-608   format(/,' Fragment',i4,' : ',20(2x,a2))
-614   format(' Fragment',i4,' : ',20(2x,a2))
+608   format(/,' Fragment',i4,' : ',20(a4))
+614   format(' Fragment',i4,' : ',20(a4))
     enddo
   endif
 

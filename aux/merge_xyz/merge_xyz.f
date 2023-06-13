@@ -35,7 +35,7 @@
          read(10,*) f
          do k=1,n
             read(10,*) atom, x, y, z
-            write(11,'(a,t3,3f12.8)') trim(atom),x,y,z
+            write(11,'(a,t3,3f16.8)') trim(atom),x,y,z
          enddo
          close(unit=10,status="keep")
       enddo

@@ -345,13 +345,13 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
             ' Generation matrix element list',t55,f12.3,/, &
             ' Reading and distribution of integrals',t55,f12.3,/, &
             ' Maximum task execution time',t55,f12.3)
-        write(lfnout,615) timer_wall_total(94),100.0d0*(timer_wall_total(94)/timer_wall_total(95)),&
+        write(lfnout,615) timer_wall_total(94), &
+            100.0d0*(timer_wall_total(94)/timer_wall_total(95)), &
             timer_wall_total(95)-timer_wall_total(94), &
-            100.0d0*(timer_wall_total(95)-timer_wall_total(94)), &
-            timer_wall_total(95),timer_wall_total(96), &
-            100.0d0*(timer_wall_total(96)/timer_wall_total(97)), &
+            100.0d0*(timer_wall_total(95)-timer_wall_total(94))/timer_wall_total(95), &
+            timer_wall_total(96),100.0d0*(timer_wall_total(96)/timer_wall_total(97)), &
             timer_wall_total(97)-timer_wall_total(96), &
-            100.0d0*(timer_wall_total(97)-timer_wall_total(96)),timer_wall_total(97)
+            100.0d0*(timer_wall_total(97)-timer_wall_total(96))/timer_wall_total(97)
 615     format(/, ' Request  time on master',t55,f12.3,' (',f7.3,'%)',/, &
             ' Response time on master',t55,f12.3,' (',f7.3,'%)',/, &
             ' Requestf time on master',t55,f12.3,' (',f7.3,'%)',/, &
@@ -359,9 +359,8 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         flush(lfnout)
       endif
       write(lfnout,614) timer_wall_total(99)-timer_wall_total(98), &
-          100d0*(timer_wall_total(99)-timer_wall_total(98)), &
-          timer_wall_total(99),timer_wall_total(98), &
-          100d0*timer_wall_total(98)/timer_wall_total(99)
+          100d0*(timer_wall_total(99)-timer_wall_total(98))/timer_wall_total(99), &
+          timer_wall_total(98),100d0*timer_wall_total(98)/timer_wall_total(99)
 614   format(/,' Setup wall clock time on master',t55,f12.3,' (',f7.3,'%)',/, &
           ' Matrix element calculation wall clock time on master',t55,f12.3,' (',f7.3,'%)')
       flush(lfnout)

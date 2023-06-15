@@ -21,7 +21,7 @@ public class gronor_Fragment {
 	String projectRoot;
 	
 	String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H"};
-    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1"};
+    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
     
     
     String[]  elements = new String[] {"H", "C", "N", "O", "F", "Cl", "Cu", "Se", "Br"};
@@ -1874,6 +1874,52 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".Q1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
+					inputFile.println("maxiter = 30");
+					inputFile.println("ipea = "+ipea);
+				}
+				inputFile.close();
+				return true;
+			} else if(nameS.trim().equals("SQ1")) {
+				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+				inputFile.println(">>> COPY $CurrDir/"+rootName.trim()+"_Q1.orb INPORB");
+				inputFile.println();
+				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
+				inputFile.println("nactel");
+				inputFile.println(" "+(numCASe));
+				inputFile.println("spin");
+				inputFile.println(" 5");
+				inputFile.println("inactive");
+				inputFile.println(" "+Inact);
+				inputFile.println("ras2");
+				inputFile.println(" "+numCASo);
+				inputFile.println("CIRoot");
+				inputFile.println("  1 3");
+				inputFile.println("  3");
+				inputFile.println("lumorb");
+				inputFile.println("cionly");
+				inputFile.println("prwf");
+				inputFile.println("  0");
+				inputFile.println("prsd");
+//				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
+			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
+				inputFile.println("&grid_it");
+				inputFile.println("name=SQ1");
+				inputFile.println("select");
+				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
+				inputFile.println("dense");
+				inputFile.println(">>> COPY "+rootName.trim()+".SQ1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				if(withCASPT2) {
+					inputFile.println("&caspt2");
+					inputFile.println("multistate = 3 1 2 3");
 					inputFile.println("maxiter = 30");
 					inputFile.println("ipea = "+ipea);
 				}

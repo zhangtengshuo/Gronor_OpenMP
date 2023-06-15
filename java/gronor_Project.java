@@ -52,7 +52,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 	Integer[] lenStateList = new Integer[maxSets];				// Number of states included from list for state set
 	Integer[] spinStateList = new Integer[maxSets];				// Spin of states included from list for state set
-	Integer[][] ndxStateList = new Integer[maxSets][15];		// Index to stateNames[] for each state in state set
+	Integer[][] ndxStateList = new Integer[maxSets][16];		// Index to stateNames[] for each state in state set
 	Integer[] fragmentStates = new Integer[35];					// Index to stateNames[] for each unique fragment state used
 	
 	Integer[] ndxMebfTable = new Integer[35];					// Index of each state into into MEBF table 
@@ -99,9 +99,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt"};
     String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"};
     String[] energyNames = new String[] {"E(DFT)", "E(SCF)", "E(CASSCF)", "E(CASPT2)"};
-    String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+"," "," "};
+    String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+","Q1","SQ1"};
 
-    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1"};
+    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
     Integer[] stateSpins = new Integer[] {1,1,1,2,2,3,3,1,2,3,1,2,3,5};
 	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
@@ -111,7 +111,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	String[] contracts = new String[] {"s", "m","l"};
 	String[] choleskys = new String[] {"high", "medium", "low", "none"};
 	
-	Integer[] stateLabelIndex = new Integer[numStateLabels+3];
+	Integer[] stateLabelIndex = new Integer[numStateLabels+4];
 	
     JTable statesTable;
     JTable fragmentsTable;
@@ -1065,7 +1065,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1"};
+	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
 
 		for(int i=0; i<numSets; i++) {
 			for(int j=0; j<18; j++) stateDefinitions[i][j]=" ";

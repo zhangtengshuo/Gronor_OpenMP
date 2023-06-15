@@ -28,6 +28,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JPanel expansionPanel;
 	JPanel numberPanel;
 	JPanel threshPanel;
+	JPanel fieldPanel;
 	JPanel basisPanel;
 	JPanel statesPanel;
 	JPanel fragmentsPanel;
@@ -120,6 +121,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JTable jobTable = new JTable();
 	JTable numberTable = new JTable();
 	JTable threshTable = new JTable();
+	JTable fieldTable = new JTable();
 	JTable basisTable = new JTable();
 	JTable expansionTable = new JTable();
 	JTable contractTable = new JTable();
@@ -162,6 +164,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Double thresh_CI = 1.0e-5;
     Double thresh_MO = 1.0e-4;
     Double ipea = 0.25;
+    Double fieldX = 0.0;
+    Double fieldY = 0.0;
+    Double fieldZ = 0.0;
 
     Integer noci0=0;
     Integer noci1=0;
@@ -392,6 +397,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	thresh_MO = Double.valueOf(card.substring(54,74)).doubleValue();
 		    	thresh_CI = Double.valueOf(card.substring(74,94)).doubleValue();
 		    	ipea      = Double.valueOf(card.substring(94,100)).doubleValue();
+		    	fieldX    = Double.valueOf(card.substring(100,120)).doubleValue();
+		    	fieldY    = Double.valueOf(card.substring(120,140)).doubleValue();
+		    	fieldZ    = Double.valueOf(card.substring(140,160)).doubleValue();
 			    
 		    	for(int i=0; i<numSets; i++) {
 		    		card=br.readLine();
@@ -470,6 +478,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%20.10f",thresh_MO);
 			    fw.printf("%20.10f",thresh_CI);
 			    fw.printf("%6.3f",ipea);
+			    fw.printf("%20.10f",fieldX);
+			    fw.printf("%20.10f",fieldY);
+			    fw.printf("%20.10f",fieldZ);
 			    fw.println();
 		    	for(int i=0; i<numSets; i++) {
 		    		fw.printf("%6d",lenStateList[i]);
@@ -911,6 +922,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		dimensionPanel.revalidate();
 		numberPanel.revalidate();	
 		threshPanel.revalidate();	
+		fieldPanel.revalidate();	
 		statesPanel.revalidate();
 		fragmentsPanel.revalidate();
 		energiesPanel.revalidate();
@@ -924,6 +936,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		jobPanel.repaint();
 		numberPanel.repaint();
 		threshPanel.repaint();
+		fieldPanel.repaint();
 		statesPanel.repaint();
 		fragmentsPanel.repaint();
 		energiesPanel.repaint();
@@ -1594,7 +1607,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			int last=namFragments[i].indexOf("_");
 			nameF=namFragments[i].substring(0,last)+nameA.trim();
 			nameP=projectName.trim()+nameA.trim();
-			fragment.write_Molcas_Int(nameF,nameP,basisSets[basisSet],contracts[contract],cholesky);
+			fragment.write_Molcas_Int(nameF,nameP,basisSets[basisSet],contracts[contract],cholesky,fieldX,fieldY,fieldZ);
 			fragment.write_Molcas_SCF(nameF,nameP,mult,chrg);
 
 			if(lenStateList[stateIndex]>0) {
@@ -1970,9 +1983,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		threshPanel = new JPanel();
 		threshPanel.setLayout(new BoxLayout(threshPanel,BoxLayout.X_AXIS));
-		threshPanel.setPreferredSize(new Dimension(140,70));
-		threshPanel.setMinimumSize(new Dimension(140,70));
-		threshPanel.setMaximumSize(new Dimension(140,70));
+		threshPanel.setPreferredSize(new Dimension(120,70));
+		threshPanel.setMinimumSize(new Dimension(120,70));
+		threshPanel.setMaximumSize(new Dimension(120,70));
 		LineBorder threshBorder = new LineBorder(Color.black);
 		threshPanel.setBorder(threshBorder);
 		Object[][] threshData = new Object[][] {
@@ -1983,7 +1996,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		String[] threshColumns = new String[] {" "," "};
 		threshTable = new JTable(threshData,threshColumns);
 		threshTable.setCellSelectionEnabled(true);
-		threshTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		threshTable.getColumnModel().getColumn(0).setMaxWidth(60);
 		threshTable.getColumnModel().getColumn(1).setMaxWidth(50);
 		ListSelectionModel threshSelectionModel = threshTable.getSelectionModel();
 		threshSelectionModel.addListSelectionListener(new ListSelectionListener() {
@@ -2014,6 +2027,56 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				threshData[0][1]=thresh_MO;
 				threshData[1][1]=thresh_CI;
 				threshData[2][1]=ipea;
+				update();
+			}
+		});
+
+		fieldPanel = new JPanel();
+		fieldPanel.setLayout(new BoxLayout(fieldPanel,BoxLayout.X_AXIS));
+		fieldPanel.setPreferredSize(new Dimension(120,70));
+		fieldPanel.setMinimumSize(new Dimension(120,70));
+		fieldPanel.setMaximumSize(new Dimension(120,70));
+		LineBorder fieldBorder = new LineBorder(Color.black);
+		fieldPanel.setBorder(fieldBorder);
+		Object[][] fieldData = new Object[][] {
+			{"field X", fieldX},
+			{"field Y", fieldY},
+			{"field Z", fieldZ}
+		};
+		String[] fieldColumns = new String[] {" "," "};
+		fieldTable = new JTable(fieldData,fieldColumns);
+		fieldTable.setCellSelectionEnabled(true);
+		fieldTable.getColumnModel().getColumn(0).setMaxWidth(60);
+		fieldTable.getColumnModel().getColumn(1).setMaxWidth(50);
+		ListSelectionModel fieldSelectionModel = fieldTable.getSelectionModel();
+		fieldSelectionModel.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				JFrame jf = new JFrame();
+				String value;
+				if(fieldTable.getSelectedRow()==0) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter field in X");
+					if(value.length()>0) fieldX=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(fieldTable.getSelectedRow()==1) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter field in Y");
+					if(value.length()>0) fieldY=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				if(fieldTable.getSelectedRow()==2) {
+					try {
+					value = JOptionPane.showInputDialog(jf,"Enter field in Z");
+					if(value.length()>0) fieldZ=Double.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				fieldData[0][1]=fieldX;
+				fieldData[1][1]=fieldY;
+				fieldData[2][1]=fieldZ;
 				update();
 			}
 		});
@@ -2313,6 +2376,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		numberPanel.add(numberTable);
 		threshPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		threshPanel.add(threshTable);
+		fieldPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		fieldPanel.add(fieldTable);
 		basisPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		basisPanel.add(basisTable);
 		basisPanel.add(contractTable);
@@ -2332,6 +2397,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		parametersPanel.add(numberPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(threshPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(fieldPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(expansionPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));

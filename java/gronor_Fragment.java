@@ -1172,7 +1172,7 @@ public class gronor_Fragment {
 		}	
 	}
 	
-	public Boolean write_Molcas_Int(String nameF, String nameP, String bs, String ct, Integer ch) {
+	public Boolean write_Molcas_Int(String nameF, String nameP, String bs, String ct, Integer ch, Double fx, Double fy, Double fz) {
 		String fileName = nameP.trim()+".xyz";
 		fragmentName=nameP.trim();
 		String rootName=nameP.trim();
@@ -1213,8 +1213,20 @@ public class gronor_Fragment {
 				inputFile.printf("%16.8f",coordinates[i][2]);
 				inputFile.println(" Angstrom");
 				previous=atomLabel[i].trim();
+				inputFile.println("end basis set");
+		    	inputFile.println();
 		    }
-		    inputFile.println("end basis set");
+		    if(fx!=0.0 || fy!=0.0 || fz!=0.0) {
+		    	inputFile.println("&ffpt &end");
+		    	inputFile.println("title");
+		    	inputFile.println(" Add small electric field in x direction");
+		    	inputFile.println("dipo");
+		    	if(fx!=0) inputFile.println("x "+fx);
+		    	if(fy!=0) inputFile.println("y "+fy);
+		    	if(fz!=0) inputFile.println("z "+fz);
+		    	inputFile.println("end of input");
+		    	inputFile.println();
+		    }
 			inputFile.println(">>> COPY "+rootName.trim()+".OneInt $CurrDir/"+rootName.trim()+".oneint");
 			inputFile.println(">>> COPY "+rootName.trim()+".RunFile $CurrDir/"+rootName.trim()+".runfil");
 		    inputFile.close();

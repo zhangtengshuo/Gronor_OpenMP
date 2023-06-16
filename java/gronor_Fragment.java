@@ -1447,7 +1447,6 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".D0.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
-					inputFile.println("Multistate= 2 1 2");
 					inputFile.println("maxiter = 30");
 					inputFile.println("ipea = "+ipea);
 				}

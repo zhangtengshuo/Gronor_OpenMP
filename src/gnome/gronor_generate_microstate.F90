@@ -23,6 +23,7 @@
 
 subroutine gronor_generate_microstates(ndets,microdets)
 use makebasedata
+use cidef, only : lfndbg
 
 implicit none
 
@@ -32,7 +33,7 @@ integer, intent(in)            :: ndets
 integer, intent(out)           :: microdets
 integer                        :: idet,jdet,ms,nci
 integer                        :: first,last,new,all_new
-real(kind=8)                   :: ci_seed
+real(kind=8)                   :: ci_seed,norm,invsqnorm
 real(kind=8),allocatable       :: coef_tmp(:)
 character(len=255)             :: occ_seed
 character(len=255),allocatable :: occ_tmp(:)
@@ -63,6 +64,7 @@ first = 1
 last = ndets
 microdets = last
 do ms = 2, spinFrag
+  norm = 0.0d0
   all_new = 0
   do idet = 1, nci
     coef_tmp(idet) = 0.0
@@ -94,9 +96,23 @@ do ms = 2, spinFrag
                                  micro_ndets(ms)) + coef_tmp(idet)
     endif
   end do
+  do idet = 1, micro_ndets(ms)
+    norm = norm + micro_coef(idet + microdets)**2
+  end do
+  invsqnorm = 1.0d0/sqrt(norm)
+  do idet = 1, micro_ndets(ms)
+    micro_coef(idet + microdets) = micro_coef(idet + microdets)*invsqnorm
+  end do
+  write(lfndbg,'(a,i4,a,f8.4)')'norm of ms-component ',ms,' : ',norm
   first = last + 1
   last = first-1 + micro_ndets(ms)
   microdets = microdets + micro_ndets(ms)
+end do
+
+
+write(lfndbg,*)'micro states'
+do idet = 1, microdets
+  write(lfndbg,'(i4,f8.4,4x,a)') idet,micro_coef(idet),trim(micro_occ(idet))
 end do
 
 deallocate(coef_tmp,occ_tmp)

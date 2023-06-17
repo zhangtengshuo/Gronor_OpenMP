@@ -82,6 +82,9 @@ module makebasedata
   real(kind=8),allocatable       :: coef_new(:)
   character(len=255),allocatable :: occ(:),micro_occ(:)
   character(len=255),allocatable :: occ_new(:)
+  character(len=8)               :: spin_mult(10)
+  data spin_mult/'singlet','doublet','triplet','quartet','quintet','sextet',    &
+                 'septet','octet','nonet','decaplet'/
 end module makebasedata
 
 module cidef

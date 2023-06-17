@@ -115,7 +115,16 @@ if(first_pass) then
   enddo
 endif
 
-!  ==== Spin function======
+!  ==== Spin function ======
+
+! complete the inter fragment couplings with the coupling between last and
+! one-but-last fragments (must be equal to the total spin of the MEBF)
+if (first_pass .and. nmol .gt. 2) then
+  do j=1,nbase
+    inter_couplings(nmol-1,j)=nspin
+  enddo
+endif
+
 ! First fragment, set the stage
 
 iFragWF=ncombv(1,iMEBF)
@@ -360,6 +369,16 @@ do iFrag=2,nmol
       write(lfndbg,'(I6,F15.8,3x,A)') idet,coefmebf(idet),trim(occmebf(idet))
     enddo
     flush(lfndbg)
+  endif
+  if ( newdets .eq. 0 ) then 
+    if (max(spin1,spin2,target_spin+1) .le. 10) then
+      write(dumstr,'(5a)')trim(spin_mult(spin1)),' cannot be coupled with ',           & 
+         trim(spin_mult(spin2)),' to ',spin_mult(target_spin+1)
+    else
+      write(dumstr,'(3(a,i3))')'spin ',spin1,' cannot be coupled with spin ',          &
+         spin2, ' to spin ',target_spin+1
+    endif
+    call gronor_abort(400,dumstr)
   endif
 ! Copy coefmebf into coef for further processing if more fragments are to be added.
 ! Same for occupations and spin to mimic a new "fragment 1" 

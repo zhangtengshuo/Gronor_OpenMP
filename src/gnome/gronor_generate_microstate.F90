@@ -103,16 +103,9 @@ do ms = 2, spinFrag
   do idet = 1, micro_ndets(ms)
     micro_coef(idet + microdets) = micro_coef(idet + microdets)*invsqnorm
   end do
-  write(lfndbg,'(a,i4,a,f8.4)')'norm of ms-component ',ms,' : ',norm
   first = last + 1
   last = first-1 + micro_ndets(ms)
   microdets = microdets + micro_ndets(ms)
-end do
-
-
-write(lfndbg,*)'micro states'
-do idet = 1, microdets
-  write(lfndbg,'(i4,f8.4,4x,a)') idet,micro_coef(idet),trim(micro_occ(idet))
 end do
 
 deallocate(coef_tmp,occ_tmp)

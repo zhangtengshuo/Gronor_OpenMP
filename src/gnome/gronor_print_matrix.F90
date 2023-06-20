@@ -8,10 +8,11 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   real(kind=8), intent(in) :: scale,rmat(nrdim,nrdim)
   character(len=128) :: header,key,labels(nrdim)
 
-  real(kind=8), allocatable :: rt(:)
+  real(kind=8), allocatable :: rt(:),rt0(:)
   integer :: i,j,k,nk,ii,il,ik,lenlab
 
   allocate(rt(nrdim))
+  allocate(rt0(nrdim))
 
   write(lfno,600) trim(header)
 600 format(//,1x,a)
@@ -81,9 +82,17 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
       enddo
       if(lfnt.gt.0) then
         if(nds.eq.3) then
-          write(lfnt,608) j,(rt(i),i=ii,il)
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-3) rt0(i)=0.0d0
+          enddo
+          write(lfnt,608) j,(rt0(i),i=ii,il)
         else
-          write(lfnt,609) j,(rt(i),i=ii,il)
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-6) rt0(i)=0.0d0
+          enddo
+          write(lfnt,609) j,(rt0(i),i=ii,il)
         endif
       endif
 608   format(i5,1x,10f20.3)
@@ -96,6 +105,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   if(lfnt.gt.0) flush(lfnt)
 
   deallocate(rt)
+  deallocate(rt0)
 
   return
 

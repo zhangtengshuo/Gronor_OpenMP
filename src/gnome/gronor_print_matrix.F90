@@ -83,7 +83,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
       if(lfnt.gt.0) then
         do i=ii,il
           rt0(i)=rt(i)
-          if(abs(rt0(i)).lt.1.0d-4) rt0(i)=0.0d0
+          if(abs(rt0(i)).lt.1.0d-3) rt0(i)=0.0d0
         enddo
         if(nds.eq.3) then
           write(lfnt,608) j,(rt0(i),i=ii,il)

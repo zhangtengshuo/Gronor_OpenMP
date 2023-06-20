@@ -297,7 +297,6 @@ module gnome_data
 
   integer :: ising
 
-  integer,external :: iloop
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
   real (kind=8), allocatable :: work(:)

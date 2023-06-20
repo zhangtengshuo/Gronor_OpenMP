@@ -187,13 +187,8 @@
       case(272)
          write(lfnabt,'(a)')  "gronor_detemine_maxcib: incompatible spin state"
 
-      case(280)
-         write(lfnabt,'(a)')  "gronor_iloop: wrong mode"
-
       case(290)
          write(lfnabt,'(a)')  "gronor_leftovers: problem in seticlosed"
-
-
 
       case(300)
          write(lfnabt,'(a)')  "gronor_calculate: inconsistent number of electrons"

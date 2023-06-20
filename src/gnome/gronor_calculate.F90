@@ -44,7 +44,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   external :: swatch,timer_start,timer_stop
   external :: MPI_iSend,MPI_Recv
-  external :: gronor_gnome,gronor_abort,iloop_init
+  external :: gronor_gnome,gronor_abort
 
   integer (kind=4) :: ireq,ierr
   integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
@@ -53,7 +53,6 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
   integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,indexv
-  logical :: osame
   integer :: ntvc,ivc,ibas
 
   integer :: ioff
@@ -93,8 +92,6 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   ioff=ndxdet(ib,jb)
 
-  osame=ib.eq.jb
-  call iloop_init(ndeti,ndetj,osame)
   if(ib.eq.jb) then
     l2=ndeti*(ndeti+1)/2
     ijend=l2
@@ -134,8 +131,8 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
     call timer_start(5)
 
-    if(idbg.ge.50) write(lfndbg,608) ij,iloop(ij,1),iloop(ij,2)
-608 format(//,25('='),' Matrix element',i6,' (',i4,'-',i4,')',25('='),//, &
+    if(idbg.ge.50) write(lfndbg,608) ij
+608 format(//,25('='),' Matrix element',i6,25('='),//, &
         '         Left determinant      Right determinant',/, &
         ' Irrep   inactive   active     inactive   active',//)
 

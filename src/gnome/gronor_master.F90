@@ -42,10 +42,9 @@ subroutine gronor_master()
 
   external :: swatch,timer_start,timer_stop
   external :: MPI_iSend,MPI_Recv
-  external :: iloop_init
 
   integer :: ibase,jbase,mdet,ibin,jbin
-  integer :: l2,i,j,k,l,ndone,nleft,nrb
+  integer :: l2,i,j,k,l,ndone,nleft
   integer :: igrp, ltemp, last, nthdet
   logical :: osame,ofirst,owait,oskipn
 
@@ -248,7 +247,7 @@ subroutine gronor_master()
       ndetj=idetb(jbase)
       nacti=nactb(ibase)
       nactj=nactb(jbase)
-      call iloop_init(ndeti,ndetj,osame)
+
       if(osame) then
         l2=ndeti*(ndeti+1)/2
         ijend=l2
@@ -296,7 +295,6 @@ subroutine gronor_master()
       flush(lfnday)
       call timer_start(99)
       
-      nrb=0
       ndone=0
       !          ibuf(1)=0
       !          ibuf(2)=0
@@ -376,17 +374,16 @@ subroutine gronor_master()
             call swatch(date,time)
             if(ipro.eq.1) rewind(unit=lfnpro)
             write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1, &
-                nrb,pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
-680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,3i6,i12,f8.3,'% ',2e16.8,5i8)
+                lgroup(igrp,4)-lgroup(igrp,3)+1, &
+              pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
+680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ',2e16.8,5i8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             call swatch(date,time)
             if(ipro.eq.2) rewind(unit=lfnpro)
             write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1, &
-                nrb,pnrb(ibin,jbin)
-681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,3i6,i12,f8.3,'% ')
+                lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
+681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ')
             flush(lfnpro)
           endif
           if(me.eq.master.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
@@ -628,9 +625,8 @@ subroutine gronor_master()
 
         if(ipr.eq.2.or.ipro.eq.4) then
           call swatch(date,time)
-          write(lfnpro,682) date(1:8),time(1:8), &
-              iremote,igrp,(ibuf(j),j=1,4),iloop(ibuf(3),1),iloop(ibuf(3),2)
-682       format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
+          write(lfnpro,682) date(1:8),time(1:8),iremote,igrp,(ibuf(j),j=1,4)
+682       format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10)
           flush(lfnpro)
         endif
 
@@ -724,14 +720,13 @@ subroutine gronor_master()
       if(ipro.eq.1.or.ipro.eq.3) then
         if(ipro.eq.1) rewind(unit=lfnpro)
         write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1,nrb, &
+            lgroup(igrp,4)-lgroup(igrp,3)+1, &
             pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
         flush(lfnpro)
       elseif(ipro.eq.2.or.ipro.eq.4) then
         if(ipro.eq.2) rewind(unit=lfnpro)
         write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1,nrb, &
-            pnrb(ibin,jbin)
+            lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
         flush(lfnpro)
       endif
       
@@ -943,7 +938,7 @@ subroutine gronor_master()
           if(ipro.eq.2.or.ipro.eq.4) then
             call swatch(date,time)
             write(lfnpro,682) date(1:8),time(1:8), &
-                iremote,igrp,(ibuf(k),k=1,4),iloop(ibuf(3),1),iloop(ibuf(3),2)
+                iremote,igrp,(ibuf(k),k=1,4)
             flush(lfnpro)
           endif
 
@@ -964,8 +959,8 @@ subroutine gronor_master()
 
       if(ipro.eq.1.or.ipro.eq.3) then
         write(lfnpro,683) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1
-683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,3i6)
+            lgroup(igrp,4)-lgroup(igrp,3)+1
+683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,i6)
       endif
     endif
 

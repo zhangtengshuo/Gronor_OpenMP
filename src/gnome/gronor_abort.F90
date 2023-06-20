@@ -211,6 +211,8 @@
       case(330)
          write(lfnabt,'(a)')  "gronor_lowdin: error in dsyevs"
 
+      case(400)
+         write(lfnabt,'(a,a)') 'Incompatible spin coupling: ',string
 
       case DEFAULT
          write(lfnabt,'(a,i6,a,a)') "Execution aborted with error code ",icode,": ",string

@@ -21,7 +21,7 @@ public class gronor_Fragment {
 	String projectRoot;
 	
 	String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H"};
-    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","Q1"};
+    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
     
     
     String[]  elements = new String[] {"H", "C", "N", "O", "F", "Cl", "Cu", "Se", "Br"};
@@ -827,6 +827,7 @@ public class gronor_Fragment {
 			card=br.readLine();
 			st = new StringTokenizer(card," ");
 			numAtoms=Integer.valueOf(st.nextToken());
+//			System.out.println("READING "+fileName+" : "+numAtoms);
 			card=br.readLine();
 			for(int i=0; i<numAtoms; i++) {
 				card=br.readLine();
@@ -867,6 +868,7 @@ public class gronor_Fragment {
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
+//		System.out.println("WRITING "+fileName+" : "+numAtoms);
 		File f = new File(fileName);
 		Boolean skip=true;
 		for(int i=0; i<6; i++) if(RandT[i]!=0.0) skip=false;
@@ -1170,7 +1172,7 @@ public class gronor_Fragment {
 		}	
 	}
 	
-	public Boolean write_Molcas_Int(String nameF, String nameP, String bs, String ct, Integer ch) {
+	public Boolean write_Molcas_Int(String nameF, String nameP, String bs, String ct, Integer ch, Double fx, Double fy, Double fz) {
 		String fileName = nameP.trim()+".xyz";
 		fragmentName=nameP.trim();
 		String rootName=nameP.trim();
@@ -1212,7 +1214,19 @@ public class gronor_Fragment {
 				inputFile.println(" Angstrom");
 				previous=atomLabel[i].trim();
 		    }
-		    inputFile.println("end basis set");
+			inputFile.println("end basis set");
+	    	inputFile.println();
+		    if(fx!=0.0 || fy!=0.0 || fz!=0.0) {
+		    	inputFile.println("&ffpt &end");
+		    	inputFile.println("title");
+		    	inputFile.println(" Add small electric field in x direction");
+		    	inputFile.println("dipo");
+		    	if(fx!=0) inputFile.println("x "+fx);
+		    	if(fy!=0) inputFile.println("y "+fy);
+		    	if(fz!=0) inputFile.println("z "+fz);
+		    	inputFile.println("end of input");
+		    	inputFile.println();
+		    }
 			inputFile.println(">>> COPY "+rootName.trim()+".OneInt $CurrDir/"+rootName.trim()+".oneint");
 			inputFile.println(">>> COPY "+rootName.trim()+".RunFile $CurrDir/"+rootName.trim()+".runfil");
 		    inputFile.close();
@@ -1222,7 +1236,7 @@ public class gronor_Fragment {
 		}
 	}
 
-	public Boolean write_Molcas_SCF(String nameF, String nameP, Integer mult) {
+	public Boolean write_Molcas_SCF(String nameF, String nameP, Integer mult, Integer chrg) {
 		String fileName = nameP.trim()+".xyz";
 		fragmentName=nameP.trim();
 		String rootName=nameP.trim();
@@ -1231,9 +1245,14 @@ public class gronor_Fragment {
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
-			if(mult>1) {
-				inputFile.println(" uhf");
-				inputFile.println(" spin "+mult);
+			if(chrg!=0) {
+				if(mult==1) { inputFile.println(" charge "); inputFile.println("  "+chrg);}
+			} else {
+				if(mult==2 || mult==4) {
+					inputFile.println(" charge");inputFile.println("  1");
+//					inputFile.println(" uhf");
+//					inputFile.println(" spin "+mult);
+				}
 			}
 			inputFile.close();
 			return true;
@@ -1428,7 +1447,6 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".D0.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
-					inputFile.println("Multistate= 2 1 2");
 					inputFile.println("maxiter = 30");
 					inputFile.println("ipea = "+ipea);
 				}
@@ -1784,6 +1802,44 @@ public class gronor_Fragment {
 				}
 				inputFile.close();
 				return true;
+			} else if(nameS.trim().equals("q1")) {
+				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
+				inputFile.println("nactel");
+				inputFile.println(" "+(numCASe));
+				inputFile.println("spin");
+				inputFile.println(" 4");
+				inputFile.println("inactive");
+				inputFile.println(" "+Inact);
+				inputFile.println("ras2");
+				inputFile.println(" "+numCASo);
+				inputFile.println("prwf");
+				inputFile.println("  0");
+				inputFile.println("prsd");
+//				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
+			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
+				inputFile.println("&grid_it");
+				inputFile.println("name=q1");
+				inputFile.println("select");
+				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
+				inputFile.println("dense");
+				inputFile.println(">>> COPY "+rootName.trim()+".q1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				if(withCASPT2) {
+					inputFile.println("&caspt2");
+					inputFile.println("maxiter = 30");
+					inputFile.println("ipea = "+ipea);
+				}
+				inputFile.close();
+				return true;
 			} else if(nameS.trim().equals("Q1")) {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("&rasscf");
@@ -1796,7 +1852,7 @@ public class gronor_Fragment {
 					}
 				}
 				inputFile.println("nactel");
-				inputFile.println(" "+(numCASe+1));
+				inputFile.println(" "+(numCASe));
 				inputFile.println("spin");
 				inputFile.println(" 5");
 				inputFile.println("inactive");
@@ -1810,13 +1866,59 @@ public class gronor_Fragment {
 				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
 			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
 				inputFile.println("&grid_it");
-				inputFile.println("name=T-");
+				inputFile.println("name=Q1");
 				inputFile.println("select");
 				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
 				inputFile.println("dense");
-				inputFile.println(">>> COPY "+rootName.trim()+".T-.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				inputFile.println(">>> COPY "+rootName.trim()+".Q1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
 				if(withCASPT2) {
 					inputFile.println("&caspt2");
+					inputFile.println("maxiter = 30");
+					inputFile.println("ipea = "+ipea);
+				}
+				inputFile.close();
+				return true;
+			} else if(nameS.trim().equals("SQ1")) {
+				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
+				inputFile.println(">>> COPY $CurrDir/"+rootName.trim()+"_Q1.orb INPORB");
+				inputFile.println();
+				inputFile.println("&rasscf");
+				if(!altDone && numAlt>0) {
+					altDone=true;
+					inputFile.println("alter");
+					inputFile.println(" "+numAlt);
+					for(int i=0; i<numAlt; i++) {
+						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
+					}
+				}
+				inputFile.println("nactel");
+				inputFile.println(" "+(numCASe));
+				inputFile.println("spin");
+				inputFile.println(" 5");
+				inputFile.println("inactive");
+				inputFile.println(" "+Inact);
+				inputFile.println("ras2");
+				inputFile.println(" "+numCASo);
+				inputFile.println("CIRoot");
+				inputFile.println("  1 3");
+				inputFile.println("  3");
+				inputFile.println("lumorb");
+				inputFile.println("cionly");
+				inputFile.println("prwf");
+				inputFile.println("  0");
+				inputFile.println("prsd");
+//				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".INPORB");
+				inputFile.println(">>> COPY "+rootName.trim()+".RasOrb.1 $CurrDir/"+rootName.trim()+ext.trim()+".orb");
+			    inputFile.println(">>> COPY "+rootName.trim()+".VecDet.1 $CurrDir/"+rootName.trim()+ext.trim()+".det");
+				inputFile.println("&grid_it");
+				inputFile.println("name=SQ1");
+				inputFile.println("select");
+				inputFile.println("1:"+(Inact+1)+"-"+(Inact+numCASo));
+				inputFile.println("dense");
+				inputFile.println(">>> COPY "+rootName.trim()+".SQ1.lus $CurrDir/"+rootName.trim()+ext.trim()+".lus");
+				if(withCASPT2) {
+					inputFile.println("&caspt2");
+					inputFile.println("multistate = 3 1 2 3");
 					inputFile.println("maxiter = 30");
 					inputFile.println("ipea = "+ipea);
 				}

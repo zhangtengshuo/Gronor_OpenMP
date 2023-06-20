@@ -49,7 +49,7 @@ subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
   two3rds  = 2.0d0/3.0d0
 
   lfnt=0
-  if(itest.gt.1) lfnt=lfntst
+  if(itest.gt.0) lfnt=lfntst
 
   allocate(dqnoci(nbase,nbase,9))
   allocate(obase(nbase,nbase))

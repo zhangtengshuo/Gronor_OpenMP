@@ -81,13 +81,17 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
         if(dabs(rt(i)).lt.1.0d-08) rt(i)=0.0d0
       enddo
       if(lfnt.gt.0) then
-        do i=ii,il
-          rt0(i)=rt(i)
-          if(abs(rt0(i)).lt.1.0d-3) rt0(i)=0.0d0
-        enddo
         if(nds.eq.3) then
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-3) rt0(i)=0.0d0
+          enddo
           write(lfnt,608) j,(rt0(i),i=ii,il)
         else
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-6) rt0(i)=0.0d0
+          enddo
           write(lfnt,609) j,(rt0(i),i=ii,il)
         endif
       endif

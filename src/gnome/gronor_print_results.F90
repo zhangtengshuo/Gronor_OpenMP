@@ -50,6 +50,8 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   real(kind=8)                  :: debye,angstrom
   integer                       :: lfnt
 
+  real(kind=8), allocatable :: nociwf0(:)
+
   debye    = 2.54174644986
   angstrom = 0.529177249
 
@@ -71,6 +73,7 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
     hev(1)=hbase(1,1)/sbase(1,1)
     nociwf(1,1) = 1.0d0
   else
+    allocate(nociwf0(nbase))
     do i=1,nbase
       do j=1,nbase
         tc(i,j)=0.0d0
@@ -149,11 +152,16 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
         write(lfnxrx,655) (nociwf(j,i),i=ii,il)
 655     format(12f20.10)
         if(itest.eq.2) then
-          write(lfntst,687) j,(nociwf(j,i),i=ii,il)
+          do i=ii,il
+            nociwf0(i)=nociwf(j,i)
+            if(abs(nociwf0(i)).lt.1.0d-6) nociwf0(i)=0.0d0            
+          enddo
+          write(lfntst,687) j,(nociwf0(i),i=ii,il)
 687       format(i14,t18,12f20.6)
         endif
       enddo
     enddo
+    deallocate(nociwf0)
   endif
 
   !   Dumping the results in the cml file

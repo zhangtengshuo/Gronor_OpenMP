@@ -23,7 +23,8 @@
 
 subroutine gronor_generate_microstates(ndets,microdets)
 use makebasedata
-use cidef, only : lfndbg
+use cidef, only            : lfndbg
+use gnome_parameters, only : idbg
 
 implicit none
 
@@ -103,6 +104,13 @@ do ms = 2, spinFrag
   do idet = 1, micro_ndets(ms)
     micro_coef(idet + microdets) = micro_coef(idet + microdets)*invsqnorm
   end do
+  if (idbg .ge. 20) then
+    write(lfndbg,'(a,f4.1)')'Microstates with ms = ',(spinFrag-1-2*(ms-1))/2.0
+    do idet = 1, micro_ndets(ms)
+      write(lfndbg,'(i5,f12.6,4x,a)')idet,micro_coef(idet+microdets),trim(micro_occ(idet+microdets))
+    end do
+    write(lfndbg,*)
+  endif
   first = last + 1
   last = first-1 + micro_ndets(ms)
   microdets = microdets + micro_ndets(ms)

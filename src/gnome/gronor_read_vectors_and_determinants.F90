@@ -105,8 +105,8 @@ subroutine gronor_read_vectors_and_determinants()
       write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
           'E(CASSCF)'
     endif
-607 format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
-627 format(/,a,t16,a,/,t34,a,/)
+607 format(/,a,t26,a,/,t34,a,t56,a,t78,a,/)
+627 format(/,a,t26,a,/,t34,a,/)
     write(dumstr,'(i4)') nmol
     write(fmt_1,'(3a)')'(',trim(adjustl(dumstr)),'a)'
     do j = 1,nbase

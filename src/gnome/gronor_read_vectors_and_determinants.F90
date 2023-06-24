@@ -43,7 +43,7 @@ subroutine gronor_read_vectors_and_determinants()
   integer           , allocatable  :: idet_raw(:)
   real      (kind=8)               :: sdum,sume,sump,sumc
   real      (kind=8), allocatable  :: civ_raw(:,:)
-  character (len=80)               :: dumstr
+  character (len=80)               :: dumstr,fmt_1
   character (len=255), allocatable :: occ_raw(:,:)
   logical                          :: ostate
 
@@ -105,11 +105,12 @@ subroutine gronor_read_vectors_and_determinants()
       write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
           'E(CASSCF)'
     endif
-607 format(/,a,t16,a,/,t34,a,t56,a,t78,a,/)
-627 format(/,a,t16,a,/,t34,a,/)
+607 format(/,a,t26,a,/,t34,a,t56,a,t78,a,/)
+627 format(/,a,t26,a,/,t34,a,/)
+    write(dumstr,'(i4)') nmol
+    write(fmt_1,'(3a)')'(',trim(adjustl(dumstr)),'a)'
     do j = 1,nbase
-      write(mebfLabel(j),616) (trim(fragLabel(ncombv(k,j))),k=1,nmol)
-616   format(10a)
+      write(mebfLabel(j),fmt=fmt_1) (trim(fragLabel(ncombv(k,j))),k=1,nmol)
       nume=0
       sume=0.0d0
       sump=0.0d0
@@ -125,8 +126,8 @@ subroutine gronor_read_vectors_and_determinants()
       else
         write(lfnout,637) mebflabel(j),nume,sume
       endif
-617   format(1x,a,t16,i5,3x,3f22.12)
-637   format(1x,a,t16,i5,3x,f22.12)
+617   format(1x,a,t26,i5,3x,3f22.12)
+637   format(1x,a,t26,i5,3x,f22.12)
     enddo
   endif
   write(lfnarx,701) nbase,nmol

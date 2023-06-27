@@ -2152,7 +2152,7 @@ subroutine gronor_main()
       sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
     enddo
     call gronor_multipoles_nuclear()
-    call gronor_print_results(hbase,sbase,nbase,hev)
+    call gronor_print_results(hbase)
     if(ncorr.eq.1) then
       allocate( hcorr(nbase,nbase) )
       hcorr=0.0
@@ -2160,10 +2160,10 @@ subroutine gronor_main()
           nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       if(ipr.le.40) write(lfnout,636)
 636   format(//,' After applying a shift to the diagonal of H')
-      call gronor_print_results(hcorr,sbase,nbase,hev)
+      call gronor_print_results(hcorr)
       deallocate( hcorr )
     endif
-    call gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
+    call gronor_print_dipole_moments()
     
     inquire(file=trim(fillog),exist=EXIST)
     open(unit=lfnlog,file=trim(fillog),form='formatted',status='unknown',position='append',err=993)

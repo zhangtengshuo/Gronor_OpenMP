@@ -19,24 +19,20 @@
 !! @date    2020
 !!
 
-subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
+subroutine gronor_print_dipole_moments()
 
   use gnome_parameters, only : itest,idbg
   use gnome_data, only : com
-  use cidef, only : lfnout,lfntst,lfnarx,mebfLabel,mebfLabels,header,key,nociwf,lfnxrx,lfndbg
+  use cidef
 
   implicit none
 
   external :: gronor_print_matrix
 
-  integer,intent(in)            :: nbase
   integer                       :: i,j,k,l,m
-  real(kind=8)                  :: hev(nbase)
 
   integer                       :: lfnt
 
-  real(kind=8),intent(in)       :: mnuc(9),hbase(nbase,nbase)
-  real(kind=8),intent(inout)    :: dqbase(nbase,nbase,9)
   real(kind=8),allocatable      :: dqnoci(:,:,:)
   real(kind=8),allocatable      :: obase(:,:)
   real(kind=8),allocatable      :: onoci(:,:)
@@ -125,7 +121,8 @@ subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
 693 format(t27,'X',t41,'Y',t55,'Z',t67,'Total',/)
 699 format(t27,'XX',t41,'XY',t55,'XZ',t69,'YY',t83,'YZ',t97,'ZZ',/)
 691 format(1x,i15,t18,4f14.4)
-692 format(1x,a,t18,4f14.4)
+692 format(1x,a,t26,4f14.4)
+662 format(1x,i5,t18,4f14.4)
   write(lfnout,688)
   write(lfnout,689) 0.0d0,0.0d0,0.0d0,(com(j),j=1,3)
   write(lfnout,690)
@@ -135,8 +132,13 @@ subroutine gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
       write(lfnout,691) j,(debye*dqbase(j,j,k),k=1,3),debye* &
           sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
     else
-      write(lfnout,692) trim(mebfLabel(j)),(debye*dqbase(j,j,k),k=1,3),debye* &
-          sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
+      if(lablen.le.labmax) then
+        write(lfnout,692) trim(mebfLabel(j)),(debye*dqbase(j,j,k),k=1,3),debye* &
+            sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
+      else
+        write(lfnout,662) j,(debye*dqbase(j,j,k),k=1,3),debye* &
+            sqrt(dqbase(j,j,1)**2+dqbase(j,j,2)**2+dqbase(j,j,3)**2)
+      endif
     endif
   enddo
 694 format(/,' Dipole moment of NOCI states (Debye)',/)

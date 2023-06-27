@@ -98,19 +98,41 @@ subroutine gronor_read_vectors_and_determinants()
 618 format(i4)
   else
     mebfLabels = .true.
-    if(ncorr.ne.0) then
-      write(lfnout,607) ' MEBF ','Electrons   Sum of fragment energies', &
-          'E(CASSCF)','E(CASPT2)','E_corr'
+    write(dumstr,'(i4)') nmol
+    write(fmt_1,'(3a)')'(',trim(adjustl(dumstr)),'a)'
+    lablen=0
+    do j = 1,nbase
+      write(mebfLabel(j),fmt=fmt_1) (trim(fragLabel(ncombv(k,j))),k=1,nmol)
+      lablen=max(lablen,len(trim(mebfLabel(j))))
+    enddo
+    if(lablen.le.labmax) then
+      if(ncorr.ne.0) then
+        write(lfnout,607) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)','E(CASPT2)','E_corr'
+      else
+        write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)'
+      endif
     else
-      write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
-          'E(CASSCF)'
+      write(lfnout,616) ' Many Electron Basis Functions'
+616   format(/,a,/)
+      do j=1,nbase
+        write(lfnout,626) j,trim(mebfLabel(j))
+626     format(i4,': ',a)
+      enddo
+      if(ncorr.ne.0) then
+        write(lfnout,647) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)','E(CASPT2)','E_corr'
+      else
+        write(lfnout,667) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)'
+      endif
     endif
 607 format(/,a,t26,a,/,t34,a,t56,a,t78,a,/)
 627 format(/,a,t26,a,/,t34,a,/)
-    write(dumstr,'(i4)') nmol
-    write(fmt_1,'(3a)')'(',trim(adjustl(dumstr)),'a)'
+647 format(//,a,t26,a,/,t34,a,t56,a,t78,a,/)
+667 format(//,a,t26,a,/,t34,a,/)
     do j = 1,nbase
-      write(mebfLabel(j),fmt=fmt_1) (trim(fragLabel(ncombv(k,j))),k=1,nmol)
       nume=0
       sume=0.0d0
       sump=0.0d0
@@ -121,13 +143,23 @@ subroutine gronor_read_vectors_and_determinants()
         sump=sump+ecaspt2(ncombv(k,j))
         sumc=sumc+ecorr(ncombv(k,j))
       enddo
-      if(ncorr.ne.0) then
-        write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+      if(lablen.le.labmax) then
+        if(ncorr.ne.0) then
+          write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+        else
+          write(lfnout,637) mebflabel(j),nume,sume
+        endif
       else
-        write(lfnout,637) mebflabel(j),nume,sume
+        if(ncorr.ne.0) then
+          write(lfnout,657) j,nume,sume,sump,sumc
+        else
+          write(lfnout,677) j,nume,sume
+        endif
       endif
 617   format(1x,a,t26,i5,3x,3f22.12)
 637   format(1x,a,t26,i5,3x,f22.12)
+657   format(1x,i4,t26,i5,3x,3f22.12)
+677   format(1x,i4,t26,i5,3x,f22.12)
     enddo
   endif
   write(lfnarx,701) nbase,nmol

@@ -129,7 +129,8 @@ module cidef
 
   logical :: vecdet,lcpr
 
-  integer :: ncorr,nwt
+  integer :: ncorr,nwt,lablen
+  integer, parameter :: labmax=24
   real(kind=8), allocatable :: ecorr(:)           ! the shifts
   real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
   real(kind=8)              :: mnuc(9),maxcoef

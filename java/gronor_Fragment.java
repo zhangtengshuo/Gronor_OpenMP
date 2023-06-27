@@ -1894,7 +1894,7 @@ public class gronor_Fragment {
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe));
 				inputFile.println("spin");
-				inputFile.println(" 5");
+				inputFile.println(" 1");
 				inputFile.println("inactive");
 				inputFile.println(" "+Inact);
 				inputFile.println("ras2");

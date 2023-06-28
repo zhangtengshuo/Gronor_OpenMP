@@ -1,5 +1,5 @@
 subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olower,scale, &
-    rmat,nrdim,ncols,nds)
+    rmat,nrdim,ncols,nds,olab)
 
   implicit none
 
@@ -7,6 +7,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   logical, intent(in) :: olabel,olower
   real(kind=8), intent(in) :: scale,rmat(nrdim,nrdim)
   character(len=128) :: header,key,labels(nrdim)
+  logical :: olab
 
   real(kind=8), allocatable :: rt(:),rt0(:)
   integer :: i,j,k,nk,ii,il,ik,lenlab
@@ -29,7 +30,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   do k=1,nk
     ii=(k-1)*ncols+1
     il=min(nrdim,k*ncols)
-    if(.not.olabel) then
+    if(.not.olab) then
       write(lfno,602) (i,i=ii,il)
 602   format(/,6x,'|',7(6x,i8,6x))
       write(lfno,603) ' -----|',('--------------------',i=ii,il)
@@ -55,7 +56,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
     do j=1,nrdim
       ik=il
       if(olower) ik=min(j-1,il)
-      if (.not.olabel) then
+      if (.not.olab) then
         write(lfno,605) j,(scale*rmat(i,j),i=ii,ik)
 605     format(1x,i4,1x,'|',10f20.10)
       else

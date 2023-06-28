@@ -21,7 +21,7 @@
 
 subroutine gronor_print_results(hb)
 
-  use gnome_parameters, only : itest,ncols
+  use gnome_parameters, only : itest,ncols,labmax
   use cidef
 
   implicit none
@@ -58,12 +58,12 @@ subroutine gronor_print_results(hb)
   key='Hamil'
   header='Hamiltonian Matrix'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,hb,nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,hb,nbase,7,6,lablen.le.labmax)
 
   key='Overl'
   header='Overlap Matrix'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6,lablen.le.labmax)
 
   !      allocate( nociwf(nbase,nbase) )
   if (nbase .eq. 1) then
@@ -86,7 +86,7 @@ subroutine gronor_print_results(hb)
     key='Coupl'
     header='Electronic Couplings (meV)'
     call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-        mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3)
+        mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3,lablen.le.labmax)
 
     !     Diagonalize the NOCI matrix and print the energies and wave functions
     !     Don't touch hb and sbase, needed again when shifting
@@ -147,7 +147,7 @@ subroutine gronor_print_results(hb)
 685         format(1x,a,t26,12f20.10)
           else
             write(lfnout,686) j,(nociwf(j,i),i=ii,il)
-686         format(1x,i5,2x,12f20.10)
+686         format(1x,i4,t18,12f20.10)
           endif
         endif
         write(lfnarx,655) (nociwf(j,i),i=ii,il)

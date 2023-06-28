@@ -130,7 +130,6 @@ module cidef
   logical :: vecdet,lcpr
 
   integer :: ncorr,nwt,lablen
-  integer, parameter :: labmax=24
   real(kind=8), allocatable :: ecorr(:)           ! the shifts
   real(kind=8), allocatable :: hcorr(:,:) ! the shifted Hamiltonian
   real(kind=8)              :: mnuc(9),maxcoef
@@ -147,7 +146,7 @@ module gnome_parameters
   implicit none
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim
-  integer :: itest,ifault,isolver,jsolver,idevel,idist
+  integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha,ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
   integer :: iswsvj,iswevj

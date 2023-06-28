@@ -21,7 +21,7 @@
 
 subroutine gronor_print_dipole_moments()
 
-  use gnome_parameters, only : itest,idbg
+  use gnome_parameters, only : itest,idbg,labmax
   use gnome_data, only : com
   use cidef
 
@@ -120,7 +120,7 @@ subroutine gronor_print_dipole_moments()
 690 format(/,' Dipole moment of MEBFs (Debye)',/)
 693 format(t27,'X',t41,'Y',t55,'Z',t67,'Total',/)
 699 format(t27,'XX',t41,'XY',t55,'XZ',t69,'YY',t83,'YZ',t97,'ZZ',/)
-691 format(1x,i15,t18,4f14.4)
+691 format(1x,i5,t18,4f14.4)
 692 format(1x,a,t26,4f14.4)
 662 format(1x,i5,t18,4f14.4)
   write(lfnout,688)
@@ -155,11 +155,16 @@ subroutine gronor_print_dipole_moments()
   write(lfnout,699)
 697 format(1x,i15,t18,6f14.4)
 698 format(1x,a,t18,6f14.4)
+668 format(1x,i5,t18,6f14.4)
   do j=1,nbase        
     if(.not.mebfLabels) then
       write(lfnout,697) j,(debye*angstrom*dqbase(j,j,k),k=4,9)
     else
-      write(lfnout,698) trim(mebfLabel(j)),(debye*angstrom*dqbase(j,j,k),k=4,9)
+      if(lablen.le.labmax) then
+        write(lfnout,698) trim(mebfLabel(j)),(debye*angstrom*dqbase(j,j,k),k=4,9)
+      else
+        write(lfnout,668) j,(debye*angstrom*dqbase(j,j,k),k=4,9)
+      endif
     endif
   enddo
   write(lfnout,696)
@@ -184,7 +189,11 @@ subroutine gronor_print_dipole_moments()
     if(.not.mebfLabels) then
       write(lfnout,697) j,(debye*angstrom*(qtraceless(j,j,k)),k=1,6)
     else
-      write(lfnout,698) trim(mebfLabel(j)),(debye*angstrom*(qtraceless(j,j,k)),k=1,6)
+      if(lablen.le.labmax) then
+        write(lfnout,698) trim(mebfLabel(j)),(debye*angstrom*(qtraceless(j,j,k)),k=1,6)
+      else
+        write(lfnout,668) j,(debye*angstrom*(qtraceless(j,j,k)),k=1,6)
+      endif
     endif
   enddo
 
@@ -213,38 +222,38 @@ subroutine gronor_print_dipole_moments()
   key='dipMx'
   header='Component X'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,1),nbase,7,6,lablen.le.labmax)
   key='dipMy'
   header='Component Y'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,2),nbase,7,6,lablen.le.labmax)
   key='dipMz'
   header='Component Z'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,dqbase(1,1,3),nbase,7,6,lablen.le.labmax)
   key='oscM '
   header='Oscillator strength'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,obase,nbase,7,6,lablen.le.labmax)
 
   write(lfnout,705)
 705 format(/,' Transition dipole moments of NOCI states (a.u.)',/)
   key='dipNx'
   header='Component X'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7,6)
+      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,1),nbase,7,6,.false.)
   key='dipNy'
   header='Component Y'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7,6)
+      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,2),nbase,7,6,.false.)
   key='dipNz'
   header='Component Z'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7,6)
+      .false.,mebfLabel,.false.,1.0d0,dqnoci(1,1,3),nbase,7,6,.false.)
   key='oscN '
   header='Oscillator strength'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7,6)
+      .false.,mebfLabel,.false.,1.0d0,onoci,nbase,7,6,.false.)
 
   deallocate(dqnoci)
   deallocate(obase)

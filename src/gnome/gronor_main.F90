@@ -309,7 +309,7 @@ subroutine gronor_main()
 
     !     Default label length printed
 
-    labmax=24
+    labmax=12
 
     !     Distribution of integrals
     !     0 : MPI_Bcast to all ranks (default)

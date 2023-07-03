@@ -307,6 +307,10 @@ subroutine gronor_main()
 
     itest=0
 
+    !     Default label length printed
+
+    labmax=12
+
     !     Distribution of integrals
     !     0 : MPI_Bcast to all ranks (default)
     !     1 : MPI_Bcast to all nodes, followed by MPI_Bcast to ranks within nodes
@@ -593,10 +597,10 @@ subroutine gronor_main()
           ' Number of many-electron base states',t40,i10,/)
     endif
     if(ipr.ge.20) then
-      write(lfnout,606) ntaska,ntask,mgr, &
+      write(lfnout,606) mgr,ntaska,ntask, &
           max(1,nbatcha),max(1,nbatch),loada,load
-606   format(' Task size',t40,i10,i6, &
-          t60,'Number of ranks per task',t100,i10,/, &
+606   format(' Number of ranks per task',t40,i10,//, &
+          ' Task size',t40,i10,i6,/, &
           ' Batch size',t40,i10,i6,/, &
           ' Load balancing',t40,i10,i6)
     endif
@@ -668,7 +672,7 @@ subroutine gronor_main()
       idum(32)=mpibuf
       idum(33)=idbg
       idum(34)=nummps
-      idum(35)=0
+      idum(35)=labmax
       idum(36)=itim
       idum(37)=iaslvr
       idum(38)=jaslvr
@@ -738,7 +742,7 @@ subroutine gronor_main()
       mpibuf=idum(32)
       idbg=idum(33)
       nummps=idum(34)
-
+      labmax=idum(35)
       itim=idum(36)
       iaslvr=idum(37)
       jaslvr=idum(38)
@@ -2112,10 +2116,10 @@ subroutine gronor_main()
     key='     '
     header='Hamiltonian Matrix (unnormalized)'
     call gronor_print_matrix(lfnout,0,0,0,header,key, &
-        mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
+        mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6,lablen.le.labmax)
     header='Overlap Matrix (unnormalized)'
     call gronor_print_matrix(lfnout,0,0,0,header,key, &
-        mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
+        mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6,lablen.le.labmax)
 
     
     
@@ -2152,7 +2156,7 @@ subroutine gronor_main()
       sbase(i,i)=(1.0d0/sbase(i,i))*sbase(i,i)
     enddo
     call gronor_multipoles_nuclear()
-    call gronor_print_results(hbase,sbase,nbase,hev)
+    call gronor_print_results(hbase)
     if(ncorr.eq.1) then
       allocate( hcorr(nbase,nbase) )
       hcorr=0.0
@@ -2160,10 +2164,10 @@ subroutine gronor_main()
           nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,sbase,hcorr)
       if(ipr.le.40) write(lfnout,636)
 636   format(//,' After applying a shift to the diagonal of H')
-      call gronor_print_results(hcorr,sbase,nbase,hev)
+      call gronor_print_results(hcorr)
       deallocate( hcorr )
     endif
-    call gronor_print_dipole_moments(dqbase,mnuc,nbase,hev,hbase)
+    call gronor_print_dipole_moments()
     
     inquire(file=trim(fillog),exist=EXIST)
     open(unit=lfnlog,file=trim(fillog),form='formatted',status='unknown',position='append',err=993)
@@ -2207,7 +2211,7 @@ subroutine gronor_main()
     call gronor_finalize_cml
     close(unit=lfncml,status='keep')
     !
-803 format(5x,8f20.10)
+803 format(5x,10f20.10)
     write(lfnlog,804)
 804 format(' ')
     close(unit=lfnlog,status='keep')

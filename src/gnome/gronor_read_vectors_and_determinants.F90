@@ -98,19 +98,41 @@ subroutine gronor_read_vectors_and_determinants()
 618 format(i4)
   else
     mebfLabels = .true.
-    if(ncorr.ne.0) then
-      write(lfnout,607) ' MEBF ','Electrons   Sum of fragment energies', &
-          'E(CASSCF)','E(CASPT2)','E_corr'
-    else
-      write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
-          'E(CASSCF)'
-    endif
-607 format(/,a,t26,a,/,t34,a,t56,a,t78,a,/)
-627 format(/,a,t26,a,/,t34,a,/)
     write(dumstr,'(i4)') nmol
     write(fmt_1,'(3a)')'(',trim(adjustl(dumstr)),'a)'
+    lablen=0
     do j = 1,nbase
       write(mebfLabel(j),fmt=fmt_1) (trim(fragLabel(ncombv(k,j))),k=1,nmol)
+      lablen=max(lablen,len(trim(mebfLabel(j))))
+    enddo
+    if(lablen.le.labmax) then
+      if(ncorr.ne.0) then
+        write(lfnout,607) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)','E(CASPT2)','E_corr'
+      else
+        write(lfnout,627) ' MEBF ','Electrons   Sum of fragment energies', &
+            'E(CASSCF)'
+      endif
+    else
+      write(lfnout,616) ' Many Electron Basis Functions'
+616   format(/,a,/)
+      do j=1,nbase
+        write(lfnout,626) j,trim(mebfLabel(j))
+626     format(i4,': ',a)
+      enddo
+      if(ncorr.ne.0) then
+        write(lfnout,647) ' MEBF','Electrons   Sum of fragment energies', &
+            'E(CASSCF)','E(CASPT2)','E_corr'
+      else
+        write(lfnout,667) ' MEBF','Electrons   Sum of fragment energies', &
+            'E(CASSCF)'
+      endif
+    endif
+607 format(/,a,t26,a,/,t43,a,t65,a,t87,a,/)
+627 format(/,a,t26,a,/,t43,a,/)
+647 format(//,a,t8,a,/,t26,a,t48,a,t70,a,/)
+667 format(//,a,t8,a,/,t26,a,/)
+    do j = 1,nbase
       nume=0
       sume=0.0d0
       sump=0.0d0
@@ -121,13 +143,23 @@ subroutine gronor_read_vectors_and_determinants()
         sump=sump+ecaspt2(ncombv(k,j))
         sumc=sumc+ecorr(ncombv(k,j))
       enddo
-      if(ncorr.ne.0) then
-        write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+      if(lablen.le.labmax) then
+        if(ncorr.ne.0) then
+          write(lfnout,617) mebflabel(j),nume,sume,sump,sumc
+        else
+          write(lfnout,637) mebflabel(j),nume,sume
+        endif
       else
-        write(lfnout,637) mebflabel(j),nume,sume
+        if(ncorr.ne.0) then
+          write(lfnout,657) j,nume,sume,sump,sumc
+        else
+          write(lfnout,677) j,nume,sume
+        endif
       endif
 617   format(1x,a,t26,i5,3x,3f22.12)
 637   format(1x,a,t26,i5,3x,f22.12)
+657   format(1x,i4,t8,i5,t17,3f22.12)
+677   format(1x,i4,t8,i5,t17,f22.12)
     enddo
   endif
   write(lfnarx,701) nbase,nmol
@@ -240,9 +272,9 @@ subroutine gronor_read_vectors_and_determinants()
       write(lfnout,623)
     endif
 603 format(/,' Dimensions',//,'       istate   ndetm   nactm  ninatm   nbasm', &
-        '  nelecs         CASSCF energy  ','       CASPT2 energy    files',/)
+        '  nelecs',9x,'CASSCF energy',9x,'CASPT2 energy',13x,'E_corr',7x,'files',/)
 623 format(/,' Dimensions',//,'       istate   ndetm   nactm  ninatm   nbasm', &
-        '  nelecs         CASSCF energy    files',/)
+        '  nelecs',9x,'CASSCF energy',4x,'files',/)
     do i=1,mstates
       ostate=.true.
       do j=1,i-1
@@ -257,18 +289,18 @@ subroutine gronor_read_vectors_and_determinants()
         write(fildet,203) trim(detfile(i))
         write(filvec,201) trim(vecfile(i))
         if(ncorr.ne.0) then
-          write(lfnout,604) fragLabel(i),idetm(i),nactm(i),inactm(i),nbasm(i), &
-              nElectrons(i),ecasscf(i),ecaspt2(i),trim(fildet),trim(filvec)
+          write(lfnout,604) adjustr(fragLabel(i)(1:6)),idetm(i),nactm(i),inactm(i),nbasm(i), &
+              nElectrons(i),ecasscf(i),ecaspt2(i),ecaspt2(i)-ecasscf(i),trim(fildet),trim(filvec)
         else
-          write(lfnout,634) fragLabel(i),idetm(i),nactm(i),inactm(i),nbasm(i), &
+          write(lfnout,634) adjustr(fragLabel(i)(1:6)),idetm(i),nactm(i),inactm(i),nbasm(i), &
               nElectrons(i),ecasscf(i),trim(fildet),trim(filvec)
         endif
-604     format(8x,2x,a2,5i8,3x,2f22.12,2x,a,', ',a)
-634     format(8x,2x,a2,5i8,3x,f22.12,2x,a,', ',a)
+604     format(6x,a6,5i8,3x,3f22.12,2x,a,', ',a)
+634     format(6x,a6,5i8,3x,f22.12,2x,a,', ',a)
       endif
     enddo
     write(lfnout,605) maxci,maxnact,maxvec
-605 format(13x,' ------  ------',8x,'  ------',/,'        max:',i8,i8,8x,i8)
+605 format(13x,' ------  ------',8x,'  ------',/,'        Max:',i8,i8,8x,i8)
   endif
 201 format(a)
 203 format(a)

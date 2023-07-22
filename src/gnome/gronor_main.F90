@@ -143,7 +143,7 @@ subroutine gronor_main()
   bias=0.0d0
   deta=0.0d0
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
 
     user='                  '
     host='                  '
@@ -636,7 +636,7 @@ subroutine gronor_main()
   
   if(np.gt.1) then
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       idum(1)=nmol
       idum(2)=mstates
       idum(3)=nbase
@@ -703,17 +703,17 @@ subroutine gronor_main()
     endif
 
     ncount=55
-    call MPI_Bcast(idum,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(idum,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
     ncount=6
-    call MPI_Bcast(rdum,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(rdum,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
-    call MPI_Bcast(root,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(root,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
-    call MPI_Bcast(mebfroot,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(mebfroot,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
-    call MPI_Bcast(combas,ncount,MPI_CHAR,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(combas,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
 
-    if(me.ne.master) then
+    if(me.ne.mstr) then
       nmol=idum(1)
       mstates=idum(2)
       nbase=idum(3)
@@ -768,7 +768,7 @@ subroutine gronor_main()
 
     int1=(nbas*(nbas+1))/2
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       call timer_stop(99)
       call swatch(date,time)
       write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Input broadcasted'
@@ -801,7 +801,7 @@ subroutine gronor_main()
   nacc0=naccel
   nacc1=naccel
 
-  if(me.ne.master) then
+  if(me.ne.mstr) then
     nmol=idum(1)
     mstates=idum(2)
     nbase=idum(3)
@@ -838,18 +838,18 @@ subroutine gronor_main()
   enddo
   if(np.gt.0) then
     ncount=maxci*mstates
-    call MPI_Bcast(civm,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(civm,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
     ncount=maxvec*maxvec*mstates
-    call MPI_Bcast(vecsm,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(vecsm,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
     ncount=maxnact*maxci*mstates
-    call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(ioccm,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
     ncount=nmol*nbase
-    call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(ncombv,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
     ncount=5*mstates
-    call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(nbuf,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
     if(nmol.ge.3)then
       ncount=(nmol-1)*nbase
-      call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(inter_couplings,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
     endif
   endif
   do i=1,mstates
@@ -900,8 +900,8 @@ subroutine gronor_main()
     endif
   enddo
 
-  map2(master+1,5)=0
-  map2(master+1,2)=1
+  map2(mstr+1,5)=0
+  map2(mstr+1,2)=1
 
   !     Limit the number of accelerated ranks per node to naccel
 
@@ -975,7 +975,7 @@ subroutine gronor_main()
       map2(allgroups(i,j+1)+1,3)=i
     enddo
   enddo
-  allheads(numgrp+1)=master
+  allheads(numgrp+1)=mstr
 
   if(numgrp.eq.0) then
     write(*,'(a)') 'Number of groups is zero'
@@ -991,14 +991,14 @@ subroutine gronor_main()
     enddo
   enddo
 
-  if(me.ne.master) then
+  if(me.ne.mstr) then
     iamhead=0
     if(me.eq.thisgroup(2)) iamhead=1
     myhead=thisgroup(2)
     numdev=thisgroup(1)
     if(numdev.lt.0) numdev=0
   else
-    myhead=master
+    myhead=mstr
     numdev=-1
   endif
 
@@ -1009,7 +1009,7 @@ subroutine gronor_main()
       if(me.eq.allgroups(i,j+1)) mygroup=i
     enddo
   enddo
-  ranks_heads(numgrp+1)=master
+  ranks_heads(numgrp+1)=mstr
 
 
   new=-1
@@ -1021,7 +1021,7 @@ subroutine gronor_main()
     call MPI_Group_Rank(group_heads,new,ierr)
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     nrg=0
     do j=1,numgrp
       do i=2,mgr+1
@@ -1233,7 +1233,7 @@ subroutine gronor_main()
     jp=map2(i,4)
   enddo
   
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     write(lfnrnk,6666)
 6666 format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr',' Ac=Accel',//, &
          '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
@@ -1261,15 +1261,15 @@ subroutine gronor_main()
     flush(lfnrnk)
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     flush(lfnout)
     flush(lfnrnk)
   endif
 
   iamacc=0
   iamactive=0
-  if(me.eq.master) iamactive=1
-  if(me.ne.master.and.thisgroup(1).gt.0) then
+  if(me.eq.mstr) iamactive=1
+  if(me.ne.mstr.and.thisgroup(1).gt.0) then
     do i=1,mgr
       if(me.eq.thisgroup(i+1)) iamacc=1
     enddo
@@ -1361,7 +1361,7 @@ subroutine gronor_main()
     if(jnslvr.eq.1) jsolver=SOLVER_MKL
   endif
 
-  if(me.eq.master.and.ipr.ge.20) then
+  if(me.eq.mstr.and.ipr.ge.20) then
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     if(numacc.gt.0) then
@@ -1390,12 +1390,12 @@ subroutine gronor_main()
 620 format(' Non-accelerated ranks use MKL QR dsyevd')
   endif
 
-  if(me.eq.master) numdev=0
+  if(me.eq.mstr) numdev=0
 
   call timer_stop(3)
   call timer_start(7)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99), &
@@ -1428,7 +1428,7 @@ subroutine gronor_main()
       flush(lfndbg)
     endif
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       call timer_stop(99)
       call swatch(date,time)
       write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99), &
@@ -1470,7 +1470,7 @@ subroutine gronor_main()
       flush(lfndbg)
     endif
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       call timer_stop(99)
       call swatch(date,time)
       write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99), &
@@ -1518,7 +1518,7 @@ subroutine gronor_main()
       enddo
     enddo
     idetb(ibase)=ndet_rev
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       call timer_stop(99)
       call swatch(date,time)
       write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99), &
@@ -1556,7 +1556,7 @@ subroutine gronor_main()
   call timer_stop(7)
   call timer_start(8)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),'  :  Start of ME list generation'
@@ -1614,7 +1614,7 @@ subroutine gronor_main()
     enddo
   enddo
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99), &
@@ -1652,7 +1652,7 @@ subroutine gronor_main()
     enddo
   enddo
 
-  if(me.ne.master) then
+  if(me.ne.mstr) then
     lnxt=0
     lcur=0
     do ibase=1,nbase
@@ -1664,7 +1664,7 @@ subroutine gronor_main()
     enddo
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Base states generated'
@@ -1678,7 +1678,7 @@ subroutine gronor_main()
   allocate(nsing(nbase,nbase,5))
   allocate(bpdone(nbase,nbase))
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     do i=1,nbase
       do j=1,nbase
         bpdone(i,j)=.false.
@@ -1726,7 +1726,7 @@ subroutine gronor_main()
   if(npg.gt.np) npg=np-numidle-1
   ngr=np/npg
   
-  if(me.eq.master.and.ipr.ge.0) then
+  if(me.eq.mstr.and.ipr.ge.0) then
     write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr,numacc,numnon
 621 format(/,' Rank Distribution',//, &
         ' Number of ranks',t40,i10,t60, &
@@ -1742,7 +1742,7 @@ subroutine gronor_main()
   call timer_stop(8)
   call timer_start(9)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),'  :  Start reading integrals'
@@ -1755,7 +1755,7 @@ subroutine gronor_main()
 
   call gronor_read_integrals()
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Reading of integrals completed'
@@ -1765,7 +1765,7 @@ subroutine gronor_main()
 
   call timer_stop(9)
   
-  if(me.eq.master.and.ipr.ge.0) then
+  if(me.eq.mstr.and.ipr.ge.0) then
 #ifdef SINGLEP
     rint=dble(4*int2)*1.073741824d-9
 #else
@@ -1816,13 +1816,13 @@ subroutine gronor_main()
     endif
   endif
 
-  if(me.eq.master.and.ipr.gt.0) then
+  if(me.eq.mstr.and.ipr.gt.0) then
     write(lfnout,631) nbase,nbase*(nbase+1)/2
 631 format(' Number of base states',t50,i16,/, &
         ' Number of unique Hamiltonian matrix elements',t50,i16)
   endif
 
-  if(me.eq.master.and.ipr.ge.30) then
+  if(me.eq.mstr.and.ipr.ge.30) then
 #ifdef SINGLEP
     write(lfnout,639)
 639 format(/,' Integrals are used in single precision')
@@ -1831,16 +1831,16 @@ subroutine gronor_main()
 640 format(/,' Integrals are used in double precision')
 #endif
   endif
-  if(me.eq.master) flush(lfnout)
+  if(me.eq.mstr) flush(lfnout)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     allocate(numrecs(np))
     do i=1,np
       numrecs(i)=0
     enddo
   endif
 
-  if(me.ne.master) call timer_start(98)
+  if(me.ne.mstr) call timer_start(98)
   call timer_start(4)
 
   if(idbg.gt.0) then
@@ -1855,7 +1855,7 @@ subroutine gronor_main()
     flush(lfndbg)
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     if(idbg.gt.0) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_master'
@@ -2112,7 +2112,7 @@ subroutine gronor_main()
   call timer_stop(98)
   
   
-  if(me.eq.master.and.ipr.ge.30) then
+  if(me.eq.mstr.and.ipr.ge.30) then
     key='     '
     header='Hamiltonian Matrix (unnormalized)'
     call gronor_print_matrix(lfnout,0,0,0,header,key, &
@@ -2132,7 +2132,7 @@ subroutine gronor_main()
     call gronor_prtmat(lfnout,sbase,nbase)
   endif
   
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     allocate(nociwf(nbase,nbase))
     do i=1,nbase
       do j=1,i-1
@@ -2235,7 +2235,7 @@ subroutine gronor_main()
 
   call timer_stop(1)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     call timer_stop(99)
     call swatch(date,time)
     write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99), &
@@ -2249,13 +2249,13 @@ subroutine gronor_main()
 
   call gronor_timings(lfnout,lfnday,lfntim)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     flush(lfnout)
     flush(lfnday)
     flush(lfntim)
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     write(lfnrnk,4444)
 4444 format(//,' Number of tasks completed per rank',/)
     nc=7
@@ -2275,10 +2275,10 @@ subroutine gronor_main()
     flush(lfnrnk)
   endif
 
-  if(me.eq.master) deallocate(numrecs)
+  if(me.eq.mstr) deallocate(numrecs)
 
   !      close(unit=lfndbg,status='keep')
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     if(ipro.ge.3) then
       close(unit=lfnpro,status='keep')
     else
@@ -2309,7 +2309,7 @@ subroutine gronor_main()
     close(unit=lfnrnk,status='keep')
   endif
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout)) then
       ierror=0
       ierr=0

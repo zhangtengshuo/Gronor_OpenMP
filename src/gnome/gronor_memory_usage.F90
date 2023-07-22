@@ -55,11 +55,11 @@ subroutine gronor_memory_usage()
     membuf(9)=nbatch
     ncount=9
     mpitag=12
-    call MPI_iSend(membuf,ncount,MPI_INTEGER8,master,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_iSend(membuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
   endif
 
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     ncount=9
     mpitag=12
     mpisrc=0

@@ -46,7 +46,7 @@ subroutine gronor_read_integrals()
 
   mynode=map2(me+1,6)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     if(ipr.ge.20) then
       numc=16
       lc=numgrp/numc

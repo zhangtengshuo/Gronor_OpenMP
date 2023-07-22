@@ -59,7 +59,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
     allocate(timings(np,68),tdata(68))
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
 
       call timer_stop(99)
       call swatch(date,time)
@@ -107,7 +107,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         ncount=1
         mpitag=20
         mpidest=i-1
-        if(mpidest.ne.master) then
+        if(mpidest.ne.mstr) then
           call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest, mpitag,MPI_COMM_WORLD,mpireq,ierr)
         endif
         nreqso=nreqso+1
@@ -180,15 +180,15 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
       ncount=1
       mpitag=20
-      call MPI_Recv(irtim,ncount,MPI_INTEGER8,master,mpitag,MPI_COMM_WORLD,status,ierr)
+      call MPI_Recv(irtim,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 
       ncount=68
       mpitag=11
-      call MPI_Send(tdata,ncount,MPI_REAL8,master,mpitag,MPI_COMM_WORLD,ierr)
+      call MPI_Send(tdata,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ierr)
 
     endif
 
-    if(me.eq.master) then
+    if(me.eq.mstr) then
 
       do i=1,68
         taver(i)=0.0d0
@@ -212,7 +212,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
       flush(lfnout)
       do i=1,np
-        if(i-1.eq.master) then
+        if(i-1.eq.mstr) then
           write(lfnout,602) i-1,timings(i,1),timings(i,2),timings(i,9),timings(i,4)
         else
           write(lfnout,602) i-1,timings(i,1),timings(i,2),timings(i,9),timings(i,4), &
@@ -236,7 +236,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       flush(lfnout)
 
       do i=1,np
-        if(i-1.ne.master) then
+        if(i-1.ne.mstr) then
           write(lfnout,605) i-1,(timings(i,j),j=11,22)
 605       format(1x,i5,12f12.3)
         endif
@@ -254,7 +254,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       flush(lfnout)
 
       do i=1,np
-        if(i-1.ne.master) then
+        if(i-1.ne.mstr) then
           write(lfnout,608) i-1,(timings(i,j),j=41,44)
 608       format(1x,i5,4f12.3)
         endif
@@ -274,7 +274,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       flush(lfnout)
 
       do i=1,np
-        if(i-1.ne.master) then
+        if(i-1.ne.mstr) then
           write(lfnout,611) i-1,(timings(i,j),j=30,36),timings(i,39),timings(i,37)
 611       format(1x,i5,9f12.3)
         endif
@@ -289,7 +289,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
           '        Ndx1',/)
 
       do i=1,np
-        if(i-1.ne.master) then
+        if(i-1.ne.mstr) then
           write(lfnout,613) i-1,numrecs(i),int(timings(i,62))+int(timings(i,63)), &
               int(timings(i,64))+int(timings(i,65)),int(timings(i,66)),int(timings(i,67))
 613       format(1x,i5,5i12)
@@ -297,7 +297,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       enddo
       nrecav=0
       do i=1,np
-        if(i-1.ne.master) nrecav=nrecav+numrecs(i)
+        if(i-1.ne.mstr) nrecav=nrecav+numrecs(i)
       enddo
       recav=dble(nrecav)/dble(nalive)
       write(lfnout,633) recav,taver(62)+taver(63),taver(64)+taver(65),taver(66),taver(67)
@@ -316,13 +316,13 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
     endif
 
     deallocate(tdata,timings)
-    if(me.eq.master) deallocate(tdat,taver,isync)
+    if(me.eq.mstr) deallocate(tdat,taver,isync)
 
   endif
 
   call timer_stop(99)
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     if(ipr.ge.40) then
       write(lfnout,620) mgr*nalive+1,np,numidle
 620   format(/,' At the end of the run ',i8,' of ',i8, &

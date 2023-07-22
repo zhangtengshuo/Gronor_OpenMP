@@ -61,9 +61,9 @@ subroutine gronor_environment()
   string="HOME"
   call get_environment_variable(string,value,lenv,statv)
 
-  !     me          : MPI global rank id
+  !     me          : MPI global rank i
   !     np          : number of MPI ranks
-  !     master      : id of master MPI rank
+  !     mstr        : id of master MPI rank
   !     numdev      : number of accelerator devices on current node
   !     num_threads : number of OMP threads defined through OMP_NUM_THREAD
 
@@ -78,14 +78,29 @@ subroutine gronor_environment()
   !     master process is last in the list to enable more effective
   !     allocation of the worker processors, starting at rank 0
 
-  master=np-1
+  mstr=np-1
 
+  role=idle
 
-  if(me.eq.master) num_threads=1
+  if(me.eq.mstr) role=master
+
+  if(me.eq.mstr) num_threads=1
 
   allocate(map1(np,7),map2(np,7))
 
+  ! Retrieve the hostname from which to extract the specific computer used
+  ! This allows to set some variables to optimal values
+  ! Currently the code sets these for:
+  !     Juwels Booster (JFZ)
+  !     Piz Daint (CSCS)
+  !     Snellius (SARA)
+  !     Crusher (OLCF)
+  !     Frontier (OLCF)
+  !     Summit (OLCF)
+  
+  !     Using function "hostnm()" in stead of
   !     call MPI_get_processor_name(nodename, length, ierr)
+  
 #ifdef IBM
   call hostnm_(nodename)
 #else
@@ -190,7 +205,8 @@ subroutine gronor_environment()
     numdev=omp_get_num_devices()
 #endif
 
-    num_threads=1
+    ! Convert the nodename into a nodenumber stored in variable node
+
     j=1
     i=1
 
@@ -297,6 +313,8 @@ subroutine gronor_environment()
       read(string,'(i20)') node
     endif
 
+    ! Setup a mapping of the ranks
+    
     do j=1,5
       do i=1,np
         map1(i,j)=0
@@ -321,13 +339,6 @@ subroutine gronor_environment()
 
     deallocate(map1)
 
-    !      map2(me+1,1) : number of acc devices
-    !      map2(me+1,2) : number of omp threads
-    !      map2(me+1,3) : group
-    !      map2(me+1,4) : resource set
-    !      map2(me+1,5) : 0
-    !      map2(me+1,6) : node
-    !      map2(me+1,7) : acc device id
 
     !     node counts the number ranks consecutive node-ids
     !     usually this is the number of nodes in a system
@@ -471,6 +482,7 @@ subroutine gronor_environment()
       enddo
     endif
 
+    
 #ifdef _OPENACC
     if(numdev.ge.1) then
 #ifdef GPUAMD
@@ -496,6 +508,16 @@ subroutine gronor_environment()
       map2(me+1,7)=mydev
     endif
 #endif
+    
+    ! Upon exit the array map2 contains the following rank specific values
+    
+    !      map2(me+1,1) : number of acc devices
+    !      map2(me+1,2) : number of omp threads
+    !      map2(me+1,3) : group id
+    !      map2(me+1,4) : resource set
+    !      map2(me+1,5) : acc device or -(omp thread)
+    !      map2(me+1,6) : node
+    !      map2(me+1,7) : acc device id
     
     return
   end subroutine gronor_environment

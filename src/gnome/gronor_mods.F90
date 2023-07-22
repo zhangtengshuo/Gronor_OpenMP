@@ -43,7 +43,7 @@ module cidist
   !     comm_first : communicator of all first processes in each group
   !     mpibuf : size of the MPI buffer for integrals in reals
 
-  integer (kind=4) :: me,np,master
+  integer (kind=4) :: me,np,mstr
   integer (kind=4) :: numdev,mydev
   integer (kind=4) :: group_batch,group_heads,group_world
   integer (kind=4), allocatable :: ranks_list(:),ranks_heads(:)
@@ -71,6 +71,13 @@ module cidist
   integer (kind=4), allocatable :: igrn(:)
 
   character (len=8) :: machine
+
+  character (len=1), parameter :: master='M'
+  character (len=1), parameter :: manager='m'
+  character (len=1), parameter :: worker='W'
+  character (len=1), parameter :: idle='i'
+
+  character (len=1) :: role
 
 end module cidist
 

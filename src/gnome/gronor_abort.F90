@@ -83,7 +83,10 @@
          write(lfnabt,'(a)') "Input: Print : print option not properly specified"
 
       case(121)
-         write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
+        write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
+        
+      case(122)
+        write(lfnabt,'(a)') "Input: Managers : number of managers not properly specified"
 
       case(130)
          write(lfnabt,'(a)') "Input: MPIbuffer : MPI buffer size not specified"

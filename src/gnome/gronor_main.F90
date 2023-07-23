@@ -78,7 +78,7 @@ subroutine gronor_main()
   external :: gronor_prtmat,gronor_print_matrix
   external :: gronor_worker,gronor_memory_usage
   external :: gronor_master,gronor_read_integrals
-  external :: gronor_make_basestate
+  external :: gronor_make_basestate,gronor_assign_managers
   external :: gronor_solver_create_handle
   external :: gronor_results_header_cml,gronor_init_cml
   external :: gronor_env_cml,gronor_gnome_molcas_input
@@ -685,7 +685,7 @@ subroutine gronor_main()
       idum(45)=nbatch
       idum(46)=nbatcha
       idum(47)=nspin
-      idum(48)=0
+      idum(48)=managers
       idum(49)=mbuf
       idum(50)=idist
       idum(51)=load
@@ -755,7 +755,7 @@ subroutine gronor_main()
       nbatch=idum(45)
       nbatcha=idum(46)
       nspin=idum(47)
-
+      managers=idum(48)
       mbuf=idum(49)
       idist=idum(50)
       load=idum(51)
@@ -765,6 +765,8 @@ subroutine gronor_main()
       nabort=idum(55)
 
     endif
+
+    if(managers.gt.0) call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
 
@@ -2071,7 +2073,13 @@ subroutine gronor_main()
           flush(lfndbg)
         endif
         call gronor_memory_usage()
-        call gronor_worker()
+        if(managers.eq.0) then
+          call gronor_worker()
+        else
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.manager) call gronor_manager()
+          if(role.eq.idle) call gronor_idle()
+        endif
 #ifdef ACC
 !$acc end data
 #endif
@@ -2082,7 +2090,13 @@ subroutine gronor_main()
         lwork=10
         allocate(work(lwork))
         call gronor_memory_usage()
-        call gronor_worker()
+        if(managers.eq.0) then
+          call gronor_worker()
+        else
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.manager) call gronor_manager()
+          if(role.eq.idle) call gronor_idle()
+        endif
       endif
 
       if(nbatch.lt.0) then

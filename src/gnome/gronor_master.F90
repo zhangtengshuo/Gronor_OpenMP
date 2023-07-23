@@ -747,7 +747,7 @@ subroutine gronor_master()
     enddo
   enddo
 
-  !     At this point the loopover base pairs has completed and all tasks have been dispatched
+  !     At this point the loop over base pairs has completed and all tasks have been dispatched
 
   !     Now the still outstanding tasks need to be collected
   !     Assuming that some may be unresponsive, duplicates of outstanding tasks are sent

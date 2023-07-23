@@ -86,7 +86,7 @@ subroutine gronor_environment()
 
   if(me.eq.mstr) num_threads=1
 
-  allocate(map1(np,7),map2(np,7))
+  allocate(map1(np,7),map2(np,9))
 
   ! Retrieve the hostname from which to extract the specific computer used
   ! This allows to set some variables to optimal values
@@ -334,7 +334,7 @@ subroutine gronor_environment()
     map1(me+1,5)=0
     map1(me+1,6)=0
     ncount=4*np
-    call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER8,MPI_SUM,                 &
+    call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER4,MPI_SUM,                 &
         & MPI_COMM_WORLD,ierr)
 
     deallocate(map1)

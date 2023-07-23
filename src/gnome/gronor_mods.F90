@@ -54,7 +54,7 @@ module cidist
   integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive,nabort
   integer :: mynode,mygroup,myhead,ime,mpibuf
   integer :: iamhead,iamacc,iamactive
-  integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
+  integer (kind=4), allocatable  :: map1(:,:),map2(:,:)
   integer, allocatable :: thisgroup(:),allgroups(:,:),allheads(:)
   integer, allocatable :: numrecs(:)
   integer (kind=8), allocatable :: ipbuf(:,:),itbuf(:,:)
@@ -70,14 +70,16 @@ module cidist
   integer (kind=8), target :: memfre,memtot,memavail
   integer (kind=4), allocatable :: igrn(:)
 
+  integer (kind=8) :: managers
+  
   character (len=8) :: machine
 
-  character (len=1), parameter :: master='M'
-  character (len=1), parameter :: manager='m'
-  character (len=1), parameter :: worker='W'
-  character (len=1), parameter :: idle='i'
+  integer (kind=4), parameter :: master=1
+  integer (kind=4), parameter :: manager=2
+  integer (kind=4), parameter :: worker=3
+  integer (kind=4), parameter :: idle=4
 
-  character (len=1) :: role
+  integer (kind=4) :: role
 
 end module cidist
 

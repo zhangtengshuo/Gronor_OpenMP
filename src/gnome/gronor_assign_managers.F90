@@ -21,6 +21,9 @@
 subroutine gronor_assign_managers()
 
   use cidist
+  use gnome_parameters
+
+  implicit none
 
   integer :: i,j,m,n
   
@@ -95,6 +98,7 @@ subroutine gronor_assign_managers()
   ! Determine the maximum number of sub-tasks (i.e. buffers) per manager task
 
   if(role.eq.manager) then
+    print*,mtaska,ntaska
     maxbuf=max(ntaska/mtaska,ntask/ntaska)+1
     allocate(mgrbuf(maxbuf,5))
   endif

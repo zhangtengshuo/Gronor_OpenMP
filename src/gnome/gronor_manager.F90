@@ -25,14 +25,16 @@ subroutine gronor_manager()
   use cidef
   use gnome_parameters
 
+  implicit none
+
   integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest,iremote
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17),tbuf(17),buffer(17)
-  integer (kind=8) :: m,numsnd,numrcv
+  integer (kind=8) :: m,numsnd,numrcv,numdets,idet,jdet,ibase,jbase
 
-  return
-
+  integer :: i,j,k
+  
   ! Signal the master to start sending tasks
 
   do i=1,17
@@ -43,6 +45,7 @@ subroutine gronor_manager()
   ncount=17
   mpitag=1
   call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  write(*,'(a,4f12.3)') "to mstr",(rbuf(k),k=1,4)
   if(idbg.gt.20) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signaled master'
@@ -64,6 +67,7 @@ subroutine gronor_manager()
     ncount=4
     mpitag=2
     call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
+    write(*,'(a,4i5)') "from mstr ",(ibuf(k),k=1,4)
     if(idbg.gt.10) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
@@ -126,9 +130,11 @@ subroutine gronor_manager()
             iremote=mgrwrk(j,1)
             call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
                 iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+            write(*,'(a,5i5)') "to wrkr1 ",iremote,(mipbuf(k,j),k=1,4)
             mgrbuf(i,3)=1
             mgrwrk(j,2)=0
             numsnd=numsnd+1
+            exit
           endif
         enddo
       endif
@@ -139,6 +145,7 @@ subroutine gronor_manager()
       mpitag=1
       call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
       iremote=status(MPI_SOURCE)
+      write(*,'(a,i5,4f12.3)') "from wrkr",iremote,(buffer(k),k=1,4)
       do j=1,numwrk
         if(mgrwrk(j,1).eq.iremote) then
           if(mgrwrk(j,2).eq.0) then
@@ -159,6 +166,7 @@ subroutine gronor_manager()
               mpitag=2
               call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
                   iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+              write(*,'(a,5i5)') "to wrkr2 ",iremote,(mipbuf(k,j),k=1,4)
               mgrbuf(i,3)=1
               mgrwrk(j,2)=0
               numsnd=numsnd+1
@@ -166,23 +174,41 @@ subroutine gronor_manager()
           enddo
         endif
       enddo
-      numrcv=numrcv+1
     enddo
     
     ! Send results buffer to master
     call timer_start(48)
     ncount=17
     mpitag=1
-    call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    write(*,'(a,4f12.3)') "to mstr",(tbuf(k),k=1,4)
     if(idbg.gt.10) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
           me,' sent results  ',mstr,(ibuf(i),i=1,4)
       flush(lfndbg)
     endif
+    do i=1,17
+      rbuf(i)=0.0d0
+      tbuf(i)=0.0d0
+    enddo
     call timer_stop(48)
     
   enddo
 
+  ibuf(1)=0
+  ibuf(2)=0
+  ibuf(3)=0
+  ibuf(4)=0
+  ncount=4
+  mpitag=2
+  do j=1,numwrk
+    iremote=mgrwrk(j,1)
+    call MPI_iSend(ibuf,ncount,MPI_INTEGER8, &
+        iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    write(*,'(a,4i5)') "to wrkr ",(ibuf(k),k=1,4)
+  enddo
+  
+  return
     
 end subroutine gronor_manager

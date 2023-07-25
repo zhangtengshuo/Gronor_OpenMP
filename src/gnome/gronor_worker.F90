@@ -47,6 +47,10 @@ subroutine gronor_worker()
 
   flush(lfnout)
 
+  if(managers.gt.0) then
+    mstr=map2(me+1,9)
+  endif
+  
   if(iamacc.eq.0.and.ntask.eq.0) return
 
   otreq=.false.

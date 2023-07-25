@@ -346,6 +346,7 @@ subroutine gronor_master()
         ncount=17
         mpitag=1
         call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+        write(*,'(a,4f12.3)') " FROM MGR ",(buffer(k),k=1,4)
         call timer_stop(94)
 
         if(ofirst) then

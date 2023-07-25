@@ -20,6 +20,169 @@
 
 subroutine gronor_manager()
 
+  use mpi
   use cidist
+  use cidef
+  use gnome_parameters
 
+  integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest,iremote
+  integer (kind=8) :: ibuf(4)
+  integer (kind=4) :: status(MPI_STATUS_SIZE)
+  real (kind=8) :: rbuf(17),tbuf(17),buffer(17)
+  integer (kind=8) :: m,numsnd,numrcv
+
+  return
+
+  ! Signal the master to start sending tasks
+
+  do i=1,17
+    rbuf(i)=0.0d0
+    tbuf(i)=0.0d0
+  enddo
+  
+  ncount=17
+  mpitag=1
+  call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  if(idbg.gt.20) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signaled master'
+    flush(lfndbg)
+  endif
+  if(idbg.gt.10) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
+    flush(lfndbg)
+  endif
+
+  ibase=1
+  
+  do while(ibase.gt.0)
+    
+    call timer_start(39)
+    
+    ! Receive task from the master
+    ncount=4
+    mpitag=2
+    call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
+    if(idbg.gt.10) then
+      call swatch(date,time)
+      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+          me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
+      flush(lfndbg)
+    endif
+
+    do i=1,17
+      tbuf(i)=0.0d0
+    enddo
+
+    ibase=ibuf(1)
+    jbase=ibuf(2)
+    idet=ibuf(3)
+    jdet=ibuf(4)
+
+    numdets=jdet-idet+1
+
+    numbuf=numdets/mtaska
+
+    ! Split the determinant list into numbuf pieces
+    
+    mgrbuf(1,1)=idet
+    do i=1,numbuf-1
+      mgrbuf(i,2)=mgrbuf(i,1)+m
+      mgrbuf(i+1,1)=mgrbuf(i,2)+1
+    enddo
+    mgrbuf(numbuf,2)=jdet
+    do i=1,numbuf
+      mgrbuf(i,3)=0
+    enddo
+
+    ! set number of tasks sent in numsnd, received in numrcv
+
+    numsnd=0
+    numrcv=0
+
+    ! for i running over the number of sub-tasks (1..numbuf<maxbuf)
+    ! mgrbuf(i,1) : first index for this part of the buffer
+    ! mgrbuf(i,2) : last index for this part of the buffer
+    ! mgrbuf(i,3) : 0=not sent; 1=sent; 2=received results
+    ! mgrbuf(i,4) : worker rank this buffer was sent to
+
+    ! for i running over the number of worker ranks of this manager (1..numwrk)
+    ! mgrwrk(i,1) : rank of the worker
+    ! mgrwrk(i,2) : 0=worker not ready; 1=worker ready to receive next sub-task
+
+    ! first send sub tasks to workers ready to receive a new sub-task
+    
+    do i=1,numbuf
+      if(mgrbuf(i,3).eq.0) then
+        do j=1,numwrk
+          if(mgrwrk(j,2).eq.1) then
+            mipbuf(1,j)=ibase
+            mipbuf(2,j)=jbase
+            mipbuf(3,j)=mgrbuf(i,1)
+            mipbuf(4,j)=mgrbuf(i,2)
+            ncount=4
+            mpitag=2
+            iremote=mgrwrk(j,1)
+            call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
+                iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+            mgrbuf(i,3)=1
+            mgrwrk(j,2)=0
+            numsnd=numsnd+1
+          endif
+        enddo
+      endif
+    enddo
+
+    do while(numrcv.lt.numbuf)
+      ncount=17
+      mpitag=1
+      call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+      iremote=status(MPI_SOURCE)
+      do j=1,numwrk
+        if(mgrwrk(j,1).eq.iremote) then
+          if(mgrwrk(j,2).eq.0) then
+            numrcv=numrcv+1
+            do i=1,17
+              tbuf(i)=tbuf(i)+buffer(i)
+            enddo
+            mgrwrk(j,2)=1
+          endif
+          if(mgrwrk(j,2).lt.0) mgrwrk(j,2)=1
+          do i=1,numbuf
+            if(mgrbuf(i,3).eq.0.and.mgrwrk(j,2).eq.1) then
+              mipbuf(1,j)=ibase
+              mipbuf(2,j)=jbase
+              mipbuf(3,j)=mgrbuf(i,1)
+              mipbuf(4,j)=mgrbuf(i,2)
+              ncount=4
+              mpitag=2
+              call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
+                  iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+              mgrbuf(i,3)=1
+              mgrwrk(j,2)=0
+              numsnd=numsnd+1
+            endif
+          enddo
+        endif
+      enddo
+      numrcv=numrcv+1
+    enddo
+    
+    ! Send results buffer to master
+    call timer_start(48)
+    ncount=17
+    mpitag=1
+    call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    if(idbg.gt.10) then
+      call swatch(date,time)
+      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+          me,' sent results  ',mstr,(ibuf(i),i=1,4)
+      flush(lfndbg)
+    endif
+    call timer_stop(48)
+    
+  enddo
+
+    
 end subroutine gronor_manager

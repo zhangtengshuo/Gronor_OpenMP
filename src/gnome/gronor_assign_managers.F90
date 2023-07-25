@@ -72,7 +72,32 @@ subroutine gronor_assign_managers()
   ! Set role of current rank
 
   role=map2(me+1,8)
-  
+
+  ! Determine the number of worker ranks for a each manager rank
+
+  if(role.eq.manager) then
+    numwrk=0
+    do i=1,np
+      if(map2(i,9).eq.me) numwrk=numwrk+1
+    enddo
+    allocate(mgrwrk(numwrk,2))
+    allocate(mipbuf(4,numwrk))
+    j=0
+    do i=1,np
+      if(map2(i,9).eq.me) then
+        j=j+1
+        mgrwrk(j,1)=i-1
+        mgrwrk(j,2)=-1
+      endif
+    enddo
+  endif
+
+  ! Determine the maximum number of sub-tasks (i.e. buffers) per manager task
+
+  if(role.eq.manager) then
+    maxbuf=max(ntaska/mtaska,ntask/ntaska)+1
+    allocate(mgrbuf(maxbuf,5))
+  endif
   
   if(me.eq.mstr) then
     write(*,'(i4,a,i10)') me," Number of nodes is ",nnodes

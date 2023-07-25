@@ -70,7 +70,10 @@ module cidist
   integer (kind=8), target :: memfre,memtot,memavail
   integer (kind=4), allocatable :: igrn(:)
 
-  integer (kind=8) :: managers
+  integer (kind=8) :: managers,numwrk,maxbuf,numbuf
+  integer (kind=8), allocatable :: mgrbuf(:,:)
+  integer (kind=8), allocatable :: mgrwrk(:,:)
+  integer (kind=8), allocatable :: mipbuf(:,:)
   
   character (len=8) :: machine
 
@@ -156,7 +159,8 @@ module gnome_parameters
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
-  integer :: ntask,ntaska,nbatch,nbatcha,ndbg,mdbg,load,loada
+  integer :: ntask,ntaska,nbatch,nbatcha,mtask,mtaska
+  integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
   integer :: iswsvj,iswevj
   integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols

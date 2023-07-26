@@ -31,9 +31,9 @@ subroutine gronor_manager()
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17),tbuf(17),buffer(17)
-  integer (kind=8) :: m,numsnd,numrcv,numdets,idet,jdet,ibase,jbase
+  integer (kind=8) :: numsnd,numrcv,numdets,idet,jdet,ibase,jbase
 
-  integer :: i,j,k
+  integer (kind=8) :: i,j,k,m
   
   ! Signal the master to start sending tasks
 
@@ -87,6 +87,7 @@ subroutine gronor_manager()
     numdets=jdet-idet+1
 
     numbuf=numdets/mtaska
+    m=numdets/numbuf
 
     ! Split the determinant list into numbuf pieces
     

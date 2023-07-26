@@ -1238,30 +1238,56 @@ subroutine gronor_main()
   enddo
   
   if(me.eq.mstr) then
-    write(lfnrnk,6666)
-6666 format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr',' Ac=Accel',//, &
-         '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
-         '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
-         '    Rank  ND DI NT   Group    RSet Ac    Node',/)
-    lc=np/3
-    i=np
-    mc=mod(i,3)
-    if(mc.gt.0) lc=lc+1
-    nc=3
-    do i=1,lc
-      if(mc.gt.0.and.i.eq.lc) nc=mc
-      write(ident(1),'(a3)') '   '
-      write(ident(2),'(a3)') '   '
-      write(ident(3),'(a3)') '   '
-      nnc=nc
-      if(i+(nc-1)*lc.gt.np) nnc=nnc-1
-      do j=1,nnc
-        if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
+    if(managers.eq.0) then
+      write(lfnrnk,6666)
+6666  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
+          '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
+          '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
+          '    Rank  ND DI NT   Group    RSet Ac    Node',/)
+      nc=3
+      lc=np/nc
+      i=np
+      mc=mod(i,nc)
+      if(mc.gt.0) lc=lc+1
+      do i=1,lc
+        if(mc.gt.0.and.i.eq.lc) nc=mc
+        write(ident(1),'(a3)') '   '
+        write(ident(2),'(a3)') '   '
+        write(ident(3),'(a3)') '   '
+        nnc=nc
+        if(i+(nc-1)*lc.gt.np) nnc=nnc-1
+        do j=1,nnc
+          if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
+        enddo
+        write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
+            (map2(i+(j-1)*lc,k),k=2,6),j=1,nnc)
+6667    format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
       enddo
-      write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
-          (map2(i+(j-1)*lc,k),k=2,6),j=1,nnc)
-6667  format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
-    enddo
+    else
+      write(lfnrnk,6668)
+6668  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
+          '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ', &
+          '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ',/)
+      nc=2
+      lc=np/nc
+      i=np
+      mc=mod(i,nc)
+      if(mc.gt.0) lc=lc+1
+      do i=1,lc
+        if(mc.gt.0.and.i.eq.lc) nc=mc
+        write(ident(1),'(a3)') '   '
+        write(ident(2),'(a3)') '   '
+        write(ident(3),'(a3)') '   '
+        nnc=nc
+        if(i+(nc-1)*lc.gt.np) nnc=nnc-1
+        do j=1,nnc
+          if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
+        enddo
+        write(lfnrnk,6669) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
+            (map2(i+(j-1)*lc,k),k=2,9),j=1,nnc)
+6669    format(2(i8,':',i3,a3,i3,2i8,i3,2i8,i5,i8,2x))
+      enddo
+    endif
     flush(lfnrnk)
   endif
 

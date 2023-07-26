@@ -75,6 +75,8 @@ subroutine gronor_manager()
       flush(lfndbg)
     endif
 
+    if(ibuf(1).le.0) exit
+
     do i=1,17
       tbuf(i)=0.0d0
     enddo
@@ -88,6 +90,7 @@ subroutine gronor_manager()
 
     numbuf=numdets/mtaska
     m=numdets/numbuf
+    write(*,'(a,9i5)') "BUFFERS ",idet,jdet,numdets,mtaska,numbuf,m
 
     ! Split the determinant list into numbuf pieces
     

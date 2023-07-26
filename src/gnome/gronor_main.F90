@@ -768,6 +768,7 @@ subroutine gronor_main()
 
     endif
 
+    print*,managers
     if(managers.gt.0) call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
@@ -1236,7 +1237,7 @@ subroutine gronor_main()
     j=j+1
     jp=map2(i,4)
   enddo
-  
+
   if(me.eq.mstr) then
     if(managers.eq.0) then
       write(lfnrnk,6666)

@@ -56,7 +56,9 @@ subroutine gronor_moover(lfndbg)
   if(idbg.ge.14) write(lfndbg,602)
 602 format('  itypen icentn jtype jcent   icount      indbas     ' &
         ,' indbas         overlap',//)
-
+  
+  ! Calculation of the overlap matrix ta from va, vb and s
+  
 #ifdef ACC
 !$acc kernels present(ta,tb,s,vb)
 #endif
@@ -80,6 +82,8 @@ subroutine gronor_moover(lfndbg)
 #endif
 #endif
 
+  ! Calculation of the intermediate matrix tb(i,j)=s(i,k)*vb(k,j)
+  
 #ifdef OMPTGT
 #ifdef OMP5
 !$omp target teams loop private(sum)
@@ -104,7 +108,8 @@ subroutine gronor_moover(lfndbg)
 #endif
 #endif
 
-!     calculation of a **  a(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
+  !     calculation of ta(i,k)=sigma(l)[ va(i,l)*b(l,k) ]
+  
 !     calculation for alpha spin in open- and closed shell-m.o.'s
 
 #ifdef OMPTGT
@@ -164,8 +169,7 @@ subroutine gronor_moover(lfndbg)
 #endif
   endif
 
-
-!     generate overlapmatrix-elements for beta spin in closed-shell m.o.
+  ! Generate overlap matrix elements for beta spin in closed-shell m.o.
 
   if(ntcla.ne.0.and.ntclb.ne.0) then
 
@@ -201,7 +205,7 @@ subroutine gronor_moover(lfndbg)
 
   m1=nalfa+1
 
-  !     calculation for beta spin in open-shell-m.o.'s
+  ! Calculation for beta spin in open-shell-m.o.'s
 
   if(nveca.ne.nalfa) then
 
@@ -298,8 +302,8 @@ subroutine gronor_moover(lfndbg)
 #endif
   endif
 
-!     There are problems with svd if many off diagonal elements occur
-!     of size 1e-13. therefore all elements < 1e-10 are set to zero
+  !  There are problems with svd if many off diagonal elements occur
+  !  of size 1.0 e-13. therefore all elements < 1.0 e-10 are set to zero
 
 #ifdef ACC
 !$acc kernels present(ta)

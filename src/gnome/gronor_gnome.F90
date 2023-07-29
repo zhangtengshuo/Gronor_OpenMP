@@ -166,14 +166,14 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 #ifdef OMPTGT
 !$omp target data map(to:va,vb)
 #endif
-    !     Calculations of the overlap matrices
+    
+    !  Calculations of the overlap matrices
 
     call timer_start(14)
     call gronor_moover(lfndbg)
     call timer_stop(14)
 
-    !     Calculation of the cofactor matrices and arrays corresponding
-    !     to the total overlap
+    !  Calculation of the cofactor matrices and arrays corresponding to the total overlap
 
     call timer_start(15)
     call gronor_cofac1(lfndbg)

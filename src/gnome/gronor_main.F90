@@ -2275,7 +2275,6 @@ subroutine gronor_main()
   deallocate(ioccm,vecsm,civm,occm_string)
   deallocate(idetm,inactm,nactm,nbasm,ncombv)
   if(nmol.ge.3)deallocate(inter_couplings)
-  deallocate(map2)
 
   deallocate(hbase,sbase,tbase,dqbase,hev,nsing,bpdone)
 
@@ -2299,6 +2298,8 @@ subroutine gronor_main()
 
   call gronor_timings(lfnout,lfnday,lfntim)
 
+  deallocate(map2)
+  
   if(me.eq.mstr) then
     flush(lfnout)
     flush(lfnday)

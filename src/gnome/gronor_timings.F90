@@ -53,9 +53,9 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
   logical (kind=4) :: flag
   logical :: openrcv
 
+  mstr=np-1
 
   if(itim.gt.0) then
-
 
     allocate(timings(np,68),tdata(68))
 
@@ -207,29 +207,29 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,600)
 600   format(/,' Wallclock Timing Analysis Main Program',/)
       write(lfnout,601)
-601   format('  Proc','       Total','       Input','   Integrals','    H Matrix','    Elements', &
+601   format('  Proc  ','       Total','       Input','   Integrals','    H Matrix','    Elements', &
           '       Gnome','       Calls','  Unused Dev Mem'/)
 
       flush(lfnout)
       do i=1,np
         if(i-1.eq.mstr) then
-          write(lfnout,602) i-1,timings(i,1),timings(i,2),timings(i,9),timings(i,4)
+          write(lfnout,602) i-1,crole(map2(i,8)),timings(i,1),timings(i,2),timings(i,9),timings(i,4)
         else
-          write(lfnout,602) i-1,timings(i,1),timings(i,2),timings(i,9),timings(i,4), &
+          write(lfnout,602) i-1,crole(map2(i,8)),timings(i,1),timings(i,2),timings(i,9),timings(i,4), &
               timings(i,5),timings(i,6),int(timings(i,61)),int(timings(i,68))
-602       format(1x,i5,6f12.3,i12,i16,4f12.3)
+602       format(1x,i5,1x,a1,6f12.3,i12,i16,4f12.3)
         endif
       enddo
       write(lfnout,622) taver(1),taver(2),taver(9),taver(4),taver(5),taver(6), &
           int(taver(61)),int(taver(68))
-622   format(1x,105('-'),/,' Avrg ',6f12.3,i12,i16,4f12.3)
+622   format(1x,107('-'),/,'  Avrg  ',6f12.3,i12,i16,4f12.3)
 
       flush(lfnout)
 
       write(lfnout,603)
 603   format(//,' Wallclock Timing Analysis Gnome',/)
       write(lfnout,604)
-604   format('  Proc','     TransVc','       Order','     TranOut','      MOOver','      CoFac1', &
+604   format('  Proc  ','     TransVc','       Order','     TranOut','      MOOver','      CoFac1', &
           '      CorOrb','      TraMat','      Dipole','       TrSym','     TraMat2', &
           '       GnOne','       GnTwo',/)
 
@@ -237,30 +237,30 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
       do i=1,np
         if(i-1.ne.mstr) then
-          write(lfnout,605) i-1,(timings(i,j),j=11,22)
-605       format(1x,i5,12f12.3)
+          write(lfnout,605) i-1,crole(map2(i,8)),(timings(i,j),j=11,22)
+605       format(1x,i5,1x,a1,12f12.3)
         endif
       enddo
       write(lfnout,625) (taver(j),j=11,22)
-625   format(1x,149('-'),/,' Avrg ',12f12.3)
+625   format(1x,151('-'),/,'  Avrg  ',12f12.3)
 
       flush(lfnout)
 
       write(lfnout,606)
 606   format(//,' Wallclock Timing Analysis CoFac',/)
       write(lfnout,607)
-607   format('  Proc','         SVD','         Sum','         EVD','        Rest',/)
+607   format('  Proc  ','         SVD','         Sum','         EVD','        Rest',/)
 
       flush(lfnout)
 
       do i=1,np
         if(i-1.ne.mstr) then
-          write(lfnout,608) i-1,(timings(i,j),j=41,44)
-608       format(1x,i5,4f12.3)
+          write(lfnout,608) i-1,crole(map2(i,8)),(timings(i,j),j=41,44)
+608       format(1x,i5,1x,a1,4f12.3)
         endif
       enddo
       write(lfnout,628) (taver(j),j=41,44)
-628   format(1x,53('-'),/,' Avrg ',12f12.3)
+628   format(1x,55('-'),/,'  Avrg  ',12f12.3)
 
       flush(lfnout)
 
@@ -268,31 +268,31 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 609   format(//,' Wallclock Timing Analysis GnTwo',/)
 
       write(lfnout,610)
-610   format('  Proc','   Transpose','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
+610   format('  Proc  ','   Transpose','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
           '      Two1-n','      Two1-w','       Comm1','       Comm2',/)
 
       flush(lfnout)
 
       do i=1,np
         if(i-1.ne.mstr) then
-          write(lfnout,611) i-1,(timings(i,j),j=30,36),timings(i,39),timings(i,37)
-611       format(1x,i5,9f12.3)
+          write(lfnout,611) i-1,crole(map2(i,8)),(timings(i,j),j=30,36),timings(i,39),timings(i,37)
+611       format(1x,i5,1x,a1,9f12.3)
         endif
       enddo
       write(lfnout,631) (taver(j),j=30,36),taver(39),taver(37)
-631   format(1x,113('-'),/,' Avrg ',9f12.3)
+631   format(1x,115('-'),/,'  Avrg  ',9f12.3)
 
       flush(lfnout)
 
       write(lfnout,612)
-612   format(//,'  Proc','     NumRecv','        Num0','        Num1','        Ndx0', &
+612   format(//,'  Proc  ','     NumRecv','        Num0','        Num1','        Ndx0', &
           '        Ndx1',/)
 
       do i=1,np
         if(i-1.ne.mstr) then
-          write(lfnout,613) i-1,numrecs(i),int(timings(i,62))+int(timings(i,63)), &
+          write(lfnout,613) i-1,crole(map2(i,8)),numrecs(i),int(timings(i,62))+int(timings(i,63)), &
               int(timings(i,64))+int(timings(i,65)),int(timings(i,66)),int(timings(i,67))
-613       format(1x,i5,5i12)
+613       format(1x,i5,1x,a1,5i12)
         endif
       enddo
       nrecav=0
@@ -301,7 +301,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       enddo
       recav=dble(nrecav)/dble(nalive)
       write(lfnout,633) recav,taver(62)+taver(63),taver(64)+taver(65),taver(66),taver(67)
-633   format(1x,68('-'),/,' Avrg    ',5f12.2)
+633   format(1x,70('-'),/,'  Avrg     ',5f12.2)
 
       flush(lfnout)
 

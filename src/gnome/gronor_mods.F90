@@ -82,7 +82,10 @@ module cidist
   integer (kind=4), parameter :: worker=3
   integer (kind=4), parameter :: idle=4
 
+  character (len=1), parameter :: crole(4)=(/"M","m","w","i"/)
+
   integer (kind=4) :: role
+  integer (kind=8) :: nperman
 
 end module cidist
 

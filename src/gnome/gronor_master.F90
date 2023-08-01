@@ -1159,6 +1159,8 @@ subroutine gronor_master()
   enddo
 
   nalive=max(k,l)
+  if(managers.gt.0) nalive=nalive*nperman
+  write(*,'(a,i5)') 'nalive=',nalive
 
   !     Signal worker processes to return from gronor_master
 

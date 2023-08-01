@@ -58,11 +58,12 @@ subroutine gronor_manager()
   endif
 
   ibase=1
+
+  call timer_start(50)
   
   do while(ibase.gt.0)
     
-    call timer_start(39)
-    
+    call timer_start(51)
     ! Receive task from the master
     ncount=4
     mpitag=2
@@ -74,9 +75,12 @@ subroutine gronor_manager()
           me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
       flush(lfndbg)
     endif
+    call timer_stop(51)
 
     if(ibuf(1).le.0) exit
 
+    call timer_start(52)
+    
     do i=1,17
       tbuf(i)=0.0d0
     enddo
@@ -151,6 +155,10 @@ subroutine gronor_manager()
       endif
     enddo
 
+    call timer_stop(52)
+    
+    call timer_start(53)
+    
     do while(numrcv.lt.numbuf)
       ncount=17
       mpitag=1
@@ -187,8 +195,10 @@ subroutine gronor_manager()
       enddo
     enddo
     
+    call timer_stop(53)
+    
     ! Send results buffer to master
-    call timer_start(48)
+    call timer_start(54)
     ncount=17
     mpitag=1
     call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
@@ -203,10 +213,12 @@ subroutine gronor_manager()
       rbuf(i)=0.0d0
       tbuf(i)=0.0d0
     enddo
-    call timer_stop(48)
+    call timer_stop(54)
     
   enddo
+  call timer_stop(50)
 
+  call timer_start(55)
   ibuf(1)=0
   ibuf(2)=0
   ibuf(3)=0
@@ -219,6 +231,7 @@ subroutine gronor_manager()
         iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 !    write(*,'(a,4i5)') "to wrkr ",(ibuf(k),k=1,4)
   enddo
+  call timer_stop(55)
   
   return
     

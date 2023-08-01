@@ -85,7 +85,7 @@ module cidist
   character (len=1), parameter :: crole(4)=(/"M","m","w","i"/)
 
   integer (kind=4) :: role
-  integer (kind=8) :: nperman
+  integer (kind=8) :: nperman,numman
 
 end module cidist
 

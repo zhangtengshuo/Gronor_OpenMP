@@ -195,8 +195,17 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         do j=1,np-1
           taver(i)=taver(i)+timings(j,i)
         enddo
+      enddo
+      do i=1,49
         taver(i)=taver(i)/dble(nalive)
       enddo
+      do i=50,55
+        taver(i)=taver(i)/dble(numman)
+      enddo
+      do i=56,68
+        taver(i)=taver(i)/dble(nalive)
+      enddo
+      
 
       write(lfntim,500) np,68
 500   format(2i10)
@@ -268,7 +277,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 609   format(//,' Wallclock Timing Analysis GnTwo',/)
 
       write(lfnout,610)
-610   format('  Proc  ','   Transpose','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
+610   format('  Proc  ','       Total','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
           '      Two1-n','      Two1-w','       Comm1','       Comm2',/)
 
       flush(lfnout)
@@ -282,6 +291,24 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,631) (taver(j),j=30,36),taver(39),taver(37)
 631   format(1x,115('-'),/,'  Avrg  ',9f12.3)
 
+      flush(lfnout)
+
+      if(managers.gt.0) then
+      write(lfnout,640)
+640   format(//,' Wallclock Timing Analysis Manager Ranks',/)
+      write(lfnout,641)
+641   format('  Proc  ','       Total','   Rcv mTask','   Snd wTask','   Rcv wBuff','   Snd mBuff',&
+          '   Snd wTerm',/)
+      flush(lfnout)
+      do i=1,np
+        if(map2(i,8).eq.manager) then
+          write(lfnout,642) i-1,crole(map2(i,8)),(timings(i,j),j=50,55)
+642       format(1x,i5,1x,a1,9f12.3)
+        endif
+      enddo
+      write(lfnout,643) (taver(j),j=50,55)
+643   format(1x,115('-'),/,'  Avrg  ',9f12.3)
+      endif
       flush(lfnout)
 
       write(lfnout,612)

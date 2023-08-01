@@ -115,12 +115,12 @@ subroutine gronor_assign_managers()
 
   ! Determine the number of non-idle ranks per manager
 
-  m=0
+  numman=0
   nperman=0
   do i=1,np
     if(map2(i,8).ne.idle) nperman=nperman+1
-    if(map2(i,8).eq.manager) m=m+1
+    if(map2(i,8).eq.manager) numman=numman+1
   enddo
-  nperman=nperman/m
+  nperman=nperman/numman
   
 end subroutine gronor_assign_managers

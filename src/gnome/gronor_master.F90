@@ -704,7 +704,6 @@ subroutine gronor_master()
         ncount=4
         mpitag=2
 
-        write(*,'(a,4i8)') "MSTR1 sending",(ipbuf(k,iremote+1),k=1,4)
         call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
         owait=.true.
@@ -1075,7 +1074,6 @@ subroutine gronor_master()
           ncount=4
           mpitag=2
 
-          write(*,'(a,4i8)') "MSTR2 sending",(ipbuf(k,iremote+1),k=1,4)
           call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
 
@@ -1181,7 +1179,6 @@ subroutine gronor_master()
     ncount=4
     mpitag=2
 
-    write(*,'(a,4i8)') "MSTR3 sending",(itbuf(k,iremote+1),k=1,4)
     call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
 
     if(idbg.gt.10) then
@@ -1201,7 +1198,6 @@ subroutine gronor_master()
     itbuf(3,iremote+1)=-1
     itbuf(4,iremote+1)=-1
     if(iremote.ne.mstr) then
-      write(*,'(a,4i8)') "MSTR4 sending",(itbuf(k,iremote+1),k=1,4)
       call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
           iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
       if(idbg.gt.10) then

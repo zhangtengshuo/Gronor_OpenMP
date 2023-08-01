@@ -508,6 +508,11 @@ subroutine gronor_environment()
       map2(me+1,7)=mydev
     endif
 #endif
+
+    do i=1,np-1
+      map2(i,8)=worker
+    enddo
+    map2(np,8)=master
     
     ! Upon exit the array map2 contains the following rank specific values
     
@@ -518,6 +523,8 @@ subroutine gronor_environment()
     !      map2(me+1,5) : acc device or -(omp thread)
     !      map2(me+1,6) : node
     !      map2(me+1,7) : acc device id
+    !      map2(me+1,8) : role
+    !      map2(me+1,9) :
     
     return
   end subroutine gronor_environment

@@ -117,7 +117,7 @@ subroutine gronor_main()
 
   integer :: ndtot,npl,nrg,igb,ibd,ivc,ibas,ib,lc,nc,mc,nnc
 
-  integer :: l2,nidet,njdet,n,iskip
+  integer :: l2,nidet,njdet,n
 
   character (len=3) :: ident(3)
   character (len=4) :: onlabel
@@ -768,7 +768,6 @@ subroutine gronor_main()
 
     endif
 
-    print*,managers
     if(managers.gt.0) call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
@@ -954,32 +953,30 @@ subroutine gronor_main()
   
   numgrp=0
   igr=0
-  iskip=0
   do i=1,np
     if(map2(i,5).gt.0) then
+!    if(map2(i,5).gt.0.and.map2(i,8).eq.worker) then
       if(igr.eq.0) numgrp=numgrp+1
       igr=igr+1
-      do while(map2(i,8).ne.worker)
-        iskip=iskip+1
-      enddo
       allgroups(numgrp,1)=map2(i,5)
-      allgroups(numgrp,igr+1)=i-1+iskip
+      allgroups(numgrp,igr+1)=i-1
       if(igr.eq.mgr) igr=0
     endif
   enddo
   if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
   
-  !  igr=0
-  !  do i=1,np
-  !    if(map2(i,5).lt.0) then
-  !      if(igr.eq.0) numgrp=numgrp+1
-  !      igr=igr+1
-  !      allgroups(numgrp,1)=map2(i,5)
-  !      allgroups(numgrp,igr+1)=i-1
-  !      if(igr.eq.mgr) igr=0
-  !    endif
-  !  enddo
-  !  if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
+  igr=0
+  do i=1,np
+    if(map2(i,5).lt.0) then
+!    if(map2(i,5).lt.0.and.map2(i,8).eq.worker) then
+      if(igr.eq.0) numgrp=numgrp+1
+      igr=igr+1
+      allgroups(numgrp,1)=map2(i,5)
+      allgroups(numgrp,igr+1)=i-1
+      if(igr.eq.mgr) igr=0
+    endif
+  enddo
+  if(igr.ne.0.and.numgrp.gt.0) numgrp=numgrp-1
   
   do i=1,np
     map2(i,3)=0

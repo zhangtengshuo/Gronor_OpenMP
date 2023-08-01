@@ -98,7 +98,7 @@ subroutine gronor_assign_managers()
   ! Determine the maximum number of sub-tasks (i.e. buffers) per manager task
 
   if(role.eq.manager) then
-    print*,mtaska,ntaska
+!    print*,mtaska,ntaska
     maxbuf=max(ntaska/mtaska,ntask/ntaska)+1
     allocate(mgrbuf(maxbuf,5))
   endif
@@ -108,7 +108,7 @@ subroutine gronor_assign_managers()
     write(*,'(i4,a,i10)') me," Number of managers is ",managers
   endif
 
-  write(*,'(16i8)') me,role,(map2(me+1,j),j=1,9)
+!  write(*,'(16i8)') me,role,(map2(me+1,j),j=1,9)
 
   
 end subroutine gronor_assign_managers

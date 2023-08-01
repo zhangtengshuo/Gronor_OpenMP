@@ -186,10 +186,11 @@ subroutine gronor_input()
 
     if(inp_compare(.false.,'Task',item)) then
       ntaska=1
+      mtaska=8
       if(.not.inp_i(ntaska)) call gronor_abort(117,"Input error")
       if(.not.inp_i(ntask)) ntask=ntaska
-      if(.not.inp_i(mtaska)) mtaska=32
-      if(.not.inp_i(mtask)) mtask=32
+      if(.not.inp_i(mtaska)) mtaska=8
+      if(.not.inp_i(mtask)) mtask=mtaska
       goto 2
     endif
 

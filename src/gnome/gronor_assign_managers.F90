@@ -49,6 +49,10 @@ subroutine gronor_assign_managers()
 
   ! If the number of nodes is larger than one, assign one manager per node
   if(nnodes.gt.1) then
+    do i=1,np-1
+      if(map2(i,6).ne.map2(i+1,6)) map2(i,8)=manager
+    enddo
+    map2(np-1,8)=manager
   endif
   
 

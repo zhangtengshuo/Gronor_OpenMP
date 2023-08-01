@@ -1325,6 +1325,11 @@ subroutine gronor_main()
 
   if(iamacc.eq.1) then
 
+    ! Set ntask and mtask to the values for accelerated ranks
+
+    ntask=ntaska
+    mtask=mtaska
+
     !     only accelerated ranks need to set device
 
     !     On the JFZ Juwels Booster the slurm implementation sets the

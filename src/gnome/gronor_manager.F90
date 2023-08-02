@@ -104,11 +104,20 @@ subroutine gronor_manager()
     if(mod(numdets,numtsk).eq.0) then
       mgrbuf(i,5)=mgrbuf(i,5)+1
     endif
-    
     numbuf=numtsk
-
-    ! Split the determinant list into numbuf pieces
+    if(numdets.le.numtsk) then
+      do i=1,numtsk
+      mgrbuf(i,5)=0
+      enddo
+      do i=1,numdets
+      mgrbuf(i,5)=1
+      enddo
+    numbuf=numdets
+    endif
     
+    ! Split the determinant list into numbuf pieces
+
+!    write(*,'(i5,a,3i8)') me,' Size    ',idet,jdet,numdets
     mgrbuf(1,1)=idet
     do i=1,numbuf-1
       mgrbuf(i,2)=mgrbuf(i,1)+mgrbuf(i,5)-1
@@ -117,7 +126,7 @@ subroutine gronor_manager()
     mgrbuf(numbuf,2)=jdet
     do i=1,numbuf
       mgrbuf(i,3)=0
-!      write(*,'(a,3i8)') 'Subtask ',i,mgrbuf(i,1),mgrbuf(i,2)
+!      write(*,'(i5,a,3i8)') me,' Subtask ',i,mgrbuf(i,1),mgrbuf(i,2)
     enddo
 
     ! set number of tasks sent in numsnd, received in numrcv
@@ -138,7 +147,7 @@ subroutine gronor_manager()
     ! first send sub tasks to workers ready to receive a new sub-task
     
     do i=1,numbuf
-      if(mgrbuf(i,3).eq.0) then
+      if(mgrbuf(i,3).eq.0.and.mgrbuf(i,5).gt.0) then
         do j=1,numwrk
           if(mgrwrk(j,2).eq.1) then
             mipbuf(1,j)=ibase

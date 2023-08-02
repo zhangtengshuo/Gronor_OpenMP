@@ -103,6 +103,7 @@ subroutine gronor_assign_managers()
 
   if(role.eq.manager) then
     maxbuf=max(ntaska/mtaska,ntask/mtask)+1
+    maxbuf=max(ntaska,mtaska,ntask,mtask)+1
     allocate(mgrbuf(maxbuf,5))
   endif
   

@@ -31,7 +31,7 @@ subroutine gronor_manager()
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17),tbuf(17),buffer(17)
-  integer (kind=8) :: numsnd,numrcv,numdets,idet,jdet,ibase,jbase
+  integer (kind=8) :: numsnd,numrcv,numdets,idet,jdet,ibase,jbase,numtsk
 
   integer (kind=8) :: i,j,k,m
   
@@ -40,6 +40,11 @@ subroutine gronor_manager()
   do i=1,17
     rbuf(i)=0.0d0
     tbuf(i)=0.0d0
+  enddo
+
+  numtsk=0
+  do i=1,np
+    if(map2(i,9).eq.me) numtsk=numtsk+1
   enddo
   
   ncount=17
@@ -92,27 +97,27 @@ subroutine gronor_manager()
 
     numdets=jdet-idet+1
 
-!   write(*,'(i4,a,10i10)') me,": Number of determinants  ",numdets
-!   write(*,'(i4,a,10i10)') me,": Tasks size mtask mtaska ",mtask,mtaska
-    if(numdets.ge.mtask) then
-      numbuf=numdets/mtask
-    else
-      numbuf=1
+    m=numdets/numtsk
+    do i=1,numtsk
+      mgrbuf(i,5)=m
+    enddo
+    if(mod(numdets,numtsk).eq.0) then
+      mgrbuf(i,5)=mgrbuf(i,5)+1
     endif
-!   write(*,'(i4,a,10i10)') me,": Number of buffers       ",numdets
     
-    m=numdets/numbuf
+    numbuf=numtsk
 
     ! Split the determinant list into numbuf pieces
     
     mgrbuf(1,1)=idet
     do i=1,numbuf-1
-      mgrbuf(i,2)=mgrbuf(i,1)+m
+      mgrbuf(i,2)=mgrbuf(i,1)+mgrbuf(i,5)-1
       mgrbuf(i+1,1)=mgrbuf(i,2)+1
     enddo
     mgrbuf(numbuf,2)=jdet
     do i=1,numbuf
       mgrbuf(i,3)=0
+!      write(*,'(a,3i8)') 'Subtask ',i,mgrbuf(i,1),mgrbuf(i,2)
     enddo
 
     ! set number of tasks sent in numsnd, received in numrcv

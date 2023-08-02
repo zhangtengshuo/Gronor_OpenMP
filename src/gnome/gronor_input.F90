@@ -67,6 +67,11 @@ subroutine gronor_input()
       goto 2
     endif
 
+    if(inp_compare(.false.,'Label',item)) then
+      if(.not.inp_i(labmax)) call gronor_abort(121,"Input error")
+      goto 2
+    endif
+
     if(inp_compare(.false.,'MEBFs',item)) then
       if(.not.inp_a(mebfroot)) call gronor_abort(105,"Input error")
       if(.not.inp_i(nbase)) call gronor_abort(106,"Input error")

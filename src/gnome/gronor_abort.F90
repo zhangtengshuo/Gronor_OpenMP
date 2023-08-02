@@ -82,6 +82,9 @@
       case(120)
          write(lfnabt,'(a)') "Input: Print : print option not properly specified"
 
+      case(121)
+         write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
+
       case(130)
          write(lfnabt,'(a)') "Input: MPIbuffer : MPI buffer size not specified"
 
@@ -187,13 +190,8 @@
       case(272)
          write(lfnabt,'(a)')  "gronor_detemine_maxcib: incompatible spin state"
 
-      case(280)
-         write(lfnabt,'(a)')  "gronor_iloop: wrong mode"
-
       case(290)
          write(lfnabt,'(a)')  "gronor_leftovers: problem in seticlosed"
-
-
 
       case(300)
          write(lfnabt,'(a)')  "gronor_calculate: inconsistent number of electrons"

@@ -1,0 +1,17 @@
+#!/bin/tcsh
+
+module load cmake nvhpc mpich
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+unsetenv MPI_ROOT
+
+rm -rf build
+mkdir build
+cd build
+
+cmake -DOPENACC=ON -DCUSOLVERJ=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/nvhpc-22.09/mpich-4.0.3/gronor/23.00 ../
+
+make -j 6
+make install

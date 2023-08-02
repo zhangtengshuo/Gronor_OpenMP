@@ -42,10 +42,9 @@ subroutine gronor_master()
 
   external :: swatch,timer_start,timer_stop
   external :: MPI_iSend,MPI_Recv
-  external :: iloop_init
 
   integer :: ibase,jbase,mdet,ibin,jbin
-  integer :: l2,i,j,k,l,ndone,nleft,nrb
+  integer :: l2,i,j,k,l,ndone,nleft
   integer :: igrp, ltemp, last, nthdet
   logical :: osame,ofirst,owait,oskipn
 
@@ -189,10 +188,18 @@ subroutine gronor_master()
       &     ' Number of determinants above CI threshold',t50,i16)
 
   if(ipr.gt.0) then
-    if(ipr.lt.30) then
-      write(lfnout,602)
+    if(lablen.le.labmax) then
+      if(ipr.lt.30) then
+        write(lfnout,602)
+      else
+        write(lfnout,1602)
+      endif
     else
-      write(lfnout,1602)
+      if(ipr.lt.30) then
+        write(lfnout,2602)
+      else
+        write(lfnout,3602)
+      endif
     endif
   endif
 602 format(//,' Calculation of Hamiltonian matrix elements',//,               &
@@ -214,6 +221,30 @@ subroutine gronor_master()
       '         Normalized ',                                              &
       '  Wall Clock  Wall Clock',/                                         &
       '                          ',t45,                                    &
+      '      left     right         pairs     threshold',                  &
+      '          none           1           2            3+',              &
+      '      Hamiltonian              Overlap     ',                       &
+      '         Hamiltonian ',                                             &
+      '        Cost        Time',/)
+2602 format(//,' Calculation of Hamiltonian matrix elements',//,               &
+      '    Element',t13,                                    &
+      '      -------------- Determinants --------------',                  &
+      '  ------------- Unnormalized -------------  ',                      &
+      '         Normalized ',                                              &
+      '  Wall Clock  Wall Clock',/                                         &
+      '                          ',t13,                                    &
+      '      left     right         pairs     threshold',                  &
+      '      Hamiltonian              Overlap     ',                       &
+      '         Hamiltonian ',                                             &
+      '        Cost        Time',/)
+3602 format(//,' Calculation of Hamiltonian matrix elements',//,               &
+      '    Element',t13,                                    &
+      '      -------------- Determinants --------------',                  &
+      '          -------------- Singularities -------------',              &
+      '  ------------- Unnormalized -------------  ',                      &
+      '         Normalized ',                                              &
+      '  Wall Clock  Wall Clock',/                                         &
+      '                          ',t13,                                    &
       '      left     right         pairs     threshold',                  &
       '          none           1           2            3+',              &
       '      Hamiltonian              Overlap     ',                       &
@@ -248,7 +279,7 @@ subroutine gronor_master()
       ndetj=idetb(jbase)
       nacti=nactb(ibase)
       nactj=nactb(jbase)
-      call iloop_init(ndeti,ndetj,osame)
+
       if(osame) then
         l2=ndeti*(ndeti+1)/2
         ijend=l2
@@ -296,7 +327,6 @@ subroutine gronor_master()
       flush(lfnday)
       call timer_start(99)
       
-      nrb=0
       ndone=0
       !          ibuf(1)=0
       !          ibuf(2)=0
@@ -376,17 +406,16 @@ subroutine gronor_master()
             call swatch(date,time)
             if(ipro.eq.1) rewind(unit=lfnpro)
             write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1, &
-                nrb,pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
-680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,3i6,i12,f8.3,'% ',2e16.8,5i8)
+                lgroup(igrp,4)-lgroup(igrp,3)+1, &
+              pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
+680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ',2e16.8,5i8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             call swatch(date,time)
             if(ipro.eq.2) rewind(unit=lfnpro)
             write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1, &
-                nrb,pnrb(ibin,jbin)
-681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,3i6,i12,f8.3,'% ')
+                lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
+681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ')
             flush(lfnpro)
           endif
           if(me.eq.master.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
@@ -443,10 +472,10 @@ subroutine gronor_master()
               ltemp=idetb(ibin)*idetb(jbin)
             endif
 
-            write(lfnarx,1522) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+            write(lfnarx,1522) ibin,trim(mebfLabel(ibin)),jbin,trim(mebfLabel(jbin)), &
                 idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
                 (nsing(ibin,jbin,k),k=1,4),hbase(ibin,jbin),sbase(ibin,jbin)
-            write(lfnxrx,1522) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+            write(lfnxrx,1522) ibin,trim(mebfLabel(ibin)),jbin,trim(mebfLabel(jbin)), &
                 idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
                 (nsing(ibin,jbin,k),k=1,4),hbase(ibin,jbin),sbase(ibin,jbin)
             write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
@@ -456,52 +485,104 @@ subroutine gronor_master()
             call timer_stop(99)
             
             if(ipr.ge.1) then
-              if(ipr.lt.30) then
-                if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-                  if(ibin.ne.jbin) then
-                    write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+              if(lablen.le.labmax) then
+                if(ipr.lt.30) then
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                    if(ibin.ne.jbin) then
+                      write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   else
-                    write(lfnout,608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                        tbase(ibin,jbin),timer_wall_total(98)
+                    if(ibin.ne.jbin) then
+                      write(lfnout,617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   endif
                 else
-                  if(ibin.ne.jbin) then
-                    write(lfnout,617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                    if(ibin.ne.jbin) then
+                      write(lfnout,1607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,1608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   else
-                    write(lfnout,618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                        tbase(ibin,jbin),timer_wall_total(98)
+                    if(ibin.ne.jbin) then
+                      write(lfnout,1617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,1618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   endif
                 endif
               else
-                if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-                  if(ibin.ne.jbin) then
-                    write(lfnout,1607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                if(ipr.lt.30) then
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                    if(ibin.ne.jbin) then
+                      write(lfnout,2607) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,2608) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   else
-                    write(lfnout,1608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                        tbase(ibin,jbin),timer_wall_total(98)
+                    if(ibin.ne.jbin) then
+                      write(lfnout,2617) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,2618) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   endif
                 else
-                  if(ibin.ne.jbin) then
-                    write(lfnout,1617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                  if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                    if(ibin.ne.jbin) then
+                      write(lfnout,3607) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,3608) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   else
-                    write(lfnout,1618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                        idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                        hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                        tbase(ibin,jbin),timer_wall_total(98)
+                    if(ibin.ne.jbin) then
+                      write(lfnout,3617) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                    else
+                      write(lfnout,3618) ibin,jbin, &
+                          idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                          hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                          tbase(ibin,jbin),timer_wall_total(98)
+                    endif
                   endif
                 endif
               endif
@@ -515,7 +596,7 @@ subroutine gronor_master()
                   f18.10,4x,f18.10,4x,f20.10,2f12.1)
 617           format(1x,2i5,'   <',a,'.',a,'> ',t45,2i10,2i14, &
                   f18.10,4x,f18.10,4x,20x,2f12.1)
-1522          format(1x,2i5,'   <',a,'.',a,'> ',t45,2i10,3i14,2i12,i14,/,t45,2e20.13)
+1522          format(1x,i5,1x,a,/,1x,i5,1x,a,/,t45,2i10,3i14,2i12,i14,/,t45,2e20.13)
 1523          format(t45,5e20.13)
 1608          format(1x,2i5,'   <',a,'.',a,'> ',t45,2i10,3i14,2i12,i14, &
                   4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
@@ -524,6 +605,23 @@ subroutine gronor_master()
 1618          format(1x,2i5,'   <',a,'.',a,'> ',t45,2i10,3i14,2i12,i14, &
                   f18.10,4x,f18.10,4x,f20.10,2f12.1)
 1617          format(1x,2i5,'   <',a,'.',a,'> ',t45,2i10,3i14,2i12,i14, &
+                  f18.10,4x,f18.10,4x,20x,2f12.1)
+              
+2608           format(1x,2i5,t13,2i10,2i14, &
+                  4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
+2607           format(1x,2i5,t13,2i10,2i14, &
+                  4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
+2618           format(1x,2i5,t13,2i10,2i14, &
+                  f18.10,4x,f18.10,4x,f20.10,2f12.1)
+2617           format(1x,2i5,t13,2i10,2i14, &
+                  f18.10,4x,f18.10,4x,20x,2f12.1)
+3608          format(1x,2i5,t13,2i10,3i14,2i12,i14, &
+                  4x,1pe18.10,4x,e18.10,0pf20.10,2f12.1)
+3607          format(1x,2i5,t13,2i10,3i14,2i12,i14, &
+                  4x,1pe18.10,4x,e18.10,20x,0pf12.1,f12.1)
+3618          format(1x,2i5,t13,2i10,3i14,2i12,i14, &
+                  f18.10,4x,f18.10,4x,f20.10,2f12.1)
+3617          format(1x,2i5,t13,2i10,3i14,2i12,i14, &
                   f18.10,4x,f18.10,4x,20x,2f12.1)
             endif
             
@@ -628,9 +726,8 @@ subroutine gronor_master()
 
         if(ipr.eq.2.or.ipro.eq.4) then
           call swatch(date,time)
-          write(lfnpro,682) date(1:8),time(1:8), &
-              iremote,igrp,(ibuf(j),j=1,4),iloop(ibuf(3),1),iloop(ibuf(3),2)
-682       format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10,2i6)
+          write(lfnpro,682) date(1:8),time(1:8),iremote,igrp,(ibuf(j),j=1,4)
+682       format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10)
           flush(lfnpro)
         endif
 
@@ -724,14 +821,13 @@ subroutine gronor_master()
       if(ipro.eq.1.or.ipro.eq.3) then
         if(ipro.eq.1) rewind(unit=lfnpro)
         write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1,nrb, &
+            lgroup(igrp,4)-lgroup(igrp,3)+1, &
             pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
         flush(lfnpro)
       elseif(ipro.eq.2.or.ipro.eq.4) then
         if(ipro.eq.2) rewind(unit=lfnpro)
         write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1,nrb, &
-            pnrb(ibin,jbin)
+            lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
         flush(lfnpro)
       endif
       
@@ -787,61 +883,113 @@ subroutine gronor_master()
         else
           ltemp=idetb(ibin)*idetb(jbin)
         endif
-        write(lfnarx,1522) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+        write(lfnarx,1522) ibin,trim(mebfLabel(ibin)),jbin,trim(mebfLabel(jbin)), &
             idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
             hbase(ibin,jbin),sbase(ibin,jbin)
-        write(lfnxrx,1522) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+        write(lfnxrx,1522) ibin,trim(mebfLabel(ibin)),jbin,trim(mebfLabel(jbin)), &
             idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
             hbase(ibin,jbin),sbase(ibin,jbin)
         write(lfnarx,1523) (dqbase(ibin,jbin,k),k=1,9)
         write(lfnxrx,1523) (dqbase(ibin,jbin,k),k=1,9)
         if(ipr.ge.1) then
-          if(ipr.lt.30) then
-            if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-              if(ibin.ne.jbin) then
-                write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+          if(lablen.le.labmax) then
+            if(ipr.lt.30) then
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                if(ibin.ne.jbin) then
+                  write(lfnout,607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               else
-                write(lfnout,608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                    tbase(ibin,jbin),timer_wall_total(98)
+                if(ibin.ne.jbin) then
+                  write(lfnout,617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               endif
             else
-              if(ibin.ne.jbin) then
-                write(lfnout,617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                if(ibin.ne.jbin) then
+                  write(lfnout,1607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,1608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               else
-                write(lfnout,618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                    tbase(ibin,jbin),timer_wall_total(98)
+                if(ibin.ne.jbin) then
+                  write(lfnout,1617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,1618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               endif
             endif
           else
-            if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
-              if(ibin.ne.jbin) then
-                write(lfnout,1607) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+            if(ipr.lt.30) then
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                if(ibin.ne.jbin) then
+                  write(lfnout,2607) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,2608) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               else
-                write(lfnout,1608) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                    tbase(ibin,jbin),timer_wall_total(98)
+                if(ibin.ne.jbin) then
+                  write(lfnout,2617) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,2618) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               endif
             else
-              if(ibin.ne.jbin) then
-                write(lfnout,1617) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+              if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
+                if(ibin.ne.jbin) then
+                  write(lfnout,3607) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,3608) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               else
-                write(lfnout,1618) ibin,jbin,trim(mebfLabel(ibin)),trim(mebfLabel(jbin)), &
-                    idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
-                    hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
-                    tbase(ibin,jbin),timer_wall_total(98)
+                if(ibin.ne.jbin) then
+                  write(lfnout,3617) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin),timer_wall_total(98)
+                else
+                  write(lfnout,3618) ibin,jbin, &
+                      idetb(ibin),idetb(jbin),ltemp,nbdet(ibin,jbin),(nsing(ibin,jbin,k),k=1,4), &
+                      hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin), &
+                      tbase(ibin,jbin),timer_wall_total(98)
+                endif
               endif
             endif
           endif
@@ -943,7 +1091,7 @@ subroutine gronor_master()
           if(ipro.eq.2.or.ipro.eq.4) then
             call swatch(date,time)
             write(lfnpro,682) date(1:8),time(1:8), &
-                iremote,igrp,(ibuf(k),k=1,4),iloop(ibuf(3),1),iloop(ibuf(3),2)
+                iremote,igrp,(ibuf(k),k=1,4)
             flush(lfnpro)
           endif
 
@@ -964,8 +1112,8 @@ subroutine gronor_master()
 
       if(ipro.eq.1.or.ipro.eq.3) then
         write(lfnpro,683) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            iloop(lgroup(igrp,3),1),iloop(lgroup(igrp,3),2),lgroup(igrp,4)-lgroup(igrp,3)+1
-683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,3i6)
+            lgroup(igrp,4)-lgroup(igrp,3)+1
+683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,i6)
       endif
     endif
 
@@ -1124,17 +1272,31 @@ subroutine gronor_master()
   call timer_stop(98)
   call timer_stop(99)
   if(ipr.gt.0) then
-    if(ipr.lt.30) then
-      write(lfnout,615) mdet,nthdet,tsum,dble(mgr)*tsum/dble(np-1), &
-          timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+    if(lablen.le.labmax) then
+      if(ipr.lt.30) then
+        write(lfnout,615) mdet,nthdet,tsum,dble(mgr)*tsum/dble(np-1), &
+            timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+      else
+        write(lfnout,1615) mdet,nthdet,(nsingt(i),i=1,4),tsum,dble(mgr)*tsum/dble(np-1), &
+            timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+      endif
     else
-      write(lfnout,1615) mdet,nthdet,(nsingt(i),i=1,4),tsum,dble(mgr)*tsum/dble(np-1), &
-          timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+      if(ipr.lt.30) then
+        write(lfnout,2615) mdet,nthdet,tsum,dble(mgr)*tsum/dble(np-1), &
+            timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+      else
+        write(lfnout,3615) mdet,nthdet,(nsingt(i),i=1,4),tsum,dble(mgr)*tsum/dble(np-1), &
+            timer_wall_total(98),100.0*dble(mgr)*tsum/dble(np-1)/timer_wall_total(98)
+      endif
     endif
   endif
 615 format(/,' Total',t65,2i14,64x,1f12.1,//,' Total averaged per rank',t157,2f12.1,/, &
         ' Task execution efficiency',t157,f12.1,' %')
 1615 format(/,' Total',t65,3i14,2i12,i14,64x,1f12.1,//,' Total averaged per rank',t209,2f12.1,/, &
+         ' Task execution efficiency',t209,f12.1,' %')
+2615 format(/,' Total',t65,2i14,64x,1f12.1,//,' Total averaged per rank',t157,2f12.1,/, &
+        ' Task execution efficiency',t157,f12.1,' %')
+3615 format(/,' Total',t65,3i14,2i12,i14,64x,1f12.1,//,' Total averaged per rank',t209,2f12.1,/, &
          ' Task execution efficiency',t209,f12.1,' %')
   call timer_start(98)
   call timer_start(99)

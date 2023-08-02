@@ -1,5 +1,5 @@
 subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olower,scale, &
-    rmat,nrdim,ncols,nds)
+    rmat,nrdim,ncols,nds,olab)
 
   implicit none
 
@@ -7,11 +7,13 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   logical, intent(in) :: olabel,olower
   real(kind=8), intent(in) :: scale,rmat(nrdim,nrdim)
   character(len=128) :: header,key,labels(nrdim)
+  logical :: olab
 
-  real(kind=8), allocatable :: rt(:)
+  real(kind=8), allocatable :: rt(:),rt0(:)
   integer :: i,j,k,nk,ii,il,ik,lenlab
 
   allocate(rt(nrdim))
+  allocate(rt0(nrdim))
 
   write(lfno,600) trim(header)
 600 format(//,1x,a)
@@ -28,7 +30,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   do k=1,nk
     ii=(k-1)*ncols+1
     il=min(nrdim,k*ncols)
-    if(.not.olabel) then
+    if(.not.olab) then
       write(lfno,602) (i,i=ii,il)
 602   format(/,6x,'|',7(6x,i8,6x))
       write(lfno,603) ' -----|',('--------------------',i=ii,il)
@@ -54,7 +56,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
     do j=1,nrdim
       ik=il
       if(olower) ik=min(j-1,il)
-      if (.not.olabel) then
+      if (.not.olab) then
         write(lfno,605) j,(scale*rmat(i,j),i=ii,ik)
 605     format(1x,i4,1x,'|',10f20.10)
       else
@@ -81,9 +83,17 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
       enddo
       if(lfnt.gt.0) then
         if(nds.eq.3) then
-          write(lfnt,608) j,(rt(i),i=ii,il)
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-3) rt0(i)=0.0d0
+          enddo
+          write(lfnt,608) j,(rt0(i),i=ii,il)
         else
-          write(lfnt,609) j,(rt(i),i=ii,il)
+          do i=ii,il
+            rt0(i)=rt(i)
+            if(abs(rt0(i)).lt.1.0d-6) rt0(i)=0.0d0
+          enddo
+          write(lfnt,609) j,(rt0(i),i=ii,il)
         endif
       endif
 608   format(i5,1x,10f20.3)
@@ -96,6 +106,7 @@ subroutine gronor_print_matrix(lfno,lfna,lfnr,lfnt,header,key,olabel,labels,olow
   if(lfnt.gt.0) flush(lfnt)
 
   deallocate(rt)
+  deallocate(rt0)
 
   return
 

@@ -19,11 +19,10 @@
 !! @date    2020
 !!
 
-subroutine gronor_print_results(hbase,sbase,nbase,hev)
+subroutine gronor_print_results(hb)
 
-  use gnome_parameters, only : itest,ncols
-  use cidef, only : lfnout,lfntst,lfnarx,lfncml,ncorr,nwt,mebfLabel,mebfLabels,header,key, &
-      nociwf,lfnxrx
+  use gnome_parameters, only : itest,ncols,labmax
+  use cidef
 
   implicit none
 
@@ -32,14 +31,9 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   external :: writetag_scalar_real,writetag_scalar_integer
   external :: gronor_print_matrix,dsygv
 
-  integer,intent(in)            :: nbase
+  real(kind=8)                  :: hb(nbase,nbase)
   integer                       :: i,j,k,ii,il
   integer                       :: nk,info,lwork
-  real(kind=8),intent(in)       :: hbase(nbase,nbase)
-  real(kind=8),intent(in)       :: sbase(nbase,nbase)
-  real(kind=8)                  :: tc(nbase,nbase)
-  real(kind=8)                  :: nociovlp(nbase,nbase)
-  real(kind=8)                  :: hev(nbase)
   real(kind=8),allocatable      :: work(:)
 
   character(len=132)            :: info_cml,info_cml2,fmt_1,id
@@ -50,6 +44,11 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   real(kind=8)                  :: debye,angstrom
   integer                       :: lfnt
 
+  real(kind=8), allocatable :: tc(:,:),nociovlp(:,:)
+  real(kind=8), allocatable :: nociwf0(:)
+
+  allocate(tc(nbase,nbase),nociovlp(nbase,nbase))
+
   debye    = 2.54174644986
   angstrom = 0.529177249
 
@@ -59,18 +58,19 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   key='Hamil'
   header='Hamiltonian Matrix'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,hbase,nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,hb,nbase,7,6,lablen.le.labmax)
 
   key='Overl'
   header='Overlap Matrix'
   call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-      mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6)
+      mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6,lablen.le.labmax)
 
   !      allocate( nociwf(nbase,nbase) )
   if (nbase .eq. 1) then
-    hev(1)=hbase(1,1)/sbase(1,1)
+    hev(1)=hb(1,1)/sbase(1,1)
     nociwf(1,1) = 1.0d0
   else
+    allocate(nociwf0(nbase))
     do i=1,nbase
       do j=1,nbase
         tc(i,j)=0.0d0
@@ -78,7 +78,7 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
     enddo
     do i=2,nbase
       do j=1,i-1
-        tc(i,j)=(hbase(i,j)-0.5d0*(hbase(i,i)+hbase(j,j))*sbase(i,j))/(1.0d0-sbase(i,j)*sbase(i,j))
+        tc(i,j)=(hb(i,j)-0.5d0*(hb(i,i)+hb(j,j))*sbase(i,j))/(1.0d0-sbase(i,j)*sbase(i,j))
         tc(j,i)=tc(i,j)
       enddo
     enddo
@@ -86,16 +86,16 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
     key='Coupl'
     header='Electronic Couplings (meV)'
     call gronor_print_matrix(lfnout,lfnarx,lfnxrx,lfnt,header,key, &
-        mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3)
+        mebfLabels,mebfLabel,.true.,27.2114d3,tc,nbase,7,3,lablen.le.labmax)
 
     !     Diagonalize the NOCI matrix and print the energies and wave functions
-    !     Don't touch hbase and sbase, needed again when shifting
+    !     Don't touch hb and sbase, needed again when shifting
 
     info=0
     lwork = 4*nbase
     do j=1,nbase
       do i=1,nbase
-        nociwf(i,j)=hbase(i,j)
+        nociwf(i,j)=hb(i,j)
         nociovlp(i,j)=sbase(i,j)
       enddo
     enddo
@@ -142,18 +142,28 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
           write(lfnout,684) j,(nociwf(j,i),i=ii,il)
 684       format(i14,t18,12f20.10)
         else
-          write(lfnout,685) trim(mebfLabel(j)),(nociwf(j,i),i=ii,il)
-685       format(1x,a,t18,12f20.10)
+          if(lablen.le.labmax) then
+            write(lfnout,685) trim(mebfLabel(j)),(nociwf(j,i),i=ii,il)
+685         format(1x,a,t26,12f20.10)
+          else
+            write(lfnout,686) j,(nociwf(j,i),i=ii,il)
+686         format(1x,i4,t18,12f20.10)
+          endif
         endif
         write(lfnarx,655) (nociwf(j,i),i=ii,il)
         write(lfnxrx,655) (nociwf(j,i),i=ii,il)
 655     format(12f20.10)
         if(itest.eq.2) then
-          write(lfntst,687) j,(nociwf(j,i),i=ii,il)
+          do i=ii,il
+            nociwf0(i)=nociwf(j,i)
+            if(abs(nociwf0(i)).lt.1.0d-6) nociwf0(i)=0.0d0            
+          enddo
+          write(lfntst,687) j,(nociwf0(i),i=ii,il)
 687       format(i14,t18,12f20.6)
         endif
       enddo
     enddo
+    deallocate(nociwf0)
   endif
 
   !   Dumping the results in the cml file
@@ -181,14 +191,14 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   info_cml='units="nonsi:hartree"'
   sep='|'
   fmt_1='f20.10'
-  call writetag_matrix_real(lfncml,info_cml,7,sep,hbase,size(hbase,1),size(hbase,2),fmt_1)
+  call writetag_matrix_real(lfncml,info_cml,7,sep,hb,size(hb,1),size(hb,2),fmt_1)
   call close_tag(lfncml,label,6)
   if (ncorr.ne.1) then
     info_cml='dictRef="gr:overlap"'
     indent = 6
     call open_tag(lfncml,label,info_cml,indent)
     info_cml='empty'
-    call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,size(hbase,1),size(hbase,2),fmt_1)
+    call writetag_matrix_real(lfncml,info_cml,7,sep,sbase,size(hb,1),size(hb,2),fmt_1)
     call close_tag(lfncml,label,6)
   end if
   label = 'propertyList'
@@ -272,6 +282,7 @@ subroutine gronor_print_results(hbase,sbase,nbase,hev)
   flush(lfnarx)
   flush(lfnxrx)
 
+  deallocate(tc,nociovlp)
   !      deallocate(nociwf)
 
   return

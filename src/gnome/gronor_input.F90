@@ -143,7 +143,7 @@ subroutine gronor_input()
     endif
 
     if(inp_compare(.false.,'Managers',item)) then
-      if(.not.inp_i(managers)) call gronor_abort(122,"Input error")
+      if(.not.inp_i(managers)) managers=1
       goto 2
     endif
 

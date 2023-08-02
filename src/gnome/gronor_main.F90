@@ -643,8 +643,8 @@ subroutine gronor_main()
       idum(4)=maxci
       idum(5)=maxvec
       idum(6)=maxnact
-      idum(7)=mtask
-      idum(8)=mtaska
+      idum(7)=0
+      idum(8)=0
       idum(9)=0
       idum(10)=0
       idum(11)=0
@@ -720,8 +720,6 @@ subroutine gronor_main()
       maxci=idum(4)
       maxvec=idum(5)
       maxnact=idum(6)
-      mtask=idum(7)
-      mtaska=idum(8)
       icalc=idum(13)
       ipr=idum(14)
       ins2=idum(15)
@@ -1325,10 +1323,9 @@ subroutine gronor_main()
 
   if(iamacc.eq.1) then
 
-    ! Set ntask and mtask to the values for accelerated ranks
+    ! Set ntask to the value for accelerated ranks
 
     ntask=ntaska
-    mtask=mtaska
 
     !     only accelerated ranks need to set device
 

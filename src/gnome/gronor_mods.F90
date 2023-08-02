@@ -162,7 +162,7 @@ module gnome_parameters
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
-  integer :: ntask,ntaska,nbatch,nbatcha,mtask,mtaska
+  integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
   integer :: iswsvj,iswevj

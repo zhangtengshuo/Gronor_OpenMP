@@ -56,6 +56,7 @@ subroutine gronor_memory_usage()
     ncount=9
     mpitag=12
     call MPI_iSend(membuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_Request_free(ireq,ierr)
   endif
 
 

@@ -432,6 +432,7 @@ subroutine gronor_parallel_integral_input()
                   ncount=lint
                   mpitag=20
                   call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
+                  call MPI_Request_free(ireq,status)
                 enddo
               else
                 ncount=lint
@@ -458,6 +459,7 @@ subroutine gronor_parallel_integral_input()
                   mpitag=20
                   mpidest=igrn(i)
                   call MPI_iSend(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                  call MPI_Request_free(mpireq,ierr)
                 enddo
               else
                 ncount=lint
@@ -503,6 +505,7 @@ subroutine gronor_parallel_integral_input()
                 mpidest=igrn(i)
                 call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
                     mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                call MPI_Request_free(mpireq,ierr)
               enddo
             else
               ncount=2*mlab

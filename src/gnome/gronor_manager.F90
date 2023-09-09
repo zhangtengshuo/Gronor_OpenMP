@@ -50,6 +50,7 @@ subroutine gronor_manager()
   ncount=17
   mpitag=1
   call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  call MPI_Request_free(ireq,ierr)
 !  write(*,'(a,4f12.3)') "to mstr",(rbuf(k),k=1,4)
   if(idbg.gt.20) then
     call swatch(date,time)
@@ -159,6 +160,7 @@ subroutine gronor_manager()
             iremote=mgrwrk(j,1)
             call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
                 iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+            call MPI_Request_free(ireq,ierr)
 !            write(*,'(a,5i5)') "to wrkr1 ",iremote,(mipbuf(k,j),k=1,4)
             mgrbuf(i,3)=1
             mgrwrk(j,2)=0
@@ -199,6 +201,7 @@ subroutine gronor_manager()
               mpitag=2
               call MPI_iSend(mipbuf(1,j),ncount,MPI_INTEGER8, &
                   iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+              call MPI_Request_free(ireq,ierr)
 !              write(*,'(a,5i5)') "to wrkr2 ",iremote,(mipbuf(k,j),k=1,4)
               mgrbuf(i,3)=1
               mgrwrk(j,2)=0
@@ -216,6 +219,7 @@ subroutine gronor_manager()
     ncount=17
     mpitag=1
     call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_Request_free(ireq,ierr)
 !    write(*,'(a,4f12.3)') "to mstr",(tbuf(k),k=1,4)
     if(idbg.gt.10) then
       call swatch(date,time)
@@ -243,6 +247,7 @@ subroutine gronor_manager()
     iremote=mgrwrk(j,1)
     call MPI_iSend(ibuf,ncount,MPI_INTEGER8, &
         iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_Request_free(ireq,ierr)
 !    write(*,'(a,4i5)') "to wrkr ",(ibuf(k),k=1,4)
   enddo
   call timer_stop(55)

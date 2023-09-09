@@ -706,6 +706,7 @@ subroutine gronor_master()
 
         call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+        call MPI_Request_free(ireq,ierr)
         owait=.true.
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
@@ -1076,6 +1077,7 @@ subroutine gronor_master()
 
           call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+          call MPI_Request_free(ireq,ierr)
 
           !     Debug message
           
@@ -1181,6 +1183,7 @@ subroutine gronor_master()
     mpitag=2
 
     call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
+    call MPI_Request_free(ireq2,ierr)
 
     if(idbg.gt.10) then
       call swatch(date,time)
@@ -1201,6 +1204,7 @@ subroutine gronor_master()
     if(iremote.ne.mstr) then
       call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
           iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+      call MPI_Request_free(ireq9,ierr)
       if(idbg.gt.10) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &

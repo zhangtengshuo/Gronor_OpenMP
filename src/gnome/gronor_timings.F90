@@ -109,6 +109,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         mpidest=i-1
         if(mpidest.ne.mstr) then
           call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest, mpitag,MPI_COMM_WORLD,mpireq,ierr)
+          call MPI_Request_free(mpireq,ierr)
         endif
         nreqso=nreqso+1
 
@@ -116,6 +117,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
           ncount=68
           mpitag=11
           call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
+          call MPI_Request_free(itreq,ierr)
           openrcv=.true.
         endif
 
@@ -133,6 +135,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
             ncount=68
             mpitag=11
             call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
+            call MPI_Request_free(itreq,ierr)
             openrcv=.true.
 
           endif

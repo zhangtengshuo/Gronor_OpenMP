@@ -296,6 +296,84 @@ subroutine gronor_environment()
       elseif(nodename(i:i).eq.'z') then
         numeric(j:j+1)='26'
         j=j+2
+      elseif(nodename(i:i).eq.'A') then
+        numeric(j:j+1)='01'
+        j=j+2
+      elseif(nodename(i:i).eq.'B') then
+        numeric(j:j+1)='02'
+        j=j+2
+      elseif(nodename(i:i).eq.'C') then
+        numeric(j:j+1)='03'
+        j=j+2
+      elseif(nodename(i:i).eq.'D') then
+        numeric(j:j+1)='04'
+        j=j+2
+      elseif(nodename(i:i).eq.'E') then
+        numeric(j:j+1)='05'
+        j=j+2
+      elseif(nodename(i:i).eq.'F') then
+        numeric(j:j+1)='06'
+        j=j+2
+      elseif(nodename(i:i).eq.'G') then
+        numeric(j:j+1)='07'
+        j=j+2
+      elseif(nodename(i:i).eq.'H') then
+        numeric(j:j+1)='08'
+        j=j+2
+      elseif(nodename(i:i).eq.'I') then
+        numeric(j:j+1)='09'
+        j=j+2
+      elseif(nodename(i:i).eq.'J') then
+        numeric(j:j+1)='10'
+        j=j+2
+      elseif(nodename(i:i).eq.'K') then
+        numeric(j:j+1)='11'
+        j=j+2
+      elseif(nodename(i:i).eq.'L') then
+        numeric(j:j+1)='12'
+        j=j+2
+      elseif(nodename(i:i).eq.'M') then
+        numeric(j:j+1)='13'
+        j=j+2
+      elseif(nodename(i:i).eq.'N') then
+        numeric(j:j+1)='14'
+        j=j+2
+      elseif(nodename(i:i).eq.'O') then
+        numeric(j:j+1)='15'
+        j=j+2
+      elseif(nodename(i:i).eq.'P') then
+        numeric(j:j+1)='16'
+        j=j+2
+      elseif(nodename(i:i).eq.'Q') then
+        numeric(j:j+1)='17'
+        j=j+2
+      elseif(nodename(i:i).eq.'R') then
+        numeric(j:j+1)='18'
+        j=j+2
+      elseif(nodename(i:i).eq.'S') then
+        numeric(j:j+1)='19'
+        j=j+2
+      elseif(nodename(i:i).eq.'T') then
+        numeric(j:j+1)='20'
+        j=j+2
+      elseif(nodename(i:i).eq.'U') then
+        numeric(j:j+1)='21'
+        j=j+2
+      elseif(nodename(i:i).eq.'V') then
+        numeric(j:j+1)='22'
+        j=j+2
+      elseif(nodename(i:i).eq.'W') then
+        numeric(j:j+1)='23'
+        j=j+2
+      elseif(nodename(i:i).eq.'X') then
+        numeric(j:j+1)='24'
+        j=j+2
+      elseif(nodename(i:i).eq.'Y') then
+        numeric(j:j+1)='25'
+        j=j+2
+      elseif(nodename(i:i).eq.'Z') then
+        numeric(j:j+1)='26'
+        j=j+2
       endif
       i=i+1
     enddo
@@ -310,6 +388,7 @@ subroutine gronor_environment()
       else
         string(1:20)=numeric(1:20)
       endif
+      if(j.eq.0) string='                   0'
       read(string,'(i20)') node
     endif
 

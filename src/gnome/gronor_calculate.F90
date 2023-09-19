@@ -419,7 +419,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
       mpitag=5
       mpidest=thisgroup(2)
       call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
-
+      call MPI_Request_free(ireq,ierr)
       if(idbg.gt.10) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),me,' sent e2buf to',thisgroup(2)
@@ -433,4 +433,3 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   return
 end subroutine gronor_calculate
-

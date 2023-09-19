@@ -68,7 +68,7 @@ subroutine gronor_parallel_integral_input()
 
   !     Read the one-electron integral file on the master
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     open(unit=lfnone,file=filone,form='unformatted',status='old',err=994)
     !     rewind(lfnone)
     mclab=0
@@ -148,7 +148,7 @@ subroutine gronor_parallel_integral_input()
 
   !     Allocate memory for the overlap and one-electron integrals
 
-  if(me.ne.master) then
+  if(me.ne.mstr) then
     allocate(s(nbas,nbas))
     allocate(t(int1))
     allocate(v(int1))
@@ -157,19 +157,19 @@ subroutine gronor_parallel_integral_input()
 
   !     Broadcast the overlap and one-electron integrals
   ncount=nbas*nbas
-  call MPI_Bcast(s,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(s,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
   ncount=int1
-  call MPI_Bcast(t,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(t,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
   ncount=int1
-  call MPI_Bcast(v,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(v,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
   ncount=int1*9
-  call MPI_Bcast(dqm,ncount,MPI_REAL8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(dqm,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
   ncount=1
-  call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
 
   allocate(ifil(numfiles,2))
 
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     read(lfnone,err=993) (ifil(i,1),i=1,numfiles)
     read(lfnone,err=993) (ifil(i,2),i=1,numfiles)
     nrectot=0
@@ -192,7 +192,7 @@ subroutine gronor_parallel_integral_input()
     endif
   endif
   ncount=2*numfiles
-  call MPI_Bcast(ifil,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ifil,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
 
   !     Determine id of rank within its group
 
@@ -213,7 +213,7 @@ subroutine gronor_parallel_integral_input()
   !     Target number of integrals per rank is numigr
 
   allocate(ndxf(mgr,6),nag(mgr),nig(mgr),nng(mgr))
-  if(me.eq.master) then
+  if(me.eq.mstr) then
 
     numigr=int2/mgr
 
@@ -304,7 +304,7 @@ subroutine gronor_parallel_integral_input()
     ijbuf(i,8)=nng(i)
   enddo
   ncount=8*mgr
-  call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,master,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
 
   do j=1,6
     do i=1,mgr
@@ -333,7 +333,7 @@ subroutine gronor_parallel_integral_input()
 
   !     Allocate the arrays to hold integrals and labels
 
-  if(me.eq.master.or.iamactive.eq.0) then
+  if(me.eq.mstr.or.iamactive.eq.0) then
     allocate(g(1),lab(1,1),ndx(1),ndxk(1))
   else
     allocate(g(mint2))
@@ -387,7 +387,7 @@ subroutine gronor_parallel_integral_input()
   jntndx=mlab
   if(igr.gt.1) intndx=nig(igr-1)+1
   if(igr.gt.0.and.igr.lt.mgr) jntndx=nig(igr)
-  if(me.eq.master) then
+  if(me.eq.mstr) then
     intndx=-1
     jntndx=-1
   endif
@@ -432,6 +432,7 @@ subroutine gronor_parallel_integral_input()
                   ncount=lint
                   mpitag=20
                   call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
+                  call MPI_Request_free(ireq,status)
                 enddo
               else
                 ncount=lint
@@ -458,6 +459,7 @@ subroutine gronor_parallel_integral_input()
                   mpitag=20
                   mpidest=igrn(i)
                   call MPI_iSend(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                  call MPI_Request_free(mpireq,ierr)
                 enddo
               else
                 ncount=lint
@@ -503,6 +505,7 @@ subroutine gronor_parallel_integral_input()
                 mpidest=igrn(i)
                 call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
                     mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                call MPI_Request_free(mpireq,ierr)
               enddo
             else
               ncount=2*mlab
@@ -526,7 +529,7 @@ subroutine gronor_parallel_integral_input()
     ndxtv(i)=ndxtv(i-1)+i-1
   enddo
 
-  if(me.ne.master.and.iamactive.eq.1) then
+  if(me.ne.mstr.and.iamactive.eq.1) then
     kk=1
     do ii=intndx,jntndx
       ndx(ii)=kk-ii

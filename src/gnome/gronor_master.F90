@@ -382,7 +382,7 @@ subroutine gronor_master()
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              master,' received buffer from',iremote,igrp,(lgroup(igrp,i),i=1,5)
+              mstr,' received buffer from',iremote,igrp,(lgroup(igrp,i),i=1,5)
           flush(lfndbg)
         endif
 
@@ -418,7 +418,7 @@ subroutine gronor_master()
 681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ')
             flush(lfnpro)
           endif
-          if(me.eq.master.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
+          if(me.eq.mstr.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
             call timer_stop(99)
             call swatch(date,time)
             write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
@@ -706,6 +706,7 @@ subroutine gronor_master()
 
         call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+        call MPI_Request_free(ireq,ierr)
         owait=.true.
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
@@ -718,7 +719,7 @@ subroutine gronor_master()
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              master,' sent ibuf to        ',iremote,igrp,(ibuf(i),i=1,4)
+              mstr,' sent ibuf to        ',iremote,igrp,(ibuf(i),i=1,4)
           flush(lfndbg)
         endif
 
@@ -747,7 +748,7 @@ subroutine gronor_master()
     enddo
   enddo
 
-  !     At this point the loopover base pairs has completed and all tasks have been dispatched
+  !     At this point the loop over base pairs has completed and all tasks have been dispatched
 
   !     Now the still outstanding tasks need to be collected
   !     Assuming that some may be unresponsive, duplicates of outstanding tasks are sent
@@ -802,7 +803,7 @@ subroutine gronor_master()
     if(idbg.gt.10) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-          master,' received last buffer from',iremote
+          mstr,' received last buffer from',iremote
       flush(lfndbg)
     endif
     
@@ -833,7 +834,7 @@ subroutine gronor_master()
       
       !     Write entry to dayfile
       
-      if(me.eq.master.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
+      if(me.eq.mstr.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
         call timer_stop(99)
         call swatch(date,time)
         write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
@@ -1076,13 +1077,14 @@ subroutine gronor_master()
 
           call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+          call MPI_Request_free(ireq,ierr)
 
           !     Debug message
           
           if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-                master,' sent duplicate ibuf to   ',iremote
+                mstr,' sent duplicate ibuf to   ',iremote
             flush(lfndbg)
           endif
 
@@ -1159,6 +1161,7 @@ subroutine gronor_master()
   enddo
 
   nalive=max(k,l)
+  if(managers.gt.0) nalive=nalive*nperman
 
   !     Signal worker processes to return from gronor_master
 
@@ -1180,11 +1183,12 @@ subroutine gronor_master()
     mpitag=2
 
     call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
+    call MPI_Request_free(ireq2,ierr)
 
     if(idbg.gt.10) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-          master,' sent return to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq2
+          mstr,' sent return to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq2
       flush(lfndbg)
     endif
   enddo
@@ -1197,9 +1201,10 @@ subroutine gronor_master()
     itbuf(2,iremote+1)=-1
     itbuf(3,iremote+1)=-1
     itbuf(4,iremote+1)=-1
-    if(iremote.ne.master) then
+    if(iremote.ne.mstr) then
       call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
           iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+      call MPI_Request_free(ireq9,ierr)
       if(idbg.gt.10) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &

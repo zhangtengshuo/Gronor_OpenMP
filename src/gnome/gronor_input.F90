@@ -142,6 +142,11 @@ subroutine gronor_input()
       goto 2
     endif
 
+    if(inp_compare(.false.,'Managers',item)) then
+      if(.not.inp_i(managers)) managers=1
+      goto 2
+    endif
+
     if(inp_compare(.false.,'Couplings',item)) then
       allocate(inter_couplings(nmol-1,nbase))
       do i=1,nmol-2

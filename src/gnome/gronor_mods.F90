@@ -43,7 +43,7 @@ module cidist
   !     comm_first : communicator of all first processes in each group
   !     mpibuf : size of the MPI buffer for integrals in reals
 
-  integer (kind=4) :: me,np,master
+  integer (kind=4) :: me,np,mstr
   integer (kind=4) :: numdev,mydev
   integer (kind=4) :: group_batch,group_heads,group_world
   integer (kind=4), allocatable :: ranks_list(:),ranks_heads(:)
@@ -54,7 +54,7 @@ module cidist
   integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive,nabort
   integer :: mynode,mygroup,myhead,ime,mpibuf
   integer :: iamhead,iamacc,iamactive
-  integer (kind=8), allocatable  :: map1(:,:),map2(:,:)
+  integer (kind=4), allocatable  :: map1(:,:),map2(:,:)
   integer, allocatable :: thisgroup(:),allgroups(:,:),allheads(:)
   integer, allocatable :: numrecs(:)
   integer (kind=8), allocatable :: ipbuf(:,:),itbuf(:,:)
@@ -70,7 +70,22 @@ module cidist
   integer (kind=8), target :: memfre,memtot,memavail
   integer (kind=4), allocatable :: igrn(:)
 
+  integer (kind=8) :: managers,numwrk,maxbuf,numbuf
+  integer (kind=8), allocatable :: mgrbuf(:,:)
+  integer (kind=8), allocatable :: mgrwrk(:,:)
+  integer (kind=8), allocatable :: mipbuf(:,:)
+  
   character (len=8) :: machine
+
+  integer (kind=4), parameter :: master=1
+  integer (kind=4), parameter :: manager=2
+  integer (kind=4), parameter :: worker=3
+  integer (kind=4), parameter :: idle=4
+
+  character (len=1), parameter :: crole(4)=(/"M","m","w","i"/)
+
+  integer (kind=4) :: role
+  integer (kind=8) :: nperman,numman
 
 end module cidist
 
@@ -147,7 +162,8 @@ module gnome_parameters
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
-  integer :: ntask,ntaska,nbatch,nbatcha,ndbg,mdbg,load,loada
+  integer :: ntask,ntaska,nbatch,nbatcha
+  integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
   integer :: iswsvj,iswevj
   integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols

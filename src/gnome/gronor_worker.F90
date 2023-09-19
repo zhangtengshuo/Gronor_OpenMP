@@ -47,6 +47,10 @@ subroutine gronor_worker()
 
   flush(lfnout)
 
+  if(managers.gt.0) then
+    mstr=map2(me+1,9)
+  endif
+  
   if(iamacc.eq.0.and.ntask.eq.0) return
 
   otreq=.false.
@@ -98,7 +102,7 @@ subroutine gronor_worker()
   if(idbg.gt.0) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,1x,a,5i5)') date(1:8),time(1:8), &
-        ' iamhead, numdev, master, mygroup =',iamhead,numdev,master,mygroup
+        ' iamhead, numdev, master, mygroup =',iamhead,numdev,mstr,mygroup
     call swatch(date,time)
     write(lfndbg,130) date(1:8),time(1:8),' thisgroup=',(thisgroup(i),i=1,mgr+1)
 130 format(a,1x,a,1x,a,t30,11i5,/,(t35,10i5))
@@ -110,7 +114,8 @@ subroutine gronor_worker()
   if(iamhead.eq.1) then
     ncount=17
     mpitag=1
-    call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+    call MPI_Request_free(ireq,ierr)
     if(idbg.gt.20) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
@@ -118,7 +123,7 @@ subroutine gronor_worker()
     endif
     if(idbg.gt.10) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',master
+      write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
       flush(lfndbg)
     endif
   endif
@@ -134,12 +139,12 @@ subroutine gronor_worker()
       !     Receive next task from master on head thread
       ncount=4
       mpitag=2
-      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,master,mpitag,MPI_COMM_WORLD,status,ierr)
+      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 
       if(idbg.gt.10) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-            me,' received task ',master,mpitag,(ibuf(i),i=1,4),ierr
+            me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
         flush(lfndbg)
       endif
 
@@ -152,6 +157,7 @@ subroutine gronor_worker()
           mpidest=thisgroup(i+2)
           mpitag=15
           call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
+          call MPI_Request_free(ireq,ierr)
           if(idbg.gt.10) then
             call swatch(date,time)
             write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
@@ -233,6 +239,7 @@ subroutine gronor_worker()
           if(.not.otreq) then
             call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
                 mpitag,MPI_COMM_WORLD,itreq,ierr)
+            call MPI_Request_free(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,a)') &
@@ -300,11 +307,12 @@ subroutine gronor_worker()
             enddo
             ncount=17
             mpitag=1
-            call MPI_iSend(rbuf,ncount,MPI_REAL8,master,mpitag,MPI_COMM_WORLD,ireq,ierr)
+            call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+            call MPI_Request_free(ireq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-                  me,' sent results  ',master,(ibuf(i),i=1,4)
+                  me,' sent results  ',mstr,(ibuf(i),i=1,4)
               flush(lfndbg)
             endif
           endif

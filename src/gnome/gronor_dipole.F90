@@ -59,7 +59,7 @@ subroutine gronor_dipole(lfndbg)
   enddo
 
   if(idipole.eq.1) then
-    if(me.eq.master) then
+    if(me.eq.mstr) then
       write(lfndbg,130)
       write(lfndbg,140) x,y,z
 130   format(1x,'Dipole matrix elements',//)

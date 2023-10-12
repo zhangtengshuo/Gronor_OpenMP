@@ -98,9 +98,11 @@ public class gronor_Fragment {
 		fragmentRoot=nameF;
 		fragmentName=projectRoot.trim()+nameA.trim();
 		numOcc = numE / 2;
+//		System.out.println("TESTING FOR "+fragmentName+".xyz");
 		if(read_XYZ()) {
+//			System.out.println("XYZ file "+fragmentName+".xyz found");
 		} else {
-			System.out.println("XYZ file "+fragmentName+".xyz not found"); 
+//			System.out.println("XYZ file "+fragmentName+".xyz not found"); 
 			System.exit(0);
 		}
 	}
@@ -542,21 +544,23 @@ public class gronor_Fragment {
 			lsfFile.println("setenv MOLCAS_NPROCS "+ranks);
 			lsfFile.println("setenv MOLCAS_MEM "+memory);
 			
-			runFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
-			slurmFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
-			lsfFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
-			
-			runFile.print("merge_xyz "+p.trim());
-			slurmFile.print("merge_xyz "+p.trim());
-			lsfFile.print("merge_xyz "+p.trim());
-			for(int i=0; i<nfrags; i++) {
-				runFile.print(" "+pn.trim()+frags[i].trim());
-				slurmFile.print(" "+pn.trim()+frags[i].trim());
-				lsfFile.print(" "+pn.trim()+frags[i].trim());
+			if(nfrags>1) {
+				runFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
+				slurmFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
+				lsfFile.println("# Merge the coordinates of the fragments into a single XYZ file "+p.trim()+".xyz");
+				
+				runFile.print("merge_xyz "+p.trim());
+				slurmFile.print("merge_xyz "+p.trim());
+				lsfFile.print("merge_xyz "+p.trim());
+				for(int i=0; i<nfrags; i++) {
+					runFile.print(" "+pn.trim()+frags[i].trim());
+					slurmFile.print(" "+pn.trim()+frags[i].trim());
+					lsfFile.print(" "+pn.trim()+frags[i].trim());
+				}
+				runFile.println();
+				slurmFile.println();
+				lsfFile.println();
 			}
-			runFile.println();
-			slurmFile.println();
-			lsfFile.println();
 			runFile.println("# One electron integrals for this MEBF in the workspace "+p.trim());
 			slurmFile.println("# One electron integrals for this MEBF in the workspace "+p.trim());
 			lsfFile.println("# One electron integrals for this MEBF in the workspace "+p.trim());
@@ -763,6 +767,7 @@ public class gronor_Fragment {
 			lsfFile.close();
 		} catch(IOException ei) {
 		}
+//		System.out.println("FILENAME FOR GRONOR RUN "+p);
 		fileName = p+"_GronOR.run";
 		slurmName = p+"_GronOR.slurm";
 		lsfName = p+"_GronOR.lsf";
@@ -822,12 +827,13 @@ public class gronor_Fragment {
 		if(fragmentName.trim().equals("")) return false;
 		String card;
 		StringTokenizer st;
+//		System.out.println("0READING "+fileName);
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			card=br.readLine();
 			st = new StringTokenizer(card," ");
 			numAtoms=Integer.valueOf(st.nextToken());
-//			System.out.println("READING "+fileName+" : "+numAtoms);
+//			System.out.println("0READING "+fileName+" : "+numAtoms);
 			card=br.readLine();
 			for(int i=0; i<numAtoms; i++) {
 				card=br.readLine();
@@ -838,9 +844,10 @@ public class gronor_Fragment {
 				coordinates[i][2]=Double.valueOf(st.nextToken()).doubleValue();
 			}
 			br.close();
-//			System.out.println("Read:    "+fileName);
+//			System.out.println("0Read:    "+fileName+" "+numAtoms);
 			return true;
 		} catch(IOException ef) {
+//			System.out.println("0READING "+fileName+" FAILED");
 			return false;
 		}
 	}
@@ -868,11 +875,12 @@ public class gronor_Fragment {
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
-//		System.out.println("WRITING "+fileName+" : "+numAtoms);
+//		System.out.println("0WRITING "+fileName+" : "+numAtoms);
 		File f = new File(fileName);
-		Boolean skip=true;
-		for(int i=0; i<6; i++) if(RandT[i]!=0.0) skip=false;
-		if(!f.exists()) skip=false;
+		Boolean skip=false;
+//		for(int i=0; i<6; i++) if(RandT[i]!=0.0) skip=false;
+//		if(f.exists()) skip=true;
+//		System.out.println("1WRITING "+fileName+" : "+numAtoms+" "+skip);
 		if(!skip) {
 			try {
 				PrintfWriter xyzFile = new PrintfWriter(new FileWriter(fileName));
@@ -887,7 +895,7 @@ public class gronor_Fragment {
 					xyzFile.println();
 				}
 				xyzFile.close();
-//				System.out.println("Written: "+fileName);
+//				System.out.println("1Written: "+fileName+" "+numAtoms);
 //				return true;
 			} catch(IOException ei) {
 				return false;
@@ -1084,7 +1092,7 @@ public class gronor_Fragment {
 		String lsfName;
 		fragmentName=nameP.trim();
 		if(!read_XYZ()) {
-			System.out.println("write_NWChem_DFT Reading "+fileName+" failed");
+//			System.out.println("write_NWChem_DFT Reading "+fileName+" failed");
 			System.exit(0);
 				};
 		for(int k=0; k<6; k++) RandT[k]=rt[k];
@@ -1174,6 +1182,7 @@ public class gronor_Fragment {
 	
 	public Boolean write_Molcas_Int(String nameF, String nameP, String bs, String ct, Integer ch, Double fx, Double fy, Double fz) {
 		String fileName = nameP.trim()+".xyz";
+//		System.out.println("XYZ FILES "+fileName);
 		fragmentName=nameP.trim();
 		String rootName=nameP.trim();
 		if(!read_XYZ()) System.exit(0);
@@ -1894,7 +1903,7 @@ public class gronor_Fragment {
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe));
 				inputFile.println("spin");
-				inputFile.println(" 1");
+				inputFile.println(" 5");
 				inputFile.println("inactive");
 				inputFile.println(" "+Inact);
 				inputFile.println("ras2");
@@ -2231,25 +2240,31 @@ public class gronor_Fragment {
 			initialize3(fname[j], frags[j], 2);
 			numberAtoms=numberAtoms+numAtoms;
 		}
+//		System.out.println("2WRITING "+fileName+" : "+numberAtoms+" "+numAtoms);
 		try {
 			PrintfWriter xyzFile = new PrintfWriter(new FileWriter(fileName));
 			xyzFile.printf("%6d",numberAtoms);
+//			System.out.println(numberAtoms+" "+n);
 			xyzFile.println();
 			xyzFile.println("Coordinates in Angstrom");
+//			System.out.println("Coordinates in Angstrom "+numAtoms+" "+n);
 			for(int j=0; j<n; j++) {
 				for(int k=0; k<6; k++) RandT[k]=randt[j][k];
-				initialize3(fname[j], frags[j], 2);
+//				initialize3(fname[j], frags[j], 2);
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
 					xyzFile.printf("%16.8f",coordinates[i][0]);
 					xyzFile.printf("%16.8f",coordinates[i][1]);
 					xyzFile.printf("%16.8f",coordinates[i][2]);
 					xyzFile.println();
+//					System.out.println(atomLabel[i]);
 				}
 			}
 			xyzFile.close();
+//			System.out.println("OK");
 			return true;
 		} catch(IOException ei) {
+//			System.out.println("ERROR");
 			return false;
 		}
 	}

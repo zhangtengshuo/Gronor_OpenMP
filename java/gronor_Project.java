@@ -287,6 +287,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.rnk");
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xrx");
+			clearFile.println("rm -f *.log");
 			clearFile.println("rm -f *.xmldump");
 			for(int i=0; i<numFragments; i++) {
 				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
@@ -355,11 +357,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.rnk");
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xrx");
+			clearFile.println("rm -f *.log");
 			clearFile.println("rm -f *.xmldump");
 			clearFile.println("rm -f *.orb");
 			clearFile.println("rm -f *.runfil");
 			clearFile.println("rm -f *.comorb");
 			clearFile.println("rm -f *.ONEINT");
+			clearFile.println("rm -f "+projectName.trim()+".prj");
 			for(int i=0; i<numFragments; i++) {
 				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
 			}
@@ -954,7 +959,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	private void updateStatesList() {
 
 		if(newSets>numSets) {
-			System.out.println("New State List");
+//			System.out.println("New State List");
 			for(int i=numSets; i<newSets; i++) {
 		    	lenStateList[i]=0;
 		    	spinStateList[i]=0;
@@ -3607,7 +3612,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer[] nums = new Integer[nfrags];
 			Double[][] randt = new Double[nfrags][6];
 			String fileName = projectName.trim()+mebfName[i].trim();
-			if(nfrags==1) fileName=fileName.trim()+mebfName[i].trim();
+//			if(nfrags==1) fileName=fileName.trim()+mebfName[i].trim();
 			for(int j=0; j<nfrags; j++) {
 				int last=namFragments[j].indexOf("_");
 				fname[j]=namFragments[j].substring(0,last);
@@ -3619,11 +3624,17 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				pName = projectName.trim();
 				for(int k=0; k<6; k++) randt[j][k]=movFragments[mebfFragments[i][j][0]][k];
 			}
+//			System.out.println("MEBF FILES "+fileName);
 			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, fname, frags, randt)) {
-				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);	
-				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
+//				System.out.println("STEP 0");
+				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+//				System.out.println("STEP 1");	
+				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);
+//				System.out.println("STEP 2");	
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+//				System.out.println("STEP 3");
 				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
+//				System.out.println("STEP 4");
 			}
 		}
 	}
@@ -3909,6 +3920,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				inputFile.println("Spin "+spin);
 				inputFile.println("Threshold "+thresh_CI);
 				inputFile.println("Print medium");
+				inputFile.println("Test 1");
 				inputFile.close();
 			} catch(IOException e) {
 			}

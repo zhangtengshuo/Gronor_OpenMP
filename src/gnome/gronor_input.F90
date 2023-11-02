@@ -82,7 +82,7 @@ subroutine gronor_input()
       do while(.true.)
         if(.not.inp_read()) call gronor_abort(107,"Input error")
         last=.not.inp_a(item)
-        if(last.or.len(trim(item)).le.3) then
+        if(last.or.len(trim(item)).gt.3) then
           allocate(ncombv(nmol,nbase))
           mstates=nmol*nbase
           allocate(fragfile(mstates))

@@ -137,10 +137,10 @@
          write(lfnabt,'(a)')  "gronor_makebasestate: incompatible spins"
 
       case(230)
-         write(lfnabt,'(a,a)') "gronor_number_integrals: error in ",trim(string)
+         write(lfnabt,'(a,a)') "gronor_number_integrals: error reading ",trim(string)
 
       case(231)
-         write(lfnabt,'(a,a)') "gronor_number_integrals: error in ",trim(string)
+         write(lfnabt,'(a,a)') "gronor_number_integrals: error opening ",trim(string)
 
       case(240)
          write(lfnabt,'(a,a)') "gronor_parallel_integral_input: error reading", &

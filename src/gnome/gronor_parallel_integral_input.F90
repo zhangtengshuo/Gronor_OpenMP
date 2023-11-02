@@ -568,16 +568,9 @@ subroutine gronor_parallel_integral_input()
 
   return
 
-993 write(lfnout,983) trim(filone)
-  call gronor_abort(240,trim(filone))
-994 write(lfnout,984) trim(filone)
-  call gronor_abort(241,trim(filone))
-983 format('Error reading one electron integral file ',a)
-984 format('Unable to open one electron integral file ',a)
-995 write(lfnout,985) trim(filtwo)
-  call gronor_abort(242,trim(filtwo))
-996 write(lfnout,986) trim(filtwo)
-  call gronor_abort(243,trim(filtwo))
-985 format('Error reading two electron integral file ',a)
-986 format('Unable to open two electron integral file ',a)
+993 call gronor_abort(240,trim(filone))
+994 call gronor_abort(241,trim(filone))
+995 call gronor_abort(242,trim(filtwo))
+996 call gronor_abort(243,trim(filtwo))
+
 end subroutine gronor_parallel_integral_input

@@ -196,8 +196,6 @@ subroutine gronor_main()
     lfnsys=7
     lfnciv=9
     lfnvec=10
-    filint=trim(root)//'.int'
-    lfnint=11
     lfnone=11
     lfntwo=12
     lfndbg=13
@@ -1791,7 +1789,7 @@ subroutine gronor_main()
     call timer_start(99)
   endif
 
-  !     Read the integrals from lfnint
+  !     Read the integrals from filone and filtwo
 
   call gronor_read_integrals()
 

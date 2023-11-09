@@ -34,22 +34,19 @@ subroutine gronor_number_integrals(numone,numtwo)
   integer :: numone, numtwo
   real (kind=8) :: sdum
 
-  open(unit=lfnint,file=filone,form='unformatted',status='old',err=1994)
-  goto 1995
-1994 continue
-  open(unit=lfnint,file=filint,form='unformatted',status='old',err=994)
-1995 continue
-  rewind(lfnint)
-  read(lfnint,err=993) namint,intone,potnuc,nbas,mbuf,mclab
+  open(unit=lfnone,file=filone,form='unformatted',status='old',err=994)
 
-  read(lfnint,err=993) sdum
-  read(lfnint,err=993) sdum
-  read(lfnint,err=993) sdum
+  rewind(lfnone)
+  read(lfnone,err=993) namint,intone,potnuc,nbas,mbuf,mclab
+
+  read(lfnone,err=993) sdum
+  read(lfnone,err=993) sdum
+  read(lfnone,err=993) sdum
 
   int2=0
-  read(lfnint,end=993) nt
-  if(nt(2).eq.-1) read(lfnint) nt(2)
-  read(lfnint,err=993) numfiles
+  read(lfnone,end=993) nt
+  if(nt(2).eq.-1) read(lfnone) nt(2)
+  read(lfnone,err=993) numfiles
 
   numone=nt(1)
   numtwo=nt(2)
@@ -57,14 +54,12 @@ subroutine gronor_number_integrals(numone,numtwo)
   int1=(nbas*(nbas+1))/2
   int2=numtwo
 
-  rewind(unit=lfnint)
-  close(unit=lfnint)
+  rewind(unit=lfnone)
+  close(unit=lfnone)
 
   return
-993 write(lfnout,983) trim(filint)
-  call gronor_abort(230,trim(filint))
-994 write(lfnout,984) trim(filint)
-  call gronor_abort(231,trim(filint))
+993 call gronor_abort(230,trim(filone))
+994 call gronor_abort(231,trim(filone))
 983 format('Error reading integral file ',a)
 984 format('Unable to open integral file ',a)
 

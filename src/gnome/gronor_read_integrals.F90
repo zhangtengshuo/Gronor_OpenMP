@@ -101,8 +101,20 @@ subroutine gronor_read_integrals()
 
   allocate(ranks_list(numgrp))
 
-  !     Create communicators for each first, second, etc rank from each group
+  !     Create communicators for all non-idle ranks
 
+  nonidle=0
+  do i=1,np
+    if(map2(i,5).ne.0.or.i-1.eq.mstr) then
+      nonidle=nonidle+1
+      ranks_list(nonidle)=i-1
+    endif
+  enddo
+  write(*,'(i5,":",20i8)') me,(ranks_list(i),i=1,nonidle)
+  call MPI_Group_Incl(group_world,int(nonidle,kind=4),ranks_list,int_group,ierr)
+  call MPI_Comm_Create(MPI_COMM_WORLD,int_group,int_comm,ierr)
+
+  !     Create communicators for each first, second, etc rank from each group
 
   if(idist.eq.0) then
     do i=1,mgr
@@ -174,5 +186,10 @@ subroutine gronor_read_integrals()
   call gronor_parallel_integral_input()
 
   return
-
+993 write(lfnout,983) trim(filint)
+  call gronor_abort(250,trim(filint))
+994 write(lfnout,984) trim(filint)
+  call gronor_abort(251,trim(filint))
+983 format('Error reading integral file ',a)
+984 format('Unable to open integral file ',a)
 end subroutine gronor_read_integrals

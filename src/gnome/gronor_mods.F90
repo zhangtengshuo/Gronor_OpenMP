@@ -53,7 +53,7 @@ module cidist
   integer :: numacc,numnon,numgrp,numgrn,numidle
   integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive,nabort
   integer :: mynode,mygroup,myhead,ime,mpibuf
-  integer :: iamhead,iamacc,iamactive
+  integer :: iamhead,iamacc,iamactive,nonidle
   integer (kind=4), allocatable  :: map1(:,:),map2(:,:)
   integer, allocatable :: thisgroup(:),allgroups(:,:),allheads(:)
   integer, allocatable :: numrecs(:)
@@ -109,10 +109,10 @@ module cidef
   integer :: nmol,mstates,nbase,nspin
 
   character (len=255) :: root,filinp,filout,filpro,fildbg,filday
-  character (len=255) :: filsys,filciv,filvec,filtst,fildet
+  character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
   character (len=255) :: filone,filtwo,fildat,fillog,filtim
   character (len=255) :: filcpr,filarx,filrnk,filcml,filxrx
-  integer :: lfninp,lfnout,lfnsys,lfnciv,lfnvec,lfndet
+  integer :: lfninp,lfnout,lfnsys,lfnciv,lfnvec,lfnint,lfndet
   integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim,lfnabt
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
   integer :: lfnwrn,lfnxrx
@@ -166,7 +166,7 @@ module gnome_parameters
   integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
   integer :: iswsvj,iswevj
-  integer :: naccel,nacc0,nacc1,inpcib,intfil,ncols
+  integer :: naccel,nacc0,nacc1,nidle,inpcib,intfil,ncols
   integer :: iday,idipole,itp4,nummps,numgpu,ixpert
   integer :: ins2
   integer :: ibase0,jbase0,idet0,jdet0
@@ -356,10 +356,11 @@ module gnome_integrals
   integer, allocatable :: ig(:)
   integer (kind=4), allocatable :: ndxtv(:)
   integer :: mbuf,mclab
+  integer (kind=4) :: int_comm
   integer (kind=4), allocatable :: new_comm(:)
   integer (kind=4), allocatable :: new_comm1(:)
   integer (kind=4), allocatable :: new_comm2(:,:)
-  integer (kind=4) :: new_group,grp_group
+  integer (kind=4) :: int_group,new_group,grp_group
   integer, allocatable :: ntarget(:)
 
   integer (kind=8) :: mlab,icomm1

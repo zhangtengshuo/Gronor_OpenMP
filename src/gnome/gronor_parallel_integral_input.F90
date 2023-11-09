@@ -63,11 +63,14 @@ subroutine gronor_parallel_integral_input()
   integer (kind=8), allocatable :: ndxf(:,:)
   integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
+  integer (kind=4) :: source
 
   inode=map2(me+1,6)
 
   !     Read the one-electron integral file on the master
 
+  write(*,'(3i8," : ",30i8)') me,inode,iamactive,(map2(i,5),i=1,np)
+  
   if(me.eq.mstr) then
     open(unit=lfnone,file=filone,form='unformatted',status='old',err=994)
     !     rewind(lfnone)
@@ -146,6 +149,12 @@ subroutine gronor_parallel_integral_input()
     read(lfnone,err=993) numfiles
   endif
 
+  write(*,'(i8,a,2i8)') me," role is ",role,map2(me+1,5)
+
+  if(role.eq.idle) return
+
+  source=int(nonidle-1,kind=4)
+  
   !     Allocate memory for the overlap and one-electron integrals
 
   if(me.ne.mstr) then
@@ -157,15 +166,20 @@ subroutine gronor_parallel_integral_input()
 
   !     Broadcast the overlap and one-electron integrals
   ncount=nbas*nbas
-  call MPI_Bcast(s,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(s,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(s,ncount,MPI_REAL8,source,int_comm,ierr)
   ncount=int1
-  call MPI_Bcast(t,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(t,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(t,ncount,MPI_REAL8,source,int_comm,ierr)
   ncount=int1
-  call MPI_Bcast(v,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(v,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(v,ncount,MPI_REAL8,source,int_comm,ierr)
   ncount=int1*9
-  call MPI_Bcast(dqm,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(dqm,ncount,MPI_REAL8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(dqm,ncount,MPI_REAL8,source,int_comm,ierr)
   ncount=1
-  call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(numfiles,ncount,MPI_INTEGER8,source,int_comm,ierr)
 
   allocate(ifil(numfiles,2))
 
@@ -190,9 +204,12 @@ subroutine gronor_parallel_integral_input()
 608   format(i4,5x,i12,i20,8x,a)
 609   format(11x,'----------',10x,'----------',/,' Total   ',i12,i20)
     endif
+    close(unit=lfnone)
   endif
+  
   ncount=2*numfiles
-  call MPI_Bcast(ifil,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(ifil,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ifil,ncount,MPI_INTEGER8,source,int_comm,ierr)
 
   !     Determine id of rank within its group
 
@@ -304,7 +321,8 @@ subroutine gronor_parallel_integral_input()
     ijbuf(i,8)=nng(i)
   enddo
   ncount=8*mgr
-  call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+!  call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,mstr,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ijbuf,ncount,MPI_INTEGER8,source,int_comm,ierr)
 
   do j=1,6
     do i=1,mgr
@@ -431,13 +449,15 @@ subroutine gronor_parallel_integral_input()
                 do i=2,numgrn
                   ncount=lint
                   mpitag=20
-                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
+!                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
+                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,int_comm,status,ierr)
                   call MPI_Request_free(ireq,status)
                 enddo
               else
                 ncount=lint
                 mpitag=20
-                call MPI_Recv(g(nint),ncount,MPI_REAL4,igrn(1),mpitag,MPI_COMM_WORLD,status,ierr)
+!                call MPI_Recv(g(nint),ncount,MPI_REAL4,igrn(1),mpitag,MPI_COMM_WORLD,status,ierr)
+                call MPI_Recv(g(nint),ncount,MPI_REAL4,igrn(1),mpitag,int_comm,status,ierr)
               endif
             endif
           endif
@@ -458,14 +478,16 @@ subroutine gronor_parallel_integral_input()
                   ncount=lint
                   mpitag=20
                   mpidest=igrn(i)
-                  call MPI_iSend(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+!                  call MPI_iSend(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                  call MPI_iSend(g(nint),ncount,MPI_REAL8,mpidest,mpitag,int_comm,mpireq,ierr)
                   call MPI_Request_free(mpireq,ierr)
                 enddo
               else
                 ncount=lint
                 mpitag=20
                 mpidest=igrn(1)
-                call MPI_Recv(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
+!                call MPI_Recv(g(nint),ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
+                call MPI_Recv(g(nint),ncount,MPI_REAL8,mpidest,mpitag,int_comm,status,ierr)
               endif
             endif
           endif
@@ -503,16 +525,20 @@ subroutine gronor_parallel_integral_input()
                 ncount=2*mlab
                 mpitag=21
                 mpidest=igrn(i)
+!                call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
+!                    mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
                 call MPI_iSend(lab(1,1),ncount,MPI_INTEGER2, &
-                    mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+                    mpidest,mpitag,int_comm,mpireq,ierr)
                 call MPI_Request_free(mpireq,ierr)
               enddo
             else
               ncount=2*mlab
               mpitag=21
               mpidest=igrn(1)
+!              call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2, &
+!                  mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
               call MPI_Recv(lab(1,1),ncount,MPI_INTEGER2, &
-                  mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
+                  mpidest,mpitag,int_comm,status,ierr)
             endif
           endif
         endif
@@ -566,11 +592,19 @@ subroutine gronor_parallel_integral_input()
 
   flush(lfnout)
 
+  print*,me,' pi end'
   return
 
-993 call gronor_abort(240,trim(filone))
-994 call gronor_abort(241,trim(filone))
-995 call gronor_abort(242,trim(filtwo))
-996 call gronor_abort(243,trim(filtwo))
-
+993 write(lfnout,983) trim(filone)
+  call gronor_abort(240,trim(filone))
+994 write(lfnout,984) trim(filone)
+  call gronor_abort(241,trim(filone))
+983 format('Error reading one electron integral file ',a)
+984 format('Unable to open one electron integral file ',a)
+995 write(lfnout,985) trim(filtwo)
+  call gronor_abort(242,trim(filtwo))
+996 write(lfnout,986) trim(filtwo)
+  call gronor_abort(243,trim(filtwo))
+985 format('Error reading two electron integral file ',a)
+986 format('Unable to open two electron integral file ',a)
 end subroutine gronor_parallel_integral_input

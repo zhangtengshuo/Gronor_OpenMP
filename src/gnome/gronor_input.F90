@@ -330,6 +330,11 @@ subroutine gronor_input()
       goto 2
     endif
 
+    if(inp_compare(.false.,'Idle',item)) then
+      if(.not.inp_i(nidle)) nidle=0
+      goto 2
+    endif
+
     if(inp_compare(.false.,'NumGPUs',item)) then
       if(.not.inp_i(ngpus)) ngpus=1
       goto 2

@@ -196,6 +196,8 @@ subroutine gronor_main()
     lfnsys=7
     lfnciv=9
     lfnvec=10
+    filint=trim(root)//'.int'
+    lfnint=11
     lfnone=11
     lfntwo=12
     lfndbg=13
@@ -331,6 +333,7 @@ subroutine gronor_main()
     jnslvr=-1
 
     naccel=-1
+    nidle=0
     ncols=7
     numgpu=0
     nummps=1
@@ -521,6 +524,10 @@ subroutine gronor_main()
         t60,'Number of MPI ranks per resource set',t100,i10,/, &
         t60,'Number of rank assignment cycles',t100,i10,/, &
         t60,'Number of OPENMP threads per MPI rank',t100,i10)
+    if(ipr.ge.20.and.naccel.gt.0) write(lfnout,608) naccel
+608 format(t60,'Number of accelerated ranks per node limit',t100,i10)
+    if(ipr.ge.20.and.nidle.gt.0) write(lfnout,648) nidle
+648 format(t60,'Number of idle ranks per node',t100,i10)
     if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602) &
         dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
 602 format(t60,'Available memory on device',t90,f24.3,' GB',/, &
@@ -641,7 +648,7 @@ subroutine gronor_main()
       idum(4)=maxci
       idum(5)=maxvec
       idum(6)=maxnact
-      idum(7)=0
+      idum(7)=nidle
       idum(8)=0
       idum(9)=0
       idum(10)=0
@@ -718,6 +725,7 @@ subroutine gronor_main()
       maxci=idum(4)
       maxvec=idum(5)
       maxnact=idum(6)
+      nidle=idum(7)
       icalc=idum(13)
       ipr=idum(14)
       ins2=idum(15)
@@ -920,6 +928,27 @@ subroutine gronor_main()
       enddo
     enddo
   endif
+
+  if(nidle.gt.0) then
+    node=-1
+    do i=1,np
+      node=max(node,map2(i,6))
+    enddo
+    do i=1,node+1
+      k=0
+      do j=np,1,-1
+        if(map2(j,6).eq.i-1.and.map2(j,5).lt.0) then
+          k=k+1
+          if(k.le.nidle) map2(j,5)=0
+        endif
+      enddo
+    enddo
+  endif
+
+  role=idle
+  if(map2(me+1,5).ne.0) role=worker
+  if(me.eq.mstr) role=master
+  write(*,'(i8,a,i8)') me,' role=',role
 
   numacc=0
   numnon=0
@@ -1317,6 +1346,7 @@ subroutine gronor_main()
   numidle=0
   do i=1,np
     if(map2(i,5).lt.0.and.(map2(i,3).eq.0.or.ntask.eq.0)) numidle=numidle+1
+    if(map2(i,5).eq.0.and.i.ne.mstr+1) numidle=numidle+1
   enddo
 
   if(iamacc.eq.1) then
@@ -1763,7 +1793,12 @@ subroutine gronor_main()
   if(npg.le.0) npg=1
   if(npg.gt.np) npg=np-numidle-1
   ngr=np/npg
-  
+
+  if(numidle.gt.0) then
+    npg=np-numidle-1
+    ngr=(np-numidle-1)/npg
+  endif
+
   if(me.eq.mstr.and.ipr.ge.0) then
     write(lfnout,621) np,numgrp,np-numgrp*mgr-1,mgr,numacc,numnon
 621 format(/,' Rank Distribution',//, &
@@ -1789,7 +1824,7 @@ subroutine gronor_main()
     call timer_start(99)
   endif
 
-  !     Read the integrals from filone and filtwo
+  !     Read the integrals from lfnint
 
   call gronor_read_integrals()
 
@@ -2269,8 +2304,10 @@ subroutine gronor_main()
     deallocate(nociwf)
   endif
 
-  deallocate(t,v,dqm,ndxtv)
-  deallocate(lab,ndx,ig,g)
+  if(role.ne.idle) then
+    deallocate(t,v,dqm,ndxtv)
+    deallocate(lab,ndx,ig,g)
+  endif
   deallocate(idetb,nactb,inactb,vecsb,civb,iocc)
   deallocate(ioccm,vecsm,civm,occm_string)
   deallocate(idetm,inactm,nactm,nbasm,ncombv)

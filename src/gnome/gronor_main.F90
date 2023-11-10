@@ -937,7 +937,7 @@ subroutine gronor_main()
     do i=1,node+1
       k=0
       do j=np,1,-1
-        if(map2(j,6).eq.i-1.and.map2(j,5).lt.0) then
+        if(map2(j,6).eq.i-1.and.map2(j,5).ne.0) then
           k=k+1
           if(k.le.nidle) map2(j,5)=0
         endif

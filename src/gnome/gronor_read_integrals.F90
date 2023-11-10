@@ -110,7 +110,7 @@ subroutine gronor_read_integrals()
       ranks_list(nonidle)=i-1
     endif
   enddo
-  write(*,'(i5,":",20i8)') me,(ranks_list(i),i=1,nonidle)
+
   call MPI_Group_Incl(group_world,int(nonidle,kind=4),ranks_list,int_group,ierr)
   call MPI_Comm_Create(MPI_COMM_WORLD,int_group,int_comm,ierr)
 

@@ -69,8 +69,6 @@ subroutine gronor_parallel_integral_input()
 
   !     Read the one-electron integral file on the master
 
-  write(*,'(3i8," : ",30i8)') me,inode,iamactive,(map2(i,5),i=1,np)
-  
   if(me.eq.mstr) then
     open(unit=lfnone,file=filone,form='unformatted',status='old',err=994)
     !     rewind(lfnone)
@@ -148,8 +146,6 @@ subroutine gronor_parallel_integral_input()
 
     read(lfnone,err=993) numfiles
   endif
-
-  write(*,'(i8,a,2i8)') me," role is ",role,map2(me+1,5)
 
   if(role.eq.idle) return
 
@@ -592,7 +588,6 @@ subroutine gronor_parallel_integral_input()
 
   flush(lfnout)
 
-  print*,me,' pi end'
   return
 
 993 write(lfnout,983) trim(filone)

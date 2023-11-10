@@ -2144,7 +2144,9 @@ subroutine gronor_main()
         endif
         call gronor_memory_usage()
         if(managers.eq.0) then
-          call gronor_worker()
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.idle) call gronor_idle()
+!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()
@@ -2161,7 +2163,9 @@ subroutine gronor_main()
         allocate(work(lwork))
         call gronor_memory_usage()
         if(managers.eq.0) then
-          call gronor_worker()
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.idle) call gronor_idle()
+!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()

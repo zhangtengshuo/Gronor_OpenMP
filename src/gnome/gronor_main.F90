@@ -948,7 +948,6 @@ subroutine gronor_main()
   role=idle
   if(map2(me+1,5).ne.0) role=worker
   if(me.eq.mstr) role=master
-  write(*,'(i8,a,i8)') me,' role=',role
 
   numacc=0
   numnon=0

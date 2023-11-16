@@ -22,7 +22,6 @@ module gcommon_input_data
   logical     :: fragLabels,energy_on_INPORB
   character (len=4),allocatable :: fragName(:),fragState(:)
   character (len=255),allocatable :: fragLabel(:)
-  character (len=32)      :: mebfLabel
   character (len=255)     :: project
 end module gcommon_input_data
 
@@ -534,7 +533,6 @@ subroutine gcommon_readin
         fragLabel(:)=''
         fragState(:)=''
         start=0
-        mebfLabel=''
         do j=1,nFragments
           start=start+1
           read(*,'(A)') line
@@ -555,7 +553,6 @@ subroutine gcommon_readin
               endif
             endif
           enddo
-          write(mebfLabel,'(a,a)') trim(mebfLabel),trim(fragName(j))
         enddo
         start=1
         do j=1,nFragments
@@ -806,7 +803,7 @@ end subroutine gcommon_locate
 
 
 subroutine gcommon_getFilename(iVec,filename,base,suffix)
-  use gcommon_input_data, only : fragLabel, mebfLabel
+  use gcommon_input_data, only : fragLabel
   implicit none
   integer,intent(in)  :: iVec
   character (len=3),intent(in)    :: suffix

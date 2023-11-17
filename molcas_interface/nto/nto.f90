@@ -1,13 +1,40 @@
-! = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = !
-!                                                               !
-!  Program to generate natural transiton orbitals and prepare   !
-!  the files for AIFD calculations with GronOR                  !
-!                                                               !
-!                                                               !
-!  written by Aitor Sanchez-Mansilla, URV (2020)                !
-!                                                               !
-!                                                               !
-! = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = !
+!=========================================================================!
+!                                                                         !
+!  Program to generate natural transiton orbitals and prepare             !
+!  the files for AIFD calculations with GronOR.                           !
+!                                                                         !
+!                                                                         !
+!  written by Aitor Sanchez-Mansilla, URV (2020)                          !
+!                                                                         !
+!-------------------------------------------------------------------------!
+!                                                                         !
+! Required files:   ONEINT? (one for each fragment)                       !
+!                   RUNFIL? (one for each fragment)                       !
+!                   orbfiles, ground and excited fragment states          !
+!                   detfiles, only excited CIS states                     !
+!                   input file                                            !
+!                                                                         !
+!-------------------------------------------------------------------------!
+!                                                                         !
+! Input example                             Required files                !
+!                                                                         !
+! Project                                 - ONEINTA, ONEINTB              !
+!   dpp                                   - RUNFILA, RUNFILB              !
+! Fragments                               - dppA_S0.orb, dppB_S0.orb      !
+!   2                                     - dppA_S1.orb, dppB_S1.orb      !
+!   3 3                                   - dppA_T1.orb, dppB_T1.orb      !
+! Labels                                  - dppA_S1.det, dppB_S1.det      !
+!   A  S0 S1 T1                           - dppA_T1.det, dppB_T1.det      !
+!   B  S0 S1 T1                                                           !
+! Thresholds                                                              !
+!   0.001  1.0e-5                                                         !
+!                                                                         !
+!                                                                         !
+!  'THREsholds' keyword expects two numbers. The first is the threshold   !
+!  for considering hole-particle pairs significant, the second filters    !
+!  out the determinants in the CI expansion with small coefficients.      !
+!                                                                         !
+!=========================================================================!
 
 module nto_data
 implicit none
@@ -41,6 +68,10 @@ end module
 program nto_transformation
 use nto_data
 implicit none
+
+external :: nto_readin,nto_getnBas,nto_getFilenames,nto_getAtomcOverlap
+external :: nto_read_vecs,nto_read_dets,nto_write_vecs,nto_write_dets
+
 integer              :: iFrag,iState
 
 call nto_readin
@@ -91,6 +122,9 @@ end program nto_transformation
 subroutine nto_getNTO(iFrag,iState)
 use nto_data
 implicit none
+
+external :: dgesvd
+
 integer                  :: iFrag,iState
 integer                  :: i,j,k,l,m,n
 integer                  :: iOcc,iVir,ndiff
@@ -536,6 +570,8 @@ subroutine nto_readin
 use nto_data
 implicit none
 
+external :: nto_locate,nto_capitalize
+
 integer, parameter                 :: nKeys = 5
 integer                            :: iKey,iFrag,j,jj,start
 logical                            :: all_ok,fragNameOK
@@ -627,7 +663,9 @@ end subroutine nto_readin
 
 subroutine nto_locate(string)
 implicit none
+
 external :: nto_capitalize
+
 character(4)   ::  string,string2
 character(132) ::  line
 rewind(5)
@@ -659,6 +697,9 @@ end subroutine nto_capitalize
 subroutine nto_getnBas(iFrag)
 use nto_data
 implicit none
+
+external :: namerun,get_iscalar,get_iarray
+
 integer       :: iFrag,nSym
 write(runfile,'(A6,A1)')'RUNFIL',fragName(iFrag)
 call NameRun(runfile)
@@ -682,11 +723,11 @@ start = (iFrag-1)*nStates(iFrag)
 
 suffix = 'orb'
 write(gsfile,'(4A)')  trim(project),trim(fragLabel(start+1)),'.',suffix
-write(excfile,'(4A)') trim(project),trim(fragLabel(start+iState)),'_org.',suffix
+write(excfile,'(4A)') trim(project),trim(fragLabel(start+iState)),'.',suffix
 write(ntofile,'(4A)') trim(project),trim(fragLabel(start+iState)),'.',suffix
 
 suffix = 'det'
-write(detfile,'(4A)') trim(project),trim(fragLabel(start+iState)),'_org.',suffix
+write(detfile,'(4A)') trim(project),trim(fragLabel(start+iState)),'.',suffix
 write(gsdetfile,'(4A)') trim(project),trim(fragLabel(start+1)),'.',suffix
 write(ntodetfile,'(4A)') trim(project),trim(fragLabel(start+iState)),'.',suffix
 
@@ -707,6 +748,9 @@ end subroutine nto_getFilenames
 subroutine nto_getAtomicOverlap(iFrag)
 use nto_data
 implicit none
+
+external :: namerun,opnone,rdone,clsone
+
 integer                           :: iFrag
 integer                           :: iCounter,iComponent,LuOne
 integer                           :: iOpt,iSymLbl,j,k
@@ -751,7 +795,7 @@ implicit none
 integer                         :: iFrag
 integer                         :: i,j
 character(len=6)                :: mark
-character(len=132)              :: line
+character(len=132)              :: line,excfile_bak
 
 ! ground state
 open(9,file=gsfile, status='old')
@@ -779,7 +823,19 @@ end do
 close(unit=9)
 
 ! excited state
+excfile_bak = trim(excfile)//'.bak'
 open(10,file=excfile,status='old')
+open(12,file=excfile_bak)
+
+do
+  read(10,'(A132)',iostat=istat)line
+  if(istat.ne.0)then
+    rewind(10)
+    exit
+  else
+    write(12,'(A132)')line
+  endif
+enddo
 
 nOrbFrag(iFrag) = 0
 nInactFrag(iFrag) = 0
@@ -849,9 +905,11 @@ implicit none
 
 integer                         :: ndet_raw,i,j,iFrag
 real(kind=8),allocatable        :: detcoef_raw(:)
-character(len=255),allocatable  :: detocc_raw(:)
+character(len=255),allocatable  :: detocc_raw(:),detfile_bak
 
+detfile_bak=trim(detfile)//'.bak'
 open(11,file=detfile, status='old')
+open(12,file=trim(detfile_bak))
 ndet_raw = 0
 
 read(11,*)
@@ -867,9 +925,12 @@ enddo
 allocate(detcoef_raw(ndet_raw) )
 allocate(detocc_raw(ndet_raw) )
 read(11,*)
+write(12,'(I6)') ndet_raw
 do i = 1,ndet_raw
   read(11,*) detcoef_raw(i),detocc_raw(i)
+  write(12,'(E15.8,6x,A)') detcoef_raw(i),trim(detocc_raw(i))
 enddo
+close(12)
 nDetFrag(iFrag) = 0
 do i=1,ndet_raw
   if(abs(detcoef_raw(i)).ge.thresh_CI) then

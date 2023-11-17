@@ -695,6 +695,7 @@ do iKey = 1, nKeys
         allocate ( ecorr(nmol,maxunique) )
         allocate ( ecorr2(nmol,nbase) )
         allocate ( user_label(nmol,maxunique) )
+        write(*,'(A,I4)') 'number of fragment states :',size(user_label)
       case(2)
         call corr_shift_locate(5,'SHIF',line)
         shift = 0.0d0

@@ -1,14 +1,14 @@
 module corr_shift_input_data
   implicit none
-  integer   :: nbase,nstates,extraDim,nBlocks,nmol
-  integer   :: reduced_extraDim
-  integer, allocatable  :: ncombv(:,:),dimens(:),blocks(:,:)
-  integer, allocatable  :: ovlp_mebfs(:),nDressed_MEBFs(:)
-  real (kind=8), allocatable   :: h(:,:),s(:,:)
-  real (kind=8), allocatable   :: ecorr2(:,:)
-  character(len=80)     :: project
-  character(len=6),allocatable    :: fragLabel(:)
-  character(len=18),allocatable   :: mebfLabel(:)
+  integer                       :: nbase,nstates,extraDim,nBlocks,nmol
+  integer                       :: reduced_extraDim
+  integer, allocatable          :: ncombv(:,:),dimens(:),blocks(:,:)
+  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:)
+  real (kind=8), allocatable    :: h(:,:),s(:,:)
+  real (kind=8), allocatable    :: shift(:),ecorr(:,:),ecorr2(:,:)
+  character(len=80)             :: project
+  character(len=6),allocatable  :: fragLabel(:,:)
+  character(len=18),allocatable :: mebfLabel(:)
   logical :: extra,dressed_coupling,GN_weights,select_lowest,print_overlap
 end module corr_shift_input_data
 
@@ -22,46 +22,37 @@ external  :: corr_shift_lowdin,corr_shift_gnweight
 external  :: dgetrf,dgetri,corr_shift_nocifunction
 external  :: corr_shift_couplings,corr_shift_superNOCI
 
-real( kind = 8 ), allocatable :: H_ortho(:,:),H_shift(:,:)
-real( kind = 8 ), allocatable :: H_wshift(:,:),weight(:,:)
-real( kind = 8 ), allocatable :: s_lowdin(:,:)
-real (kind = 8 ), allocatable :: ssave(:,:),hsave(:,:)
-real( kind = 8 ), allocatable :: shift(:),work(:)
-real( kind = 8 )              :: wshift
-integer                       :: i,j,info
-integer, allocatable          :: ipiv(:)
-character (len = 120)         :: title1,title2,title3
-logical                       :: dump_in_out,useLabels
+real(kind = 8), allocatable :: H_ortho(:,:),H_shift(:,:)
+real(kind = 8), allocatable :: H_wshift(:,:),weight(:,:)
+real(kind = 8), allocatable :: s_lowdin(:,:)
+real(kind = 8), allocatable :: ssave(:,:),hsave(:,:)
+real(kind = 8), allocatable :: work(:)
+real(kind = 8)              :: wshift
+integer                     :: i,j,info
+integer, allocatable        :: ipiv(:)
+character (len = 120)       :: title1,title2,title3
+logical                     :: dump_in_out,useLabels
 
 call corr_shift_readin
 
-allocate( H_ortho(nbase,nbase) )
-allocate( H_shift(nbase,nbase) )
-allocate( H_wshift(nbase,nbase) )
-allocate( hsave(nbase,nbase) )
-allocate( ssave(nbase,nbase) )
-allocate( s_lowdin(nbase,nbase) )
-allocate( shift(nbase) )
-allocate( weight(nbase,nbase) )
-allocate( work(nbase) )
-allocate( ipiv(nbase) )
+allocate(H_ortho(nbase,nbase))
+allocate(H_shift(nbase,nbase))
+allocate(H_wshift(nbase,nbase))
+allocate(hsave(nbase,nbase))
+allocate(ssave(nbase,nbase))
+allocate(s_lowdin(nbase,nbase))
+allocate(weight(nbase,nbase))
+allocate(work(nbase))
+allocate(ipiv(nbase))
 
 
-!title1 = 'MEBF Overlap matrix'
-!useLabels = .true.
-!call corr_shift_printHam(title1,s,nbase,useLabels)
-
-shift = 0.0d0
-do i = 1, nbase
-  shift(i) = sum(ecorr2(:,i))
-enddo
 write(*,*)
 write(*,*) ' Shifts applied on the diagonal of H'
 write(*,*) ' MEBF    Total shift            Monomer shifts'
-do i = 1, nbase
-  write(*,679) i,shift(i),(fragLabel(i+(j-1)*nbase),ecorr2(j,i),j=1,nmol)
+do j = 1, nbase
+  write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
 end do
-679  format(I4,F15.8,8x,5(A6,F15.8,3x))
+679  format(A4,F15.8,8x,5(A6,F15.8,3x))
 write(*,*)
 
 ssave = s
@@ -604,15 +595,14 @@ implicit none
 external  :: corr_shift_capitalize,corr_shift_locate
 
 integer,parameter    :: nKeys = 9
-integer              :: jj,iKey,i,j,k,first, last, maxunique
+integer              :: jj,iKey,i,j,k,first, last, maxunique,iMEBF
 integer,allocatable  :: unique(:)
-
-real (kind=8), allocatable   :: ecorr(:)
 
 character(len=4), dimension(nKeys)   :: keyword
 character(len=4)                     :: key
 character(len=5)                     :: dummy
-character(len=6),allocatable         :: user_label(:)
+character(len=6),allocatable         :: user_label(:,:)
+character(len=18),allocatable        :: blocks_label(:,:),ovlp_mebflabels(:)
 character(len=132)                   :: line,filename
 
 logical                              :: all_ok = .true.
@@ -647,15 +637,15 @@ do iKey = 1, nKeys
         call corr_shift_locate(5,'PROJ',line)
         read(*,*) project
         project = trim(project)
-!        hit(3) = .false.                            ! deactivate reading H and S from input
-!        hit(4) = .false.
         write(filename,'(2a)')trim(Project),'.arx'
         open(11,file=filename,err=9000)
         call corr_shift_locate(11,'Stat',line)
         read(line,*) dummy, nbase, nmol
         allocate(mebfLabel(nbase))
+        allocate( shift(nbase) )
         do i = 1, nbase
           read(11,'(a)')mebfLabel(i)
+          mebfLabel(i) = adjustl(mebfLabel(i))
         end do
         allocate( h(nbase,nbase) )
         allocate( s(nbase,nbase) )
@@ -687,40 +677,37 @@ do iKey = 1, nKeys
             last = min(last + 7,nbase)
           end do
         end if
-        nstates = nmol*nbase
-        allocate( fraglabel(nstates) )
+        allocate( fraglabel(nmol,nbase) )
         allocate( unique(nmol) )
         call corr_shift_locate(11,'Frag',line)
-        read(11,*)(fragLabel(i),i=1,nstates)
         do i = 1, nmol
+          read(11,*) (fragLabel(i,j),j=1,nbase)
           unique(i) = 1
           do j = 2, nbase
             new = .true.
             do k = 1, j-1
-              if (fraglabel(k).eq.fraglabel(j)) new = .false.
+              if (trim(fraglabel(i,k)).eq.trim(fraglabel(i,j))) new = .false.
             end do
             if ( new ) unique(i) = unique(i) + 1
           end do
         end do
         maxunique = maxval(unique)
-        allocate ( ecorr(nmol*maxunique) )
+        allocate ( ecorr(nmol,maxunique) )
         allocate ( ecorr2(nmol,nbase) )
-        allocate ( user_label(nmol*maxunique) )
+        allocate ( user_label(nmol,maxunique) )
       case(2)
         call corr_shift_locate(5,'SHIF',line)
-        j=1
-        write(*,*) 'unique',unique
+        shift = 0.0d0
         do i = 1, nmol
-          read(*,*) dummy
-          read(*,*) (user_label(k),k=j,unique(i)+j-1)
-          read(*,*) (ecorr(k),k=j,unique(i)+j-1)
-          j = j + unique(i)
-        end do
-        do i = 1, nmol
+          read(*,*) (user_label(i,k),k=1,unique(i))
+          read(*,*) (ecorr(i,k),k=1,unique(i))
           jj = 1
-          do j = (i-1)*nbase + 1, i*nbase
+          do j = 1, nbase
             do k = 1, unique(i)
-              if ( fraglabel(j).eq.user_label(k+(i-1)*unique(i)) ) ecorr2(i,jj) = ecorr(k)
+              if (fraglabel(i,j) .eq. user_label(i,k)) then
+                shift(jj) = shift(jj) + ecorr(i,k)
+                ecorr2(i,j) = ecorr(i,k)
+              endif
             end do
             jj = jj + 1
           end do
@@ -742,20 +729,32 @@ do iKey = 1, nKeys
         read(*,*) nBlocks
         allocate( dimens(nBlocks) )
         allocate( blocks(nBlocks,nbase) )
+        allocate( blocks_label(nBlocks,nbase) )
         blocks = 0
         dimens = 0
         extraDim = 0
         do i = 1, nBlocks
-          read(*,*) dimens(i),(blocks(i,j),j=1,dimens(i))
+          read(*,*) dimens(i),(blocks_label(i,j),j=1,dimens(i))
           extraDim = extraDim + dimens(i)
+          do iMEBF = 1, nbase
+            do j = 1, dimens(i)
+              if (trim(blocks_label(i,j)) .eq. trim(mebfLabel(iMEBF))) blocks(i,j) = iMEBF
+            end do
+          end do
         end do
         extra = .true.
       case(6)
         call corr_shift_locate(5,'SELE',line)
         read(*,*) reduced_extraDim
         allocate( ovlp_mebfs(reduced_extraDim) )
+        allocate( ovlp_mebflabels(reduced_extraDim) )
         ovlp_mebfs = 0
-        read(*,*) (ovlp_mebfs(i),i=1,reduced_extraDim)
+        read(*,*) (ovlp_mebflabels(i),i=1,reduced_extraDim)
+        do iMEBF = 1, nbase
+          do j = 1, reduced_extraDim 
+            if (trim(ovlp_mebflabels(j)) .eq. trim(mebfLabel(iMEBF))) ovlp_mebfs(j) = iMEBF
+          end do
+        end do
         dressed_coupling = .true.
       case(7)
         GN_weights = .true.
@@ -778,37 +777,6 @@ return
 stop
 
 end subroutine corr_shift_readin
-!MEBF                          :   Definition of the MEBFs (only dimers for now)
-!  6                           :   number of MEBFs
-!    1   1   2   3   4   5     :   monomer functions of fragmemt A
-!    6   7   6   8  10   9     :   monomer functions of fragment B
-!SHIFt                         :   correlation energies of the monomer functions
-!  -1.50140043 -1.53749914 -1.50507064 -1.47839925 -1.56694218 -1.50140043 -1.53749914 -1.50507064 -1.47839925 -1.56694218
-!HAMIltonian
-!      -767.4274654814        0.9608752252       -0.9608749955        2.4399522310       31.7225150798      -31.7225150527
-!         0.9608752252     -767.2750500135       -0.0893140823       -0.8169869984      -22.4288632485        3.2446106118
-!        -0.9608749955       -0.0893140823     -767.2750494438        0.8169870014        3.2446106370      -22.4288632348
-!         2.4399522310       -0.8169869984        0.8169870014     -767.2410039446      -23.4137870959       23.4137871291
-!        31.7225150798      -22.4288632485        3.2446106370      -23.4137870959     -767.2088208967        1.1691233374
-!       -31.7225150527        3.2446106118      -22.4288632348       23.4137871291        1.1691233374     -767.2088213334
-!OVERlap
-!         1.0000000000       -0.0012515804        0.0012515804       -0.0031776670       -0.0413259852        0.0413259852
-!        -0.0012515804        1.0000000000        0.0001161449        0.0010641485        0.0292209434       -0.0042278921
-!         0.0012515804        0.0001161449        1.0000000000       -0.0010641485       -0.0042278921        0.0292209434
-!        -0.0031776670        0.0010641485       -0.0010641485        1.0000000000        0.0305063133       -0.0305063133
-!        -0.0413259852        0.0292209434       -0.0042278921        0.0305063133        1.0000000000       -0.0015226440
-!         0.0413259852       -0.0042278921        0.0292209434       -0.0305063133       -0.0015226440        1.0000000000
-!BLOCk diagonalizations:  two extra groups: S0S1; S1S0; D+D-; D-D+ & T1T1; D+D-; !D-D+
-! 2
-! 4  2 3 5 6 
-! 3  4 5 6
-!SELEct  : indicate how many new MEBFs should be selected for the calculation of the coupling, selection is based on overlap with original MEBFs.
-! 3  
-!  2 3 4
-!
-! Hamiltonian and Overlap are normally read from the arx file
-! Fragment labels need to be implemented to comply with the naming scheme in
-! gcommon and GronOR
 
 
 subroutine corr_shift_capitalize(string)
@@ -841,3 +809,52 @@ if (string2(1:4).ne.string) goto 40
 return
 end subroutine corr_shift_locate
 
+!-----------------------------------------------------------!
+!                                                           !
+! Program for post NOCI-F analysis                          !
+!    - application of correlation correction                !
+!    - subblock diagonalizations                            !
+!                                                           !
+! Required files                                            !
+!    - input file (see below)                               !
+!    - arx file, generated by GronOR                        !
+!                                                           !
+!  written by Coen de Graaf                                 !
+!             URV/ICREA, 2021-2023                          !
+!                                                           !
+!-----------------------------------------------------------!
+!                                                           !
+! Input example                                             !
+!                                                           !
+! Project                                                   !
+!  benzene                                                  !
+! Shift                                                     !
+!  S0 S1 T1 D+ D-                                           !
+!  0.0 -0.15 -0.11 -0.11 -0.11                              !
+!  S0 S1 T1 D+ D-                                           !
+!  0.0 -0.15 -0.11 -0.11 -0.11                              !
+! Block                                                     !
+!  2                                                        !
+!  4 S0S1 S1S0 D+D- D-D+                                    !
+!  3 T1T1 D+D- D-D+                                         !
+! Select                                                    !
+!  3                                                        !
+!  S0S1 S1S0 T1T1                                           !
+!                                                           !
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -!
+!                                                           !
+! PROJect :  Root of the arx file                           !
+! SHIFt   :  Correlation correction of the fragment         !
+!            states (in au)                                 !
+! BLOCk   :  Number of subblock to be diagonalized,         !
+!            followed by one line for each subblock.        !
+!            Each line contains the dimension of the        !
+!            subblock and its MEBF labels                   !
+! SELEct  :  Selection of the vectors resulting from the    !
+!            subblock diagonalizations to construct a       !
+!            new Hamiltonian with 'dressed' MEBFs. First,   !
+!            the number of vectors that will be selected,   !
+!            followed by the MEBF labels that should be     !
+!            dominant in the new 'dressed' MEBFs.           !
+!                                                           !
+!-----------------------------------------------------------!

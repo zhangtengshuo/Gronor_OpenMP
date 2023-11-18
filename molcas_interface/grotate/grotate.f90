@@ -110,7 +110,6 @@ program grotate
   beta  = 0.0
   delta = 0.0
 
-
   call grotate_readin
 
   if ( inporb ) then
@@ -144,7 +143,9 @@ program grotate
 
       call grotate_get_coordinates(iFrag,iState)   
 
-      write(*,'(a,i2,a,i2,a,a)') 'State ',istate,' of ',nStates,': ',trim(state(iState))
+      if ( inporb ) then
+        write(*,'(a,i2,a,i2,a,a)') 'State ',istate,' of ',nStates,': ',trim(state(iState))
+      endif
 
       write(orbfile(1),'(a,a,a,a)') trim(root(1)),'_',trim(state(iState)),'.orb'
       write(orbfile(2),'(a,a,a,a)') trim(root(iFrag)),'_',trim(state(iState)),'.orb'
@@ -173,7 +174,10 @@ program grotate
       write(14,'(A6,3x,3F16.8)')label(1,j),x(1,j),y(1,j),z(1,j)
     end do
     close(14)
-    deallocate(x,y,z,label)
+    if(allocated(x)) deallocate(x)
+    if(allocated(y)) deallocate(y)
+    if(allocated(z)) deallocate(z)
+    if(allocated(label)) deallocate(label)
     write(*,*)
   enddo
 
@@ -210,6 +214,7 @@ data keyword /'FRAG','TARG','NOIN','STAT','ROTA','TRAN','KEEP' /
 inporb = .true.
 xyztarget = .true.
 keep = .false.
+nStates = 1
 do while (all_ok)
   read(5,*,iostat=jj) line
   line=adjustl(line)
@@ -299,12 +304,12 @@ do iKey = 1, nKeys
         xyztarget = .false.
       case(6)
         call grotate_locate('ROTA')
-        rotalpha(1) = 0.0d0
-        rotbeta(1)  = 0.0d0
-        rotgamma(1) = 0.0d0
         allocate(rotalpha(nFrags))
         allocate(rotbeta(nFrags))
         allocate(rotgamma(nFrags))
+        rotalpha(1) = 0.0d0
+        rotbeta(1)  = 0.0d0
+        rotgamma(1) = 0.0d0
         do i = 2, nFrags
           read(*,*) rotalpha(i),rotbeta(i),rotgamma(i)
           rotalpha(i) = rotalpha(i) * pi / 180.0d0

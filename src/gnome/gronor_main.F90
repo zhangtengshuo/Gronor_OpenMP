@@ -1794,7 +1794,7 @@ subroutine gronor_main()
   ngr=np/npg
 
   if(numidle.gt.0) then
-    npg=np-numidle-1
+    npg=(np-numidle-1)/mgr
     ngr=(np-numidle-1)/npg
   endif
 

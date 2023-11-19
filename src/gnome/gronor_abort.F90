@@ -61,6 +61,9 @@
       case(112)
          write(lfnabt,'(a)') "Input: Threshold : CI threshold not specified"
 
+      case(113)
+         write(lfnabt,'(a)') "Input: Couplings : no couplings specified"
+
       case(114)
          write(lfnabt,'(a)') "Input: Expert : expert option not specified"
 

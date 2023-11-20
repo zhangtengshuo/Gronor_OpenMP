@@ -433,10 +433,16 @@ end subroutine grotate_by_target
 subroutine grotate_get_coordinates(iFrag,iState)
 use grotate_files_data
 implicit none
-integer             :: iAtom,fragment,iFrag,iState
+integer             :: iAtom,fragment,iFrag,iState,nfragments
 character(len=132)  :: filename
 
-do fragment = 1, 2
+if (xyztarget) then
+  nfragments = 2
+else
+  nfragments = 1
+endif
+
+do fragment = 1,nfragments 
   open(12,file=xyzfile(fragment))
   read(12,*) nAtoms(fragment)
   close(12)
@@ -445,11 +451,11 @@ if(allocated(x)) deallocate(x)
 if(allocated(y)) deallocate(y)
 if(allocated(z)) deallocate(z)
 if(allocated(label)) deallocate(label)
-allocate( x(2,maxval(nAtoms)) )
-allocate( y(2,maxval(nAtoms)) )
-allocate( z(2,maxval(nAtoms)) )
-allocate( label(2,maxval(nAtoms)) )
-do fragment = 1, 2
+allocate( x(nfragments,maxval(nAtoms)) )
+allocate( y(nfragments,maxval(nAtoms)) )
+allocate( z(nfragments,maxval(nAtoms)) )
+allocate( label(nfragments,maxval(nAtoms)) )
+do fragment = 1, nfragments
   open(12,file=xyzfile(fragment))
   read(12,*)
   read(12,*)

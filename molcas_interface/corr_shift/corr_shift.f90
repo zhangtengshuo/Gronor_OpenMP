@@ -594,7 +594,7 @@ implicit none
 
 external  :: corr_shift_capitalize,corr_shift_locate
 
-integer,parameter    :: nKeys = 9
+integer,parameter    :: nKeys = 7
 integer              :: jj,iKey,i,j,k,first, last, maxunique,iMEBF
 integer,allocatable  :: unique(:)
 
@@ -610,7 +610,7 @@ logical                              :: new
 logical, dimension(nKeys)            :: hit = .false.
 
 
-data keyword /'PROJ','SHIF','HAMI','OVER','BLOC','SELE','GNWE','LOWE','PROV'/
+data keyword /'PROJ','SHIF','BLOC','SELE','GNWE','LOWE','PROV'/
 
 extra = .false.
 dressed_coupling = .false.
@@ -628,7 +628,6 @@ do while (all_ok)
   end do
   if (  jj .lt. 0 ) all_ok = .false.
 end do
-
 
 do iKey = 1, nKeys
   if ( hit(iKey) ) then
@@ -649,34 +648,32 @@ do iKey = 1, nKeys
         end do
         allocate( h(nbase,nbase) )
         allocate( s(nbase,nbase) )
-        if ( .not. hit(3) .and. .not. hit(4) ) then
-          write(*,'(2a)') 'H and S are read from ',filename
-          call corr_shift_locate(11,'Hami',line)
-          read(11,*) line
-          first = 1 
-          last = min(7,nbase)
-          do while ( first .lt. nbase )
-            do i = 1, nbase
-              read(11,662)jj,(h(i,j),j=first,last)
-            end do
-            read(11,*) line
-            first = last + 1
-            last = min(last + 7,nbase)
+        write(*,'(2a)') 'H and S are read from ',filename
+        call corr_shift_locate(11,'Hami',line)
+        read(11,*) line
+        first = 1 
+        last = min(7,nbase)
+        do while ( first .lt. nbase )
+          do i = 1, nbase
+            read(11,662)jj,(h(i,j),j=first,last)
           end do
-662       format(i5,1x,7e20.13)
-          call corr_shift_locate(11,'Over',line)
           read(11,*) line
-          first = 1
-          last = min(7,nbase)
-          do while ( first .lt. nbase )
-            do i = 1, nbase
-              read(11,662)jj,(s(i,j),j=first,last)
-            end do
-            read(11,*) line
-            first = last + 1
-            last = min(last + 7,nbase)
+          first = last + 1
+          last = min(last + 7,nbase)
+        end do
+662     format(i5,1x,7e20.13)
+        call corr_shift_locate(11,'Over',line)
+        read(11,*) line
+        first = 1
+        last = min(7,nbase)
+        do while ( first .lt. nbase )
+          do i = 1, nbase
+            read(11,662)jj,(s(i,j),j=first,last)
           end do
-        end if
+          read(11,*) line
+          first = last + 1
+          last = min(last + 7,nbase)
+        end do
         allocate( fraglabel(nmol,nbase) )
         allocate( unique(nmol) )
         call corr_shift_locate(11,'Frag',line)
@@ -714,18 +711,6 @@ do iKey = 1, nKeys
           end do
         end do
       case(3)
-        call corr_shift_locate(5,'HAMI',line)
-        allocate( h(nbase,nbase) )
-        do i = 1, nbase
-          read(*,*)(h(i,j),j=1,nbase)
-        end do
-      case(4)
-        call corr_shift_locate(5,'OVER',line)
-        allocate( s(nbase,nbase) )
-        do i = 1, nbase
-          read(*,*)(s(i,j),j=1,nbase)
-        end do
-      case(5)
         call corr_shift_locate(5,'BLOC',line)
         read(*,*) nBlocks
         allocate( dimens(nBlocks) )
@@ -744,7 +729,7 @@ do iKey = 1, nKeys
           end do
         end do
         extra = .true.
-      case(6)
+      case(4)
         call corr_shift_locate(5,'SELE',line)
         read(*,*) reduced_extraDim
         allocate( ovlp_mebfs(reduced_extraDim) )
@@ -757,16 +742,16 @@ do iKey = 1, nKeys
           end do
         end do
         dressed_coupling = .true.
-      case(7)
+      case(5)
         GN_weights = .true.
-      case(8)
+      case(6)
         call corr_shift_locate(5,'LOWE',line)
         allocate(nDressed_MEBFs(nBlocks))
         read(*,*)(nDressed_MEBFs(i),i=1,nBlocks)
         reduced_extraDim = sum(nDressed_MEBFs)
         select_lowest = .true.
         dressed_coupling = .true.
-      case(9)
+      case(7)
         print_overlap = .true.
     end select
   end if

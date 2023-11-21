@@ -75,6 +75,9 @@ external :: nto_read_vecs,nto_read_dets,nto_write_vecs,nto_write_dets
 integer              :: iFrag,iState
 
 call nto_readin
+write(*,*) 'Natural transition orbitals'
+write(*,'(A,E10.3)') '   Threshold for including hole-electron pairs: ',thresh_NTO
+write(*,'(A,E10.3)') '   Threshold for CIS expansion                : ',thresh_CI 
 allocate(nBasFrag(nFrags))
 allocate(nOrbFrag(nFrags))
 allocate(nInactFrag(nFrags))
@@ -551,14 +554,10 @@ close(13)
 
 if (debug) write(6,'(2A)')'Ground state detfile : ',gsdetfile
 open(14,file=gsdetfile)
+detheader = 0
+detheader(1) = nInactFrag(iFrag) + nRas1 - 1
 write(14,'(8(I4))') (detheader(i),i=1,8)
-occStr = ''
-do i=1,nnto
-  occStr = trim(occStr)//'2'
-enddo
-do i=1,nnto
-  occStr = trim(occStr)//'0'
-enddo
+occStr = '2'
 write(14,'(e15.8,6x,A)')1.0d0,trim(occStr)
 close(unit=14)
 

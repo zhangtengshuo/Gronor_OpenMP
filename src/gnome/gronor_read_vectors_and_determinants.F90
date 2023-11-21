@@ -306,6 +306,7 @@ subroutine gronor_read_vectors_and_determinants()
 203 format(a)
 
   if(ipr.gt.0) then
+    write(lfnarx,'(A)')'Fragment labels'
     if(nbase.le.36) then
       write(lfnout,606) (i,i=1,nbase)
 606   format(/,' Molecular states included in this calculation',//, &
@@ -323,6 +324,7 @@ subroutine gronor_read_vectors_and_determinants()
       else
         write(lfnout,628) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
       endif
+      write(lfnarx,*) (adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
 608   format(' Fragment',i4,t15,' : ',36(a4))
 628   format(/,' Fragment',i4,t15,' : ',36(a4),(/,t15,'   ',36(a4)))
     enddo

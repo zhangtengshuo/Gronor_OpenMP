@@ -22,7 +22,6 @@ module gcommon_input_data
   logical     :: fragLabels,energy_on_INPORB
   character (len=4),allocatable :: fragName(:),fragState(:)
   character (len=255),allocatable :: fragLabel(:)
-  character (len=32)      :: mebfLabel
   character (len=255)     :: project
 end module gcommon_input_data
 
@@ -479,7 +478,8 @@ subroutine gcommon_readin
 
   do while(all_ok)
     read(5,*,iostat=jj) line
-    key=adjustl(line)
+    line = adjustl(line)
+    key=line(1:4)
     call gcommon_capitalize(key)
     do iKey=1,nKeys
       if(key.eq.keyword(iKey)) hit(iKey)=.true.
@@ -534,7 +534,6 @@ subroutine gcommon_readin
         fragLabel(:)=''
         fragState(:)=''
         start=0
-        mebfLabel=''
         do j=1,nFragments
           start=start+1
           read(*,'(A)') line
@@ -555,7 +554,6 @@ subroutine gcommon_readin
               endif
             endif
           enddo
-          write(mebfLabel,'(a,a)') trim(mebfLabel),trim(fragName(j))
         enddo
         start=1
         do j=1,nFragments
@@ -623,7 +621,8 @@ subroutine gcommon_read_vec(iFrag,iVec,n,frzVec,vec,nOcc)
   character (len=3)   :: suffix
   character (len=1):: orbLabel(n)
 
-  base=project
+  project=adjustl(project)
+  base=project(1:20)
   suffix='orb'
   startVec=0
   do j=1,iFrag-1
@@ -798,7 +797,8 @@ subroutine gcommon_locate(string)
   character(132) ::  line
   rewind(5)
 40 read(5,*) line
-  string2=adjustl(line)
+  line = adjustl(line)
+  string2=line(1:4)
   call gcommon_capitalize(string2)
   if(string2.ne.string) goto 40
   return
@@ -806,7 +806,7 @@ end subroutine gcommon_locate
 
 
 subroutine gcommon_getFilename(iVec,filename,base,suffix)
-  use gcommon_input_data, only : fragLabel, mebfLabel
+  use gcommon_input_data, only : fragLabel
   implicit none
   integer,intent(in)  :: iVec
   character (len=3),intent(in)    :: suffix

@@ -117,8 +117,8 @@ subroutine gronor_read_vectors_and_determinants()
       write(lfnout,616) ' Many Electron Basis Functions'
 616   format(/,a,/)
       do j=1,nbase
-        write(lfnout,626) j,trim(mebfLabel(j))
-626     format(i4,': ',a)
+        write(lfnout,636) j,trim(mebfLabel(j))
+636     format(i4,': ',a)
       enddo
       if(ncorr.ne.0) then
         write(lfnout,647) ' MEBF','Electrons   Sum of fragment energies', &
@@ -306,16 +306,27 @@ subroutine gronor_read_vectors_and_determinants()
 203 format(a)
 
   if(ipr.gt.0) then
-    write(lfnout,606) (i,i=1,nbase)
-606 format(/,' Molecular states included in this calculation',//,' State        : ',20i4)
+    write(lfnarx,'(A)')'Fragment labels'
+    if(nbase.le.36) then
+      write(lfnout,606) (i,i=1,nbase)
+606   format(/,' Molecular states included in this calculation',//, &
+          ' State       ',t15,' : ',36i4)
+      write(lfnout,646)
+646   format(' ')
+    else
+      write(lfnout,626) (i,i=1,nbase)
+626   format(/,' Molecular states included in this calculation',//, &
+          ' State       ',t15,' : ',36i4,(/,t15,' : ',36i4))
+    endif
     do i=1,nmol
-      if(i.eq.1) then
+      if(nbase.le.36) then
         write(lfnout,608) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
       else
-        write(lfnout,614) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
+        write(lfnout,628) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
       endif
-608   format(/,' Fragment',i4,' : ',20(a4))
-614   format(' Fragment',i4,' : ',20(a4))
+      write(lfnarx,*) (adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
+608   format(' Fragment',i4,t15,' : ',36(a4))
+628   format(/,' Fragment',i4,t15,' : ',36(a4),(/,t15,'   ',36(a4)))
     enddo
   endif
 

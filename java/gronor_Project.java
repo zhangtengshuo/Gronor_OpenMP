@@ -84,9 +84,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numMEBFRows = 0;
     Integer numMEBFs = 0;
     Integer newMEBFs = 0;
-    Integer maxMEBFs = 36;
+    Integer maxMEBFs = 46;
     Integer maxMer = 5;
-    Integer maxMEBFstates=34;
+    Integer maxMEBFstates=44;
     
     Integer numStateLabels = 12;
 
@@ -103,7 +103,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
     String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
     Integer[] stateSpins = new Integer[] {1,1,1,2,2,3,3,1,2,3,1,2,3,5};
-	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36"};
+	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
 	String[] expMEBF = new String[] {"small", "medium", "high"};
@@ -287,6 +287,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.rnk");
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xrx");
+			clearFile.println("rm -f *.log");
 			clearFile.println("rm -f *.xmldump");
 			for(int i=0; i<numFragments; i++) {
 				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
@@ -355,11 +357,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			clearFile.println("rm -f *.rnk");
 			clearFile.println("rm -f *.tst");
 			clearFile.println("rm -f *.cpr");
+			clearFile.println("rm -f *.xrx");
+			clearFile.println("rm -f *.log");
 			clearFile.println("rm -f *.xmldump");
 			clearFile.println("rm -f *.orb");
 			clearFile.println("rm -f *.runfil");
 			clearFile.println("rm -f *.comorb");
 			clearFile.println("rm -f *.ONEINT");
+			clearFile.println("rm -f "+projectName.trim()+".prj");
 			for(int i=0; i<numFragments; i++) {
 				clearFile.println("rm -f "+projectName.trim()+fragmentDefinitions[i][0]+".xyz");
 			}
@@ -954,7 +959,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	private void updateStatesList() {
 
 		if(newSets>numSets) {
-			System.out.println("New State List");
+//			System.out.println("New State List");
 			for(int i=numSets; i<newSets; i++) {
 		    	lenStateList[i]=0;
 		    	spinStateList[i]=0;
@@ -3496,8 +3501,20 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 									if(nS==5 && nS1==0) include=true;
 									if(nS==5 && nS1==1) include=true;
 									if(nS==3 && nD==2) include=true;
-									if(nS==2 && nT==2 && nS1==0) include=true;
-																	
+									if(nS==3 && nT==2 && nS1==0) include=true;
+									
+									if(nD>0 && nS1>0) include=false;
+									if(nD>0 && nT>0) include=false;
+																		
+									if(expansion==0 && nS1>0 && nT>0) include=false;
+									if(expansion==0 && nD>0) include=false;
+																										
+									if(expansion<2 && nS1>1) include=false;
+									if(expansion<2 && nD>2) include=false;
+									if(expansion<2 && nD>0 && nS1>0) include=false;
+									if(expansion<2 && nD>0 && nT>0) include=false;
+									if(expansion<2 && nS1>0 && nT>0) include=false;
+									
 									if(charge==0) {
 										int chg=0;
 										if(stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0) chg++;
@@ -3607,7 +3624,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer[] nums = new Integer[nfrags];
 			Double[][] randt = new Double[nfrags][6];
 			String fileName = projectName.trim()+mebfName[i].trim();
-			if(nfrags==1) fileName=fileName.trim()+mebfName[i].trim();
+//			if(nfrags==1) fileName=fileName.trim()+mebfName[i].trim();
 			for(int j=0; j<nfrags; j++) {
 				int last=namFragments[j].indexOf("_");
 				fname[j]=namFragments[j].substring(0,last);
@@ -3619,11 +3636,17 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				pName = projectName.trim();
 				for(int k=0; k<6; k++) randt[j][k]=movFragments[mebfFragments[i][j][0]][k];
 			}
+//			System.out.println("MEBF FILES "+fileName);
 			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, fname, frags, randt)) {
-				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);	
-				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);	
+//				System.out.println("STEP 0");
+				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+//				System.out.println("STEP 1");	
+				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);
+//				System.out.println("STEP 2");	
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+//				System.out.println("STEP 3");
 				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
+//				System.out.println("STEP 4");
 			}
 		}
 	}
@@ -3730,6 +3753,86 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple5[0][0][0][0][0][0][0]=1; // S,S,S,S,S
 		couple5[0][0][0][0][0][0][1]=1;
 		couple5[0][0][0][0][0][0][2]=1;
+		
+		couple5[0][0][0][0][1][1][0]=1; // S,S,S,D,D
+		couple5[0][0][0][0][1][1][1]=1;
+		couple5[0][0][0][0][1][1][2]=2;
+		
+		couple5[0][0][0][1][0][1][0]=1; // S,S,D,S,D
+		couple5[0][0][0][1][0][1][1]=2;
+		couple5[0][0][0][1][0][1][2]=2;
+		
+		couple5[0][0][0][1][1][0][0]=1; // S,S,D,D,S
+		couple5[0][0][0][1][1][0][1]=2;
+		couple5[0][0][0][1][1][0][2]=1;
+		
+		couple5[0][0][1][0][0][1][0]=2; // S,D,S,S,D
+		couple5[0][0][1][0][0][1][1]=2;
+		couple5[0][0][1][0][0][1][2]=2;
+		
+		couple5[0][0][1][0][1][0][0]=2; // S,D,S,D,S
+		couple5[0][0][1][0][1][0][1]=2;
+		couple5[0][0][1][0][1][0][2]=1;
+		
+		couple5[0][0][1][1][0][0][0]=2; // S,D,D,S,S
+		couple5[0][0][1][1][0][0][1]=1;
+		couple5[0][0][1][1][0][0][2]=1;
+		
+		couple5[0][1][0][0][0][1][0]=2; // D,S,S,S,D
+		couple5[0][1][0][0][0][1][1]=2;
+		couple5[0][1][0][0][0][1][2]=2;
+		
+		couple5[0][1][0][0][1][0][0]=2; // D,S,S,D,S
+		couple5[0][1][0][0][1][0][1]=2;
+		couple5[0][1][0][0][1][0][2]=1;
+		
+		couple5[0][1][0][1][0][0][0]=2; // D,S,D,S,S
+		couple5[0][1][0][1][0][0][1]=1;
+		couple5[0][1][0][1][0][0][2]=1;
+		
+		couple5[0][1][1][0][0][0][0]=1; // D,D,S,S,S
+		couple5[0][1][1][0][0][0][1]=1;
+		couple5[0][1][1][0][0][0][2]=1;
+		
+		couple5[0][0][0][0][2][2][0]=1; // S,S,S,T,T
+		couple5[0][0][0][0][2][2][1]=1;
+		couple5[0][0][0][0][2][2][2]=3;
+		
+		couple5[0][0][0][2][0][2][0]=1; // S,S,T,S,T
+		couple5[0][0][0][2][0][2][1]=3;
+		couple5[0][0][0][2][0][2][2]=3;
+		
+		couple5[0][0][0][2][2][0][0]=1; // S,S,T,T,S
+		couple5[0][0][0][2][2][0][1]=3;
+		couple5[0][0][0][2][2][0][2]=1;
+		
+		couple5[0][0][2][0][0][2][0]=3; // S,T,S,S,T
+		couple5[0][0][2][0][0][2][1]=3;
+		couple5[0][0][2][0][0][2][2]=3;
+		
+		couple5[0][0][2][0][2][0][0]=3; // S,T,S,T,S
+		couple5[0][0][2][0][2][0][1]=3;
+		couple5[0][0][2][0][2][0][2]=1;
+		
+		couple5[0][0][2][2][0][0][0]=3; // S,T,T,S,S
+		couple5[0][0][2][2][0][0][1]=1;
+		couple5[0][0][2][2][0][0][2]=1;
+		
+		couple5[0][2][0][0][0][2][0]=3; // T,S,S,S,T
+		couple5[0][2][0][0][0][2][1]=3;
+		couple5[0][2][0][0][0][2][2]=3;
+		
+		couple5[0][2][0][0][2][0][0]=3; // T,S,S,T,S
+		couple5[0][2][0][0][2][0][1]=3;
+		couple5[0][2][0][0][2][0][2]=1;
+		
+		couple5[0][2][0][2][0][0][0]=3; // T,S,T,S,S
+		couple5[0][2][0][2][0][0][1]=1;
+		couple5[0][2][0][2][0][0][2]=1;
+		
+		couple5[0][2][2][0][0][0][0]=1; // T,T,S,S,S
+		couple5[0][2][2][0][0][0][1]=1;
+		couple5[0][2][2][0][0][0][2]=1;
 
 		for(int i=0; i<5; i++) {
 			for(int j=0; j<5; j++) {
@@ -3909,6 +4012,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				inputFile.println("Spin "+spin);
 				inputFile.println("Threshold "+thresh_CI);
 				inputFile.println("Print medium");
+				inputFile.println("Test 1");
 				inputFile.close();
 			} catch(IOException e) {
 			}

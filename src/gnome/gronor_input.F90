@@ -82,7 +82,7 @@ subroutine gronor_input()
       do while(.true.)
         if(.not.inp_read()) call gronor_abort(107,"Input error")
         last=.not.inp_a(item)
-        if(last.or.len(trim(item)).ne.1) then
+        if(last.or.len(trim(item)).gt.3) then
           allocate(ncombv(nmol,nbase))
           mstates=nmol*nbase
           allocate(fragfile(mstates))
@@ -139,6 +139,11 @@ subroutine gronor_input()
     if(inp_compare(.false.,'Spin',item)) then
       if(.not.inp_i(nspin)) call gronor_abort(110,"Input error")
       nspin = nspin - 1
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'Managers',item)) then
+      if(.not.inp_i(managers)) managers=1
       goto 2
     endif
 
@@ -325,12 +330,17 @@ subroutine gronor_input()
       goto 2
     endif
 
-    if(inp_compare(.false.,'GPUs',item)) then
+    if(inp_compare(.false.,'Idle',item)) then
+      if(.not.inp_i(nidle)) nidle=0
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'NumGPUs',item)) then
       if(.not.inp_i(ngpus)) ngpus=1
       goto 2
     endif
 
-    if(inp_compare(.false.,'MPS',item)) then
+    if(inp_compare(.false.,'MPService',item)) then
       if(.not.inp_i(nummps)) nummps=1
       goto 2
     endif
@@ -340,12 +350,12 @@ subroutine gronor_input()
       goto 2
     endif
 
-    if(inp_compare(.false.,'cpr',item)) then
+    if(inp_compare(.false.,'Checkpoint',item)) then
       lcpr=.true.
       goto 2
     endif
 
-    if (inp_compare(.false.,'Ecorr',item)) then
+    if (inp_compare(.false.,'Ecorrelation',item)) then
       ncorr = 1
       allocate(ecorr(mstates))
       do i=1,mstates

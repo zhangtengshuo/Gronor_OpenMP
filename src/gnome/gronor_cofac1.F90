@@ -61,6 +61,8 @@
       call gronor_svd()
 
       call timer_stop(41)
+
+      !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
       
 #ifdef ACC
 !$acc kernels present(u,w,a)
@@ -121,9 +123,6 @@
         flush(lfndbg)
       endif
 
-!     Calculation of det(uw) , by determination of the number
-!     of eigenvalues -2 of " a=uw+tranposed(uw) "
-
       idetuw=1
 
       call timer_start(43)
@@ -146,7 +145,9 @@
 !$omp target teams distribute parallel do reduction(max:cmax)
 #endif
 #endif
-!     calculation of det(a) and x and y
+      
+      !  Calculation of det(a) and x and y
+      
       do i=1,nelecs
         if(diag(i).lt.-1.999999d0) idetuw=-idetuw
         if(abs(ev(i)).gt.cmax) cmax=abs(ev(i))
@@ -164,17 +165,15 @@
 #ifdef ACC
 !$acc end kernels
 #endif
-!cc   !_OMPTGT_($omp end target)
+
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
 
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (diag,cdiag,csdiag,sdiag)
 #endif
-        write(lfndbg,604)                                                       &
-     &       (diag(i),cdiag(i),csdiag(i),sdiag(i),i=1,nelecs)
- 604    format(//,' Diagonals:',                                                &
-     &       //,(3x,4e20.12))
+        write(lfndbg,604) (diag(i),cdiag(i),csdiag(i),sdiag(i),i=1,nelecs)
+ 604    format(//,' Diagonals:',//,(3x,4e20.12))
         flush(lfndbg)
       endif
 

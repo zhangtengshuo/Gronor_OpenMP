@@ -61,9 +61,9 @@ subroutine gronor_environment()
   string="HOME"
   call get_environment_variable(string,value,lenv,statv)
 
-  !     me          : MPI global rank id
+  !     me          : MPI global rank i
   !     np          : number of MPI ranks
-  !     master      : id of master MPI rank
+  !     mstr        : id of master MPI rank
   !     numdev      : number of accelerator devices on current node
   !     num_threads : number of OMP threads defined through OMP_NUM_THREAD
 
@@ -78,14 +78,29 @@ subroutine gronor_environment()
   !     master process is last in the list to enable more effective
   !     allocation of the worker processors, starting at rank 0
 
-  master=np-1
+  mstr=np-1
 
+  role=idle
 
-  if(me.eq.master) num_threads=1
+  if(me.eq.mstr) role=master
 
-  allocate(map1(np,7),map2(np,7))
+  if(me.eq.mstr) num_threads=1
 
+  allocate(map1(np,7),map2(np,9))
+
+  ! Retrieve the hostname from which to extract the specific computer used
+  ! This allows to set some variables to optimal values
+  ! Currently the code sets these for:
+  !     Juwels Booster (JFZ)
+  !     Piz Daint (CSCS)
+  !     Snellius (SARA)
+  !     Crusher (OLCF)
+  !     Frontier (OLCF)
+  !     Summit (OLCF)
+  
+  !     Using function "hostnm()" in stead of
   !     call MPI_get_processor_name(nodename, length, ierr)
+  
 #ifdef IBM
   call hostnm_(nodename)
 #else
@@ -190,7 +205,8 @@ subroutine gronor_environment()
     numdev=omp_get_num_devices()
 #endif
 
-    num_threads=1
+    ! Convert the nodename into a nodenumber stored in variable node
+
     j=1
     i=1
 
@@ -280,6 +296,84 @@ subroutine gronor_environment()
       elseif(nodename(i:i).eq.'z') then
         numeric(j:j+1)='26'
         j=j+2
+      elseif(nodename(i:i).eq.'A') then
+        numeric(j:j+1)='01'
+        j=j+2
+      elseif(nodename(i:i).eq.'B') then
+        numeric(j:j+1)='02'
+        j=j+2
+      elseif(nodename(i:i).eq.'C') then
+        numeric(j:j+1)='03'
+        j=j+2
+      elseif(nodename(i:i).eq.'D') then
+        numeric(j:j+1)='04'
+        j=j+2
+      elseif(nodename(i:i).eq.'E') then
+        numeric(j:j+1)='05'
+        j=j+2
+      elseif(nodename(i:i).eq.'F') then
+        numeric(j:j+1)='06'
+        j=j+2
+      elseif(nodename(i:i).eq.'G') then
+        numeric(j:j+1)='07'
+        j=j+2
+      elseif(nodename(i:i).eq.'H') then
+        numeric(j:j+1)='08'
+        j=j+2
+      elseif(nodename(i:i).eq.'I') then
+        numeric(j:j+1)='09'
+        j=j+2
+      elseif(nodename(i:i).eq.'J') then
+        numeric(j:j+1)='10'
+        j=j+2
+      elseif(nodename(i:i).eq.'K') then
+        numeric(j:j+1)='11'
+        j=j+2
+      elseif(nodename(i:i).eq.'L') then
+        numeric(j:j+1)='12'
+        j=j+2
+      elseif(nodename(i:i).eq.'M') then
+        numeric(j:j+1)='13'
+        j=j+2
+      elseif(nodename(i:i).eq.'N') then
+        numeric(j:j+1)='14'
+        j=j+2
+      elseif(nodename(i:i).eq.'O') then
+        numeric(j:j+1)='15'
+        j=j+2
+      elseif(nodename(i:i).eq.'P') then
+        numeric(j:j+1)='16'
+        j=j+2
+      elseif(nodename(i:i).eq.'Q') then
+        numeric(j:j+1)='17'
+        j=j+2
+      elseif(nodename(i:i).eq.'R') then
+        numeric(j:j+1)='18'
+        j=j+2
+      elseif(nodename(i:i).eq.'S') then
+        numeric(j:j+1)='19'
+        j=j+2
+      elseif(nodename(i:i).eq.'T') then
+        numeric(j:j+1)='20'
+        j=j+2
+      elseif(nodename(i:i).eq.'U') then
+        numeric(j:j+1)='21'
+        j=j+2
+      elseif(nodename(i:i).eq.'V') then
+        numeric(j:j+1)='22'
+        j=j+2
+      elseif(nodename(i:i).eq.'W') then
+        numeric(j:j+1)='23'
+        j=j+2
+      elseif(nodename(i:i).eq.'X') then
+        numeric(j:j+1)='24'
+        j=j+2
+      elseif(nodename(i:i).eq.'Y') then
+        numeric(j:j+1)='25'
+        j=j+2
+      elseif(nodename(i:i).eq.'Z') then
+        numeric(j:j+1)='26'
+        j=j+2
       endif
       i=i+1
     enddo
@@ -294,9 +388,12 @@ subroutine gronor_environment()
       else
         string(1:20)=numeric(1:20)
       endif
+      if(j.eq.0) string='                   0'
       read(string,'(i20)') node
     endif
 
+    ! Setup a mapping of the ranks
+    
     do j=1,5
       do i=1,np
         map1(i,j)=0
@@ -316,18 +413,11 @@ subroutine gronor_environment()
     map1(me+1,5)=0
     map1(me+1,6)=0
     ncount=4*np
-    call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER8,MPI_SUM,                 &
+    call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER4,MPI_SUM,                 &
         & MPI_COMM_WORLD,ierr)
 
     deallocate(map1)
 
-    !      map2(me+1,1) : number of acc devices
-    !      map2(me+1,2) : number of omp threads
-    !      map2(me+1,3) : group
-    !      map2(me+1,4) : resource set
-    !      map2(me+1,5) : 0
-    !      map2(me+1,6) : node
-    !      map2(me+1,7) : acc device id
 
     !     node counts the number ranks consecutive node-ids
     !     usually this is the number of nodes in a system
@@ -471,6 +561,7 @@ subroutine gronor_environment()
       enddo
     endif
 
+    
 #ifdef _OPENACC
     if(numdev.ge.1) then
 #ifdef GPUAMD
@@ -496,6 +587,23 @@ subroutine gronor_environment()
       map2(me+1,7)=mydev
     endif
 #endif
+
+    do i=1,np-1
+      map2(i,8)=worker
+    enddo
+    map2(np,8)=master
+    
+    ! Upon exit the array map2 contains the following rank specific values
+    
+    !      map2(me+1,1) : number of acc devices
+    !      map2(me+1,2) : number of omp threads
+    !      map2(me+1,3) : group id
+    !      map2(me+1,4) : resource set
+    !      map2(me+1,5) : acc device or -(omp thread)
+    !      map2(me+1,6) : node
+    !      map2(me+1,7) : acc device id
+    !      map2(me+1,8) : role
+    !      map2(me+1,9) :
     
     return
   end subroutine gronor_environment

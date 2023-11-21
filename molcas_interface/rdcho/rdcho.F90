@@ -11,6 +11,7 @@
 #ifdef _OPENMP
       use omp_lib
 #endif
+      use Cholesky
 
       implicit none
 
@@ -40,8 +41,8 @@
 
       character(len=10)          :: num_of_nodes
 
-#include "cholesky.fh"
-* #include "choptr.fh"
+! #include "cholesky.fh"
+! #include "choptr.fh"
 #include "WrkSpc.fh"
 
       call get_command_argument(1,num_of_nodes)

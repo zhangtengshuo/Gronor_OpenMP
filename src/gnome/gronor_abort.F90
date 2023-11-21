@@ -83,7 +83,10 @@
          write(lfnabt,'(a)') "Input: Print : print option not properly specified"
 
       case(121)
-         write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
+        write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
+        
+      case(122)
+        write(lfnabt,'(a)') "Input: Managers : number of managers not properly specified"
 
       case(130)
          write(lfnabt,'(a)') "Input: MPIbuffer : MPI buffer size not specified"
@@ -134,10 +137,10 @@
          write(lfnabt,'(a)')  "gronor_makebasestate: incompatible spins"
 
       case(230)
-         write(lfnabt,'(a,a)') "gronor_number_integrals: error in ",trim(string)
+         write(lfnabt,'(a,a)') "gronor_number_integrals: error reading ",trim(string)
 
       case(231)
-         write(lfnabt,'(a,a)') "gronor_number_integrals: error in ",trim(string)
+         write(lfnabt,'(a,a)') "gronor_number_integrals: error opening ",trim(string)
 
       case(240)
          write(lfnabt,'(a,a)') "gronor_parallel_integral_input: error reading", &

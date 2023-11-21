@@ -59,7 +59,7 @@ real(kind=8)                   :: pi,zero,one
 character(len=6),allocatable   :: label(:,:)
 character(len=80),dimension(2) :: xyzfile
 character(len=3),dimension(32) :: state
-logical                        :: inporb,xyztarget,keep
+logical                        :: inporb,xyztarget,keep,rotate,translate
 character(len=80),dimension(2) :: orbfile
 character(len=80),allocatable  :: root(:),saveLabel(:)
 end module grotate_files_data
@@ -201,7 +201,7 @@ logical                             :: all_ok = .true.
 logical, dimension(nkeys)           :: hit = .false.
 
 
-data keyword /'FRAG','TARG','NOIN','STAT','ROTA','TRAN','KEEP' /
+data keyword /'FRAG','TARG','NOIN','STAT','TRAN','ROTA','KEEP' /
 ! FRAGments          - fragment labels, first comes the fragment that is to moved, followed by the target fragments
 ! TARGet atoms       - Atoms that are to be matched
 ! NOINporb           - No orbitals are provided, only coordinates will be processed
@@ -215,6 +215,8 @@ inporb = .true.
 xyztarget = .true.
 keep = .false.
 nStates = 1
+rotate = .false.
+translate = .false.
 do while (all_ok)
   read(5,*,iostat=jj) line
   line=adjustl(line)
@@ -302,6 +304,7 @@ do iKey = 1, nKeys
           read(*,*) transx(i),transy(i),transz(i)
         enddo
         xyztarget = .false.
+        translate = .true.
       case(6)
         call grotate_locate('ROTA')
         allocate(rotalpha(nFrags))
@@ -316,6 +319,7 @@ do iKey = 1, nKeys
           rotbeta(i)  = rotbeta(i)  * pi / 180.0d0
           rotgamma(i) = rotgamma(i) * pi / 180.0d0
           xyztarget = .false.
+          rotate = .true.
         enddo
       case(7)
         call grotate_locate('KEEP')
@@ -347,22 +351,26 @@ implicit none
 external :: rotate_atoms,rotate_vec
 integer  :: fragment,j,iFrag
 
-fragment = 1
-call rotate_atoms(fragment,rotalpha(iFrag),zero,zero)
-call rotate_atoms(fragment,zero,rotbeta(iFrag) ,zero)
-call rotate_atoms(fragment,zero,zero,rotgamma(iFrag))
-
-if ( inporb ) then
-  call rotate_vec(rotalpha(iFrag),zero,zero)
-  call rotate_vec(zero,rotbeta(iFrag) ,zero)
-  call rotate_vec(zero,zero,rotgamma(iFrag))
+if (rotate) then
+  fragment = 1
+  call rotate_atoms(fragment,rotalpha(iFrag),zero,zero)
+  call rotate_atoms(fragment,zero,rotbeta(iFrag) ,zero)
+  call rotate_atoms(fragment,zero,zero,rotgamma(iFrag))
+  
+  if ( inporb ) then
+    call rotate_vec(rotalpha(iFrag),zero,zero)
+    call rotate_vec(zero,rotbeta(iFrag) ,zero)
+    call rotate_vec(zero,zero,rotgamma(iFrag))
+  endif
 endif
 
-do j = 1, nAtoms(1)
-  x(1,j) = x(1,j) + transx(iFrag)
-  y(1,j) = y(1,j) + transy(iFrag)
-  z(1,j) = z(1,j) + transz(iFrag)
-end do
+if (translate) then
+  do j = 1, nAtoms(1)
+    x(1,j) = x(1,j) + transx(iFrag)
+    y(1,j) = y(1,j) + transy(iFrag)
+    z(1,j) = z(1,j) + transz(iFrag)
+  end do
+endif
 
 end subroutine grotate_by_input
 

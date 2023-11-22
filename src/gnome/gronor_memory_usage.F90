@@ -36,7 +36,7 @@ subroutine gronor_memory_usage()
 
   implicit none
 
-  external :: MPI_iSend,MPI_Recv
+!  external :: MPI_iSend,MPI_Recv
 
   integer (kind=8) :: ni,nr,membuf(9)
   real (kind=8) ::gb

@@ -87,7 +87,7 @@ subroutine gronor_main()
   external :: gronor_input,gronor_prelude_cml
   external :: getcwd,getlog,hostnm
 
-  external :: MPI_Bcast
+!  external :: MPI_Bcast
 
   integer (kind=4) :: ierror,ierr,ncount
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact

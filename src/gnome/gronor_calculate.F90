@@ -43,7 +43,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   implicit none
 
   external :: swatch,timer_start,timer_stop
-  external :: MPI_iSend,MPI_Recv
+!  external :: MPI_iSend,MPI_Recv
   external :: gronor_gnome,gronor_abort
 
   integer (kind=4) :: ireq,ierr

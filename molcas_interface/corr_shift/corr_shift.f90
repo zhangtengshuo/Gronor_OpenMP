@@ -228,6 +228,7 @@ do i = 2, n
 end do
 write(*,*) title
 first = 1
+if (n.eq.2) write(*,'(a,f20.10)') 't(1,2) = ',27211.4d0*tc(2,1)
 last = min(7,n)
 do while (first .lt. n-1)
   if ( useLabels ) then

@@ -9,7 +9,7 @@ module corr_shift_input_data
   character(len=80)             :: project
   character(len=6),allocatable  :: fragLabel(:,:)
   character(len=18),allocatable :: mebfLabel(:)
-  logical :: extra,dressed_coupling,GN_weights,select_lowest,print_overlap
+  logical :: extra,dressed_coupling,GN_weights,select_lowest,print_overlap,dcec
 end module corr_shift_input_data
 
 
@@ -45,15 +45,16 @@ allocate(weight(nbase,nbase))
 allocate(work(nbase))
 allocate(ipiv(nbase))
 
-
 write(*,*)
-write(*,*) ' Shifts applied on the diagonal of H'
-write(*,*) ' MEBF    Total shift            Monomer shifts'
-do j = 1, nbase
-  write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
-end do
-679  format(A4,F15.8,8x,5(A6,F15.8,3x))
-write(*,*)
+if (dcec) then
+  write(*,*) ' Shifts applied on the diagonal of H'
+  write(*,*) ' MEBF    Total shift            Monomer shifts'
+  do j = 1, nbase
+    write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
+  end do
+  679  format(A4,F15.8,8x,5(A6,F15.8,3x))
+  write(*,*)
+endif
 
 ssave = s
 call corr_shift_lowdin(nbase,s,s_lowdin)
@@ -61,44 +62,48 @@ s = ssave
 H_ortho = matmul( transpose(s_lowdin) , matmul(H , s_lowdin) )
 H_shift  = H_ortho
 H_wshift = H_ortho
-do i = 1, nbase
-  H_shift(i,i) = H_ortho(i,i) + shift(i)
-end do
-if ( GN_weights ) then
-  useLabels = .true.
-  call corr_shift_gnweight(nbase,weight,s_lowdin,S,useLabels)
+if (dcec) then
   do i = 1, nbase
-    wshift = 0.0
-    do j = 1, nbase
-      wshift =  wshift + weight(i,j) * shift(j)
-    end do
-    H_wshift(i,i) = H_ortho(i,i) + wshift
+    H_shift(i,i) = H_ortho(i,i) + shift(i)
   end do
-end if
+  if ( GN_weights ) then
+    useLabels = .true.
+    call corr_shift_gnweight(nbase,weight,s_lowdin,S,useLabels)
+    do i = 1, nbase
+      wshift = 0.0
+      do j = 1, nbase
+        wshift =  wshift + weight(i,j) * shift(j)
+      end do
+      H_wshift(i,i) = H_ortho(i,i) + wshift
+    end do
+  endif
+endif
 
 title1 = 'Unshifted Hamiltonian'
 title2 = 'Shifted Hamiltonian'
 title3 = 'GN-weighted shifted Hamiltonian'
 
 !* Print the unshifted, shifted and GN-weighted shifted Hamiltonian
-write(*,*)'  *  *  Orthogonal MEBF basis  *  *'
-write(*,*)
-useLabels = .true.
-call corr_shift_printHam(title2,h_shift,nbase,useLabels)
-if ( GN_weights ) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
-
-call dgetrf(nbase,nbase,s_lowdin,nbase,ipiv,info)
-call dgetri(nbase,s_lowdin,nbase,ipiv,work,3*nbase,info)
-h_shift = matmul( transpose(s_lowdin) , matmul(h_shift,s_lowdin) )
-if ( GN_weights ) then
-  h_wshift = matmul(transpose(s_lowdin),matmul(h_wshift,s_lowdin))
-end if
+if (dcec) then
+  write(*,*)'  *  *  Orthogonal MEBF basis  *  *'
+  write(*,*)
+  useLabels = .true.
+  call corr_shift_printHam(title2,h_shift,nbase,useLabels)
+  if (GN_weights) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
+  
+  call dgetrf(nbase,nbase,s_lowdin,nbase,ipiv,info)
+  call dgetri(nbase,s_lowdin,nbase,ipiv,work,3*nbase,info)
+  h_shift = matmul( transpose(s_lowdin) , matmul(h_shift,s_lowdin) )
+  if ( GN_weights ) then
+    h_wshift = matmul(transpose(s_lowdin),matmul(h_wshift,s_lowdin))
+  endif
+endif
 
 write(*,*)'  *  *  Original non-orthogonal MEBF basis  *  *'
 write(*,*)
 call corr_shift_printHam(title1,H,nbase,useLabels)
-call corr_shift_printHam(title2,h_shift,nbase,useLabels)
-if ( GN_weights ) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
+if (dcec) call corr_shift_printHam(title2,h_shift,nbase,useLabels)
+if (GN_weights) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
 write(*,*)
 
 !** Calculate the couplings for the three Hamiltonians
@@ -107,8 +112,8 @@ write(*,*) '  *  *  *  Electronic Couplings  (meV) *  *  *'
 write(*,*)
 useLabels = .true.
 call corr_shift_couplings(title1,h,s,nbase,useLabels)
-call corr_shift_couplings(title2,h_shift,s,nbase,useLabels)
-if ( GN_weights ) call corr_shift_couplings(title3,h_wshift,s,nbase,useLabels)
+if (dcec) call corr_shift_couplings(title2,h_shift,s,nbase,useLabels)
+if (GN_weights) call corr_shift_couplings(title3,h_wshift,s,nbase,useLabels)
 write(*,*)
 
 !** Print the NOCI wave function
@@ -121,16 +126,18 @@ hsave = h
 call corr_shift_nocifunction(title1,h,s,nbase,dump_in_out)
 h = hsave
 s = ssave
-hsave = h_shift
-call corr_shift_nocifunction(title2,h_shift,s,nbase,dump_in_out)
-h_shift = hsave
-s = ssave
-if ( GN_weights ) then
-  hsave = h_wshift
-  call corr_shift_nocifunction(title3,h_wshift,s,nbase,dump_in_out)
-  h_wshift = hsave
+if (dcec) then
+  hsave = h_shift
+  call corr_shift_nocifunction(title2,h_shift,s,nbase,dump_in_out)
+  h_shift = hsave
   s = ssave
-end if
+  if ( GN_weights ) then
+    hsave = h_wshift
+    call corr_shift_nocifunction(title3,h_wshift,s,nbase,dump_in_out)
+    h_wshift = hsave
+    s = ssave
+  endif
+endif
 if ( extra ) then
   write(*,*)
   write(*,*)
@@ -138,19 +145,21 @@ if ( extra ) then
   write(*,*)'Extra NOCI (unshifted)'
   write(*,*)'----------------------'
   call corr_shift_superNOCI
-  write(*,*)
-  write(*,*)'Extra NOCI (shifted)'
-  write(*,*)'--------------------'
-  h = h_shift
-  call corr_shift_superNOCI
-  if ( GN_weights ) then
+  if (dcec) then
     write(*,*)
-    write(*,*)'Extra NOCI (GN-weight shifted)'
-    write(*,*)'------------------------------'
-    h = h_wshift
+    write(*,*)'Extra NOCI (shifted)'
+    write(*,*)'--------------------'
+    h = h_shift
     call corr_shift_superNOCI
-  end if
-end if
+    if ( GN_weights ) then
+      write(*,*)
+      write(*,*)'Extra NOCI (GN-weight shifted)'
+      write(*,*)'------------------------------'
+      h = h_wshift
+      call corr_shift_superNOCI
+    endif
+  endif
+endif
 
 end program corr_shift_main
 
@@ -618,6 +627,8 @@ dressed_coupling = .false.
 GN_weights = .false.
 select_lowest = .false.
 print_overlap = .false.
+dcec = .false.
+! dcec = dynamic correlation energy correction
 
 do while (all_ok)
   read(5,*,iostat=jj) line
@@ -675,6 +686,8 @@ do iKey = 1, nKeys
           first = last + 1
           last = min(last + 7,nbase)
         end do
+      case(2)
+        dcec = .true.
         allocate( fraglabel(nmol,nbase) )
         allocate( unique(nmol) )
         call corr_shift_locate(11,'Frag',line)
@@ -694,7 +707,6 @@ do iKey = 1, nKeys
         allocate ( ecorr2(nmol,nbase) )
         allocate ( user_label(nmol,maxunique) )
         write(*,'(A,I4)') 'number of fragment states :',size(user_label)
-      case(2)
         call corr_shift_locate(5,'SHIF',line)
         shift = 0.0d0
         do i = 1, nmol

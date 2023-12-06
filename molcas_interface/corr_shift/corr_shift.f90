@@ -822,15 +822,12 @@ do iKey = 1, nKeys
             endif
           end do
         end do
-        write(*,*) nUniqueExtra
-        write(*,'(A8,3x)')(unique_labels(k),k=1,nUniqueExtra)
         allocate(allExtra_mebfs(nUniqueExtra))
         do iMEBF = 1, nbase
           do j = 1, nUniqueExtra
             if (trim(unique_labels(j)) .eq. trim(mebfLabel(iMEBF))) allExtra_mebfs(j) = iMEBF
           end do
         end do
-        write(*,'(a,20I4)')'all extra MEBFs :',allExtra_mebfs
         do i = 1, nUniqueExtra
           do j = 1, i
             if (allExtra_mebfs(j).gt.allExtra_mebfs(i)) then
@@ -840,7 +837,6 @@ do iKey = 1, nKeys
             endif
           end do
         end do
-        write(*,'(a,20I4)')'all extra MEBFs :',allExtra_mebfs
         extra = .true.
       case(4)
         call corr_shift_locate(5,'SELE',line)

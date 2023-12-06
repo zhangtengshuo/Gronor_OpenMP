@@ -1,15 +1,16 @@
 module corr_shift_input_data
   implicit none
   integer                       :: nbase,nstates,extraDim,nBlocks,nmol
-  integer                       :: reduced_extraDim
-  integer, allocatable          :: ncombv(:,:),dimens(:),blocks(:,:)
-  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:)
+  integer                       :: reduced_extraDim,maxLength,nUniqueExtra
+  integer, allocatable          :: ncombv(:,:),dimens(:),blocks(:,:),nequiv(:)
+  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:),allExtra_mebfs(:)
   real (kind=8), allocatable    :: h(:,:),s(:,:)
   real (kind=8), allocatable    :: shift(:),ecorr(:,:),ecorr2(:,:)
   character(len=80)             :: project
   character(len=6),allocatable  :: fragLabel(:,:)
   character(len=18),allocatable :: mebfLabel(:)
-  logical :: extra,dressed_coupling,GN_weights,select_lowest,print_overlap
+  logical :: extra,dressed_coupling,GN_weights,select_lowest,print_overlap,   &
+             dcec,averaging
 end module corr_shift_input_data
 
 
@@ -30,7 +31,7 @@ real(kind = 8), allocatable :: work(:)
 real(kind = 8)              :: wshift
 integer                     :: i,j,info
 integer, allocatable        :: ipiv(:)
-character (len = 120)       :: title1,title2,title3
+character (len = 120)       :: title,title1,title2,title3
 logical                     :: dump_in_out,useLabels
 
 call corr_shift_readin
@@ -45,15 +46,16 @@ allocate(weight(nbase,nbase))
 allocate(work(nbase))
 allocate(ipiv(nbase))
 
-
 write(*,*)
-write(*,*) ' Shifts applied on the diagonal of H'
-write(*,*) ' MEBF    Total shift            Monomer shifts'
-do j = 1, nbase
-  write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
-end do
-679  format(A4,F15.8,8x,5(A6,F15.8,3x))
-write(*,*)
+if (dcec) then
+  write(*,*) ' Shifts applied on the diagonal of H'
+  write(*,*) ' MEBF    Total shift            Monomer shifts'
+  do j = 1, nbase
+    write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
+  end do
+  679  format(A4,F15.8,8x,5(A6,F15.8,3x))
+  write(*,*)
+endif
 
 ssave = s
 call corr_shift_lowdin(nbase,s,s_lowdin)
@@ -61,45 +63,55 @@ s = ssave
 H_ortho = matmul( transpose(s_lowdin) , matmul(H , s_lowdin) )
 H_shift  = H_ortho
 H_wshift = H_ortho
-do i = 1, nbase
-  H_shift(i,i) = H_ortho(i,i) + shift(i)
-end do
-if ( GN_weights ) then
-  useLabels = .true.
-  call corr_shift_gnweight(nbase,weight,s_lowdin,S,useLabels)
+if (dcec) then
   do i = 1, nbase
-    wshift = 0.0
-    do j = 1, nbase
-      wshift =  wshift + weight(i,j) * shift(j)
-    end do
-    H_wshift(i,i) = H_ortho(i,i) + wshift
+    H_shift(i,i) = H_ortho(i,i) + shift(i)
   end do
-end if
+  if ( GN_weights ) then
+    useLabels = .true.
+    call corr_shift_gnweight(nbase,weight,s_lowdin,S,useLabels)
+    do i = 1, nbase
+      wshift = 0.0
+      do j = 1, nbase
+        wshift =  wshift + weight(i,j) * shift(j)
+      end do
+      H_wshift(i,i) = H_ortho(i,i) + wshift
+    end do
+  endif
+endif
 
 title1 = 'Unshifted Hamiltonian'
 title2 = 'Shifted Hamiltonian'
 title3 = 'GN-weighted shifted Hamiltonian'
 
 !* Print the unshifted, shifted and GN-weighted shifted Hamiltonian
-write(*,*)'  *  *  Orthogonal MEBF basis  *  *'
-write(*,*)
-useLabels = .true.
-call corr_shift_printHam(title2,h_shift,nbase,useLabels)
-if ( GN_weights ) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
-
-call dgetrf(nbase,nbase,s_lowdin,nbase,ipiv,info)
-call dgetri(nbase,s_lowdin,nbase,ipiv,work,3*nbase,info)
-h_shift = matmul( transpose(s_lowdin) , matmul(h_shift,s_lowdin) )
-if ( GN_weights ) then
-  h_wshift = matmul(transpose(s_lowdin),matmul(h_wshift,s_lowdin))
-end if
+if (dcec) then
+  write(*,*)'  *  *  Orthogonal MEBF basis  *  *'
+  write(*,*)
+  useLabels = .true.
+  call corr_shift_printHam(title2,h_shift,nbase,useLabels)
+  if (GN_weights) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
+  
+  call dgetrf(nbase,nbase,s_lowdin,nbase,ipiv,info)
+  call dgetri(nbase,s_lowdin,nbase,ipiv,work,3*nbase,info)
+  h_shift = matmul( transpose(s_lowdin) , matmul(h_shift,s_lowdin) )
+  if ( GN_weights ) then
+    h_wshift = matmul(transpose(s_lowdin),matmul(h_wshift,s_lowdin))
+  endif
+endif
 
 write(*,*)'  *  *  Original non-orthogonal MEBF basis  *  *'
 write(*,*)
+useLabels = .true.
 call corr_shift_printHam(title1,H,nbase,useLabels)
-call corr_shift_printHam(title2,h_shift,nbase,useLabels)
-if ( GN_weights ) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
+if (dcec) call corr_shift_printHam(title2,h_shift,nbase,useLabels)
+if (GN_weights) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
 write(*,*)
+
+if (print_overlap)then
+  title = 'Original MEBF overlap matrix'
+  call corr_shift_printHam(title,S,nbase,useLabels)
+endif
 
 !** Calculate the couplings for the three Hamiltonians
 
@@ -107,8 +119,8 @@ write(*,*) '  *  *  *  Electronic Couplings  (meV) *  *  *'
 write(*,*)
 useLabels = .true.
 call corr_shift_couplings(title1,h,s,nbase,useLabels)
-call corr_shift_couplings(title2,h_shift,s,nbase,useLabels)
-if ( GN_weights ) call corr_shift_couplings(title3,h_wshift,s,nbase,useLabels)
+if (dcec) call corr_shift_couplings(title2,h_shift,s,nbase,useLabels)
+if (GN_weights) call corr_shift_couplings(title3,h_wshift,s,nbase,useLabels)
 write(*,*)
 
 !** Print the NOCI wave function
@@ -121,16 +133,18 @@ hsave = h
 call corr_shift_nocifunction(title1,h,s,nbase,dump_in_out)
 h = hsave
 s = ssave
-hsave = h_shift
-call corr_shift_nocifunction(title2,h_shift,s,nbase,dump_in_out)
-h_shift = hsave
-s = ssave
-if ( GN_weights ) then
-  hsave = h_wshift
-  call corr_shift_nocifunction(title3,h_wshift,s,nbase,dump_in_out)
-  h_wshift = hsave
+if (dcec) then
+  hsave = h_shift
+  call corr_shift_nocifunction(title2,h_shift,s,nbase,dump_in_out)
+  h_shift = hsave
   s = ssave
-end if
+  if ( GN_weights ) then
+    hsave = h_wshift
+    call corr_shift_nocifunction(title3,h_wshift,s,nbase,dump_in_out)
+    h_wshift = hsave
+    s = ssave
+  endif
+endif
 if ( extra ) then
   write(*,*)
   write(*,*)
@@ -138,19 +152,21 @@ if ( extra ) then
   write(*,*)'Extra NOCI (unshifted)'
   write(*,*)'----------------------'
   call corr_shift_superNOCI
-  write(*,*)
-  write(*,*)'Extra NOCI (shifted)'
-  write(*,*)'--------------------'
-  h = h_shift
-  call corr_shift_superNOCI
-  if ( GN_weights ) then
+  if (dcec) then
     write(*,*)
-    write(*,*)'Extra NOCI (GN-weight shifted)'
-    write(*,*)'------------------------------'
-    h = h_wshift
+    write(*,*)'Extra NOCI (shifted)'
+    write(*,*)'--------------------'
+    h = h_shift
     call corr_shift_superNOCI
-  end if
-end if
+    if ( GN_weights ) then
+      write(*,*)
+      write(*,*)'Extra NOCI (GN-weight shifted)'
+      write(*,*)'------------------------------'
+      h = h_wshift
+      call corr_shift_superNOCI
+    endif
+  endif
+endif
 
 end program corr_shift_main
 
@@ -211,13 +227,15 @@ end subroutine corr_shift_nocifunction
 
 
 subroutine corr_shift_couplings(title,h,s,n,useLabels)
-use  corr_shift_input_data, only : mebfLabel
+use  corr_shift_input_data, only : mebfLabel,maxLength
 implicit none
 real ( kind = 8 ), intent(in)  :: h(n,n),s(n,n)
 real ( kind = 8 ), allocatable :: tc(:,:)
 integer                        :: n,i,j,k,first,last
 character ( len = 120 )        :: title
 logical                        :: useLabels
+
+if (maxLength .gt. 18) useLabels = .false.
 
 allocate( tc(n,n) )
 
@@ -228,10 +246,11 @@ do i = 2, n
 end do
 write(*,*) title
 first = 1
+if (n.eq.2) write(*,'(a,f20.10)') 't(1,2) = ',27211.4d0*tc(2,1)
 last = min(7,n)
 do while (first .lt. n-1)
   if ( useLabels ) then
-    write(*,671) (adjustr(mebfLabel(j)),j=first,min(n-1,last))
+    write(*,671) (adjustl(mebfLabel(j)),j=first,min(n-1,last))
     do k = first+1, n
       write(*,672) adjustr(mebfLabel(k)),(tc(k,j)*27211.4d0,j=first,min(k-1,last))
     end do
@@ -246,7 +265,7 @@ do while (first .lt. n-1)
   last = min(last+7,n)
 end do
 return
-671 format(17x,7(a20))
+671 format(22x,7(a20))
 672 format(a20,1x,7f20.10)
 673  format(6x,7(6x,i8,6x))
 674  format(i5,1x,7f20.10)
@@ -301,7 +320,7 @@ end subroutine corr_shift_lowdin
 
 
 subroutine corr_shift_gnweight(nbase,wgn,slow,sbase,useLabels)
-use  corr_shift_input_data, only : mebfLabel
+use  corr_shift_input_data, only : mebfLabel,maxLength
 implicit none
 
 external  :: dgetrf,dgetri
@@ -311,7 +330,8 @@ integer, intent(in)       :: nbase
 integer                   :: i,k,info,first,last
 integer                   :: ipiv(nbase)
 
-real(kind=8), intent(in)  :: slow(nbase,nbase)
+!real(kind=8), intent(in)  :: slow(nbase,nbase)
+real(kind=8)              :: slow(nbase,nbase)
 real(kind=8), intent(in)  :: sbase(nbase,nbase)
 real(kind=8), intent(out) :: wgn(nbase,nbase)
 real(kind=8)              :: wsum
@@ -331,6 +351,8 @@ allocate(work(3*nbase))
 call dgetri(nbase,sinv,nbase,ipiv,work,3*nbase,info)
 deallocate(work)
 
+slow = transpose(slow)
+
 csum=0
 wsum=0
 do k = 1, nbase
@@ -344,6 +366,7 @@ do k = 1, nbase
 end do
 write(*,*)
 write(*,*) 'Gallup-Norbeck weights:'
+if ( maxLength .gt. 18 ) useLabels = .false.
 first = 1
 last = min(10,nbase)
 do while (first .le. nbase)
@@ -354,9 +377,9 @@ do while (first .le. nbase)
   end if
   do i = 1, nbase
     if ( useLabels) then
-      write(*,673)adjustr(mebfLabel(i)),(wgn(i,k),k=first,last)
+      write(*,673)adjustr(mebfLabel(i)),(wgn(k,i),k=first,last)
     else
-      write(*,674)i,(wgn(i,k),k=first,last)
+      write(*,674)i,(wgn(k,i),k=first,last)
     end if
   end do
   write(*,*)
@@ -374,7 +397,7 @@ end subroutine corr_shift_gnweight
 
 
 subroutine corr_shift_printHam(title,m,n,useLabels)
-use  corr_shift_input_data, only : mebfLabel
+use  corr_shift_input_data, only : mebfLabel,maxlength
 implicit none
 real ( kind = 8 ), intent(in)   :: m(n,n)
 integer                         :: n,i,j,first,last
@@ -382,10 +405,11 @@ character (len = 120)           :: title
 logical                         :: useLabels
 write(*,'(a120)') title
 write(*,*)
+if ( maxLength .gt. 18 ) useLabels = .false.
 first = 1 ; last = min(n,7)
 do while ( first .le. n )
   if (useLabels) then
-    write(*,671) (adjustr(mebfLabel(i)),i=first,last)
+    write(*,671) (adjustl(mebfLabel(i)),i=first,last)
     do i = 1, n
       write(*,672)adjustr(mebfLabel(i)),(m(i,j),j=first,last)
     end do
@@ -399,7 +423,7 @@ do while ( first .le. n )
   last = min(last + 7,n)
   write(*,*)
 end do
-671 format(17x,7(a20))
+671 format(22x,7(a20))
 672 format(a20,1x,7f20.10)
 673 format(6x,7(6x,i8,6x))
 674 format(i5,1x,7f20.10)
@@ -413,12 +437,13 @@ implicit none
 
 external :: dsygv,corr_shift_printHam,corr_shift_couplings,corr_shift_gnweight
 
-integer                      :: i,j,k,l,info,lwork,jj,offset,first,last
+integer                      :: i,j,k,l,m,info,lwork,jj,offset,first,last
+integer, allocatable         :: ncount(:)
 real (kind=8), allocatable   :: h_block(:,:)
 real (kind=8), allocatable   :: s_block(:,:),s_save(:,:)
 real (kind=8), allocatable   :: extraVec(:,:)
 real (kind=8), allocatable   :: extraH(:,:),extraS(:,:)
-real (kind=8), allocatable   :: eps(:)
+real (kind=8), allocatable   :: eps(:),h_unique(:),s_unique(:)
 real (kind=8), allocatable   :: work(:),wGN(:,:)
 real (kind=8), allocatable   :: mVec(:,:),reduced_extraVec(:,:)
 real (kind=8)                :: ovlp,maxovlp
@@ -432,6 +457,53 @@ extraVec = 0.0
 extraH   = 0.0
 extraS   = 0.0
 
+
+if ( averaging ) then
+  write(*,*)'* *  * Warning: H and S are symmetrized upon user request * * *'
+  write(*,*)
+  allocate (h_unique(maxval(nequiv)))
+  allocate (s_unique(maxval(nequiv))) 
+  allocate (ncount(maxval(nequiv)))
+  m = 0
+  h_unique = 0.0d0
+  s_unique = 0.0d0
+  ncount = 0
+  do k = 1, nUniqueExtra
+    do l = 1, k
+      m = m + 1
+      h_unique(nequiv(m)) = h_unique(nequiv(m)) + abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      s_unique(nequiv(m)) = s_unique(nequiv(m)) + abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
+      ncount(nequiv(m)) = ncount(nequiv(m)) + 1
+    end do
+  end do
+  do j = 1, maxval(nequiv)
+    h_unique(j) = h_unique(j) / ncount(j)
+    s_unique(j) = s_unique(j) / ncount(j)
+  end do
+  m = 0
+  do k = 1, nUniqueExtra
+    do l = 1, k
+      m = m + 1
+      h(allExtra_mebfs(k),allExtra_mebfs(l)) = h_unique(nequiv(m))*   &
+               h(allExtra_mebfs(k),allExtra_mebfs(l))/abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      h(allExtra_mebfs(l),allExtra_mebfs(k)) = h(allExtra_mebfs(k),allExtra_mebfs(l))
+      s(allExtra_mebfs(k),allExtra_mebfs(l)) = s_unique(nequiv(m))*   &
+               s(allExtra_mebfs(k),allExtra_mebfs(l))/abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
+      s(allExtra_mebfs(l),allExtra_mebfs(k)) = s(allExtra_mebfs(k),allExtra_mebfs(l))
+    end do
+  end do
+  title = ' (partially) symmetrized Hamiltonian'
+  useLabels = .true.
+  call corr_shift_printHam(title,h,nbase,useLabels)
+  write(*,*)
+  if (print_overlap) then
+    title = ' (partially) symmetrized overlap matrix'
+    call corr_shift_printHam(title,s,nbase,useLabels)
+  endif
+  deallocate(h_unique,s_unique,ncount)
+endif  
+
+
 jj = 0
 do i = 1 ,nBlocks
   lwork = 4 * dimens(i)
@@ -441,10 +513,10 @@ do i = 1 ,nBlocks
   allocate ( work(lwork) )
   allocate ( eps(dimens(i)) )
   allocate ( wGN(dimens(i),dimens(i)) )
-  h_block = 0.0
-  s_block = 0.0
-  work = 0.0
-  eps = 0.0
+  h_block = 0.0d0
+  s_block = 0.0d0
+  work = 0.0d0
+  eps = 0.0d0
   do j = 1, dimens(i)
     do k = 1, j
       h_block(j,k) = h(blocks(i,j),blocks(i,k))
@@ -547,15 +619,19 @@ if (dressed_coupling ) then
     end do
   end if
   write(*,*)
-  write(*,*) 'new MEBFs expressed in orginal MEBFs'
+  write(*,*) 'new MEBFs (in rows) expressed in orginal MEBFs'
   first = 1; last = min(15,nbase)
   do while (first .le. nbase)
-    write(*,'(15(8x,A6))')(mebfLabel(i),i=first,last)
+    if ( maxLength .le.10 ) then
+      write(*,'(7x,15(A10,4x))')(mebfLabel(i),i=first,last)
+    else
+      write(*,'(15(10x,i4))')(i,i=first,last)
+    endif
     do i = 1, reduced_extraDim
       write(*,'(I3,a,15F14.8)')i,':',(reduced_extraVec(i,j),j=first,last)
     end do
     first = last + 1
-    last = min(first + 15,nbase)
+    last = min(first + 14,nbase)
     write(*,*)
   end do
   write(*,*)
@@ -594,15 +670,15 @@ implicit none
 
 external  :: corr_shift_capitalize,corr_shift_locate
 
-integer,parameter    :: nKeys = 7
-integer              :: jj,iKey,i,j,k,first, last, maxunique,iMEBF
+integer,parameter    :: nKeys = 8
+integer              :: jj,iKey,i,j,k,first, last, maxunique,iMEBF,nelem,aux
 integer,allocatable  :: unique(:)
 
 character(len=4), dimension(nKeys)   :: keyword
 character(len=4)                     :: key
 character(len=5)                     :: dummy
 character(len=6),allocatable         :: user_label(:,:)
-character(len=18),allocatable        :: blocks_label(:,:),ovlp_mebflabels(:)
+character(len=18),allocatable        :: blocks_label(:,:),ovlp_mebflabels(:),unique_labels(:)
 character(len=132)                   :: line,filename
 
 logical                              :: all_ok = .true.
@@ -610,13 +686,17 @@ logical                              :: new
 logical, dimension(nKeys)            :: hit = .false.
 
 
-data keyword /'PROJ','SHIF','BLOC','SELE','GNWE','LOWE','PROV'/
+data keyword /'PROJ','SHIF','BLOC','SELE','GNWE','LOWE','PROV','AVER'/
 
 extra = .false.
 dressed_coupling = .false.
 GN_weights = .false.
 select_lowest = .false.
 print_overlap = .false.
+dcec = .false.
+! dcec = dynamic correlation energy correction
+averaging = .false.
+nUniqueExtra = 0
 
 do while (all_ok)
   read(5,*,iostat=jj) line
@@ -642,9 +722,11 @@ do iKey = 1, nKeys
         read(line,*) dummy, nbase, nmol
         allocate(mebfLabel(nbase))
         allocate( shift(nbase) )
+        maxLength = 0
         do i = 1, nbase
-          read(11,'(a)')mebfLabel(i)
+          read(11,'(1x,a)')mebfLabel(i)
           mebfLabel(i) = adjustl(mebfLabel(i))
+          maxLength = max(maxLength,len(mebfLabel(i)))
         end do
         allocate( h(nbase,nbase) )
         allocate( s(nbase,nbase) )
@@ -674,6 +756,8 @@ do iKey = 1, nKeys
           first = last + 1
           last = min(last + 7,nbase)
         end do
+      case(2)
+        dcec = .true.
         allocate( fraglabel(nmol,nbase) )
         allocate( unique(nmol) )
         call corr_shift_locate(11,'Frag',line)
@@ -692,8 +776,6 @@ do iKey = 1, nKeys
         allocate ( ecorr(nmol,maxunique) )
         allocate ( ecorr2(nmol,nbase) )
         allocate ( user_label(nmol,maxunique) )
-        write(*,'(A,I4)') 'number of fragment states :',size(user_label)
-      case(2)
         call corr_shift_locate(5,'SHIF',line)
         shift = 0.0d0
         do i = 1, nmol
@@ -724,8 +806,35 @@ do iKey = 1, nKeys
           extraDim = extraDim + dimens(i)
           do iMEBF = 1, nbase
             do j = 1, dimens(i)
-              if (trim(blocks_label(i,j)) .eq. trim(mebfLabel(iMEBF))) blocks(i,j) = iMEBF
+              if (trim(blocks_label(i,j)) .eq. trim(mebfLabel(iMEBF))) then
+                blocks(i,j) = iMEBF
+              endif
             end do
+          end do
+        end do
+        allocate(unique_labels(sum(dimens)))
+        unique_labels=''
+        do i = 1, nBlocks
+          do j = 1, dimens(i)
+            if ( .not. any(unique_labels .eq. blocks_label(i,j)) ) then
+              nUniqueExtra = nUniqueExtra + 1
+              unique_labels(nUniqueExtra) = blocks_label(i,j)
+            endif
+          end do
+        end do
+        allocate(allExtra_mebfs(nUniqueExtra))
+        do iMEBF = 1, nbase
+          do j = 1, nUniqueExtra
+            if (trim(unique_labels(j)) .eq. trim(mebfLabel(iMEBF))) allExtra_mebfs(j) = iMEBF
+          end do
+        end do
+        do i = 1, nUniqueExtra
+          do j = 1, i
+            if (allExtra_mebfs(j).gt.allExtra_mebfs(i)) then
+              aux = allExtra_mebfs(j)
+              allExtra_mebfs(j) = allExtra_mebfs(i)
+              allExtra_mebfs(i) = aux
+            endif
           end do
         end do
         extra = .true.
@@ -753,6 +862,13 @@ do iKey = 1, nKeys
         dressed_coupling = .true.
       case(7)
         print_overlap = .true.
+      case(8)
+        averaging = .true.
+        nelem = int((nUniqueExtra*(nUniqueExtra+1))/2)
+        allocate(nequiv(nelem))
+        nequiv = 0
+        call corr_shift_locate(5,'AVER',line)
+        read(*,*)(nequiv(j),j=1,nelem)
     end select
   end if
 end do     

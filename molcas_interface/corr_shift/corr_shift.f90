@@ -1,9 +1,9 @@
 module corr_shift_input_data
   implicit none
   integer                       :: nbase,nstates,extraDim,nBlocks,nmol
-  integer                       :: reduced_extraDim,maxLength
+  integer                       :: reduced_extraDim,maxLength,nUniqueExtra
   integer, allocatable          :: ncombv(:,:),dimens(:),blocks(:,:),nequiv(:)
-  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:)
+  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:),allExtra_mebfs(:)
   real (kind=8), allocatable    :: h(:,:),s(:,:)
   real (kind=8), allocatable    :: shift(:),ecorr(:,:),ecorr2(:,:)
   character(len=80)             :: project
@@ -31,7 +31,7 @@ real(kind = 8), allocatable :: work(:)
 real(kind = 8)              :: wshift
 integer                     :: i,j,info
 integer, allocatable        :: ipiv(:)
-character (len = 120)       :: title1,title2,title3
+character (len = 120)       :: title,title1,title2,title3
 logical                     :: dump_in_out,useLabels
 
 call corr_shift_readin
@@ -107,6 +107,11 @@ call corr_shift_printHam(title1,H,nbase,useLabels)
 if (dcec) call corr_shift_printHam(title2,h_shift,nbase,useLabels)
 if (GN_weights) call corr_shift_printHam(title3,h_wshift,nbase,useLabels)
 write(*,*)
+
+if (print_overlap)then
+  title = 'Original MEBF overlap matrix'
+  call corr_shift_printHam(title,S,nbase,useLabels)
+endif
 
 !** Calculate the couplings for the three Hamiltonians
 
@@ -456,35 +461,45 @@ extraS   = 0.0
 if ( averaging ) then
   write(*,*)'* *  * Warning: H and S are symmetrized upon user request * * *'
   write(*,*)
-  allocate (h_unique(maxval(abs(nequiv))))
-  allocate (s_unique(maxval(abs(nequiv)))) 
-  allocate (ncount(maxval(abs(nequiv))))
+  allocate (h_unique(maxval(nequiv)))
+  allocate (s_unique(maxval(nequiv))) 
+  allocate (ncount(maxval(nequiv)))
   m = 0
   h_unique = 0.0d0
   s_unique = 0.0d0
   ncount = 0
-  do k = 1, reduced_extraDim
+  do k = 1, nUniqueExtra
     do l = 1, k
       m = m + 1
-      h_unique(abs(nequiv(m))) = h_unique(abs(nequiv(m))) + abs(h(ovlp_mebfs(k),ovlp_mebfs(l)))
-      s_unique(abs(nequiv(m))) = s_unique(abs(nequiv(m))) + abs(s(ovlp_mebfs(k),ovlp_mebfs(l)))
-      ncount(abs(nequiv(m))) = ncount(abs(nequiv(m))) + 1
+      h_unique(nequiv(m)) = h_unique(nequiv(m)) + abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      s_unique(nequiv(m)) = s_unique(nequiv(m)) + abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
+      ncount(nequiv(m)) = ncount(nequiv(m)) + 1
     end do
   end do
-  do j = 1, maxval(abs(nequiv))
+  do j = 1, maxval(nequiv)
     h_unique(j) = h_unique(j) / ncount(j)
     s_unique(j) = s_unique(j) / ncount(j)
   end do
   m = 0
-  do k = 1, reduced_extraDim
+  do k = 1, nUniqueExtra
     do l = 1, k
       m = m + 1
-      h(ovlp_mebfs(k),ovlp_mebfs(l)) = h_unique(abs(nequiv(m)))*h(ovlp_mebfs(k),ovlp_mebfs(l))/abs(h(ovlp_mebfs(k),ovlp_mebfs(l)))
-      h(ovlp_mebfs(l),ovlp_mebfs(k)) = h(ovlp_mebfs(k),ovlp_mebfs(l))
-      s(ovlp_mebfs(k),ovlp_mebfs(l)) = s_unique(abs(nequiv(m)))*s(ovlp_mebfs(k),ovlp_mebfs(l))/abs(s(ovlp_mebfs(k),ovlp_mebfs(l)))
-      s(ovlp_mebfs(l),ovlp_mebfs(k)) = s(ovlp_mebfs(k),ovlp_mebfs(l))
+      h(allExtra_mebfs(k),allExtra_mebfs(l)) = h_unique(nequiv(m))*   &
+               h(allExtra_mebfs(k),allExtra_mebfs(l))/abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      h(allExtra_mebfs(l),allExtra_mebfs(k)) = h(allExtra_mebfs(k),allExtra_mebfs(l))
+      s(allExtra_mebfs(k),allExtra_mebfs(l)) = s_unique(nequiv(m))*   &
+               s(allExtra_mebfs(k),allExtra_mebfs(l))/abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
+      s(allExtra_mebfs(l),allExtra_mebfs(k)) = s(allExtra_mebfs(k),allExtra_mebfs(l))
     end do
   end do
+  title = ' (partially) symmetrized Hamiltonian'
+  useLabels = .true.
+  call corr_shift_printHam(title,h,nbase,useLabels)
+  write(*,*)
+  if (print_overlap) then
+    title = ' (partially) symmetrized overlap matrix'
+    call corr_shift_printHam(title,s,nbase,useLabels)
+  endif
   deallocate(h_unique,s_unique,ncount)
 endif  
 
@@ -656,7 +671,7 @@ implicit none
 external  :: corr_shift_capitalize,corr_shift_locate
 
 integer,parameter    :: nKeys = 8
-integer              :: jj,iKey,i,j,k,m,first, last, maxunique,iMEBF,nelem
+integer              :: jj,iKey,i,j,k,first, last, maxunique,iMEBF,nelem,aux
 integer,allocatable  :: unique(:)
 
 character(len=4), dimension(nKeys)   :: keyword
@@ -681,7 +696,7 @@ print_overlap = .false.
 dcec = .false.
 ! dcec = dynamic correlation energy correction
 averaging = .false.
-m = 0
+nUniqueExtra = 0
 
 do while (all_ok)
   read(5,*,iostat=jj) line
@@ -802,11 +817,30 @@ do iKey = 1, nKeys
         do i = 1, nBlocks
           do j = 1, dimens(i)
             if ( .not. any(unique_labels .eq. blocks_label(i,j)) ) then
-              m = m + 1
-              unique_labels(m) = blocks_label(i,j)
+              nUniqueExtra = nUniqueExtra + 1
+              unique_labels(nUniqueExtra) = blocks_label(i,j)
             endif
           end do
         end do
+        write(*,*) nUniqueExtra
+        write(*,'(A8,3x)')(unique_labels(k),k=1,nUniqueExtra)
+        allocate(allExtra_mebfs(nUniqueExtra))
+        do iMEBF = 1, nbase
+          do j = 1, nUniqueExtra
+            if (trim(unique_labels(j)) .eq. trim(mebfLabel(iMEBF))) allExtra_mebfs(j) = iMEBF
+          end do
+        end do
+        write(*,'(a,20I4)')'all extra MEBFs :',allExtra_mebfs
+        do i = 1, nUniqueExtra
+          do j = 1, i
+            if (allExtra_mebfs(j).gt.allExtra_mebfs(i)) then
+              aux = allExtra_mebfs(j)
+              allExtra_mebfs(j) = allExtra_mebfs(i)
+              allExtra_mebfs(i) = aux
+            endif
+          end do
+        end do
+        write(*,'(a,20I4)')'all extra MEBFs :',allExtra_mebfs
         extra = .true.
       case(4)
         call corr_shift_locate(5,'SELE',line)
@@ -834,7 +868,7 @@ do iKey = 1, nKeys
         print_overlap = .true.
       case(8)
         averaging = .true.
-        nelem = int((m*(m+1))/2)
+        nelem = int((nUniqueExtra*(nUniqueExtra+1))/2)
         allocate(nequiv(nelem))
         nequiv = 0
         call corr_shift_locate(5,'AVER',line)

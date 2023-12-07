@@ -51,7 +51,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numFragmentStates=0;  // Number of unique fragment states used
 
 	Integer[] lenStateList = new Integer[maxSets];				// Number of states included from list for state set
-//	Integer[] spinStateList = new Integer[maxSets];				// Spin of states included from list for state set
+	Integer[] spinStateList = new Integer[maxSets];				// Spin of states included from list for state set
 	Integer[][] ndxStateList = new Integer[maxSets][16];		// Index to stateNames[] for each state in state set
 	Integer[] fragmentStates = new Integer[35];					// Index to stateNames[] for each unique fragment state used
 	
@@ -410,6 +410,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    		card=br.readLine();
 		    		lenStateList[i]=Integer.valueOf(card.substring(0,6).trim());
 //		    		spinStateList[i]=Integer.valueOf(card.substring(6,12).trim());
+		    		spinStateList[i]=1;
 		    		for(int j=0; j<lenStateList[i]; j++) {
 		    			ndxStateList[i][j]=Integer.valueOf(card.substring((j+1)*6,(j+2)*6).trim());
 		    		}
@@ -568,7 +569,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	    
 		for(int i=0; i<maxSets; i++) {
 			lenStateList[i]=0;
-//			spinStateList[i]=1;
+			spinStateList[i]=1;
 			for(int j=0; j<15; j++) ndxStateList[i][j]=0;
 
 			lenStateList[0]=5;
@@ -961,27 +962,23 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		if(newSets>numSets) {
 			for(int i=numSets; i<newSets; i++) {
 		    	lenStateList[i]=0;
-//		    	spinStateList[i]=0;
+		    	spinStateList[i]=0;
 		    	for(int j=0; j<15; j++) ndxStateList[i][j]=0;
 			}
 		}
 
-		/*
 		Integer[] count = new Integer[numSets];
 		for(int i=0; i<numSets; i++) {
 			count[i]=0;
 			for(int j=0; j<numFragments; j++) {
-				System.out.println(0+" "+i+" "+j+" "+spinStateList[i]+" "+dimFragments[j][3]+" "+dimFragments[j][11]+" "+dimFragments[j][2]);
 				if(spinStateList[i]==1 && ((dimFragments[j][3]-dimFragments[j][11]) % 2)==0) {
 					count[i]++;
 					dimFragments[j][2]=i;
 				}
-				System.out.println(1+" "+i+" "+j+" "+spinStateList[i]+" "+dimFragments[j][3]+" "+dimFragments[j][11]+" "+dimFragments[j][2]);
 				if(spinStateList[i]==2 && ((dimFragments[j][3]-dimFragments[j][11]) % 2)==1) {
 					count[i]++;
 					dimFragments[j][2]=i;
 				}
-				System.out.println(2+" "+i+" "+j+" "+spinStateList[i]+" "+dimFragments[j][3]+" "+dimFragments[j][11]+" "+dimFragments[j][2]);
 			}
 		}
 
@@ -1008,7 +1005,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-*/
+
 		if(numSets>numberStateDefinitions) {
 			for(int i=numberStateDefinitions; i<numSets; i++) {
 				statesTableModel.addRow(stateDefinitions[i]);
@@ -1029,8 +1026,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		
 		numSets=newSets;
-
-		/*
+		
 		for(int i=0; i<numSets; i++) {
 			Boolean redo = false;
 			if(spinStateList[i]==1 || lenStateList[i]==0) {
@@ -1074,8 +1070,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-		*/
-		
 	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
 
 		for(int i=0; i<numSets; i++) {
@@ -1140,7 +1134,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-
+		
 		numFragments=newFragments;
 
 		for(int i=0; i<numFragments; i++) {
@@ -1519,9 +1513,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int i=0; i<numFragments; i++) {
 				fragT[i]=false;
 				if(movFragments[i][0]!=0.0 || movFragments[i][1]!=0.0 || movFragments[i][2]!=0.0) fragT[i]=true;
-				setTableCellColor(fragmentsTable,i,8,Color.white);
-				setTableCellColor(fragmentsTable,i,9,Color.white);
-				setTableCellColor(fragmentsTable,i,10,Color.white);
+				clearTableColor(fragmentsTable,Color.white);
 				if(!fragT[i]) nfrag++;
 			}
 		}
@@ -1536,9 +1528,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		} else if(nfrag>1) {
 			for(int i=1; i<numFragments; i++) {
 				if(!fragT[i]) {
-					setTableCellColor(fragmentsTable,i,8,Color.red);
-					setTableCellColor(fragmentsTable,i,9,Color.red);
-					setTableCellColor(fragmentsTable,i,10,Color.red);
+					setTableCellColor3(fragmentsTable,i,9,14,Color.red);
+//					setTableCellColor(fragmentsTable,i,11,Color.red);
 				}
 			}
 		} else if(numMEBFs<=0){
@@ -1558,7 +1549,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		table.setColumnSelectionInterval(column, column);
 		table.setSelectionBackground(color);
 	}
-	
 	private void setTableCellColor2(JTable table, Integer row1, Integer row2, Integer column, Color color) {
 		table.setCellSelectionEnabled(true);
 		TableCellRenderer renderer = table.getCellRenderer(row1, column);
@@ -1572,6 +1562,19 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		table.setSelectionBackground(color);
 	}
 	
+	private void setTableCellColor3(JTable table, Integer row, Integer col1, Integer col2, Color color) {
+		table.setCellSelectionEnabled(true);
+		TableCellRenderer renderer = table.getCellRenderer(row, col1);
+		Object value = table.getModel().getValueAt(row, col1);
+		Boolean selected = table.getSelectionModel().isSelectedIndex(row);
+		Boolean focus = false;
+		selected = false;
+		Component component= (JLabel) renderer.getTableCellRendererComponent(table, value, selected, focus, row, col1);
+		table.setRowSelectionInterval(row, row);
+		table.setColumnSelectionInterval(col1, col2);
+		table.setSelectionBackground(color);
+	}
+	
 	private void clearTableCellColor(JTable table, Integer row, Integer column, Color color) {
 		table.setCellSelectionEnabled(true);
 		TableCellRenderer renderer = table.getCellRenderer(row, column);
@@ -1582,7 +1585,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Component component= (JLabel) renderer.getTableCellRendererComponent(table, value, selected, focus, row, column);
 		component.setBackground(color);		
 	}
-	
+
 	private void clearTableColor(JTable table,Color color) {
 		table.setCellSelectionEnabled(true);
 		TableCellRenderer renderer = table.getCellRenderer(0, 0);
@@ -1775,7 +1778,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 
-		/*
 		//Count the number of required rows in MEBF table
 		Integer oldRows = 0;
 		for(int i=0; i<numMEBFs; i++) {
@@ -1785,7 +1787,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfName[i]=mebfName[i]+fragmentNames[mebfFragments[i][j][0]];
 			}
 		}
-		*/
 		
 		//Count the number of required rows in MEBF table
 		Integer numRows = 0;
@@ -1796,20 +1797,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfName[i]=mebfName[i]+fragmentNames[mebfFragments[i][j][0]];
 			}
 		}
-		
+
 		mebfsTableModel.setRowCount(numRows);
 
-//		Integer numCols = 0;
-//		for(int i=0; i<numMEBFs; i++) {
-//			numCols=Math.max(numCols,mebfSpecification[i][3]);
-//		}
-//		System.out.println("Number of cols is "+numCols);
-		
-//		mebfsTableModel.setColumnCount(numCols+6);
-//		mebfsTableModel.setColumnCount(listMax+10);
-
-//		System.out.println("Number of MEBFs is "+numMEBFs);
-		
 		numMEBFs=newMEBFs;
 
 		for(int i=0; i<numRows; i++) {
@@ -1912,10 +1902,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		if(flagc) {
 			setTableCellColor2(mebfsTable,fid,(fid+nF-1),fjd+6,Color.red);
-		}	
-		
+		}
 		numMEBFRows=numRows;
-		
 	}
 
 	
@@ -2551,6 +2539,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				Integer col = statesTable.getEditingColumn();
 				if(row>=0 && col>=2 && item.getStateChange()==ItemEvent.SELECTED) {
 					ndxStateList[row][(col-2)]=setCombo.getSelectedIndex();
+					if(lenStateList[row]==(col-2)) lenStateList[row]=(col-1);
+					if(numMEBFs>0) {
+						Integer mebf = mebfIndex[row][0];
+						Integer nmer = mebfSpecification[mebf][0];
+						Integer spin = mebfSpecification[mebf][1];
+						Integer chrg = mebfSpecification[mebf][2];
+						Integer stat = mebfSpecification[mebf][3];
+						selectMEBFStates(mebf,nmer,spin,chrg,stat);
+					}
 					update();
 				}
 			}
@@ -2774,16 +2771,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				
 		mebfsPanel = new JPanel();
 		mebfsPanel.setLayout(new BoxLayout(mebfsPanel,BoxLayout.X_AXIS));
-//		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
-//		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
+		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
+		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
 		TitledBorder mebfsBorder = new TitledBorder(new LineBorder(Color.black),"MEBF List Definitions");
 		mebfsBorder.setTitleColor(Color.black);
 		mebfsPanel.setBorder(mebfsBorder);
 		mebfsTable = new JTable(mebfsTableModel);
-		mebfsTable.getColumnModel().getColumn(0).setMinWidth(50);
-		for(int i=1; i<6; i++) mebfsTable.getColumnModel().getColumn(i).setMinWidth(40);
-		for(int i=3; i<5; i++) mebfsTable.getColumnModel().getColumn(i).setMinWidth(48);
-		for(int i=6; i<52; i++) mebfsTable.getColumnModel().getColumn(i).setMinWidth(40);
+		mebfsTable.getColumnModel().getColumn(0).setMinWidth(60);
+		for(int i=1; i<3; i++)  mebfsTable.getColumnModel().getColumn(i).setMinWidth(40);
+		for(int i=3; i<5; i++)  mebfsTable.getColumnModel().getColumn(i).setMinWidth(48);
+		for(int i=5; i<52; i++) mebfsTable.getColumnModel().getColumn(i).setMinWidth(40);
 		ListSelectionModel mebfsSelectionModel = mebfsTable.getSelectionModel();
 		mebfsSelectionModel.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -2923,11 +2920,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				value = JOptionPane.showInputDialog(jf,"Enter number of states for list "+row);
 				if(value.length()>0) lenStateList[row]=Integer.valueOf(value.trim());
 				if(prev<lenStateList[row]) {
-					for(int i=prev; i<lenStateList[row]; i++) ndxStateList[row][i]=0;
+					for(int i=prev; i<lenStateList[row]; i++) {
+						ndxStateList[row][i]=0;
+						for(int j=0; j<i; j++) {
+							if(ndxStateList[row][j]==ndxStateList[row][i]) ndxStateList[row][i]=ndxStateList[row][i]+1;
+						}
+					}
 				}
 			} catch (NullPointerException e1) {
 			}
-		}
 //		if(col==2) {
 //			try {
 //				value = JOptionPane.showInputDialog(jf,"Enter spin of states for list "+row);
@@ -2936,6 +2937,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			}
 //		}
 		updateStatesList();
+		if(numMEBFs>0) {
+			Integer mebf = mebfIndex[row][0];
+			Integer nmer = mebfSpecification[mebf][0];
+			Integer spin = mebfSpecification[mebf][1];
+			Integer chrg = mebfSpecification[mebf][2];
+			Integer stat = mebfSpecification[mebf][3];
+			selectMEBFStates(mebf,nmer,spin,chrg,stat);
+		}
+		update();
+		}
 	}
 	
 	private void energyCellSelected(MouseEvent e) {
@@ -2970,7 +2981,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}	
 		}
 		
-//		if(mebfSpecification[mebf][0]==1 && numSets==1) mebfSpecification[mebf][1]=spinStateList[0];
+		if(mebfSpecification[mebf][0]==1 && numSets==1) mebfSpecification[mebf][1]=spinStateList[0];
 					
 		nmer=mebfSpecification[mebf][0];
 		
@@ -3108,11 +3119,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<2; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3 || spinStateList[ndxs[k]]==5) {
-//					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3 || spinStateList[ndxs[k]]==5) {
+					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3120,7 +3131,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				count=0;
 				for(int i=0; i<5; i++) {
 					for(int j0=0; j0<lens[0]; j0++) {
-						for(int j1=0; j1<lens[0]; j1++) {
+						for(int j1=0; j1<lens[1]; j1++) {
 							include=stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith(sw[0][i]) && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith(sw[1][i]);
 							if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")<0) include=false;
 							if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("-")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("+")<0) include=false;
@@ -3141,18 +3152,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<2; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
 			} else {
 				count=0;
 				for(int j0=0; j0<lens[0]; j0++) {
-					for(int j1=0; j1<lens[0]; j1++) {					
+					for(int j1=0; j1<lens[1]; j1++) {					
 						include=false;
 						if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("S") && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("D")) include=true;
 						if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("D") && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("S")) include=true;
@@ -3172,18 +3183,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<2; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
 			} else {
 				count=0;
 				for(int j0=0; j0<lens[0]; j0++) {
-					for(int j1=0; j1<lens[0]; j1++) {
+					for(int j1=0; j1<lens[1]; j1++) {
 						include=false;
 						if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith(sw[0][0]) && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith(sw[1][2])) include=true;
 						if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith(sw[0][2]) && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith(sw[1][0])) include=true;
@@ -3206,18 +3217,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<2; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
 			} else {
 				count=0;
 				for(int j0=0; j0<lens[0]; j0++) {
-					for(int j1=0; j1<lens[0]; j1++) {
+					for(int j1=0; j1<lens[1]; j1++) {
 						include=false;
 						if(stateNames[ndxStateList[ndxs[0]][j0]].trim().startsWith("T") && stateNames[ndxStateList[ndxs[1]][j1]].trim().startsWith("T")) include=true;
 						if(charge==0 && stateNames[ndxStateList[ndxs[0]][j0]].trim().indexOf("+")>=0 && stateNames[ndxStateList[ndxs[1]][j1]].trim().indexOf("-")<0) include=false;
@@ -3238,11 +3249,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<3; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<5; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<5; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3317,15 +3328,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 
 		// For trimer with spin 2 Disabled for now
-		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==22) {
+		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==2) {
 			for(int k=0; k<3; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3390,11 +3401,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<3; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3461,11 +3472,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<4; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3547,11 +3558,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<5; k++) {
 				ndxs[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				lens[k]=lenStateList[ndxs[k]];
-//				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
-//					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
-//				} else {
-//					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
-//				}
+				if(spinStateList[ndxs[k]]==1 || spinStateList[ndxs[k]]==3) {
+					for(int l=0; l<3; l++) sw[k][l]=sw1[l];
+				} else {
+					for(int l=0; l<3; l++) sw[k][l]=sw2[l];
+				}
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3639,7 +3650,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfSpecification[mebf][3]=count;
 			}
 		}
-		update();
+		if(count==0) {
+			System.out.println("Could not generate MEBF list");
+		} else {
+			update();
+		}
 	}
 	
 	private void mebfCellSelected(MouseEvent e) {
@@ -3677,16 +3692,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			update();
 		}
 
-		if(col==3) {
-			try {
-				value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
-				if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
-			} catch (NullPointerException e1) {
-			}
-
-			selectMEBFStates(mebf,nmer,spin,chrg, stat);
-			update();
-		}
+//		if(col==3) {
+//			try {
+//				value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
+//				if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
+//			} catch (NullPointerException e1) {
+//			}
+//
+//			selectMEBFStates(mebf,nmer,spin,chrg, stat);
+//			update();
+//		}
 		
 		if(col==4) {
 			Integer prev=mebfSpecification[mebf][3];
@@ -3694,7 +3709,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				value = JOptionPane.showInputDialog(jf,"Enter number of states for MEBF "+mebfName[mebf].trim());
 				if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
-			}
+		}
 
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();

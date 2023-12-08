@@ -629,6 +629,25 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		return rootName;
 	}
 
+	private String getSingleFileRoot(String extension) {
+	    String extFile;
+	    String rootName;
+		File prjF = new File("./");
+	    FilenameFilter fnFilter = new FilenameFilter() {
+	    	public boolean accept(File f, String name) {
+	    		return name.endsWith(extension);
+	    	}
+	    };
+	    File[] files = prjF.listFiles(fnFilter);
+	    if(files.length==1) {
+	    	extFile=files[0].getName();
+			rootName=extFile.substring(extFile.lastIndexOf("/")+1,extFile.indexOf(extension));
+	    } else {
+	    	rootName="";
+	    };
+		return rootName;
+	}
+	
 	public Integer getNumAxyz(String root) {
 		String fileName=root.trim()+".xyz";
 		String card;
@@ -1524,7 +1543,49 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		} else if(numFragments<=0) {
 			setTableCellColor(dimensionTable,1,1,Color.red);
 		} else if(fragmentDefinitions[0][2]=="") {
-			setTableCellColor(fragmentsTable,0,2,Color.red);
+			String newFile = getSingleFileRoot(".xyz");
+			Integer row=0;
+			Integer col=2;
+			if(newFile.length()>0) {
+				fragmentDefinitions[row][col]=newFile.trim();
+				namFragments[row]=fragmentDefinitions[row][col].toString();
+				dimFragments[row][1]=getNumAxyz(fragmentDefinitions[row][col].toString());
+				dimFragments[row][3]=getNumExyz(fragmentDefinitions[row][col].toString());
+				Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
+				if(numXA<dimFragments[row][4]) {
+					numCASe=Math.max(4,numXA);
+					numCASo=Math.max(4,numXA);
+					dimFragments[row][4]=numCASe;
+					dimFragments[row][5]=numCASo;
+				}
+				for(int j=0; j<numFragments; j++) {
+					if(j!=row) {
+						if(namFragments[j].length()>0) {
+							dimFragments[row][0]=row;
+							for(int i=0; i<numFragments; i++) {
+								if(i!=row && namFragments[i]==namFragments[row]) {
+									if(i<row) {
+										dimFragments[row][0]=i;
+									} else {
+										dimFragments[i][0]=row;
+									}
+								}
+							} 
+						} else {
+							if(fragmentDefinitions[j][1]==fragmentDefinitions[row][1]) {
+								dimFragments[j][1]=dimFragments[row][1];
+								dimFragments[j][3]=dimFragments[row][3];
+								dimFragments[j][4]=dimFragments[row][4];
+								dimFragments[j][5]=dimFragments[row][5];
+								namFragments[j]=namFragments[row];
+							}
+						}
+					}
+				}
+				update();
+			} else {
+				setTableCellColor(fragmentsTable,0,2,Color.red);
+			}
 		} else if(nfrag>1) {
 			for(int i=1; i<numFragments; i++) {
 				if(!fragT[i]) {
@@ -1533,7 +1594,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		} else if(numMEBFs<=0){
-			setTableCellColor(dimensionTable,2,1,Color.red);
+			newMEBFs=1;
+			dimensionData[2][1]=newMEBFs;
+			update();
+//			setTableCellColor(dimensionTable,2,1,Color.red);
 		}
 	}
 	
@@ -2598,8 +2662,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				
 				// xyz coordinate file
 				if(col==2) {
-					for(int j=0; j<numFragments; j++) {
-					}
 					String newFile = getFileRoot(".xyz");
 					if(newFile.length()>0) {
 						fragmentDefinitions[row][col]=newFile.trim();

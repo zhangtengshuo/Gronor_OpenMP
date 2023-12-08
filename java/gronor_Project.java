@@ -3026,7 +3026,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("1")>0) exc[m]=1;
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("2")>0) exc[m]=2;
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("3")>0) exc[m]=3;
-		System.out.println(stateNames[ndxStateList[k][i]].trim()+" "+charges[m]);
 	}
 
 	private void selectMEBFStates(Integer mebf, Integer nmer, Integer spin, Integer charge, Integer nums) {
@@ -4189,13 +4188,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		if(expansion<1) {
 			if(nS1>1) result=false;
 		}
-		if(result) {
-			System.out.print(nS+" "+nD+" "+charge+":");
-			for(int i=0; i<num; i++) {
-				System.out.print(charges[i]+" ");
-			}
-			System.out.println();
-		}
+
 		return result;
 	}
 	

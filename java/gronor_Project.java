@@ -3026,6 +3026,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("1")>0) exc[m]=1;
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("2")>0) exc[m]=2;
 		if(stateNames[ndxStateList[k][i]].trim().indexOf("3")>0) exc[m]=3;
+		System.out.println(stateNames[ndxStateList[k][i]].trim()+" "+charges[m]);
 	}
 
 	private void selectMEBFStates(Integer mebf, Integer nmer, Integer spin, Integer charge, Integer nums) {
@@ -3145,6 +3146,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				count=0;
 				for(int i=0; i<sLen[0]; i++) {
 					for(int j=0; j<sLen[1]; j++) {
+						for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 						fillFrag(sSet[0],0,i,spins,charges,exc);
 						fillFrag(sSet[1],1,j,spins,charges,exc);
 						if(validSpins(nmer,spin,spins,charge,charges,exc)) {
@@ -3162,7 +3164,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3171,6 +3172,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				for(int i=0; i<sLen[0]; i++) {
 					for(int j=0; j<sLen[1]; j++) {
 						for(int k=0; k<sLen[2]; k++) {
+							for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 							fillFrag(sSet[0],0,i,spins,charges,exc);
 							fillFrag(sSet[1],1,j,spins,charges,exc);
 							fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3191,7 +3193,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3201,6 +3202,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					for(int j=0; j<sLen[1]; j++) {
 						for(int k=0; k<sLen[2]; k++) {
 							for(int l=0; l<sLen[3]; l++) {
+								for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 								fillFrag(sSet[0],0,i,spins,charges,exc);
 								fillFrag(sSet[1],1,j,spins,charges,exc);
 								fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3224,7 +3226,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3235,6 +3236,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 						for(int k=0; k<sLen[2]; k++) {
 							for(int l=0; l<sLen[3]; l++) {
 								for(int m=0; m<sLen[4]; m++) {
+									for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 									fillFrag(sSet[0],0,i,spins,charges,exc);
 									fillFrag(sSet[1],1,j,spins,charges,exc);
 									fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3261,7 +3263,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3273,6 +3274,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							for(int l=0; l<sLen[3]; l++) {
 								for(int m=0; m<sLen[4]; m++) {
 									for(int n=0; n<sLen[5]; n++) {
+										for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 										fillFrag(sSet[0],0,i,spins,charges,exc);
 										fillFrag(sSet[1],1,j,spins,charges,exc);
 										fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3302,8 +3304,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
-			}
+							}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
 			} else {
@@ -3315,6 +3316,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 								for(int m=0; m<sLen[4]; m++) {
 									for(int n=0; n<sLen[5]; n++) {
 										for(int o=0; o<sLen[6]; o++) {
+											for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 											fillFrag(sSet[0],0,i,spins,charges,exc);
 											fillFrag(sSet[1],1,j,spins,charges,exc);
 											fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3347,7 +3349,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3361,6 +3362,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 									for(int n=0; n<sLen[5]; n++) {
 										for(int o=0; o<sLen[6]; o++) {
 											for(int p=0; p<sLen[7]; p++) {
+												for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 												fillFrag(sSet[0],0,i,spins,charges,exc);
 												fillFrag(sSet[1],1,j,spins,charges,exc);
 												fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3396,7 +3398,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3411,6 +3412,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 										for(int o=0; o<sLen[6]; o++) {
 											for(int p=0; p<sLen[7]; p++) {
 												for(int q=0; q<sLen[8]; q++) {
+													for(int ii=0; ii<nmer; ii++) charges[ii]=0;
 													fillFrag(sSet[0],0,i,spins,charges,exc);
 													fillFrag(sSet[1],1,j,spins,charges,exc);
 													fillFrag(sSet[2],2,k,spins,charges,exc);
@@ -3449,7 +3451,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int k=0; k<nmer; k++) {
 				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
 				sLen[k]=lenStateList[sSet[k]];
-				charges[k]=0;
 			}
 			if(curr<prev) {
 				mebfSpecification[mebf][3]=curr;
@@ -3465,28 +3466,29 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 											for(int p=0; p<sLen[7]; p++) {
 												for(int q=0; q<sLen[8]; q++) {
 													for(int r=0; r<sLen[9]; r++) {
-													fillFrag(sSet[0],0,i,spins,charges,exc);
-													fillFrag(sSet[1],1,j,spins,charges,exc);
-													fillFrag(sSet[2],2,k,spins,charges,exc);
-													fillFrag(sSet[3],3,l,spins,charges,exc);
-													fillFrag(sSet[4],4,m,spins,charges,exc);
-													fillFrag(sSet[5],5,n,spins,charges,exc);
-													fillFrag(sSet[6],6,o,spins,charges,exc);
-													fillFrag(sSet[7],7,p,spins,charges,exc);
-													fillFrag(sSet[8],8,q,spins,charges,exc);
-													fillFrag(sSet[9],9,r,spins,charges,exc);
-													if(validSpins(nmer,spin,spins,charge,charges,exc)) {
-															mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
-															mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
-															mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
-															mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
-															mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
-															mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
-															mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
-															mebfFragments[mebf][7][count+1]=ndxStateList[sSet[7]][p];
-															mebfFragments[mebf][8][count+1]=ndxStateList[sSet[8]][q];
-															mebfFragments[mebf][9][count+1]=ndxStateList[sSet[9]][r];
-															count++;
+														for(int ii=0; ii<nmer; ii++) charges[ii]=0;
+														fillFrag(sSet[0],0,i,spins,charges,exc);
+														fillFrag(sSet[1],1,j,spins,charges,exc);
+														fillFrag(sSet[2],2,k,spins,charges,exc);
+														fillFrag(sSet[3],3,l,spins,charges,exc);
+														fillFrag(sSet[4],4,m,spins,charges,exc);
+														fillFrag(sSet[5],5,n,spins,charges,exc);
+														fillFrag(sSet[6],6,o,spins,charges,exc);
+														fillFrag(sSet[7],7,p,spins,charges,exc);
+														fillFrag(sSet[8],8,q,spins,charges,exc);
+														fillFrag(sSet[9],9,r,spins,charges,exc);
+														if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+																mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+																mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+																mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+																mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+																mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+																mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+																mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
+																mebfFragments[mebf][7][count+1]=ndxStateList[sSet[7]][p];
+																mebfFragments[mebf][8][count+1]=ndxStateList[sSet[8]][q];
+																mebfFragments[mebf][9][count+1]=ndxStateList[sSet[9]][r];
+																count++;
 														}
 													}
 												}
@@ -4187,7 +4189,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		if(expansion<1) {
 			if(nS1>1) result=false;
 		}
-		
+		if(result) {
+			System.out.print(nS+" "+nD+" "+charge+":");
+			for(int i=0; i<num; i++) {
+				System.out.print(charges[i]+" ");
+			}
+			System.out.println();
+		}
 		return result;
 	}
 	

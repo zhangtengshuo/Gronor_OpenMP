@@ -3014,18 +3014,38 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	private void energyCellSelected(MouseEvent e) {
 	}
 
+	private void fillFrag(Integer k, Integer m, Integer i, Integer[] spins, Integer[] charges, Integer[] exc) {
+		if(stateNames[ndxStateList[k][i]].trim().startsWith("S")) spins[m]=1;
+		if(stateNames[ndxStateList[k][i]].trim().startsWith("D")) spins[m]=2;
+		if(stateNames[ndxStateList[k][i]].trim().startsWith("T")) spins[m]=3;
+		if(stateNames[ndxStateList[k][i]].trim().startsWith("q")) spins[m]=4;
+		if(stateNames[ndxStateList[k][i]].trim().startsWith("Q")) spins[m]=5;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("+")>=0) charges[m]++;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("-")>=0) charges[m]--;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("0")>0) exc[m]=0;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("1")>0) exc[m]=1;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("2")>0) exc[m]=2;
+		if(stateNames[ndxStateList[k][i]].trim().indexOf("3")>0) exc[m]=3;
+	}
 
 	private void selectMEBFStates(Integer mebf, Integer nmer, Integer spin, Integer charge, Integer nums) {
 
 		Integer prev=nums;
 		Integer curr=mebfSpecification[mebf][3];
 		Integer count = 0;
+		Integer chrg = 0;
 		Integer[] lens = new Integer[5];
 		Integer[] ndxs = new Integer[5];
 		String[] sw1 = new String[] {"S","D","T","q","Q"};
 		String[] sw2 = new String[] {"D","S","T","q","Q"};
 		String[][] sw = new String[5][5];
 		Boolean include = false;
+		
+		Integer[] exc = new Integer[25];
+		Integer[] spins = new Integer[25];
+		Integer[] charges = new Integer[25];
+		Integer[] sSet = new Integer[25];
+		Integer[] sLen = new Integer[25];
 		
 		if(mebfSpecification[mebf][0]>maxMer) mebfSpecification[mebf][0]=maxMer;
 		
@@ -3091,6 +3111,397 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 
+		sSet[0] = dimFragments[mebfFragments[mebf][0][0]][2];
+		sLen[0] = lenStateList[sSet[0]];
+		
+		
+		// For monomers
+		if(nmer==1) {
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				charges[0]=0;
+				for(int i=0; i<sLen[0]; i++) {
+					fillFrag(sSet[0],0,i,spins,charges,exc);
+					if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+						mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+						count++;
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==2) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						fillFrag(sSet[0],0,i,spins,charges,exc);
+						fillFrag(sSet[1],1,j,spins,charges,exc);
+						if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+							mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+							mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+							count++;
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==3) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							fillFrag(sSet[0],0,i,spins,charges,exc);
+							fillFrag(sSet[1],1,j,spins,charges,exc);
+							fillFrag(sSet[2],2,k,spins,charges,exc);
+							if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+								mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+								mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+								mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+								count++;
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		if(nmer==4) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								fillFrag(sSet[0],0,i,spins,charges,exc);
+								fillFrag(sSet[1],1,j,spins,charges,exc);
+								fillFrag(sSet[2],2,k,spins,charges,exc);
+								fillFrag(sSet[3],3,l,spins,charges,exc);
+								if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+									mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+									mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+									mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+									mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+									count++;
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		if(nmer==5) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									fillFrag(sSet[0],0,i,spins,charges,exc);
+									fillFrag(sSet[1],1,j,spins,charges,exc);
+									fillFrag(sSet[2],2,k,spins,charges,exc);
+									fillFrag(sSet[3],3,l,spins,charges,exc);
+									fillFrag(sSet[4],4,m,spins,charges,exc);
+									if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+										mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+										mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+										mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+										mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+										mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+										count++;
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+
+		if(nmer==6) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									for(int n=0; n<sLen[5]; n++) {
+										fillFrag(sSet[0],0,i,spins,charges,exc);
+										fillFrag(sSet[1],1,j,spins,charges,exc);
+										fillFrag(sSet[2],2,k,spins,charges,exc);
+										fillFrag(sSet[3],3,l,spins,charges,exc);
+										fillFrag(sSet[4],4,m,spins,charges,exc);
+										fillFrag(sSet[5],5,n,spins,charges,exc);
+										if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+											mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+											mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+											mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+											mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+											mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+											mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+											count++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==7) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									for(int n=0; n<sLen[5]; n++) {
+										for(int o=0; o<sLen[6]; o++) {
+											fillFrag(sSet[0],0,i,spins,charges,exc);
+											fillFrag(sSet[1],1,j,spins,charges,exc);
+											fillFrag(sSet[2],2,k,spins,charges,exc);
+											fillFrag(sSet[3],3,l,spins,charges,exc);
+											fillFrag(sSet[4],4,m,spins,charges,exc);
+											fillFrag(sSet[5],5,n,spins,charges,exc);
+											fillFrag(sSet[6],6,o,spins,charges,exc);
+											if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+												mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+												mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+												mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+												mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+												mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+												mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+												mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
+												count++;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==8) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									for(int n=0; n<sLen[5]; n++) {
+										for(int o=0; o<sLen[6]; o++) {
+											for(int p=0; p<sLen[7]; p++) {
+												fillFrag(sSet[0],0,i,spins,charges,exc);
+												fillFrag(sSet[1],1,j,spins,charges,exc);
+												fillFrag(sSet[2],2,k,spins,charges,exc);
+												fillFrag(sSet[3],3,l,spins,charges,exc);
+												fillFrag(sSet[4],4,m,spins,charges,exc);
+												fillFrag(sSet[5],5,n,spins,charges,exc);
+												fillFrag(sSet[6],6,o,spins,charges,exc);
+												fillFrag(sSet[7],7,p,spins,charges,exc);
+												if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+													mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+													mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+													mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+													mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+													mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+													mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+													mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
+													mebfFragments[mebf][7][count+1]=ndxStateList[sSet[7]][p];
+													count++;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==9) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									for(int n=0; n<sLen[5]; n++) {
+										for(int o=0; o<sLen[6]; o++) {
+											for(int p=0; p<sLen[7]; p++) {
+												for(int q=0; q<sLen[8]; q++) {
+													fillFrag(sSet[0],0,i,spins,charges,exc);
+													fillFrag(sSet[1],1,j,spins,charges,exc);
+													fillFrag(sSet[2],2,k,spins,charges,exc);
+													fillFrag(sSet[3],3,l,spins,charges,exc);
+													fillFrag(sSet[4],4,m,spins,charges,exc);
+													fillFrag(sSet[5],5,n,spins,charges,exc);
+													fillFrag(sSet[6],6,o,spins,charges,exc);
+													fillFrag(sSet[7],7,p,spins,charges,exc);
+													fillFrag(sSet[8],8,q,spins,charges,exc);
+													if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+														mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+														mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+														mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+														mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+														mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+														mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+														mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
+														mebfFragments[mebf][7][count+1]=ndxStateList[sSet[7]][p];
+														mebfFragments[mebf][8][count+1]=ndxStateList[sSet[8]][q];
+														count++;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		
+		if(nmer==10) {
+			for(int k=0; k<nmer; k++) {
+				sSet[k]=dimFragments[mebfFragments[mebf][k][0]][2];
+				sLen[k]=lenStateList[sSet[k]];
+				charges[k]=0;
+			}
+			if(curr<prev) {
+				mebfSpecification[mebf][3]=curr;
+			} else {
+				count=0;
+				for(int i=0; i<sLen[0]; i++) {
+					for(int j=0; j<sLen[1]; j++) {
+						for(int k=0; k<sLen[2]; k++) {
+							for(int l=0; l<sLen[3]; l++) {
+								for(int m=0; m<sLen[4]; m++) {
+									for(int n=0; n<sLen[5]; n++) {
+										for(int o=0; o<sLen[6]; o++) {
+											for(int p=0; p<sLen[7]; p++) {
+												for(int q=0; q<sLen[8]; q++) {
+													for(int r=0; r<sLen[9]; r++) {
+													fillFrag(sSet[0],0,i,spins,charges,exc);
+													fillFrag(sSet[1],1,j,spins,charges,exc);
+													fillFrag(sSet[2],2,k,spins,charges,exc);
+													fillFrag(sSet[3],3,l,spins,charges,exc);
+													fillFrag(sSet[4],4,m,spins,charges,exc);
+													fillFrag(sSet[5],5,n,spins,charges,exc);
+													fillFrag(sSet[6],6,o,spins,charges,exc);
+													fillFrag(sSet[7],7,p,spins,charges,exc);
+													fillFrag(sSet[8],8,q,spins,charges,exc);
+													fillFrag(sSet[9],9,r,spins,charges,exc);
+													if(validSpins(nmer,spin,spins,charge,charges,exc)) {
+															mebfFragments[mebf][0][count+1]=ndxStateList[sSet[0]][i];
+															mebfFragments[mebf][1][count+1]=ndxStateList[sSet[1]][j];
+															mebfFragments[mebf][2][count+1]=ndxStateList[sSet[2]][k];
+															mebfFragments[mebf][3][count+1]=ndxStateList[sSet[3]][l];
+															mebfFragments[mebf][4][count+1]=ndxStateList[sSet[4]][m];
+															mebfFragments[mebf][5][count+1]=ndxStateList[sSet[5]][n];
+															mebfFragments[mebf][6][count+1]=ndxStateList[sSet[6]][o];
+															mebfFragments[mebf][7][count+1]=ndxStateList[sSet[7]][p];
+															mebfFragments[mebf][8][count+1]=ndxStateList[sSet[8]][q];
+															mebfFragments[mebf][9][count+1]=ndxStateList[sSet[9]][r];
+															count++;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				mebfSpecification[mebf][3]=count;
+			}
+		}
+		/*
 		// For monomer with spin 1
 		if(mebfSpecification[mebf][0]==1 && mebfSpecification[mebf][1]==1) {
 			Integer stateSet = dimFragments[mebfFragments[mebf][0][0]][2];
@@ -3176,6 +3587,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 
+*/
+		
+		
+/*		
 				// For dimer with spin 1
 		if(mebfSpecification[mebf][0]==2 && mebfSpecification[mebf][1]==1) {
 			for(int k=0; k<2; k++) {
@@ -3306,6 +3721,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}	
 		}
 		
+		*/
+		
+		/*
 		// For trimer with spin 1
 		if(mebfSpecification[mebf][0]==3 && mebfSpecification[mebf][1]==1) {
 			for(int k=0; k<3; k++) {
@@ -3529,6 +3947,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 		
+		*/
+		
 		// For tetramer with spin 1
 		if(mebfSpecification[mebf][0]==4 && mebfSpecification[mebf][1]==1) {
 			for(int k=0; k<4; k++) {
@@ -3717,6 +4137,58 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		} else {
 			update();
 		}
+	}
+	
+	private Boolean validSpins(Integer num, Integer target, Integer[] spins, Integer charge, Integer[] charges, Integer[] exc) {
+		int nS=0;
+		int nT=0;
+		int nD=0;
+		int nq=0;
+		int nQ=0;
+		int ch=0;
+		int nS1=0;
+		int nx=0;
+		Boolean result=false;
+		for(int i=0; i<num; i++) {
+			if(spins[i]==1) nS++;
+			if(spins[i]==2) nD++;
+			if(spins[i]==3) nT++;
+			if(spins[i]==4) nq++;
+			if(spins[i]==5) nQ++;
+			ch=ch+charges[i];
+			if(spins[i]==1 && exc[i]>0) nS1++;
+			if(exc[i]>0) nx++;
+		}		
+		if(target==1) {
+			if(nS>0  && nD==0 && nT==0 && nq==0 && nQ==0) result=true;
+			if(nS>=0 && nD==0 && nT>=2 && nq==0 && nQ==0) result=true;
+			if(nS>=0 && nD==2 && nT==0 && nq==0 && nQ==0) result=true;
+		}
+		if(target==2) {
+			if(nS>=0 && nD==1 && nT==0 && nq==0 && nQ==0) result=true;
+		}
+		if(target==3) {
+			if(nS>=0 && nD==0 && nT>0  && nq==0 && nQ==0) result=true;
+			if(nS>=0 && nD==2 && nT==0 && nq==0 && nQ==0) result=true;
+		}
+		if(target==4) {
+			if(nS>=0 && nD==0 && nT==0 && nq==1 && nQ==0) result=true;
+		}
+		if(target==5) {
+			if(nS>=0 && nD==0 && nT==0 && nq==0 && nQ==1) result=true;
+		}
+		if(charge!=ch) result=false;
+		
+		if(expansion<2) {
+			if(nT>2) result=false;
+			if(nx>2) result=false;
+		}
+		
+		if(expansion<1) {
+			if(nS1>1) result=false;
+		}
+		
+		return result;
 	}
 	
 	private void mebfCellSelected(MouseEvent e) {

@@ -1965,9 +1965,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		parametersPanel = new JPanel();
 		parametersPanel.setLayout(new BoxLayout(parametersPanel,BoxLayout.X_AXIS));
-		parametersPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,80));
-		parametersPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,80));
-		parametersPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,80));
+		parametersPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,100));
+		parametersPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,100));
+		parametersPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,100));
 		TitledBorder parametersBorder = new TitledBorder(new LineBorder(Color.black),"General Parameters");
 		parametersBorder.setTitleColor(Color.black);
 		parametersPanel.setBorder(parametersBorder);
@@ -2398,16 +2398,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		buttonPanel.setMaximumSize(new Dimension(115,70));
 		LineBorder buttonBorder = new LineBorder(Color.black);
 		buttonPanel.setBorder(buttonBorder);
-		JButton updateButton = new JButton("Update");
-		updateButton.setPreferredSize(new Dimension(110,20));
-		updateButton.setMinimumSize(new Dimension(110,20));
-		updateButton.setMaximumSize(new Dimension(110,20));
-		updateButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				update();
-				System.out.println("Data updated");
-			}
-		});
 
 		JButton generateButton = new JButton("Generate");
 		generateButton.setPreferredSize(new Dimension(110,20));
@@ -2419,6 +2409,28 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				writeInputFiles();
 				writeClearScripts();
 				System.out.println("Files generated");
+			}
+		});
+		
+		JButton updateButton = new JButton("Update");
+		updateButton.setPreferredSize(new Dimension(110,20));
+		updateButton.setMinimumSize(new Dimension(110,20));
+		updateButton.setMaximumSize(new Dimension(110,20));
+		updateButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				update();
+				System.out.println("Data updated");
+			}
+		});
+		
+		JButton analyzeButton = new JButton("Analyze");
+		analyzeButton.setPreferredSize(new Dimension(110,20));
+		analyzeButton.setMinimumSize(new Dimension(110,20));
+		analyzeButton.setMaximumSize(new Dimension(110,20));
+		analyzeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new gronor_Analysis(projectName); 
+				System.out.println("Analysis Window");
 			}
 		});
 		
@@ -2443,8 +2455,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		jobPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		jobPanel.add(jobTable);
 		buttonPanel.add(Box.createRigidArea(new Dimension(5,5)));
-		buttonPanel.add(updateButton);
 		buttonPanel.add(generateButton);
+		buttonPanel.add(updateButton);
+		buttonPanel.add(analyzeButton);
 		buttonPanel.add(Box.createVerticalGlue());
 		parametersPanel.add(dimensionPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));

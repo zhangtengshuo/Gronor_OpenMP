@@ -35,9 +35,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JPanel fragmentsButtonsPanel;
 	JPanel energiesPanel;
 	JPanel mebfsPanel;
-	JPanel nociResultsPanel;
-	JPanel nociEnergiesPanel;
-	JPanel nociPlotPanel;
 
 	Integer maxSets = 6;	// Maximum number of state definitions
 	
@@ -126,8 +123,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JTable expansionTable = new JTable();
 	JTable contractTable = new JTable();
 	JTable choleskyTable = new JTable();
-    JTable nociEnergiesTable;
-	DefaultTableModel nociEnergiesTableModel = new DefaultTableModel();
     
     Boolean numFragmentsChanged = false;
 
@@ -168,9 +163,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Double fieldY = 0.0;
     Double fieldZ = 0.0;
 
-    Integer noci0=0;
-    Integer noci1=0;
-
     Integer[][][][] couple3 =     new Integer[5][5][5][5];		                        // indices: target spin; frag 1,2,3 spin; coupling 1
     Integer[][][][][][] couple4 = new Integer[5][5][5][5][5][2];	                    // indices: target spin; frag 1,2,3,4 spin; coupling 1,2
     Integer[][][][][][][] couple5 = new Integer[5][5][5][5][5][5][3];	                // indices: target spin; frag 1,2,3,4,5 spin; coupling 1,2,3
@@ -195,8 +187,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     
     Integer numCASe=8, numCASo=8, numAlt=0, numOcc=0;
     Integer[][] alter = new Integer[12][2];
-    
-    Plot energyDiagram = new Plot();
     
     Container container = null;
     
@@ -907,7 +897,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(stat<=0) selectMEBFStates(mebf,nmer,spin,chrg,stat);
 		}
 		
-		updateNOCIEnergies();
 		updateHints();
 		
 		statesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
@@ -926,16 +915,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
 		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
 		
-		nociResultsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,255));
-		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,255));
-		nociResultsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,noci1*15+65));
-		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*15+50));
-		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*15+50));
-		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*15+50));
-		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*15+50));
-		nociPlotPanel.setMinimumSize(new Dimension(300,noci1*15+50));
-		nociPlotPanel.setMaximumSize(new Dimension(300,noci1*15+50));
-		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();
 		numberPanel.revalidate();	
@@ -945,9 +924,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		fragmentsPanel.revalidate();
 		energiesPanel.revalidate();
 		mebfsPanel.revalidate();
-		nociEnergiesPanel.revalidate();
-		nociPlotPanel.revalidate();
-		nociResultsPanel.revalidate();
 		
 		parametersPanel.repaint();
 		dimensionPanel.repaint();
@@ -959,9 +935,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		fragmentsPanel.repaint();
 		energiesPanel.repaint();
 		mebfsPanel.repaint();
-		nociEnergiesPanel.repaint();
-		nociPlotPanel.repaint();
-		nociResultsPanel.repaint();
 		
 		container.revalidate();
 		container.repaint();
@@ -1360,153 +1333,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int j=0; j<=maxCol; j++) energiesTableModel.setValueAt(stateEnergies[i][j],i,j+1);
 		}
 		energiesTable.repaint();
-	}
-
-	public void updateNOCIEnergies() {
-
-		Integer ndx=0;
-		
-		if(noci0<2*numMEBFs+1) {
-			for(int i=noci0; i<2*numMEBFs+1; i=i+2) {
-				ndx=(i-1)/2;
-				nociEnergiesTableModel.addColumn("E_MEBF("+mebfName[ndx]+")");
-				nociEnergiesTableModel.addColumn("E_NOCI("+mebfName[ndx]+")");
-			}
-			noci0=2*numMEBFs+1;
-		}
-		if(noci0>2*numMEBFs+1) {
-			noci0=2*numMEBFs+1;
-			nociEnergiesTableModel.setColumnCount(noci0);
-		}
-
-		for(int i=1; i<2*numMEBFs+1; i=i+2) {
-			ndx=(i-1)/2;
-			
-			nociEnergiesTable.getColumnModel().getColumn(i).setHeaderValue("E_MEBF("+mebfName[ndx]+")");
-			nociEnergiesTable.getColumnModel().getColumn(i+1).setHeaderValue("E_NOCI("+mebfName[ndx]+")");
-		}
-		
-		Integer maxMEBFStates=0;
-		
-		for(int i=0; i<numMEBFs; i++) {
-			if(maxMEBFStates<mebfSpecification[i][3]) maxMEBFStates=mebfSpecification[i][3];
-		}
-		
-		if(maxMEBFStates>0) {	
-			if(noci1<maxMEBFStates) {
-				for(int i=noci1; i<maxMEBFStates; i++) {
-					nociEnergiesTableModel.addRow(nociEnergies[i-1]);
-				}
-				noci1=maxMEBFStates;
-			}
-			
-			if(noci1>maxMEBFStates) {
-				noci1=maxMEBFStates;
-				nociEnergiesTableModel.setRowCount(noci1);
-			}
-			
-			if(noci0>0) {
-				for(int i=0; i<noci0; i++) {
-					for(int j=0; j<noci1; j++) {
-						nociEnergies[i][j]=" ";
-						nociEnergiesTableModel.setValueAt(nociEnergies[i][j],j,i);
-					}
-				}
-			}
-	
-			for(int j=0; j<numMEBFs; j++) {
-				for(int i=0; i<mebfSpecification[j][3]; i++) {
-					nociEnergies[i][j]=" ";
-				}
-			}
-			
-			nociEnergiesTable.getColumnModel().getColumn(0).setMaxWidth(40);
-			for(int j=1; j<2*numMEBFs+1; j++) nociEnergiesTable.getColumnModel().getColumn(j).setMaxWidth(100);
-
-			energyDiagram.clear(false);
-
-			for(int i=0; i<noci1; i++) nociEnergiesTableModel.setValueAt(" ",i,0);
-			for(int i=0; i<maxMEBFStates; i++) nociEnergiesTableModel.setValueAt("E"+(i+1),i,0);
-			
-			Integer nums=0;
-			
-			for(int i=0; i<numMEBFs; i++) {
-				if(read_GronOR_arx(i)) {
-					if(numEnergiesGronOR[i][0]>0) {
-						for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-							nociEnergies[j][2*i]=energiesGronOR[j][i][0];
-							nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i],j,2*i+1);
-						}
-					}
-					if(numEnergiesGronOR[i][1]>0) {
-						for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-							nociEnergies[j][2*i+1]=energiesGronOR[j][i][1];
-							nociEnergiesTableModel.setValueAt(nociEnergies[j][2*i+1],j,2*i+2);
-						}
-					}
-					nums=i+1;
-				}
-			}
-			
-			for(int i=0; i<maxMEBFStates; i++) nociEnergiesTableModel.setValueAt("E"+(i+1),i,0);
-				
-			if(nums>0) {				
-				Double Emin=0.0;
-				Double Emax=0.0;
-				for(int i=0; i<nums; i++) {
-					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-						Emin=Math.min(Emin, energiesGronOR[j][i][0]);
-					}
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						Emin=Math.min(Emin, energiesGronOR[j][i][1]);
-					}
-				}
-				Emax=Emin;
-				for(int i=0; i<nums; i++) {
-					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-						Emax=Math.max(Emax, energiesGronOR[j][i][0]);
-					}
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						Emax=Math.max(Emax, energiesGronOR[j][i][1]);
-					}
-				}
-				for(int i=0; i<nums; i++) {
-					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-						energiesRelGronOR[j][i][0]=energiesGronOR[j][i][0]-Emin;
-					}
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						energiesRelGronOR[j][i][1]=energiesGronOR[j][i][1]-Emin;
-					}
-				}
-				
-				energyDiagram.setForeground(Color.red);
-				
-				Double Edelta = Emax-Emin;
-				energyDiagram.setYRange(-0.1*Edelta,1.1*Edelta);
-				energyDiagram.setXRange(0.0,Double.valueOf(4*numMEBFs-1));
-				for(int i=0; i<nums; i++) {
-					for(int j=0; j<numEnergiesGronOR[i][0]; j++) {
-						energyDiagram.addPoint(0,Double.valueOf(4*i),energiesRelGronOR[j][i][0],false);
-						energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[j][i][0],true);
-					}
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],false);
-						energyDiagram.addPoint(0,Double.valueOf(4*i+3),energiesRelGronOR[j][i][1],true);
-					}
-				}
-				energyDiagram.setForeground(Color.black);
-				for(int i=0; i<nums; i++) {
-					for(int j=0; j<numEnergiesGronOR[i][1]; j++) {
-						for(int k=0; k<numEnergiesGronOR[i][0]; k++) {
-							if(Math.abs(coefGronOR[k][j][i])>0.75) {
-								energyDiagram.addPoint(0,Double.valueOf(4*i+1),energiesRelGronOR[k][i][0],false);
-								energyDiagram.addPoint(0,Double.valueOf(4*i+2),energiesRelGronOR[j][i][1],true);
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 	
 	private void updateHints() {
@@ -2815,72 +2641,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		mebfsPanel.add(mebfsScroll);
 		baseBox.add(mebfsPanel);
 
-		nociResultsPanel = new JPanel();
-		nociResultsPanel.setLayout(new BoxLayout(nociResultsPanel,BoxLayout.X_AXIS));
-		TitledBorder nociResultsBorder = new TitledBorder(new LineBorder(Color.black),"NOCI Energies");
-		nociResultsBorder.setTitleColor(Color.black);
-		nociResultsPanel.setBorder(nociResultsBorder);
-		nociResultsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
-		nociResultsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
-		nociResultsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,noci1*20+135));
-		
-		nociEnergiesPanel = new JPanel();
-		nociEnergiesPanel.setLayout(new BoxLayout(nociEnergiesPanel,BoxLayout.X_AXIS));
-		nociEnergiesPanel.setPreferredSize(new Dimension(noci0*80+40,noci1*20+130));
-		nociEnergiesPanel.setMinimumSize(new Dimension(noci0*80+40,noci1*20+80));
-		nociEnergiesPanel.setMaximumSize(new Dimension(noci0*80+40,noci1*20+80));
-		LineBorder nociEnergiesBorder = new LineBorder(Color.black);
-		nociEnergiesPanel.setBorder(nociEnergiesBorder);
-		nociEnergiesTableModel = new DefaultTableModel(new Object[] {"ID"},1);
-		noci0=1;
-		noci1=1;
-		nociEnergiesTable = new JTable(nociEnergiesTableModel);
-		nociEnergiesTable.getColumnModel().getColumn(0).setMaxWidth(40);
-		ListSelectionModel nociEnergiesSelectionModel = nociEnergiesTable.getSelectionModel();
-		nociEnergiesSelectionModel.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
-				Integer row = nociEnergiesTable.getSelectedRow();
-				Integer col = nociEnergiesTable.getSelectedColumn();
-				nociEnergiesPanel.revalidate();
-				nociEnergiesPanel.repaint();
-			}
-		});
-		JScrollPane nociEnergiesScroll = new JScrollPane(nociEnergiesTable);
-		nociEnergiesTable.setCellSelectionEnabled(true);
-		nociEnergiesTable.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-					nociEnergiesCellSelected(e);
-			}
-		});
-
-		nociEnergiesPanel.add(nociEnergiesScroll);
-
-		nociPlotPanel = new JPanel();
-		nociPlotPanel.setLayout(new BoxLayout(nociPlotPanel,BoxLayout.X_AXIS));
-		nociPlotPanel.setPreferredSize(new Dimension(300,noci1*20+130));
-		nociPlotPanel.setMinimumSize(new Dimension(300,800));
-		nociPlotPanel.setMaximumSize(new Dimension(300,800));
-		LineBorder nociPlotBorder = new LineBorder(Color.black);
-		nociPlotPanel.setBorder(nociPlotBorder);
-		energyDiagram.setXRange(0,3);
-		energyDiagram.setYRange(0,10);
-		energyDiagram.setSize(200,500);
-		energyDiagram.setGrid(false);
-		nociPlotPanel.add(energyDiagram);
-		
-		nociResultsPanel.add(nociEnergiesPanel);
-		nociResultsPanel.add(Box.createRigidArea(new Dimension(5,0)));
-		nociResultsPanel.add(nociPlotPanel);
-		nociResultsPanel.add(Box.createHorizontalGlue());
-		nociResultsPanel.add(Box.createVerticalGlue());
-
-		energyDiagram.revalidate();
-		energyDiagram.repaint();
-		nociPlotPanel.revalidate();
-		nociPlotPanel.repaint();
-		
-		baseBox.add(nociResultsPanel);
-		baseBox.add(Box.createVerticalGlue());
 
 		update();
 	}

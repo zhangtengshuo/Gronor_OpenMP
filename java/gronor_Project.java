@@ -944,8 +944,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		energiesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
 		
 		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
-		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
-		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
+//		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
+		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,150));
+//		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
 		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();

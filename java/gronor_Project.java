@@ -903,17 +903,17 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		statesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
 		statesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
 		
-		fragmentsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numFragments)*15+50)));
-		fragmentsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numFragments)*15+50)));
-		fragmentsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numFragments)*15+50)));
+		fragmentsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numFragments)*16+50)));
+		fragmentsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numFragments)*16+50)));
+		fragmentsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numFragments)*16+50)));
 		
-		energiesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numEnergies)*15+50)));
-		energiesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*15+50)));
-		energiesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*15+50)));
+		energiesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
+		energiesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
+		energiesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
 		
-		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
-		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
-		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
+		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
+		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
+		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
 		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();

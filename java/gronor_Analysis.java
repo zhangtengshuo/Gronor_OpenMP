@@ -248,9 +248,6 @@ public class gronor_Analysis extends JFrame implements ActionListener, ChangeLis
 		    	fieldY    = Double.valueOf(card.substring(120,140)).doubleValue();
 		    	fieldZ    = Double.valueOf(card.substring(140,160)).doubleValue();
 			    
-		    	System.out.println("numSets="+numSets);
-		    	System.out.println("numMEBFs="+numMEBFs);
-		    	System.out.println("numFragments="+numFragments);
 		    	for(int i=0; i<numSets; i++) {
 		    		card=br.readLine();
 		    		lenStateList[i]=Integer.valueOf(card.substring(0,6).trim());

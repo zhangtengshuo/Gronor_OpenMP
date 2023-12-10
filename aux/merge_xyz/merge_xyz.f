@@ -3,12 +3,12 @@
       implicit none
 
       integer :: i, k, iarg, nfil, n, natoms
-      character (len=255) :: f,filxyz(10)
+      character (len=255) :: f,filxyz(100)
       character (len=2) :: atom
       real (kind=8) :: x,y,z
 
       nfil=0
-      do i=1,10
+      do i=1,100
          iarg=i
          call getarg(iarg,filxyz(i))
          if(len(trim(filxyz(i))).eq.0) exit

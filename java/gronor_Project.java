@@ -3334,9 +3334,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				value = JOptionPane.showInputDialog(jf,"Enter number of states for MEBF "+mebfName[mebf].trim());
 				if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
-		}
+			}
 
-			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
 		}
 	}

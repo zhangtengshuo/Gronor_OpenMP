@@ -103,7 +103,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
-	String[] expMEBF = new String[] {"small", "medium", "high"};
+	String[] expMEBF = new String[] {"small", "medium", "large", "x-large", "huge"};
 	String[] basisSets = new String[] {"ano-s", "ano-l", "ano-ccr", "ano-ccr-vdzp"};
 	String[] contracts = new String[] {"s", "m","l"};
 	String[] choleskys = new String[] {"high", "medium", "low", "none"};
@@ -3222,6 +3222,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		int ch=0;
 		int nS1=0;
 		int nx=0;
+		Boolean skip1=false;
 		Boolean conseq=false;
 		Boolean result=false;
 		for(int i=0; i<num; i++) {
@@ -3253,8 +3254,27 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(nS>=0 && nD==0 && nT==0 && nq==0 && nQ==1) result=true;
 		}
 		if(charge!=ch) result=false;
+
+		if(expansion==2) {
+			if(nS1>1) result=false;
+			if(nT>2) result=false;
+			if(nD>2) result=false;
+			if(nT>0 && nD>0) result=false;
+			if(nx>2) result=false;
+			if((nT>0 || nD>0) && nx==2 && num>2) {
+				conseq=false;
+				for(int i=0; i<(num-1); i++) {
+					if(exc[i]==1 && exc[(i+1)]==1) conseq=true;
+				}
+				skip1=false;
+				for(int i=0; i<(num-2); i++) {
+					if(exc[i]==1 && exc[(i+2)]==1) skip1=true;
+				}
+				if(!(conseq || skip1)) result=false;
+			}
+		}
 		
-		if(expansion<2) {
+		if(expansion==1) {
 			if(nS1>1) result=false;
 			if(nT>2) result=false;
 			if(nD>2) result=false;
@@ -3269,7 +3289,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 		
-		if(expansion<1) {
+		if(expansion==0) {
 			if(nS1>1) result=false;
 			if(nT>2)  result=false;
 			if(nD>0)  result=false;

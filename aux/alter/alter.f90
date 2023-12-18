@@ -27,12 +27,12 @@ program alter
   enddo
 
   do while(card(1:2).ne."--")
-     read(10,'(a)') card
+    read(10,'(a)') card
      if(card(1:2).ne."--") then
         read(card,'(i5)') ndx
         if(ndx.gt.0) then
-           read(card,'(15x,f10.4,19x,a5)') occ(ndx),orb(ndx)
-           num=ndx
+          read(card,'(15x,f10.4,19x,a5)') occ(ndx),orb(ndx)
+          num=ndx
         endif
      endif
   enddo
@@ -45,38 +45,44 @@ program alter
 
   ndxz=0
   do i=nocc-ncas,1,-1
-     if(orb(i)(2:3).eq.'pz') then
-        ndxz=ndxz+1
-        iz(ndxz)=i
-     endif
+    if(orb(i)(2:3).eq.'pz') then
+      ndxz=ndxz+1
+      iz(ndxz)=i
+    endif
   enddo
-  ndx=0
+  
   nalt=0
-  do i=nocc,nocc+1-ncas,-1
-     if(orb(i)(2:3).ne.'pz') then
+  if(ndxz.gt.0) then
+    ndx=0
+    do i=nocc,nocc+1-ncas,-1
+      if(orb(i)(2:3).ne.'pz'.and.ndx.lt.ndxz) then
         ndx=ndx+1
         nalt=nalt+1
         ialt(nalt,1)=iz(ndx)
         ialt(nalt,2)=i
-     endif
-  enddo
+      endif
+    enddo
+  endif
   
   ndxz=0
   do i=nocc+1+ncas,num
-     if(orb(i)(2:3).eq.'pz') then
-        ndxz=ndxz+1
-        iz(ndxz)=i
-     endif
+    if(orb(i)(2:3).eq.'pz') then
+      ndxz=ndxz+1
+      iz(ndxz)=i
+    endif
   enddo
-  ndx=0
-  do i=nocc+1,nocc+ncas
-     if(orb(i)(2:3).ne.'pz') then
+
+  if(ndxz.gt.0) then
+    ndx=0
+    do i=nocc+1,nocc+ncas
+      if(orb(i)(2:3).ne.'pz'.and.ndx.lt.ndxz) then
         ndx=ndx+1
         nalt=nalt+1
         ialt(nalt,1)=i
         ialt(nalt,2)=iz(ndx)
-     endif
-  enddo
+      endif
+    enddo
+  endif
 
   open(unit=10,file=trim(filalt),form='formatted')
   

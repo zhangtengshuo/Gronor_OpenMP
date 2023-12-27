@@ -763,7 +763,6 @@ public class gronor_Fragment {
 			card=br.readLine();
 			for(int i=0; i<numSup; i++) supsym[i]=Integer.valueOf(card.substring(i*6,i*6+6).trim());
 			br.close();
-			System.out.println("numSup="+numSup);
 			return numSup;
 		} catch(IOException ef) {
 			return numSup;

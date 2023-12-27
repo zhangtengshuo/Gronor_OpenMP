@@ -48,6 +48,8 @@ public class gronor_Fragment {
 	
 	Integer numAlt;
 	Integer[][] alter = new Integer[12][2];
+	Integer numSup, numSupOrb=0;
+	Integer[] supsym = new Integer[64];
 	Boolean altDone=false;
 
 	gronor_Fragment(){
@@ -749,6 +751,24 @@ public class gronor_Fragment {
 			return numAlt;
 		}
 	}
+
+	public Integer read_Sup(String nameP, String nameA) {
+		String fileName = nameP.trim()+nameA.trim()+".supsym";
+		String card;
+		numSup=0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			numSup=Integer.valueOf(card.substring(0,6).trim());
+			card=br.readLine();
+			for(int i=0; i<numSup; i++) supsym[i]=Integer.valueOf(card.substring(i*6,i*6+6).trim());
+			br.close();
+			System.out.println("numSup="+numSup);
+			return numSup;
+		} catch(IOException ef) {
+			return numSup;
+		}
+	}
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
@@ -1080,6 +1100,8 @@ public class gronor_Fragment {
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
+			inputFile.println(" pror");
+			inputFile.println(" 1 2then");
 			if(chrg!=0) {
 				if(mult==1) { inputFile.println(" charge "); inputFile.println("  "+chrg);}
 			} else {
@@ -1115,8 +1137,34 @@ public class gronor_Fragment {
 		}
 	}
 	
+	public void Molcas_numSup(String nameF,String nameP, Integer numElec, Integer numCASe) {
+		String fileName=nameP.trim()+".supsym";
+		String card;
+		numSup=0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			numSup=Integer.valueOf(card.substring(0,6).trim());
+			numSupOrb=0;
+			Integer orb=0;
+			for(int i=0; i<numSup; i++) {
+				card=br.readLine();
+				orb=Integer.valueOf(card.substring(0,6).trim());
+				if(orb<=((numElec - numCASe)/2)) {
+					supsym[numSupOrb]=orb;
+					numSupOrb++;
+				}
+			}
+			br.close();
+			return;
+		} catch(IOException ef) {
+			return;
+		}
+	}
+	
 	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numElec, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
 		Molcas_numAlt(nameF, nameP);
+		Molcas_numSup(nameF, nameP, numElec, numCASe);
 		String fileName=nameP.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameP.trim();
 		String ext = "_"+nameS.trim();
@@ -1133,6 +1181,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
@@ -1170,6 +1227,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
@@ -1212,6 +1278,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -1253,6 +1328,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -1289,6 +1373,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
@@ -1331,6 +1424,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
 				inputFile.println("spin");
@@ -1367,6 +1469,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+numCASe);
@@ -1409,6 +1520,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
 				inputFile.println("spin");
@@ -1445,6 +1565,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
@@ -1483,6 +1612,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe-1));
 				inputFile.println("spin");
@@ -1519,6 +1657,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
@@ -1557,6 +1704,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
 				inputFile.println("spin");
@@ -1593,6 +1749,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe+1));
@@ -1631,6 +1796,15 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
+				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe));
 				inputFile.println("spin");
@@ -1667,6 +1841,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe));
@@ -1706,6 +1889,15 @@ public class gronor_Fragment {
 					for(int i=0; i<numAlt; i++) {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
+				}
+				if(numSupOrb>1) {
+					inputFile.println("supsym");
+					inputFile.println(" 1");
+					inputFile.print(" "+numSupOrb);
+					for(int i=0; i<numSupOrb; i++) {
+						inputFile.print(supsym[i]);
+						}
+					inputFile.println();
 				}
 				inputFile.println("nactel");
 				inputFile.println(" "+(numCASe));

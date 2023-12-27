@@ -55,7 +55,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer[] ndxMebfTable = new Integer[35];					// Index of each state into into MEBF table 
 	Integer[] ndxMebfState = new Integer[35];					// Index into MEBF table for each state in MEBF 
 	
-	Integer[][] dimFragments = new Integer[maxFragments][12];	// Dimensions of fragments: number of atoms, states, electrons, etc.
+	Integer[][] dimFragments = new Integer[maxFragments][13];	// Dimensions of fragments: number of atoms, states, electrons, etc.
 	String[] namFragments = new String[maxFragments];			// Names of fragments used to determine xyz-formatted coordinate origin 
 	Double[][] movFragments = new Double[maxFragments][6];		// Rotation and translation of coordinates with respect to original source	
 	Double[] energiesDFT = new Double[maxFragments];			// DFT optimized energy of S0 state from NWChem
@@ -93,7 +93,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Double[][][] coefGronOR = new Double[35][35][maxMEBFs];
 
     String[] stateListLabels = new String[] {"ID","Num","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
-    String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt"};
+    String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt", "Sup"};
     String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"};
     String[] energyNames = new String[] {"E(DFT)", "E(SCF)", "E(CASSCF)", "E(CASPT2)"};
     String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+","Q1","SQ1"};
@@ -133,7 +133,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	DefaultTableModel mebfsEnergiesTableModel = new DefaultTableModel(null,nociLabels);
 
     Object[][] stateDefinitions = new Object[maxSets][17];
-    Object[][] fragmentDefinitions = new Object[maxFragments][16];
+    Object[][] fragmentDefinitions = new Object[maxFragments][17];
     Object[][] stateEnergies = new Object[4*maxFragments][12];
     Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][maxMEBFstates+6];
     Object[][] mebfEnergies = new Object[maxMEBFs][10];
@@ -185,7 +185,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	
     Integer numDFT=0, numSCF=0, numCASSCF=0, numCASPT2=0;
     
-    Integer numCASe=8, numCASo=8, numAlt=0, numOcc=0;
+    Integer numCASe=8, numCASo=8, numAlt=0, numOcc=0, numSup=0;
     Integer[][] alter = new Integer[12][2];
     
     Container container = null;
@@ -422,7 +422,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    	dimFragments[i][9]=Integer.valueOf(card.substring(54,60).trim());  // Number of CASPT2 energies
 			    	dimFragments[i][10]=Integer.valueOf(card.substring(60,66).trim()); // Number of orbital alterations
 			    	dimFragments[i][11]=Integer.valueOf(card.substring(66,72).trim()); // Charge
-			    	fragmentDefinitions[i][1]=card.substring(77,78).trim(); // Source fragment number
+			    	dimFragments[i][12]=Integer.valueOf(card.substring(72,78).trim()); // Number of occupied pz orbitals
+			    	fragmentDefinitions[i][1]=card.substring(83,84).trim(); // Source fragment number
 			    	card=br.readLine();
 			    	energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
 			    	energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
@@ -486,7 +487,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					fw.println(namFragments[i].trim());
 					for(int j=0; j<6; j++) fw.printf("%20.10f",movFragments[i][j]);
 				    fw.println();
-				    for(int j=0; j<12; j++) fw.printf("%6d",dimFragments[i][j]);
+				    for(int j=0; j<13; j++) fw.printf("%6d",dimFragments[i][j]);
 				    String name = (String) fragmentDefinitions[i][1];
 				    fw.printf("%s","     "); fw.printf("%s",name.trim());
 				    fw.println();
@@ -1129,7 +1130,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int i=numFragments; i<newFragments; i++) {
 		    	namFragments[i]="";
 		    	for(int j=0; j<6; j++) movFragments[i][j]=0.0;
-		    	for(int j=0; j<12; j++) dimFragments[i][j]=0;
+		    	for(int j=0; j<13; j++) dimFragments[i][j]=0;
 		    	energiesDFT[i]=0.0;
 		    	energiesSCF[i]=0.0;
 		    	for(int j=0; j<7; j++) {
@@ -1171,10 +1172,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragmentDefinitions[i][13]=movFragments[i][4];
 			fragmentDefinitions[i][14]=movFragments[i][5];
 			fragmentDefinitions[i][15]=dimFragments[i][10];
+			fragmentDefinitions[i][16]=dimFragments[i][12];
 		}
 
 		for(int i=0; i<numFragments; i++) {
-			for(int j=0; j<16; j++) {
+			for(int j=0; j<17; j++) {
 				fragmentsTableModel.setValueAt(fragmentDefinitions[i][j],i,j);
 			}
 		}
@@ -1244,6 +1246,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragmentDefinitions[i][13]=movFragments[i][4];
 			fragmentDefinitions[i][14]=movFragments[i][5];
 			fragmentDefinitions[i][15]=dimFragments[i][10];
+			fragmentDefinitions[i][16]=dimFragments[i][12];
 		}
 		
 		numEnergies=0;
@@ -1635,9 +1638,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			numAlt=fragment.read_Alt(nameP,nameA);
 			dimFragments[i][10]=numAlt;
 			
+			numSup=fragment.read_Sup(nameP,nameA);
+			dimFragments[i][12]=numSup;
+			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
 				dimFragments[i][10]=numAlt;
+				dimFragments[i][12]=numSup;
 				energiesSCF[i]=energy;
 				dimFragments[i][7]=1;
 			}
@@ -2423,6 +2430,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		fragmentsTable.getColumnModel().getColumn(13).setMaxWidth(50);
 		fragmentsTable.getColumnModel().getColumn(14).setMaxWidth(50);
 		fragmentsTable.getColumnModel().getColumn(15).setMaxWidth(50);
+		fragmentsTable.getColumnModel().getColumn(16).setMaxWidth(50);
 		
 		fragmentsTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent e) {			

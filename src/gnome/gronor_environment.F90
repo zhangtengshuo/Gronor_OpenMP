@@ -38,7 +38,7 @@ subroutine gronor_environment()
   implicit none
 
   external :: hostnm
-  external :: MPI_AllReduce
+!  external :: MPI_AllReduce
 
   integer :: i,j,k,node
   integer (kind=4) :: length, ierr, ncount

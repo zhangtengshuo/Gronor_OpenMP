@@ -838,12 +838,10 @@ subroutine gronor_gntwo_canonical(lfndbg)
 
     do k=1,nbas
       aak=diag(k)
-!      abk=bdiag(k)
       bak=csdiag(k)
       bbk=bsdiag(k)
       do i=1,k
         aai=diag(i)
-!        abi=bdiag(i)
         bai=csdiag(i)
         bbi=bsdiag(i)
         sum1=sm(k,i)
@@ -851,7 +849,6 @@ subroutine gronor_gntwo_canonical(lfndbg)
         e2n=0.0d0
         do n=k,nbas
           aal=diag(n)
-!          abl=bdiag(n)
           bal=csdiag(n)
           bbl=bsdiag(n)
           ls=1
@@ -861,7 +858,6 @@ subroutine gronor_gntwo_canonical(lfndbg)
           do l=ls,n
             intl=intl+1
             aaj=diag(l)
-!            abj=bdiag(l)
             baj=csdiag(l)
             bbj=bsdiag(l)
             e2l=e2l+g(intl)*(sum1*(aaj*bal+aal*baj)+sum2*sm(n,l) &

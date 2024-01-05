@@ -1263,6 +1263,11 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
 
   real(kind=8), external :: timer_wall
 
+  real (kind=8) :: aaamax,tamax
+  real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+
+  logical :: ldiag,lbdiag
+  
   !     Copying arrays into batch arrays
 
   !     Initialize nb0 and nb1 when first matrix element in a batch
@@ -1351,7 +1356,7 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
   !     the energies are evaluated
 
   if((ihc.eq.nhc.and.nb0.gt.0).or.nb0.eq.nbatch) then
-
+    
     call timer_start(32)
 
     intg=0
@@ -1400,12 +1405,40 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
   if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.nbatch) then
 
     call timer_start(35)
+    
+    tamax=0.0d0
+    aaamax=0.0d0
+    diagmax=0.0d0
+    bdiagmax=0.0d0
+    bsdiagmax=0.0d0
+    csdiagmax=0.0d0
+    sdiagmax=0.0d0
+    do k=1,nbas
+      do i=1,nbas
+        do ibl=1,nb1
+          tamax=max(tamax,abs(tt1(ibl,i,k)))
+          aaamax=max(aaamax,abs(aaa1(ibl,i,k)))
+        enddo
+      enddo
+    enddo
+    do k=1,nbas
+      do ibl=1,nb1
+        diagmax=max(diagmax,abs(diag1(ibl,k)))
+        bdiagmax=max(bdiagmax,abs(bdiag1(ibl,k)))
+        bsdiagmax=max(bsdiagmax,abs(bsdiag1(ibl,k)))
+        csdiagmax=max(csdiagmax,abs(csdiag1(ibl,k)))
+      enddo
+    enddo
+
+    ldiag=diagmax.gt.1.0e-16
+    lbdiag=bdiagmax.gt.1.0e-16
 
     kl=nbas*(nbas+1)/2
     do ii=intndx,jntndx
       igg=ndx(ii)
       i=lab(1,ii)
       k=lab(2,ii)
+      if(ldiag.and.lbdiag) then
 #ifdef OMP
 !$omp parallel do reduction(+:etotb,etemp) shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl) &
 !$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac) private(intg,l,n,ibl)
@@ -1435,6 +1468,55 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
 #ifdef OMP
 !$omp end parallel do
 #endif
+    elseif(.not.ldiag .and. lbdiag) then
+#ifdef OMP
+!$omp parallel do reduction(+:etotb,etemp) shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac) private(intg,l,n,ibl)
+#endif
+      do jj=ii,kl
+        intg=igg+jj
+        l=lab(1,jj)
+        n=lab(2,jj)
+        etemp=0.0d0
+        do ibl=1,nb1
+          etemp=etemp+prefac1(ibl)* &
+              (sm1(ibl,k,i)*(bdiag1(ibl,l)*bsdiag1(ibl,n)+bdiag1(ibl,n)*bsdiag1(ibl,l)) &
+              +(bdiag1(ibl,i)*bsdiag1(ibl,k)+bdiag1(ibl,k)*bsdiag1(ibl,i))*sm1(ibl,n,l) &
+              -bsdiag1(ibl,i)*(tt1(ibl,n,k)*bdiag1(ibl,l)+tt1(ibl,l,k)*bdiag1(ibl,n)) &
+              -bsdiag1(ibl,l)*(tt1(ibl,i,n)*bdiag1(ibl,k)+tt1(ibl,k,n)*bdiag1(ibl,i)) &
+              -bsdiag1(ibl,k)*(tt1(ibl,n,i)*bdiag1(ibl,l)+tt1(ibl,l,i)*bdiag1(ibl,n)) &
+              -bsdiag1(ibl,n)*(tt1(ibl,i,l)*bdiag1(ibl,k)+tt1(ibl,k,l)*bdiag1(ibl,i)))
+        enddo
+        etotb=etotb+g(intg)*etemp
+      enddo
+#ifdef OMP
+!$omp end parallel do
+#endif
+    elseif(ldiag .and. .not. lbdiag) then
+#ifdef OMP
+!$omp parallel do reduction(+:etotb,etemp) shared(igg,i,k,diagl,bdiagl,csdiagl,bsdiagl) &
+!$omp& shared(sm1,aaa1,tt1,g,lab,nb1,prefac) private(intg,l,n,ibl)
+#endif
+      do jj=ii,kl
+        intg=igg+jj
+        l=lab(1,jj)
+        n=lab(2,jj)
+        etemp=0.0d0
+        do ibl=1,nb1
+          etemp=etemp+prefac1(ibl)* &
+              (sm1(ibl,k,i)*(diag1(ibl,l)*csdiag1(ibl,n)+diag1(ibl,n)*csdiag1(ibl,l)) &
+              +(diag1(ibl,i)*csdiag1(ibl,k)+diag1(ibl,k)*csdiag1(ibl,i))*sm1(ibl,n,l) &
+              -csdiag1(ibl,i)*(aaa1(ibl,k,n)*diag1(ibl,l)+aaa1(ibl,k,l)*diag1(ibl,n)) &
+              -csdiag1(ibl,l)*(aaa1(ibl,n,i)*diag1(ibl,k)+aaa1(ibl,n,k)*diag1(ibl,i)) &
+              -csdiag1(ibl,k)*(aaa1(ibl,i,n)*diag1(ibl,l)+aaa1(ibl,i,l)*diag1(ibl,n)) &
+              -csdiag1(ibl,n)*(aaa1(ibl,l,i)*diag1(ibl,k)+aaa1(ibl,l,k)*diag1(ibl,i)))
+        enddo
+        etotb=etotb+g(intg)*etemp
+      enddo
+#ifdef OMP
+!$omp end parallel do
+#endif
+    endif
     enddo
 
     !     Reset index into buffer

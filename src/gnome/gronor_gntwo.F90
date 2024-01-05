@@ -64,6 +64,11 @@ subroutine gronor_gntwo(lfndbg)
 
   real(kind=8), external :: timer_wall
 
+  real (kind=8) :: aaamax,aatmax
+  real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+
+  logical :: ldiag,lbdiag
+
 #ifdef _OPENACC
   integer (kind=4) :: istat
   type(c_ptr) :: cpfre, cptot
@@ -189,9 +194,52 @@ subroutine gronor_gntwo(lfndbg)
   else
 
     call timer_start(34)
+    
+!    aatmax=0.0d0
+!    aaamax=0.0d0
+    diagmax=0.0d0
+    bdiagmax=0.0d0
+!    bsdiagmax=0.0d0
+!    csdiagmax=0.0d0
 
+!    do k=1,nbas
+!      do i=1,nbas
+!        aatmax=max(aatmax,abs(aat(i,k)))
+!        aaamax=max(aaamax,abs(aaa(i,k)))
+!      enddo
+!    enddo
+    
+#ifdef ACC
+!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop private(k)
+#else
+!$omp target teams distribute parallel do private(k)
+#endif
+#endif
+    do k=1,nbas
+      diagmax=max(diagmax,abs(diag(k)))
+      bdiagmax=max(bdiagmax,abs(bdiag(k)))
+!     bsdiagmax=max(bsdiagmax,abs(bsdiag1(ibl,k)))
+!     csdiagmax=max(csdiagmax,abs(csdiag1(ibl,k)))
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+
+    ldiag=diagmax.gt.1.0e-16
+    lbdiag=bdiagmax.gt.1.0e-16
+    
     e2t=e2
     kl=nbas*(nbas+1)/2
+    
+    if(ldiag.and.lbdiag) then
 
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
@@ -249,6 +297,115 @@ subroutine gronor_gntwo(lfndbg)
 #ifdef ACC
 !$acc end kernels
 #endif
+
+    elseif(.not.ldiag .and. lbdiag) then
+
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
+!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#endif
+#endif
+    do ii=intndx,jntndx
+      do jj=ii,kl
+        intg=ndx(ii)+jj
+        i=lab(1,ii)
+        k=lab(2,ii)
+        l=lab(1,jj)
+        n=lab(2,jj)
+        abi=bdiag(i)
+        bai=csdiag(i)
+        bbi=bsdiag(i)
+        abk=bdiag(k)
+        bak=csdiag(k)
+        bbk=bsdiag(k)
+        sum2=abi*bbk+abk*bbi
+        abj=bdiag(l)
+        baj=csdiag(l)
+        bbj=bsdiag(l)
+        abl=bdiag(n)
+        bal=csdiag(n)
+        bbl=bsdiag(n)
+        e2t=e2t+g(intg)*(sm(k,i)*(abj*bbl+abl*bbj)+sum2*sm(n,l) &
+            -bbi*(tt(n,k)*abj+tt(l,k)*abl)-bbj*(ta(n,i)*abk+ta(n,k)*abi) &
+            -bbk*(tt(n,i)*abj+tt(l,i)*abl)-bbl*(ta(l,i)*abk+ta(l,k)*abi)) 
+      enddo
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
+    elseif(ldiag .and. .not. lbdiag) then
+
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
+!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(intg,i,k,l,n,aai,abi,bai,bbi,aak,abk,bak,bbk,sum2) &
+!$omp& private(aaj,abj,baj,bbj,aal,abl,bal,bbl)
+#endif
+#endif
+    do ii=intndx,jntndx
+      do jj=ii,kl
+        intg=ndx(ii)+jj
+        i=lab(1,ii)
+        k=lab(2,ii)
+        l=lab(1,jj)
+        n=lab(2,jj)
+        aai=diag(i)
+        bai=csdiag(i)
+        bbi=bsdiag(i)
+        aak=diag(k)
+        bak=csdiag(k)
+        bbk=bsdiag(k)
+        sum2=aai*bak+aak*bai
+        aaj=diag(l)
+        baj=csdiag(l)
+        bbj=bsdiag(l)
+        aal=diag(n)
+        bal=csdiag(n)
+        bbl=bsdiag(n)
+        e2t=e2t+g(intg)*(sm(k,i)*(aaj*bal+aal*baj)+sum2*sm(n,l) &
+            -bai*(aat(n,k)*aaj+aat(l,k)*aal)-baj*(aaa(n,i)*aak+aaa(n,k)*aai) &
+            -bak*(aat(n,i)*aaj+aat(l,i)*aal)-bal*(aaa(l,i)*aak+aaa(l,k)*aai))
+      enddo
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
+    endif
+    
     e2=e2t
 
     call timer_stop(34)
@@ -308,6 +465,11 @@ subroutine gronor_gntwo_canonical(lfndbg)
 #endif
 
   real(kind=8), external :: timer_wall
+
+  real (kind=8) :: aaamax,aatmax
+  real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+
+  logical :: ldiag,lbdiag
 
 #ifdef _OPENACC
   integer (kind=4) :: istat
@@ -455,10 +617,55 @@ subroutine gronor_gntwo_canonical(lfndbg)
   else
 
     call timer_start(34)
+    
+!    aatmax=0.0d0
+!    aaamax=0.0d0
+    diagmax=0.0d0
+    bdiagmax=0.0d0
+!    bsdiagmax=0.0d0
+!    csdiagmax=0.0d0
+
+!    do k=1,nbas
+!      do i=1,nbas
+!        aatmax=max(aatmax,abs(aat(i,k)))
+!        aaamax=max(aaamax,abs(aaa(i,k)))
+!      enddo
+!    enddo
+    
+#ifdef ACC
+!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop private(k)
+#else
+!$omp target teams distribute parallel do private(k)
+#endif
+#endif
+    do k=1,nbas
+      diagmax=max(diagmax,abs(diag(k)))
+      bdiagmax=max(bdiagmax,abs(bdiag(k)))
+!     bsdiagmax=max(bsdiagmax,abs(bsdiag1(ibl,k)))
+!     csdiagmax=max(csdiagmax,abs(csdiag1(ibl,k)))
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+
+    ldiag=diagmax.gt.1.0e-16
+    lbdiag=bdiagmax.gt.1.0e-16
 
     e2t=e2
     kl=nbas*(nbas+1)/2
     intg=0
+
+    
+    if(ldiag.and.lbdiag) then
+    
 
 #ifdef ACC
 !$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
@@ -533,6 +740,154 @@ subroutine gronor_gntwo_canonical(lfndbg)
 #ifdef ACC
 !$acc end kernels
 #endif
+
+  elseif(.not.ldiag .and. lbdiag) then
+    
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
+!$acc& copyin(intg,kl,intndx,jntndx)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#endif
+#endif
+    !        do ii=intndx,jntndx
+    !          do jj=ii,kl
+    !            intg=ndx(ii)+jj
+    !            i=lab(1,ii)
+    !            k=lab(2,ii)
+    !            l=lab(1,jj)
+    !     n=lab(2,jj)
+
+    do k=1,nbas
+      abk=bdiag(k)
+      bak=csdiag(k)
+      bbk=bsdiag(k)
+      do i=1,k
+        abi=bdiag(i)
+        bai=csdiag(i)
+        bbi=bsdiag(i)
+        sum1=sm(k,i)
+        sum2=abi*bbk+abk*bbi
+        e2n=0.0d0
+        do n=k,nbas
+          abl=bdiag(n)
+          bal=csdiag(n)
+          bbl=bsdiag(n)
+          ls=1
+          if(n.eq.k) ls=i
+          e2l=0.0d0
+          intl=intg
+          do l=ls,n
+            intl=intl+1
+            abj=bdiag(l)
+            baj=csdiag(l)
+            bbj=bsdiag(l)
+            e2l=e2l+g(intl)*(sum1*(abj*bbl+abl*bbj)+sum2*sm(n,l) &
+                -bbi*(tt(n,k)*abj+tt(l,k)*abl)-bbj*(ta(n,i)*abk+ta(n,k)*abi) &
+                -bbk*(tt(n,i)*abj+tt(l,i)*abl)-bbl*(ta(l,i)*abk+ta(l,k)*abi))
+          enddo
+          intg=intg+n+1-ls
+          e2n=e2n+e2l
+        enddo
+        e2t=e2t+e2n
+      enddo
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
+  elseif(ldiag .and. .not. lbdiag) then
+    
+#ifdef ACC
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
+!$acc& copyin(intg,kl,intndx,jntndx)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#else
+!$omp target teams distribute parallel do reduction(+:e2t) &
+!$omp& private(aak,abk,bak,bbk,aai,abi,bai,bbi,sum1,sum2,e2n) &
+!$omp& private(aal,abl,bal,bbl,ls,e2l,intl,aaj,abj,baj,bbj)
+#endif
+#endif
+    !        do ii=intndx,jntndx
+    !          do jj=ii,kl
+    !            intg=ndx(ii)+jj
+    !            i=lab(1,ii)
+    !            k=lab(2,ii)
+    !            l=lab(1,jj)
+    !     n=lab(2,jj)
+
+    do k=1,nbas
+      aak=diag(k)
+!      abk=bdiag(k)
+      bak=csdiag(k)
+      bbk=bsdiag(k)
+      do i=1,k
+        aai=diag(i)
+!        abi=bdiag(i)
+        bai=csdiag(i)
+        bbi=bsdiag(i)
+        sum1=sm(k,i)
+        sum2=aai*bak+aak*bai
+        e2n=0.0d0
+        do n=k,nbas
+          aal=diag(n)
+!          abl=bdiag(n)
+          bal=csdiag(n)
+          bbl=bsdiag(n)
+          ls=1
+          if(n.eq.k) ls=i
+          e2l=0.0d0
+          intl=intg
+          do l=ls,n
+            intl=intl+1
+            aaj=diag(l)
+!            abj=bdiag(l)
+            baj=csdiag(l)
+            bbj=bsdiag(l)
+            e2l=e2l+g(intl)*(sum1*(aaj*bal+aal*baj)+sum2*sm(n,l) &
+                -bai*(aat(n,k)*aaj+aat(l,k)*aal)-baj*(aaa(n,i)*aak+aaa(n,k)*aai) &
+                -bak*(aat(n,i)*aaj+aat(l,i)*aal)-bal*(aaa(l,i)*aak+aaa(l,k)*aai))
+          enddo
+          intg=intg+n+1-ls
+          e2n=e2n+e2l
+        enddo
+        e2t=e2t+e2n
+      enddo
+    enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
+
+    endif
+
     e2=e2t
 
     call timer_stop(34)
@@ -577,6 +932,11 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
   real (kind=8) :: ts,fourdet
 
   real(kind=8), external :: timer_wall
+
+  real (kind=8) :: aaamax,aatmax
+  real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
+
+  logical :: ldiag,lbdiag
 
   !     Copying arrays into batch arrays
 
@@ -1405,28 +1765,28 @@ subroutine gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
   if((ihc.eq.nhc.and.nb1.gt.0).or.nb1.eq.nbatch) then
 
     call timer_start(35)
-    
-    tamax=0.0d0
-    aaamax=0.0d0
+
+!    tamax=0.0d0
+!    aaamax=0.0d0
     diagmax=0.0d0
     bdiagmax=0.0d0
-    bsdiagmax=0.0d0
-    csdiagmax=0.0d0
-    sdiagmax=0.0d0
-    do k=1,nbas
-      do i=1,nbas
-        do ibl=1,nb1
-          tamax=max(tamax,abs(tt1(ibl,i,k)))
-          aaamax=max(aaamax,abs(aaa1(ibl,i,k)))
-        enddo
-      enddo
-    enddo
+!    bsdiagmax=0.0d0
+!    csdiagmax=0.0d0
+
+!    do k=1,nbas
+!      do i=1,nbas
+!        do ibl=1,nb1
+!          tamax=max(tamax,abs(tt1(ibl,i,k)))
+!          aaamax=max(aaamax,abs(aaa1(ibl,i,k)))
+!        enddo
+!      enddo
+!    enddo
     do k=1,nbas
       do ibl=1,nb1
         diagmax=max(diagmax,abs(diag1(ibl,k)))
         bdiagmax=max(bdiagmax,abs(bdiag1(ibl,k)))
-        bsdiagmax=max(bsdiagmax,abs(bsdiag1(ibl,k)))
-        csdiagmax=max(csdiagmax,abs(csdiag1(ibl,k)))
+!        bsdiagmax=max(bsdiagmax,abs(bsdiag1(ibl,k)))
+!        csdiagmax=max(csdiagmax,abs(csdiag1(ibl,k)))
       enddo
     enddo
 

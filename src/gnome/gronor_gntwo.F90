@@ -232,6 +232,9 @@ subroutine gronor_gntwo(lfndbg)
 !$omp end target teams distribute parallel do
 #endif
 #endif
+#ifdef ACC
+!$acc end kernels
+#endif
 
     ldiag=diagmax.gt.1.0e-16
     lbdiag=bdiagmax.gt.1.0e-16

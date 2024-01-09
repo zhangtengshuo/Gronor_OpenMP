@@ -23,11 +23,11 @@ git checkout tags/23.08
 
 The initial directory structure is as follows:
 
-gronor --- src          (source directory with sub-directories)
+gronor --- src          		(source directory with sub-directories)
         |
 	-- aux           	(auxiliary programs)
         |
-	-- include   	    (with a few include files)
+	-- include   	    	(with a few include files)
         |
 	-- examples     	(example input files for full OpenMolcas/GronOR runs)
         |
@@ -35,9 +35,9 @@ gronor --- src          (source directory with sub-directories)
         |
 	-- molcas_interface	(auxiliary programs to interface with OpenMolcas)
 	|
-	-- CMakeLists.txt (the cmake build file)
+	-- CMakeLists.txt 	(the cmake build file)
 	|
-	-- CTestConfig.cmake (cmake script to setup automated testing)
+	-- CTestConfig.cmake 	(cmake script to setup automated testing)
 
 
 To build, do the following within the gronor directory;

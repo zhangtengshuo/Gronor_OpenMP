@@ -95,7 +95,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       timings(me+1,66)=dble(nacc0)
       timings(me+1,67)=dble(nacc1)
       timings(me+1,68)=dble(memavail)
-
+      
       nreqso=0
       nreqsc=0
       openrcv=.false.
@@ -107,17 +107,21 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         ncount=1
         mpitag=20
         mpidest=i-1
-        if(mpidest.ne.mstr) then
-          call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest, mpitag,MPI_COMM_WORLD,mpireq,ierr)
-          call MPI_Request_free(mpireq,ierr)
-        endif
-        nreqso=nreqso+1
 
+        ! Send the request for timings to all ranks other than master 
+        ! Count the number of open requests
+        if(mpidest.ne.mstr) then
+          call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
+          call MPI_Request_free(mpireq,ierr)
+        nreqso=nreqso+1
+        endif
+
+        ! Open a single receive from any of the timing data
+        ! Do not free the request of this iRecv
         if(.not.openrcv) then
           ncount=68
           mpitag=11
           call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
-          call MPI_Request_free(itreq,ierr)
           openrcv=.true.
         endif
 
@@ -135,7 +139,6 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
             ncount=68
             mpitag=11
             call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
-            call MPI_Request_free(itreq,ierr)
             openrcv=.true.
 
           endif
@@ -219,7 +222,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,600)
 600   format(/,' Wallclock Timing Analysis Main Program',/)
       write(lfnout,601)
-601   format('  Proc  ','       Total','       Input','   Integrals','    H Matrix','    Elements', &
+601   format('  Proc Role','    Total','       Input','   Integrals','    H Matrix','    Elements', &
           '       Gnome','       Calls','  Unused Dev Mem'/)
 
       flush(lfnout)
@@ -241,7 +244,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,603)
 603   format(//,' Wallclock Timing Analysis Gnome',/)
       write(lfnout,604)
-604   format('  Proc  ','     TransVc','       Order','     TranOut','      MOOver','      CoFac1', &
+604   format('  Proc Role','  TransVc','       Order','     TranOut','      MOOver','      CoFac1', &
           '      CorOrb','      TraMat','      Dipole','       TrSym','     TraMat2', &
           '       GnOne','       GnTwo',/)
 
@@ -261,7 +264,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,606)
 606   format(//,' Wallclock Timing Analysis CoFac',/)
       write(lfnout,607)
-607   format('  Proc  ','         SVD','         Sum','         EVD','        Rest',/)
+607   format('  Proc Role','      SVD','         Sum','         EVD','        Rest',/)
 
       flush(lfnout)
 
@@ -280,7 +283,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 609   format(//,' Wallclock Timing Analysis GnTwo',/)
 
       write(lfnout,610)
-610   format('  Proc  ','       Total','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
+610   format('  Proc Role','    Total','      Two0-a','      Two0-n','      Two0-w','      Two1-a',&
           '      Two1-n','      Two1-w','       Comm1','       Comm2',/)
 
       flush(lfnout)
@@ -300,7 +303,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,640)
 640   format(//,' Wallclock Timing Analysis Manager Ranks',/)
       write(lfnout,641)
-641   format('  Proc  ','       Total','   Rcv mTask','   Snd wTask','   Rcv wBuff','   Snd mBuff',&
+641   format('  Proc Role','    Total','   Rcv mTask','   Snd wTask','   Rcv wBuff','   Snd mBuff',&
           '   Snd wTerm',/)
       flush(lfnout)
       do i=1,np
@@ -315,7 +318,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       flush(lfnout)
 
       write(lfnout,612)
-612   format(//,'  Proc  ','     NumRecv','        Num0','        Num1','        Ndx0', &
+612   format(//,'  Proc Role','   NumRecv','        Num0','        Num1','        Ndx0', &
           '        Ndx1',/)
 
       do i=1,np

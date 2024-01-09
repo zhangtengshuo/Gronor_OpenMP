@@ -23,7 +23,7 @@ git checkout tags/23.08
 
 The initial directory structure is as follows:
 
-gronor --- src          		(source directory with sub-directories)
+gronor --- src          	(source directory with sub-directories)
         |
 	-- aux           	(auxiliary programs)
         |
@@ -49,11 +49,11 @@ To build, do the following within the gronor directory;
 
 This will expand the directory structure as follows:
 
-gronor --- src          (source directory with sub-directories)
+gronor --- src         	 (source directory with sub-directories)
         |
 	-- aux              (auxiliary programs)
         |
-	-- include          (with a few include files)
+	-- include       	   (with a few include files)
         |
 	-- examples         (example input files for full OpenMolcas/GronOR runs)
         |
@@ -67,7 +67,7 @@ gronor --- src          (source directory with sub-directories)
 	|
 	-- build --- bin     (directory with the gronor binary)
 	          |
-		  -- lib     (directory with the gronor libraries)
+		  -- lib   		  (directory with the gronor libraries)
 		  |
 		  -- CMakeFiles  (cmake files created during build)
 

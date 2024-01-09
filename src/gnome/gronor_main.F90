@@ -1016,8 +1016,7 @@ subroutine gronor_main()
   allheads(numgrp+1)=mstr
 
   if(numgrp.eq.0) then
-    write(*,'(a)') 'Number of groups is zero'
-    call gronor_abort(201,"Error in main")
+    call gronor_abort(201,"Number of groups is zero")
   endif
   do i=1,numgrp
     do j=1,mgr

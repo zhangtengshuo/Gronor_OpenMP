@@ -20,7 +20,7 @@ git clone --recursive git@gitlab.com:gronor/gronor.git
 or
 git clone --recursive https://www.gitlab.com/gronor/gronor.git
 
-The resulting master branch is the most recent release of gronor. To use an earlier release (e.g. vsersion 23.08) use 
+The resulting master branch is the most recent release of gronor. To use an earlier release (e.g. version 23.08) use 
 
 git checkout tags/23.08
 

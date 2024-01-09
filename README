@@ -49,7 +49,7 @@ To build, do the following within the gronor directory;
 
 This will expand the directory structure as follows:
 
-gronor --- src         		 (source directory with sub-directories)
+gronor --- src         	 (source directory with sub-directories)
         |
 	-- aux              (auxiliary programs)
         |

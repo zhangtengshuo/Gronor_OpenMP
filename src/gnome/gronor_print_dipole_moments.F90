@@ -119,6 +119,7 @@ subroutine gronor_print_dipole_moments()
         ' Origin of the quadrupole operator (x,y,z)',t50,3f10.4)          
 690 format(/,' Dipole moment of MEBFs (Debye)',/)
 693 format(t27,'X',t41,'Y',t55,'Z',t67,'Total',/)
+793 format(t35,'X',t49,'Y',t63,'Z',t75,'Total',/)
 699 format(t27,'XX',t41,'XY',t55,'XZ',t69,'YY',t83,'YZ',t97,'ZZ',/)
 691 format(1x,i5,t18,4f14.4)
 692 format(1x,a,t26,4f14.4)
@@ -126,7 +127,11 @@ subroutine gronor_print_dipole_moments()
   write(lfnout,688)
   write(lfnout,689) 0.0d0,0.0d0,0.0d0,(com(j),j=1,3)
   write(lfnout,690)
-  write(lfnout,693)
+  if(.not.mebfLabels.or.lablen.gt.labmax) then
+    write(lfnout,693)
+  else
+    write(lfnout,793)
+  endif
   do j=1,nbase
     if(.not.mebfLabels) then
       write(lfnout,691) j,(debye*dqbase(j,j,k),k=1,3),debye* &

@@ -32,7 +32,7 @@ subroutine gronor_worker()
   external :: gronor_calculate
   external :: swatch,timer_start,timer_stop
 
-  external :: MPI_Recv,MPI_iRecv,MPI_iSend
+!  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
   real(kind=8), external :: timer_wall_total, timer_wall
 

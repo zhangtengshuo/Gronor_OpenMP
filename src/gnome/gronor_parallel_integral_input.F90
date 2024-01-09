@@ -37,9 +37,7 @@ subroutine gronor_parallel_integral_input()
 
   implicit none
 
-  external :: MPI_Recv,MPI_iSend
-
-  external :: MPI_Bcast
+!  external :: MPI_Recv,MPI_iSend,MPI_Bcast
   external :: gronor_abort
   external :: swatch
 

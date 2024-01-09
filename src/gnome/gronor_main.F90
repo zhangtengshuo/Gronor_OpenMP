@@ -87,7 +87,7 @@ subroutine gronor_main()
   external :: gronor_input,gronor_prelude_cml
   external :: getcwd,getlog,hostnm
 
-  external :: MPI_Bcast
+!  external :: MPI_Bcast
 
   integer (kind=4) :: ierror,ierr,ncount
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
@@ -945,9 +945,11 @@ subroutine gronor_main()
     enddo
   endif
 
-  role=idle
-  if(map2(me+1,5).ne.0) role=worker
-  if(me.eq.mstr) role=master
+  if(managers.eq.0) then
+    role=idle
+    if(map2(me+1,5).ne.0) role=worker
+    if(me.eq.mstr) role=master
+  endif
 
   numacc=0
   numnon=0
@@ -1793,7 +1795,7 @@ subroutine gronor_main()
   ngr=np/npg
 
   if(numidle.gt.0) then
-    npg=np-numidle-1
+    npg=(np-numidle-1)/mgr
     ngr=(np-numidle-1)/npg
   endif
 
@@ -2143,7 +2145,9 @@ subroutine gronor_main()
         endif
         call gronor_memory_usage()
         if(managers.eq.0) then
-          call gronor_worker()
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.idle) call gronor_idle()
+!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()
@@ -2160,7 +2164,9 @@ subroutine gronor_main()
         allocate(work(lwork))
         call gronor_memory_usage()
         if(managers.eq.0) then
-          call gronor_worker()
+          if(role.eq.worker) call gronor_worker()
+          if(role.eq.idle) call gronor_idle()
+!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()

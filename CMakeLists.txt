@@ -11,7 +11,7 @@ cmake_minimum_required (VERSION 3.11.00)
 message ("Programming Environment:")
 message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
-project (GronOR VERSION 23.00 LANGUAGES Fortran C CXX)
+project (GronOR VERSION 24.01 LANGUAGES Fortran C CXX)
 
 # Set global session identifier
 
@@ -33,7 +33,7 @@ if(DEFINED ENV{HOSTNAME})
   if($ENV{HOSTNAME} MATCHES ".frontier.olcf.ornl.gov$")
 	  set(HOST "FRONTIER")
   endif() 
-  if($ENV{HOSTNAME} MATCHES ".leonardo$")
+  if($ENV{HOSTNAME} MATCHES ".leonardo.local$")
     set(HOST "LEONARDO")
   endif() 
 else()
@@ -596,6 +596,60 @@ endif ()
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" AND
     CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
   set (FFLAGS_Intel_OPENMP "-openmp")
+endif ()
+
+# IntelLLVM C++/C/Fortran Compilers
+
+# C++ compiler
+list (APPEND SUPPORTED_CXX_COMPILERS "IntelLLVM")
+set (CXXFLAGS_IntelLLVM_BASIC "")
+set (CXXFLAGS_IntelLLVM_OPENMP "-qopenmp")
+set (CXXFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
+# C++ build targets
+set (CXXFLAGS_IntelLLVM_DEBUG "-debug -w3")
+set (CXXFLAGS_IntelLLVM_GARBLE "-O2 -debug -w3")
+set (CXXFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -w3")
+set (CXXFLAGS_IntelLLVM_RELEASE "-O2")
+set (CXXFLAGS_IntelLLVM_FAST "-O2")
+# C compiler
+list (APPEND SUPPORTED_C_COMPILERS "IntelLLVM")
+set (CFLAGS_IntelLLVM_BASIC "-std=gnu99")
+set (CFLAGS_IntelLLVM_OPENMP "-qopenmp")
+set (CFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
+# C build targets
+set (CFLAGS_IntelLLVM_DEBUG "-debug -w3")
+set (CFLAGS_IntelLLVM_GARBLE "-O2 -debug -w3")
+set (CFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -w3")
+set (CFLAGS_IntelLLVM_RELEASE "-O2")
+set (CFLAGS_IntelLLVM_FAST "-O2")
+# Fortran compiler
+list (APPEND SUPPORTED_Fortran_COMPILERS "IntelLLVM")
+set (FFLAGS_IntelLLVM_BASIC "-DINTEL")
+set (FFLAGS_IntelLLVM_PREPROCESS "-fpp")
+set (FFLAGS_IntelLLVM_OPENMP "-qopenmp -DOMP")
+set (FFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
+set (FFLAGS_IntelLLVM_MKL "-DMKL")
+set (FFLAGS_IntelLLVM_ILP64 "-i8 -r8 -heap-arrays")
+#set (FFLAGS_IntelLLVM_ILP64 "-r8 -heap-arrays")
+# Fortran build targets
+set (FFLAGS_IntelLLVM_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations -check bounds")
+set (FFLAGS_IntelLLVM_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check all,nobounds,noarg_temp_created")
+set (FFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
+set (FFLAGS_IntelLLVM_RELEASE "-O2 -traceback")
+set (FFLAGS_IntelLLVM_FAST "-xHOST")
+set (FFLAGS_IntelLLVM_AVX512 "-xCOMMON-AVX512")
+# IntelLLVM versions prior to 15 used -openmp
+if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
+  set (CXXFLAGS_IntelLLVM_OPENMP "-openmp")
+endif ()
+if (CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM" AND
+    CMAKE_C_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
+  set (CFLAGS_IntelLLVM_OPENMP "-openmp")
+endif ()
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" AND
+    CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
+  set (FFLAGS_IntelLLVM_OPENMP "-openmp")
 endif ()
 
 # Portland Group (PGI) Compilers

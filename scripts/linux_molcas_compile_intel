@@ -1,0 +1,14 @@
+#!/usr/bin/tcsh
+
+module load cmake intel mpich ga mkl
+
+rm -rf build_intel_2022.3.0
+mkdir build_intel_2022.3.0
+cd build_intel_2022.3.0
+
+cmake CC=mpicc FC=mpifort cmake -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/molcas/2023.0 -DMPI=ON -DGA=ON -DLINALG=MKL ../
+
+make -j 12
+
+make install
+

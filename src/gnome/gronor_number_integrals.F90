@@ -58,9 +58,8 @@ subroutine gronor_number_integrals(numone,numtwo)
   close(unit=lfnone)
 
   return
+  
 993 call gronor_abort(230,trim(filone))
 994 call gronor_abort(231,trim(filone))
-983 format('Error reading integral file ',a)
-984 format('Unable to open integral file ',a)
 
 end subroutine gronor_number_integrals

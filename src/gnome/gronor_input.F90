@@ -32,7 +32,9 @@ subroutine gronor_input()
   integer :: i,j,m
   character (len=255) :: item,item2,fil
   real (kind=8) value
-  logical :: last,exist
+  logical :: last,exist,lcouple
+
+  lcouple=.false.
 
   open(unit=lfninp,file=filinp,form='formatted',status='old',err=999)
 
@@ -148,6 +150,7 @@ subroutine gronor_input()
     endif
 
     if(inp_compare(.false.,'Couplings',item)) then
+      lcouple=.true.
       allocate(inter_couplings(nmol-1,nbase))
       do i=1,nmol-2
         if(.not.inp_read()) call gronor_abort(111,"Input error")
@@ -396,6 +399,8 @@ subroutine gronor_input()
   close(unit=lfninp)
 
   deallocate(fragstate,fragname)
+
+  if(nmol.ge.3.and..not.lcouple) call gronor_abort(113,"Input error")
 
   return
 

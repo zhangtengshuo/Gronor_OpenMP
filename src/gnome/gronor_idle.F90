@@ -21,5 +21,7 @@
 subroutine gronor_idle()
 
   use cidist
+
+  return
   
 end subroutine gronor_idle

@@ -87,7 +87,7 @@ subroutine gronor_main()
   external :: gronor_input,gronor_prelude_cml
   external :: getcwd,getlog,hostnm
 
-  external :: MPI_Bcast
+!  external :: MPI_Bcast
 
   integer (kind=4) :: ierror,ierr,ncount
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
@@ -945,9 +945,11 @@ subroutine gronor_main()
     enddo
   endif
 
-  role=idle
-  if(map2(me+1,5).ne.0) role=worker
-  if(me.eq.mstr) role=master
+  if(managers.eq.0) then
+    role=idle
+    if(map2(me+1,5).ne.0) role=worker
+    if(me.eq.mstr) role=master
+  endif
 
   numacc=0
   numnon=0

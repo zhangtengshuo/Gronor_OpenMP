@@ -1101,7 +1101,7 @@ public class gronor_Fragment {
 					inputFile.println(" 1");
 					inputFile.print(" "+numSup);
 					for(int i=0; i<numSup; i++) {
-						inputFile.print(supsym[i]);
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1893,7 +1893,6 @@ public class gronor_Fragment {
 					
 					Boolean[] isPz = new Boolean[numOrb];
 					
-					System.out.println("numOrb="+numOrb);
 					numPz=0;
 					while(!card.contains("Index")) card=br.readLine();
 					while(!card.contains("--")) {
@@ -1901,51 +1900,30 @@ public class gronor_Fragment {
 						if(card.length()>=5) {
 							if(card.substring(0,5).trim().length()>0) {
 								ndx=Integer.valueOf(card.substring(0,5).trim());
-								System.out.println(ndx+" "+card.substring(45,47).trim().contains("pz"));
 								if(ndx>0) isPz[(ndx-1)]=card.substring(45,47).trim().contains("pz");
 							}
 						}
 					}
 					
 					numOrb=ndx;
-					System.out.println("pz orbitals");
-					for(int i=0; i<numOrb; i++) System.out.println((i+1)+" "+isPz[i]);
-
-					System.out.println("numCASe,numOcc="+numCASe+" "+numOcc);
 					
 					Integer n=numCASe/2, numpz=0;
 					
 					Integer numiop=0;
 					for(int i=0; i<numOcc-n; i++) {
-						System.out.println("Inactive occupied   "+(i+1)+" "+isPz[i]);
 						if(isPz[i]) numiop++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numaonp=0;
 					for(int i=numOcc-n; i<numOcc; i++) {
-						System.out.println("Active occupied     "+(i+1)+" "+isPz[i]);
 						if(!isPz[i]) numaonp++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numaunp=0;
 					for(int i=numOcc; i<numOcc+n; i++) {
-						System.out.println("Active unoccupied   "+(i+1)+" "+isPz[i]);
 						if(!isPz[i]) numaunp++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numiup=0;
 					for(int i=numOcc+n; i<numOrb; i++) {
-						System.out.println("Inactive unoccupied "+(i+1)+" "+isPz[i]);
 						if(isPz[i]) numiup++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					
 					numAlt=0;
@@ -1981,22 +1959,13 @@ public class gronor_Fragment {
 						}
 					}
 					
-					System.out.println("Alter "+numAlt);
-					for(int i=0; i<numAlt; i++) System.out.println(alter[i][0]+" "+alter[i][1]);
-
 					numSup=0;
 					for(int i=0; i<numOcc-n; i++) {
 						if(isPz[i]) {
 							supsym[numSup]=i+1;
 							numSup++;
 						}
-						System.out.println(i+" "+isPz[i]);
-					}
-					
-					System.out.println("SumSym "+numSup);
-					for(int i=0; i<numSup; i++) System.out.print(" "+supsym[i]);
-					System.out.println();
-					
+					}					
 				}
 			}
 			br.close();
@@ -2049,7 +2018,6 @@ public class gronor_Fragment {
 					
 					Boolean[] isPz = new Boolean[numOrb];
 					
-					System.out.println("numOrb="+numOrb);
 					numPz=0;
 					while(!card.contains("Index")) card=br.readLine();
 					while(!card.contains("--")) {
@@ -2057,51 +2025,30 @@ public class gronor_Fragment {
 						if(card.length()>=5) {
 							if(card.substring(0,5).trim().length()>0) {
 								ndx=Integer.valueOf(card.substring(0,5).trim());
-								System.out.println(ndx+" "+card.substring(45,47).trim().contains("pz"));
 								if(ndx>0) isPz[(ndx-1)]=card.substring(45,47).trim().contains("pz");
 							}
 						}
 					}
 					
 					numOrb=ndx;
-					System.out.println("pz orbitals");
-					for(int i=0; i<numOrb; i++) System.out.println((i+1)+" "+isPz[i]);
-
-					System.out.println("numCASe,numOcc="+numCASe+" "+numOcc);
 					
 					Integer n=numCASe/2, numpz=0;
 					
 					Integer numiop=0;
 					for(int i=0; i<numOcc-n; i++) {
-						System.out.println("Inactive occupied   "+(i+1)+" "+isPz[i]);
 						if(isPz[i]) numiop++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numaonp=0;
 					for(int i=numOcc-n; i<numOcc; i++) {
-						System.out.println("Active occupied     "+(i+1)+" "+isPz[i]);
 						if(!isPz[i]) numaonp++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numaunp=0;
 					for(int i=numOcc; i<numOcc+n; i++) {
-						System.out.println("Active unoccupied   "+(i+1)+" "+isPz[i]);
 						if(!isPz[i]) numaunp++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					Integer numiup=0;
 					for(int i=numOcc+n; i<numOrb; i++) {
-						System.out.println("Inactive unoccupied "+(i+1)+" "+isPz[i]);
 						if(isPz[i]) numiup++;
-						index=i;
-//						if(typ[index]==4) numpz++;
-//						if(isPz[index]) numpz++;
 					}
 					
 					numAlt=0;
@@ -2137,27 +2084,14 @@ public class gronor_Fragment {
 						}
 					}
 					
-					System.out.println("Alter "+numAlt);
-					for(int i=0; i<numAlt; i++) System.out.println(alter[i][0]+" "+alter[i][1]);
-
 					numSup=0;
 					for(int i=0; i<numOcc-n; i++) {
 						if(isPz[i]) {
 							supsym[numSup]=i+1;
 							numSup++;
 						}
-						System.out.println(i+" "+isPz[i]);
 					}
-					
-					System.out.println("SumSym "+numSup);
-					for(int i=0; i<numSup; i++) System.out.print(" "+supsym[i]);
-					System.out.println();
-					
-				}
-				
-				
-				
-				
+				}				
 			}
 			br.close();
 			return energy;

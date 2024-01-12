@@ -399,6 +399,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	fieldX    = Double.valueOf(card.substring(100,120)).doubleValue();
 		    	fieldY    = Double.valueOf(card.substring(120,140)).doubleValue();
 		    	fieldZ    = Double.valueOf(card.substring(140,160)).doubleValue();
+		    	Integer check = Integer.valueOf(card.substring(160,166).trim());
+		    	if(check==1) {
+		    		orbAlter.setSelected(true);
+		    	} else {
+		    		orbAlter.setSelected(false);
+		    	}
+		    	check = Integer.valueOf(card.substring(166,172).trim());
+		    	if(check==1) {
+		    		orbSupSym.setSelected(true);
+		    	} else {
+		    		orbSupSym.setSelected(false);
+		    	}
 			    
 		    	for(int i=0; i<numSets; i++) {
 		    		card=br.readLine();
@@ -479,6 +491,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%20.10f",fieldX);
 			    fw.printf("%20.10f",fieldY);
 			    fw.printf("%20.10f",fieldZ);
+			    if(orbAlter.isSelected()) {
+				    fw.printf("%6d",1);
+			    } else {
+				    fw.printf("%6d",0);
+			    }
+			    if(orbSupSym.isSelected()) {
+				    fw.printf("%6d",1);
+			    } else {
+				    fw.printf("%6d",0);
+			    }
 			    fw.println();
 		    	for(int i=0; i<numSets; i++) {
 		    		fw.printf("%6d",lenStateList[i]);
@@ -2137,9 +2159,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		 
 //		orbAlter.setBounds(50,50,50,50); 
 //		orbSupSym.setBounds(50,50,50,50);
+		
 		orbAlter.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				System.out.println("STATE CHANGED");
 				update();
 			}
 		});

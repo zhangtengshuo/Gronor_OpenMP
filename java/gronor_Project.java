@@ -3481,6 +3481,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple3[0][0][2][2]=3; // S,T,T
 		couple3[0][2][0][2]=3; // T,S,T
 		couple3[0][2][2][0]=1; // T,T,S
+		couple3[0][2][2][2]=3; // T,T,T
 		couple3[0][0][4][4]=5; // S,Q,Q
 		couple3[0][4][0][4]=5; // Q,S,Q
 		couple3[0][4][4][0]=1; // Q,Q,S
@@ -3493,13 +3494,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple3[2][0][0][2]=1; // S,S,T
 		couple3[2][0][2][0]=3; // S,T,S
 		couple3[2][2][0][0]=3; // T,S,S
-		couple3[2][2][2][2]=1; // T,T,T
+		couple3[2][2][2][2]=3; // T,T,T
 		
 		couple3[2][1][1][2]=1; // D,D,T
 		couple3[2][1][2][1]=2; // D,T,D
 		couple3[2][2][1][1]=2; // T,D,D
-		
-		couple3[2][2][2][2]=1; // T,T,T
 
 		for(int i=0; i<5; i++) {
 			for(int j=0; j<5; j++) {
@@ -3536,12 +3535,21 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple4[0][0][2][0][2][1]=3;
 		couple4[0][0][2][2][0][0]=3; // S,T,T,S
 		couple4[0][0][2][2][0][1]=1;
+		couple4[0][0][2][2][2][0]=2; // S,T,T,T
+		couple4[0][0][2][2][2][1]=2;
 		couple4[0][2][0][0][2][0]=3; // T,S,S,T
 		couple4[0][2][0][0][2][1]=3;
 		couple4[0][2][0][2][0][0]=3; // T,S,T,S
 		couple4[0][2][0][2][0][1]=1;
 		couple4[0][2][2][0][0][0]=1; // T,T,S,S
 		couple4[0][2][2][0][0][1]=1;
+		couple4[0][2][0][2][2][0]=3; // T,S,T,T
+		couple4[0][2][0][2][2][1]=3;
+		couple4[0][2][2][2][0][0]=3; // T,T,T,S
+		couple4[0][2][2][2][0][1]=1;
+		
+		couple4[0][2][2][2][0][0]=3; // T,T,T,T
+		couple4[0][2][2][2][0][1]=3;
 
 		for(int i=0; i<5; i++) {
 			for(int j=0; j<5; j++) {
@@ -3561,6 +3569,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple5[0][0][0][0][0][0][0]=1; // S,S,S,S,S
 		couple5[0][0][0][0][0][0][1]=1;
 		couple5[0][0][0][0][0][0][2]=1;
+		
 		
 		couple5[0][0][0][0][1][1][0]=1; // S,S,S,D,D
 		couple5[0][0][0][0][1][1][1]=1;
@@ -3602,6 +3611,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple5[0][1][1][0][0][0][1]=1;
 		couple5[0][1][1][0][0][0][2]=1;
 		
+		
 		couple5[0][0][0][0][2][2][0]=1; // S,S,S,T,T
 		couple5[0][0][0][0][2][2][1]=1;
 		couple5[0][0][0][0][2][2][2]=3;
@@ -3641,6 +3651,86 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		couple5[0][2][2][0][0][0][0]=1; // T,T,S,S,S
 		couple5[0][2][2][0][0][0][1]=1;
 		couple5[0][2][2][0][0][0][2]=1;
+		
+		
+		couple5[0][0][0][2][2][2][0]=1; // S,S,T,T,T
+		couple5[0][0][0][2][2][2][1]=3;
+		couple5[0][0][0][2][2][2][2]=3;
+		
+		couple5[0][0][2][0][2][2][0]=3; // S,T,S,T,T
+		couple5[0][0][2][0][2][2][1]=3;
+		couple5[0][0][2][0][2][2][2]=3;
+		
+		couple5[0][0][2][2][0][2][0]=3; // S,T,T,S,T
+		couple5[0][0][2][2][0][2][1]=3;
+		couple5[0][0][2][2][0][2][2]=3;
+		
+		couple5[0][0][2][2][2][0][0]=3; // S,T,T,T,S
+		couple5[0][0][2][2][2][0][1]=3;
+		couple5[0][0][2][2][2][0][2]=1;
+		
+		couple5[0][2][0][2][2][0][0]=3; // T,S,T,T,S
+		couple5[0][2][0][2][2][0][1]=3;
+		couple5[0][2][0][2][2][0][2]=1;
+		
+		couple5[0][2][2][0][2][0][0]=3; // T,T,S,T,S
+		couple5[0][2][2][0][2][0][1]=3;
+		couple5[0][2][2][0][2][0][2]=3;
+		
+		couple5[0][2][2][0][0][2][0]=3; // T,T,S,S,T
+		couple5[0][2][2][0][0][2][1]=3;
+		couple5[0][2][2][0][0][2][2]=3;
+		
+		couple5[0][2][2][2][0][0][0]=3; // T,T,T,S,S
+		couple5[0][2][2][2][0][0][1]=1;
+		couple5[0][2][2][2][0][0][2]=1;
+		
+		couple5[0][2][2][2][2][0][0]=3; // T,T,T,T,S
+		couple5[0][2][2][2][2][0][1]=3;
+		couple5[0][2][2][2][2][0][2]=1;
+		
+		couple5[0][2][2][2][0][2][0]=3; // T,T,T,S,T
+		couple5[0][2][2][2][0][2][1]=3;
+		couple5[0][2][2][2][0][2][2]=3;
+		
+		couple5[0][2][2][0][2][2][0]=3; // T,T,S,T,T
+		couple5[0][2][2][0][2][2][1]=3;
+		couple5[0][2][2][0][2][2][2]=3;
+		
+		couple5[0][2][0][2][2][2][0]=3; // T,S,T,T,T
+		couple5[0][2][0][2][2][2][1]=3;
+		couple5[0][2][0][2][2][2][2]=3;
+		
+		couple5[0][0][2][2][2][2][0]=3; // S,T,T,T,T
+		couple5[0][0][2][2][2][2][1]=3;
+		couple5[0][0][2][2][2][2][2]=3;
+		
+		couple5[0][2][2][2][2][2][0]=3; // T,T,T,T,T
+		couple5[0][2][2][2][2][2][1]=3;
+		couple5[0][2][2][2][2][2][2]=3;
+		
+		
+		couple5[0][2][2][0][1][1][0]=1; // T,T,S,D,D
+		couple5[0][2][2][0][1][1][1]=1;
+		couple5[0][2][2][0][1][1][2]=2;
+		
+		couple5[0][2][2][1][0][1][0]=1; // T,T,D,S,D
+		couple5[0][2][2][1][0][1][1]=2;
+		couple5[0][2][2][1][0][1][2]=2;
+		
+		couple5[0][2][2][1][1][0][0]=1; // T,T,D,D,S
+		couple5[0][2][2][1][1][0][1]=2;
+		couple5[0][2][2][1][1][0][2]=1;
+		
+		couple5[0][0][1][2][2][1][0]=2; // S,D,T,T,D
+		couple5[0][0][1][2][2][1][1]=2;
+		couple5[0][0][1][2][2][1][2]=2;
+		
+		
+		couple5[0][0][1][1][2][2][0]=2; // S,D,D,T,T
+		couple5[0][0][1][1][2][2][1]=1;
+		couple5[0][0][1][1][2][2][2]=3;
+		
 
 		for(int i=0; i<5; i++) {
 			for(int j=0; j<5; j++) {

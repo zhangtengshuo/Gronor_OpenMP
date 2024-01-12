@@ -26,6 +26,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JPanel dimensionPanel;
 	JPanel jobPanel;
 	JPanel expansionPanel;
+	JPanel checkBoxPanel;
 	JPanel numberPanel;
 	JPanel threshPanel;
 	JPanel fieldPanel;
@@ -187,7 +188,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     
     Integer numCASe=8, numCASo=8, numAlt=0, numOcc=0, numSup=0;
     Integer[][] alter = new Integer[12][2];
-    
+
+	JCheckBox orbAlter = new JCheckBox("alter"); 
+	JCheckBox orbSupSym = new JCheckBox("supsym");
+	
     Container container = null;
     
 	gronor_Project(String pName){
@@ -914,10 +918,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 	}
 	private void update() {
-		
+
+		readOutputFiles();
 		updateStatesList();
 		updateFragmentList();
-		readOutputFiles();
 		updateFragmentDefinitions();
 		updateFragmentEnergies();
 		updateMEBFDefinitions();
@@ -1559,13 +1563,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragment.write_Molcas_SCF(nameF,nameP,mult,chrg);
 
 			if(lenStateList[stateIndex]>0) {
-				withAlter=true;
+				withAlter=orbAlter.isSelected();
 				for(int j=0; j<lenStateList[stateIndex]; j++) {
 					nameS=stateNames[ndxStateList[stateIndex][j]];
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
 					numElec=dimFragments[i][3];
-					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,ipea);
+					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,orbSupSym.isSelected(),ipea);
 					withAlter=false;
 				}		
 			}
@@ -1635,16 +1639,24 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			} 
 			
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
-			numAlt=fragment.read_Alt(nameP,nameA);
+//			numAlt=fragment.read_Alt(nameP,nameA);
 			dimFragments[i][10]=numAlt;
 			
-			numSup=fragment.read_Sup(nameP,nameA);
+//			numSup=fragment.read_Sup(nameP,nameA);
 			dimFragments[i][12]=numSup;
 			
 			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
-				dimFragments[i][10]=numAlt;
-				dimFragments[i][12]=numSup;
+				if(orbAlter.isSelected()) {
+					dimFragments[i][10]=fragment.numAlt;
+				} else {
+					dimFragments[i][10]=0;
+				}
+				if(orbSupSym.isSelected()) {
+					dimFragments[i][12]=fragment.numSup;
+				} else {
+					dimFragments[i][12]=0;
+				}
 				energiesSCF[i]=energy;
 				dimFragments[i][7]=1;
 			}
@@ -2115,6 +2127,22 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		});
 
+		checkBoxPanel = new JPanel();
+		checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel,BoxLayout.Y_AXIS));
+		checkBoxPanel.setPreferredSize(new Dimension(100,50));
+		checkBoxPanel.setMinimumSize(new Dimension(100,50));
+		checkBoxPanel.setMaximumSize(new Dimension(100,50));
+		LineBorder checkBoxBorder = new LineBorder(Color.black);
+		checkBoxPanel.setBorder(checkBoxBorder);
+		 
+//		orbAlter.setBounds(50,50,50,50); 
+//		orbSupSym.setBounds(50,50,50,50);
+		orbAlter.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				System.out.println("STATE CHANGED");
+				update();
+			}
+		});
 		
 		basisPanel = new JPanel();
 		basisPanel.setLayout(new BoxLayout(basisPanel,BoxLayout.Y_AXIS));
@@ -2318,6 +2346,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		basisPanel.add(choleskyTable);
 		expansionPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		expansionPanel.add(expansionTable);
+		expansionPanel.add(checkBoxPanel);
+		expansionPanel.add(Box.createVerticalGlue());
+		checkBoxPanel.add(orbAlter);
+		checkBoxPanel.add(orbSupSym);
 		jobPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		jobPanel.add(jobTable);
 		buttonPanel.add(Box.createRigidArea(new Dimension(5,5)));
@@ -2682,6 +2714,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		mebfsPanel.add(mebfsScroll);
 		baseBox.add(mebfsPanel);
 
+		orbAlter.setSelected(true);
 
 		update();
 	}

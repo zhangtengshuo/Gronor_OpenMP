@@ -46,11 +46,14 @@ public class gronor_Fragment {
 	
 	Double RandT[] = new Double[6];
 	
-	Integer numAlt;
+	Integer numAlt=0;
 	Integer[][] alter = new Integer[12][2];
-	Integer numSup, numSupOrb=0;
+	Integer numSup=0, numSupOrb=0;
 	Integer[] supsym = new Integer[64];
 	Boolean altDone=false;
+	
+	Integer numPz=0;
+	Integer[] pzOrb = new Integer[100];
 
 	gronor_Fragment(){
 	}
@@ -162,9 +165,6 @@ public class gronor_Fragment {
 			runFile.println("cp "+fullName.trim()+".input "+fp.trim()+fs.trim()+".input; "+"pymolcas "+fp.trim()+fs.trim()+".input > "+fullName.trim()+".output");
 			slurmFile.println("cp "+fullName.trim()+".input "+fp.trim()+fs.trim()+".input; "+"pymolcas "+fp.trim()+fs.trim()+".input > "+fullName.trim()+".output");
 			lsfFile.println("cp "+fullName.trim()+".input "+fp.trim()+fs.trim()+".input; "+"pymolcas "+fp.trim()+fs.trim()+".input > "+fullName.trim()+".output");
-			runFile.println("alter "+fullName.trim()+".output "+fp.trim()+fs.trim()+".alter");
-			slurmFile.println("alter "+fullName.trim()+".output "+fp.trim()+fs.trim()+".alter");
-			lsfFile.println("alter "+fullName.trim()+".output "+fp.trim()+fs.trim()+".alter");
 			
 			runFile.println("rm "+fp.trim()+fs.trim()+".input");
 			slurmFile.println("rm "+fp.trim()+fs.trim()+".input");
@@ -730,44 +730,6 @@ public class gronor_Fragment {
 			return false;
 		}
 	}
-
-	public Integer read_Alt(String nameP, String nameA) {
-		String fileName = nameP.trim()+nameA.trim()+".alter";
-		String card;
-		numAlt=0;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileName));
-			card=br.readLine();
-			numAlt=Integer.valueOf(card.substring(0,6).trim());
-			
-			for(int i=0; i<numAlt; i++) {
-				card=br.readLine();
-				alter[i][0]=Integer.valueOf(card.substring(0,6).trim());
-				alter[i][1]=Integer.valueOf(card.substring(6,12).trim());
-			}
-			br.close();
-			return numAlt;
-		} catch(IOException ef) {
-			return numAlt;
-		}
-	}
-
-	public Integer read_Sup(String nameP, String nameA) {
-		String fileName = nameP.trim()+nameA.trim()+".supsym";
-		String card;
-		numSup=0;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileName));
-			card=br.readLine();
-			numSup=Integer.valueOf(card.substring(0,6).trim());
-			card=br.readLine();
-			for(int i=0; i<numSup; i++) supsym[i]=Integer.valueOf(card.substring(i*6,i*6+6).trim());
-			br.close();
-			return numSup;
-		} catch(IOException ef) {
-			return numSup;
-		}
-	}
 	
 	public Boolean write_XYZ() {
 		String fileName = fragmentName+".xyz";
@@ -1100,7 +1062,7 @@ public class gronor_Fragment {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 			inputFile.println("&scf");
 			inputFile.println(" pror");
-			inputFile.println(" 1 2then");
+			inputFile.println(" 1 2");
 			if(chrg!=0) {
 				if(mult==1) { inputFile.println(" charge "); inputFile.println("  "+chrg);}
 			} else {
@@ -1115,55 +1077,8 @@ public class gronor_Fragment {
 		}
 	}
 	
-	public void Molcas_numAlt(String nameF,String nameP) {
-		String fileName=nameP.trim()+".alter";
-		String card;
-		numAlt=0;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileName));
-			card=br.readLine();
-			numAlt=Integer.valueOf(card.substring(0,6).trim());
-			
-			for(int i=0; i<numAlt; i++) {
-				card=br.readLine();
-				alter[i][0]=Integer.valueOf(card.substring(0,6).trim());
-				alter[i][1]=Integer.valueOf(card.substring(6,12).trim());
-			}
-			br.close();
-			return;
-		} catch(IOException ef) {
-			return;
-		}
-	}
-	
-	public void Molcas_numSup(String nameF,String nameP, Integer numElec, Integer numCASe) {
-		String fileName=nameP.trim()+".supsym";
-		String card;
-		numSup=0;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileName));
-			card=br.readLine();
-			numSup=Integer.valueOf(card.substring(0,6).trim());
-			numSupOrb=0;
-			Integer orb=0;
-			for(int i=0; i<numSup; i++) {
-				card=br.readLine();
-				orb=Integer.valueOf(card.substring(0,6).trim());
-				if(orb<=((numElec - numCASe)/2)) {
-					supsym[numSupOrb]=orb;
-					numSupOrb++;
-				}
-			}
-			br.close();
-			return;
-		} catch(IOException ef) {
-			return;
-		}
-	}
-	
-	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numElec, Integer numCASe, Integer numCASo, Boolean withAlter, Double ipea) {
-		Molcas_numAlt(nameF, nameP);
-		Molcas_numSup(nameF, nameP, numElec, numCASe);
+	public Boolean write_Molcas_CASSCF(String nameF, String nameP, String nameS, Boolean withCASPT2, Integer numElec, Integer numCASe, Integer numCASo, Boolean withAlter, Boolean withSup, Double ipea) {
+
 		String fileName=nameP.trim()+"_"+nameS.trim()+".input";
 		String rootName=nameP.trim();
 		String ext = "_"+nameS.trim();
@@ -1181,11 +1096,11 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
 						inputFile.print(supsym[i]);
 						}
 					inputFile.println();
@@ -1958,13 +1873,15 @@ public class gronor_Fragment {
 				if(card.contains("      Secondary orbitals")) {
 					numSec=Integer.valueOf(card.substring(33,38).trim());
 				}
+				if(card.contains("      Total number of orbitals")) {
+					numOrb=Integer.valueOf(card.substring(33,38).trim());
+				}
 				if(card.contains("::    Total SCF energy")) {
 					converged=true;
 					energy=Double.valueOf(card.substring(51,68).trim()).doubleValue();
 				}
-				if(card.contains("++    Molecular itals:") && converged) {
+				if(card.contains("++    Molecular orbitals:") && converged) {
 					numBas=numOcc+numSec;
-					numOrb=2*numOcc;
 					Double[] occ = new Double[numOrb];
 					Integer[] typ = new Integer[numOrb];
 					Double[] coef = new Double[10];
@@ -1972,68 +1889,114 @@ public class gronor_Fragment {
 					Integer[] imax = new Integer[10];
 					Integer ilast;
 					Integer count=0;
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					while(count<numOrb) {
-						ilast=Integer.min(10,numOrb-count);
-						for(int i=0; i<ilast; i++) {
-							occ[count+i]=Double.valueOf(card.substring(24+i*10,34+i*10).trim()).doubleValue();
-							typ[count+i]=0;
-							cmax[i]=0.0;
-						}
+					Integer ndx=0;
+					
+					Boolean[] isPz = new Boolean[numOrb];
+					
+					System.out.println("numOrb="+numOrb);
+					numPz=0;
+					while(!card.contains("Index")) card=br.readLine();
+					while(!card.contains("--")) {
 						card=br.readLine();
-						for(int j=0; j<numBas; j++) {
-							card=br.readLine();
-							for(int i=0; i<ilast; i++) {
-								coef[i]=Double.valueOf(card.substring(24+i*10,34+i*10).trim()).doubleValue();
-								if(Math.abs(coef[i])>cmax[i]) {
-									imax[i]=j;
-									if(card.contains("s")) typ[count+i]=1;
-									if(card.contains("px")) typ[count+i]=2;
-									if(card.contains("py")) typ[count+i]=3;
-									if(card.contains("pz")) typ[count+i]=4;
-									if(card.contains("d2-")) typ[count+i]=5;
-									if(card.contains("d1-")) typ[count+i]=6;
-									if(card.contains("d0")) typ[count+i]=7;
-									if(card.contains("d1+")) typ[count+i]=8;
-									if(card.contains("d2+")) typ[count+i]=9;
-								}
-								cmax[i]=Double.max(cmax[i],Math.abs(coef[i]));
-							}	
-						}
-						card=br.readLine();
-						card=br.readLine();
-						card=br.readLine();
-						card=br.readLine();
-						count=count+10;
-					}
-					Integer n=numCASe/2, numpz=0;
-					for(int i=numOcc-n; i<numOcc; i++) {
-						index=i;
-						if(typ[index]==4) numpz++;
-					}
-					numAlt=0;
-					if(numpz==n) {
-						for(int i=numOcc; i<numOcc+n; i++) {
-							index=i;
-							if(typ[index]!=4) {
-								alter[numAlt][0]=i;
-								numAlt++;
+						if(card.length()>=5) {
+							if(card.substring(0,5).trim().length()>0) {
+								ndx=Integer.valueOf(card.substring(0,5).trim());
+								System.out.println(ndx+" "+card.substring(45,47).trim().contains("pz"));
+								if(ndx>0) isPz[(ndx-1)]=card.substring(45,47).trim().contains("pz");
 							}
 						}
-						Integer ii=numOcc+n;
-						for(int ialt=0; ialt<numAlt; ialt++) {
-							while(typ[ii]!=4) ii++;
-							alter[ialt][1]=ii; ii++;
+					}
+					
+					numOrb=ndx;
+					System.out.println("pz orbitals");
+					for(int i=0; i<numOrb; i++) System.out.println((i+1)+" "+isPz[i]);
+
+					System.out.println("numCASe,numOcc="+numCASe+" "+numOcc);
+					
+					Integer n=numCASe/2, numpz=0;
+					
+					Integer numiop=0;
+					for(int i=0; i<numOcc-n; i++) {
+						System.out.println("Inactive occupied   "+(i+1)+" "+isPz[i]);
+						if(isPz[i]) numiop++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numaonp=0;
+					for(int i=numOcc-n; i<numOcc; i++) {
+						System.out.println("Active occupied     "+(i+1)+" "+isPz[i]);
+						if(!isPz[i]) numaonp++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numaunp=0;
+					for(int i=numOcc; i<numOcc+n; i++) {
+						System.out.println("Active unoccupied   "+(i+1)+" "+isPz[i]);
+						if(!isPz[i]) numaunp++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numiup=0;
+					for(int i=numOcc+n; i<numOrb; i++) {
+						System.out.println("Inactive unoccupied "+(i+1)+" "+isPz[i]);
+						if(isPz[i]) numiup++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					
+					numAlt=0;
+					for(int i=numOcc-n; i<numOcc; i++) {
+						if(!isPz[i]) {
+							for(int j=numOcc-n-1; j>=0; j--) {
+								if(!isPz[i] && isPz[j]) {
+									alter[numAlt][0]=(j+1);
+									alter[numAlt][1]=(i+1);
+									numAlt++;
+									isPz[i]=true;
+									isPz[j]=false;
+									numiop--;
+									numaonp--;
+								}
+							}
+						}						
+					}
+
+					for(int i=numOcc+n-1; i>=numOcc; i--) {
+						if(!isPz[i]) {
+							for(int j=numOcc+n; j<numOrb; j++) {
+								if(!isPz[i] && isPz[j]) {
+									alter[numAlt][0]=(i+1);
+									alter[numAlt][1]=(j+1);
+									numAlt++;
+									isPz[i]=true;
+									isPz[j]=false;
+									numiup--;
+									numaunp--;
+								}
+							}
 						}
 					}
+					
+					System.out.println("Alter "+numAlt);
+					for(int i=0; i<numAlt; i++) System.out.println(alter[i][0]+" "+alter[i][1]);
+
+					numSup=0;
+					for(int i=0; i<numOcc-n; i++) {
+						if(isPz[i]) {
+							supsym[numSup]=i+1;
+							numSup++;
+						}
+						System.out.println(i+" "+isPz[i]);
+					}
+					
+					System.out.println("SumSym "+numSup);
+					for(int i=0; i<numSup; i++) System.out.print(" "+supsym[i]);
+					System.out.println();
+					
 				}
 			}
 			br.close();
@@ -2065,13 +2028,16 @@ public class gronor_Fragment {
 				if(card.contains("      Secondary orbitals")) {
 					numSec=Integer.valueOf(card.substring(33,38).trim());
 				}
+				if(card.contains("      Total number of orbitals")) {
+					numOrb=Integer.valueOf(card.substring(33,38).trim());
+				}
 				if(card.contains("::    Total SCF energy")) {
 					converged=true;
 					energy=Double.valueOf(card.substring(51,68).trim()).doubleValue();
 				}
-				if(card.contains("++    Molecular oitals:") && converged) {
+
+				if(card.contains("++    Molecular orbitals:") && converged) {
 					numBas=numOcc+numSec;
-					numOrb=2*numOcc;
 					Double[] occ = new Double[numOrb];
 					Integer[] typ = new Integer[numOrb];
 					Double[] coef = new Double[10];
@@ -2079,69 +2045,119 @@ public class gronor_Fragment {
 					Integer[] imax = new Integer[10];
 					Integer ilast;
 					Integer count=0;
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					card=br.readLine();
-					while(count<numOrb) {
-						ilast=Integer.min(10,numOrb-count);
-						for(int i=0; i<ilast; i++) {
-							occ[count+i]=Double.valueOf(card.substring(24+i*10,34+i*10).trim()).doubleValue();
-							typ[count+i]=0;
-							cmax[i]=0.0;
-						}
+					Integer ndx=0;
+					
+					Boolean[] isPz = new Boolean[numOrb];
+					
+					System.out.println("numOrb="+numOrb);
+					numPz=0;
+					while(!card.contains("Index")) card=br.readLine();
+					while(!card.contains("--")) {
 						card=br.readLine();
-						for(int j=0; j<numBas; j++) {
-							card=br.readLine();
-							for(int i=0; i<ilast; i++) {
-								coef[i]=Double.valueOf(card.substring(24+i*10,34+i*10).trim()).doubleValue();
-								if(Math.abs(coef[i])>cmax[i]) {
-									imax[i]=j;
-									if(card.contains("s")) typ[count+i]=1;
-									if(card.contains("px")) typ[count+i]=2;
-									if(card.contains("py")) typ[count+i]=3;
-									if(card.contains("pz")) typ[count+i]=4;
-									if(card.contains("d2-")) typ[count+i]=5;
-									if(card.contains("d1-")) typ[count+i]=6;
-									if(card.contains("d0")) typ[count+i]=7;
-									if(card.contains("d1+")) typ[count+i]=8;
-									if(card.contains("d2+")) typ[count+i]=9;
-								}
-								cmax[i]=Double.max(cmax[i],Math.abs(coef[i]));
-							}	
-						}
-						card=br.readLine();
-						card=br.readLine();
-						card=br.readLine();
-						card=br.readLine();
-						count=count+10;
-					}
-					Integer n=numCASe/2, numpz=0;
-					for(int i=numOcc-n; i<numOcc; i++) {
-						index=i;
-						if(typ[index]==4) numpz++;
-					}
-					numAlt=0;
-					if(numpz==n) {
-						for(int i=numOcc; i<numOcc+n; i++) {
-							index=i;
-							if(typ[index]!=4) {
-								alter[numAlt][0]=i;
-								numAlt++;
+						if(card.length()>=5) {
+							if(card.substring(0,5).trim().length()>0) {
+								ndx=Integer.valueOf(card.substring(0,5).trim());
+								System.out.println(ndx+" "+card.substring(45,47).trim().contains("pz"));
+								if(ndx>0) isPz[(ndx-1)]=card.substring(45,47).trim().contains("pz");
 							}
 						}
-						Integer ii=numOcc+n;
-						for(int ialt=0; ialt<numAlt; ialt++) {
-							while(typ[ii]!=4) ii++;
-							alter[ialt][1]=ii; ii++;
+					}
+					
+					numOrb=ndx;
+					System.out.println("pz orbitals");
+					for(int i=0; i<numOrb; i++) System.out.println((i+1)+" "+isPz[i]);
+
+					System.out.println("numCASe,numOcc="+numCASe+" "+numOcc);
+					
+					Integer n=numCASe/2, numpz=0;
+					
+					Integer numiop=0;
+					for(int i=0; i<numOcc-n; i++) {
+						System.out.println("Inactive occupied   "+(i+1)+" "+isPz[i]);
+						if(isPz[i]) numiop++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numaonp=0;
+					for(int i=numOcc-n; i<numOcc; i++) {
+						System.out.println("Active occupied     "+(i+1)+" "+isPz[i]);
+						if(!isPz[i]) numaonp++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numaunp=0;
+					for(int i=numOcc; i<numOcc+n; i++) {
+						System.out.println("Active unoccupied   "+(i+1)+" "+isPz[i]);
+						if(!isPz[i]) numaunp++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					Integer numiup=0;
+					for(int i=numOcc+n; i<numOrb; i++) {
+						System.out.println("Inactive unoccupied "+(i+1)+" "+isPz[i]);
+						if(isPz[i]) numiup++;
+						index=i;
+//						if(typ[index]==4) numpz++;
+//						if(isPz[index]) numpz++;
+					}
+					
+					numAlt=0;
+					for(int i=numOcc-n; i<numOcc; i++) {
+						if(!isPz[i]) {
+							for(int j=numOcc-n-1; j>=0; j--) {
+								if(!isPz[i] && isPz[j]) {
+									alter[numAlt][0]=(j+1);
+									alter[numAlt][1]=(i+1);
+									numAlt++;
+									isPz[i]=true;
+									isPz[j]=false;
+									numiop--;
+									numaonp--;
+								}
+							}
+						}						
+					}
+
+					for(int i=numOcc+n-1; i>=numOcc; i--) {
+						if(!isPz[i]) {
+							for(int j=numOcc+n; j<numOrb; j++) {
+								if(!isPz[i] && isPz[j]) {
+									alter[numAlt][0]=(i+1);
+									alter[numAlt][1]=(j+1);
+									numAlt++;
+									isPz[i]=true;
+									isPz[j]=false;
+									numiup--;
+									numaunp--;
+								}
+							}
 						}
 					}
+					
+					System.out.println("Alter "+numAlt);
+					for(int i=0; i<numAlt; i++) System.out.println(alter[i][0]+" "+alter[i][1]);
+
+					numSup=0;
+					for(int i=0; i<numOcc-n; i++) {
+						if(isPz[i]) {
+							supsym[numSup]=i+1;
+							numSup++;
+						}
+						System.out.println(i+" "+isPz[i]);
+					}
+					
+					System.out.println("SumSym "+numSup);
+					for(int i=0; i<numSup; i++) System.out.print(" "+supsym[i]);
+					System.out.println();
+					
 				}
+				
+				
+				
+				
 			}
 			br.close();
 			return energy;

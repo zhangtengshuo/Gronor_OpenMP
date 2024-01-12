@@ -1142,12 +1142,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1192,12 +1192,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1242,12 +1242,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1288,12 +1288,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1338,12 +1338,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1384,12 +1384,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1434,12 +1434,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1480,12 +1480,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1526,12 +1526,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1572,12 +1572,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1618,12 +1618,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1664,12 +1664,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1710,12 +1710,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1756,12 +1756,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}
@@ -1804,12 +1804,12 @@ public class gronor_Fragment {
 						inputFile.println(" 1 "+alter[i][0]+" "+alter[i][1]);
 					}
 				}
-				if(numSupOrb>1) {
+				if(withSup && numSup>0) {
 					inputFile.println("supsym");
 					inputFile.println(" 1");
-					inputFile.print(" "+numSupOrb);
-					for(int i=0; i<numSupOrb; i++) {
-						inputFile.print(supsym[i]);
+					inputFile.print(" "+numSup);
+					for(int i=0; i<numSup; i++) {
+						inputFile.print(" "+supsym[i]);
 						}
 					inputFile.println();
 				}

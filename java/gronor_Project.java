@@ -1591,6 +1591,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
 					numElec=dimFragments[i][3];
+//					if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {};
 					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,orbSupSym.isSelected(),ipea);
 					withAlter=false;
 				}		

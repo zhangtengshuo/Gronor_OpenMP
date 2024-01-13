@@ -1852,8 +1852,9 @@ public class gronor_Fragment {
 		return false;
 	}
 	
-	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe) {
+	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe, Integer numCASo) {
 		String fileName = fragmentName+fragmentNames[frag]+"_SCF.output";
+		System.out.println("Parsing1 "+fileName);
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -1908,6 +1909,7 @@ public class gronor_Fragment {
 					numOrb=ndx;
 					
 					Integer n=numCASe/2, numpz=0;
+					if(numCASe%2!=0) n++;
 					
 					Integer numiop=0;
 					for(int i=0; i<numOcc-n; i++) {
@@ -1918,11 +1920,11 @@ public class gronor_Fragment {
 						if(!isPz[i]) numaonp++;
 					}
 					Integer numaunp=0;
-					for(int i=numOcc; i<numOcc+n; i++) {
+					for(int i=numOcc; i<numOcc+numCASo-n; i++) {
 						if(!isPz[i]) numaunp++;
 					}
 					Integer numiup=0;
-					for(int i=numOcc+n; i<numOrb; i++) {
+					for(int i=numOcc+numCASo-n; i<numOrb; i++) {
 						if(isPz[i]) numiup++;
 					}
 					
@@ -1943,9 +1945,9 @@ public class gronor_Fragment {
 						}						
 					}
 
-					for(int i=numOcc+n-1; i>=numOcc; i--) {
+					for(int i=numOcc+numCASo-1; i>=numOcc; i--) {
 						if(!isPz[i]) {
-							for(int j=numOcc+n; j<numOrb; j++) {
+							for(int j=numOcc+numCASo-n; j<numOrb; j++) {
 								if(!isPz[i] && isPz[j]) {
 									alter[numAlt][0]=(i+1);
 									alter[numAlt][1]=(j+1);
@@ -1975,8 +1977,9 @@ public class gronor_Fragment {
 		}
 	}
 
-	public Double Molcas_SCF(Integer frag, Integer numCASe) {
+	public Double Molcas_SCF(Integer frag, Integer numCASe, Integer numCASo) {
 		String fileName = fragmentName.trim()+fragmentNames[frag]+"_SCF.output";
+		System.out.println("Parsing2 "+fileName);
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -2033,6 +2036,7 @@ public class gronor_Fragment {
 					numOrb=ndx;
 					
 					Integer n=numCASe/2, numpz=0;
+					if(numCASe%2!=0) n++;
 					
 					Integer numiop=0;
 					for(int i=0; i<numOcc-n; i++) {
@@ -2043,11 +2047,11 @@ public class gronor_Fragment {
 						if(!isPz[i]) numaonp++;
 					}
 					Integer numaunp=0;
-					for(int i=numOcc; i<numOcc+n; i++) {
+					for(int i=numOcc; i<numOcc+numCASo-n; i++) {
 						if(!isPz[i]) numaunp++;
 					}
 					Integer numiup=0;
-					for(int i=numOcc+n; i<numOrb; i++) {
+					for(int i=numOcc+numCASo-n; i<numOrb; i++) {
 						if(isPz[i]) numiup++;
 					}
 					
@@ -2068,9 +2072,9 @@ public class gronor_Fragment {
 						}						
 					}
 
-					for(int i=numOcc+n-1; i>=numOcc; i--) {
+					for(int i=numOcc+numCASo-1; i>=numOcc; i--) {
 						if(!isPz[i]) {
-							for(int j=numOcc+n; j<numOrb; j++) {
+							for(int j=numOcc+numCASo-n; j<numOrb; j++) {
 								if(!isPz[i] && isPz[j]) {
 									alter[numAlt][0]=(i+1);
 									alter[numAlt][1]=(j+1);

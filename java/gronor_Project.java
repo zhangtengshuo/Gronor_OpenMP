@@ -1591,7 +1591,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
 					numElec=dimFragments[i][3];
-//					if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {};
+					if(fragment.Molcas_SCF_Converged(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {};
 					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,orbSupSym.isSelected(),ipea);
 					withAlter=false;
 				}		
@@ -1668,8 +1668,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			numSup=fragment.read_Sup(nameP,nameA);
 			dimFragments[i][12]=numSup;
 			
-			if(fragment.Molcas_SCF_Converged(i,dimFragments[i][4])) {
-				energy=fragment.Molcas_SCF(i,dimFragments[i][4]);
+			System.out.println("Fragment "+i+" "+fragmentDefinitions[i][1]+" "+dimFragments[i][0]);
+			if(fragment.Molcas_SCF_Converged(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {
+				energy=fragment.Molcas_SCF(i,dimFragments[i][4],dimFragments[i][5]);
 				if(orbAlter.isSelected()) {
 					dimFragments[i][10]=fragment.numAlt;
 				} else {
@@ -2558,6 +2559,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter number of electrons in CAS for fragment "+fragmentDefinitions[row][0].toString());
 						if(value.length()>0) dimFragments[row][4]=Integer.valueOf(value);
+						if(2*dimFragments[row][5]<=dimFragments[row][4]) dimFragments[row][5]=dimFragments[row][4];
 					} catch(NullPointerException e1) {
 					}
 				}
@@ -2566,6 +2568,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter number of orbitals in CAS for fragment "+fragmentDefinitions[row][0].toString());
 						if(value.length()>0) dimFragments[row][5]=Integer.valueOf(value);
+						if(2*dimFragments[row][5]<=dimFragments[row][4]) dimFragments[row][4]=dimFragments[row][5];
 					} catch(NullPointerException e1) {
 					}
 				}

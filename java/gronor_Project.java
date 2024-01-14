@@ -164,12 +164,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Double fieldY = 0.0;
     Double fieldZ = 0.0;
 
-    Integer[][][][] couple3 =     new Integer[5][5][5][5];		                        // indices: target spin; frag 1,2,3 spin; coupling 1
-    Integer[][][][][][] couple4 = new Integer[5][5][5][5][5][2];	                    // indices: target spin; frag 1,2,3,4 spin; coupling 1,2
-    Integer[][][][][][][] couple5 = new Integer[5][5][5][5][5][5][3];	                // indices: target spin; frag 1,2,3,4,5 spin; coupling 1,2,3
-    Integer[][][][][][][][] couple6 = new Integer[5][5][5][5][5][5][5][4];	            // indices: target spin; frag 1,2,3,4,5,6 spin; coupling 1,2,3,4
-    Integer[][][][][][][][][] couple7 = new Integer[5][5][5][5][5][5][5][5][5];	        // indices: target spin; frag 1,2,3,4,5,6,7 spin; coupling 1,2,3,4,5
-    Integer[][][][][][][][][][] couple8 = new Integer[5][5][5][5][5][5][5][5][5][6];	// indices: target spin; frag 1,2,3,4,5,6,7,8 spin; coupling 1,2,3,4,5,6
+//    Integer[][][][] couple3 =     new Integer[5][5][5][5];		                        // indices: target spin; frag 1,2,3 spin; coupling 1
+//    Integer[][][][][][] couple4 = new Integer[5][5][5][5][5][2];	                    // indices: target spin; frag 1,2,3,4 spin; coupling 1,2
+//    Integer[][][][][][][] couple5 = new Integer[5][5][5][5][5][5][3];	                // indices: target spin; frag 1,2,3,4,5 spin; coupling 1,2,3
+//    Integer[][][][][][][][] couple6 = new Integer[5][5][5][5][5][5][5][4];	            // indices: target spin; frag 1,2,3,4,5,6 spin; coupling 1,2,3,4
+//    Integer[][][][][][][][][] couple7 = new Integer[5][5][5][5][5][5][5][5][5];	        // indices: target spin; frag 1,2,3,4,5,6,7 spin; coupling 1,2,3,4,5
+//    Integer[][][][][][][][][][] couple8 = new Integer[5][5][5][5][5][5][5][5][5][6];	// indices: target spin; frag 1,2,3,4,5,6,7,8 spin; coupling 1,2,3,4,5,6
     
     JFrame dialogFrame;
 
@@ -1668,7 +1668,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			numSup=fragment.read_Sup(nameP,nameA);
 			dimFragments[i][12]=numSup;
 			
-			System.out.println("Fragment "+i+" "+fragmentDefinitions[i][1]+" "+dimFragments[i][0]);
 			if(fragment.Molcas_SCF_Converged(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {
 				energy=fragment.Molcas_SCF(i,dimFragments[i][4],dimFragments[i][5]);
 				if(orbAlter.isSelected()) {
@@ -3467,8 +3466,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer numME =0;
 		Integer nmer = 0;
 		Integer spin = 1;
-		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8;
+		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8, isp9, isp10;
 		
+		/*
 		for(int i=0; i<5; i++) {
 			for(int j=0; j<5; j++) {
 				for(int k=0; k<5; k++) {
@@ -3795,7 +3795,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-
+*/
 		
 		
 		for(int i=0; i<numMEBFs; i++) {
@@ -3818,11 +3818,24 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
 						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
 						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
-						inputFile.print("  "+couple3[spin-1][isp1][isp2][isp3]);
+						inputFile.print("  "+trimer_Coupling(spin,isp1,isp2,isp3));
+//						inputFile.print("  "+couple3[spin-1][isp1][isp2][isp3]);
+//						System.out.println(couple3[spin-1][isp1][isp2][isp3]+" "+trimer_Coupling(spin,isp1,isp2,isp3));
 					}
 					inputFile.println();
 				}
 				if(nmer==4) {
+					Integer[] c = new Integer[2];
+					Integer[][] cs = new Integer[numME][2];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						c=tetramer_Coupling(spin,isp1,isp2,isp3,isp4);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+					}
 					inputFile.println("Couplings ");
 					for(int l=0; l<2; l++) {
 						inputFile.print("  ");
@@ -3831,12 +3844,27 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
 							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
 							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
-							inputFile.print("  "+couple4[spin-1][isp1][isp2][isp3][isp4][l]);
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple4[spin-1][isp1][isp2][isp3][isp4][l]);
+//							System.out.println(isp1+" "+isp2+" "+isp3+" "+isp4+" : "+couple4[spin-1][isp1][isp2][isp3][isp4][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
 				}
 				if(nmer==5) {
+					Integer[] c = new Integer[3];
+					Integer[][] cs = new Integer[numME][3];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						c=pentamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+					}
 					inputFile.println("Couplings ");
 					for(int l=0; l<3; l++) {
 						inputFile.print("  ");
@@ -3846,12 +3874,29 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
 							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
 							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
-							inputFile.print("  "+couple5[spin-1][isp1][isp2][isp3][isp4][isp5][l]);
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple5[spin-1][isp1][isp2][isp3][isp4][isp5][l]);
+//							System.out.println("  "+couple5[spin-1][isp1][isp2][isp3][isp4][isp5][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
 				}
 				if(nmer==6) {
+					Integer[] c = new Integer[4];
+					Integer[][] cs = new Integer[numME][4];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+						c=hexamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5,isp6);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+						cs[k][3]=c[3];
+					}
 					inputFile.println("Couplings ");
 					for(int l=0; l<4; l++) {
 						inputFile.print("  ");
@@ -3862,12 +3907,31 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
 							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
 							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
-							inputFile.print("  "+couple6[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][l]);
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple6[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][l]);
+//							System.out.println("  "+couple6[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
 				}
 				if(nmer==7) {
+					Integer[] c = new Integer[5];
+					Integer[][] cs = new Integer[numME][5];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+						isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+						c=heptamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5,isp6,isp7);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+						cs[k][3]=c[3];
+						cs[k][4]=c[4];
+					}
 					inputFile.println("Couplings ");
 					for(int l=0; l<5; l++) {
 						inputFile.print("  ");
@@ -3879,12 +3943,32 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
 							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
 							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
-							inputFile.print("  "+couple7[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][l]);
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple7[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][l]);
 						}
 						inputFile.println();
 					}
 				}
 				if(nmer==8) {
+					Integer[] c = new Integer[6];
+					Integer[][] cs = new Integer[numME][6];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+						isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+						isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
+						c=octamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5,isp6,isp7,isp8);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+						cs[k][3]=c[3];
+						cs[k][4]=c[4];
+						cs[k][5]=c[5];
+					}
 					inputFile.println("Couplings ");
 					for(int l=0; l<6; l++) {
 						inputFile.print("  ");
@@ -3897,7 +3981,93 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
 							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
 							isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
-							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
+						}
+						inputFile.println();
+					}
+				}
+				if(nmer==9) {
+					Integer[] c = new Integer[7];
+					Integer[][] cs = new Integer[numME][7];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+						isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+						isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
+						isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
+						c=nonamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5,isp6,isp7,isp8,isp9);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+						cs[k][3]=c[3];
+						cs[k][4]=c[4];
+						cs[k][5]=c[5];
+						cs[k][6]=c[6];
+					}
+					inputFile.println("Couplings ");
+					for(int l=0; l<6; l++) {
+						inputFile.print("  ");
+						for(int k=0; k<numME; k++) {
+							isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+							isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+							isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
+							isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
+						}
+						inputFile.println();
+					}
+				}
+				if(nmer==10) {
+					Integer[] c = new Integer[8];
+					Integer[][] cs = new Integer[numME][8];
+					for(int k=0; k<numME; k++) {
+						isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+						isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+						isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+						isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+						isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+						isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
+						isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
+						isp10=stateSpins[mebfFragments[i][9][k+1]]-1;
+						c=decamer_Coupling(spin,isp1,isp2,isp3,isp4,isp5,isp6,isp7,isp8,isp9,isp10);
+						cs[k][0]=c[0];
+						cs[k][1]=c[1];
+						cs[k][2]=c[2];
+						cs[k][3]=c[3];
+						cs[k][4]=c[4];
+						cs[k][5]=c[5];
+						cs[k][6]=c[6];
+						cs[k][7]=c[7];
+					}
+					inputFile.println("Couplings ");
+					for(int l=0; l<6; l++) {
+						inputFile.print("  ");
+						for(int k=0; k<numME; k++) {
+							isp1=stateSpins[mebfFragments[i][0][k+1]]-1;
+							isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
+							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
+							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
+							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
+							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
+							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
+							isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
+							isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
+							isp10=stateSpins[mebfFragments[i][9][k+1]]-1;
+							inputFile.print("  "+cs[k][l]);
+//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
 						}
 						inputFile.println();
 					}
@@ -3911,6 +4081,279 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			} catch(IOException e) {
 			}
 		}
+	}
+	
+	public Integer trimer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3) {
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				if(couple_valid(spin,ic-1,spin3)) return ic;
+			}
+		}		
+		return 99;
+	}
+	
+	public Integer[] tetramer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4) {
+		
+		Integer[] result = {99,99};
+		Boolean found=false;
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3) && couple_valid(spin,jc-1,spin4)) {
+						result[0]=ic;
+						result[1]=jc;
+						return result;
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] pentamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5) {
+		
+		Integer[] result = {99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4) && couple_valid(spin,kc-1,spin5)) {
+								result[0]=ic;
+								result[1]=jc;
+								result[2]=kc;
+								return result;
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] hexamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5, Integer spin6) {
+		
+		Integer[] result = {99,99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4)) {
+								for(int lc=1; lc<10; lc++) {
+									if(couple_valid(lc,kc-1,spin5) && couple_valid(spin,lc-1,spin6)) {
+										result[0]=ic;
+										result[1]=jc;
+										result[2]=kc;
+										result[3]=lc;
+										return result;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] heptamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5, Integer spin6, Integer spin7) {
+		
+		Integer[] result = {99,99,99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4)) {
+								for(int lc=1; lc<10; lc++) {
+									if(couple_valid(lc,kc-1,spin5)) {
+										for(int mc=1; mc<10; mc++) {
+											if(couple_valid(mc,lc-1,spin6) && couple_valid(spin,mc-1,spin7)) {
+												result[0]=ic;
+												result[1]=jc;
+												result[2]=kc;
+												result[3]=lc;
+												result[4]=mc;
+												return result;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] octamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5, Integer spin6, Integer spin7, Integer spin8) {
+		
+		Integer[] result = {99,99,99,99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4)) {
+								for(int lc=1; lc<10; lc++) {
+									if(couple_valid(lc,kc-1,spin5)) {
+										for(int mc=1; mc<10; mc++) {
+											if(couple_valid(mc,lc-1,spin6)) {
+												for(int nc=1; nc<10; nc++) {
+													if(couple_valid(nc,mc-1,spin7) && couple_valid(spin,nc-1,spin8)) {
+														result[0]=ic;
+														result[1]=jc;
+														result[2]=kc;
+														result[3]=lc;
+														result[4]=mc;
+														result[5]=nc;
+														return result;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] nonamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5, Integer spin6, Integer spin7, Integer spin8, Integer spin9) {
+		
+		Integer[] result = {99,99,99,99,99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4)) {
+								for(int lc=1; lc<10; lc++) {
+									if(couple_valid(lc,kc-1,spin5)) {
+										for(int mc=1; mc<10; mc++) {
+											if(couple_valid(mc,lc-1,spin6)) {
+												for(int nc=1; nc<10; nc++) {
+													if(couple_valid(nc,mc-1,spin7)) {
+														for(int oc=1; oc<10; oc++) {
+															if(couple_valid(oc,nc-1,spin8) && couple_valid(spin,oc-1,spin9)) {
+																result[0]=ic;
+																result[1]=jc;
+																result[2]=kc;
+																result[3]=lc;
+																result[4]=mc;
+																result[5]=nc;
+																result[6]=oc;
+																return result;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Integer[] decamer_Coupling(Integer spin, Integer spin1, Integer spin2, Integer spin3, Integer spin4, Integer spin5, Integer spin6, Integer spin7, Integer spin8, Integer spin9, Integer spin10) {
+		
+		Integer[] result = {99,99,99,99,99,99,99,99};
+		
+		for(int ic=1; ic<10; ic++) {
+			if(couple_valid(ic,spin1,spin2)) {
+				for(int jc=1; jc<10; jc++) {
+					if(couple_valid(jc,ic-1,spin3)) {
+						for(int kc=1; kc<10; kc++) {
+							if(couple_valid(kc,jc-1,spin4)) {
+								for(int lc=1; lc<10; lc++) {
+									if(couple_valid(lc,kc-1,spin5)) {
+										for(int mc=1; mc<10; mc++) {
+											if(couple_valid(mc,lc-1,spin6)) {
+												for(int nc=1; nc<10; nc++) {
+													if(couple_valid(nc,mc-1,spin7)) {
+														for(int oc=1; oc<10; oc++) {
+															if(couple_valid(oc,nc-1,spin8)) {
+																for(int pc=1; pc<10; pc++) {
+																	if(couple_valid(pc,oc-1,spin9) && couple_valid(spin,pc-1,spin10)) {
+																		result[0]=ic;
+																		result[1]=jc;
+																		result[2]=kc;
+																		result[3]=lc;
+																		result[4]=mc;
+																		result[5]=nc;
+																		result[6]=oc;
+																		result[7]=pc;
+																		return result;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return result;
+	}
+	
+	public Boolean couple_valid(Integer spin, Integer spin1, Integer spin2) {
+
+		Integer sp1, sp2;
+		Integer mul, sum, sump;
+		sp1=spin1+1;
+		sp2=spin2+1;
+		if(sp1>sp2) {
+			sp1=spin2+1;
+			sp2=spin1+1;	
+		}
+
+		if(sp1==1) return sp2==spin;
+				
+		mul=sp1*sp2;
+		sum=sp1+sp2-2;
+		sump=sum+1;
+		
+		while(mul>0) {
+			if(mul>=sump) {
+				if(spin==sump) return true;
+				mul=mul-sump;
+				sum=sum-2;
+				sump=sum+1;
+			} else {
+				return false;
+			}
+		}
+		
+		return false;
 	}
 	
 	public Boolean read_GronOR_arx(Integer mebf) {

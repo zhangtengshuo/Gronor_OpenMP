@@ -1854,7 +1854,6 @@ public class gronor_Fragment {
 	
 	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe, Integer numCASo) {
 		String fileName = fragmentName+fragmentNames[frag]+"_SCF.output";
-		System.out.println("Parsing1 "+fileName);
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -1979,7 +1978,6 @@ public class gronor_Fragment {
 
 	public Double Molcas_SCF(Integer frag, Integer numCASe, Integer numCASo) {
 		String fileName = fragmentName.trim()+fragmentNames[frag]+"_SCF.output";
-		System.out.println("Parsing2 "+fileName);
 		String card;
 		Integer numOcc;
 		Boolean converged = false;

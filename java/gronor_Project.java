@@ -164,13 +164,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Double fieldY = 0.0;
     Double fieldZ = 0.0;
 
-//    Integer[][][][] couple3 =     new Integer[5][5][5][5];		                        // indices: target spin; frag 1,2,3 spin; coupling 1
-//    Integer[][][][][][] couple4 = new Integer[5][5][5][5][5][2];	                    // indices: target spin; frag 1,2,3,4 spin; coupling 1,2
-//    Integer[][][][][][][] couple5 = new Integer[5][5][5][5][5][5][3];	                // indices: target spin; frag 1,2,3,4,5 spin; coupling 1,2,3
-//    Integer[][][][][][][][] couple6 = new Integer[5][5][5][5][5][5][5][4];	            // indices: target spin; frag 1,2,3,4,5,6 spin; coupling 1,2,3,4
-//    Integer[][][][][][][][][] couple7 = new Integer[5][5][5][5][5][5][5][5][5];	        // indices: target spin; frag 1,2,3,4,5,6,7 spin; coupling 1,2,3,4,5
-//    Integer[][][][][][][][][][] couple8 = new Integer[5][5][5][5][5][5][5][5][5][6];	// indices: target spin; frag 1,2,3,4,5,6,7,8 spin; coupling 1,2,3,4,5,6
-    
     JFrame dialogFrame;
 
     JFileChooser chooser;
@@ -3468,336 +3461,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer spin = 1;
 		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8, isp9, isp10;
 		
-		/*
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						couple3[i][j][k][m]=9;
-					}
-				}
-			}
-		}
-		couple3[0][0][0][0]=1; // S,S,S
-		couple3[0][0][1][1]=2; // S,D,D
-		couple3[0][1][0][1]=2; // D,S,D
-		couple3[0][1][1][0]=1; // D,D,S
-		couple3[0][0][2][2]=3; // S,T,T
-		couple3[0][2][0][2]=3; // T,S,T
-		couple3[0][2][2][0]=1; // T,T,S
-		couple3[0][2][2][2]=3; // T,T,T
-		couple3[0][0][4][4]=5; // S,Q,Q
-		couple3[0][4][0][4]=5; // Q,S,Q
-		couple3[0][4][4][0]=1; // Q,Q,S
-		
-		couple3[1][1][0][0]=2; // D,S,S
-		couple3[1][0][1][0]=2; // S,D,S
-		couple3[1][0][0][1]=1; // S,S,D
-		couple3[1][1][1][1]=1; // D,D,D
-		
-		couple3[2][0][0][2]=1; // S,S,T
-		couple3[2][0][2][0]=3; // S,T,S
-		couple3[2][2][0][0]=3; // T,S,S
-		couple3[2][2][2][2]=3; // T,T,T
-		
-		couple3[2][1][1][2]=1; // D,D,T
-		couple3[2][1][2][1]=2; // D,T,D
-		couple3[2][2][1][1]=2; // T,D,D
-
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						for(int n=0; n<5; n++) {
-							for(int l=0; l<2; l++) {
-								couple4[i][j][k][m][n][l]=9;
-							}
-						}
-					}
-				}
-			}
-		}
-		couple4[0][0][0][0][0][0]=1; // S,S,S,S
-		couple4[0][0][0][0][0][1]=1;
-		
-		couple4[0][0][0][1][1][0]=1; // S,S,D,D
-		couple4[0][0][0][1][1][1]=2;
-		couple4[0][0][1][0][1][0]=2; // S,D,S,D
-		couple4[0][0][1][0][1][1]=2;
-		couple4[0][0][1][1][0][0]=2; // S,D,D,S
-		couple4[0][0][1][1][0][1]=1;
-		couple4[0][1][0][0][1][0]=2; // D,S,S,D
-		couple4[0][1][0][0][1][1]=2;
-		couple4[0][1][0][1][0][0]=2; // D,S,D,S
-		couple4[0][1][0][1][0][1]=1;
-		couple4[0][1][1][0][0][0]=1; // D,D,S,S
-		couple4[0][1][1][0][0][1]=1;
-		
-		couple4[0][0][0][2][2][0]=1; // S,S,T,T
-		couple4[0][0][0][2][2][1]=3;
-		couple4[0][0][2][0][2][0]=3; // S,T,S,T
-		couple4[0][0][2][0][2][1]=3;
-		couple4[0][0][2][2][0][0]=3; // S,T,T,S
-		couple4[0][0][2][2][0][1]=1;
-		couple4[0][0][2][2][2][0]=2; // S,T,T,T
-		couple4[0][0][2][2][2][1]=2;
-		couple4[0][2][0][0][2][0]=3; // T,S,S,T
-		couple4[0][2][0][0][2][1]=3;
-		couple4[0][2][0][2][0][0]=3; // T,S,T,S
-		couple4[0][2][0][2][0][1]=1;
-		couple4[0][2][2][0][0][0]=1; // T,T,S,S
-		couple4[0][2][2][0][0][1]=1;
-		couple4[0][2][0][2][2][0]=3; // T,S,T,T
-		couple4[0][2][0][2][2][1]=3;
-		couple4[0][2][2][2][0][0]=3; // T,T,T,S
-		couple4[0][2][2][2][0][1]=1;
-		
-		couple4[0][2][2][2][0][0]=3; // T,T,T,T
-		couple4[0][2][2][2][0][1]=3;
-
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						for(int n=0; n<5; n++) {
-							for(int nn=0; nn<5; nn++) {
-								for(int l=0; l<3; l++) {
-									couple5[i][j][k][m][n][nn][l]=9;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		couple5[0][0][0][0][0][0][0]=1; // S,S,S,S,S
-		couple5[0][0][0][0][0][0][1]=1;
-		couple5[0][0][0][0][0][0][2]=1;
-		
-		
-		couple5[0][0][0][0][1][1][0]=1; // S,S,S,D,D
-		couple5[0][0][0][0][1][1][1]=1;
-		couple5[0][0][0][0][1][1][2]=2;
-		
-		couple5[0][0][0][1][0][1][0]=1; // S,S,D,S,D
-		couple5[0][0][0][1][0][1][1]=2;
-		couple5[0][0][0][1][0][1][2]=2;
-		
-		couple5[0][0][0][1][1][0][0]=1; // S,S,D,D,S
-		couple5[0][0][0][1][1][0][1]=2;
-		couple5[0][0][0][1][1][0][2]=1;
-		
-		couple5[0][0][1][0][0][1][0]=2; // S,D,S,S,D
-		couple5[0][0][1][0][0][1][1]=2;
-		couple5[0][0][1][0][0][1][2]=2;
-		
-		couple5[0][0][1][0][1][0][0]=2; // S,D,S,D,S
-		couple5[0][0][1][0][1][0][1]=2;
-		couple5[0][0][1][0][1][0][2]=1;
-		
-		couple5[0][0][1][1][0][0][0]=2; // S,D,D,S,S
-		couple5[0][0][1][1][0][0][1]=1;
-		couple5[0][0][1][1][0][0][2]=1;
-		
-		couple5[0][1][0][0][0][1][0]=2; // D,S,S,S,D
-		couple5[0][1][0][0][0][1][1]=2;
-		couple5[0][1][0][0][0][1][2]=2;
-		
-		couple5[0][1][0][0][1][0][0]=2; // D,S,S,D,S
-		couple5[0][1][0][0][1][0][1]=2;
-		couple5[0][1][0][0][1][0][2]=1;
-		
-		couple5[0][1][0][1][0][0][0]=2; // D,S,D,S,S
-		couple5[0][1][0][1][0][0][1]=1;
-		couple5[0][1][0][1][0][0][2]=1;
-		
-		couple5[0][1][1][0][0][0][0]=1; // D,D,S,S,S
-		couple5[0][1][1][0][0][0][1]=1;
-		couple5[0][1][1][0][0][0][2]=1;
-		
-		
-		couple5[0][0][0][0][2][2][0]=1; // S,S,S,T,T
-		couple5[0][0][0][0][2][2][1]=1;
-		couple5[0][0][0][0][2][2][2]=3;
-		
-		couple5[0][0][0][2][0][2][0]=1; // S,S,T,S,T
-		couple5[0][0][0][2][0][2][1]=3;
-		couple5[0][0][0][2][0][2][2]=3;
-		
-		couple5[0][0][0][2][2][0][0]=1; // S,S,T,T,S
-		couple5[0][0][0][2][2][0][1]=3;
-		couple5[0][0][0][2][2][0][2]=1;
-		
-		couple5[0][0][2][0][0][2][0]=3; // S,T,S,S,T
-		couple5[0][0][2][0][0][2][1]=3;
-		couple5[0][0][2][0][0][2][2]=3;
-		
-		couple5[0][0][2][0][2][0][0]=3; // S,T,S,T,S
-		couple5[0][0][2][0][2][0][1]=3;
-		couple5[0][0][2][0][2][0][2]=1;
-		
-		couple5[0][0][2][2][0][0][0]=3; // S,T,T,S,S
-		couple5[0][0][2][2][0][0][1]=1;
-		couple5[0][0][2][2][0][0][2]=1;
-		
-		couple5[0][2][0][0][0][2][0]=3; // T,S,S,S,T
-		couple5[0][2][0][0][0][2][1]=3;
-		couple5[0][2][0][0][0][2][2]=3;
-		
-		couple5[0][2][0][0][2][0][0]=3; // T,S,S,T,S
-		couple5[0][2][0][0][2][0][1]=3;
-		couple5[0][2][0][0][2][0][2]=1;
-		
-		couple5[0][2][0][2][0][0][0]=3; // T,S,T,S,S
-		couple5[0][2][0][2][0][0][1]=1;
-		couple5[0][2][0][2][0][0][2]=1;
-		
-		couple5[0][2][2][0][0][0][0]=1; // T,T,S,S,S
-		couple5[0][2][2][0][0][0][1]=1;
-		couple5[0][2][2][0][0][0][2]=1;
-		
-		
-		couple5[0][0][0][2][2][2][0]=1; // S,S,T,T,T
-		couple5[0][0][0][2][2][2][1]=3;
-		couple5[0][0][0][2][2][2][2]=3;
-		
-		couple5[0][0][2][0][2][2][0]=3; // S,T,S,T,T
-		couple5[0][0][2][0][2][2][1]=3;
-		couple5[0][0][2][0][2][2][2]=3;
-		
-		couple5[0][0][2][2][0][2][0]=3; // S,T,T,S,T
-		couple5[0][0][2][2][0][2][1]=3;
-		couple5[0][0][2][2][0][2][2]=3;
-		
-		couple5[0][0][2][2][2][0][0]=3; // S,T,T,T,S
-		couple5[0][0][2][2][2][0][1]=3;
-		couple5[0][0][2][2][2][0][2]=1;
-		
-		couple5[0][2][0][2][2][0][0]=3; // T,S,T,T,S
-		couple5[0][2][0][2][2][0][1]=3;
-		couple5[0][2][0][2][2][0][2]=1;
-		
-		couple5[0][2][2][0][2][0][0]=3; // T,T,S,T,S
-		couple5[0][2][2][0][2][0][1]=3;
-		couple5[0][2][2][0][2][0][2]=3;
-		
-		couple5[0][2][2][0][0][2][0]=3; // T,T,S,S,T
-		couple5[0][2][2][0][0][2][1]=3;
-		couple5[0][2][2][0][0][2][2]=3;
-		
-		couple5[0][2][2][2][0][0][0]=3; // T,T,T,S,S
-		couple5[0][2][2][2][0][0][1]=1;
-		couple5[0][2][2][2][0][0][2]=1;
-		
-		couple5[0][2][2][2][2][0][0]=3; // T,T,T,T,S
-		couple5[0][2][2][2][2][0][1]=3;
-		couple5[0][2][2][2][2][0][2]=1;
-		
-		couple5[0][2][2][2][0][2][0]=3; // T,T,T,S,T
-		couple5[0][2][2][2][0][2][1]=3;
-		couple5[0][2][2][2][0][2][2]=3;
-		
-		couple5[0][2][2][0][2][2][0]=3; // T,T,S,T,T
-		couple5[0][2][2][0][2][2][1]=3;
-		couple5[0][2][2][0][2][2][2]=3;
-		
-		couple5[0][2][0][2][2][2][0]=3; // T,S,T,T,T
-		couple5[0][2][0][2][2][2][1]=3;
-		couple5[0][2][0][2][2][2][2]=3;
-		
-		couple5[0][0][2][2][2][2][0]=3; // S,T,T,T,T
-		couple5[0][0][2][2][2][2][1]=3;
-		couple5[0][0][2][2][2][2][2]=3;
-		
-		couple5[0][2][2][2][2][2][0]=3; // T,T,T,T,T
-		couple5[0][2][2][2][2][2][1]=3;
-		couple5[0][2][2][2][2][2][2]=3;
-		
-		
-		couple5[0][2][2][0][1][1][0]=1; // T,T,S,D,D
-		couple5[0][2][2][0][1][1][1]=1;
-		couple5[0][2][2][0][1][1][2]=2;
-		
-		couple5[0][2][2][1][0][1][0]=1; // T,T,D,S,D
-		couple5[0][2][2][1][0][1][1]=2;
-		couple5[0][2][2][1][0][1][2]=2;
-		
-		couple5[0][2][2][1][1][0][0]=1; // T,T,D,D,S
-		couple5[0][2][2][1][1][0][1]=2;
-		couple5[0][2][2][1][1][0][2]=1;
-		
-		couple5[0][0][1][2][2][1][0]=2; // S,D,T,T,D
-		couple5[0][0][1][2][2][1][1]=2;
-		couple5[0][0][1][2][2][1][2]=2;
-		
-		
-		couple5[0][0][1][1][2][2][0]=2; // S,D,D,T,T
-		couple5[0][0][1][1][2][2][1]=1;
-		couple5[0][0][1][1][2][2][2]=3;
-		
-
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						for(int n=0; n<5; n++) {
-							for(int nn=0; nn<5; nn++) {
-								for(int nm=0; nm<5; nm++) {
-									for(int l=0; l<4; l++) {
-										couple6[i][j][k][m][n][nn][nm][l]=9;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						for(int n=0; n<5; n++) {
-							for(int nn=0; nn<5; nn++) {
-								for(int nm=0; nm<5; nm++) {
-									for(int nk=0; nk<5; nk++) 	{
-										for(int l=0; l<5; l++) {	
-											couple7[i][j][k][m][n][nn][nm][nk][l]=9;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for(int i=0; i<5; i++) {
-			for(int j=0; j<5; j++) {
-				for(int k=0; k<5; k++) {
-					for(int m=0; m<5; m++) {
-						for(int n=0; n<5; n++) {
-							for(int nn=0; nn<5; nn++) {
-								for(int nm=0; nm<5; nm++) {
-									for(int nk=0; nk<5; nk++) 	{
-										for(int nj=0; nj<5; nj++) 	{
-											for(int l=0; l<6; l++) {	
-												couple8[i][j][k][m][n][nn][nm][nk][nj][l]=9;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-*/
-		
-		
 		for(int i=0; i<numMEBFs; i++) {
 			String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.inp";
 			numME=mebfSpecification[i][3];
@@ -3819,8 +3482,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 						isp2=stateSpins[mebfFragments[i][1][k+1]]-1;
 						isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
 						inputFile.print("  "+trimer_Coupling(spin,isp1,isp2,isp3));
-//						inputFile.print("  "+couple3[spin-1][isp1][isp2][isp3]);
-//						System.out.println(couple3[spin-1][isp1][isp2][isp3]+" "+trimer_Coupling(spin,isp1,isp2,isp3));
 					}
 					inputFile.println();
 				}
@@ -3845,8 +3506,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp3=stateSpins[mebfFragments[i][2][k+1]]-1;
 							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple4[spin-1][isp1][isp2][isp3][isp4][l]);
-//							System.out.println(isp1+" "+isp2+" "+isp3+" "+isp4+" : "+couple4[spin-1][isp1][isp2][isp3][isp4][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
@@ -3875,8 +3534,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp4=stateSpins[mebfFragments[i][3][k+1]]-1;
 							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple5[spin-1][isp1][isp2][isp3][isp4][isp5][l]);
-//							System.out.println("  "+couple5[spin-1][isp1][isp2][isp3][isp4][isp5][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
@@ -3908,8 +3565,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp5=stateSpins[mebfFragments[i][4][k+1]]-1;
 							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple6[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][l]);
-//							System.out.println("  "+couple6[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][l]+" "+cs[k][l]);
 						}
 						inputFile.println();
 					}
@@ -3944,7 +3599,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp6=stateSpins[mebfFragments[i][5][k+1]]-1;
 							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple7[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][l]);
 						}
 						inputFile.println();
 					}
@@ -3982,7 +3636,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp7=stateSpins[mebfFragments[i][6][k+1]]-1;
 							isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
 						}
 						inputFile.println();
 					}
@@ -4023,7 +3676,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp8=stateSpins[mebfFragments[i][7][k+1]]-1;
 							isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
 						}
 						inputFile.println();
 					}
@@ -4067,7 +3719,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 							isp9=stateSpins[mebfFragments[i][8][k+1]]-1;
 							isp10=stateSpins[mebfFragments[i][9][k+1]]-1;
 							inputFile.print("  "+cs[k][l]);
-//							inputFile.print("  "+couple8[spin-1][isp1][isp2][isp3][isp4][isp5][isp6][isp7][isp8][l]);
 						}
 						inputFile.println();
 					}

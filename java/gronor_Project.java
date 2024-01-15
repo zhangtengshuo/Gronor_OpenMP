@@ -1584,7 +1584,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					numCASe=dimFragments[i][4];
 					numCASo=dimFragments[i][5];
 					numElec=dimFragments[i][3];
-					if(fragment.Molcas_SCF_Converged(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {};
+					if(fragment.Molcas_SCF_Converged(projectName,dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {};
 					fragment.write_Molcas_CASSCF(nameF,nameP,nameS,withCASPT2,numElec,numCASe,numCASo,withAlter,orbSupSym.isSelected(),ipea);
 					withAlter=false;
 				}		
@@ -1661,8 +1661,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			numSup=fragment.read_Sup(nameP,nameA);
 			dimFragments[i][12]=numSup;
 			
-			if(fragment.Molcas_SCF_Converged(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {
-				energy=fragment.Molcas_SCF(i,dimFragments[i][4],dimFragments[i][5]);
+			if(fragment.Molcas_SCF_Converged(projectName,dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {
+				energy=fragment.Molcas_SCF(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5]);
 				if(orbAlter.isSelected()) {
 					dimFragments[i][10]=fragment.numAlt;
 				} else {

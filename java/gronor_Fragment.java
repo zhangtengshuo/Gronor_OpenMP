@@ -1852,8 +1852,8 @@ public class gronor_Fragment {
 		return false;
 	}
 	
-	public Boolean Molcas_SCF_Converged(Integer frag, Integer numCASe, Integer numCASo) {
-		String fileName = fragmentName+fragmentNames[frag]+"_SCF.output";
+	public Boolean Molcas_SCF_Converged(String nameP, Integer frag, Integer numCASe, Integer numCASo) {
+		String fileName = nameP+fragmentNames[frag]+"_SCF.output";
 		String card;
 		Integer numOcc;
 		Boolean converged = false;

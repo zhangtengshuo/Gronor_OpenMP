@@ -260,15 +260,24 @@ subroutine gcommon_common_basis &
   character (len=255) :: base
   character (len=12)  :: oneintName
 
+  print*,'A'
   allocate(linDep(nBasFragMax,nBasFrag))
+  print*,'B'
   allocate(vec(nBasFrag,nBasFrag))
+  print*,'C'
   allocate(sAO(nBasFrag,nBasFrag))
+  print*,'D'
   allocate(frzVec(nFrozen(iFrag),nBasFrag))
+  print*,'E'
   allocate(froVec_1st(nFrozen(iFrag),nBasFrag))
+  print*,'F'
   allocate(frzDensity(nFrozen(iFrag),nFrozen(iFrag)))
+  print*,'G'
   allocate(frzFragAvg(nFrozen(iFrag),nBasFrag))
+  print*,'H'
   luOne=87
   call gcommon_getAtomicOverlap(oneintName,luOne,nBasFrag,sAO)
+  print*,'I'
   fragOrbTot=0
   linDep    =0.0
   frzDensity=0.0
@@ -300,7 +309,9 @@ subroutine gcommon_common_basis &
     enddo
     fragOrbTot=fragOrbTot+nOcc
   enddo
+  print*,'J'
   allocate(linDep2(fragOrbTot,nBasFrag))
+  print*,'K'
   do j=1,fragOrbTot  ! remove the zero vectors from lindep
     lindep2(j,:)=lindep(j,:)
   enddo
@@ -331,10 +342,15 @@ subroutine gcommon_common_basis &
   endif
  ! diagonalize sMO
   lwork=4*fragOrbTot
+  print*,'L'
   allocate(sMO (fragOrbTot,fragOrbTot))
+  print*,'M'
   allocate(work(lwork))
+  print*,'N'
   allocate(eigenValues(fragOrbTot))
+  print*,'O'
   allocate(basis(fragOrbTot,fragorbTot))
+  print*,'P'
   call gcommon_calculate_sMO(linDep2,sMO,sAO,fragOrbTot,nBasFrag)
   work =0.0
   eigenValues=0.0
@@ -703,13 +719,17 @@ subroutine gcommon_getAtomicOverlap(filename,luOne,n,sAO)
   sAO=0.0
   iRc=-1
   iOpt=0
+  print*,'AA ',trim(filename),luOne
   Call OpnOne(iRC,iOpt,filename,LuOne)
+  print*,'AB'
   if(iRC.ne.0) write(6,*)'Something went wrong opening ',filename
   iRC= 0
   iOpt=2
   iComponent=1
   iSymLbl=1
+  print*,'AC'
   Call RdOne(iRC,iOpt,'Mltpl  0',iComponent,s,iSymLbl)
+  print*,'AD'
   iCounter=1
   do j=1,n
     do k=1,j
@@ -719,7 +739,9 @@ subroutine gcommon_getAtomicOverlap(filename,luOne,n,sAO)
     enddo
   enddo
   iOpt=0
+  print*,'AE'
   Call ClsOne(iRc,iOpt)
+  print*,'AF'
   return
 end subroutine gcommon_getAtomicOverlap
 

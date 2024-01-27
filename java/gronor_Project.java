@@ -37,33 +37,73 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JPanel energiesPanel;
 	JPanel mebfsPanel;
 
-	Integer maxSets = 6;	// Maximum number of state definitions
+	// Definition of the unique spin states
+	//******************************************************************************************************************************
 	
-	Integer maxFragments = 32;	// Maximum number of fragments
+	// In stateNames define the spin state names used in the GUI
+	// Allocate stateSpins to hold the numerical spin (S=1, D=2, etc) defined in the initialization
 	
-	Integer numStateNames = 15;
-	
-	Integer numSets=0;			// Number of state sets
-	
-	Integer numFragments;		// Number of fragments
-	Integer numFragmentStates=0;  // Number of unique fragment states used
+    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1","S1+","S1-"};
+    Integer numStateNames=stateNames.length;
+    Integer[] stateSpins = new Integer[numStateNames];
 
-	Integer[] lenStateList = new Integer[maxSets];				// Number of states included from list for state set
-	Integer[] spinStateList = new Integer[maxSets];				// Spin of states included from list for state set
-	Integer[][] ndxStateList = new Integer[maxSets][16];		// Index to stateNames[] for each state in state set
-	Integer[] fragmentStates = new Integer[35];					// Index to stateNames[] for each unique fragment state used
+    Integer[] stateLabelIndex = new Integer[numStateNames]; 		// Index into the Fragment Energies Table for each unique spin state used
+    
+    //Definition of the sets of spin states 
+	//******************************************************************************************************************************
+    
+	// For each fragment the spins states will be generated from a user defined set of spin states
+    
+	Integer maxSets = 6;		// Maximum number of spin state sets that may be specified
+	Integer numSets = 0;			// Actual number of spin state sets
 	
-	Integer[] ndxMebfTable = new Integer[35];					// Index of each state into into MEBF table 
-	Integer[] ndxMebfState = new Integer[35];					// Index into MEBF table for each state in MEBF 
+	Integer[] lenStateList = new Integer[maxSets];					// Number of states included from list for state set
+	Integer[] spinStateList = new Integer[maxSets];					// Spin of states included from list for state set
+	Integer[][] ndxStateList = new Integer[maxSets][numStateNames];	// Index to stateNames[] for each state in state set
+	Integer[] fragmentStates = new Integer[35];						// Index to stateNames[] for each unique fragment state used
 	
-	Integer[][] dimFragments = new Integer[maxFragments][13];	// Dimensions of fragments: number of atoms, states, electrons, etc.
-	String[] namFragments = new String[maxFragments];			// Names of fragments used to determine xyz-formatted coordinate origin 
-	Double[][] movFragments = new Double[maxFragments][6];		// Rotation and translation of coordinates with respect to original source	
-	Double[] energiesDFT = new Double[maxFragments];			// DFT optimized energy of S0 state from NWChem
-	Double[] energiesSCF = new Double[maxFragments];			// SCF energy of S0 state from Molcas
-	Double[][] energiesCASSCF = new Double[maxFragments][12];	// CASSCF energies of all states of fragment from Molcas
-	Double[][] energiesCASPT2 = new Double[maxFragments][12];	// CASPT2 energies of all states of fragment from Molcas
+	// Definition of the fragments
+	//******************************************************************************************************************************
+	
+	Integer maxFragments = 32;	// Maximum number of fragments that may be spcified
+	Integer numFragments;		// Actual number of fragments
+	Integer numFragmentStates=0;  // Number of unique fragment states used
+	
+	Integer[][] dimFragments = new Integer[maxFragments][13];		// Dimensions of fragments: number of atoms, states, electrons, etc.
+	String[] namFragments = new String[maxFragments];				// Names of fragments used to determine xyz-formatted coordinate origin 
+	Double[][] movFragments = new Double[maxFragments][6];			// Rotation and translation of coordinates with respect to original source	
+	Double[] energiesDFT = new Double[maxFragments];				// DFT optimized energy of S0 state from NWChem
+	Double[] energiesSCF = new Double[maxFragments];				// SCF energy of S0 state from Molcas
+	Double[][] energiesCASSCF = new Double[maxFragments][12];		// CASSCF energies of all states of fragment from Molcas
+	Double[][] energiesCASPT2 = new Double[maxFragments][12];		// CASPT2 energies of all states of fragment from Molcas
+
+    //
+    String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+","Q1","SQ1"," "," "," "," "};
+    
+
+	// Definition of the MEBFs
+	//******************************************************************************************************************************
+
+	Integer numMEBFRows = 0;
+    Integer numMEBFs = 0;
+    Integer newMEBFs = 0;
+    Integer maxMEBFs = 60;
+    Integer maxMer = 10;
+    Integer maxMEBFstates=60;
+    
+	Integer[][] numEnergiesGronOR = new Integer[maxMEBFs][2];		// Number of GronORenergy entries
+	Double[][][] energiesGronOR = new Double[35][maxMEBFs][2];
+	Double[][][] energiesRelGronOR = new Double[35][maxMEBFs][2];
+	Double[][][] coefGronOR = new Double[35][35][maxMEBFs];
+    
+	Integer[] ndxMebfTable = new Integer[35];						// Index of each state into into MEBF table 
+	Integer[] ndxMebfState = new Integer[35];						// Index into MEBF table for each state in MEBF 
+	
 	Object[][] dimensionData;
+	
+
+	// Definition of options
+	//******************************************************************************************************************************
 	
 	Integer numRanks=12;		// Number of ranks in internal mpirun
 	Integer numThreads=12;
@@ -79,28 +119,17 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	
 	Integer numEnergies = 0;	// Number of energy entries
 
-	Integer numMEBFRows = 0;
-    Integer numMEBFs = 0;
-    Integer newMEBFs = 0;
-    Integer maxMEBFs = 60;
-    Integer maxMer = 10;
-    Integer maxMEBFstates=60;
     
+	// Definition of table dimensions
+	//******************************************************************************************************************************
+	
     Integer numStateLabels = 12;
-
-	Integer[][] numEnergiesGronOR = new Integer[maxMEBFs][2];		// Number of GronORenergy entries
-	Double[][][] energiesGronOR = new Double[35][maxMEBFs][2];
-	Double[][][] energiesRelGronOR = new Double[35][maxMEBFs][2];
-	Double[][][] coefGronOR = new Double[35][35][maxMEBFs];
 
     String[] stateListLabels = new String[] {"ID","Num","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
     String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt", "Sup"};
     String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"};
     String[] energyNames = new String[] {"E(DFT)", "E(SCF)", "E(CASSCF)", "E(CASPT2)"};
-    String[] stateLabels = new String[] {" ", "S0", "S1", "T1", "D-", "D+", "S2", "T2", "E-", "E+","Q1","SQ1"};
 
-    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
-    Integer[] stateSpins = new Integer[] {1,1,1,2,2,3,3,1,2,3,1,2,3,5};
 	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
@@ -109,7 +138,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	String[] contracts = new String[] {"s", "m","l"};
 	String[] choleskys = new String[] {"high", "medium", "low", "none"};
 	
-	Integer[] stateLabelIndex = new Integer[numStateLabels+4];
+//	Integer[] stateLabelIndex = new Integer[numStateLabels+4];
 	
     JTable statesTable;
     JTable fragmentsTable;
@@ -133,7 +162,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	DefaultTableModel mebfsTableModel = new DefaultTableModel(null,mebfLabels);
 	DefaultTableModel mebfsEnergiesTableModel = new DefaultTableModel(null,nociLabels);
 
-    Object[][] stateDefinitions = new Object[maxSets][17];
+    Object[][] stateDefinitions = new Object[maxSets][19];
     Object[][] fragmentDefinitions = new Object[maxFragments][17];
     Object[][] stateEnergies = new Object[4*maxFragments][12];
     Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][maxMEBFstates+6];
@@ -593,6 +622,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 //			ndxStateList[1][4]=10;
 //			ndxStateList[1][5]=12;
 		}
+		
+		for(int i=0; i<numStateNames; i++) {
+			stateSpins[i]=0;
+			if(stateNames[i].contains("S")) stateSpins[i]=1;
+			if(stateNames[i].contains("D")) stateSpins[i]=2;
+			if(stateNames[i].contains("T")) stateSpins[i]=3;
+			if(stateNames[i].contains("q")) stateSpins[i]=4;
+			if(stateNames[i].contains("Q")) stateSpins[i]=5;
+		}
 	}
 	
 	private void createFragments() {
@@ -934,8 +972,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	}
 	private void update() {
 
-		readOutputFiles();
 		updateStatesList();
+		readOutputFiles();
 		updateFragmentList();
 		updateFragmentDefinitions();
 		updateFragmentEnergies();
@@ -946,6 +984,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer spin = mebfSpecification[mebf][1];
 			Integer chrg = mebfSpecification[mebf][2];
 			Integer stat = mebfSpecification[mebf][3];
+			mebfSpecification[mebf][3]=0;
 			if(stat<=0) selectMEBFStates(mebf,nmer,spin,chrg,stat);
 		}
 		
@@ -996,7 +1035,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	}
 	
 	private void updateStatesList() {
-
 		if(newSets>numSets) {
 			for(int i=numSets; i<newSets; i++) {
 		    	lenStateList[i]=0;
@@ -1108,7 +1146,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			}
 		}
-	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1"};
+	    String[] stateNames = new String[] {"S0","S1","S2","D0","D1","T1","T2","S+","D+","T+","S-","D-","T-","q1","Q1","SQ1","S1+","S1-"};
 
 		for(int i=0; i<numSets; i++) {
 			for(int j=0; j<17; j++) stateDefinitions[i][j]=" ";
@@ -1344,7 +1382,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numFragments-1; i++) {
 				for(int j=i+1; j<numFragments; j++) {
 					if(!fragmentDefinitions[j][0].equals(fragmentDefinitions[j][1]) && dimFragments[j][4].equals(dimFragments[dimFragments[j][0]][4]) && dimFragments[j][5].equals(dimFragments[dimFragments[j][0]][5])) {
-						if(fragmentDefinitions[j][1].equals(fragmentDefinitions[i][0])) {
+						if(fragmentDefinitions[j][1].equals(fragmentDefinitions[i][0]) && dimFragments[i][2].equals(dimFragments[j][2])) {
 							istat=dimFragments[i][2];
 							for(int k=0; k<lenStateList[istat]; k++) {
 							energiesCASSCF[j][k]=energiesCASSCF[i][k];
@@ -3263,6 +3301,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 	
 	
+		
 	
 		
 		if(count==0) {

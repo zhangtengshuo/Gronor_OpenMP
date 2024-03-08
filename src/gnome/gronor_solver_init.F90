@@ -33,6 +33,9 @@ subroutine gronor_solver_init()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#endif
   
   implicit none
   
@@ -40,7 +43,10 @@ subroutine gronor_solver_init()
   external :: dgesvd,dsyevd
   integer (kind=4) :: ierr
 #endif
-  
+#ifdef LAPACK
+  external :: dgesvd,dsyevd
+  integer (kind=4) :: lapack_info
+#endif  
   ! Cusolver initialization for the svd
   
   if(iamacc.ne.0) then
@@ -207,6 +213,32 @@ subroutine gronor_solver_init()
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif
+#ifdef LAPACK
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
+    if(isolver.eq.SOLVER_LAPACK) then
+      allocate(workspace_d(2448))
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,lapack_info)
+      lwork1m=int(workspace_d(1))
+      deallocate(workspace_d)
+    endif
+    if(jsolver.eq.SOLVER_LAPACK) then
+      allocate(workspace_d(2448))
+      allocate(workspace_i(2448))
+      call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,workspace_i,lworki,lapack_info)
+      lwork2m=int(workspace_d(1))
+      lworki=int(workspace_i(1))
+      deallocate(workspace_d)
+      deallocate(workspace_i)
+    endif
+    lwork1m=max(8,lwork1m,lwork2m)
+    lworki=max(8,lworki)
+    allocate(workspace_d(lwork1m))
+    allocate(workspace_i(lworki))
+#endif  
 
     return
   end subroutine gronor_solver_init

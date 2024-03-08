@@ -1392,15 +1392,23 @@ subroutine gronor_main()
   endif
 
 #ifdef CUSOLVERJ
-  if(iaslvr.lt.0) iaslvr=2
+  if(iaslvr.lt.0) iaslvr=4
 #endif
 #ifdef CUSOLVER
-  if(iaslvr.lt.0) iaslvr=1
-  if(jaslvr.lt.0) jaslvr=1
+  if(iaslvr.lt.0) iaslvr=3
+  if(jaslvr.lt.0) jaslvr=3
 #endif
 #ifdef MKL
   if(inslvr.lt.0) inslvr=1
   if(jnslvr.lt.0) jnslvr=1
+#else
+#ifdef LAPACK
+! When LAPACK is working correctly the following four lines should be uncommented
+!  if(iaslvr.lt.0) iaslvr=2
+!  if(jaslvr.lt.0) jaslvr=2
+!  if(inslvr.lt.0) inslvr=2
+!  if(jnslvr.lt.0) jnslvr=2
+#endif
 #endif
   if(inslvr.lt.0) inslvr=0
   if(jnslvr.lt.0) jnslvr=0
@@ -1415,48 +1423,86 @@ subroutine gronor_main()
   if(iamacc.eq.1) then
     isolver=SOLVER_EISPACK
     if(iaslvr.eq.0) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.1) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.2) isolver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.1) isolver=SOLVER_MKL
+    if(iaslvr.eq.2) isolver=SOLVER_LAPACK
+    if(iaslvr.eq.3) isolver=SOLVER_CUSOLVER
+    if(iaslvr.eq.4) isolver=SOLVER_CUSOLVERJ
     jsolver=SOLVER_EISPACK
     if(jaslvr.eq.0) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.1) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.2) jsolver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.1) jsolver=SOLVER_MKL
+    if(jaslvr.eq.2) jsolver=SOLVER_LAPACK
+    if(jaslvr.eq.3) jsolver=SOLVER_CUSOLVER
+    if(jaslvr.eq.4) jsolver=SOLVER_CUSOLVERJ
   else
     isolver=SOLVER_EISPACK
     if(inslvr.eq.0) isolver=SOLVER_EISPACK
     if(inslvr.eq.1) isolver=SOLVER_MKL
+    if(inslvr.eq.2) isolver=SOLVER_LAPACK
     jsolver=SOLVER_EISPACK
     if(jnslvr.eq.0) jsolver=SOLVER_EISPACK
     if(jnslvr.eq.1) jsolver=SOLVER_MKL
+    if(jnslvr.eq.2) jsolver=SOLVER_LAPACK
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
+    isolver=SOLVER_EISPACK
+    if(iaslvr.eq.0) isolver=SOLVER_EISPACK
+    if(iaslvr.eq.1) isolver=SOLVER_MKL
+    if(iaslvr.eq.2) isolver=SOLVER_LAPACK
+    if(iaslvr.eq.3) isolver=SOLVER_CUSOLVER
+    if(iaslvr.eq.4) isolver=SOLVER_CUSOLVERJ
+    jsolver=SOLVER_EISPACK
+    if(jaslvr.eq.0) jsolver=SOLVER_EISPACK
+    if(jaslvr.eq.1) jsolver=SOLVER_MKL
+    if(jaslvr.eq.2) jsolver=SOLVER_LAPACK
+    if(jaslvr.eq.3) jsolver=SOLVER_CUSOLVER
+    if(jaslvr.eq.4) jsolver=SOLVER_CUSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     if(numacc.gt.0) then
-      if(iaslvr.eq.SOLVER_EISPACK) write(lfnout,611)
-611   format(' Accelerated ranks use EISPACK SVD on CPU')
-      if(iaslvr.eq.SOLVER_CUSOLVER) write(lfnout,612)
-612   format(' Accelerated ranks use CUSOLVER QR gesvd')
-      if(iaslvr.eq.SOLVER_CUSOLVERJ) write(lfnout,613)
-613   format(' Accelerated ranks use CUSOLVER Jacobi gesvdj')
+      if(isolver.eq.SOLVER_EISPACK) write(lfnout,611)
+611   format(' Accelerated ranks use EISPACK svd on CPU')
+      if(isolver.eq.SOLVER_MKL) write(lfnout,643)
+643   format(' Accelerated ranks use MKL dgesvd on CPU')
+      if(isolver.eq.SOLVER_LAPACK) write(lfnout,644)
+644   format(' Accelerated ranks use LAPACK dgesvd on CPU')
+      if(isolver.eq.SOLVER_CUSOLVER) write(lfnout,612)
+612   format(' Accelerated ranks use CUSOLVER DnDgesvd')
+      if(isolver.eq.SOLVER_CUSOLVERJ) write(lfnout,613)
+613   format(' Accelerated ranks use CUSOLVER DnDgesvdj')
 
-      if(jaslvr.eq.SOLVER_EISPACK) write(lfnout,614)
+      if(jsolver.eq.SOLVER_EISPACK) write(lfnout,614)
 614   format(' Accelerated ranks use EISPACK TRED2/TQL on CPU')
-      if(jaslvr.eq.SOLVER_CUSOLVER) write(lfnout,615)
-615   format(' Accelerated ranks use CUSOLVER QR syevd')
-      if(jaslvr.eq.SOLVER_CUSOLVER) write(lfnout,616)
-616   format(' Accelerated ranks use CUSOLVER Jacobi syevj')
+      if(jsolver.eq.SOLVER_MKL) write(lfnout,646)
+646   format(' Accelerated ranks use MKL dsyevd on CPU')
+      if(jsolver.eq.SOLVER_LAPACK) write(lfnout,647)
+647   format(' Accelerated ranks use LAPACK dsyevd on CPU')
+      if(jsolver.eq.SOLVER_CUSOLVER) write(lfnout,615)
+615   format(' Accelerated ranks use CUSOLVER DnDsyevd')
+      if(jsolver.eq.SOLVER_CUSOLVER) write(lfnout,616)
+616   format(' Accelerated ranks use CUSOLVER DnDsyevj')
 
     endif
-    if(inslvr.eq.SOLVER_EISPACK) write(lfnout,617)
-617 format(' Non-accelerated ranks use EISPACK SVD')
-    if(inslvr.eq.SOLVER_MKL) write(lfnout,618)
-618 format(' Non-accelerated ranks use MKL QR dgesvd')
-    if(jnslvr.eq.SOLVER_EISPACK) write(lfnout,619)
-619 format(' Non-accelerated ranks use EISPACK TRED2/TQL on CPU')
-    if(jnslvr.eq.SOLVER_MKL) write(lfnout,620)
-620 format(' Non-accelerated ranks use MKL QR dsyevd')
+    isolver=SOLVER_EISPACK
+    if(inslvr.eq.0) isolver=SOLVER_EISPACK
+    if(inslvr.eq.1) isolver=SOLVER_MKL
+    if(inslvr.eq.2) isolver=SOLVER_LAPACK
+    jsolver=SOLVER_EISPACK
+    if(jnslvr.eq.0) jsolver=SOLVER_EISPACK
+    if(jnslvr.eq.1) jsolver=SOLVER_MKL
+    if(jnslvr.eq.2) jsolver=SOLVER_LAPACK
+    if(isolver.eq.SOLVER_EISPACK) write(lfnout,617)
+617 format(' Non-accelerated ranks use EISPACK svd')
+    if(isolver.eq.SOLVER_MKL) write(lfnout,618)
+618 format(' Non-accelerated ranks use MKL dgesvd')
+    if(isolver.eq.SOLVER_LAPACK) write(lfnout,633)
+633 format(' Non-accelerated ranks use LAPACK dgesvd')
+    if(jsolver.eq.SOLVER_EISPACK) write(lfnout,619)
+619 format(' Non-accelerated ranks use EISPACK tred2/tql on CPU')
+    if(jsolver.eq.SOLVER_MKL) write(lfnout,620)
+620 format(' Non-accelerated ranks use MKL dsyevd')
+    if(jsolver.eq.SOLVER_LAPACK) write(lfnout,634)
+634 format(' Non-accelerated ranks use LAPACK dsyevd')
   endif
 
   if(me.eq.mstr) numdev=0

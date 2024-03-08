@@ -31,6 +31,10 @@ subroutine gronor_evd()
 #ifdef MKL
   use mkl_solver
 #endif
+  
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
 #ifdef CUSOLVER
   use cusolverDn
@@ -104,9 +108,33 @@ subroutine gronor_evd()
     endif
   endif
   
-  ! ============ MKL ===========
+! ============ MKL ===========
 #ifdef MKL
   if(jsolver.eq.SOLVER_MKL) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
+    endif
+    ndimm=nelecs
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    endif
+  endif
+#endif 
+  
+! ============ LAPACK ===========
+#ifdef LAPACK
+  if(jsolver.eq.SOLVER_LAPACK) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)

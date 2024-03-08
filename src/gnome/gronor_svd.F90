@@ -31,6 +31,10 @@ subroutine gronor_svd()
 #ifdef MKL
   use mkl_solver
 #endif
+  
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
 #ifdef CUSOLVER
   use cusolverDn
@@ -140,6 +144,47 @@ subroutine gronor_svd()
     endif
     ndimm=nelecs
     call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
+        &       workspace_d,lwork1m,ierr)
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    endif
+    do i=1,nelecs
+      do j=1,nelecs
+        temp(i,j)=w(i,j)
+      enddo
+    enddo
+    do i=1,nelecs
+      do j=1,nelecs
+        w(j,i)=temp(i,j)
+      enddo
+    enddo
+#ifdef ACC
+!$acc update device (w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(w)
+#endif
+  endif
+#endif 
+  
+  ! ============ LAPACK ===========
+#ifdef LAPACK
+  if(isolver.eq.SOLVER_LAPACK) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
+    endif
+    ndimm=nelecs
+    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
         &       workspace_d,lwork1m,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC

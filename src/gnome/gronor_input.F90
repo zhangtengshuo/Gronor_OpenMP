@@ -245,6 +245,15 @@ subroutine gronor_input()
     endif
 
     if(inp_compare(.false.,'Solver',item).or.inp_compare(.false.,'Solvers',item)) then
+      if(.not.inp_a(item) goto 1
+      if(inp_compare(.false.,'Accelerator',item).or.inp_compare(.false.,'Accelerator',item)) then
+      elseif(inp_compare(.false.,'',item).or.inp_compare(.false.,'Accelerator',item)) then
+        
+      else
+        goto 3
+      endif
+      
+        
       if(.not.inp_i(iaslvr)) then
         iaslvr=-1
         jaslvr=-1

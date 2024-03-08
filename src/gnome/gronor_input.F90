@@ -24,6 +24,7 @@ subroutine gronor_input()
   use cidist
   use gnome_parameters
   use gnome_integrals
+  use gnome_solvers
 
   implicit none
 
@@ -245,31 +246,91 @@ subroutine gronor_input()
     endif
 
     if(inp_compare(.false.,'Solver',item).or.inp_compare(.false.,'Solvers',item)) then
-      if(.not.inp_a(item) goto 1
-      if(inp_compare(.false.,'Accelerator',item).or.inp_compare(.false.,'Accelerator',item)) then
-      elseif(inp_compare(.false.,'',item).or.inp_compare(.false.,'Accelerator',item)) then
-        
+4     continue
+      if(.not.inp_a(item)) goto 1
+      if(inp_compare(.false.,'GPU',item).or.inp_compare(.false.,'Accelerator',item)) then
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          iaslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          iaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          iaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'CUSOLVER')) then
+          iaslvr=SOLVER_CUSOLVER
+        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
+          iaslvr=SOLVER_CUSOLVERJ
+        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
+          iaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
+          iaslvr=SOLVER_ROCSOLVERJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          jaslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          jaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          jaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'CUSOLVER')) then
+          jaslvr=SOLVER_CUSOLVER
+        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
+          jaslvr=SOLVER_CUSOLVERJ
+        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
+          jaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
+          jaslvr=SOLVER_ROCSOLVERJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
+      elseif(inp_compare(.false.,'CPU',item)) then
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          inslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          inslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          inslvr=SOLVER_LAPACK
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          jnslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          jnslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          jnslvr=SOLVER_LAPACK
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
       else
         goto 3
       endif
       
-        
-      if(.not.inp_i(iaslvr)) then
-        iaslvr=-1
-        jaslvr=-1
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(jaslvr)) then
-        jaslvr=-1
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(inslvr)) then
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(jnslvr)) then
-        jnslvr=-1
-      endif
-      goto 2
+!      if(.not.inp_i(iaslvr)) then        
+!        iaslvr=-1
+!        jaslvr=-1
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(jaslvr)) then
+!        jaslvr=-1
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(inslvr)) then
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(jnslvr)) then
+!        jnslvr=-1
+!      endif
+      
+      goto 2      
     endif
 
     if(inp_compare(.false.,'Tolerance',item)) then

@@ -90,6 +90,9 @@
         
       case(122)
         write(lfnabt,'(a)') "Input: Managers : number of managers not properly specified"
+        
+      case(123)
+        write(lfnabt,'(a)') "Input: Solver : solver option not specified"
 
       case(130)
          write(lfnabt,'(a)') "Input: MPIbuffer : MPI buffer size not specified"

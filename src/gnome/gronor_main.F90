@@ -1392,71 +1392,71 @@ subroutine gronor_main()
   endif
 
 #ifdef CUSOLVERJ
-  if(iaslvr.lt.0) iaslvr=4
+  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
 #endif
 #ifdef CUSOLVER
-  if(iaslvr.lt.0) iaslvr=3
-  if(jaslvr.lt.0) jaslvr=3
+  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVER
+  if(jaslvr.lt.0) jaslvr=SOLVER_CUSOLVER
 #endif
 #ifdef MKL
-  if(inslvr.lt.0) inslvr=1
-  if(jnslvr.lt.0) jnslvr=1
+  if(inslvr.lt.0) inslvr=SOLVER_MKL
+  if(jnslvr.lt.0) jnslvr=SOLVER_MKL
 #else
 #ifdef LAPACK
 ! When LAPACK is working correctly the following four lines should be uncommented
-!  if(iaslvr.lt.0) iaslvr=2
-!  if(jaslvr.lt.0) jaslvr=2
-!  if(inslvr.lt.0) inslvr=2
-!  if(jnslvr.lt.0) jnslvr=2
+!  if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
+!  if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
+!  if(inslvr.lt.0) inslvr=SOLVER_LAPACK
+!  if(jnslvr.lt.0) jnslvr=SOLVER_LAPACK
 #endif
 #endif
-  if(inslvr.lt.0) inslvr=0
-  if(jnslvr.lt.0) jnslvr=0
-  if(iaslvr.lt.0) iaslvr=0
-  if(jaslvr.lt.0) jaslvr=0
+  if(inslvr.lt.0) inslvr=SOLVER_EISPACK
+  if(jnslvr.lt.0) jnslvr=SOLVER_EISPACK
+  if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
+  if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
 
-  if(iaslvr.lt.0) iaslvr=0
-  if(jaslvr.lt.0) jaslvr=0
-  if(inslvr.lt.0) inslvr=0
-  if(jnslvr.lt.0) jnslvr=0
+  if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
+  if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
+  if(inslvr.lt.0) inslvr=SOLVER_EISPACK
+  if(jnslvr.lt.0) jnslvr=SOLVER_EISPACK
 
   if(iamacc.eq.1) then
     isolver=SOLVER_EISPACK
-    if(iaslvr.eq.0) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.1) isolver=SOLVER_MKL
-    if(iaslvr.eq.2) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.3) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.4) isolver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
     jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.0) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.1) jsolver=SOLVER_MKL
-    if(jaslvr.eq.2) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.3) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.4) jsolver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
   else
     isolver=SOLVER_EISPACK
-    if(inslvr.eq.0) isolver=SOLVER_EISPACK
-    if(inslvr.eq.1) isolver=SOLVER_MKL
-    if(inslvr.eq.2) isolver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
     jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.0) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.1) jsolver=SOLVER_MKL
-    if(jnslvr.eq.2) jsolver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
     isolver=SOLVER_EISPACK
-    if(iaslvr.eq.0) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.1) isolver=SOLVER_MKL
-    if(iaslvr.eq.2) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.3) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.4) isolver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
     jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.0) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.1) jsolver=SOLVER_MKL
-    if(jaslvr.eq.2) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.3) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.4) jsolver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     if(numacc.gt.0) then
@@ -2449,26 +2449,26 @@ subroutine gronor_main()
   endif
 
   if(me.eq.mstr) then
-    if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout)) then
-      ierror=0
-      ierr=0
-      if(idbg.gt.0) then
-        write(lfndbg,'(a)') "Issuing mpi_abort"
-        flush(lfndbg)
-      endif
-      call swatch(date,time)
-      if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
-637   format(/,' Completion/abort of run ',2a10,/)
-      flush(lfnout)
-      close(unit=lfnout,status='keep')
-      call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-    else
+!    if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout)) then
+!      ierror=0
+!      ierr=0
+!      if(idbg.gt.0) then
+!        write(lfndbg,'(a)') "Issuing mpi_abort"
+!        flush(lfndbg)
+!      endif
+!      call swatch(date,time)
+!      if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
+!637   format(/,' Completion/abort of run ',2a10,/)
+!      flush(lfnout)
+!      close(unit=lfnout,status='keep')
+!      call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+!    else
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)
       flush(lfnout)
       close(unit=lfnout,status='keep')
-    endif
+!    endif
   endif
   
   if(idbg.gt.0) then

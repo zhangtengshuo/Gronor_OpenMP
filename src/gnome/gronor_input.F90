@@ -267,7 +267,6 @@ subroutine gronor_input()
         else
           call gronor_abort(123,"Input error Solver")
         endif
-        goto 4
         if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
           jaslvr=SOLVER_EISPACK
@@ -298,7 +297,6 @@ subroutine gronor_input()
         else
           call gronor_abort(123,"Input error Solver")
         endif
-        goto 4
         if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
           jnslvr=SOLVER_EISPACK

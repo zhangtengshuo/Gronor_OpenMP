@@ -248,7 +248,7 @@ subroutine gronor_input()
     if(inp_compare(.false.,'Solver',item).or.inp_compare(.false.,'Solvers',item)) then
 4     continue
       if(.not.inp_a(item)) goto 1
-      if(inp_compare(.false.,'GPU',item).or.inp_compare(.false.,'Accelerator',item)) then
+      if(inp_compare(.false.,'SVD',item)) then
         if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
           iaslvr=SOLVER_EISPACK
@@ -267,6 +267,22 @@ subroutine gronor_input()
         else
           call gronor_abort(123,"Input error Solver")
         endif
+        if(.not.inp_a(item)) then
+!          inslvr=SOLVER_EISPACK
+          goto 1
+        endif
+        if(inp_compare(.false.,item,'EISPACK')) then
+          inslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          inslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          inslvr=SOLVER_LAPACK
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
+      elseif(inp_compare(.false.,'EV',item).or.inp_compare(.false.,'EVD',item) &
+        .or.inp_compare(.false.,'SYEV',item).or.inp_compare(.false.,'SYEVD',item)) then
         if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
           jaslvr=SOLVER_EISPACK
@@ -285,19 +301,10 @@ subroutine gronor_input()
         else
           call gronor_abort(123,"Input error Solver")
         endif
-        goto 4
-      elseif(inp_compare(.false.,'CPU',item)) then
-        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
-        if(inp_compare(.false.,item,'EISPACK')) then
-          inslvr=SOLVER_EISPACK
-        elseif(inp_compare(.false.,item,'MKL')) then
-          inslvr=SOLVER_MKL
-        elseif(inp_compare(.false.,item,'LAPACK')) then
-          inslvr=SOLVER_LAPACK
-        else
-          call gronor_abort(123,"Input error Solver")
+        if(.not.inp_a(item)) then
+!          jnslvr=SOLVER_EISPACK
+          goto 1
         endif
-        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
           jnslvr=SOLVER_EISPACK
         elseif(inp_compare(.false.,item,'MKL')) then
@@ -307,11 +314,10 @@ subroutine gronor_input()
         else
           call gronor_abort(123,"Input error Solver")
         endif
-        goto 4
       else
-        goto 3
+        call gronor_abort(123,"Input error Solver")
       endif
-      
+
 !      if(.not.inp_i(iaslvr)) then        
 !        iaslvr=-1
 !        jaslvr=-1

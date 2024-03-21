@@ -69,7 +69,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numFragments;		// Actual number of fragments
 	Integer numFragmentStates=0;  // Number of unique fragment states used
 	
-	Integer[][] dimFragments = new Integer[maxFragments][13];		// Dimensions of fragments: number of atoms, states, electrons, etc.
+	Integer[][] dimFragments = new Integer[maxFragments][14];		// Dimensions of fragments: number of atoms, states, electrons, etc.
 	String[] namFragments = new String[maxFragments];				// Names of fragments used to determine xyz-formatted coordinate origin 
 	Double[][] movFragments = new Double[maxFragments][6];			// Rotation and translation of coordinates with respect to original source	
 	Double[] energiesDFT = new Double[maxFragments];				// DFT optimized energy of S0 state from NWChem
@@ -126,7 +126,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
     Integer numStateLabels = 12;
 
     String[] stateListLabels = new String[] {"ID","Num","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
-    String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt", "Sup"};
+    String[] fragmentLabels = new String[] {"ID", "SRC", "XYZ File", "Atoms", "Charge", "States", "Electrons", "CASe", "CASo", "nFrz", "Tx", "Ty", "Tz", "Rx", "Ry", "Rz", "Alt", "Sup"};
     String[] fragmentNames = new String[] {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"};
     String[] energyNames = new String[] {"E(DFT)", "E(SCF)", "E(CASSCF)", "E(CASPT2)"};
 
@@ -163,7 +163,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	DefaultTableModel mebfsEnergiesTableModel = new DefaultTableModel(null,nociLabels);
 
     Object[][] stateDefinitions = new Object[maxSets][19];
-    Object[][] fragmentDefinitions = new Object[maxFragments][17];
+    Object[][] fragmentDefinitions = new Object[maxFragments][18];
     Object[][] stateEnergies = new Object[4*maxFragments][12];
     Object[][] mebfDefinitions = new Object[maxMEBFs*maxMer][maxMEBFstates+6];
     Object[][] mebfEnergies = new Object[maxMEBFs][10];
@@ -454,21 +454,22 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    	dimFragments[i][3]=Integer.valueOf(card.substring(18,24).trim());  // Number of electrons
 			    	dimFragments[i][4]=Integer.valueOf(card.substring(24,30).trim());  // Number of CAS electrons
 			    	dimFragments[i][5]=Integer.valueOf(card.substring(30,36).trim());  // Number of CAS orbitals
-			    	dimFragments[i][6]=Integer.valueOf(card.substring(36,42).trim());  // Number of DFT energy
-			    	dimFragments[i][7]=Integer.valueOf(card.substring(42,48).trim());  // Number of SCF energy
-			    	dimFragments[i][8]=Integer.valueOf(card.substring(48,54).trim());  // Number of CASSCF energies
-			    	dimFragments[i][9]=Integer.valueOf(card.substring(54,60).trim());  // Number of CASPT2 energies
-			    	dimFragments[i][10]=Integer.valueOf(card.substring(60,66).trim()); // Number of orbital alterations
-			    	dimFragments[i][11]=Integer.valueOf(card.substring(66,72).trim()); // Charge
-			    	dimFragments[i][12]=Integer.valueOf(card.substring(72,78).trim()); // Number of occupied pz orbitals
-			    	fragmentDefinitions[i][1]=card.substring(83,84).trim(); // Source fragment number
+			    	dimFragments[i][6]=Integer.valueOf(card.substring(36,42).trim());  // Number of frozen orbitals
+			    	dimFragments[i][7]=Integer.valueOf(card.substring(42,48).trim());  // Number of DFT energy
+			    	dimFragments[i][8]=Integer.valueOf(card.substring(48,54).trim());  // Number of SCF energy
+			    	dimFragments[i][9]=Integer.valueOf(card.substring(54,60).trim());  // Number of CASSCF energies
+			    	dimFragments[i][10]=Integer.valueOf(card.substring(60,66).trim());  // Number of CASPT2 energies
+			    	dimFragments[i][11]=Integer.valueOf(card.substring(66,72).trim()); // Number of orbital alterations
+			    	dimFragments[i][12]=Integer.valueOf(card.substring(72,78).trim()); // Charge
+			    	dimFragments[i][13]=Integer.valueOf(card.substring(78,84).trim()); // Number of occupied pz orbitals
+			    	fragmentDefinitions[i][1]=card.substring(89,90).trim(); // Source fragment number
 			    	card=br.readLine();
 			    	energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
 			    	energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
 			    	card=br.readLine();
-			    	for(int j=0; j<dimFragments[i][8]; j++) energiesCASSCF[i][j]=Double.valueOf(card.substring(j*20,j*20+20)).doubleValue();
+			    	for(int j=0; j<dimFragments[i][9]; j++) energiesCASSCF[i][j]=Double.valueOf(card.substring(j*20,j*20+20)).doubleValue();
 			    	card=br.readLine();
-			    	for(int j=0; j<dimFragments[i][9]; j++) energiesCASPT2[i][j]=Double.valueOf(card.substring(j*20,j*20+20)).doubleValue();
+			    	for(int j=0; j<dimFragments[i][10]; j++) energiesCASPT2[i][j]=Double.valueOf(card.substring(j*20,j*20+20)).doubleValue();
 			    }
 			    
 				for(int i=0; i<numMEBFs; i++) {
@@ -513,6 +514,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%20.10f",fieldX);
 			    fw.printf("%20.10f",fieldY);
 			    fw.printf("%20.10f",fieldZ);
+			    
 			    if(orbAlter.isSelected()) {
 				    fw.printf("%6d",1);
 			    } else {
@@ -531,30 +533,32 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    		}
 		    		fw.println();
 		    	}
+		    	
 				for(int i=0; i<numFragments; i++) {
 					fw.println(namFragments[i].trim());
 					for(int j=0; j<6; j++) fw.printf("%20.10f",movFragments[i][j]);
 				    fw.println();
-				    for(int j=0; j<13; j++) fw.printf("%6d",dimFragments[i][j]);
+				    for(int j=0; j<14; j++) fw.printf("%6d",dimFragments[i][j]);
 				    String name = (String) fragmentDefinitions[i][1];
 				    fw.printf("%s","     "); fw.printf("%s",name.trim());
 				    fw.println();
-				    if(dimFragments[i][6]>0) {
+				    if(dimFragments[i][7]>0) {
 				    	fw.printf("%20.10f",energiesDFT[i]);
 				    } else {
 				    	fw.printf("%20.10f",0.0);
 				    }
-				    if(dimFragments[i][7]>0) {
+				    if(dimFragments[i][8]>0) {
 				    	fw.printf("%20.10f",energiesSCF[i]);
 				    }else {
 				    	fw.printf("%20.10f",0.0);
 				    }
 				    fw.println();
-				    for(int j=0; j<dimFragments[i][8]; j++) fw.printf("%20.10f",energiesCASSCF[i][j]);
+				    for(int j=0; j<dimFragments[i][9]; j++) fw.printf("%20.10f",energiesCASSCF[i][j]);
 				    fw.println();
-				    for(int j=0; j<dimFragments[i][9]; j++) fw.printf("%20.10f",energiesCASPT2[i][j]);
+				    for(int j=0; j<dimFragments[i][10]; j++) fw.printf("%20.10f",energiesCASPT2[i][j]);
 				    fw.println();
 				}
+				
 				if(newFragments>numFragments) {
 					for(int i=numFragments; i<newFragments; i++) {
 						fw.println();
@@ -635,7 +639,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	
 	private void createFragments() {
 		
-		fragmentDefinitions = new Object[numFragments][16];
+		fragmentDefinitions = new Object[numFragments][18];
 		
 		for(int i=0; i<numFragments; i++) fragmentDefinitions[i][0]=fragmentNames[i];
 		
@@ -1047,13 +1051,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numSets; i++) {
 			count[i]=0;
 			for(int j=0; j<numFragments; j++) {
-				if(spinStateList[i]==1 && ((dimFragments[j][3]-dimFragments[j][11]) % 2)==0) {
+				if(!((spinStateList[i]==1 && ((dimFragments[j][3]-dimFragments[j][12]) % 2)==0) || (spinStateList[i]==2 && ((dimFragments[j][3]-dimFragments[j][12]) % 2)==1))) {
+				if(spinStateList[i]==1 && ((dimFragments[j][3]-dimFragments[j][12]) % 2)==0) {
 					count[i]++;
 					dimFragments[j][2]=i;
 				}
-				if(spinStateList[i]==2 && ((dimFragments[j][3]-dimFragments[j][11]) % 2)==1) {
+				if(spinStateList[i]==2 && ((dimFragments[j][3]-dimFragments[j][12]) % 2)==1) {
 					count[i]++;
 					dimFragments[j][2]=i;
+				}
 				}
 			}
 		}
@@ -1061,13 +1067,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numFragments; i++) {
 			Boolean addSet = true;
 			for(int j=0; j<numSets; j++) {
-				if(spinStateList[j]==1 && ((dimFragments[i][3]-dimFragments[i][11]) % 2)==0) addSet=false;
-				if(spinStateList[j]==2 && ((dimFragments[i][3]-dimFragments[i][11]) % 2)==1) addSet=false;
+				if(spinStateList[j]==1 && ((dimFragments[i][3]-dimFragments[i][12]) % 2)==0) addSet=false;
+				if(spinStateList[j]==2 && ((dimFragments[i][3]-dimFragments[i][12]) % 2)==1) addSet=false;
 			}
 			if(addSet) {
 				for(int j=0; j<numSets; j++) {
 					if(count[j]==0) {
-				    	spinStateList[j]=((dimFragments[i][3]-dimFragments[i][11]) % 2)+1;
+				    	spinStateList[j]=((dimFragments[i][3]-dimFragments[i][12]) % 2)+1;
 						lenStateList[j]=0;
 						dimFragments[i][2]=j;
 						addSet=false;
@@ -1075,7 +1081,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 				if(addSet) {
 					if(newSets==numSets) newSets++;
-					spinStateList[numSets]=((dimFragments[i][3]-dimFragments[i][11]) % 2)+1;
+					spinStateList[numSets]=((dimFragments[i][3]-dimFragments[i][12]) % 2)+1;
 					lenStateList[numSets]=0;
 					dimFragments[i][2]=numSets;
 				}
@@ -1187,7 +1193,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int i=numFragments; i<newFragments; i++) {
 		    	namFragments[i]="";
 		    	for(int j=0; j<6; j++) movFragments[i][j]=0.0;
-		    	for(int j=0; j<13; j++) dimFragments[i][j]=0;
+		    	for(int j=0; j<14; j++) dimFragments[i][j]=0;
 		    	energiesDFT[i]=0.0;
 		    	energiesSCF[i]=0.0;
 		    	for(int j=0; j<7; j++) {
@@ -1197,6 +1203,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	dimFragments[i][2]=0;
 		    	dimFragments[i][4]=numCASe;
 		    	dimFragments[i][5]=numCASo;
+		    	dimFragments[i][6]=0;
 			}
 			if(numFragments>0) {		
 				for(int i=numFragments; i<newFragments; i++) {
@@ -1206,6 +1213,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					dimFragments[i][3]=dimFragments[numFragments-1][3];
 					dimFragments[i][4]=dimFragments[numFragments-1][4];
 					dimFragments[i][5]=dimFragments[numFragments-1][5];
+					dimFragments[i][6]=dimFragments[numFragments-1][6];
 				}
 			}
 		}
@@ -1219,21 +1227,22 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragmentDefinitions[i][3]=dimFragments[i][1];
 			fragmentDefinitions[i][4]=dimFragments[i][11];
 			fragmentDefinitions[i][5]=dimFragments[i][2]+1;
-			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][11];
+			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][12];
 			fragmentDefinitions[i][7]=dimFragments[i][4];
 			fragmentDefinitions[i][8]=dimFragments[i][5];
-			fragmentDefinitions[i][9]=movFragments[i][0];
-			fragmentDefinitions[i][10]=movFragments[i][1];
-			fragmentDefinitions[i][11]=movFragments[i][2];
-			fragmentDefinitions[i][12]=movFragments[i][3];
-			fragmentDefinitions[i][13]=movFragments[i][4];
-			fragmentDefinitions[i][14]=movFragments[i][5];
-			fragmentDefinitions[i][15]=dimFragments[i][10];
-			fragmentDefinitions[i][16]=dimFragments[i][12];
+			fragmentDefinitions[i][9]=dimFragments[i][6];
+			fragmentDefinitions[i][10]=movFragments[i][0];
+			fragmentDefinitions[i][11]=movFragments[i][1];
+			fragmentDefinitions[i][12]=movFragments[i][2];
+			fragmentDefinitions[i][13]=movFragments[i][3];
+			fragmentDefinitions[i][14]=movFragments[i][4];
+			fragmentDefinitions[i][15]=movFragments[i][5];
+			fragmentDefinitions[i][16]=dimFragments[i][11];
+			fragmentDefinitions[i][17]=dimFragments[i][13];
 		}
 
 		for(int i=0; i<numFragments; i++) {
-			for(int j=0; j<17; j++) {
+			for(int j=0; j<18; j++) {
 				fragmentsTableModel.setValueAt(fragmentDefinitions[i][j],i,j);
 			}
 		}
@@ -1293,17 +1302,18 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			fragmentDefinitions[i][3]=dimFragments[i][1];
 			fragmentDefinitions[i][4]=dimFragments[i][11];
 			fragmentDefinitions[i][5]=dimFragments[i][2]+1;
-			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][11];
+			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][12];
 			fragmentDefinitions[i][7]=dimFragments[i][4];
 			fragmentDefinitions[i][8]=dimFragments[i][5];
-			fragmentDefinitions[i][9]=movFragments[i][0];
-			fragmentDefinitions[i][10]=movFragments[i][1];
-			fragmentDefinitions[i][11]=movFragments[i][2];
-			fragmentDefinitions[i][12]=movFragments[i][3];
-			fragmentDefinitions[i][13]=movFragments[i][4];
-			fragmentDefinitions[i][14]=movFragments[i][5];
-			fragmentDefinitions[i][15]=dimFragments[i][10];
-			fragmentDefinitions[i][16]=dimFragments[i][12];
+			fragmentDefinitions[i][9]=dimFragments[i][6];
+			fragmentDefinitions[i][10]=movFragments[i][0];
+			fragmentDefinitions[i][11]=movFragments[i][1];
+			fragmentDefinitions[i][12]=movFragments[i][2];
+			fragmentDefinitions[i][13]=movFragments[i][3];
+			fragmentDefinitions[i][14]=movFragments[i][4];
+			fragmentDefinitions[i][15]=movFragments[i][5];
+			fragmentDefinitions[i][16]=dimFragments[i][11];
+			fragmentDefinitions[i][17]=dimFragments[i][13];
 		}
 		
 		numEnergies=0;
@@ -1484,6 +1494,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 								dimFragments[j][3]=dimFragments[row][3];
 								dimFragments[j][4]=dimFragments[row][4];
 								dimFragments[j][5]=dimFragments[row][5];
+								dimFragments[j][6]=dimFragments[row][6];
+								dimFragments[j][7]=dimFragments[row][7];
 								namFragments[j]=namFragments[row];
 							}
 						}
@@ -1604,7 +1616,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			stateIndex=dimFragments[i][2];
 			withCASPT2=true;
 			Integer mult=1;
-			Integer chrg=dimFragments[i][11];
+			Integer chrg=dimFragments[i][12];
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("D")) mult=2;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("T")) mult=3;
 			if(stateNames[ndxStateList[stateIndex][0]].startsWith("q")) mult=4;
@@ -1681,10 +1693,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 			fragment.initialize(nameP, nameF, nameA, nameB, dimFragments[i][3], RandT);
 			
-			dimFragments[i][6]=0;
 			dimFragments[i][7]=0;
 			dimFragments[i][8]=0;
 			dimFragments[i][9]=0;
+			dimFragments[i][10]=0;
 			
 			if(fragment.NWChem_Converged(i)) {
 				energy=fragment.NWChem_DFT(i);
@@ -1694,25 +1706,25 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			
 			nameA= (String) fragmentDefinitions[dimFragments[i][0]][0];
 //			numAlt=fragment.read_Alt(nameP,nameA);
-			dimFragments[i][10]=numAlt;
+			dimFragments[i][11]=numAlt;
 			
 //			numSup=fragment.read_Sup(nameP,nameA);
-			dimFragments[i][12]=numSup;
+			dimFragments[i][13]=numSup;
 			
 			if(fragment.Molcas_SCF_Converged(projectName,dimFragments[i][0],dimFragments[i][4],dimFragments[i][5])) {
 				energy=fragment.Molcas_SCF(dimFragments[i][0],dimFragments[i][4],dimFragments[i][5]);
 				if(orbAlter.isSelected()) {
-					dimFragments[i][10]=fragment.numAlt;
+					dimFragments[i][11]=fragment.numAlt;
 				} else {
-					dimFragments[i][10]=0;
+					dimFragments[i][11]=0;
 				}
 				if(orbSupSym.isSelected()) {
-					dimFragments[i][12]=fragment.numSup;
+					dimFragments[i][13]=fragment.numSup;
 				} else {
-					dimFragments[i][12]=0;
+					dimFragments[i][13]=0;
 				}
 				energiesSCF[i]=energy;
-				dimFragments[i][7]=1;
+				dimFragments[i][8]=1;
 			}
 			
 			for(int j=0; j<lenStateList[dimFragments[i][2]]; j++) {
@@ -1723,11 +1735,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(conv>=1) {
 					energy=fragment.Molcas_CASSCF(i,stateIndex);
 					energiesCASSCF[i][j]=energy;
-					dimFragments[i][8]=j+1;
+					dimFragments[i][9]=j+1;
 					if(conv==2) {
 						energy=fragment.Molcas_CASPT2(i,stateIndex);
 						energiesCASPT2[i][j]=energy;
-						dimFragments[i][9]=j+1;
+						dimFragments[i][10]=j+1;
 					}
 				}
 			}
@@ -1790,7 +1802,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		for(int i=0; i<numMEBFs; i++) {
 			Integer sumCharges=0;
 			for(int j=0; j<mebfSpecification[i][0]; j++) {
-				sumCharges=sumCharges+dimFragments[mebfFragments[i][j][0]][11];
+				sumCharges=sumCharges+dimFragments[mebfFragments[i][j][0]][12];
 			}
 			mebfSpecification[i][2]=sumCharges;
 		}
@@ -2517,6 +2529,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		fragmentsTable.getColumnModel().getColumn(14).setMaxWidth(50);
 		fragmentsTable.getColumnModel().getColumn(15).setMaxWidth(50);
 		fragmentsTable.getColumnModel().getColumn(16).setMaxWidth(50);
+		fragmentsTable.getColumnModel().getColumn(17).setMaxWidth(50);
 		
 		fragmentsTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent e) {			
@@ -2562,6 +2575,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 									dimFragments[j][3]=dimFragments[row][3];
 									dimFragments[j][4]=dimFragments[row][4];
 									dimFragments[j][5]=dimFragments[row][5];
+									dimFragments[j][6]=dimFragments[row][6];
+									dimFragments[j][7]=dimFragments[row][7];
 									namFragments[j]=namFragments[row];
 								}
 							}
@@ -2572,7 +2587,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(col==4) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter charge for fragment "+fragmentDefinitions[row][0].toString());
-						if(value.length()>0) dimFragments[row][11]=Integer.valueOf(value);
+						if(value.length()>0) dimFragments[row][12]=Integer.valueOf(value);
 					} catch(NullPointerException e1) {
 					}
 				}
@@ -2602,8 +2617,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					} catch(NullPointerException e1) {
 					}
 				}
-				// change translation in x
+				// number of frozen orbitals
 				if(col==9) {
+					try {
+						value = JOptionPane.showInputDialog(jf,"Enter number of frozen orbitals for fragment "+fragmentDefinitions[row][0].toString());
+						dimFragments[row][6]=Integer.valueOf(value);
+					} catch(NullPointerException e1) {
+					}
+				}
+				// change translation in x
+				if(col==10) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Tx for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][0]=Double.valueOf(value).doubleValue();
@@ -2611,7 +2634,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					}
 				}
 				// change translation in y
-				if(col==10) {
+				if(col==11) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Ty for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][1]=Double.valueOf(value).doubleValue();
@@ -2619,7 +2642,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					}
 				}
 				// change translation in z
-				if(col==11) {
+				if(col==12) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Tz for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][2]=Double.valueOf(value).doubleValue();
@@ -2627,7 +2650,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					}
 				}
 				// change rotation in x
-				if(col==12) {
+				if(col==13) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Rx for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][3]=Double.valueOf(value).doubleValue();
@@ -2635,7 +2658,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					}
 				}
 				// change rotation in y
-				if(col==13) {
+				if(col==14) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Ry for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][4]=Double.valueOf(value).doubleValue();
@@ -2643,14 +2666,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					}
 				}
 				// change rotation in z
-				if(col==14) {
+				if(col==15) {
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter Rz for fragment "+fragmentDefinitions[row][0].toString());
 						movFragments[row][5]=Double.valueOf(value).doubleValue();
 					} catch(NullPointerException e1) {
 					}
 				}
-				if(col==15) {
+				if(col==16) {
 					for(int j=0; j<6; j++) RandT[j]=movFragments[row][j];
 					nameP=projectName.trim();
 					nameF=namFragments[row].trim();
@@ -3475,6 +3498,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			String[] fname = new String[nfrags];
 			Integer[] fstat = new Integer[nfrags];
 			Integer[] nums = new Integer[nfrags];
+			Integer[] nfrz = new Integer[nfrags];
 			Double[][] randt = new Double[nfrags][6];
 			String fileName = projectName.trim()+mebfName[i].trim();
 			for(int j=0; j<nfrags; j++) {
@@ -3483,13 +3507,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				frags[j]=fragmentNames[mebfFragments[i][j][0]];
 				source[j]=fragmentNames[mebfFragments[i][j][1]];
 				fstat[j]=dimFragments[j][2];
+				nfrz[j]=dimFragments[j][6];
 				nums[j]=lenStateList[dimFragments[j][2]];
 				pName = projectName.trim();
 				for(int k=0; k<6; k++) randt[j][k]=movFragments[mebfFragments[i][j][0]][k];
 			}
 			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, fname, frags, randt)) {
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
-				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, lenStateList, ndxStateList, thresh_MO);
+				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, nfrz, lenStateList, ndxStateList, thresh_MO);
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
 				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
 			}

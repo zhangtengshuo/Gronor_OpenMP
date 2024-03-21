@@ -566,10 +566,13 @@ public class gronor_Fragment {
 			
 			fullName = p.trim()+"_CB";
 			runFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
-			runFile.println("touch TRAINT");
 			slurmFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
-			slurmFile.println("touch TRAINT");
 			lsfFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+			runFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+			slurmFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+			lsfFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+			runFile.println("touch TRAINT");
+			slurmFile.println("touch TRAINT");
 			lsfFile.println("touch TRAINT");
 			fullName = p.trim()+"_TWO";
 			runFile.println("cp "+fullName.trim()+".input "+p.trim()+".input; "+"pymolcas "+p.trim()+".input > "+fullName.trim()+".output");
@@ -2369,6 +2372,7 @@ public class gronor_Fragment {
 			
 		    inputFile.println("oneonly");
 		    inputFile.println(">>> COPY "+p+".RunFile $CurrDir/"+p+".runfil");
+		    inputFile.println(">>> COPY "+p+".OneInt $CurrDir/"+p+".oneint");
 		    inputFile.close();
 		} catch(IOException e) {
 		}
@@ -2431,7 +2435,7 @@ public class gronor_Fragment {
 		    inputFile.println("noorth");
 		    inputFile.println("LumOrb");
 		    inputFile.println("frozen");
-		    inputFile.println(" 0");
+		    inputFile.println(" $FROZEN");
 		    inputFile.println("deleted");
 		    inputFile.println(" $DELETED");
 		    inputFile.println("ctonly");
@@ -2454,7 +2458,7 @@ public class gronor_Fragment {
 		}
 	}
 
-	public void write_Molcas_MEBF_CB(String f, String p, Integer n, String[] frags, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Double thr) {
+	public void write_Molcas_MEBF_CB(String f, String p, Integer n, String[] frags, Integer[] fstat, Integer[] nfrz, Integer[] lenStateList, Integer[][] ndxStateList, Double thr) {
 		String fileName = f+"_CB.input";
 		try {
 			PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
@@ -2471,6 +2475,11 @@ public class gronor_Fragment {
 				for(int j=0; j<lenStateList[fstat[i]]; j++) inputFile.print(" "+stateNames[ndxStateList[fstat[i]][j]].trim());
 				inputFile.println();
 			}
+			inputFile.println("Frozen");
+			for(int i=0; i<n; i++) {
+				inputFile.printf("%3d",nfrz[i]);
+			}
+			inputFile.println();
 			inputFile.println("Energies");
 		    inputFile.close();
 			} catch(IOException e) {

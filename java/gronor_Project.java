@@ -1494,8 +1494,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				setTableCellColor(fragmentsTable,0,2,Color.red);
 			}
 		} else if(nfrag>1) {
-			for(int i=1; i<numFragments; i++) {
-				if(!fragT[i]) {
+			for(int i=0; i<numFragments; i++) {
+				if(!fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]) && !fragT[i]) {
 					setTableCellColor3(fragmentsTable,i,9,14,Color.red);
 				}
 			}
@@ -2673,8 +2673,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    public void itemStateChanged(ItemEvent item){
 				Integer row = fragmentsTable.getEditingRow();
 				Integer col = fragmentsTable.getEditingColumn();
-				fragmentDefinitions[row][col]=fragmentNames[equivalenceCombo.getSelectedIndex()];
-				update();
+				if(col==1) {
+					fragmentDefinitions[row][col]=fragmentNames[equivalenceCombo.getSelectedIndex()];
+					update();
+				}
 		    }
 		});
 		

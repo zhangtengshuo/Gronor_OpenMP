@@ -2589,7 +2589,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter number of electrons in CAS for fragment "+fragmentDefinitions[row][0].toString());
 						if(value.length()>0) dimFragments[row][4]=Integer.valueOf(value);
-						if(2*dimFragments[row][5]<=dimFragments[row][4]) dimFragments[row][5]=dimFragments[row][4];
+						if(2*dimFragments[row][5]<dimFragments[row][4]) dimFragments[row][5]=dimFragments[row][4];
 					} catch(NullPointerException e1) {
 					}
 				}
@@ -2598,7 +2598,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					try {
 						value = JOptionPane.showInputDialog(jf,"Enter number of orbitals in CAS for fragment "+fragmentDefinitions[row][0].toString());
 						if(value.length()>0) dimFragments[row][5]=Integer.valueOf(value);
-						if(2*dimFragments[row][5]<=dimFragments[row][4]) dimFragments[row][4]=dimFragments[row][5];
+						if(2*dimFragments[row][5]<dimFragments[row][4]) dimFragments[row][4]=dimFragments[row][5];
 					} catch(NullPointerException e1) {
 					}
 				}

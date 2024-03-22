@@ -25,8 +25,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JPanel optionsPanel;
 	JPanel dimensionPanel;
 	JPanel jobPanel;
+	JPanel alterPanel;
 	JPanel expansionPanel;
-	JPanel checkBoxPanel;
 	JPanel numberPanel;
 	JPanel threshPanel;
 	JPanel fieldPanel;
@@ -69,7 +69,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numFragments;		// Actual number of fragments
 	Integer numFragmentStates=0;  // Number of unique fragment states used
 	
-	Integer[][] dimFragments = new Integer[maxFragments][14];		// Dimensions of fragments: number of atoms, states, electrons, etc.
+	Integer[][] dimFragments = new Integer[maxFragments][15];		// Dimensions of fragments: number of atoms, states, electrons, etc.
 	String[] namFragments = new String[maxFragments];				// Names of fragments used to determine xyz-formatted coordinate origin 
 	Double[][] movFragments = new Double[maxFragments][6];			// Rotation and translation of coordinates with respect to original source	
 	Double[] energiesDFT = new Double[maxFragments];				// DFT optimized energy of S0 state from NWChem
@@ -109,6 +109,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numThreads=12;
 	Integer memory=2048;
 	Integer expansion=0;
+	Integer frozen=0;
 	Integer basisSet=0;
 	Integer contract=1;
 	Integer cholesky=2;
@@ -133,6 +134,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	String[] mebfLabels = new String[] {"ID","n-mer","Spin","Charge","States","Frag","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66"};
 	String[] nociLabels = new String[] {"ID", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9" };
 
+	String[] optFrozen = new String[] {"none", "default", "user"};
 	String[] expMEBF = new String[] {"small", "medium", "large", "x-large", "huge"};
 	String[] basisSets = new String[] {"ano-s", "ano-l", "ano-ccr", "ano-ccr-vdzp"};
 	String[] contracts = new String[] {"s", "m","l"};
@@ -151,6 +153,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JTable fieldTable = new JTable();
 	JTable basisTable = new JTable();
 	JTable expansionTable = new JTable();
+	JTable frozenTable = new JTable();
 	JTable contractTable = new JTable();
 	JTable choleskyTable = new JTable();
     
@@ -219,7 +222,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	gronor_Project(String pName){
 		
 		super("GronOR Project "+pName);
-	    super.setSize(1200,900);
+	    super.setSize(1300,900);
 	    super.setLocation(150,150);
 	    super.setBackground(Color.lightGray);
 	    super.setForeground(Color.blue);
@@ -415,19 +418,20 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	contract  = Integer.valueOf(card.substring(36,42).trim());
 		    	cholesky  = Integer.valueOf(card.substring(42,48).trim());
 		    	expansion = Integer.valueOf(card.substring(48,54).trim());
-		    	thresh_MO = Double.valueOf(card.substring(54,74)).doubleValue();
-		    	thresh_CI = Double.valueOf(card.substring(74,94)).doubleValue();
-		    	ipea      = Double.valueOf(card.substring(94,100)).doubleValue();
-		    	fieldX    = Double.valueOf(card.substring(100,120)).doubleValue();
-		    	fieldY    = Double.valueOf(card.substring(120,140)).doubleValue();
-		    	fieldZ    = Double.valueOf(card.substring(140,160)).doubleValue();
-		    	Integer check = Integer.valueOf(card.substring(160,166).trim());
+		    	frozen    = Integer.valueOf(card.substring(54,60).trim());
+		    	thresh_MO = Double.valueOf(card.substring(60,80)).doubleValue();
+		    	thresh_CI = Double.valueOf(card.substring(80,100)).doubleValue();
+		    	ipea      = Double.valueOf(card.substring(100,106)).doubleValue();
+		    	fieldX    = Double.valueOf(card.substring(106,126)).doubleValue();
+		    	fieldY    = Double.valueOf(card.substring(126,146)).doubleValue();
+		    	fieldZ    = Double.valueOf(card.substring(146,166)).doubleValue();
+		    	Integer check = Integer.valueOf(card.substring(166,172).trim());
 		    	if(check==1) {
 		    		orbAlter.setSelected(true);
 		    	} else {
 		    		orbAlter.setSelected(false);
 		    	}
-		    	check = Integer.valueOf(card.substring(166,172).trim());
+		    	check = Integer.valueOf(card.substring(172,178).trim());
 		    	if(check==1) {
 		    		orbSupSym.setSelected(true);
 		    	} else {
@@ -462,7 +466,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    	dimFragments[i][11]=Integer.valueOf(card.substring(66,72).trim()); // Number of orbital alterations
 			    	dimFragments[i][12]=Integer.valueOf(card.substring(72,78).trim()); // Charge
 			    	dimFragments[i][13]=Integer.valueOf(card.substring(78,84).trim()); // Number of occupied pz orbitals
-			    	fragmentDefinitions[i][1]=card.substring(89,90).trim(); // Source fragment number
+			    	dimFragments[i][14]=Integer.valueOf(card.substring(84,90).trim()); // Default number of frozen orbitals
+			    	fragmentDefinitions[i][1]=card.substring(95,96).trim(); // Source fragment number
 			    	card=br.readLine();
 			    	energiesDFT[i]=Double.valueOf(card.substring(0,20)).doubleValue();
 			    	energiesSCF[i]=Double.valueOf(card.substring(20,40)).doubleValue();
@@ -508,6 +513,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%6d",contract);
 			    fw.printf("%6d",cholesky);
 			    fw.printf("%6d",expansion);
+			    fw.printf("%6d",frozen);
 			    fw.printf("%20.10f",thresh_MO);
 			    fw.printf("%20.10f",thresh_CI);
 			    fw.printf("%6.3f",ipea);
@@ -538,7 +544,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					fw.println(namFragments[i].trim());
 					for(int j=0; j<6; j++) fw.printf("%20.10f",movFragments[i][j]);
 				    fw.println();
-				    for(int j=0; j<14; j++) fw.printf("%6d",dimFragments[i][j]);
+				    for(int j=0; j<15; j++) fw.printf("%6d",dimFragments[i][j]);
 				    String name = (String) fragmentDefinitions[i][1];
 				    fw.printf("%s","     "); fw.printf("%s",name.trim());
 				    fw.println();
@@ -885,6 +891,151 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 	}
 	
+	public Integer getNumFxyz(String root) {
+		String fileName=root+".xyz";
+		String card;
+		StringTokenizer st;
+		Integer number = 0;
+		Integer nA = 0;
+		String aL;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			card=br.readLine();
+			st = new StringTokenizer(card," ");
+			nA=Integer.valueOf(st.nextToken());
+			card=br.readLine();
+			number=0;
+			for(int i=0; i<nA; i++) {
+				card=br.readLine();
+				st = new StringTokenizer(card," ");
+				aL=st.nextToken();
+				if(aL.equals("H"))  number=number+0;
+				if(aL.equals("He")) number=number+0;
+				if(aL.equals("Li")) number=number+1;
+				if(aL.equals("Be")) number=number+1;
+				if(aL.equals("B"))  number=number+1;
+				if(aL.equals("C"))  number=number+1;
+				if(aL.equals("N"))  number=number+1;
+				if(aL.equals("O"))  number=number+1;
+				if(aL.equals("F"))  number=number+1;
+				if(aL.equals("Ne")) number=number+1;
+				if(aL.equals("Na")) number=number+2;
+				if(aL.equals("Mg")) number=number+2;
+				if(aL.equals("Al")) number=number+2;
+				if(aL.equals("Si")) number=number+2;
+				if(aL.equals("P"))  number=number+3;
+				if(aL.equals("S"))  number=number+3;
+				if(aL.equals("Cl")) number=number+3;
+				if(aL.equals("Ar")) number=number+3;
+				if(aL.equals("K"))  number=number+4;
+				if(aL.equals("Ca")) number=number+4;
+				if(aL.equals("Sc")) number=number+4;
+				if(aL.equals("Ti")) number=number+4;
+				if(aL.equals("V"))  number=number+4;
+				if(aL.equals("Cr")) number=number+4;
+				if(aL.equals("Mn")) number=number+4;
+				if(aL.equals("Fe")) number=number+4;
+				if(aL.equals("Co")) number=number+4;
+				if(aL.equals("Ni")) number=number+4;
+				if(aL.equals("Cu")) number=number+4;
+				if(aL.equals("Zn")) number=number+6;
+				if(aL.equals("Ga")) number=number+6;
+				if(aL.equals("Ge")) number=number+6;
+				if(aL.equals("As")) number=number+6;
+				if(aL.equals("Se")) number=number+6;
+				if(aL.equals("Br")) number=number+6;
+				if(aL.equals("Kr")) number=number+6;
+				if(aL.equals("Rb")) number=number+7;
+				if(aL.equals("Sr")) number=number+7;
+				if(aL.equals("Y"))  number=number+7;
+				if(aL.equals("Zr")) number=number+7;
+				if(aL.equals("Nb")) number=number+7;
+				if(aL.equals("Mo")) number=number+7;
+				if(aL.equals("Tc")) number=number+7;
+				if(aL.equals("Ru")) number=number+7;
+				if(aL.equals("Rh")) number=number+7;
+				if(aL.equals("Pd")) number=number+7;
+				if(aL.equals("Ag")) number=number+7;
+				if(aL.equals("Cd")) number=number+8;
+				if(aL.equals("In")) number=number+8;
+				if(aL.equals("Sn")) number=number+8;
+				if(aL.equals("Sb")) number=number+8;
+				if(aL.equals("Te")) number=number+8;
+				if(aL.equals("I"))  number=number+8;
+				if(aL.equals("Xe")) number=number+8;
+				if(aL.equals("Cs")) number=number+11;
+				if(aL.equals("Ba")) number=number+11;
+				if(aL.equals("La")) number=number+11;
+				if(aL.equals("Ce")) number=number+11;
+				if(aL.equals("Pr")) number=number+11;
+				if(aL.equals("Nd")) number=number+11;
+				if(aL.equals("Pm")) number=number+11;
+				if(aL.equals("Sm")) number=number+11;
+				if(aL.equals("Eu")) number=number+11;
+				if(aL.equals("Gd")) number=number+11;
+				if(aL.equals("Tb")) number=number+11;
+				if(aL.equals("Dy")) number=number+11;
+				if(aL.equals("Ho")) number=number+11;
+				if(aL.equals("Er")) number=number+11;
+				if(aL.equals("Tm")) number=number+11;
+				if(aL.equals("Yb")) number=number+11;
+				if(aL.equals("Lu")) number=number+10;
+				if(aL.equals("Hf")) number=number+10;
+				if(aL.equals("Ta")) number=number+10;
+				if(aL.equals("W"))  number=number+10;
+				if(aL.equals("Re")) number=number+10;
+				if(aL.equals("Os")) number=number+10;
+				if(aL.equals("Ir")) number=number+10;
+				if(aL.equals("Pt")) number=number+10;
+				if(aL.equals("Au")) number=number+10;
+				if(aL.equals("Hg")) number=number+12;
+				if(aL.equals("Tl")) number=number+12;
+				if(aL.equals("Pb")) number=number+12;
+				if(aL.equals("Bi")) number=number+12;
+				if(aL.equals("Po")) number=number+12;
+				if(aL.equals("At")) number=number+12;
+				if(aL.equals("Rn")) number=number+12;
+				if(aL.equals("Fr")) number=number+13;
+				if(aL.equals("Ra")) number=number+13;
+				if(aL.equals("Ac")) number=number+13;
+				if(aL.equals("Th")) number=number+13;
+				if(aL.equals("Pa")) number=number+13;
+				if(aL.equals("U")) number=number+13;
+				if(aL.equals("Np")) number=number+13;
+				if(aL.equals("Pu")) number=number+13;
+				if(aL.equals("Am")) number=number+13;
+				if(aL.equals("Cm")) number=number+13;
+				if(aL.equals("Bk")) number=number+13;
+				if(aL.equals("Cf")) number=number+13;
+				if(aL.equals("Es")) number=number+13;
+				if(aL.equals("Fm")) number=number+13;
+				if(aL.equals("Md")) number=number+13;
+				if(aL.equals("No")) number=number+13;
+				if(aL.equals("Lr")) number=number+13;
+				if(aL.equals("Rf")) number=number+13;
+				if(aL.equals("Db")) number=number+13;
+				if(aL.equals("Sg")) number=number+13;
+				if(aL.equals("Bh")) number=number+13;
+				if(aL.equals("Hs")) number=number+13;
+				if(aL.equals("Mt")) number=number+13;
+				if(aL.equals("Ds")) number=number+13;
+				if(aL.equals("Rg")) number=number+13;
+				if(aL.equals("Cn")) number=number+13;
+				if(aL.equals("Nh")) number=number+13;
+				if(aL.equals("Fl")) number=number+13;
+				if(aL.equals("Mc")) number=number+13;
+				if(aL.equals("Lv")) number=number+13;
+				if(aL.equals("Ts")) number=number+13;
+				if(aL.equals("Og")) number=number+13;
+			}
+			br.close();
+			return number;
+		} catch(IOException ef) {
+			System.out.println("IOException in XYZ file "+fileName);
+			return 0;
+		}
+	}
+	
 	private void dimers() {
 		
 		Integer n=0;
@@ -1170,6 +1321,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	
 	private void updateFragmentList() {
 
+		if(frozen==0) {
+			for(int i=0; i<numFragments; i++) dimFragments[i][6]=0;
+		}
+		if(frozen==1) {
+			for(int i=0; i<numFragments; i++) dimFragments[i][6]=dimFragments[i][14];
+		}
+		
 		if(numFragments>numberFragmentDefinitions) {
 			for(int i=numberFragmentDefinitions; i<numFragments; i++) {
 				fragmentsTableModel.addRow(fragmentDefinitions[i]);
@@ -1193,7 +1351,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int i=numFragments; i<newFragments; i++) {
 		    	namFragments[i]="";
 		    	for(int j=0; j<6; j++) movFragments[i][j]=0.0;
-		    	for(int j=0; j<14; j++) dimFragments[i][j]=0;
+		    	for(int j=0; j<15; j++) dimFragments[i][j]=0;
 		    	energiesDFT[i]=0.0;
 		    	energiesSCF[i]=0.0;
 		    	for(int j=0; j<7; j++) {
@@ -1214,6 +1372,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					dimFragments[i][4]=dimFragments[numFragments-1][4];
 					dimFragments[i][5]=dimFragments[numFragments-1][5];
 					dimFragments[i][6]=dimFragments[numFragments-1][6];
+					dimFragments[i][14]=dimFragments[numFragments-1][14];
 				}
 			}
 		}
@@ -1376,6 +1535,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		}
 		numberStateEnergies=numEnergies;
+		
 	}
 
 	private void updateFragmentEnergies() {
@@ -1468,6 +1628,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				namFragments[row]=fragmentDefinitions[row][col].toString();
 				dimFragments[row][1]=getNumAxyz(fragmentDefinitions[row][col].toString());
 				dimFragments[row][3]=getNumExyz(fragmentDefinitions[row][col].toString());
+				dimFragments[row][14]=getNumFxyz(fragmentDefinitions[row][col].toString());
 				Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
 				if(numXA<dimFragments[row][4]) {
 					numCASe=Math.max(4,numXA);
@@ -1496,6 +1657,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 								dimFragments[j][5]=dimFragments[row][5];
 								dimFragments[j][6]=dimFragments[row][6];
 								dimFragments[j][7]=dimFragments[row][7];
+								dimFragments[j][14]=dimFragments[row][14];
 								namFragments[j]=namFragments[row];
 							}
 						}
@@ -2170,7 +2332,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		expansionTable.getColumnModel().getColumn(0).setMaxWidth(80);
 		expansionTable.getColumnModel().getColumn(1).setMaxWidth(100);
 
-		
 		DefaultComboBoxModel expansionComboModel = new DefaultComboBoxModel(expMEBF);
 		JComboBox expansionCombo = new JComboBox();
 		expansionCombo.setMaximumRowCount(3);
@@ -2193,14 +2354,30 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		});
 
-		checkBoxPanel = new JPanel();
-		checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel,BoxLayout.Y_AXIS));
-		checkBoxPanel.setPreferredSize(new Dimension(100,50));
-		checkBoxPanel.setMinimumSize(new Dimension(100,50));
-		checkBoxPanel.setMaximumSize(new Dimension(100,50));
-		LineBorder checkBoxBorder = new LineBorder(Color.black);
-		checkBoxPanel.setBorder(checkBoxBorder);
-		 
+		Object[][] frozenData = new Object[][] {
+			{"Frozen", optFrozen[frozen]}
+		};
+		String[] frozenColumns = new String[] {" "," "};
+		frozenTable = new JTable(frozenData,frozenColumns);
+		frozenTable.setCellSelectionEnabled(true);
+		frozenTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		frozenTable.getColumnModel().getColumn(1).setMaxWidth(100);
+
+		DefaultComboBoxModel frozenComboModel = new DefaultComboBoxModel(optFrozen);
+		JComboBox frozenCombo = new JComboBox();
+		frozenCombo.setMaximumRowCount(3);
+		frozenCombo.setModel(frozenComboModel);
+		TableColumn frozenColumn = frozenTable.getColumnModel().getColumn(1);
+		frozenColumn.setCellEditor(new DefaultCellEditor(frozenCombo));
+		frozenCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = frozenTable.getEditingColumn();
+				Integer row = frozenTable.getEditingRow();
+				frozen=frozenCombo.getSelectedIndex();
+				update();
+			}
+		});
+
 //		orbAlter.setBounds(50,50,50,50); 
 //		orbSupSym.setBounds(50,50,50,50);
 		
@@ -2351,6 +2528,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		});
 		
+		JPanel alterPanel = new JPanel();
+		alterPanel.setLayout(new BoxLayout(alterPanel,BoxLayout.Y_AXIS));
+		alterPanel.setPreferredSize(new Dimension(115,70));
+		alterPanel.setMinimumSize(new Dimension(115,70));
+		alterPanel.setMaximumSize(new Dimension(115,70));
+		LineBorder alterBorder = new LineBorder(Color.black);
+		alterPanel.setBorder(alterBorder);
+		
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.Y_AXIS));
 		buttonPanel.setPreferredSize(new Dimension(115,70));
@@ -2412,12 +2597,14 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		basisPanel.add(choleskyTable);
 		expansionPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		expansionPanel.add(expansionTable);
-		expansionPanel.add(checkBoxPanel);
+		expansionPanel.add(frozenTable);
 		expansionPanel.add(Box.createVerticalGlue());
-		checkBoxPanel.add(orbAlter);
-		checkBoxPanel.add(orbSupSym);
 		jobPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		jobPanel.add(jobTable);
+		alterPanel.add(Box.createRigidArea(new Dimension(5,5)));
+		alterPanel.add(orbAlter);
+		alterPanel.add(orbSupSym);
+		alterPanel.add(Box.createVerticalGlue());
 		buttonPanel.add(Box.createRigidArea(new Dimension(5,5)));
 		buttonPanel.add(generateButton);
 		buttonPanel.add(updateButton);
@@ -2438,6 +2625,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		parametersPanel.add(basisPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(jobPanel);
+		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		parametersPanel.add(alterPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(buttonPanel);
 		
@@ -2549,6 +2738,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 					namFragments[row]=fragmentDefinitions[row][col].toString();
 					dimFragments[row][1]=getNumAxyz(fragmentDefinitions[row][col].toString());
 					dimFragments[row][3]=getNumExyz(fragmentDefinitions[row][col].toString());
+					dimFragments[row][14]=getNumFxyz(fragmentDefinitions[row][col].toString());
 					Integer numXA=dimFragments[row][1]-getNumHxyz(fragmentDefinitions[row][col].toString());
 					if(numXA<dimFragments[row][4]) {
 						numCASe=Math.max(4,numXA);
@@ -2577,6 +2767,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 									dimFragments[j][5]=dimFragments[row][5];
 									dimFragments[j][6]=dimFragments[row][6];
 									dimFragments[j][7]=dimFragments[row][7];
+									dimFragments[j][14]=dimFragments[row][14];
 									namFragments[j]=namFragments[row];
 								}
 							}

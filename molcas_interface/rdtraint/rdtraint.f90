@@ -90,6 +90,8 @@ integer              :: onlastrecord,nlastrecords,totRecords
 integer              :: iRec,nInts,onLastFile,stat
 logical              :: write_labels
 
+call SetMem('clear=off')
+
 call rdtraint_read_input(Project,print_level,write_labels,nTraRec,almostZero,combas)
 ! open the ONEINT file to access the AO overlap matrix (needed to calculate sMO)
 nBas = 0

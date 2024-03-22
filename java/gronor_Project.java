@@ -3692,6 +3692,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer[] nfrz = new Integer[nfrags];
 			Double[][] randt = new Double[nfrags][6];
 			String fileName = projectName.trim()+mebfName[i].trim();
+			Integer num_frozen=0;
 			for(int j=0; j<nfrags; j++) {
 				int last=namFragments[j].indexOf("_");
 				fname[j]=namFragments[j].substring(0,last);
@@ -3702,11 +3703,12 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				nums[j]=lenStateList[dimFragments[j][2]];
 				pName = projectName.trim();
 				for(int k=0; k<6; k++) randt[j][k]=movFragments[mebfFragments[i][j][0]][k];
+				num_frozen=num_frozen+nfrz[j];
 			}
 			if(fragment.write_MEBF_XYZ(fileName, pName, nfrags, fname, frags, randt)) {
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
 				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, nfrz, lenStateList, ndxStateList, thresh_MO);
-				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
+				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky, num_frozen);
 				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
 			}
 		}

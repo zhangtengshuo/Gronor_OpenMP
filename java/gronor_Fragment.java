@@ -568,9 +568,9 @@ public class gronor_Fragment {
 			runFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
 			slurmFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
 			lsfFile.println("setenv DELETED ` grep \"Deleted orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
-			runFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
-			slurmFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
-			lsfFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+//			runFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+//			slurmFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
+//			lsfFile.println("setenv FROZEN ` grep \"Frozen orbitals in MOTRA\" "+fullName.trim()+".output | cut -b 30-34 `");
 			runFile.println("touch TRAINT");
 			slurmFile.println("touch TRAINT");
 			lsfFile.println("touch TRAINT");
@@ -2378,7 +2378,7 @@ public class gronor_Fragment {
 		}
 	}
 
-	public void write_Molcas_MEBF_Two(String p, String pn, Integer n, String[] fname, String[] frags, Double[][] randt, String bs, String ct, Integer ch) {
+	public void write_Molcas_MEBF_Two(String p, String pn, Integer n, String[] fname, String[] frags, Double[][] randt, String bs, String ct, Integer ch, Integer nfr) {
 		String fileName = p+"_TWO.input";
 		String previous;
 		Integer atom=0;
@@ -2435,7 +2435,7 @@ public class gronor_Fragment {
 		    inputFile.println("noorth");
 		    inputFile.println("LumOrb");
 		    inputFile.println("frozen");
-		    inputFile.println(" $FROZEN");
+		    inputFile.println(" "+nfr);
 		    inputFile.println("deleted");
 		    inputFile.println(" $DELETED");
 		    inputFile.println("ctonly");

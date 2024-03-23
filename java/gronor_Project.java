@@ -1392,7 +1392,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(fragmentDefinitions[i][1]==null) fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
 			fragmentDefinitions[i][2]=namFragments[i];
 			fragmentDefinitions[i][3]=dimFragments[i][1];
-			fragmentDefinitions[i][4]=dimFragments[i][11];
+			fragmentDefinitions[i][4]=dimFragments[i][12];
 			fragmentDefinitions[i][5]=dimFragments[i][2]+1;
 			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][12];
 			fragmentDefinitions[i][7]=dimFragments[i][4];
@@ -1467,7 +1467,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(fragmentDefinitions[i][1]==null) fragmentDefinitions[i][1]=fragmentDefinitions[dimFragments[i][0]][0];
 			fragmentDefinitions[i][2]=namFragments[i];
 			fragmentDefinitions[i][3]=dimFragments[i][1];
-			fragmentDefinitions[i][4]=dimFragments[i][11];
+			fragmentDefinitions[i][4]=dimFragments[i][12];
 			fragmentDefinitions[i][5]=dimFragments[i][2]+1;
 			fragmentDefinitions[i][6]=dimFragments[i][3]-dimFragments[i][12];
 			fragmentDefinitions[i][7]=dimFragments[i][4];

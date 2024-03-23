@@ -553,6 +553,9 @@ public class gronor_Fragment {
 			runFile.println("cp "+p.trim()+".runfil RUNFIL");
 			slurmFile.println("cp "+p.trim()+".runfil RUNFIL");
 			lsfFile.println("cp "+p.trim()+".runfil RUNFIL");
+			runFile.println("cp "+p.trim()+".oneint ONEINT");
+			slurmFile.println("cp "+p.trim()+".oneint ONEINT");
+			lsfFile.println("cp "+p.trim()+".oneint ONEINT");
 			fullName = p.trim()+"_CB";
 			runFile.println("gcommon < "+fullName.trim()+".input > "+fullName.trim()+".output");
 			slurmFile.println("gcommon < "+fullName.trim()+".input > "+fullName.trim()+".output");

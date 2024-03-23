@@ -251,6 +251,15 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 	    setVisible(true);
 	    
+		for(int i=0; i<numStateNames; i++) {
+			stateSpins[i]=0;
+			if(stateNames[i].contains("S")) stateSpins[i]=1;
+			if(stateNames[i].contains("D")) stateSpins[i]=2;
+			if(stateNames[i].contains("T")) stateSpins[i]=3;
+			if(stateNames[i].contains("q")) stateSpins[i]=4;
+			if(stateNames[i].contains("Q")) stateSpins[i]=5;
+		}
+	    
 	}
 
 	private void writeClearScripts() {
@@ -1139,12 +1148,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			Integer spin = mebfSpecification[mebf][1];
 			Integer chrg = mebfSpecification[mebf][2];
 			Integer stat = mebfSpecification[mebf][3];
-			mebfSpecification[mebf][3]=0;
 			if(stat<=0) selectMEBFStates(mebf,nmer,spin,chrg,stat);
 		}
-		
+
 		updateHints();
-		
+
 		statesPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
 		statesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
 		statesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numSets)*15+50)));
@@ -1751,7 +1759,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 		Integer numRunDFT = -1;
 		Integer numRunMolcas = -1;
-		
 
 		for(int i=0; i<numEnergies; i++) {
 			if(dimFragments[energyFragment[i][0]][0]>numRunDFT) numRunDFT = dimFragments[energyFragment[i][0]][0];
@@ -3059,7 +3066,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer[] charges = new Integer[25];
 		Integer[] sSet = new Integer[25];
 		Integer[] sLen = new Integer[25];
-		
+
 		if(mebfSpecification[mebf][0]>maxMer) mebfSpecification[mebf][0]=maxMer;
 		
 		if(mebfSpecification[mebf][0]>nmer) {
@@ -3075,7 +3082,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				
 			}	
 		}
-		
+
 		if(mebfSpecification[mebf][0]==1 && numSets==1) mebfSpecification[mebf][1]=spinStateList[0];
 					
 		nmer=mebfSpecification[mebf][0];
@@ -3083,7 +3090,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		spin=mebfSpecification[mebf][1];
 
 		charge=mebfSpecification[mebf][2];
-		
+
 // Initialize monomers
 //		if(numMEBFs==3 && numFragments==3 &&
 //					mebfSpecification[0][0]==1 && mebfSpecification[mebf][0]==1 && 
@@ -3516,10 +3523,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		}
 	
-	
-		
-	
-		
 		if(count==0) {
 			System.out.println("Could not generate MEBF list");
 		} else {

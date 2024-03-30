@@ -40,6 +40,13 @@ else()
   message(STATUS "Not found: hostname")
 endif()
 
+set(TARGET "" CACHE STRING "Target computer system")
+
+if(NOT "${TARGET}" STREQUAL "")
+  set(HOST "${TARGET}")
+  message(STATUS "HOST set to ${HOST}")
+endif()
+
 # Operating system
 
 set (OS ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
@@ -1298,6 +1305,12 @@ endif()
 
 if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+endif()
+
+# Set target computer system flag
+
+if(NOT "${TARGET}" STREQUAL "")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -D${TARGET}")
 endif()
 
 # Allow user-specified modifications

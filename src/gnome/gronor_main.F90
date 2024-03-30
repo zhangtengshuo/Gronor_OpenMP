@@ -368,11 +368,11 @@ subroutine gronor_main()
 
     ngpus=0
     if(numdev.ge.1) ngpus=1
-    if(machine.eq.'Juwels  '.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Summit  '.and.numdev.eq.1) ngpus=6
-    if(machine.eq.'Snellius'.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Crusher '.and.numdev.eq.1) ngpus=8
-    if(machine.eq.'Frontier'.and.numdev.eq.1) ngpus=8
+    if(machine.eq.'Juwels      '.and.numdev.eq.1) ngpus=4
+    if(machine.eq.'Summit      '.and.numdev.eq.1) ngpus=6
+    if(machine.eq.'Snellius    '.and.numdev.eq.1) ngpus=4
+    if(machine.eq.'Crusher     '.and.numdev.eq.1) ngpus=8
+    if(machine.eq.'Frontier    '.and.numdev.eq.1) ngpus=8
 
     call gronor_input()
 
@@ -501,7 +501,7 @@ subroutine gronor_main()
 645 format(//,' Compiled with unknown compiler suite',a)
 #endif
     onlabel='    '
-    if(machine.ne.'        ') onlabel=' on '
+    if(machine.ne.'            ') onlabel=' on '
 
     if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
         trim(host),onlabel,trim(machine),nnodes, &

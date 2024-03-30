@@ -75,7 +75,7 @@ module cidist
   integer (kind=8), allocatable :: mgrwrk(:,:)
   integer (kind=8), allocatable :: mipbuf(:,:)
   
-  character (len=8) :: machine
+  character (len=12) :: machine
 
   integer (kind=4), parameter :: master=1
   integer (kind=4), parameter :: manager=2

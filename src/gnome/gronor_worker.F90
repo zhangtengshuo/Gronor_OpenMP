@@ -239,7 +239,7 @@ subroutine gronor_worker()
           if(.not.otreq) then
             call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
                 mpitag,MPI_COMM_WORLD,itreq,ierr)
-            call MPI_Request_free(itreq,ierr)
+!            call MPI_Request_free(itreq,ierr)
             if(idbg.gt.10) then
               call swatch(date,time)
               write(lfndbg,'(a,1x,a,a)') &

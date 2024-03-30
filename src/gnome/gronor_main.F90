@@ -1263,7 +1263,7 @@ subroutine gronor_main()
   do i=1,np
     if(map2(i,4).ne.jp) j=0
     if(map2(i,5).gt.0.and.map2(i,1).gt.0) then
-      map2(i,7)=mod(j,map2(i,1))
+      map2(i,7)=mod(int(j,kind=4),map2(i,1))
     else
       map2(i,7)=-1
     endif
@@ -1404,10 +1404,10 @@ subroutine gronor_main()
 #else
 #ifdef LAPACK
 ! When LAPACK is working correctly the following four lines should be uncommented
-!  if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
-!  if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
-!  if(inslvr.lt.0) inslvr=SOLVER_LAPACK
-!  if(jnslvr.lt.0) jnslvr=SOLVER_LAPACK
+  if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
+  if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
+  if(inslvr.lt.0) inslvr=SOLVER_LAPACK
+  if(jnslvr.lt.0) jnslvr=SOLVER_LAPACK
 #endif
 #endif
   if(inslvr.lt.0) inslvr=SOLVER_EISPACK
@@ -1415,10 +1415,6 @@ subroutine gronor_main()
   if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
   if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
 
-  if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
-  if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
-  if(inslvr.lt.0) inslvr=SOLVER_EISPACK
-  if(jnslvr.lt.0) jnslvr=SOLVER_EISPACK
 
   if(iamacc.eq.1) then
     isolver=SOLVER_EISPACK
@@ -1484,13 +1480,13 @@ subroutine gronor_main()
 
     endif
     isolver=SOLVER_EISPACK
-    if(inslvr.eq.0) isolver=SOLVER_EISPACK
-    if(inslvr.eq.1) isolver=SOLVER_MKL
-    if(inslvr.eq.2) isolver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
     jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.0) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.1) jsolver=SOLVER_MKL
-    if(jnslvr.eq.2) jsolver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
     if(isolver.eq.SOLVER_EISPACK) write(lfnout,617)
 617 format(' Non-accelerated ranks use EISPACK svd')
     if(isolver.eq.SOLVER_MKL) write(lfnout,618)

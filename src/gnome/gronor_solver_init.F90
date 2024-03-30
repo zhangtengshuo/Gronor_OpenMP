@@ -220,19 +220,13 @@ subroutine gronor_solver_init()
     lwork2m=-1
     lworki=-1
     if(isolver.eq.SOLVER_LAPACK) then
-      allocate(workspace_d(2448))
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,lapack_info)
-      lwork1m=int(workspace_d(1))
-      deallocate(workspace_d)
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+      lwork1m=int(worksize(1))+1024*nelecs
     endif
     if(jsolver.eq.SOLVER_LAPACK) then
-      allocate(workspace_d(2448))
-      allocate(workspace_i(2448))
-      call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,workspace_i,lworki,lapack_info)
-      lwork2m=int(workspace_d(1))
-      lworki=int(workspace_i(1))
-      deallocate(workspace_d)
-      deallocate(workspace_i)
+      call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      lwork2m=int(worksize(1))+1024*nelecs
+      lworki=int(iworksize(1))+1024*nelecs
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)

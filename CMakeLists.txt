@@ -13,6 +13,34 @@ message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${
 
 project (GronOR VERSION 23.00 LANGUAGES Fortran C CXX)
 
+# CMake optional parameters with defaults
+#    Note: MPI is not optional and removed from options list
+
+set(TARGET "" CACHE STRING "Target computer system")
+
+option (ACC "Enable OPENACC off-loading." OFF)
+option (OPENACC "Enable OPENACC off-loading." OFF)
+option (OPENMP "Enable multi-threading." OFF)
+option (OMPTGT "Enable OPENMP off-loading." OFF)
+option (CUSOLVER "Enable CUSOLVER library." OFF)
+option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
+option (HIPSOLVER "Enable HIPSOLVER library." OFF)
+option (HIPSOLVERJ "Enable HIPSOLVER library with Jacobi." OFF)
+option (ROCSOLVER "Enable ROCSOLVER library." OFF)
+option (MKL "Enable MKL library." OFF)
+option (LAPACK "Enable LAPACK library." OFF)
+option (CUDA "Enable CUDA Functions." OFF)
+option (CUBLAS "Enable CUDA BLAS library." OFF)
+option (NVBLAS "Enable NVidia BLAS library." OFF)
+option (CTEST "Enable CTest." OFF)
+option (SINGLEP "Enable single precision." OFF)
+option (PROFILING "Enable profiling." OFF)
+option (DEBUG "Debugging." OFF)
+option (AVX512 "Compiler option for AVX512." OFF)
+option (GPU "GPU Vendor" NVIDIA)
+option (GUI "Graphical User Interface" OFF)
+
+
 # Set global session identifier
 
 # Detect system information
@@ -40,11 +68,9 @@ else()
   message(STATUS "Not found: hostname")
 endif()
 
-set(TARGET "" CACHE STRING "Target computer system")
-
 if(NOT "${TARGET}" STREQUAL "")
   set(HOST "${TARGET}")
-  message(STATUS "HOST set to ${HOST}")
+  message(STATUS "Target host is ${HOST}")
 endif()
 
 # Operating system
@@ -285,31 +311,6 @@ if(DEFINED MOLCAS)
 else()
   message (STATUS "Molcas dependent auxiliary programs will not be compiled")
 endif()
-
-# Set defaults for optional arguments to cmake
-#    Note: MPI is not optional and removed from options list
-
-option (ACC "Enable OPENACC off-loading." OFF)
-option (OPENACC "Enable OPENACC off-loading." OFF)
-option (OPENMP "Enable multi-threading." OFF)
-option (OMPTGT "Enable OPENMP off-loading." OFF)
-option (CUSOLVER "Enable CUSOLVER library." OFF)
-option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
-option (HIPSOLVER "Enable HIPSOLVER library." OFF)
-option (HIPSOLVERJ "Enable HIPSOLVER library with Jacobi." OFF)
-option (ROCSOLVER "Enable ROCSOLVER library." OFF)
-option (MKL "Enable MKL library." OFF)
-option (LAPACK "Enable LAPACK library." OFF)
-option (CUDA "Enable CUDA Functions." OFF)
-option (CUBLAS "Enable CUDA BLAS library." OFF)
-option (NVBLAS "Enable NVidia BLAS library." OFF)
-option (CTEST "Enable CTest." OFF)
-option (SINGLEP "Enable single precision." OFF)
-option (PROFILING "Enable profiling." OFF)
-option (DEBUG "Debugging." OFF)
-option (AVX512 "Compiler option for AVX512." OFF)
-option (GPU "GPU Vendor" NVIDIA)
-option (GUI "Graphical User Interface" OFF)
 
 #     Note: build and debug options
 

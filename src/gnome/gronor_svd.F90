@@ -419,5 +419,36 @@ subroutine gronor_svd_omp()
   endif
 #endif 
 
+  ! ============ LAPACK ===========
+  
+#ifdef LAPACK
+  if(isolver.eq.SOLVER_LAPACK) then
+    ndimm=nelecs
+    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+#ifdef OMP
+!$omp parallel shared(temp,w,nelecs)
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        temp(i,j)=w(i,j)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(j,i)=temp(i,j)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
+  endif
+#endif 
+
   return
 end subroutine gronor_svd_omp

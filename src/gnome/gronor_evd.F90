@@ -313,6 +313,16 @@ subroutine gronor_evd_omp()
         workspace_i,lworki,ierr)
   endif
 #endif 
+  
+  ! ============ LAPACK ===========
+  
+#ifdef LAPACK
+  if(jsolver.eq.SOLVER_LAPACK) then
+    ndimm=nelecs
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+        workspace_i,lworki,ierr)
+  endif
+#endif 
 
   return
 end subroutine gronor_evd_omp

@@ -153,21 +153,25 @@ subroutine gronor_svd()
 !$omp target update to(ev,u,w)
 #endif
     endif
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         temp(i,j)=w(i,j)
       enddo
     enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         w(j,i)=temp(i,j)
       enddo
     enddo
 #ifdef ACC
-!$acc update device (w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(w)
+!$acc end kernels
 #endif
   endif
 #endif 
@@ -194,21 +198,25 @@ subroutine gronor_svd()
 !$omp target update to(ev,u,w)
 #endif
     endif
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         temp(i,j)=w(i,j)
       enddo
     enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         w(j,i)=temp(i,j)
       enddo
     enddo
 #ifdef ACC
-!$acc update device (w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(w)
+!$acc end kernels
 #endif
   endif
 #endif 

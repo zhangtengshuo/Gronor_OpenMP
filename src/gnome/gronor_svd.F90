@@ -361,6 +361,9 @@ subroutine gronor_svd_omp()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
   ! variable declarations
 

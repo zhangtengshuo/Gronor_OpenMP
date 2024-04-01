@@ -273,6 +273,9 @@ subroutine gronor_evd_omp()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
   ! variable declarations
 
@@ -280,6 +283,9 @@ subroutine gronor_evd_omp()
 
   external :: tred2,tql2
 #ifdef MKL
+  external :: dsyevd
+#endif
+#ifdef LAPACK
   external :: dsyevd
 #endif
   

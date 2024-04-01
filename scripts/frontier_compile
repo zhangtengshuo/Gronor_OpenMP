@@ -1,37 +1,29 @@
 #!/usr/bin/tcsh
 
-module purge
-
-module load PrgEnv-cray-amd
+#module load PrgEnv-cray-amd
 module load craype-accel-amd-gfx90a
-module load rocm
-
-
+module load cpe/23.12
+module load rocm/5.7.1
 module load cmake
+module unload darshan-runtime
+module use /autofs/nccs-svm1_sw/crusher/amdsw/modules
 
-#module use /lustre/orion/world-shared/stf006/reubendb/sw/frontier/modulefiles
-
-#module load hipfort
+#module load omniperf
+#module load perftools
 
 module list
 
-setenv OLCF_HIPFORT_ROOT /lustre/orion/world-shared/stf006/reubendb/sw/frontier/hipfort/cce_15.0.1-rocm_5.3.0
-#unsetenv MPI_ROOT
+#setenv OLCF_HIPFORT_ROOT /lustre/orion/world-shared/stf006/reubendb/sw/frontier/hipfort/cce_15.0.1-rocm_5.3.0
+#setenv PE_MPICH_GTL_DIR_amd_gfx90a "-L${CRAY_MPICH_ROOTDIR}/gtl/lib"
+#setenv PE_MPICH_GTL_LIBS_amd_gfx90a "-lmpi_gtl_hsa"
 
-setenv PE_MPICH_GTL_DIR_amd_gfx90a "-L${CRAY_MPICH_ROOTDIR}/gtl/lib"
-setenv PE_MPICH_GTL_LIBS_amd_gfx90a "-lmpi_gtl_hsa"
-
-setenv CRAY_CPU_TARGET "x86-64"
 setenv LD_LIBRARY_PATH ${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}
 
 rm -rf build_frontier
 mkdir build_frontier
 cd build_frontier
 
-#cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-#cmake -DOMPTGT=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier_omp ../
-#cmake -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
+cmake -DTARGET=FRONTIER -DOMPTGT=ON -DLAPACK=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/bin ../ 
 
 make -j 16
 

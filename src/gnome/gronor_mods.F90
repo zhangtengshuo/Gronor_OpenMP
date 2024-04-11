@@ -232,7 +232,8 @@ module gnome_data
   integer :: ttest
 
   integer :: ntesta,ntestb
-  integer :: nelecs,n1bas,nstdim,mbasel,ijend
+  integer :: n1bas,nstdim,mbasel,ijend
+  integer (kind=4) :: nelecs
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
 #ifdef HIPSOLVER
   real (kind=8), allocatable, target :: a(:,:)

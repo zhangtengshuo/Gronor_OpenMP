@@ -213,6 +213,7 @@ subroutine gronor_solver_init()
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif
+
 #ifdef LAPACK
     ndimm=nelecs
     mdimm=mbasel

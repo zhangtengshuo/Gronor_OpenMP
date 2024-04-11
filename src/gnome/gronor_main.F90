@@ -2358,7 +2358,7 @@ subroutine gronor_main()
   deallocate(idetb,nactb,inactb,vecsb,civb,iocc)
   deallocate(ioccm,vecsm,civm,occm_string)
   deallocate(idetm,inactm,nactm,nbasm,ncombv)
-  if(nmol.ge.3)deallocate(inter_couplings)
+  if(nmol.ge.3) deallocate(inter_couplings)
 
   deallocate(hbase,sbase,tbase,dqbase,hev,nsing,bpdone)
 
@@ -2471,6 +2471,8 @@ subroutine gronor_main()
     write(lfndbg,'(a)') "Issuing mpi_finalize"
     flush(lfndbg)
   endif
+
+  call MPI_Barrier(MPI_COMM_WORLD,ierr)
 
   call mpi_finalize(ierr)
 

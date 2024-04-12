@@ -2317,8 +2317,8 @@ subroutine gronor_main()
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'Solvers   Task      Batch    s  s  s',/, &
-          '  User     Jobname                Command         Host      Compiler  Target', &
-          t78,' tau_MO   tau_CI  ',/)
+          '  User     Jobname                Command         Host',16x,'Compiler  Target', &
+          t90,' tau_MO   tau_CI  ',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &
@@ -2334,10 +2334,10 @@ subroutine gronor_main()
       endif
     enddo
     write(lfnlog,802) trim(user),trim(string), &
-        trim(command),trim(host),trim(compiler),trim(target), &
+        trim(command),trim(machine),trim(host),trim(compiler),trim(target), &
         tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,t12,a,t35,a,t51,a,t61,a,t70,a,t78,1pe9.2,e9.2)
+802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

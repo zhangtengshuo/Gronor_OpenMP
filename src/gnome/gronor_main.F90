@@ -2308,11 +2308,11 @@ subroutine gronor_main()
     if(.not.exist) then
       write(lfnlog,800)
 800   format( &
-          80x,'      T     ',30x,'       ',/, &
-          80x,'      h     ',30x,'      S',/, &
-          80x,'      r     ',30x,'F  B  t',/, &
+          80x,'      T     ',30x,'        S S E E',/, &
+          80x,'      h     ',30x,'      S V V V V',/, &
+          80x,'      r     ',30x,'F  B  t D D    ',/, &
           80x,'      e    D',30x,'r  a  a',/, &
-          80x,'M  G  a  M i',30x,'g  s  t',/ &
+          80x,'M  G  a  M i',30x,'g  s  t a n a n',/ &
           80x,'P  P  d  g s',30x,'m  e  e',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
@@ -2324,7 +2324,7 @@ subroutine gronor_main()
         timer_wall_total(99)-timer_wall_total(98), &
         timer_wall_total(98),timer_wall_total(99), &
         nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr, &
-        idist,iaslvr,jaslvr,inslvr,jnslvr, &
+        idist,iaslvr,inslvr,jaslvr,jnslvr, &
         ntaska,ntask,max(1,nbatcha),max(1,nbatch), &
         nmol,nbase,mstates
     do i=len(command),1,-1

@@ -47,6 +47,10 @@ subroutine gronor_solver_init()
   external :: dgesvd,dsyevd
   integer (kind=4) :: lapack_info
 #endif  
+#ifdef MAGMA
+  external :: magma_dsyevd,magma_dsyevd_gpu
+  integer (kind=4) :: ierr
+#endif
   ! Cusolver initialization for the svd
   
   if(iamacc.ne.0) then
@@ -235,6 +239,30 @@ subroutine gronor_solver_init()
     allocate(workspace_i(lworki))
 #endif  
 
+#ifdef MAGMA
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
+!    if(isolver.eq.SOLVER_LAPACK) then
+!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+!      lwork1m=int(worksize(1))+1024*nelecs
+!    endif
+    if(jsolver.eq.SOLVER_MAGMA) then
+      if(iamacc.eq.0) then
+        call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      else
+        call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      endif
+      lwork2m=int(worksize(1))+1024*nelecs
+      lworki=int(iworksize(1))+1024*nelecs
+    endif
+    lwork1m=max(8,lwork1m,lwork2m)
+    lworki=max(8,lworki)
+    allocate(workspace_d(lwork1m))
+    allocate(workspace_i(lworki))
+#endif
     return
   end subroutine gronor_solver_init
 

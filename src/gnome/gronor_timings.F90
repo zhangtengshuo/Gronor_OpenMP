@@ -42,7 +42,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
   integer :: timer_calls
 
   real (kind=8), allocatable :: timings(:,:)
-  real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
+  real (kind=8), allocatable :: tdata(:),taver(:)
   integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
   integer (kind=4) :: ncount,mpitag,mpidest,mpireq
   integer (kind=8) :: irtim,nreqso,nreqsc

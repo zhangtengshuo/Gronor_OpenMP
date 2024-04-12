@@ -841,6 +841,7 @@ list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
 #set (FFLAGS_Cray_BASIC "-Mbackslash")
 set (FFLAGS_Cray_BASIC "-DCRAY")
 set (FFLAGS_Cray_LAPACK "-DLAPACK")
+set (FFLAGS_Cray_MAGMA "-DMAGMA -L${MAGMALIB} -lmagma")
 #set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
 
 if(HOST STREQUAL "CRUSHER")

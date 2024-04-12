@@ -31,11 +31,11 @@ subroutine gronor_evd()
 #ifdef MKL
   use mkl_solver
 #endif
-  
-#ifdef LAPACK
+
+#if defined(LAPACK) || defined(MAGMA)  
   use lapack_solver
 #endif
-
+  
 #ifdef CUSOLVER
   use cusolverDn
   use cuda_cusolver
@@ -152,6 +152,31 @@ subroutine gronor_evd()
 #ifdef OMPTGT
 !$omp target update to(ev,u,w)
 #endif
+    endif
+  endif
+#endif 
+  
+! ============ MAGMA ===========
+#ifdef MAGMA
+  if(jsolver.eq.SOLVER_MAGMA) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
+      ndimm=nelecs
+      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    else        
+      ndimm=nelecs
+      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
   endif
 #endif 

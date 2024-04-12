@@ -881,7 +881,7 @@ module mkl_solver
 end module mkl_solver
 #endif
 
-#ifdef LAPACK
+#if defined(LAPACK) || defined(MAGMA)
 module lapack_solver
   integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
   real(kind=8), allocatable :: work(:)

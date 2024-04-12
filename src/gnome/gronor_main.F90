@@ -2337,7 +2337,7 @@ subroutine gronor_main()
         trim(command),trim(host),trim(compiler),trim(target), &
         tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,t12,a,t35,a,t51,a,t61,a,t71,a,t78,1pe9.2,e9.2)
+802 format(2x,a,t12,a,t35,a,t51,a,t61,a,t70,a,t78,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

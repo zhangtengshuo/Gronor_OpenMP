@@ -161,18 +161,22 @@ subroutine gronor_evd()
   if(jsolver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
 #ifdef ACC
-!$acc update host (a)
+!$acc data create(workspace_d)
+!$acc wait
+!$acc host_data use_device(a,diag,workspace_d,workspace_i)
 #endif
 #ifdef OMPTGT
-!$omp target update from(a)
+!$omp target data use_device_addr(a,diag,workspace_d,workspace_i)
 #endif    
       ndimm=nelecs
       call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
 #ifdef ACC
-!$acc update device (ev,u,w)
+!$acc end host_data
+!$acc wait
+!$acc end data   
 #endif
 #ifdef OMPTGT
-!$omp target update to(ev,u,w)
+!$omp end target data
 #endif
     else        
       ndimm=nelecs
@@ -195,7 +199,7 @@ subroutine gronor_evd()
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d)
 #endif
     cusolver_status = cusolverDnDsyevd(cusolver_handle, &
         CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER, &

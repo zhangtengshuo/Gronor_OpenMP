@@ -256,6 +256,8 @@ subroutine gronor_input()
           iaslvr=SOLVER_MKL
         elseif(inp_compare(.false.,item,'LAPACK')) then
           iaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'MAGMA')) then
+          iaslvr=SOLVER_MAGMA
         elseif(inp_compare(.false.,item,'CUSOLVER')) then
           iaslvr=SOLVER_CUSOLVER
         elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
@@ -290,6 +292,8 @@ subroutine gronor_input()
           jaslvr=SOLVER_MKL
         elseif(inp_compare(.false.,item,'LAPACK')) then
           jaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'MAGMA')) then
+          jaslvr=SOLVER_MAGMA
         elseif(inp_compare(.false.,item,'CUSOLVER')) then
           jaslvr=SOLVER_CUSOLVER
         elseif(inp_compare(.false.,item,'CUSOLVERJ')) then

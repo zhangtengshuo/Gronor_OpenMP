@@ -35,6 +35,10 @@ subroutine gronor_solver_init()
 #endif
 #ifdef LAPACK
   use lapack_solver
+#else
+#ifdef MAGMA
+  use magma_solver
+#endif
 #endif
   
   implicit none
@@ -45,12 +49,13 @@ subroutine gronor_solver_init()
 #endif
 #ifdef LAPACK
   external :: dgesvd,dsyevd
-  integer (kind=4) :: lapack_info
-#endif  
+  integer (kind=4) :: lapack_info,ierr
+#else  
 #ifdef MAGMA
   external :: magma_dsyevd,magma_dsyevd_gpu
-  integer (kind=4) :: ierr
+  integer (kind=4) :: lapack_info,ierr
 #endif
+#endif  
   ! Cusolver initialization for the svd
   
   if(iamacc.ne.0) then

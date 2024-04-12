@@ -32,8 +32,12 @@ subroutine gronor_evd()
   use mkl_solver
 #endif
 
-#if defined(LAPACK) || defined(MAGMA)  
+#ifdef LAPACK  
   use lapack_solver
+#else
+#ifdef MAGMA  
+  use magma_solver
+#endif
 #endif
   
 #ifdef CUSOLVER
@@ -161,12 +165,12 @@ subroutine gronor_evd()
   if(jsolver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
 #ifdef ACC
-!$acc data create(workspace_d)
+!$acc data create(workspace_d,workspace_i)
 !$acc wait
 !$acc host_data use_device(a,diag,workspace_d,workspace_i)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,diag,workspace_d,workspace_i)
+!!!!!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif    
       ndimm=nelecs
       call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
@@ -176,7 +180,7 @@ subroutine gronor_evd()
 !$acc end data   
 #endif
 #ifdef OMPTGT
-!$omp end target data
+!!!!!$omp end target data
 #endif
     else        
       ndimm=nelecs

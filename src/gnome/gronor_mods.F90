@@ -881,7 +881,7 @@ module mkl_solver
 end module mkl_solver
 #endif
 
-#if defined(LAPACK) || defined(MAGMA)
+#ifdef LAPACK
 module lapack_solver
   integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
   real(kind=8), allocatable :: work(:)
@@ -892,6 +892,19 @@ module lapack_solver
   real(kind=8) :: worksize(2)
   integer (kind=8) :: iworksize(2)
 end module lapack_solver
+#else
+#ifdef MAGMA
+module magma_solver
+  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+  real(kind=8), allocatable :: work(:)
+  integer(kind=8), allocatable :: iwork(:)
+  real (kind=8),allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
+  character*1 :: jobz,uplo
+  real(kind=8) :: worksize(2)
+  integer (kind=8) :: iworksize(2)
+end module magma_solver
+#endif
 #endif
 
 module gnome_solvers

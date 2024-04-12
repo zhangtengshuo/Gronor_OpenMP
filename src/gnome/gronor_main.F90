@@ -2308,11 +2308,11 @@ subroutine gronor_main()
     if(.not.exist) then
       write(lfnlog,800)
 800   format( &
-          80x,'      T     ',30x,'        S S E E',/, &
-          80x,'      h     ',30x,'      S V V V V',/, &
-          80x,'      r     ',30x,'F  B  t D D    ',/, &
-          80x,'      e    D',30x,'r  a  a',/, &
-          80x,'M  G  a  M i',30x,'g  s  t a n a n',/ &
+          80x,'      T      S S E E',22x,'       ',/, &
+          80x,'      h      V V V V',22x,'      S',/, &
+          80x,'      r      D D    ',22x,'F  B  t',/, &
+          80x,'      e    D        ',22x,'r  a  a',/, &
+          80x,'M  G  a  M i a n a n',22x,'g  s  t',/ &
           80x,'P  P  d  g s',30x,'m  e  e',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &

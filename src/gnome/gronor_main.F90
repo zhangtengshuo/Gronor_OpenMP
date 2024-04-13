@@ -2310,10 +2310,10 @@ subroutine gronor_main()
 800   format( &
           80x,'      T             ',22x,'       ',/, &
           80x,'      h             ',22x,'      S',/, &
-          80x,'      r      Solvers',22x,'F  B  t',/, &
+          80x,'      r             ',22x,'F  B  t',/, &
           80x,'      e    D        ',22x,'r  a  a',/, &
-          80x,'M  G  a  M i SVD EV ',22x,'g  s  t',/ &
-          80x,'P  P  d  g s',30x,'m  e  e',/, &
+          80x,'M  G  a  M i Solvers',22x,'g  s  t',/ &
+          80x,'P  P  d  g s SVD EV ',22x,'m  e  e',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s',/, &

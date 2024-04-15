@@ -262,7 +262,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
           ' processes are still active, with ',i8,' idle')
       flush(lfnout)
     endif
-    if(ipr.ge.20) then
+    if(ipr.ge.2) then
       write(lfnout,621)
 621   format(/,' Timings summary')
       if(ipr.ge.2) then

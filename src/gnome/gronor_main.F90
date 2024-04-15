@@ -23,6 +23,7 @@
 !>           input errors)
 
 #include "gronor_config.fh"
+#include "gronor_compiler.fh"
 
 subroutine gronor_main()
 
@@ -125,6 +126,8 @@ subroutine gronor_main()
   character (len=64) :: version_type
 
   integer :: major,minor
+
+  character (len=255) :: usedcompiler,usedmpi
 
 #ifdef USE_POSIXF
   integer*4 len4,ierr4
@@ -433,6 +436,9 @@ subroutine gronor_main()
     major=_GRONOR_VERSION_MAJOR_
     minor=_GRONOR_VERSION_MINOR_
 
+    usedcompiler=_LMODCOMPILER_
+    usedmpi=_LMODMPI_
+
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
     else
@@ -545,16 +551,16 @@ subroutine gronor_main()
 602 format(t60,'Available memory on device',t90,f24.3,' GB',/, &
         t60,'Total memory on device',t90,f24.3,' GB')
     if(ipr.gt.0) then
-        write(lfnout,652) trim(lmodcomp),trim(lmodcompv)
-        write(lfnout,653) trim(lmodmpi),trim(lmodmpiv)
+        write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
+        write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
         write(lfnout,603) trim(command),trim(cwd), &
            trim(filinp),trim(filsys), &
            trim(filout),trim(filone), &
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-652 format(/,' Compiler',t25,a,'/',a)  
-653 format(  ' MPI',t25,a,'/',a)  
+652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
+653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &

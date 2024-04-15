@@ -154,6 +154,9 @@ set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/CMakeFiles/mod")
 
 # Define GronOR compilation
 
+set (LMODCOMP "$ENV{LMOD_FAMILY_COMPILER}/$ENV{LMOD_FAMILY_COMPILER_VERSION}")
+set (LMODMPI "$ENV{LMOD_FAMILY_MPI}/$ENV{LMOD_FAMILY_MPI_VERSION}")
+
 # The build type, specifies the different optimization types.
 
 if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -420,6 +423,10 @@ set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
 
 # Copy the gronor_config.h to the include directory after modifying the proper version number
 configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gronor_config.fh)
+
+# Create the compiler_mpi.h to the include directory
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LMODCOMP}\"\n")
+file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
 
 # Add the include directories from each source base directory to compiler include path
 foreach (BASE_DIR ${basedirs})

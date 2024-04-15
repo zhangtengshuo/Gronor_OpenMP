@@ -2408,7 +2408,7 @@ subroutine gronor_main()
 
   endif
 
-!  call gronor_timings(lfnout,lfnday,lfntim)
+  call gronor_timings(lfnout,lfnday,lfntim)
 
   deallocate(map2)
   

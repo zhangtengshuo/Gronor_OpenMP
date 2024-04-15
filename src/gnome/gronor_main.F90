@@ -553,8 +553,8 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-652 format(/,' Compiler: ',a,'/',a)  
-653 format(  ' MPI:      ',a,'/',a)  
+652 format(/,' Compiler',t25,a,'/',a)  
+653 format(  ' MPI',t25,a,'/',a)  
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &

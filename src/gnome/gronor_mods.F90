@@ -118,6 +118,7 @@ module cidef
   integer :: lfnwrn,lfnxrx
 
   character (len=255) :: user,host,date,time,cwd,command
+  character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv
   integer :: nprocs
   integer :: nciaux
 

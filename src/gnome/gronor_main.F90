@@ -127,7 +127,7 @@ subroutine gronor_main()
 
   integer :: major,minor
 
-  character (len=255) :: usedcompiler,usedmpi
+  character (len=255) :: usedcompiler,usedmpi,usedcmake
 
 #ifdef USE_POSIXF
   integer*4 len4,ierr4
@@ -438,6 +438,7 @@ subroutine gronor_main()
 
     usedcompiler=_LMODCOMPILER_
     usedmpi=_LMODMPI_
+    usedcmake=_CMAKE_
 
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
@@ -553,6 +554,7 @@ subroutine gronor_main()
     if(ipr.gt.0) then
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
+        write(lfnout,654) trim(usedcmake)
         write(lfnout,603) trim(command),trim(cwd), &
            trim(filinp),trim(filsys), &
            trim(filout),trim(filone), &
@@ -561,6 +563,7 @@ subroutine gronor_main()
     endif
 652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
+654 format(  ' CMAKE used to compile',t30,"cmake/",a)  
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &
@@ -2359,10 +2362,10 @@ subroutine gronor_main()
     enddo
     write(lfnlog,802) trim(user),trim(string), &
         trim(command),trim(machine),trim(host),trim(compiler),trim(target), &
-        trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv)
+        trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv),trim(usedcmake)
     write(lfnlog,812) tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,a,'/',a,3x,a,'/',a)
+802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,a,'/',a,3x,a,'/',a,3x,"cmake/",a)
 812 format(t10,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then

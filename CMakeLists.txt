@@ -11,7 +11,7 @@ cmake_minimum_required (VERSION 3.11.00)
 message ("Programming Environment:")
 message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
-project (GronOR VERSION 23.00 LANGUAGES Fortran C CXX)
+project (GronOR VERSION 24.00 LANGUAGES Fortran C CXX)
 
 # CMake optional parameters with defaults
 #    Note: MPI is not optional and removed from options list
@@ -427,6 +427,7 @@ configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gro
 # Create the compiler_mpi.h to the include directory
 file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LMODCOMP}\"\n")
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
+file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}\"\n")
 
 # Add the include directories from each source base directory to compiler include path
 foreach (BASE_DIR ${basedirs})

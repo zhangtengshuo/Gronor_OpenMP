@@ -93,7 +93,7 @@ subroutine gronor_worker()
   idet0=0
   jdet0=0
 
-  call gronor_solver_init()
+  call gronor_solver_init(nelecs)
 
   do i=1,17
     rbuf(i)=0.0d0

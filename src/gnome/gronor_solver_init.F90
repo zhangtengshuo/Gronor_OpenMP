@@ -16,7 +16,7 @@
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)subroutine gronor_solver_init()
 
-subroutine gronor_solver_init()
+subroutine gronor_solver_init(ntemp)
   
   use mpi
   use cidef
@@ -56,7 +56,13 @@ subroutine gronor_solver_init()
   integer (kind=4) :: lapack_info,ierr
 #endif
 #endif  
-  ! Cusolver initialization for the svd
+
+  integer :: ntemp
+
+     nelecs=ntemp
+!     write(*,'(i4,a,i4)') me," nelecs=",nelecs
+
+! Cusolver initialization for the svd
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER

@@ -1,0 +1,22 @@
+#!/usr/bin/tcsh
+
+module purge
+module load intel openmpi cmake 
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+unsetenv MPI_ROOT
+
+env | grep MKL
+env | grep UTILS
+
+rm -rf build_intel
+mkdir build_intel
+cd build_intel
+
+cmake -DMKL=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION/gronor/24.00 ../
+
+make -j 12
+
+make install

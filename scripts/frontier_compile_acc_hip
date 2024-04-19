@@ -25,7 +25,7 @@ cd build_frontier
 #cmake -DOMPTGT=ON ../
 #cmake -DOMPTGT=ON -DROCSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
 #cmake -DOMPTGT=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier ../
-cmake -DACC=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/tps/frontier_acc ../
+cmake -DACC=ON -DHIPSOLVER=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/Software/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION ../
 
 make -j 16
 

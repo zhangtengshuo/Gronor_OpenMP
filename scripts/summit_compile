@@ -17,7 +17,7 @@ rm -rf build_summit_pgi
 mkdir build_summit_pgi
 cd build_summit_pgi
 
-cmake FC=mpif90 CC=mpicc CXX=mpicxx -DCMAKE_INSTALL_PREFIX=$PROJWORK/chm154/tps -DACC=ON -DCUSOLVERJ=ON ../
+cmake FC=mpif90 CC=mpicc CXX=mpicxx -DCMAKE_INSTALL_PREFIX=$PROJWORK/chm154/Software/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION -DACC=ON -DCUSOLVERJ=ON ../
 
 make -j 16
 

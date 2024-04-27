@@ -3522,7 +3522,73 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				mebfSpecification[mebf][3]=count;
 			}
 		}
-	
+
+		System.out.println("Selected MEBF States, number State Energies is "+numberStateEnergies+" count="+count);
+
+		Double[] sumEnergies = new Double[count];
+		
+		
+		for(int i=1; i<=count; i++) {
+			sumEnergies[i-1]=0.0;
+//			for(int j=0; j<nmer; j++) System.out.print(stateNames[mebfFragments[0][j][i]]+" ");
+//			for(int j=0; j<nmer; j++) {
+//				for(int k=0; k<numberStateEnergies; k++) {
+//					if(stateNames[mebfFragments[mebf][j][i]].trim().equals(stateLabels[k].trim())) System.out.print(k+" ");
+//				}
+//			}
+			for(int j=0; j<nmer; j++) {
+				for(int k=0; k<numberStateEnergies; k++) {
+					if(stateNames[mebfFragments[mebf][j][i]].trim().equals(stateLabels[k].trim())) {
+						sumEnergies[i-1]=sumEnergies[i-1]+energiesCASPT2[j][k-1];
+//						System.out.print(energiesCASPT2[j][k-1]+" ");
+					}
+				}
+			}
+//			System.out.println(" SUM="+sumEnergies[i-1]);
+		}
+		
+		
+		Boolean swapped=true;
+		Integer[] itemp = new Integer[nmer];
+		Double etemp;
+		Integer numsi, numsj;
+		
+		while(swapped) {
+			swapped=false;
+			for(int i=1; i<count; i++) {
+				for(int j=i+1; j<=count; j++) {
+					numsi=0;
+					numsj=0;
+					for(int k=0; k<nmer; k++) {
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) numsi++; else break;
+					}
+					for(int k=0; k<nmer; k++) {
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) numsj++; else break;
+					}
+					if(sumEnergies[i-1]>sumEnergies[j-1]) {
+						
+//						System.out.println("Switch "+i+" and "+j+" "+sumEnergies[i-1]+" "+sumEnergies[j-1]+" "+numsi+" "+numsj);
+						
+						for(int k=0; k<nmer; k++) itemp[k]=mebfFragments[mebf][k][j]; etemp=sumEnergies[j-1];
+//						for(int m=0; m<nmer; m++) System.out.print(itemp[m]+" "); System.out.println();
+						
+						for(int k=0; k<nmer; k++) {
+							for(int m=j; m>i; m--) mebfFragments[mebf][k][m]=mebfFragments[mebf][k][m-1];
+							mebfFragments[mebf][k][i]=itemp[k];
+						}
+						
+						for(int m=j; m>i; m--) sumEnergies[m-1]=sumEnergies[m-2];
+						sumEnergies[i-1]=etemp;
+						
+						swapped=true;
+					}
+					if(swapped) break;
+				}
+				if(swapped) break;
+			}
+//			swapped=false;
+		}
+
 		if(count==0) {
 			System.out.println("Could not generate MEBF list");
 		} else {

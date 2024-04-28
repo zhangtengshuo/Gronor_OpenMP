@@ -125,7 +125,7 @@ else ()
   message (STATUS "Platform: ${PLATFORM}")
 endif ()
 
-# General session configurataion
+# General session configuration
 
 set (ENV{CMAKE_SESSION} "GronOR")
 
@@ -174,6 +174,9 @@ set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithD
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
     "Location where GronOR will be installed.")
+else()
+#  message(STATUS "GRONORVERSION ${PROJECT_NAME}/${PROJECT_VERSION}")
+  set (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/gronor/${PROJECT_VERSION}")
 endif ()
 
 message (STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")

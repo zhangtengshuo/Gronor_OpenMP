@@ -440,7 +440,7 @@ subroutine gronor_main()
     usedcompiler=_LMODCOMPILER_
     usedmpi=_LMODMPI_
     usedcmake=_CMAKE_
-    compiletime="_COMPILE_TIME_"
+    compiletime=_COMPILE_TIME_
 
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
@@ -564,7 +564,7 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-655 format(/,' Compile date and time',t30,a,/)  
+655 format(/,' Compile date and time',t30,a)  
 652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 654 format(  ' CMAKE used to compile',t30,"cmake/",a)  
@@ -2366,10 +2366,10 @@ subroutine gronor_main()
     enddo
     write(lfnlog,802) trim(user),trim(string), &
         trim(command),trim(machine),trim(host),trim(compiler),trim(target), &
-        trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv),trim(usedcmake)
+        trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv),trim(usedcmake),trim(compiletime)
     write(lfnlog,812) tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,a,'/',a,3x,a,'/',a,3x,"cmake/",a)
+802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,a,'/',a,3x,a,'/',a,3x,"cmake/",a,1x,a)
 812 format(t10,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then

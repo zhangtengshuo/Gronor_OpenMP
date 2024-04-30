@@ -432,6 +432,10 @@ file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LM
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}\"\n")
 
+STRING(TIMESTAMP COMPTIME "%Y/%m/%d %H:%M:%S" UTC)
+
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compile_time.fh "#define _COMPILE_TIME_ ${COMPTIME}\n")
+
 # Add the include directories from each source base directory to compiler include path
 foreach (BASE_DIR ${basedirs})
   if (EXISTS "${BASE_DIR}/src/include")

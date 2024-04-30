@@ -24,6 +24,7 @@
 
 #include "gronor_config.fh"
 #include "gronor_compiler.fh"
+#include "gronor_compile_time.fh"
 
 subroutine gronor_main()
 
@@ -127,7 +128,7 @@ subroutine gronor_main()
 
   integer :: major,minor
 
-  character (len=255) :: usedcompiler,usedmpi,usedcmake
+  character (len=255) :: usedcompiler,usedmpi,usedcmake,compiletime
 
 #ifdef USE_POSIXF
   integer*4 len4,ierr4
@@ -439,6 +440,7 @@ subroutine gronor_main()
     usedcompiler=_LMODCOMPILER_
     usedmpi=_LMODMPI_
     usedcmake=_CMAKE_
+    compiletime="_COMPILE_TIME_"
 
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
@@ -552,6 +554,7 @@ subroutine gronor_main()
 602 format(t60,'Available memory on device',t90,f24.3,' GB',/, &
         t60,'Total memory on device',t90,f24.3,' GB')
     if(ipr.gt.0) then
+        write(lfnout,655) trim(compiletime)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
         write(lfnout,654) trim(usedcmake)
@@ -561,6 +564,7 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
+655 format(/,' Compile date and time',t30,a,/)  
 652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 654 format(  ' CMAKE used to compile',t30,"cmake/",a)  

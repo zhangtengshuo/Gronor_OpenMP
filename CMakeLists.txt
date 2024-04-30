@@ -434,7 +434,7 @@ file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MA
 
 STRING(TIMESTAMP COMPTIME "%Y/%m/%d %H:%M:%S" UTC)
 
-file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compile_time.fh "#define _COMPILE_TIME_ ${COMPTIME}\n")
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compile_time.fh "#define _COMPILE_TIME_ \"${COMPTIME}\"\n")
 
 # Add the include directories from each source base directory to compiler include path
 foreach (BASE_DIR ${basedirs})

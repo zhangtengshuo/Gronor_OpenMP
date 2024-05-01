@@ -565,7 +565,7 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-655 format(/,' Compile date and time',t30,a)  
+655 format(/,' Compile date and time',t30,a,' UTC')  
 652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
 654 format(  ' CMAKE used to compile',t30,"cmake/",a)  

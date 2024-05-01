@@ -128,6 +128,7 @@ subroutine gronor_main()
 
   integer :: major,minor
 
+  character (len=1) :: separator
   character (len=255) :: usedcompiler,usedmpi,usedcmake,compiletime
 
 #ifdef USE_POSIXF
@@ -474,20 +475,20 @@ subroutine gronor_main()
         ' Journal of Chemical Theory and Computation, 18, 3549-', &
         '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
     
-    target=' CPU'
+    target='CPU'
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') " OpenACC AMD"
+    write(target,'(a)') "OpenACC AMD"
 #else
-    write(target,'(a)') " OpenACC NVIDIA"
+    write(target,'(a)') "OpenACC NVIDIA"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') " OpenMP target AMD"
+    write(target,'(a)') "OpenMP target AMD"
 #else
-    write(target,'(a)') " OpenMP target NVIDIA"
+    write(target,'(a)') "OpenMP target NVIDIA"
 #endif
 #endif
     if(ipr.ge.0) write(lfnout,645) trim(target)
@@ -2348,8 +2349,9 @@ subroutine gronor_main()
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s',/, &
-          '  User     Jobname                Command         Host',16x,'Compiler  Target',/, &
-          t10,' tau_MO   tau_CI  ',/)
+          '  Host',t30,'Compiler',t40,'Target',t50,'Compiler version', &
+          t70,'MPI version',t90,'cmake version',t110,'Compile date & time',/, &
+          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &
@@ -2364,13 +2366,15 @@ subroutine gronor_main()
         exit
       endif
     enddo
-    write(lfnlog,802) trim(user),trim(string), &
-        trim(command),trim(machine),trim(host),trim(compiler),trim(target), &
-        trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv),trim(usedcmake),trim(compiletime)
-    write(lfnlog,812) tau_MO,tau_CI
+    separator=':'
+    if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
+    write(lfnlog,802) trim(machine),trim(separator),trim(host),trim(compiler), &
+        trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi),trim(lmodmpiv), &
+        trim(usedcmake),trim(compiletime)
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,t12,a,t35,a,t51,a,':',a,t73,a,t82,a,t90,a,'/',a,3x,a,'/',a,3x,"cmake/",a,1x,a)
-812 format(t10,1pe9.2,e9.2)
+802 format(2x,a,a,a,t30,a,t40,a,t50,a,'/',a,t70,a,'/',a,t90,"cmake/",a,t110,a)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

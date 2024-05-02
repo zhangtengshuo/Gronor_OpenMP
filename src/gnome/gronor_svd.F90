@@ -245,7 +245,7 @@ subroutine gronor_svd()
 !$acc end data
 #endif
 #ifdef OMPTGT
-!omp end target data
+!$omp end target data
 #endif
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status

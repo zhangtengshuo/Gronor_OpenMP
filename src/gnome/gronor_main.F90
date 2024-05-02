@@ -2350,7 +2350,7 @@ subroutine gronor_main()
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s',/, &
           '  Host',t30,'Compiler',t40,'Target',t55,'Compiler version', &
-          t75,'MPI version',t95,'cmake version',t115,'Compile date & time',/, &
+          t75,'MPI version',t100,'cmake version',t115,'Compile date & time',/, &
           '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
@@ -2373,7 +2373,7 @@ subroutine gronor_main()
         trim(usedcmake),trim(compiletime)
     write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(2x,a,a,a,t30,a,t40,a,t55,a,'/',a,t75,a,'/',a,t95,"cmake/",a,t115,a)
+802 format(2x,a,a,a,t30,a,t40,a,t55,a,'/',a,t75,a,'/',a,t100,"cmake/",a,t115,a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then

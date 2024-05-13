@@ -304,8 +304,9 @@ subroutine gronor_gntwo(lfndbg)
     elseif(.not.ldiag .and. lbdiag) then
 
 #ifdef ACC
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!$acc update host(aat,aaa,tt,ta,sm,g,lab,ndx,diag,bdiag,bsdiag,csdiag)
+!SKIP!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
+!SKIP!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
 #endif
 #ifdef OMPTGT
 #ifdef OMP5
@@ -351,7 +352,7 @@ subroutine gronor_gntwo(lfndbg)
 #endif
 #endif
 #ifdef ACC
-!$acc end kernels
+!SKIP!$acc end kernels
 #endif
 
     elseif(ldiag .and. .not. lbdiag) then

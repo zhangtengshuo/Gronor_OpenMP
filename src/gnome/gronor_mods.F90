@@ -110,12 +110,12 @@ module cidef
 
   character (len=255) :: root,filinp,filout,filpro,fildbg,filday
   character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
-  character (len=255) :: filone,filtwo,fildat,fillog,filtim
+  character (len=255) :: filone,filtwo,fildat,fillog,filtim,filtmp
   character (len=255) :: filcpr,filarx,filrnk,filcml,filxrx
   integer :: lfninp,lfnout,lfnsys,lfnciv,lfnvec,lfnint,lfndet
   integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim,lfnabt
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
-  integer :: lfnwrn,lfnxrx
+  integer :: lfnwrn,lfnxrx,lfntmp
 
   character (len=255) :: user,host,date,time,cwd,command
   character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv
@@ -161,7 +161,7 @@ module gnome_parameters
 
   implicit none
 
-  integer :: icalc,ipr,ipro,ipvec,idbg,itim
+  integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada

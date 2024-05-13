@@ -243,6 +243,7 @@ subroutine gronor_main()
     lfnwrn=27
     filxrx=trim(string)//'.xrx'
     lfnxrx=28
+    lfntmp=29
 
     open(unit=lfnout,file=trim(filout),form='formatted',status='replace',err=996)
 
@@ -374,6 +375,7 @@ subroutine gronor_main()
     ipro=0
     iday=10
     idbg=0
+    itmp=0
     nspin=0
     ncorr=0
     mpibuf=168435456
@@ -836,6 +838,11 @@ subroutine gronor_main()
     write(fildbg,1300) me
 1300 format('GronOR_',i5.5,'.dbg ')
     open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
+  endif
+  if(itmp.gt.0) then
+    write(filtmp,1302) me
+1302 format('GronOR_',i5.5,'.tmp ')
+    open(unit=lfntmp,file=trim(filtmp),form='formatted',status='unknown',err=996)
   endif
 
   nacc0=naccel

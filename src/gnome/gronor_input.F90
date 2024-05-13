@@ -366,6 +366,11 @@ subroutine gronor_input()
       goto 2
     endif
 
+    if(inp_compare(.false.,'Temp',item)) then
+      if(.not.inp_i(itmp)) itmp=1
+      goto 2
+    endif
+
     if(inp_compare(.false.,'Dayfile',item)) then
       if(.not.inp_i(iday)) iday=10
       goto 2

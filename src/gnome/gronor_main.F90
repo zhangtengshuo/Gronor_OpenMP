@@ -2395,7 +2395,7 @@ subroutine gronor_main()
     call gronor_finalize_cml
     close(unit=lfncml,status='keep')
     !
-803 format(5x,10f20.10)
+803 format(5x,6f20.10)
     write(lfnlog,804)
 804 format(' ')
     close(unit=lfnlog,status='keep')

@@ -432,7 +432,7 @@ file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LM
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}\"\n")
 
-STRING(TIMESTAMP COMPTIME "%m/%d/%y %H:%M:%S" UTC)
+STRING(TIMESTAMP COMPTIME "%y/%m/%d %H:%M:%S")
 
 file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compile_time.fh "#define _COMPILE_TIME_ \"${COMPTIME}\"\n")
 

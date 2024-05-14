@@ -470,7 +470,7 @@ subroutine gronor_main()
         ' Please cite the following reference when publishing ', &
         'results obtained using GronOR:',//, &
         ' T. P. Straatsma, R. Broer, A. Sanchez-Mansilla,', &
-        'C. Sousa, and C.de Graaf',/, &
+        ' C. Sousa, and C.de Graaf',/, &
         ' "GronOR: Scalable and Accelerated Nonorthogonal ', &
         'Configuration Interaction for Molecular Wave ', &
         'Functions"',/, &

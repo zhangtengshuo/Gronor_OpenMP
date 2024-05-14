@@ -529,17 +529,16 @@ subroutine gronor_main()
 
     if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
         trim(host),onlabel,trim(machine),nnodes, &
-        date(1:8),nrsets, &
-        time(1:8),nrnsets,numdev,ngpus,nummps, &
+        date(1:8),time(1:8),nrsets, &
+        nrnsets,numdev,ngpus,nummps, &
         np,np/nnodes,np/nrsets, &
         ncycls,num_threads
 601 format(//, &
         ' User',t30,a,t60,'CPU count',t100,i10,/,/, &
         ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/, &
-        ' Date',t30,a,t60, &
+        ' Date and time',t30,a,1x,a,t60, &
         'Number of resource sets',t100,i10,/, &
-        ' Time',t30,a,t60, &
-        'Number of resource sets per node',t100,i10,/, &
+        t60,'Number of resource sets per node',t100,i10,/, &
         t60,'Number of GPUs per resource set',t100,i10,/, &
         t60,'Number of GPUs per node',t100,i10,/, &
         t60,'Number of MPI ranks per GPU (MPS)',t100,i10,/, &
@@ -567,10 +566,10 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-655 format(/,' Compile date and time',t30,a,' UTC')  
-652 format(/,' Compiler used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
-653 format(  ' MPI used to compile',t30,a,t60,'Currently loaded    ',a,'/',a)  
-654 format(  ' CMAKE used to compile',t30,"cmake/",a)  
+655 format(/,' Compile date and time',t30,a)  
+652 format(/,' Compiler',t30,a,' (currently loaded ',a,'/',a,')')  
+653 format(  ' MPI',t30,a,' (currently loaded ',a,'/',a,')')  
+654 format(  ' CMAKE',t30,"cmake/",a)  
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &

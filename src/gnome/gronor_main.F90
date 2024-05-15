@@ -501,6 +501,7 @@ subroutine gronor_main()
     onlabel='    '
     if(machine.ne.'            ') onlabel=' on '
 
+#if defined(GPUAMD) || defined(GPUNVIDIA)
     if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
         trim(host),onlabel,trim(machine),nnodes, &
         date(1:8),time(1:8),nrsets, &
@@ -521,6 +522,19 @@ subroutine gronor_main()
         t60,'Number of MPI ranks per resource set',t100,i10,/, &
         t60,'Number of rank assignment cycles',t100,i10,/, &
         t60,'Number of OPENMP threads per MPI rank',t100,i10)
+#else
+    if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
+        trim(host),onlabel,trim(machine),nnodes, &
+        date(1:8),time(1:8),np,np/nnodes,ncycls,num_threads
+601 format(//, &
+        ' User',t30,a,t60,'CPU count',t100,i10,/,/, &
+        ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/, &
+        ' Date and time',t30,a,1x,a, &
+        t60,'Number of MPI ranks',t100,i10,/, &
+        t60,'Number of MPI ranks per node',t100,i10,/, &
+        t60,'Number of rank assignment cycles',t100,i10,/, &
+        t60,'Number of OPENMP threads per MPI rank',t100,i10)
+#endif 
     if(ipr.ge.20.and.naccel.gt.0) write(lfnout,608) naccel
 608 format(t60,'Number of accelerated ranks per node limit',t100,i10)
     if(ipr.ge.20.and.nidle.gt.0) write(lfnout,648) nidle

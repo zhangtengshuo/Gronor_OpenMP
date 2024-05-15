@@ -114,6 +114,7 @@ subroutine gronor_worker()
   if(iamhead.eq.1) then
     ncount=17
     mpitag=1
+!    call MPI_Send(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ierr)
     call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
     call MPI_Request_free(ireq,ierr)
     if(idbg.gt.20) then
@@ -156,6 +157,7 @@ subroutine gronor_worker()
           ncount=4
           mpidest=thisgroup(i+2)
           mpitag=15
+!          call MPI_Send(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,ierr)
           call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
           call MPI_Request_free(ireq,ierr)
           if(idbg.gt.10) then
@@ -227,7 +229,7 @@ subroutine gronor_worker()
 
     oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
     if(oterm) then
-!          if(otreq) call MPI_Cancel(itreq,ierr)
+      if(otreq) call MPI_Cancel(itreq,ierr)
       call timer_stop(39)
       return
     endif
@@ -239,7 +241,6 @@ subroutine gronor_worker()
       if(.not.otreq) then
         call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
             mpitag,MPI_COMM_WORLD,itreq,ierr)
-!            call MPI_Request_free(itreq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,a)') &
@@ -249,14 +250,13 @@ subroutine gronor_worker()
       endif
       call MPI_Test(itreq,flag,status,ierr)
       if(flag) then
-!            call MPI_Cancel(itreq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), &
               ' Terminating in gronor_worker'
         endif
         call timer_stop(39)
-        call MPI_Request_free(itreq,ierr)
+        call MPI_Cancel(itreq,ierr)
         oterm=.true.
         return
       endif
@@ -288,7 +288,10 @@ subroutine gronor_worker()
       call gronor_calculate(ibase,jbase,idet,jdet)
       call timer_stop(47)
       
-      if(oterm) return
+      if(oterm) then
+        if(otreq) call MPI_Cancel(itreq,ierr)
+        return
+      endif
       
       buffer(3)=timer_wall(47)
       if(idbg.gt.30) then
@@ -308,6 +311,7 @@ subroutine gronor_worker()
         enddo
         ncount=17
         mpitag=1
+!        call MPI_Send(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ierr)
         call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
         call MPI_Request_free(ireq,ierr)
         if(idbg.gt.10) then
@@ -326,6 +330,8 @@ subroutine gronor_worker()
   call gronor_update_device_info()
   
   call gronor_solver_final()
+  
+  if(otreq) call MPI_Cancel(itreq,ierr)
   
   return
 end subroutine gronor_worker

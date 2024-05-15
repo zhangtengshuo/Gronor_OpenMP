@@ -34,7 +34,6 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
   implicit none
 
   external :: swatch,timer_start,timer_stop
-!  external :: MPI_iRecv,MPI_iSend,MPI_Recv,MPI_Send
 
   integer (kind=8) :: lfnout,lfnday,lfntim,i,j,m
   external :: timer_wall_total,timer_calls

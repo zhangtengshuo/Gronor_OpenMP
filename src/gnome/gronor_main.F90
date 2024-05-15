@@ -125,6 +125,7 @@ subroutine gronor_main()
   character (len=4) :: onlabel
   character (len=5) :: version
   character (len=64) :: version_type
+  character (len=128) :: istring,jstring
 
   integer :: major,minor
 
@@ -1477,6 +1478,7 @@ subroutine gronor_main()
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
+    
     isolver=SOLVER_EISPACK
     if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
     if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
@@ -1491,30 +1493,22 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
+    
     if(numacc.gt.0) then
-      if(isolver.eq.SOLVER_EISPACK) write(lfnout,611)
-611   format(' Accelerated ranks use EISPACK svd on CPU')
-      if(isolver.eq.SOLVER_MKL) write(lfnout,643)
-643   format(' Accelerated ranks use MKL dgesvd on CPU')
-      if(isolver.eq.SOLVER_LAPACK) write(lfnout,644)
-644   format(' Accelerated ranks use LAPACK dgesvd on CPU')
-      if(isolver.eq.SOLVER_CUSOLVER) write(lfnout,612)
-612   format(' Accelerated ranks use CUSOLVER DnDgesvd')
-      if(isolver.eq.SOLVER_CUSOLVERJ) write(lfnout,613)
-613   format(' Accelerated ranks use CUSOLVER DnDgesvdj')
-
-      if(jsolver.eq.SOLVER_EISPACK) write(lfnout,614)
-614   format(' Accelerated ranks use EISPACK TRED2/TQL on CPU')
-      if(jsolver.eq.SOLVER_MKL) write(lfnout,646)
-646   format(' Accelerated ranks use MKL dsyevd on CPU')
-      if(jsolver.eq.SOLVER_LAPACK) write(lfnout,647)
-647   format(' Accelerated ranks use LAPACK dsyevd on CPU')
-      if(jsolver.eq.SOLVER_CUSOLVER) write(lfnout,615)
-615   format(' Accelerated ranks use CUSOLVER DnDsyevd')
-      if(jsolver.eq.SOLVER_CUSOLVERJ) write(lfnout,616)
-616   format(' Accelerated ranks use CUSOLVER DnDsyevj')
-
+      if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd on CPU"
+      if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
+      if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
+      if(isolver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
+      if(isolver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
+      if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
+      if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
+      if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd on CPU"
+      if(jsolver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
+      if(jsolver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
+      write(lfnout,611) trim(istring),trim(jstring)
+611   format(' Accelerated ranks use ',a,' and ',a)
     endif
+    
     isolver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
@@ -1523,18 +1517,22 @@ subroutine gronor_main()
     if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
     if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(isolver.eq.SOLVER_EISPACK) write(lfnout,617)
-617 format(' Non-accelerated ranks use EISPACK svd')
-    if(isolver.eq.SOLVER_MKL) write(lfnout,618)
-618 format(' Non-accelerated ranks use MKL dgesvd')
-    if(isolver.eq.SOLVER_LAPACK) write(lfnout,633)
-633 format(' Non-accelerated ranks use LAPACK dgesvd')
-    if(jsolver.eq.SOLVER_EISPACK) write(lfnout,619)
-619 format(' Non-accelerated ranks use EISPACK tred2/tql')
-    if(jsolver.eq.SOLVER_MKL) write(lfnout,620)
-620 format(' Non-accelerated ranks use MKL dsyevd')
-    if(jsolver.eq.SOLVER_LAPACK) write(lfnout,634)
-634 format(' Non-accelerated ranks use LAPACK dsyevd')
+
+    if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
+    if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
+    if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
+    if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
+    if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd"
+    if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd"
+
+    if(numacc.eq.0) then
+      write(lfnout,612) trim(istring),trim(jstring)
+612   format(' Ranks are all non-accelerated and use ',a,' and ',a)
+    else
+      write(lfnout,613) trim(istring),trim(jstring)
+613   format(' Non-accelerated ranks use ',a,' and ',a)
+    endif
+      
   endif
 
   if(me.eq.mstr) numdev=0

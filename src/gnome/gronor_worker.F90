@@ -322,6 +322,8 @@ subroutine gronor_worker()
     call timer_stop(46)
     
   enddo
+
+  call gronor_update_device_info()
   
   call gronor_solver_final()
   

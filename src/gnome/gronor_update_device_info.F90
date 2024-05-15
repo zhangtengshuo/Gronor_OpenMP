@@ -19,7 +19,7 @@ subroutine gronor_update_device_info()
   istat=cudaMemGetInfo(cpfre,cptot)
 #endif
 
-  memavail=memfre
+  memavail=min(memavail,memfre)
 
   return
   

@@ -164,7 +164,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,606)
 606   format(//,' Wallclock Timing Analysis CoFac',/)
       write(lfnout,607)
-607   format('  Proc Role','      SVD','         Sum','         EVD','        Rest',/)
+607   format('  Proc Role','      SVD','         Sum','         EVD','       Other',/)
 
       flush(lfnout)
 

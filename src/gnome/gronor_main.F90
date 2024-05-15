@@ -476,54 +476,28 @@ subroutine gronor_main()
         'Functions"',/, &
         ' Journal of Chemical Theory and Computation, 18, 3549-', &
         '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
-    
+
+#ifdef _OPENMP
+    target='OpenMP Threading for CPU'
+#else
     target='CPU'
+#endif
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') "ACC AMD"
+    write(target,'(a)') "OpenACC for AMD GPU"
 #else
-    write(target,'(a)') "ACC NVIDIA"
+    write(target,'(a)') "OpenACC for NVIDIA GPU"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') "OMPTGT AMD"
+    write(target,'(a)') "OpenMP Offload for AMD GPU"
 #else
-    write(target,'(a)') "OMPTGT NVIDIA"
+    write(target,'(a)') "OpenMP Offload for NVIDIA GPU"
 #endif
 #endif
-    if(ipr.ge.0) write(lfnout,645) trim(target)
-#if defined(CRAY)
-645 format(//,' Compiled with the CRAY CCE Compiler suite',a)
-    compiler='Cray CCE'
-#elif defined(IBM)
-645 format(//,' Compiled with the IBM XL Compiler suite',a)
-    compiler='IBM XL'
-#elif defined(PGI)
-645 format(//,' Compiled with the PGI Compiler suite',a)
-    compiler='PGI'
-#elif defined(NVIDIA)
-645 format(//,' Compiled with the NVIDIA Compiler suite',a)
-    compiler='NVIDIA'
-#elif defined(NVHPC)
-645 format(//,' Compiled with the NVIDIA NVHPC Compiler suite',a)
-    compiler='NVHPC'
-#elif defined(GNU)
-645 format(//,' Compiled with the GNU Compiler suite',a)
-    compiler='GNU'
-#elif defined(INTEL)
-645 format(//,' Compiled with the INTEL Compiler suite',a)
-    compiler='Intel'
-#elif defined(FLANG)
-645 format(//,' Compiled with the FLANG/CLANG Compiler suite',a)
-    compiler='FLANG'
-#elif defined(AMD)
-645 format(//,' Compiled with the AMD Compiler suite',a)
-    compiler='AMD'
-#else
-645 format(//,' Compiled with unknown compiler suite',a)
-#endif
+    
     onlabel='    '
     if(machine.ne.'            ') onlabel=' on '
 
@@ -551,12 +525,22 @@ subroutine gronor_main()
 608 format(t60,'Number of accelerated ranks per node limit',t100,i10)
     if(ipr.ge.20.and.nidle.gt.0) write(lfnout,648) nidle
 648 format(t60,'Number of idle ranks per node',t100,i10)
-    if(ipr.ge.20.and.numdev.gt.0) write(lfnout,602) &
-        dble(memfre)/1073.74d06,dble(memtot)/1073.74d06
-602 format(t60,'Available memory on device',t90,f24.3,' GB',/, &
-        t60,'Total memory on device',t90,f24.3,' GB')
+    if(ipr.ge.20.and.numdev.gt.0) then
+#ifdef GPUAMD
+      write(lfnout,602) dble(memfre)/dble(1073741824),dble(memtot)/dble(1073741824)
+602   format(' AMD Accelerator', &
+          t60,'Available memory on device',t90,f24.3,' GB',/, &
+          t60,'Total memory on device',t90,f24.3,' GB')
+#endif
+#ifdef GPUNVIDIA
+      write(lfnout,602) dble(memfre)/dble(1073741824),dble(memtot)/dble(1073741824)
+602   format(' NVIDIA Accelerator', &
+          t60,'Available memory on device',t90,f24.3,' GB',/, &
+          t60,'Total memory on device',t90,f24.3,' GB')
+#endif
+    endif
     if(ipr.gt.0) then
-        write(lfnout,655) trim(compiletime)
+        write(lfnout,655) trim(compiletime),trim(target)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
         write(lfnout,654) trim(usedcmake)
@@ -566,10 +550,10 @@ subroutine gronor_main()
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
     endif
-655 format(/,' Compile date and time',t30,a)  
+655 format(/,' Compile date and time',t30,a,' targeting ',a)  
 652 format(/,' Compiler',t30,a,' (currently loaded ',a,'/',a,')')  
 653 format(  ' MPI',t30,a,' (currently loaded ',a,'/',a,')')  
-654 format(  ' CMAKE',t30,"cmake/",a)  
+654 format(  ' CMAKE',t30,"cmake/",a)
 603 format(/,' Command argument',t30,a,/, &
         ' Current working directory',t30,a,//, &
         ' Input file is',t25,a,t60, &

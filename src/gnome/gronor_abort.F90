@@ -221,6 +221,9 @@
       case(400)
          write(lfnabt,'(a,a)') 'Incompatible spin coupling: ',string
 
+      case(500)
+         write(lfnabt,'(a,a)') 'gronor_solver_init: ',string
+
       case DEFAULT
          write(lfnabt,'(a,i6,a,a)') "Execution aborted with error code ",icode,": ",string
 

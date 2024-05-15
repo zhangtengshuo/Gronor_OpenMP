@@ -58,9 +58,9 @@ subroutine gronor_solver_init(ntemp)
 #endif  
 
   integer :: ntemp
+  character(len=255) :: string
 
      nelecs=ntemp
-!     write(*,'(i4,a,i4)') me," nelecs=",nelecs
 
 ! Cusolver initialization for the svd
   
@@ -195,6 +195,15 @@ subroutine gronor_solver_init(ntemp)
 #endif
 
     lwork1=max(lwork1,lwork2)
+
+    call gronor_update_device_info()
+
+    if(8*lwork1.gt.memavail) then
+      write(string,'(a,i10,a,i10)') "Available ",memavail," device memory insufficient for", &
+          8*lwork1," needed as workspace for CUSOLVER solvers"
+      call gronor_abort(500,string)
+    endif
+    
     allocate(workspace_d(lwork1))
 
 #endif

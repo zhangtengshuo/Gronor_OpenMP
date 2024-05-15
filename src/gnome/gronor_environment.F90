@@ -242,14 +242,15 @@ subroutine gronor_environment()
         call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
       endif
 #endif
-#ifdef CUDA
-      cpfre=c_loc(memfre)
-      cptot=c_loc(memtot)
-      !        istat=cudaMemGetInfo(cpfre,cptot)
-#endif
-      memavail=memfre
     endif
 #endif
+
+#ifdef CUDA
+    if(numdev.gt.0) then
+      call gronor_update_device_info()
+    endif
+#endif
+    
 #ifdef OMPTGT
     numdev=omp_get_num_devices()
 #endif
@@ -655,4 +656,4 @@ subroutine gronor_environment()
     !      map2(me+1,9) :
     
     return
-  end subroutine gronor_environment
+end subroutine gronor_environment

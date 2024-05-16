@@ -198,7 +198,7 @@ subroutine gronor_solver_init(ntemp)
 
     call gronor_update_device_info()
 
-    if(8*lwork1.gt.memavail) then
+    if(memavail.gt.0.and.8*lwork1.gt.memavail) then
       write(string,'(a,i10,a,i10)') "Available ",memavail," device memory insufficient for", &
           8*lwork1," needed as workspace for CUSOLVER solvers"
       call gronor_abort(500,string)

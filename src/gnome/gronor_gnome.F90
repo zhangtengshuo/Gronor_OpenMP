@@ -66,7 +66,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
   !     If duplicate check for terminate signal
 
-  if(odupl) then
+  if(odupl.and.iint.ne.0) then
     call MPI_Test(itreq,flag,status,ierr)
     oterm=flag
     if(oterm) return

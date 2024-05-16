@@ -1205,26 +1205,28 @@ subroutine gronor_master()
       flush(lfndbg)
     endif
   enddo
-  
-  do i=1,np
-    ncount=4
-    mpitag=99
-    iremote=i-1
-    itbuf(1,iremote+1)=0
-    itbuf(2,iremote+1)=-1
-    itbuf(3,iremote+1)=-1
-    itbuf(4,iremote+1)=-1
-    if(iremote.ne.mstr) then
-      call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
-          iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
-      call MPI_Request_free(ireq9,ierr)
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-            ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
+ 
+  if(iint.gt.0) then 
+    do i=1,np
+      ncount=4
+      mpitag=99
+      iremote=i-1
+      itbuf(1,iremote+1)=0
+      itbuf(2,iremote+1)=-1
+      itbuf(3,iremote+1)=-1
+      itbuf(4,iremote+1)=-1
+      if(iremote.ne.mstr) then
+        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
+            iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+        call MPI_Request_free(ireq9,ierr)
+        if(idbg.gt.10) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
+              ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
+        endif
       endif
-    endif
-  enddo
+    enddo
+  endif
 
   !     Fill lower half of the Hamiltonian and overlap matrices
 

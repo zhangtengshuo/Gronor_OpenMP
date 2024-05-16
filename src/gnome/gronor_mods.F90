@@ -161,7 +161,7 @@ module gnome_parameters
 
   implicit none
 
-  integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp
+  integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp,ires,iint
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada

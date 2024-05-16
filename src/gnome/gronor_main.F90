@@ -377,6 +377,8 @@ subroutine gronor_main()
     iday=10
     idbg=0
     itmp=0
+    ires=0
+    iint=0
     nspin=0
     ncorr=0
     mpibuf=168435456
@@ -684,8 +686,8 @@ subroutine gronor_main()
       idum(8)=0
       idum(9)=0
       idum(10)=0
-      idum(11)=0
-      idum(12)=0
+      idum(11)=ires
+      idum(12)=iint
       idum(13)=icalc
       idum(14)=ipr
       idum(15)=ins2
@@ -758,6 +760,8 @@ subroutine gronor_main()
       maxvec=idum(5)
       maxnact=idum(6)
       nidle=idum(7)
+      ires=idum(11)
+      iint=idum(12)
       icalc=idum(13)
       ipr=idum(14)
       ins2=idum(15)

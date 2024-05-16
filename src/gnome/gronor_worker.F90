@@ -237,7 +237,7 @@ subroutine gronor_worker()
     endif
     odupl=ibuf(1).lt.0
     ibuf(1)=iabs(ibuf(1))
-    if(odupl) then
+    if(odupl.and.iint.ne.0) then
       ncount=4
       mpitag=99
       if(.not.otreq) then

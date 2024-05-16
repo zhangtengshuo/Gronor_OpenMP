@@ -366,6 +366,16 @@ subroutine gronor_input()
       goto 2
     endif
 
+    if(inp_compare(.false.,'Resilient',item)) then
+      if(.not.inp_i(ires)) ires=1
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'Interrupt',item)) then
+      if(.not.inp_i(iint)) iint=1
+      goto 2
+    endif
+
     if(inp_compare(.false.,'Temp',item)) then
       if(.not.inp_i(itmp)) itmp=1
       goto 2

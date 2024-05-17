@@ -1,0 +1,33 @@
+#!/usr/bin/tcsh
+
+#module purge
+module load cmake
+module load xl
+module load spectrum-mpi
+module load netlib-lapack 
+#module load magma/2.7.2-cuda121
+
+module list
+
+env | grep LIBRARY
+
+unsetenv MPI_ROOT
+
+setenv FC mpif90
+setenv CC mpicc
+setenv CXX mpicxx
+
+rm -rf build_summit
+mkdir build_summit
+cd build_summit
+
+setenv CPATH ${CPATH}:/sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/include
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/lib64
+
+if(! $?SOFTWARE ) setenv SOFTWARE $HOME/Software 
+
+cmake -DTARGET=SUMMIT -DCMAKE_INSTALL_PREFIX=$SOFTWARE/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION -DOMPTGT=ON -DLAPACK=ON ../
+
+make -j 16
+
+make install

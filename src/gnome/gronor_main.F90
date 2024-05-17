@@ -186,6 +186,10 @@ subroutine gronor_main()
 #endif
 #endif
 
+    n=index(host,':')
+    l2=len(trim(host))
+    if(n.gt.0.and.n.lt.l2) write(host,'(a)') host(n+1:l2)
+
     call swatch(date,time)
     call getcwd(cwd)
 
@@ -2496,26 +2500,26 @@ subroutine gronor_main()
   endif
 
   if(me.eq.mstr) then
-!    if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout)) then
-!      ierror=0
-!      ierr=0
-!      if(idbg.gt.0) then
-!        write(lfndbg,'(a)') "Issuing mpi_abort"
-!        flush(lfndbg)
-!      endif
-!      call swatch(date,time)
-!      if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
-!637   format(/,' Completion/abort of run ',2a10,/)
-!      flush(lfnout)
-!      close(unit=lfnout,status='keep')
-!      call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
-!    else
+    if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout).and.ires.ne.0) then
+      ierror=0
+      ierr=0
+      if(idbg.gt.0) then
+        write(lfndbg,'(a)') "Issuing mpi_abort"
+        flush(lfndbg)
+      endif
+      call swatch(date,time)
+      if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
+637   format(/,' Completion/abort of run ',2a10,/)
+      flush(lfnout)
+      close(unit=lfnout,status='keep')
+      call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
+    else
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)
       flush(lfnout)
       close(unit=lfnout,status='keep')
-!    endif
+    endif
   endif
   
   if(idbg.gt.0) then

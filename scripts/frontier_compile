@@ -2,11 +2,13 @@
 
 #module load PrgEnv-cray-amd
 module load craype-accel-amd-gfx90a
+#module load cpe/23.12
+#module load rocm/5.7.1
 module load cpe/23.12
-module load rocm/5.7.1
+module load rocm/6.0.0
 module load cmake
 module unload darshan-runtime
-module use /autofs/nccs-svm1_sw/crusher/amdsw/modules
+#module use /autofs/nccs-svm1_sw/crusher/amdsw/modules
 
 #module load omniperf
 #module load perftools
@@ -23,7 +25,9 @@ rm -rf build_frontier
 mkdir build_frontier
 cd build_frontier
 
-cmake -DTARGET=FRONTIER -DOMPTGT=ON -DLAPACK=ON -DCMAKE_INSTALL_PREFIX=/lustre/orion/proj-shared/chm154/Software/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION ../ 
+if(! $?SOFTWARE ) setenv SOFTWARE $HOME/Software
+
+cmake -DTARGET=FRONTIER -DOMPTGT=ON -DLAPACK=ON -DCMAKE_INSTALL_PREFIX=$SOFTWARE/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION ../ 
 
 make -j 16
 

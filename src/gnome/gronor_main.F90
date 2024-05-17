@@ -492,16 +492,16 @@ subroutine gronor_main()
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') "OpenACC for AMD GPU"
+    write(target,'(a)') "OpenACC AMD GPU"
 #else
-    write(target,'(a)') "OpenACC for NVIDIA GPU"
+    write(target,'(a)') "OpenACC NVIDIA GPU"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') "OpenMP Offload for AMD GPU"
+    write(target,'(a)') "OpenMP AMD GPU"
 #else
-    write(target,'(a)') "OpenMP Offload for NVIDIA GPU"
+    write(target,'(a)') "OpenMP NVIDIA GPU"
 #endif
 #endif
     

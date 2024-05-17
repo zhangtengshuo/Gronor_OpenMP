@@ -485,23 +485,23 @@ subroutine gronor_main()
         '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
 #ifdef _OPENMP
-    target='OpenMP Threading for CPU'
+    target='CPU: OpenMP'
 #else
     target='CPU'
 #endif
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') "OpenACC AMD GPU"
+    write(target,'(a)') "AMD GPU: OpenACC"
 #else
-    write(target,'(a)') "OpenACC NVIDIA GPU"
+    write(target,'(a)') "NVIDIA GPU: OpenACC"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') "OpenMP AMD GPU"
+    write(target,'(a)') "AMD GPU: OpenMP"
 #else
-    write(target,'(a)') "OpenMP NVIDIA GPU"
+    write(target,'(a)') "NVIDIA GPU: OpenMP"
 #endif
 #endif
     
@@ -2359,7 +2359,7 @@ subroutine gronor_main()
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s',/, &
-          'Compile time/date',t19,'Host',t43,'Compiler',t53,'Target',t68,'Compiler version', &
+          'Compile time/date',t19,'Host',t43,'Compiler target',t68,'Compiler version', &
           t85,'MPI version',t118,'cmake version',/, &
           '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI',/)
     endif
@@ -2379,11 +2379,11 @@ subroutine gronor_main()
     separator=':'
     if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
-        trim(compiler),trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
+        trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
     write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(a17,t19,a,a,a,t43,a,t53,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
+802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then

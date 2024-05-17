@@ -330,16 +330,6 @@ subroutine gronor_parallel_integral_input()
 
   deallocate(ijbuf)
 
-  !     Determine the correct record length of the integral files
-
-  inquire(iolength=nrecbd) b(1)
-  nrecb = nrecbd
-  if(mclab.ne.1) then
-    nrecl=(2*mbuf+2)*nrecb
-  else
-    nrecl=(mbuf+2)*nrecb
-  endif
-
 
   if(igr.gt.0) mint2=nng(igr)
 
@@ -356,8 +346,16 @@ subroutine gronor_parallel_integral_input()
   !     Only the first group reads the integrals from file
 
   if(mygroup.eq.1) then
-    !     Allocate the buffers needed to read the two-electron integral files
+    ! Allocate the buffers needed to read the two-electron integral files
     allocate(b(mbuf),ibuf(4*mbuf))
+    ! Determine the correct record length of the integral files
+    inquire(iolength=nrecbd) b(1)
+    nrecb = nrecbd
+    if(mclab.ne.1) then
+      nrecl=(2*mbuf+2)*nrecb
+    else
+      nrecl=(mbuf+2)*nrecb
+    endif
     k=0
     do idf=ndxf(igr,1),ndxf(igr,2)
       idri=ndxf(igr,3)

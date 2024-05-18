@@ -2052,9 +2052,9 @@ public class gronor_Fragment {
 						}						
 					}
 
-					for(int i=numOcc+numCASo-1; i>=numOcc; i--) {
+					for(int i=numOcc; i<numOcc+n; i++) {
 						if(!isPz[i]) {
-							for(int j=numOcc+numCASo-n; j<numOrb; j++) {
+							for(int j=numOcc+n; j<numOrb; j++) {
 								if(!isPz[i] && isPz[j]) {
 									alter[numAlt][0]=(i+1);
 									alter[numAlt][1]=(j+1);

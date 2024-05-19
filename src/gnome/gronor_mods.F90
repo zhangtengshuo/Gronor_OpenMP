@@ -890,8 +890,6 @@ module lapack_solver
   real (kind=8),allocatable :: workspace_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
   character*1 :: jobz,uplo
-  real(kind=8) :: worksize(2)
-  integer (kind=8) :: iworksize(2)
 end module lapack_solver
 #else
 #ifdef MAGMA
@@ -902,8 +900,6 @@ module magma_solver
   real (kind=8),allocatable :: workspace_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
   character*1 :: jobz,uplo
-  real(kind=8) :: worksize(2)
-  integer (kind=8) :: iworksize(2)
 end module magma_solver
 #endif
 #endif

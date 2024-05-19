@@ -1460,7 +1460,6 @@ subroutine gronor_main()
   if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
   if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
 
-
   if(iamacc.eq.1) then
     isolver=SOLVER_EISPACK
     if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK

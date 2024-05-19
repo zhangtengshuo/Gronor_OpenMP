@@ -59,6 +59,9 @@ subroutine gronor_solver_init(ntemp)
 
   integer :: ntemp
   character(len=255) :: string
+  
+  real(kind=8) :: worksize(2)
+  integer (kind=8) :: iworksize(2)
 
      nelecs=ntemp
 
@@ -218,19 +221,13 @@ subroutine gronor_solver_init(ntemp)
     lwork2m=-1
     lworki=-1
     if(isolver.eq.SOLVER_MKL) then
-      allocate(workspace_d(2448))
-      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
-      lwork1m=int(workspace_d(1))
-      deallocate(workspace_d)
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,ierr)
+      lwork1m=int(worksize(1))
     endif
     if(jsolver.eq.SOLVER_MKL) then
-      allocate(workspace_d(2448))
-      allocate(workspace_i(2448))
-      call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,workspace_i,lworki,ierr)
-      lwork2m=int(workspace_d(1))
-      lworki=int(workspace_i(1))
-      deallocate(workspace_d)
-      deallocate(workspace_i)
+      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)

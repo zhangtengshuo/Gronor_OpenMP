@@ -337,7 +337,6 @@ subroutine gronor_input()
 !      elseif(.not.inp_i(jnslvr)) then
 !        jnslvr=-1
 !      endif
-      
       goto 2      
     endif
 

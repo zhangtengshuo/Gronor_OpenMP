@@ -1095,7 +1095,7 @@ subroutine gcommon_add_detinfo()
       deallocate(coeff,occ)
       deallocate(coeff_unique,occ_unique)
     end do
-1600 format(2i5,i12,4x,a2,4x,f22.12,i5,1pe10.3,0pf22.12)
+1600 format(2i5,i12,4x,a6,f22.12,i5,1pe10.3,0pf22.12)
   end do
   
 end subroutine gcommon_add_detinfo

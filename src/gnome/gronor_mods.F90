@@ -908,7 +908,11 @@ module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
     enumerator SOLVER_LAPACK
+    enumerator SOLVER_LAPACKD
+    enumerator SOLVER_LAPACKJ
     enumerator SOLVER_MKL
+    enumerator SOLVER_MKLD
+    enumerator SOLVER_MKLJ
     enumerator SOLVER_CUSOLVER
     enumerator SOLVER_CUSOLVERJ
     enumerator SOLVER_HIPSOLVER

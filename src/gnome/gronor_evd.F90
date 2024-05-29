@@ -114,7 +114,7 @@ subroutine gronor_evd()
   
 ! ============ MKL ===========
 #ifdef MKL
-  if(jsolver.eq.SOLVER_MKL) then
+  if(jsolver.eq.SOLVER_MKL.or.jsolver.eq.SOLVER_MKLD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -124,7 +124,12 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    if(jsolver.eq.SOLVER_MKL) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
+    if(jsolver.eq.SOLVER_MKLD) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -138,7 +143,7 @@ subroutine gronor_evd()
   
 ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(jsolver.eq.SOLVER_LAPACK) then
+  if(jsolver.eq.SOLVER_LAPACK.or.jsolver.eq.SOLVER_LAPACKD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -148,7 +153,12 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    if(jsolver.eq.SOLVER_LAPACK) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
+    if(jsolver.eq.SOLVER_LAPACKD) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)

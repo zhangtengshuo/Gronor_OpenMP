@@ -224,13 +224,23 @@ subroutine gronor_solver_init(ntemp)
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,ierr)
       lwork1m=int(worksize(1))
     endif
+    if(isolver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
+      lwork1m=int(worksize(1))
+      lworki=8*ndimm
+    endif
     if(jsolver.eq.SOLVER_MKL) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))
     endif
-    lwork1m=max(8,lwork1m,lwork2m)
-    lworki=max(8,lworki)
+    if(jsolver.eq.SOLVER_MKLD) then
+      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
+    endif
+    lwork1m=max(8*ndimm,lwork1m,lwork2m)
+    lworki=max(8*ndimm,lworki)
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif

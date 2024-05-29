@@ -394,9 +394,14 @@ subroutine gronor_svd_omp()
   ! ============ MKL ===========
   
 #ifdef MKL
-  if(isolver.eq.SOLVER_MKL) then
+  if(isolver.eq.SOLVER_MKL.or.isolver.eq.SOLVER_MKLD) then
     ndimm=nelecs
-    call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+    if(isolver.eq.SOLVER_MKL) then
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+    endif
+    if(isolver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
+    endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)
 !$omp do collapse(2)
@@ -425,9 +430,14 @@ subroutine gronor_svd_omp()
   ! ============ LAPACK ===========
   
 #ifdef LAPACK
-  if(isolver.eq.SOLVER_LAPACK) then
+  if(isolver.eq.SOLVER_LAPACK.or.isolver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
-    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    if(isolver.eq.SOLVER_LAPACK) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
+    if(isolver.eq.SOLVER_LAPACKD) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)
 !$omp do collapse(2)

@@ -254,8 +254,16 @@ subroutine gronor_input()
           iaslvr=SOLVER_EISPACK
         elseif(inp_compare(.false.,item,'MKL')) then
           iaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          iaslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          iaslvr=SOLVER_MKLJ
         elseif(inp_compare(.false.,item,'LAPACK')) then
           iaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          iaslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          iaslvr=SOLVER_LAPACKJ
         elseif(inp_compare(.false.,item,'MAGMA')) then
           iaslvr=SOLVER_MAGMA
         elseif(inp_compare(.false.,item,'CUSOLVER')) then
@@ -277,8 +285,16 @@ subroutine gronor_input()
           inslvr=SOLVER_EISPACK
         elseif(inp_compare(.false.,item,'MKL')) then
           inslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          inslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          inslvr=SOLVER_MKLJ
         elseif(inp_compare(.false.,item,'LAPACK')) then
           inslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          inslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          inslvr=SOLVER_LAPACKJ
         else
           call gronor_abort(123,"Input error Solver")
         endif
@@ -290,8 +306,16 @@ subroutine gronor_input()
           jaslvr=SOLVER_EISPACK
         elseif(inp_compare(.false.,item,'MKL')) then
           jaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          jaslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          jaslvr=SOLVER_MKLJ
         elseif(inp_compare(.false.,item,'LAPACK')) then
           jaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          jaslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          jaslvr=SOLVER_LAPACKJ
         elseif(inp_compare(.false.,item,'MAGMA')) then
           jaslvr=SOLVER_MAGMA
         elseif(inp_compare(.false.,item,'CUSOLVER')) then
@@ -313,8 +337,16 @@ subroutine gronor_input()
           jnslvr=SOLVER_EISPACK
         elseif(inp_compare(.false.,item,'MKL')) then
           jnslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          jnslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          jnslvr=SOLVER_MKLJ
         elseif(inp_compare(.false.,item,'LAPACK')) then
           jnslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          jnslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          jnslvr=SOLVER_LAPACKJ
         else
           call gronor_abort(123,"Input error Solver")
         endif

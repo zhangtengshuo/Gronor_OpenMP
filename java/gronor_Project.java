@@ -109,6 +109,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	Integer numThreads=12;
 	Integer memory=2048;
 	Integer expansion=0;
+	Integer fsource=0;
+	Integer populate=0;
 	Integer frozen=0;
 	Integer basisSet=0;
 	Integer contract=1;
@@ -136,6 +138,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 
 	String[] optFrozen = new String[] {"none", "default", "user"};
 	String[] expMEBF = new String[] {"small", "medium", "large", "x-large", "huge"};
+	String[] popMEBF = new String[] {"single", "dimers", "dimers-A", "trimers", "trimers-A"};
+	String[] srcFrag = new String[] {"single", "each"};
 	String[] basisSets = new String[] {"ano-s", "ano-l", "ano-ccr", "ano-ccr-vdzp"};
 	String[] contracts = new String[] {"s", "m","l"};
 	String[] choleskys = new String[] {"high", "medium", "low", "none"};
@@ -153,6 +157,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 	JTable fieldTable = new JTable();
 	JTable basisTable = new JTable();
 	JTable expansionTable = new JTable();
+	JTable populateTable = new JTable();
+	JTable fsourceTable = new JTable();
 	JTable frozenTable = new JTable();
 	JTable contractTable = new JTable();
 	JTable choleskyTable = new JTable();
@@ -426,21 +432,23 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		    	basisSet  = Integer.valueOf(card.substring(30,36).trim());
 		    	contract  = Integer.valueOf(card.substring(36,42).trim());
 		    	cholesky  = Integer.valueOf(card.substring(42,48).trim());
-		    	expansion = Integer.valueOf(card.substring(48,54).trim());
-		    	frozen    = Integer.valueOf(card.substring(54,60).trim());
-		    	thresh_MO = Double.valueOf(card.substring(60,80)).doubleValue();
-		    	thresh_CI = Double.valueOf(card.substring(80,100)).doubleValue();
-		    	ipea      = Double.valueOf(card.substring(100,106)).doubleValue();
-		    	fieldX    = Double.valueOf(card.substring(106,126)).doubleValue();
-		    	fieldY    = Double.valueOf(card.substring(126,146)).doubleValue();
-		    	fieldZ    = Double.valueOf(card.substring(146,166)).doubleValue();
-		    	Integer check = Integer.valueOf(card.substring(166,172).trim());
+		    	fsource   = Integer.valueOf(card.substring(48,54).trim());
+		    	populate  = Integer.valueOf(card.substring(54,60).trim());
+		    	expansion = Integer.valueOf(card.substring(60,66).trim());
+		    	frozen    = Integer.valueOf(card.substring(66,72).trim());
+		    	thresh_MO = Double.valueOf(card.substring(72,92)).doubleValue();
+		    	thresh_CI = Double.valueOf(card.substring(92,112)).doubleValue();
+		    	ipea      = Double.valueOf(card.substring(112,118)).doubleValue();
+		    	fieldX    = Double.valueOf(card.substring(118,138)).doubleValue();
+		    	fieldY    = Double.valueOf(card.substring(138,158)).doubleValue();
+		    	fieldZ    = Double.valueOf(card.substring(158,178)).doubleValue();
+		    	Integer check = Integer.valueOf(card.substring(178,184).trim());
 		    	if(check==1) {
 		    		orbAlter.setSelected(true);
 		    	} else {
 		    		orbAlter.setSelected(false);
 		    	}
-		    	check = Integer.valueOf(card.substring(172,178).trim());
+		    	check = Integer.valueOf(card.substring(184,190).trim());
 		    	if(check==1) {
 		    		orbSupSym.setSelected(true);
 		    	} else {
@@ -521,6 +529,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			    fw.printf("%6d",basisSet);
 			    fw.printf("%6d",contract);
 			    fw.printf("%6d",cholesky);
+			    fw.printf("%6d",fsource);
+			    fw.printf("%6d",populate);
 			    fw.printf("%6d",expansion);
 			    fw.printf("%6d",frozen);
 			    fw.printf("%20.10f",thresh_MO);
@@ -1045,6 +1055,25 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 	}
 	
+	private void single() {
+		
+		newMEBFs=1;
+		dimensionData[2][1]=newMEBFs;
+		update();
+		
+		for(int i=0; i<numFragments; i++) {
+			mebfFragments[0][i][0]=i;
+		}
+		Integer mebf = mebfIndex[0][0];
+		mebf=0;
+		Integer nmer = mebfSpecification[0][0];
+		Integer spin = mebfSpecification[0][1];
+		Integer chrg = mebfSpecification[0][2];
+		Integer stat = mebfSpecification[0][3];
+		mebfSpecification[0][0]=numFragments;
+		selectMEBFStates(mebf,nmer,spin,chrg,stat);
+	}
+	
 	private void dimers() {
 		
 		Integer n=0;
@@ -1101,7 +1130,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		newMEBFs=n;
 		dimensionData[2][1]=newMEBFs;
 		update();
-		
+
 		n=0;
 		for(int i=1; i<numFragments-1; i++) {
 			for(int j=i+1; j<numFragments; j++) {
@@ -1134,6 +1163,109 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 
 	}
+	
+	private void trimers() {
+		
+		Integer n=0;
+		for(int i=0; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					n++;
+				}
+			}
+		}
+		newMEBFs=n;
+		dimensionData[2][1]=newMEBFs;
+		update();
+		
+		n=0;
+		for(int i=0; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					mebfFragments[n][0][0]=i;
+					mebfFragments[n][1][0]=j;
+					mebfFragments[n][2][0]=k;
+					n++;
+				}
+			}
+		}
+
+		if(numMEBFs>0) {
+			for(int i=0; i<numMEBFs; i++) {
+				Integer mebf = mebfIndex[i][0];
+				mebf=i;
+				Integer nmer = mebfSpecification[i][0];
+				Integer spin = mebfSpecification[i][1];
+				Integer chrg = mebfSpecification[i][2];
+				Integer stat = mebfSpecification[i][3];
+				mebfSpecification[i][0]=3;
+				selectMEBFStates(mebf,nmer,spin,chrg,stat);	
+			}
+		}
+		
+		n=0;
+		for(int i=0; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					mebfFragments[n][0][0]=i;
+					mebfFragments[n][1][0]=j;
+					n++;
+				}
+			}
+		}
+	}
+	
+	private void trimers_noA() {
+		
+		Integer n=0;
+		for(int i=1; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					n++;
+				}
+			}
+		}
+		newMEBFs=n;
+		dimensionData[2][1]=newMEBFs;
+		update();
+		
+		n=0;
+		for(int i=1; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					mebfFragments[n][0][0]=i;
+					mebfFragments[n][1][0]=j;
+					mebfFragments[n][2][0]=k;
+					n++;
+				}
+			}
+		}
+
+		if(numMEBFs>0) {
+			for(int i=0; i<numMEBFs; i++) {
+				Integer mebf = mebfIndex[i][0];
+				mebf=i;
+				Integer nmer = mebfSpecification[i][0];
+				Integer spin = mebfSpecification[i][1];
+				Integer chrg = mebfSpecification[i][2];
+				Integer stat = mebfSpecification[i][3];
+				mebfSpecification[i][0]=3;
+				selectMEBFStates(mebf,nmer,spin,chrg,stat);	
+			}
+		}
+		
+		n=0;
+		for(int i=1; i<numFragments-2; i++) {
+			for(int j=i+1; j<numFragments-1; j++) {
+				for(int k=j+1; k<numFragments; k++) {
+					mebfFragments[n][0][0]=i;
+					mebfFragments[n][1][0]=j;
+					n++;
+				}
+			}
+		}
+	}
+	
 	private void update() {
 
 		updateStatesList();
@@ -1165,10 +1297,10 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		energiesPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
 		energiesPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numEnergies)*16+50)));
 		
-		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
-//		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+50)));
-		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,150));
-//		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+50)));
+		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+60)));
+		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*16+60)));
+//		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,150));
+		mebfsPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,((numMEBFRows)*15+60)));
 		
 		parametersPanel.revalidate();
 		dimensionPanel.revalidate();
@@ -2324,24 +2456,43 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		expansionPanel = new JPanel();
 		expansionPanel.setLayout(new BoxLayout(expansionPanel,BoxLayout.Y_AXIS));
-		expansionPanel.setPreferredSize(new Dimension(140,70));
-		expansionPanel.setMinimumSize(new Dimension(140,70));
-		expansionPanel.setMaximumSize(new Dimension(140,70));
+		expansionPanel.setPreferredSize(new Dimension(170,70));
+		expansionPanel.setMinimumSize(new Dimension(170,70));
+		expansionPanel.setMaximumSize(new Dimension(170,70));
 		LineBorder expansionBorder = new LineBorder(Color.black);
 		expansionPanel.setBorder(expansionBorder);
 
+		Object[][] fsourceData = new Object[][] {
+			{"Source", srcFrag[fsource]}
+		};
+		Object[][] populateData = new Object[][] {
+			{"Populate", popMEBF[populate]}
+		};
 		Object[][] expansionData = new Object[][] {
 			{"Expansion", expMEBF[expansion]}
 		};
 		String[] expansionColumns = new String[] {" "," "};
+		String[] populateColumns = new String[] {" "," "};
+		String[] fsourceColumns = new String[] {" "," "};
+		
 		expansionTable = new JTable(expansionData,expansionColumns);
 		expansionTable.setCellSelectionEnabled(true);
 		expansionTable.getColumnModel().getColumn(0).setMaxWidth(80);
-		expansionTable.getColumnModel().getColumn(1).setMaxWidth(100);
+		expansionTable.getColumnModel().getColumn(1).setMaxWidth(120);
+		
+		populateTable = new JTable(populateData,populateColumns);
+		populateTable.setCellSelectionEnabled(true);
+		populateTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		populateTable.getColumnModel().getColumn(1).setMaxWidth(120);
+		
+		fsourceTable = new JTable(fsourceData,fsourceColumns);
+		fsourceTable.setCellSelectionEnabled(true);
+		fsourceTable.getColumnModel().getColumn(0).setMaxWidth(80);
+		fsourceTable.getColumnModel().getColumn(1).setMaxWidth(120);
 
 		DefaultComboBoxModel expansionComboModel = new DefaultComboBoxModel(expMEBF);
 		JComboBox expansionCombo = new JComboBox();
-		expansionCombo.setMaximumRowCount(3);
+		expansionCombo.setMaximumRowCount(5);
 		expansionCombo.setModel(expansionComboModel);
 		TableColumn expansionColumn = expansionTable.getColumnModel().getColumn(1);
 		expansionColumn.setCellEditor(new DefaultCellEditor(expansionCombo));
@@ -2361,6 +2512,67 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			}
 		});
 
+		DefaultComboBoxModel fsourceComboModel = new DefaultComboBoxModel(srcFrag);
+		JComboBox fsourceCombo = new JComboBox();
+		fsourceCombo.setMaximumRowCount(3);
+		fsourceCombo.setModel(fsourceComboModel);
+		TableColumn fsourceColumn = fsourceTable.getColumnModel().getColumn(1);
+		fsourceColumn.setCellEditor(new DefaultCellEditor(fsourceCombo));
+		fsourceCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = fsourceTable.getEditingColumn();
+				Integer row = fsourceTable.getEditingRow();
+				fsource=fsourceCombo.getSelectedIndex();
+				if(fsource==0) {
+					for(int i=0; i<numFragments; i++) {
+						fragmentDefinitions[i][1]=fragmentNames[0];
+					}
+					update();
+				}
+				if(fsource==1) {
+					for(int i=0; i<numFragments; i++) {
+						fragmentDefinitions[i][1]=fragmentNames[i];
+					}
+					update();
+				}
+			}
+		});
+
+		DefaultComboBoxModel populateComboModel = new DefaultComboBoxModel(popMEBF);
+		JComboBox populateCombo = new JComboBox();
+		populateCombo.setMaximumRowCount(5);
+		populateCombo.setModel(populateComboModel);
+		TableColumn populateColumn = populateTable.getColumnModel().getColumn(1);
+		populateColumn.setCellEditor(new DefaultCellEditor(populateCombo));
+		populateCombo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent item){
+				Integer col = populateTable.getEditingColumn();
+				Integer row = populateTable.getEditingRow();
+				populate=populateCombo.getSelectedIndex();
+				if(populate==0) {
+					single();
+					update();
+				}
+				if(populate==1 && numFragments>2) {
+					dimers();
+					update();
+				}
+				if(populate==2 && numFragments>2) {
+					dimers_noA();
+					update();
+				}
+				if(populate==3 && numFragments>3) {
+					trimers();
+					update();
+				}
+				if(populate==4 && numFragments>3) {
+					trimers_noA();
+					update();
+				}
+			}
+		});
+				
+		
 		Object[][] frozenData = new Object[][] {
 			{"Frozen", optFrozen[frozen]}
 		};
@@ -2368,7 +2580,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		frozenTable = new JTable(frozenData,frozenColumns);
 		frozenTable.setCellSelectionEnabled(true);
 		frozenTable.getColumnModel().getColumn(0).setMaxWidth(80);
-		frozenTable.getColumnModel().getColumn(1).setMaxWidth(100);
+		frozenTable.getColumnModel().getColumn(1).setMaxWidth(120);
 
 		DefaultComboBoxModel frozenComboModel = new DefaultComboBoxModel(optFrozen);
 		JComboBox frozenCombo = new JComboBox();
@@ -2603,6 +2815,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		basisPanel.add(contractTable);
 		basisPanel.add(choleskyTable);
 		expansionPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		expansionPanel.add(fsourceTable);
+		expansionPanel.add(populateTable);
 		expansionPanel.add(expansionTable);
 		expansionPanel.add(frozenTable);
 		expansionPanel.add(Box.createVerticalGlue());
@@ -2619,8 +2833,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		buttonPanel.add(Box.createVerticalGlue());
 		parametersPanel.add(dimensionPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
-		parametersPanel.add(optionsPanel);
-		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
+//		parametersPanel.add(optionsPanel);
+//		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(numberPanel);
 		parametersPanel.add(Box.createRigidArea(new Dimension(5,0)));
 		parametersPanel.add(threshPanel);
@@ -2925,8 +3139,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				
 		mebfsPanel = new JPanel();
 		mebfsPanel.setLayout(new BoxLayout(mebfsPanel,BoxLayout.X_AXIS));
-		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
-		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
+//		mebfsPanel.setPreferredSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
+//		mebfsPanel.setMinimumSize(new Dimension(Short.MAX_VALUE,numberMebfDefinitions*15+35));
 		TitledBorder mebfsBorder = new TitledBorder(new LineBorder(Color.black),"MEBF List Definitions");
 		mebfsBorder.setTitleColor(Color.black);
 		mebfsPanel.setBorder(mebfsBorder);

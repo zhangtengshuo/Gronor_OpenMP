@@ -2086,7 +2086,6 @@ public class gronor_Fragment {
 
 	public Double Molcas_SCF(Integer frag, Integer numCASe, Integer numCASo) {
 		String fileName = fragmentName.trim()+fragmentNames[frag]+"_SCF.output";
-//		System.out.println("READING "+fileName);
 		String card;
 		Integer numOcc;
 		Boolean converged = false;
@@ -2213,7 +2212,6 @@ public class gronor_Fragment {
 	
 	public Integer Molcas_CASSCF_Converged(Integer frag, Integer state) {
 		String fileName = fragmentName.trim()+fragmentNames[frag]+"_"+stateNames[state]+".output";
-//		System.out.println("CHECK CONVERGENCE OF "+fileName);
 		String card;
 		Boolean convergedCASSCF = false;
 		Integer numConverged = 0;
@@ -2259,7 +2257,6 @@ public class gronor_Fragment {
 				}
 			}
 			br.close();
-//			System.out.println("READING "+fileName+" : "+energyCASSCF);
 			return energyCASSCF;
 		} catch(IOException ef) {
 			return 0.0;

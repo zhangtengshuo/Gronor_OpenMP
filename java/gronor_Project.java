@@ -1808,9 +1808,13 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				setTableCellColor(fragmentsTable,0,2,Color.red);
 			}
 		} else if(nfrag>1) {
-			for(int i=0; i<numFragments; i++) {
+			for(int i=1; i<numFragments; i++) {
 				if(!fragmentDefinitions[i][0].equals(fragmentDefinitions[i][1]) && !fragT[i]) {
-					setTableCellColor3(fragmentsTable,i,9,14,Color.red);
+					Boolean condition = false;
+					for(int j=0; j<numFragments; j++) {
+						if(i!=j && fragmentDefinitions[i][1]==fragmentDefinitions[j][0] && namFragments[i]==namFragments[j]) condition=true;
+					}
+					if(condition) setTableCellColor3(fragmentsTable,i,9,14,Color.red);
 				}
 			}
 		} else if(numMEBFs<=0){

@@ -2307,6 +2307,7 @@ public class gronor_Fragment {
 			xyzFile.println("Coordinates in Angstrom");
 			for(int j=0; j<n; j++) {
 				for(int k=0; k<6; k++) RandT[k]=randt[j][k];
+				initialize3(fname[j], frags[j], 2);
 				for(int i=0; i<numAtoms; i++) {
 					xyzFile.print(atomLabel[i]); 
 					xyzFile.printf("%16.8f",coordinates[i][0]);

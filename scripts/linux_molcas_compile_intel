@@ -6,7 +6,9 @@ rm -rf build_intel_2022.3.0
 mkdir build_intel_2022.3.0
 cd build_intel_2022.3.0
 
-cmake CC=mpicc FC=mpifort cmake -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/molcas/2023.0 -DMPI=ON -DGA=ON -DLINALG=MKL ../
+if(! $?SOFTWARE ) setenv SOFTWARE $HOME/Software
+
+cmake CC=mpicc FC=mpifort cmake -DCMAKE_INSTALL_PREFIX=$SOFTWARE/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION -DMPI=ON -DGA=ON -DLINALG=MKL ../
 
 make -j 12
 

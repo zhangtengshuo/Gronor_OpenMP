@@ -93,7 +93,7 @@ subroutine gronor_worker()
   idet0=0
   jdet0=0
 
-  call gronor_solver_init()
+  call gronor_solver_init(nelecs)
 
   do i=1,17
     rbuf(i)=0.0d0
@@ -193,136 +193,154 @@ subroutine gronor_worker()
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
 
-        if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.ibuf(2).gt.0) then
-          if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
-          icur=iabs(ibuf(1))
-          jcur=ibuf(2)
-          if(icur.gt.0.and.jcur.gt.0) then
-            ndeti=idetb(icur)
-            ndetj=idetb(jcur)
-            k=0
-            if(icur.eq.jcur) then
-              do i=1,ndeti
-                do j=i,ndeti
-                  if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
-                  k=k+1
-                  melist(k,1)=i
-                  melist(k,2)=j
-                enddo
-              enddo
-            else
-              do i=1,ndeti
-                do j=1,ndetj
-                  if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
-                  k=k+1
-                  melist(k,1)=i
-                  melist(k,2)=j
-                enddo
-              enddo
-            endif
-          endif
+    if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.ibuf(2).gt.0) then
+      if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
+      icur=iabs(ibuf(1))
+      jcur=ibuf(2)
+      if(icur.gt.0.and.jcur.gt.0) then
+        ndeti=idetb(icur)
+        ndetj=idetb(jcur)
+        k=0
+        if(icur.eq.jcur) then
+          do i=1,ndeti
+            do j=i,ndeti
+              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+              k=k+1
+              melist(k,1)=i
+              melist(k,2)=j
+            enddo
+          enddo
+        else
+          do i=1,ndeti
+            do j=1,ndetj
+              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+              k=k+1
+              melist(k,1)=i
+              melist(k,2)=j
+            enddo
+          enddo
         endif
+      endif
+    endif
 
 !     Check if this is a duplicate
 
-        oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
-        if(oterm) then
+    oterm=ibuf(2).lt.0.or.ibuf(3).lt.0.or.ibuf(4).lt.0
+    if(oterm) then
 !          if(otreq) call MPI_Cancel(itreq,ierr)
-          call timer_stop(39)
-          return
-        endif
-        odupl=ibuf(1).lt.0
-        ibuf(1)=iabs(ibuf(1))
-        if(odupl) then
-          ncount=4
-          mpitag=99
-          if(.not.otreq) then
-            call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
-                mpitag,MPI_COMM_WORLD,itreq,ierr)
-            call MPI_Request_free(itreq,ierr)
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              write(lfndbg,'(a,1x,a,a)') &
-                  date(1:8),time(1:8),' Terminate iRecv posted '
-            endif
-            otreq=.true.
-          endif
-          call MPI_Test(itreq,flag,status,ierr)
-          if(flag) then
-!            call MPI_Cancel(itreq,ierr)
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), &
-                  ' Terminating in gronor_worker'
-            endif
-            call timer_stop(39)
-            oterm=.true.
-            return
-          endif
-        endif
-
-        call timer_stop(39)
-
-        if(idbg.gt.15) then
+      call timer_stop(39)
+!      if(otreq) then
+!        call MPI_Test(itreq,flag,status,ierr)
+!        if(.not.flag) call MPI_Request_free(itreq,ierr)
+!      endif
+      return
+    endif
+    odupl=ibuf(1).lt.0
+    ibuf(1)=iabs(ibuf(1))
+    if(odupl.and.iint.ne.0) then
+      ncount=4
+      mpitag=99
+      if(.not.otreq) then
+        call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
+            mpitag,MPI_COMM_WORLD,itreq,ierr)
+        !            call MPI_Request_free(itreq,ierr)
+        if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8), &
-              ' Cumulative COMM1 Wait Time ',timer_wall_total(39)
+          write(lfndbg,'(a,1x,a,a)') &
+              date(1:8),time(1:8),' Terminate iRecv posted '
+        endif
+        otreq=.true.
+      endif
+      call MPI_Test(itreq,flag,status,ierr)
+      if(flag) then
+!            call MPI_Cancel(itreq,ierr)
+        if(idbg.gt.10) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), &
+              ' Terminating in gronor_worker'
+        endif
+        call timer_stop(39)
+!        call MPI_Request_free(itreq,ierr)
+        oterm=.true.
+        return
+      endif
+    endif
+
+    call timer_stop(39)
+    
+    if(idbg.gt.15) then
+      call swatch(date,time)
+      write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8), &
+          ' Cumulative COMM1 Wait Time ',timer_wall_total(39)
+      flush(lfndbg)
+    endif
+    
+    ibase=ibuf(1)
+    jbase=ibuf(2)
+    idet=ibuf(3)
+    jdet=ibuf(4)
+    
+    call timer_start(46)
+    if(ibase.ne.0.and..not.oterm) then
+      if(idbg.gt.30) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8), &
+            me,' Entering gronor_calculate with ',ibase,jbase,idet,jdet,ntask,nbatch
+        flush(lfndbg)
+      endif
+      call timer_start(47)
+      call gronor_calculate(ibase,jbase,idet,jdet)
+      call timer_stop(47)
+      
+      if(oterm) then
+!        if(otreq) then
+!          call MPI_Test(itreq,flag,status,ierr)
+!          if(.not.flag) call MPI_Request_free(itreq,ierr)
+!        endif
+        return
+      endif
+      
+      buffer(3)=timer_wall(47)
+      if(idbg.gt.30) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8), &
+            me,' Returned from gronor_calculate '
+        flush(lfndbg)
+      endif
+      if(idbg.ge.12) then
+        write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)          
+      endif
+      call timer_start(48)
+      if(iamhead.eq.1) then
+        !     call MPI_Wait(ireq,status,ierr)
+        do i=1,17
+          rbuf(i)=buffer(i)
+        enddo
+        ncount=17
+        mpitag=1
+        call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+        call MPI_Request_free(ireq,ierr)
+        if(idbg.gt.10) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+              me,' sent results  ',mstr,(ibuf(i),i=1,4)
           flush(lfndbg)
         endif
+      endif
+      call timer_stop(48)
+    endif
+    call timer_stop(46)
+    
+  enddo
 
-        ibase=ibuf(1)
-        jbase=ibuf(2)
-        idet=ibuf(3)
-        jdet=ibuf(4)
+  call gronor_update_device_info()
+  
+  call gronor_solver_final()
 
-        call timer_start(46)
-        if(ibase.ne.0.and..not.oterm) then
-          if(idbg.gt.30) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8), &
-                me,' Entering gronor_calculate with ',ibase,jbase,idet,jdet,ntask,nbatch
-            flush(lfndbg)
-          endif
-          call timer_start(47)
-          call gronor_calculate(ibase,jbase,idet,jdet)
-          call timer_stop(47)
-
-          if(oterm) return
-
-          buffer(3)=timer_wall(47)
-          if(idbg.gt.30) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8), &
-                me,' Returned from gronor_calculate '
-            flush(lfndbg)
-          endif
-          if(idbg.ge.12) then
-            write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)          
-          endif
-          call timer_start(48)
-          if(iamhead.eq.1) then
-!     call MPI_Wait(ireq,status,ierr)
-            do i=1,17
-              rbuf(i)=buffer(i)
-            enddo
-            ncount=17
-            mpitag=1
-            call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
-            call MPI_Request_free(ireq,ierr)
-            if(idbg.gt.10) then
-              call swatch(date,time)
-              write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-                  me,' sent results  ',mstr,(ibuf(i),i=1,4)
-              flush(lfndbg)
-            endif
-          endif
-          call timer_stop(48)
-        endif
-        call timer_stop(46)
-
-      enddo
-
-      call gronor_solver_final()
-      
-      return
-    end subroutine gronor_worker
+!  if(otreq) then
+!    call MPI_Test(itreq,flag,status,ierr)
+!    if(.not.flag) call MPI_Request_free(itreq,ierr)
+!  endif
+  
+  return
+end subroutine gronor_worker

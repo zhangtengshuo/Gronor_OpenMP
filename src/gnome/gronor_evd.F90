@@ -32,6 +32,14 @@ subroutine gronor_evd()
   use mkl_solver
 #endif
 
+#ifdef LAPACK  
+  use lapack_solver
+#else
+#ifdef MAGMA  
+  use magma_solver
+#endif
+#endif
+  
 #ifdef CUSOLVER
   use cusolverDn
   use cuda_cusolver
@@ -104,9 +112,9 @@ subroutine gronor_evd()
     endif
   endif
   
-  ! ============ MKL ===========
+! ============ MKL ===========
 #ifdef MKL
-  if(jsolver.eq.SOLVER_MKL) then
+  if(jsolver.eq.SOLVER_MKL.or.jsolver.eq.SOLVER_MKLD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -116,7 +124,12 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    if(jsolver.eq.SOLVER_MKL) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
+    if(jsolver.eq.SOLVER_MKLD) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -124,6 +137,64 @@ subroutine gronor_evd()
 #ifdef OMPTGT
 !$omp target update to(ev,u,w)
 #endif
+    endif
+  endif
+#endif 
+  
+! ============ LAPACK ===========
+#ifdef LAPACK
+  if(jsolver.eq.SOLVER_LAPACK.or.jsolver.eq.SOLVER_LAPACKD) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
+    endif
+    ndimm=nelecs
+    if(jsolver.eq.SOLVER_LAPACK) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
+    if(jsolver.eq.SOLVER_LAPACKD) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    endif
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    endif
+  endif
+#endif 
+  
+! ============ MAGMA ===========
+#ifdef MAGMA
+  if(jsolver.eq.SOLVER_MAGMA) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc data create(workspace_d,workspace_i)
+!$acc wait
+!$acc host_data use_device(a,diag,workspace_d,workspace_i)
+#endif
+#ifdef OMPTGT
+!!!!!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
+#endif    
+      ndimm=nelecs
+      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+#ifdef ACC
+!$acc end host_data
+!$acc wait
+!$acc end data   
+#endif
+#ifdef OMPTGT
+!!!!!$omp end target data
+#endif
+    else        
+      ndimm=nelecs
+      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
   endif
 #endif 
@@ -142,7 +213,7 @@ subroutine gronor_evd()
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d)
 #endif
     cusolver_status = cusolverDnDsyevd(cusolver_handle, &
         CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER, &
@@ -153,7 +224,7 @@ subroutine gronor_evd()
 !$acc end data   
 #endif
 #ifdef OMPTGT
-!omp end target data
+!$omp end target data
 #endif
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDsyevd failed',cusolver_status
@@ -245,6 +316,9 @@ subroutine gronor_evd_omp()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
   ! variable declarations
 
@@ -252,6 +326,9 @@ subroutine gronor_evd_omp()
 
   external :: tred2,tql2
 #ifdef MKL
+  external :: dsyevd
+#endif
+#ifdef LAPACK
   external :: dsyevd
 #endif
   
@@ -280,6 +357,16 @@ subroutine gronor_evd_omp()
   
 #ifdef MKL
   if(jsolver.eq.SOLVER_MKL) then
+    ndimm=nelecs
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+        workspace_i,lworki,ierr)
+  endif
+#endif 
+  
+  ! ============ LAPACK ===========
+  
+#ifdef LAPACK
+  if(jsolver.eq.SOLVER_LAPACK) then
     ndimm=nelecs
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
         workspace_i,lworki,ierr)

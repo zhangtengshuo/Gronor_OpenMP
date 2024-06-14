@@ -47,7 +47,7 @@ subroutine gronor_parallel_integral_input()
   integer (kind=4) :: nrecbd
 #endif
   integer (kind=4) :: ierr,ncount,mpitag,mpidest,mpireq
-  integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,ls
+  integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,ls,kt
   integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem
   integer (kind=8), allocatable :: ifil(:,:)
   real (kind=8), allocatable :: b(:)
@@ -330,16 +330,6 @@ subroutine gronor_parallel_integral_input()
 
   deallocate(ijbuf)
 
-  !     Determine the correct record length of the integral files
-
-  inquire(iolength=nrecbd) b(1)
-  nrecb = nrecbd
-  if(mclab.ne.1) then
-    nrecl=(2*mbuf+2)*nrecb
-  else
-    nrecl=(mbuf+2)*nrecb
-  endif
-
 
   if(igr.gt.0) mint2=nng(igr)
 
@@ -356,8 +346,16 @@ subroutine gronor_parallel_integral_input()
   !     Only the first group reads the integrals from file
 
   if(mygroup.eq.1) then
-    !     Allocate the buffers needed to read the two-electron integral files
+    ! Allocate the buffers needed to read the two-electron integral files
     allocate(b(mbuf),ibuf(4*mbuf))
+    ! Determine the correct record length of the integral files
+    inquire(iolength=nrecbd) b(1)
+    nrecb = nrecbd
+    if(mclab.ne.1) then
+      nrecl=(2*mbuf+2)*nrecb
+    else
+      nrecl=(mbuf+2)*nrecb
+    endif
     k=0
     do idf=ndxf(igr,1),ndxf(igr,2)
       idri=ndxf(igr,3)
@@ -386,13 +384,24 @@ subroutine gronor_parallel_integral_input()
     enddo
     deallocate(b,ibuf)
     kl=0
+    kt=0
     do i=1,nbas
       do k=1,i
         kl=kl+1
-        lab(1,kl)=k
-        lab(2,kl)=i
+!        lab(1,kl)=k
+!        lab(2,kl)=i
+        lab(1,kt+k)=k
+        lab(2,kt+k)=i
+        if(itmp.gt.0) write(lfntmp,'(a,5i6)') "LAB ",kl,kt+k,lab(1,kt+k),lab(2,kt+k)
       enddo
+      kt=kt+i
     enddo
+!    lab(1,mlab)=nbas
+!    lab(2,mlab)=nbas
+    if(itmp.gt.0) then
+      write(lfntmp,'(a,i6,6x,5i6)') "LAB ",mlab,lab(1,mlab),lab(2,mlab)
+      flush(lfntmp)
+    endif       
   endif
 
   intndx=1
@@ -499,9 +508,13 @@ subroutine gronor_parallel_integral_input()
       enddo
       
       if(idist.eq.0) then
-        ncount=2*mlab
+        ncount=int(2*mlab,kind=kind(ncount))
         mpitag=0
         call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm(igr),ierr)
+        if(itmp.gt.0) then
+          write(lfndbg,'(a,5i6)') "LAB2 ",mlab,ncount,lab(1,mlab),lab(2,mlab)
+          flush(lfndbg)
+        endif
       else
         ncount=2*mlab
         mpitag=0

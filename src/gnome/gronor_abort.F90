@@ -90,6 +90,9 @@
         
       case(122)
         write(lfnabt,'(a)') "Input: Managers : number of managers not properly specified"
+        
+      case(123)
+        write(lfnabt,'(a)') "Input: Solver : solver option not specified"
 
       case(130)
          write(lfnabt,'(a)') "Input: MPIbuffer : MPI buffer size not specified"
@@ -217,6 +220,9 @@
 
       case(400)
          write(lfnabt,'(a,a)') 'Incompatible spin coupling: ',string
+
+      case(500)
+         write(lfnabt,'(a,a)') 'gronor_solver_init: ',string
 
       case DEFAULT
          write(lfnabt,'(a,i6,a,a)') "Execution aborted with error code ",icode,": ",string

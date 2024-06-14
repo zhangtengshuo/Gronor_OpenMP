@@ -116,7 +116,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   do ij=id1,id2
 
-    if(otreq) then
+    if(otreq.and.iint.ne.0) then
       call MPI_Test(itreq,flag,status,ierr)
 
       if(flag) then

@@ -703,6 +703,7 @@ subroutine gcommon_getAtomicOverlap(filename,luOne,n,sAO)
   sAO=0.0
   iRc=-1
   iOpt=0
+  call SetMem('clear=off')
   Call OpnOne(iRC,iOpt,filename,LuOne)
   if(iRC.ne.0) write(6,*)'Something went wrong opening ',filename
   iRC= 0

@@ -16,7 +16,7 @@
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)subroutine gronor_solver_init()
 
-subroutine gronor_solver_init()
+subroutine gronor_solver_init(ntemp)
   
   use mpi
   use cidef
@@ -33,6 +33,13 @@ subroutine gronor_solver_init()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#else
+#ifdef MAGMA
+  use magma_solver
+#endif
+#endif
   
   implicit none
   
@@ -40,8 +47,25 @@ subroutine gronor_solver_init()
   external :: dgesvd,dsyevd
   integer (kind=4) :: ierr
 #endif
+#ifdef LAPACK
+  external :: dgesvd,dsyevd
+  integer (kind=4) :: lapack_info,ierr
+#else  
+#ifdef MAGMA
+  external :: magma_dsyevd,magma_dsyevd_gpu
+  integer (kind=4) :: lapack_info,ierr
+#endif
+#endif  
+
+  integer :: ntemp
+  character(len=255) :: string
   
-  ! Cusolver initialization for the svd
+  real(kind=8) :: worksize(2)
+  integer (kind=8) :: iworksize(2)
+
+     nelecs=ntemp
+
+! Cusolver initialization for the svd
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER
@@ -174,6 +198,15 @@ subroutine gronor_solver_init()
 #endif
 
     lwork1=max(lwork1,lwork2)
+
+    call gronor_update_device_info()
+
+    if(memavail.gt.0.and.8*lwork1.gt.memavail) then
+      write(string,'(a,i10,a,i10)') "Available ",memavail," device memory insufficient for", &
+          8*lwork1," needed as workspace for CUSOLVER solvers"
+      call gronor_abort(500,string)
+    endif
+    
     allocate(workspace_d(lwork1))
 
 #endif
@@ -188,26 +221,75 @@ subroutine gronor_solver_init()
     lwork2m=-1
     lworki=-1
     if(isolver.eq.SOLVER_MKL) then
-      allocate(workspace_d(2448))
-      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
-      lwork1m=int(workspace_d(1))
-      deallocate(workspace_d)
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,ierr)
+      lwork1m=int(worksize(1))
+    endif
+    if(isolver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
+      lwork1m=int(worksize(1))
+      lworki=8*ndimm
     endif
     if(jsolver.eq.SOLVER_MKL) then
-      allocate(workspace_d(2448))
-      allocate(workspace_i(2448))
-      call dsyevd('N','L',ndimm,a,ndimm,w,workspace_d,lwork2m,workspace_i,lworki,ierr)
-      lwork2m=int(workspace_d(1))
-      lworki=int(workspace_i(1))
-      deallocate(workspace_d)
-      deallocate(workspace_i)
+      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
+    endif
+    if(jsolver.eq.SOLVER_MKLD) then
+      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
+    endif
+    lwork1m=max(8*ndimm,lwork1m,lwork2m)
+    lworki=max(8*ndimm,lworki)
+    allocate(workspace_d(lwork1m))
+    allocate(workspace_i(lworki))
+#endif
+
+#ifdef LAPACK
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
+    if(isolver.eq.SOLVER_LAPACK) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+      lwork1m=int(worksize(1))+1024*nelecs
+    endif
+    if(jsolver.eq.SOLVER_LAPACK) then
+      call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      lwork2m=int(worksize(1))+1024*nelecs
+      lworki=int(iworksize(1))+1024*nelecs
+    endif
+    lwork1m=max(8,lwork1m,lwork2m)
+    lworki=max(8,lworki)
+    allocate(workspace_d(lwork1m))
+    allocate(workspace_i(lworki))
+#endif  
+
+#ifdef MAGMA
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
+!    if(isolver.eq.SOLVER_LAPACK) then
+!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+!      lwork1m=int(worksize(1))+1024*nelecs
+!    endif
+    if(jsolver.eq.SOLVER_MAGMA) then
+      if(iamacc.eq.0) then
+        call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      else
+        call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      endif
+      lwork2m=int(worksize(1))+1024*nelecs
+      lworki=int(iworksize(1))+1024*nelecs
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif
-
     return
   end subroutine gronor_solver_init
 

@@ -31,6 +31,10 @@ subroutine gronor_svd()
 #ifdef MKL
   use mkl_solver
 #endif
+  
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
 #ifdef CUSOLVER
   use cusolverDn
@@ -149,21 +153,70 @@ subroutine gronor_svd()
 !$omp target update to(ev,u,w)
 #endif
     endif
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         temp(i,j)=w(i,j)
       enddo
     enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
     do i=1,nelecs
       do j=1,nelecs
         w(j,i)=temp(i,j)
       enddo
     enddo
 #ifdef ACC
-!$acc update device (w)
+!$acc end kernels
+#endif
+  endif
+#endif 
+  
+  ! ============ LAPACK ===========
+#ifdef LAPACK
+  if(isolver.eq.SOLVER_LAPACK) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
 #endif
 #ifdef OMPTGT
-!$omp target update to(w)
+!$omp target update from(a)
+#endif    
+    endif
+    ndimm=nelecs
+    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
+        &       workspace_d,lwork1m,ierr)
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    endif
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        temp(i,j)=w(i,j)
+      enddo
+    enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(j,i)=temp(i,j)
+      enddo
+    enddo
+#ifdef ACC
+!$acc end kernels
 #endif
   endif
 #endif 
@@ -192,7 +245,7 @@ subroutine gronor_svd()
 !$acc end data
 #endif
 #ifdef OMPTGT
-!omp end target data
+!$omp end target data
 #endif
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
@@ -308,6 +361,9 @@ subroutine gronor_svd_omp()
 #ifdef MKL
   use mkl_solver
 #endif
+#ifdef LAPACK
+  use lapack_solver
+#endif
 
   ! variable declarations
 
@@ -338,9 +394,50 @@ subroutine gronor_svd_omp()
   ! ============ MKL ===========
   
 #ifdef MKL
-  if(isolver.eq.SOLVER_MKL) then
+  if(isolver.eq.SOLVER_MKL.or.isolver.eq.SOLVER_MKLD) then
     ndimm=nelecs
-    call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+    if(isolver.eq.SOLVER_MKL) then
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+    endif
+    if(isolver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
+    endif
+#ifdef OMP
+!$omp parallel shared(temp,w,nelecs)
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        temp(i,j)=w(i,j)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(j,i)=temp(i,j)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
+  endif
+#endif 
+
+  ! ============ LAPACK ===========
+  
+#ifdef LAPACK
+  if(isolver.eq.SOLVER_LAPACK.or.isolver.eq.SOLVER_LAPACKD) then
+    ndimm=nelecs
+    if(isolver.eq.SOLVER_LAPACK) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
+    if(isolver.eq.SOLVER_LAPACKD) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)
 !$omp do collapse(2)

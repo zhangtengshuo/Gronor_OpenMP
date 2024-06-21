@@ -114,10 +114,10 @@ subroutine gronor_master()
   !     sbase(i,j)   collects the overlap matrix results for basestate combination i j
   !     tbase(i,j)   collects the wall clock time spent basestate combination i j
   !     ntasks(i,j)  contains the task status for base state combination i j
-  !     -2 : base pair calculation has completed
-  !     -1 : base pair calculation has not yet started
-  !     0 : base pair contributions have been calculated and accumulated
-  !     >0 : number of base pair contributions calculated
+  !                  -2 : base pair calculation has completed
+  !                  -1 : base pair calculation has not yet started
+  !                   0 : base pair contributions have been calculated and accumulated
+  !                  >0 : number of base pair contributions calculated
   !     nsing(i,j,k) sums the number of singularities for base state combination i j
 
   do ibase=1,nbase
@@ -171,7 +171,7 @@ subroutine gronor_master()
     enddo
   enddo
 
-  !     ndest(i,j,1) is replaced by offset in matrix element pair list for base state combination i j
+  !     ndets(i,j,1) is replaced by offset in matrix element pair list for base state combination i j
   !     ndets(i,j,2) has the number of completed determinant pairs for base state combination i j
 
   ioff=0
@@ -261,6 +261,9 @@ subroutine gronor_master()
   do ibase=1,nbase
     do jbase=1,ibase
 
+      ! An experimental option load/loada allows for different task sizes
+      ! for accelerated and non-accelerated ranks
+      
       if(ibase.eq.nbase.and.jbase.eq.nbase.and.(load.gt.1.or.loada.gt.1)) then
         if(loada.gt.1.and.ntaska.gt.1) ntaska=max(1,ntaska/loada)
         if(load.gt.1.and.ntask.gt.1) ntask=max(1,ntask/load)
@@ -328,10 +331,6 @@ subroutine gronor_master()
       call timer_start(99)
       
       ndone=0
-      !          ibuf(1)=0
-      !          ibuf(2)=0
-      !          ibuf(3)=0
-      !          ibuf(4)=0
 
       if(ntasks(ibase,jbase).eq.-2) ndone=ijend
 
@@ -347,6 +346,9 @@ subroutine gronor_master()
         mpitag=1
         call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
         call timer_stop(94)
+
+        ! If a buffer is received the integrals were distributed to the worker ranks
+        ! This information is printed to the dayfile only once
 
         if(ofirst) then
           ofirst=.false.
@@ -368,6 +370,7 @@ subroutine gronor_master()
           call timer_start(99)
           call timer_start(98)
         endif
+        
         !     Determine rank and group from which the request came
 
         iremote=status(MPI_SOURCE)
@@ -464,6 +467,8 @@ subroutine gronor_master()
 
           ntasks(ibin,jbin)=ntasks(ibin,jbin)-1
 
+          ! If a Hamiltonian element has been completed write to arx and cpr files
+          
           if(ntasks(ibin,jbin).eq.0.and.(ibin.ne.ibase.or.jbin.ne.jbase)) then
 
             if(ibin.eq.jbin) then
@@ -676,10 +681,10 @@ subroutine gronor_master()
         endif
 
         !     Setup the next task to be sent to requesting rank in an integer buffer with length 4
-        !     buffer(1) : ibase of the base pair
-        !     buffer(2) : jbase of the base pair
-        !     buffer(3) : first index into the determinant pair list
-        !     buffer(4) : last index into the determinant pair list
+        !     ibuf(1) : ibase of the base pair
+        !     ibuf(2) : jbase of the base pair
+        !     ibuf(3) : first index into the determinant pair list
+        !     ibuf(4) : last index into the determinant pair list
 
         !     ndone becomes the last index of the determinant pairs that have been put in a task
 
@@ -696,6 +701,9 @@ subroutine gronor_master()
         ndone=ibuf(4)
         
         !     Send buffer to requesting rank without waiting for completion of mpi
+        !     In order to allow immediate reuse of the buffer ipbuf has dedicated
+        !     entries for each rank
+        !     Some MPI implementations allow immediate reuse, but this is not MPI standard
         
         ipbuf(1,iremote+1)=ibuf(1)
         ipbuf(2,iremote+1)=ibuf(2)
@@ -706,6 +714,11 @@ subroutine gronor_master()
 
         call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
+
+        ! The request handle can be freed because the first possible response from the
+        ! remote rank will come in the form of a result buffer.
+        ! This guarantees that this integer buffer was received
+        
         call MPI_Request_free(ireq,ierr)
         owait=.true.
 
@@ -1067,6 +1080,7 @@ subroutine gronor_master()
 
           !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
           !     On the receiving worker rank a check for sign of first element indicates a duplicate
+          !     The first integer is negative to indicate to worker this is a duplicate
 
           ipbuf(1,iremote+1)=-ibuf(1)
           ipbuf(2,iremote+1)=ibuf(2)
@@ -1137,7 +1151,7 @@ subroutine gronor_master()
 524 format(10e20.12)
   endif
 
-  !     At this point all outstanding tasks completed
+  !     At this point all outstanding tasks have completed
 
   call timer_stop(99)
   call swatch(date,time)
@@ -1169,8 +1183,7 @@ subroutine gronor_master()
   ibuf(2)=-1
   ibuf(3)=-1
   ibuf(4)=-1
-  
-  
+    
   do i=1,npg
     iremote=allgroups(i,2)
 
@@ -1192,26 +1205,28 @@ subroutine gronor_master()
       flush(lfndbg)
     endif
   enddo
-  
-  do i=1,np
-    ncount=4
-    mpitag=99
-    iremote=i-1
-    itbuf(1,iremote+1)=0
-    itbuf(2,iremote+1)=-1
-    itbuf(3,iremote+1)=-1
-    itbuf(4,iremote+1)=-1
-    if(iremote.ne.mstr) then
-      call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
-          iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
-      call MPI_Request_free(ireq9,ierr)
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-            ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
+ 
+  if(iint.gt.0) then 
+    do i=1,np
+      ncount=4
+      mpitag=99
+      iremote=i-1
+      itbuf(1,iremote+1)=0
+      itbuf(2,iremote+1)=-1
+      itbuf(3,iremote+1)=-1
+      itbuf(4,iremote+1)=-1
+      if(iremote.ne.mstr) then
+        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
+            iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+        call MPI_Request_free(ireq9,ierr)
+        if(idbg.gt.10) then
+          call swatch(date,time)
+          write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
+              ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
+        endif
       endif
-    endif
-  enddo
+    enddo
+  endif
 
   !     Fill lower half of the Hamiltonian and overlap matrices
 

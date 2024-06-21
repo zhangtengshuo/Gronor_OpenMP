@@ -431,6 +431,47 @@ return
 end subroutine corr_shift_printHam
 
 
+
+
+subroutine corr_shift_printblockHam(title,m,n,label)
+use  corr_shift_input_data, only : maxlength
+implicit none
+real ( kind = 8 ), intent(in)   :: m(n,n)
+character (len=18)              :: label(n)
+integer                         :: n,i,j,first,last
+character (len = 120)           :: title
+logical                         :: useLabels
+write(*,'(a120)') title
+write(*,*)
+if ( maxLength .gt. 18 ) then
+  useLabels = .false.
+else
+  useLabels = .true.
+endif
+first = 1 ; last = min(n,7)
+do while ( first .le. n )
+  if (useLabels) then
+    write(*,671) (adjustl(label(i)),i=first,last)
+    do i = 1, n
+      write(*,672)adjustr(label(i)),(m(i,j),j=first,last)
+    end do
+  else
+    write(*,673) (i,i=first,last)
+    do i = 1, n
+      write(*,674)i,(m(i,j),j=first,last)
+    end do
+  end if
+  first = last + 1
+  last = min(last + 7,n)
+  write(*,*)
+end do
+671 format(22x,7(a20))
+672 format(a20,1x,7f20.10)
+673 format(6x,7(6x,i8,6x))
+674 format(i5,1x,7f20.10)
+return
+end subroutine corr_shift_printblockHam
+
 subroutine corr_shift_superNOCI
 use corr_shift_input_data
 implicit none
@@ -443,11 +484,12 @@ real (kind=8), allocatable   :: h_block(:,:)
 real (kind=8), allocatable   :: s_block(:,:),s_save(:,:)
 real (kind=8), allocatable   :: extraVec(:,:)
 real (kind=8), allocatable   :: extraH(:,:),extraS(:,:)
-real (kind=8), allocatable   :: eps(:),h_unique(:),s_unique(:)
+real (kind=8), allocatable   :: eps(:),h_unique(:),s_unique(:),h_symm(:,:),s_symm(:,:)
 real (kind=8), allocatable   :: work(:),wGN(:,:)
 real (kind=8), allocatable   :: mVec(:,:),reduced_extraVec(:,:)
 real (kind=8)                :: ovlp,maxovlp
 character (len=120)          :: title
+character(len=18), allocatable :: label_symm(:)
 logical, allocatable         :: used(:),useLabels
 
 allocate( extraVec(extraDim,nbase) )
@@ -481,6 +523,11 @@ if ( averaging ) then
     s_unique(j) = s_unique(j) / ncount(j)
   end do
   m = 0
+  allocate(h_symm(nUniqueExtra,nUniqueExtra))
+  allocate(s_symm(nUniqueExtra,nUniqueExtra))
+  allocate(label_symm(nUniqueExtra))
+  h_symm=0.0d0
+  s_symm=0.0d0
   do k = 1, nUniqueExtra
     do l = 1, k
       m = m + 1
@@ -490,16 +537,21 @@ if ( averaging ) then
       s(allExtra_mebfs(k),allExtra_mebfs(l)) = s_unique(nequiv(m))*   &
                s(allExtra_mebfs(k),allExtra_mebfs(l))/abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
       s(allExtra_mebfs(l),allExtra_mebfs(k)) = s(allExtra_mebfs(k),allExtra_mebfs(l))
+      h_symm(k,l) = h(allExtra_mebfs(k),allExtra_mebfs(l))
+      h_symm(l,k) = h_symm(k,l)
+      s_symm(k,l) = s(allExtra_mebfs(k),allExtra_mebfs(l))
+      s_symm(l,k) = s_symm(k,l)
     end do
+    label_symm(k) = mebfLabel(allExtra_mebfs(k))
   end do
-  title = ' (partially) symmetrized Hamiltonian'
-  useLabels = .true.
-  call corr_shift_printHam(title,h,nbase,useLabels)
+  title = ' symmetrized Hamiltonian (only MEBFs considered in the block diagonalizations)'
+  call corr_shift_printblockham(title,h_symm,nUniqueExtra,label_symm)
   write(*,*)
   if (print_overlap) then
-    title = ' (partially) symmetrized overlap matrix'
-    call corr_shift_printHam(title,s,nbase,useLabels)
+    title = ' symmetrized overlap matrix (only MEBFs considered in the block diagonalizations)'
+    call corr_shift_printblockham(title,s_symm,nUniqueExtra,label_symm)
   endif
+  deallocate(h_symm,s_symm)
   deallocate(h_unique,s_unique,ncount)
 endif  
 

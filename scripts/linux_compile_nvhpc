@@ -1,7 +1,7 @@
 #!/usr/bin/tcsh
 
 module purge
-module load nvhpc mpich cmake 
+module load nvhpc mpich cmake
 
 setenv FC mpif90
 setenv CC mpicc
@@ -11,12 +11,13 @@ unsetenv MPI_ROOT
 env | grep MKL
 env | grep UTILS
 
-rm -rf build_nvhpc
-mkdir build_nvhpc
-cd build_nvhpc
+rm -rf build_intel
+mkdir build_intel
+cd build_intel
 
-#cmake -DOPENACC=ON -DCUSOLVERJ=ON -DOPENMP=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/nvhpc-22.9/mpich-4.0.2/gronor/23.00 ../
-cmake -DOPENMP=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/nvhpc-22.9/mpich-4.0.2/gronor/23.00 ../
+if(! $?SOFTWARE ) setenv SOFTWARE $HOME/Software 
+
+cmake -DACC=ON -DCUSOLVERJ=ON -DCMAKE_INSTALL_PREFIX=$SOFTWARE/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION ../
 
 make -j 12
 

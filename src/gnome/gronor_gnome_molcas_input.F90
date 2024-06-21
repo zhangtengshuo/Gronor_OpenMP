@@ -57,24 +57,28 @@ subroutine gronor_gnome_molcas_input
 603 format('Atoms',i10)
   write(lfnarx,602) lAO
   write(lfnxrx,602) lAO
-602 format(/,6x,'Atom',10x,'x',13x,'y',13x,'z',10x,'Znuc',5x,a,/)
+602 format(/,6x,'Atom',10x,'x',13x,'y',13x,'z (au)',5x,'Znuc',5x,a, &
+        t100,'x',13x,'y',13x,'z (Ang)',/)
 
   zNucTot=0.0d0
   do iAtom = 1, nNucl
     read(lfnsys,*) i,centn(iAtom),xCord(iAtom),yCord(iAtom), &
         zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
     if(ipr.gt.0) write(lfnout,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom), &
-        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
+        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7), &
+        0.52917721092*xCord(iAtom),0.52917721092*yCord(iAtom),0.52917721092*zCord(iAtom)
     write(lfnarx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom), &
-        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
+        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7), &
+        0.52917721092*xCord(iAtom),0.52917721092*yCord(iAtom),0.52917721092*zCord(iAtom)
     write(lfnxrx,604)i,centn(iAtom),xCord(iAtom),yCord(iAtom), &
-        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7)
+        zCord(iAtom),zNuc(iAtom),(nCntr(iAtom,l),l=1,7), &
+        0.52917721092*xCord(iAtom),0.52917721092*yCord(iAtom),0.52917721092*zCord(iAtom)
     zNucTot=zNucTot+zNuc(iAtom)
   enddo
   read(lfnsys,'(A18,3F14.8)') text,(com(l),l=1,3)
 
   flush(lfnout)
-604 format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3)
+604 format (i4,2x,a4,2x,3f14.8,2x,f7.2,3x,7i3,t93,3f14.8)
   !      deallocate( nCntr )
 
   return

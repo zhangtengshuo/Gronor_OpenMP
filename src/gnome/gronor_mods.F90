@@ -75,7 +75,7 @@ module cidist
   integer (kind=8), allocatable :: mgrwrk(:,:)
   integer (kind=8), allocatable :: mipbuf(:,:)
   
-  character (len=8) :: machine
+  character (len=12) :: machine
 
   integer (kind=4), parameter :: master=1
   integer (kind=4), parameter :: manager=2
@@ -110,14 +110,15 @@ module cidef
 
   character (len=255) :: root,filinp,filout,filpro,fildbg,filday
   character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
-  character (len=255) :: filone,filtwo,fildat,fillog,filtim
+  character (len=255) :: filone,filtwo,fildat,fillog,filtim,filtmp
   character (len=255) :: filcpr,filarx,filrnk,filcml,filxrx
   integer :: lfninp,lfnout,lfnsys,lfnciv,lfnvec,lfnint,lfndet
   integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim,lfnabt
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
-  integer :: lfnwrn,lfnxrx
+  integer :: lfnwrn,lfnxrx,lfntmp
 
   character (len=255) :: user,host,date,time,cwd,command
+  character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv
   integer :: nprocs
   integer :: nciaux
 
@@ -160,7 +161,7 @@ module gnome_parameters
 
   implicit none
 
-  integer :: icalc,ipr,ipro,ipvec,idbg,itim
+  integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp,ires,iint
   integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada
@@ -232,7 +233,8 @@ module gnome_data
   integer :: ttest
 
   integer :: ntesta,ntestb
-  integer :: nelecs,n1bas,nstdim,mbasel,ijend
+  integer :: n1bas,nstdim,mbasel,ijend
+  integer (kind=4) :: nelecs
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
 #ifdef HIPSOLVER
   real (kind=8), allocatable, target :: a(:,:)
@@ -880,11 +882,37 @@ module mkl_solver
 end module mkl_solver
 #endif
 
+#ifdef LAPACK
+module lapack_solver
+  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+  real(kind=8), allocatable :: work(:)
+  integer(kind=8), allocatable :: iwork(:)
+  real (kind=8),allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
+  character*1 :: jobz,uplo
+end module lapack_solver
+#else
+#ifdef MAGMA
+module magma_solver
+  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+  real(kind=8), allocatable :: work(:)
+  integer(kind=8), allocatable :: iwork(:)
+  real (kind=8),allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
+  character*1 :: jobz,uplo
+end module magma_solver
+#endif
+#endif
+
 module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
     enumerator SOLVER_LAPACK
+    enumerator SOLVER_LAPACKD
+    enumerator SOLVER_LAPACKJ
     enumerator SOLVER_MKL
+    enumerator SOLVER_MKLD
+    enumerator SOLVER_MKLJ
     enumerator SOLVER_CUSOLVER
     enumerator SOLVER_CUSOLVERJ
     enumerator SOLVER_HIPSOLVER

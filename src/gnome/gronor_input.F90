@@ -24,6 +24,7 @@ subroutine gronor_input()
   use cidist
   use gnome_parameters
   use gnome_integrals
+  use gnome_solvers
 
   implicit none
 
@@ -245,22 +246,130 @@ subroutine gronor_input()
     endif
 
     if(inp_compare(.false.,'Solver',item).or.inp_compare(.false.,'Solvers',item)) then
-      if(.not.inp_i(iaslvr)) then
-        iaslvr=-1
-        jaslvr=-1
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(jaslvr)) then
-        jaslvr=-1
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(inslvr)) then
-        inslvr=-1
-        jnslvr=-1
-      elseif(.not.inp_i(jnslvr)) then
-        jnslvr=-1
+4     continue
+      if(.not.inp_a(item)) goto 1
+      if(inp_compare(.false.,'SVD',item)) then
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          iaslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          iaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          iaslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          iaslvr=SOLVER_MKLJ
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          iaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          iaslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          iaslvr=SOLVER_LAPACKJ
+        elseif(inp_compare(.false.,item,'MAGMA')) then
+          iaslvr=SOLVER_MAGMA
+        elseif(inp_compare(.false.,item,'CUSOLVER')) then
+          iaslvr=SOLVER_CUSOLVER
+        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
+          iaslvr=SOLVER_CUSOLVERJ
+        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
+          iaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
+          iaslvr=SOLVER_ROCSOLVERJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        if(.not.inp_a(item)) then
+!          inslvr=SOLVER_EISPACK
+          goto 1
+        endif
+        if(inp_compare(.false.,item,'EISPACK')) then
+          inslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          inslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          inslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          inslvr=SOLVER_MKLJ
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          inslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          inslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          inslvr=SOLVER_LAPACKJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        goto 4
+      elseif(inp_compare(.false.,'EV',item).or.inp_compare(.false.,'EVD',item) &
+        .or.inp_compare(.false.,'SYEV',item).or.inp_compare(.false.,'SYEVD',item)) then
+        if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
+        if(inp_compare(.false.,item,'EISPACK')) then
+          jaslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          jaslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          jaslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          jaslvr=SOLVER_MKLJ
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          jaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          jaslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          jaslvr=SOLVER_LAPACKJ
+        elseif(inp_compare(.false.,item,'MAGMA')) then
+          jaslvr=SOLVER_MAGMA
+        elseif(inp_compare(.false.,item,'CUSOLVER')) then
+          jaslvr=SOLVER_CUSOLVER
+        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
+          jaslvr=SOLVER_CUSOLVERJ
+        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
+          jaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
+          jaslvr=SOLVER_ROCSOLVERJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+        if(.not.inp_a(item)) then
+!          jnslvr=SOLVER_EISPACK
+          goto 1
+        endif
+        if(inp_compare(.false.,item,'EISPACK')) then
+          jnslvr=SOLVER_EISPACK
+        elseif(inp_compare(.false.,item,'MKL')) then
+          jnslvr=SOLVER_MKL
+        elseif(inp_compare(.false.,item,'MKLD')) then
+          jnslvr=SOLVER_MKLD
+        elseif(inp_compare(.false.,item,'MKLJ')) then
+          jnslvr=SOLVER_MKLJ
+        elseif(inp_compare(.false.,item,'LAPACK')) then
+          jnslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKD')) then
+          jnslvr=SOLVER_LAPACKD
+        elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          jnslvr=SOLVER_LAPACKJ
+        else
+          call gronor_abort(123,"Input error Solver")
+        endif
+      else
+        call gronor_abort(123,"Input error Solver")
       endif
-      goto 2
+
+!      if(.not.inp_i(iaslvr)) then        
+!        iaslvr=-1
+!        jaslvr=-1
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(jaslvr)) then
+!        jaslvr=-1
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(inslvr)) then
+!        inslvr=-1
+!        jnslvr=-1
+!      elseif(.not.inp_i(jnslvr)) then
+!        jnslvr=-1
+!      endif
+      goto 2      
     endif
 
     if(inp_compare(.false.,'Tolerance',item)) then
@@ -285,6 +394,21 @@ subroutine gronor_input()
 
     if(inp_compare(.false.,'Debug',item)) then
       if(.not.inp_i(idbg)) idbg=1
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'Resilient',item)) then
+      if(.not.inp_i(ires)) ires=1
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'Interrupt',item)) then
+      if(.not.inp_i(iint)) iint=1
+      goto 2
+    endif
+
+    if(inp_compare(.false.,'Temp',item)) then
+      if(.not.inp_i(itmp)) itmp=1
       goto 2
     endif
 

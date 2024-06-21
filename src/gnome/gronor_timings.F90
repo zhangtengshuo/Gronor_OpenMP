@@ -34,16 +34,14 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
   implicit none
 
   external :: swatch,timer_start,timer_stop
-!  external :: MPI_iRecv,MPI_iSend,MPI_Recv,MPI_Send
 
-  integer (kind=8) :: lfnout,lfnday,lfntim,i,j
+  integer (kind=8) :: lfnout,lfnday,lfntim,i,j,m
   external :: timer_wall_total,timer_calls
   real (kind=8) :: timer_wall_total
   integer :: timer_calls
 
   real (kind=8), allocatable :: timings(:,:)
-  real (kind=8), allocatable :: tdata(:),tdat(:),taver(:)
-  integer (kind=4), allocatable :: isync(:)
+  real (kind=8), allocatable :: tdata(:),taver(:)
   integer (kind=4) :: ierr,iremote,status(MPI_STATUS_SIZE)
   integer (kind=4) :: ncount,mpitag,mpidest,mpireq
   integer (kind=8) :: irtim,nreqso,nreqsc
@@ -57,120 +55,9 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
   if(itim.gt.0) then
 
-    allocate(timings(np,68),tdata(68))
+    allocate(timings(np,68),tdata(68),taver(68))
 
-    if(me.eq.mstr) then
-
-      call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99),           &
-          '  :  Start timings details collection'
-704   format(a8,2x,a8,f12.3,a)
-      flush(lfnday)
-      call timer_start(99)
-
-      nalive=nalive*mgr
-
-      allocate(isync(np))
-
-      allocate(tdat(68),taver(68))
-
-      do i=1,nalive
-        isync(i)=-1
-      enddo
-
-      do j=1,68
-        do i=1,np
-          timings(i,j)=0.0d0
-        enddo
-      enddo
-      do j=1,60
-        timings(me+1,j)=timer_wall_total(j)
-      enddo
-      timings(me+1,61)=dble(timer_calls(6))
-      timings(me+1,62)=dble(timer_calls(31))
-      timings(me+1,63)=dble(timer_calls(32))
-      timings(me+1,64)=dble(timer_calls(34))
-      timings(me+1,65)=dble(timer_calls(35))
-      timings(me+1,66)=dble(nacc0)
-      timings(me+1,67)=dble(nacc1)
-      timings(me+1,68)=dble(memavail)
-      
-      nreqso=0
-      nreqsc=0
-      openrcv=.false.
-      irtim=1
-      call timer_start(93)
-      otimeout=.false.
-      do i=1,np
-
-        ncount=1
-        mpitag=20
-        mpidest=i-1
-
-        ! Send the request for timings to all ranks other than master 
-        ! Count the number of open requests
-        if(mpidest.ne.mstr) then
-          call MPI_iSend(irtim,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,mpireq,ierr)
-          call MPI_Request_free(mpireq,ierr)
-        nreqso=nreqso+1
-        endif
-
-        ! Open a single receive from any of the timing data
-        ! Do not free the request of this iRecv
-        if(.not.openrcv) then
-          ncount=68
-          mpitag=11
-          call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
-          openrcv=.true.
-        endif
-
-        do while(nreqso.ge.itim.or.(i.eq.np.and.nreqsc.lt.nalive))
-          call MPI_Test(itreq,flag,status,ierr)
-          if(flag) then
-            iremote=status(MPI_SOURCE)
-            isync(i)=iremote
-            do j=1,68
-              timings(iremote+1,j)=tdat(j)
-            enddo
-            nreqso=nreqso-1
-            nreqsc=nreqsc+1
-
-            ncount=68
-            mpitag=11
-            call MPI_iRecv(tdat,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,itreq,ierr)
-            openrcv=.true.
-
-          endif
-        enddo
-
-        call timer_stop(93)
-        if(timer_wall_total(93).gt.10.0) then
-          otimeout=.true.
-          call timer_stop(99)
-          call swatch(date,time)
-          write(lfnday,707) date(1:8),time(1:8),timer_wall_total(99), &
-              '  :  Timeout of timings details collection at ',i
-707       format(a8,2x,a8,f12.3,a,i6)
-          flush(lfnday)
-          call timer_start(99)
-          exit
-        endif
-        call timer_start(93)
-
-      enddo
-
-      call timer_stop(93)
-
-      call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,705) date(1:8),time(1:8),timer_wall_total(99), &
-          '  :  Completed timings details collection'
-705   format(a8,2x,a8,f12.3,a)
-      flush(lfnday)
-      call timer_start(99)
-
-    else
+!  Fill the timings arrays with local timing data 
 
       do j=1,60
         tdata(j)=timer_wall_total(j)
@@ -183,16 +70,29 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       tdata(66)=dble(nacc0)
       tdata(67)=dble(nacc1)
       tdata(68)=dble(memavail)
+      if(role.eq.master) then
+        do j=1,68
+          timings(mstr+1,j)=tdata(j)
+        enddo
+      endif
 
-      ncount=1
-      mpitag=20
-      call MPI_Recv(irtim,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
+      if(role.eq.worker) then
+        ncount=68
+        mpitag=30
+        call MPI_Send(tdata,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ierr)
+      endif
 
-      ncount=68
-      mpitag=11
-      call MPI_Send(tdata,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ierr)
-
-    endif
+      if(role.eq.master) then
+        ncount=68
+        mpitag=30
+        do i=1,nalive*mgr
+          call MPI_Recv(tdata,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+          iremote=status(MPI_SOURCE)
+          do j=1,68
+            timings(iremote+1,j)=tdata(j)
+          enddo
+        enddo
+      endif
 
     if(me.eq.mstr) then
 
@@ -203,15 +103,14 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
         enddo
       enddo
       do i=1,49
-        taver(i)=taver(i)/dble(nalive)
+        taver(i)=taver(i)/dble(nalive*mgr)
       enddo
       do i=50,55
         taver(i)=taver(i)/dble(numman)
       enddo
       do i=56,68
-        taver(i)=taver(i)/dble(nalive)
+        taver(i)=taver(i)/dble(nalive*mgr)
       enddo
-      
 
       write(lfntim,500) np,68
 500   format(2i10)
@@ -264,7 +163,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       write(lfnout,606)
 606   format(//,' Wallclock Timing Analysis CoFac',/)
       write(lfnout,607)
-607   format('  Proc Role','      SVD','         Sum','         EVD','        Rest',/)
+607   format('  Proc Role','      SVD','         Sum','         EVD','       Other',/)
 
       flush(lfnout)
 
@@ -332,7 +231,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       do i=1,np
         if(i-1.ne.mstr) nrecav=nrecav+numrecs(i)
       enddo
-      recav=dble(nrecav)/dble(nalive)
+      recav=dble(nrecav)/dble(nalive*mgr)
       write(lfnout,633) recav,taver(62)+taver(63),taver(64)+taver(65),taver(66),taver(67)
 633   format(1x,70('-'),/,'  Avrg     ',5f12.2)
 
@@ -348,8 +247,8 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
 
     endif
 
-    deallocate(tdata,timings)
-    if(me.eq.mstr) deallocate(tdat,taver,isync)
+    deallocate(tdata,timings,taver)
+!    if(me.eq.mstr) deallocate(tdat,taver)
 
   endif
 
@@ -362,13 +261,14 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
           ' processes are still active, with ',i8,' idle')
       flush(lfnout)
     endif
-    if(ipr.ge.20) then
+    if(ipr.ge.2) then
       write(lfnout,621)
 621   format(/,' Timings summary')
       if(ipr.ge.2) then
         write(lfnout,617) numtasks,int(dble(numtasks)/timer_wall_total(98)), &
             int(dble(numtasks)/dble(npg*mgr)),timer_wall_total(2),timer_wall_total(3), &
-            timer_wall_total(7),timer_wall_total(8),timer_wall_total(9), tmax
+            timer_wall_total(7),timer_wall_total(8),timer_wall_total(9), &
+            timer_wall_total(98)/dble(numtasks),tmax
 617     format(/,' Total number of tasks',t45,i18,/, &
             ' Number of tasks completed per second',t45,i18,/, &
             ' Average number of tasks completed per rank',t45,i18, &
@@ -377,6 +277,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
             ' Generation base states',t55,f12.3,/, &
             ' Generation matrix element list',t55,f12.3,/, &
             ' Reading and distribution of integrals',t55,f12.3,/, &
+            ' Average task execution time',t55,f12.3,/, &
             ' Maximum task execution time',t55,f12.3)
         write(lfnout,615) timer_wall_total(94), &
             100.0d0*(timer_wall_total(94)/timer_wall_total(95)), &
@@ -413,7 +314,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
     call swatch(date,time)
     write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),np, &
         date(1:8),time(1:8),timer_wall_total(99),npg*mgr+1, &
-        date(1:8),time(1:8),timer_wall_total(99),nalive+1, &
+        date(1:8),time(1:8),timer_wall_total(99),nalive*mgr+1, &
         date(1:8),time(1:8),timer_wall_total(99),numidle
 703 format(a8,2x,a8,f12.3,'  :  Completion of job with',t60,i8,' total ranks',/, &
         a8,2x,a8,f12.3,'  :',t60,i8,' assigned ranks',/, &

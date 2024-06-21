@@ -54,6 +54,8 @@ subroutine gronor_environment()
 
   integer :: lenv,statv
 
+  logical ohost
+
 #ifdef CUDA
   type(c_ptr) :: cpfre, cptot
 #endif
@@ -108,65 +110,112 @@ subroutine gronor_environment()
 #endif
   length=len(trim(nodename))
 
-  machine='        '
+  machine='            '
 
-  !     Trim the JFZ Juwels Booster node name
-  if(nodename(1:3).eq.'jwb') then
-    nodename(1:4)=nodename(4:7)
-    length=4
-    machine='Juwels  '
-  endif
+  ohost=.false.
 
-  !     Trim the CSCS Piz Daint node name
-  if(nodename(1:3).eq.'nid') then
-    nodename(1:5)=nodename(4:8)
-    length=5
-    machine='Daint   '
-  endif
-
-  !     Trim the SurfSara Lisa node name
-  if(index(nodename,'.lisa').gt.0) then
-    length=index(nodename,'.lisa')-1
-    nodename(length+1:length+1)=' '
-    machine='Lisa    '
-  endif
-
-  !     Trim the Sara Snellius node name
-  if(nodename(1:3).eq.'gcn') then
-    nodename(1:2)=nodename(4:5)
-    length=2
-    machine='Snellius'
-  endif
-
-  !     Trim the Crusher node name
-  if(nodename(1:7).eq.'crusher') then
-    nodename(1:3)=nodename(8:10)
-    length=3
-    machine='Crusher '
-  endif
-
-  !     Trim the Frontier node name
-  if(nodename(1:8).eq.'frontier') then
-    nodename(1:5)=nodename(9:13)
-    length=5
-    machine='Frontier'
-  endif
-
-  !     Trim the OLCF Summit node name
-  if(ichar(nodename(1:1)).ge.97.and. &
-      ichar(nodename(1:1)).le.122.and. &
-      ichar(nodename(4:4)).ge.97.and. &
-      ichar(nodename(4:4)).le.122.and. &
-      ichar(nodename(2:2)).ge.48.and. &
-      ichar(nodename(2:2)).le.57.and. &
-      ichar(nodename(3:3)).ge.48.and. &
-      ichar(nodename(3:3)).le.57.and. &
-      ichar(nodename(5:5)).ge.48.and. &
-      ichar(nodename(5:5)).le.57.and. &
-      ichar(nodename(6:6)).ge.48.and. &
-      ichar(nodename(6:6)).le.57) then
-    length=6
-    machine='Summit  '
+#ifdef FRONTIER
+  machine='Frontier    '
+  ohost=.true.
+#endif
+#ifdef DISCOVERY
+  machine='Discovery   '
+  ohost=.true.
+#endif
+#ifdef LEONARDO
+  machine='Leonardo    '
+  ohost=.true.
+#endif
+#ifdef CRUSHER
+  machine='Crusher     '
+  ohost=.true.
+#endif
+#ifdef SUMMIT
+  machine='Summit      '
+  ohost=.true.
+#endif
+#ifdef LUMI
+  machine='Lumi        '
+  ohost=.true.
+#endif
+#ifdef JUWELS
+  machine='Juwels      '
+  ohost=.true.
+#endif
+#ifdef PIZDAINT
+  machine='Piz Daint   '
+  ohost=.true.
+#endif
+#ifdef LISA
+  machine='Lisa        '
+  ohost=.true.
+#endif
+#ifdef SNELLIUS
+  machine='Snellius    '
+  ohost=.true.
+#endif
+  
+  if(.not.ohost) then
+    
+    !     Trim the JFZ Juwels Booster node name
+    if(nodename(1:3).eq.'jwb') then
+      nodename(1:4)=nodename(4:7)
+      length=4
+      machine='Juwels      '
+    endif
+    
+    !     Trim the CSCS Piz Daint node name
+    if(nodename(1:3).eq.'nid') then
+      nodename(1:5)=nodename(4:8)
+      length=5
+      machine='Piz Daint   '
+    endif
+    
+    !     Trim the SurfSara Lisa node name
+    if(index(nodename,'.lisa').gt.0) then
+      length=index(nodename,'.lisa')-1
+      nodename(length+1:length+1)=' '
+      machine='Lisa        '
+    endif
+    
+    !     Trim the Sara Snellius node name
+    if(nodename(1:3).eq.'gcn') then
+      nodename(1:2)=nodename(4:5)
+      length=2
+      machine='Snellius    '
+    endif
+    
+    !     Trim the Crusher node name
+    if(nodename(1:7).eq.'crusher') then
+      nodename(1:3)=nodename(8:10)
+      length=3
+      machine='Crusher     '
+    endif
+    
+    !     Trim the Frontier node name
+    if(nodename(1:8).eq.'frontier') then
+      nodename(1:5)=nodename(9:13)
+      length=5
+      machine='Frontier    '
+    endif
+    
+    !     Trim the OLCF Summit node name
+    if(ichar(nodename(1:1)).ge.97.and. &
+        ichar(nodename(1:1)).le.122.and. &
+        ichar(nodename(4:4)).ge.97.and. &
+        ichar(nodename(4:4)).le.122.and. &
+        ichar(nodename(2:2)).ge.48.and. &
+        ichar(nodename(2:2)).le.57.and. &
+        ichar(nodename(3:3)).ge.48.and. &
+        ichar(nodename(3:3)).le.57.and. &
+        ichar(nodename(5:5)).ge.48.and. &
+        ichar(nodename(5:5)).le.57.and. &
+        ichar(nodename(6:6)).ge.48.and. &
+        ichar(nodename(6:6)).le.57) then
+      length=6
+      machine='Summit      '
+    endif
+    
   endif
 
   !     Set the device number
@@ -181,26 +230,27 @@ subroutine gronor_environment()
 #ifdef GPUAMD
   numdev=acc_get_num_devices(ACC_DEVICE_AMD)
   if(numdev.gt.1) then
-    if(machine.ne.'Juwels  ') then
+    if(machine.ne.'Juwels      ') then
       mydev=mod(me,numdev)
       call acc_set_device_num(mydev,ACC_DEVICE_AMD)
     endif
 #else
     numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
     if(numdev.gt.1) then
-      if(machine.ne.'Juwels  ') then
+      if(machine.ne.'Juwels      ') then
         mydev=mod(me,numdev)
         call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
       endif
 #endif
-#ifdef CUDA
-      cpfre=c_loc(memfre)
-      cptot=c_loc(memtot)
-      !        istat=cudaMemGetInfo(cpfre,cptot)
-#endif
-      memavail=memfre
     endif
 #endif
+
+#ifdef CUDA
+    if(numdev.gt.0) then
+      call gronor_update_device_info()
+    endif
+#endif
+    
 #ifdef OMPTGT
     numdev=omp_get_num_devices()
 #endif
@@ -606,4 +656,4 @@ subroutine gronor_environment()
     !      map2(me+1,9) :
     
     return
-  end subroutine gronor_environment
+end subroutine gronor_environment

@@ -11,7 +11,35 @@ cmake_minimum_required (VERSION 3.11.00)
 message ("Programming Environment:")
 message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
-project (GronOR VERSION 24.01 LANGUAGES Fortran C CXX)
+project (GronOR VERSION 24.06 LANGUAGES Fortran C CXX)
+
+# CMake optional parameters with defaults
+#    Note: MPI is not optional and removed from options list
+
+set(TARGET "" CACHE STRING "Target computer system")
+
+option (ACC "Enable OPENACC off-loading." OFF)
+option (OPENACC "Enable OPENACC off-loading." OFF)
+option (OPENMP "Enable multi-threading." OFF)
+option (OMPTGT "Enable OPENMP off-loading." OFF)
+option (CUSOLVER "Enable CUSOLVER library." OFF)
+option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
+option (HIPSOLVER "Enable HIPSOLVER library." OFF)
+option (HIPSOLVERJ "Enable HIPSOLVER library with Jacobi." OFF)
+option (ROCSOLVER "Enable ROCSOLVER library." OFF)
+option (MKL "Enable MKL library." OFF)
+option (LAPACK "Enable LAPACK library." OFF)
+option (MAGMA "Enable MAGMA library." OFF)
+option (CUDA "Enable CUDA Functions." OFF)
+option (CUBLAS "Enable CUDA BLAS library." OFF)
+option (NVBLAS "Enable NVidia BLAS library." OFF)
+option (CTEST "Enable CTest." OFF)
+option (SINGLEP "Enable single precision." OFF)
+option (PROFILING "Enable profiling." OFF)
+option (DEBUG "Debugging." OFF)
+option (AVX512 "Compiler option for AVX512." OFF)
+option (GPU "GPU Vendor" NVIDIA)
+option (GUI "Graphical User Interface" OFF)
 
 # Set global session identifier
 
@@ -38,6 +66,11 @@ if(DEFINED ENV{HOSTNAME})
   endif() 
 else()
   message(STATUS "Not found: hostname")
+endif()
+
+if(NOT "${TARGET}" STREQUAL "")
+  set(HOST "${TARGET}")
+  message(STATUS "Target host is ${HOST}")
 endif()
 
 # Operating system
@@ -91,7 +124,7 @@ else ()
   message (STATUS "Platform: ${PLATFORM}")
 endif ()
 
-# General session configurataion
+# General session configuration
 
 set (ENV{CMAKE_SESSION} "GronOR")
 
@@ -120,6 +153,9 @@ set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/CMakeFiles/mod")
 
 # Define GronOR compilation
 
+set (LMODCOMP "$ENV{LMOD_FAMILY_COMPILER}/$ENV{LMOD_FAMILY_COMPILER_VERSION}")
+set (LMODMPI "$ENV{LMOD_FAMILY_MPI}/$ENV{LMOD_FAMILY_MPI_VERSION}")
+
 # The build type, specifies the different optimization types.
 
 if (NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -137,6 +173,9 @@ set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithD
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set (CMAKE_INSTALL_PREFIX "/opt/gronor" CACHE STRING
     "Location where GronOR will be installed.")
+else()
+#  message(STATUS "GRONORVERSION ${PROJECT_NAME}/${PROJECT_VERSION}")
+  set (CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/gronor/${PROJECT_VERSION}")
 endif ()
 
 message (STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
@@ -180,6 +219,8 @@ elseif (MPIEXEC_VERSION MATCHES "HYDRA")
 elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
   set (MPI_IMPLEMENTATION "openmpi")
 elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
+  set (MPI_IMPLEMENTATION "openmpi")
+elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(Open MPI\\)")
   set (MPI_IMPLEMENTATION "openmpi")
 elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(OpenRTE\\)")
   set (MPI_IMPLEMENTATION "openmpi")
@@ -241,6 +282,23 @@ else()
   message (STATUS "Found mkl: $ENV{MKLROOT}")
 endif()
 
+if(NOT DEFINED ENV{OLCF_MAGMA_ROOT})
+  message (STATUS "Not found: magma")
+else()
+  message (STATUS "Found magma: $ENV{OLCF_MAGMA_ROOT}")
+  set(MAGMALIB "$ENV{OLCF_MAGMA_ROOT}/lib")
+  set(MAGMAINC "$ENV{OLCF_MAGMA_ROOT}/include")
+endif()
+
+if(HOST STREQUAL "FRONTIER")
+  if(NOT DEFINED ENV{CRAY_LIBSCI_PREFIX})
+	  message (STATUS "Not found: libsci LAPACK")
+  else()
+	  message (STATUS "Found LAPACK: $ENV{CRAY_LIBSCI_PREFIX}")
+	  set(LAPACKROOT $ENV{CRAY_LIBSCI_PREFIX})
+  endif()
+endif()
+
 if(NOT DEFINED ENV{GA})
   set(MOLCAS "")
   message (STATUS "Not found: ga")
@@ -269,30 +327,6 @@ if(DEFINED MOLCAS)
 else()
   message (STATUS "Molcas dependent auxiliary programs will not be compiled")
 endif()
-
-# Set defaults for optional arguments to cmake
-#    Note: MPI is not optional and removed from options list
-
-option (ACC "Enable OPENACC off-loading." OFF)
-option (OPENACC "Enable OPENACC off-loading." OFF)
-option (OPENMP "Enable multi-threading." OFF)
-option (OMPTGT "Enable OPENMP off-loading." OFF)
-option (CUSOLVER "Enable CUSOLVER library." OFF)
-option (CUSOLVERJ "Enable CUSOLVER library with Jacobi." OFF)
-option (HIPSOLVER "Enable HIPSOLVER library." OFF)
-option (HIPSOLVERJ "Enable HIPSOLVER library with Jacobi." OFF)
-option (ROCSOLVER "Enable ROCSOLVER library." OFF)
-option (MKL "Enable MKL library." OFF)
-option (CUDA "Enable CUDA Functions." OFF)
-option (CUBLAS "Enable CUDA BLAS library." OFF)
-option (NVBLAS "Enable NVidia BLAS library." OFF)
-option (CTEST "Enable CTest." OFF)
-option (SINGLEP "Enable single precision." OFF)
-option (PROFILING "Enable profiling." OFF)
-option (DEBUG "Debugging." OFF)
-option (AVX512 "Compiler option for AVX512." OFF)
-option (GPU "GPU Vendor" NVIDIA)
-option (GUI "Graphical User Interface" OFF)
 
 #     Note: build and debug options
 
@@ -391,6 +425,15 @@ set (MAIN_INCLUDE_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
 
 # Copy the gronor_config.h to the include directory after modifying the proper version number
 configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gronor_config.fh)
+
+# Create the compiler_mpi.h to the include directory
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LMODCOMP}\"\n")
+file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
+file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}\"\n")
+
+STRING(TIMESTAMP COMPTIME "%y/%m/%d %H:%M:%S")
+
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compile_time.fh "#define _COMPILE_TIME_ \"${COMPTIME}\"\n")
 
 # Add the include directories from each source base directory to compiler include path
 foreach (BASE_DIR ${basedirs})
@@ -740,7 +783,11 @@ set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "NVHPC")
 set (CXXFLAGS_NVHPC_BASIC "-c99 -pgf90libs")
+if(OMPTGT)
+set (CXXFLAGS_NVHPC_OPENMP "-mp=gpu")
+else()
 set (CXXFLAGS_NVHPC_OPENMP "-mp")
+endif()
 set (CXXFLAGS_NVHPC_PROFILING "")
 # C++ build targets
 set (CXXFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
@@ -763,7 +810,11 @@ set (CFLAGS_NVHPC_FAST "-O2")
 list (APPEND SUPPORTED_Fortran_COMPILERS "NVHPC")
 set (FFLAGS_NVHPC_BASIC "-DNVHPC -Mbackslash -Mlist")
 set (FFLAGS_NVHPC_PREPROCESS "-Mpreprocess")
+if(OMPTGT)
+set (FFLAGS_NVHPC_OPENMP "-mp=gpu")
+else()
 set (FFLAGS_NVHPC_OPENMP "-mp")
+endif()
 set (FFLAGS_NVHPC_PROFILING "-g")
 set (FFLAGS_NVHPC_MKL "-DMKL")
 set (FFLAGS_NVHPC_NVTX "-g -lnvhpcwrapnvtx")
@@ -773,8 +824,9 @@ if(${GPU} STREQUAL "AMD")
 else()
    set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=cc80 -DGPUNVIDIA")
 endif()
-set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -lcusolver")
-set (FFLAGS_NVHPC_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
+set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
+set (FFLAGS_NVHPC_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
+set (FFLAGS_NVHPC_MAGMA "-DMAGMA -lmagma")
 # Fortran build targets
 set (FFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
@@ -810,6 +862,8 @@ set (CFLAGS_Cray_FAST "-O2")
 list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
 #set (FFLAGS_Cray_BASIC "-Mbackslash")
 set (FFLAGS_Cray_BASIC "-DCRAY")
+set (FFLAGS_Cray_LAPACK "-DLAPACK")
+set (FFLAGS_Cray_MAGMA "-DMAGMA -L${MAGMALIB} -lmagma")
 #set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
 
 if(HOST STREQUAL "CRUSHER")
@@ -840,6 +894,7 @@ else()
    set (FFLAGS_Cray_ACC "-h acc -h list=a -DGPUNVIDIA")
 endif()
 set (FFLAGS_Cray_CUSOLVER "-DCUSOLVER -lcusolver")
+set (FFLAGS_Cray_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
 set (FFLAGS_Cray_HIPSOLVER "-M878 -DHIPSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L/opt/rocm-5.3.0/hipsolver/lib -lhipsolver")
 set (FFLAGS_Cray_HIPSOLVERJ "-M878 -DHIPSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L/opt/rocm-5.3.0/hipsolver/lib -DHIPSOLVERJ -lhipsolver")
 set (FFLAGS_Cray_ROCSOLVER "-M878 -DROCSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L$ENV{OLCF_HIPFORT_ROOT}/lib -lhipfort-amdgcn -L/opt/rocm-5.3.0/lib -lrocsolver -lrocblas -lhipblas -lamdhip64")
@@ -884,6 +939,8 @@ set (FFLAGS_IBM_PROFILING "")
 set (FFLAGS_IBM_ILP64 "-i8")
 set (FFLAGS_IBM_ACC "-acc -Minfo=accel -Mcuda=rdc")
 set (FFLAGS_IBM_CUSOLVER "-DCUSOLVER -lcusolver")
+set (FFLAGS_IBM_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
+set (FFLAGS_IBM_MAGMA "-DMAGMA -lmagma")
 # Fortran build targets
 set (FFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
@@ -923,6 +980,8 @@ set (FFLAGS_XL_PROFILING "")
 set (FFLAGS_XL_ILP64 "")
 set (FFLAGS_XL_ACC "-acc -Minfo=accel -Mcuda=rdc")
 set (FFLAGS_XL_CUSOLVER "-DCUSOLVER -lcusolver")
+set (FFLAGS_XL_CUSOLVERJ "-DCUSOLVER -DCUSOLVERJ -lcusolver")
+set (FFLAGS_XL_MAGMA "-DMAGMA -lmagma")
 # Fortran build targets
 set (FFLAGS_XL_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_XL_GARBLE "-O2 -gopt -Minform=warn")
@@ -1113,6 +1172,7 @@ else()
      set (FFLAGS_Cray_ACC "-h acc -h list=a -DAMD")
    else() 
      set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
+#     set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -cuda -gpu=cc70 -Mlist -DCUDA -DGPUNVIDIA")
      set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
      set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
      set (FFLAGS_GNU_ACC "-fopenacc -lcuda -fopt-info-optimized-omp -DGPUNVIDIA")
@@ -1235,6 +1295,11 @@ if(CUDA)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCUDA")
 endif()
 
+if(MAGMA)
+  set (ENV{MAGMA} "Y")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_MAGMA}")
+endif()
+
 if(CUSOLVER)
   set (ENV{CUSOLVER} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_CUSOLVER}")
@@ -1272,6 +1337,11 @@ if(MKL)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_MKL}")
 endif()
 
+if(LAPACK)
+  set (ENV{LAPACK} "Y")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_LAPACK}")
+endif()
+
 if(${PLATFORM} STREQUAL "PPC64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
 endif()
@@ -1282,6 +1352,12 @@ endif()
 
 if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
+endif()
+
+# Set target computer system flag
+
+if(NOT "${TARGET}" STREQUAL "")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -D${TARGET}")
 endif()
 
 # Allow user-specified modifications
@@ -1457,6 +1533,10 @@ else ()
   message(STATUS "No MKL libraries found")
 endif ()
 
+if (LAPACK)
+  message (STATUS "Using External LAPACK Library")
+endif()
+
 if(${BLAS_FOUND} MATCHES "TRUE")
  if(${FCID} MATCHES "XL")
  else()
@@ -1508,6 +1588,7 @@ message (STATUS "Debug definitions: ${DEBUG_DEFS}")
 
 if(MKL)
 elseif(UTILS)
+elseif(LAPACK)
 else()
   if(${BLAS_FOUND} MATCHES "TRUE")
     if(${FCID} MATCHES "XL")
@@ -1541,6 +1622,10 @@ foreach (dir ${source_roots})
     list(REMOVE_ITEM dir_src "aux")
   endif()
   if(MKL)
+    list(REMOVE_ITEM dir_src "blas") 
+    list(REMOVE_ITEM dir_src "lapack") 
+  endif()
+  if(LAPACK)
     list(REMOVE_ITEM dir_src "blas") 
     list(REMOVE_ITEM dir_src "lapack") 
   endif()

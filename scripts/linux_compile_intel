@@ -1,25 +1,23 @@
 #!/usr/bin/tcsh
 
 module purge
-module load cmake intel mpich gronor/23.00 molcas/2023 mkl ga
+module load intel mpich cmake molcas ga
 
 setenv FC mpif90
 setenv CC mpicc
 setenv CXX mpicxx
 unsetenv MPI_ROOT
 
-module load java intel mpich molcas gronor mkl ga
-
 env | grep MKL
 env | grep UTILS
-env | grep JAVA
 
-rm -rf build_intel-2022.3.0
-mkdir build_intel-2022.3.0
-cd build_intel-2022.3.0
+rm -rf build_intel
+mkdir build_intel
+cd build_intel
 
-cmake -DGUI=ON -DOPENMP=ON -DAVX512=ON -DMKL=ON -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/gronor/23.00 ../
-#cmake -DOPENMP=ON  -DCMAKE_INSTALL_PREFIX=$HOME/Software/intel-2022.3.0/mpich-4.0.3/gronor/23.00 ../
+if(! $?SOFTWARE ) setenv SOFTWARE $HOME/Software 
+
+cmake -DMKL=ON -DOMP=ON -DCMAKE_INSTALL_PREFIX=$SOFTWARE/$LMOD_FAMILY_COMPILER-$LMOD_FAMILY_COMPILER_VERSION/$LMOD_FAMILY_MPI-$LMOD_FAMILY_MPI_VERSION ../
 
 make -j 12
 

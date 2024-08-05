@@ -2561,6 +2561,14 @@ subroutine gronor_main()
       close(unit=lfnout,status='keep')
       call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
     else
+      if(idbg.gt.0) then
+        write(lfndbg,'(a)') "Issuing mpi_finalize"
+        flush(lfndbg)
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
+        flush(lfndbg)
+        close(unit=lfndbg,status='keep')
+      endif
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)
@@ -2568,22 +2576,8 @@ subroutine gronor_main()
       close(unit=lfnout,status='keep')
     endif
   endif
-  
-  if(idbg.gt.0) then
-    write(lfndbg,'(a)') "Issuing mpi_finalize"
-    flush(lfndbg)
-  endif
-
-  call MPI_Barrier(MPI_COMM_WORLD,ierr)
 
   call mpi_finalize(ierr)
-
-  if(idbg.gt.0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
-    flush(lfndbg)
-    close(unit=lfndbg,status='keep')
-  endif
 
   return
 992 write(lfnout,983) trim(filtim)

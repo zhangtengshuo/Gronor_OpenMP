@@ -2428,10 +2428,14 @@ subroutine gronor_main()
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
         trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI
+#ifdef SINGLEP
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,'S'
+#else
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,'D'
+#endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
 802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2,1x,a1)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

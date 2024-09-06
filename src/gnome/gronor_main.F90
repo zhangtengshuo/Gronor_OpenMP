@@ -386,7 +386,8 @@ subroutine gronor_main()
     nspin=0
     ncorr=0
     mpibuf=168435456
-    tau_CI=1.0d-5
+    tau_CI=1.0d-6
+    tau_CI_off=1.0d-5
     tau_SIN=1.0d-12
     tolsvj=1.0d-07
     tolevj=1.0d-07
@@ -442,6 +443,8 @@ subroutine gronor_main()
     if(ixpert.eq.0) then
       if(tau_CI.lt.1.0d-6) tau_CI=1.0d-6
       if(tau_CI.gt.1.0d-4) tau_CI=1.0d-4
+      if(tau_CI_off.lt.1.0d-6) tau_CI=1.0d-5
+      if(tau_CI_off.gt.1.0d-4) tau_CI=1.0d-4
     endif
 
     major=_GRONOR_VERSION_MAJOR_
@@ -650,9 +653,10 @@ subroutine gronor_main()
 
     call gronor_read_vectors_and_determinants()
 
-    if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_SIN
+    if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_CI_off,tau_SIN
 607 format(/,' Threshold common molecular orbital transformation ',t55,1pe10.3, &
         /,' Threshold product MEBF expansion coefficients ',t55,e10.3, &
+        /,' Threshold product MEBF expansion coefficients for off diagonal ',t55,e10.3, &
         /,' Threshold determining singularities ',t55,e10.3)
 
     if(ipr.gt.0) write(lfnout,609) nspin+1
@@ -738,7 +742,7 @@ subroutine gronor_main()
       idum(55)=nabort
 
       rdum(1)=tau_CI
-      rdum(2)=tau_CI
+      rdum(2)=tau_CI_off
       rdum(3)=tau_SIN
       rdum(4)=tolsvj
       rdum(5)=tolevj
@@ -825,7 +829,7 @@ subroutine gronor_main()
     endif
     
     tau_CI=rdum(1)
-    tau_CI=rdum(2)
+    tau_CI_off=rdum(2)
     tau_SIN=rdum(3)
     tolsvj=rdum(4)
     tolevj=rdum(5)
@@ -2408,7 +2412,7 @@ subroutine gronor_main()
           'a n a n   Task      Batch    s  s  s',/, &
           'Compile time/date',t19,'Host',t43,'Compiler target',t68,'Compiler version', &
           t85,'MPI version',t118,'cmake version',/, &
-          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI',/)
+          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &
@@ -2429,13 +2433,13 @@ subroutine gronor_main()
         trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
 #ifdef SINGLEP
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,'S'
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'S'
 #else
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,'D'
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'D'
 #endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
 802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2,1x,a1)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,1x,a1)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

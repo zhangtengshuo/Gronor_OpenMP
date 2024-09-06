@@ -170,11 +170,12 @@ subroutine gronor_input()
 
     if(inp_compare(.false.,'Threshold',item)) then
       if(.not.inp_f(tau_CI)) call gronor_abort(112,"Input error")
+      if(.not.inp_f(tau_CI_off)) tau_CI_off=tau_CI
       goto 2
     endif
 
     if(inp_compare(.false.,'Expert',item)) then
-      if(.not.inp_i(ixpert)) call gronor_abort(114,"Input error")
+      if(.not.inp_i(ixpert)) ixpert=1
       goto 2
     endif
 

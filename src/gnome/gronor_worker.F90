@@ -213,7 +213,7 @@ subroutine gronor_worker()
         else
           do i=1,ndeti
             do j=1,ndetj
-              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI_off) exit
               k=k+1
               melist(k,1)=i
               melist(k,2)=j

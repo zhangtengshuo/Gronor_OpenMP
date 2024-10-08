@@ -374,6 +374,38 @@ public class gronor_Fragment {
 				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="h.ano-l...3s2p1d.";
 				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="h.ano-l...6s4p3d.";
 			}
+			if(elements[i].equals("He")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="he.ano-s...2s1p.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="he.ano-s...3s2p.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="he.ano-s...4s3p.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="he.ano-l...3s2p.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="he.ano-l...3s2p1d.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="he.ano-l...6s4p3d.";
+			}
+			if(elements[i].equals("Li")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="li.ano-s...3s2p1d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="li.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="li.ano-s...6s4p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="li.ano-l...4s3p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="li.ano-l...5s4p3d2f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="li.ano-l...7s6p4d3f.";
+			}
+			if(elements[i].equals("Be")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="be.ano-s...3s2p1d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="be.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="be.ano-s...6s4p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="be.ano-l...4s3p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="be.ano-l...5s4p3d2f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="be.ano-l...7s6p4d3f.";
+			}
+			if(elements[i].equals("B")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="b.ano-s...3s2p1d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="b.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="b.ano-s...7s6p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="b.ano-l...4s3p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="b.ano-l...5s4p3d2f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="b.ano-l...7s6p4d3f.";
+			}
 			if(elements[i].equals("C")) {
 				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="c.ano-s...3s2p1d.";
 				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="c.ano-s...4s3p2d.";
@@ -406,6 +438,46 @@ public class gronor_Fragment {
 				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="f.ano-l...5s4p3d2f.";
 				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="f.ano-l...7s6p4d3f.";
 			}
+			if(elements[i].equals("Ne")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ne.ano-s...3s2p1d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ne.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ne.ano-s...7s6p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="ne.ano-l...4s3p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="ne.ano-l...5s4p3d2f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="ne.ano-l...7s6p4d3f.";
+			}
+			if(elements[i].equals("Na")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="na.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="na.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="na.ano-s...7s5p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="na.ano-l...5s4p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="na.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="na.ano-l...7s7p5d4f.";
+			}
+			if(elements[i].equals("Mg")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="mg.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="mg.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="mg.ano-s...7s5p3d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="mg.ano-l...5s4p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="mg.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="mg.ano-l...7s7p5d4f.";
+			}
+			if(elements[i].equals("Al")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="al.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="al.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="al.ano-s...7s7p4d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="al.ano-l...5s4p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="al.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="al.ano-l...7s7p5d4f.";
+			}
+			if(elements[i].equals("Si")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="si.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="si.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="si.ano-s...7s7p4d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="si.ano-l...5s4p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="si.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="si.ano-l...7s7p5d4f.";
+			}
 			if(elements[i].equals("P")) {
 				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="p.ano-s...4s3p2d.";
 				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="p.ano-s...5s4p3d.";
@@ -430,6 +502,119 @@ public class gronor_Fragment {
 				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="cl.ano-l...6s5p4d3f.";
 				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="cl.ano-l...7s7p5d4f.";
 			}
+			if(elements[i].equals("Ar")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ar.ano-s...4s3p2d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ar.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ar.ano-s...7s7p4d.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="ar.ano-l...5s4p2d.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="ar.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="ar.ano-l...7s7p5d4f.";
+			}
+			if(elements[i].equals("K")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="k.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="k.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="k.ano-s...7s7p4d.";
+			}
+			if(elements[i].equals("Ca")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ca.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ca.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ca.ano-s...7s7p4d.";
+			}
+			if(elements[i].equals("Sc")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="sc.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="sc.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="sc.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="sc.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="sc.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="sc.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Ti")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ti.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ti.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ti.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="ti.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="ti.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="ti.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("V")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="v.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="v.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="v.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="v.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="v.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="v.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Cr")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="cr.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="cr.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="cr.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="cr.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="cr.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="cr.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Mn")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="mn.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="mn.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="mn.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="mn.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="mn.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="mn.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Fe")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="fe.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="fe.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="fe.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="fe.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="fe.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="fe.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Co")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="co.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="co.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="co.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="co.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="co.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="co.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Ni")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ni.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ni.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ni.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="ni.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="ni.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="ni.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Cu")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="cu.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="cu.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="cu.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="cu.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="cu.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="cu.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Zn")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="zn.ano-s...6s4p3d2f.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="zn.ano-s...7s5p4d3f.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="zn.ano-s...8s7p7d4f.";
+				if(basis.equals("ano-l") && contract.equals("s")) basisSet[i]="zn.ano-l...6s5p4d3f.";
+				if(basis.equals("ano-l") && contract.equals("m")) basisSet[i]="zn.ano-l...7s6p5d4f3g.";
+				if(basis.equals("ano-l") && contract.equals("l")) basisSet[i]="zn.ano-l...8s7p6d5f4g.";
+			}
+			if(elements[i].equals("Ga")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ga.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ga.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ga.ano-s...9s9p5d.";
+			}
+			if(elements[i].equals("Ge")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="ge.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="ge.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="ge.ano-s...9s9p5d.";
+			}
+			if(elements[i].equals("As")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="as.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="as.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="as.ano-s...9s9p5d.";
+			}
 			if(elements[i].equals("Se")) {
 				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="se.ano-s...5s4p3d.";
 				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="se.ano-s...6s5p4d.";
@@ -439,6 +624,11 @@ public class gronor_Fragment {
 				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="br.ano-s...5s4p3d.";
 				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="br.ano-s...6s5p4d.";
 				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="br.ano-s...9s9p5d.";
+			}
+			if(elements[i].equals("Kr")) {
+				if(basis.equals("ano-s") && contract.equals("s")) basisSet[i]="kr.ano-s...5s4p3d.";
+				if(basis.equals("ano-s") && contract.equals("m")) basisSet[i]="kr.ano-s...6s5p4d.";
+				if(basis.equals("ano-s") && contract.equals("l")) basisSet[i]="kr.ano-s...9s9p5d.";
 			}
 		}
 	}

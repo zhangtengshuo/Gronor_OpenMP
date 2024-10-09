@@ -60,6 +60,7 @@ program gcommon
   write(*,*)
 
   call NameRun('RUNFIL')
+  call SetMem('clear=off')
   call Get_iScalar('nSym',nSym)
   if(nSym.ne.1) then
     write(*,*) '  Symmetry is not implemented in GronOR'

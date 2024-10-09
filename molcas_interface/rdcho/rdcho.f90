@@ -48,6 +48,7 @@
       call get_command_argument(1,num_of_nodes)
       read(num_of_nodes,*) nodes
       call NameRun('RUNFILE')
+      call SetMem('clear=off')
       call Get_iArray('nBas',nBas,1)
       call Get_iArray('nDel',nDel,1)
       call Get_iArray('nFro',nFrozen,1)

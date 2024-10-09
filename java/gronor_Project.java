@@ -3995,7 +3995,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8, isp9, isp10;
 		
 		for(int i=0; i<numMEBFs; i++) {
-			String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.inp";
+			String spinState = "GronOR";
+			if(spin==1) spinState="singlet";
+			if(spin==2) spinState="doublet";
+			if(spin==3) spinState="triplet";
+			if(spin==4) spinState="quartet";
+			if(spin==5) spinState="quintet";
+			if(spin==6) spinState="hextet";
+			if(spin==7) spinState="heptet";
+			if(spin==8) spinState="octet";
+			String fileName = projectName.trim()+mebfName[i].trim()+"_"+spinState.trim()+".inp";
 			numME=mebfSpecification[i][3];
 			nmer=mebfSpecification[i][0];
 			spin=mebfSpecification[i][1];

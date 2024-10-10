@@ -2109,7 +2109,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int j=0; j<mebfSpecification[i][0]; j++) {
 				sumCharges=sumCharges+dimFragments[mebfFragments[i][j][0]][12];
 			}
-			mebfSpecification[i][2]=sumCharges;
+// Allow a charge different from the sum of the fragment charges: following statement commented out 10/10/2024
+//			mebfSpecification[i][2]=sumCharges;
 		}
 		
 		if(numMEBFs>1) {
@@ -3127,7 +3128,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		energiesPanel = new JPanel();
 		energiesPanel.setLayout(new BoxLayout(energiesPanel,BoxLayout.X_AXIS));
-		TitledBorder energiesBorder = new TitledBorder(new LineBorder(Color.black),"Fragment Energies");
+		TitledBorder energiesBorder = new TitledBorder(new LineBorder(Color.black),"Fragment Spin State Energies");
 		energiesBorder.setTitleColor(Color.black);
 		energiesPanel.setBorder(energiesBorder);
 		energiesTable = new JTable(energiesTableModel);
@@ -3921,7 +3922,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			} catch (NullPointerException e1) {
 			}
-
 			selectMEBFStates(mebf,nmer,spin,chrg,stat);
 			update();			
 		}
@@ -3932,7 +3932,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(value.length()>0) mebfSpecification[mebf][1]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
 			}
-
+			selectMEBFStates(mebf,nmer,spin,chrg, stat);
+			update();
+		}
+		
+		if(col==3) {
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+			}
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
 		}
@@ -3944,7 +3953,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
 			}
-
 			update();
 		}
 	}

@@ -3840,6 +3840,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		if(target==5) {
 			if(nS>=0 && nD==0 && nT==0 && nq==0 && nQ==1) result=true;
+			if(nS>=0 && nD==0 && nT==2 && nq==0 && nQ==0) result=true;
 		}
 		if(charge!=ch) result=false;
 
@@ -3995,6 +3996,9 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8, isp9, isp10;
 		
 		for(int i=0; i<numMEBFs; i++) {
+			numME=mebfSpecification[i][3];
+			nmer=mebfSpecification[i][0];
+			spin=mebfSpecification[i][1];
 			String spinState = "GronOR";
 			if(spin==1) spinState="singlet";
 			if(spin==2) spinState="doublet";
@@ -4004,10 +4008,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(spin==6) spinState="hextet";
 			if(spin==7) spinState="heptet";
 			if(spin==8) spinState="octet";
+			System.out.println("SPIN IS "+spin);
 			String fileName = projectName.trim()+mebfName[i].trim()+"_"+spinState.trim()+".inp";
-			numME=mebfSpecification[i][3];
-			nmer=mebfSpecification[i][0];
-			spin=mebfSpecification[i][1];
 			try {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("MEBFs "+projectName.trim()+" "+numME);

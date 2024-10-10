@@ -3838,6 +3838,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		if(target==4) {
 			if(nS>=0 && nD==0 && nT==0 && nq==1 && nQ==0) result=true;
+			if(nS>=0 && nD==1 && nT==1 && nq==0 && nQ==0) result=true;
 		}
 		if(target==5) {
 			if(nS>=0 && nD==0 && nT==0 && nq==0 && nQ==1) result=true;

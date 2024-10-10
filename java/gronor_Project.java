@@ -3761,31 +3761,58 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Boolean swapped=true;
 		Integer[] itemp = new Integer[nmer];
 		Double etemp;
-		Integer numsi, numsj;
+		Integer nums0i, nums0j, nums0if, nums0jf, nums1i, nums1j, numt1i, numdpi, numt1j, numdpj, numdmi, numdmj;
 		
 		while(swapped) {
 			swapped=false;
 			for(int i=1; i<count; i++) {
 				for(int j=i+1; j<=count; j++) {
-					numsi=0;
-					numsj=0;
+					nums0i=0;
+					nums0j=0;
+					nums0if=0;
+					nums0jf=0;
+					nums1i=0;
+					nums1j=0;
+					numt1i=0;
+					numt1j=0;
+					numdpi=0;
+					numdpj=0;
+					numdmi=0;
+					numdmj=0;
 					for(int k=0; k<nmer; k++) {
-						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) numsi++; else break;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) nums0i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) nums0j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S1")) nums1i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S1")) nums1j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("T1")) numt1i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("T1")) numt1j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("D+")) numdpi++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("D+")) numdpj++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("D-")) numdmi++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("D-")) numdmj++;
 					}
 					for(int k=0; k<nmer; k++) {
-						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) numsj++; else break;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) nums0if++; else break;
 					}
-					if(sumEnergies[i-1]>sumEnergies[j-1] || (sumEnergies[i-1]==sumEnergies[j-1] && numsi<numsj)) {
+					for(int k=0; k<nmer; k++) {
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) nums0jf++; else break;
+					}
+//					System.out.println("TEST "+i+" "+j+" : "+nums0i+" "+nums0j+" "+nums1i+" "+nums1j);
+					if( nums0i<nums0j || (nums0i==nums0j && nums0if<nums0jf) ) {
+//						System.out.println("SWAP "+i+" "+j+" : "+nums0i+" "+nums0j+" "+nums1i+" "+nums1j);
+//						if(sumEnergies[i-1]>sumEnergies[j-1] || (sumEnergies[i-1]==sumEnergies[j-1] && numsi<numsj) || (sumEnergies[i-1]==sumEnergies[j-1] && numsi==numsj && numsi1<numsj1)) {
 						
 						for(int k=0; k<nmer; k++) itemp[k]=mebfFragments[mebf][k][j]; etemp=sumEnergies[j-1];
+						for(int k=0; k<nmer; k++) mebfFragments[mebf][k][j]=mebfFragments[mebf][k][i]; sumEnergies[j-1]=sumEnergies[i-1];
+						for(int k=0; k<nmer; k++) itemp[k]=mebfFragments[mebf][k][i]=itemp[k]; sumEnergies[i-1]=etemp;
 						
-						for(int k=0; k<nmer; k++) {
-							for(int m=j; m>i; m--) mebfFragments[mebf][k][m]=mebfFragments[mebf][k][m-1];
-							mebfFragments[mebf][k][i]=itemp[k];
-						}
+//						for(int k=0; k<nmer; k++) {
+//							for(int m=j; m>i; m--) mebfFragments[mebf][k][m]=mebfFragments[mebf][k][m-1];
+//							mebfFragments[mebf][k][i]=itemp[k];
+//						}
 						
-						for(int m=j; m>i; m--) sumEnergies[m-1]=sumEnergies[m-2];
-						sumEnergies[i-1]=etemp;
+//						for(int m=j; m>i; m--) sumEnergies[m-1]=sumEnergies[m-2];
+//						sumEnergies[i-1]=etemp;
 						
 						swapped=true;
 					}

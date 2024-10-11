@@ -641,7 +641,7 @@ public class gronor_Fragment {
 		return ndx;
 	}
 	
-	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] fname, String[] frags, String[] source, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks, Integer memory, Object[][] fragDef, String acc, String jobName, String limit) {
+	public void write_Run_Script_MEBFs(String p, String pn, Integer nfrags, String[] fname, String[] frags, String[] source, Integer[] fstat, Integer[] lenStateList, Integer[][] ndxStateList, Integer ranks, Integer memory, Object[][] fragDef, String acc, String jobName, String limit, Integer spin) {
 		String fileName = p+"_Molcas.run";
 		String slurmName = p+"_Molcas.slurm";
 		String lsfName = p+"_Molcas.lsf";
@@ -888,7 +888,16 @@ public class gronor_Fragment {
 			lsfFile.println();
 			lsfFile.println("#cd to job directory");
 			lsfFile.println();
-			fullName= p+"_GronOR";
+			String spinState = "GronOR";
+			if(spin==1) spinState="singlet";
+			if(spin==2) spinState="doublet";
+			if(spin==3) spinState="triplet";
+			if(spin==4) spinState="quartet";
+			if(spin==5) spinState="quintet";
+			if(spin==6) spinState="hextet";
+			if(spin==7) spinState="heptet";
+			if(spin==8) spinState="octet";
+			fullName= p+"_"+spinState.trim();
 			runFile.println("mpirun -n "+ranks+" gronor "+fullName);
 			slurmFile.println("mpirun -n "+ranks+" gronor "+fullName);
 			lsfFile.println("cp /gpfs/alpine/chm154/proj-shared/gronor .");

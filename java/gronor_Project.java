@@ -4020,7 +4020,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
 				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, nfrz, lenStateList, ndxStateList, thresh_MO);
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky, num_frozen);
-				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
+				Integer spin=mebfSpecification[i][1];
+				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit,spin);
 			}
 		}
 	}
@@ -4044,7 +4045,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			if(spin==6) spinState="hextet";
 			if(spin==7) spinState="heptet";
 			if(spin==8) spinState="octet";
-			System.out.println("SPIN IS "+spin);
 			String fileName = projectName.trim()+mebfName[i].trim()+"_"+spinState.trim()+".inp";
 			try {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));

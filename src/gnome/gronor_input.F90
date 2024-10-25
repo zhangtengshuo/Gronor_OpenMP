@@ -248,7 +248,8 @@ subroutine gronor_input()
 
     if(inp_compare(.false.,'Solver',item).or.inp_compare(.false.,'Solvers',item)) then
 4     continue
-      if(.not.inp_a(item)) goto 1
+        if(.not.inp_a(item)) goto 1
+        5 continue
       if(inp_compare(.false.,'SVD',item)) then
         if(.not.inp_a(item))  call gronor_abort(123,"Input error Solver")
         if(inp_compare(.false.,item,'EISPACK')) then
@@ -279,7 +280,7 @@ subroutine gronor_input()
           call gronor_abort(123,"Input error Solver")
         endif
         if(.not.inp_a(item)) then
-!          inslvr=SOLVER_EISPACK
+          inslvr=iaslvr
           goto 1
         endif
         if(inp_compare(.false.,item,'EISPACK')) then
@@ -297,7 +298,8 @@ subroutine gronor_input()
         elseif(inp_compare(.false.,item,'LAPACKJ')) then
           inslvr=SOLVER_LAPACKJ
         else
-          call gronor_abort(123,"Input error Solver")
+          inslvr=iaslvr
+          goto 5
         endif
         goto 4
       elseif(inp_compare(.false.,'EV',item).or.inp_compare(.false.,'EVD',item) &
@@ -331,7 +333,7 @@ subroutine gronor_input()
           call gronor_abort(123,"Input error Solver")
         endif
         if(.not.inp_a(item)) then
-!          jnslvr=SOLVER_EISPACK
+          jnslvr=jaslvr
           goto 1
         endif
         if(inp_compare(.false.,item,'EISPACK')) then
@@ -349,27 +351,13 @@ subroutine gronor_input()
         elseif(inp_compare(.false.,item,'LAPACKJ')) then
           jnslvr=SOLVER_LAPACKJ
         else
-          call gronor_abort(123,"Input error Solver")
+          jnslvr=jaslvr
+          goto 5
         endif
+        goto 4
       else
         call gronor_abort(123,"Input error Solver")
       endif
-
-!      if(.not.inp_i(iaslvr)) then        
-!        iaslvr=-1
-!        jaslvr=-1
-!        inslvr=-1
-!        jnslvr=-1
-!      elseif(.not.inp_i(jaslvr)) then
-!        jaslvr=-1
-!        inslvr=-1
-!        jnslvr=-1
-!      elseif(.not.inp_i(inslvr)) then
-!        inslvr=-1
-!        jnslvr=-1
-!      elseif(.not.inp_i(jnslvr)) then
-!        jnslvr=-1
-!      endif
       goto 2      
     endif
 

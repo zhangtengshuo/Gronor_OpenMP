@@ -189,7 +189,7 @@ subroutine gronor_svd()
     endif
     ndimm=nelecs
     call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,ierr)
+        &       workspace_d,lwork1m,lapack_info)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)

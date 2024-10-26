@@ -79,6 +79,9 @@ subroutine gronor_svd()
   integer :: jobu, jobvt, jobz
 #endif
 
+#ifdef LAPACK
+  integer (kind=4) :: lapack_info
+#endif
 
 
   
@@ -106,7 +109,6 @@ subroutine gronor_svd()
 #endif
 #endif
 
-  
   ! ========== EISPACK =========
 
   if(isolver.eq.SOLVER_EISPACK) then

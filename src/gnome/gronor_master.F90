@@ -336,6 +336,12 @@ subroutine gronor_master()
 
       !     Loop over the number of determinant pairs for the current base pair
       
+      if(idbg.gt.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering receive loop"
+        flush(lfndbg)
+      endif
+  
       call timer_start(95)
       do while(ndone.lt.ijend)
 

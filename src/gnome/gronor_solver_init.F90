@@ -63,9 +63,15 @@ subroutine gronor_solver_init(ntemp)
   real(kind=8) :: worksize(2)
   integer (kind=8) :: iworksize(2)
 
-     nelecs=ntemp
+  nelecs=ntemp
 
 ! Cusolver initialization for the svd
+  
+  if(idbg.gt.50) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",isolver,jsolver
+    flush(lfndbg)
+  endif
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER
@@ -241,6 +247,7 @@ subroutine gronor_solver_init(ntemp)
     endif
     lwork1m=max(8*ndimm,lwork1m,lwork2m)
     lworki=max(8*ndimm,lworki)
+    write(*,'(i4,a,2i10)') me,' LAPACK WORK SPACES ',lwork1m,lworki
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif
@@ -251,6 +258,7 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
+  
     if(isolver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
       lwork1m=int(worksize(1))+1024*nelecs

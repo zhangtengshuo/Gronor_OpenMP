@@ -444,6 +444,9 @@ subroutine gronor_svd_omp()
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
     endif
+    if(sv_solver.eq.SOLVER_MKLJ) then
+      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)
 !$omp do collapse(2)

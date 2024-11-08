@@ -235,10 +235,14 @@ subroutine gronor_solver_init(ntemp)
       lwork1m=int(worksize(1))
       lworki=8*ndimm
     endif
+    if(sv_solver.eq.SOLVER_MKLJ) then
+!      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+      lwork1m=max(int(worksize(1)),6,2*nelecs)
+      lworki=8*ndimm
+    endif
     if(ev_solver.eq.SOLVER_MKL) then
-      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
+      call dsyev('N','L',ndimm,a,ndimm,w,worksize,lwork2m,ierr)
       lwork2m=int(worksize(1))
-      lworki=int(iworksize(1))
     endif
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)

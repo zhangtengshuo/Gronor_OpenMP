@@ -365,6 +365,12 @@ subroutine gronor_main()
     iswevj=15
     nabort=64
 
+#ifdef SINGLEP
+    prec='S'
+#else
+    prec='D'
+#endif
+
 #ifdef _OPENACC
     naccel=0
 #endif
@@ -2405,12 +2411,12 @@ subroutine gronor_main()
     if(.not.exist) then
       write(lfnlog,800)
 800   format( &
-          80x,'      T             ',22x,'       ',/, &
-          80x,'      h             ',22x,'      S',/, &
-          80x,'      r             ',22x,'F  B  t',/, &
-          80x,'      e    D        ',22x,'r  a  a',/, &
-          80x,'M  G  a  M i Solvers',22x,'g  s  t',/ &
-          80x,'P  P  d  g s SVD EV ',22x,'m  e  e',/, &
+          80x,'      T             ',22x,'          ',/, &
+          80x,'      h             ',22x,'      S   ',/, &
+          80x,'      r             ',22x,'F  B  t  P',/, &
+          80x,'      e    D        ',22x,'r  a  a  r',/, &
+          80x,'M  G  a  M i Solvers',22x,'g  s  t  e',/ &
+          80x,'P  P  d  g s SVD EV ',22x,'m  e  e  c',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s',/, &
@@ -2424,7 +2430,7 @@ subroutine gronor_main()
         nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr, &
         idist,iaslvr,inslvr,jaslvr,jnslvr, &
         ntaska,ntask,max(1,nbatcha),max(1,nbatch), &
-        nmol,nbase,mstates
+        nmol,nbase,mstates,prec
     do i=len(command),1,-1
       if(command(i:i).eq.'/') then
         command=command(i+1:len(command))
@@ -2436,16 +2442,11 @@ subroutine gronor_main()
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
         trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
-#ifdef SINGLEP
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'S', &
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
         trim(asvd),trim(nsvd),trim(aevd),trim(nevd)
-#else
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'D', &
-        trim(asvd),trim(nsvd),trim(aevd),trim(nevd)
-#endif
-801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
+801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
 802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,1x,a1,4(1x,a))
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,4(1x,a))
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

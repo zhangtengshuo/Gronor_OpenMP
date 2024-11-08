@@ -182,6 +182,7 @@ module gnome_parameters
   logical :: odbg,odupl,oterm,otreq,otimeout
   logical :: corres
 
+  character (len=1) :: prec
   character (len=128) :: mebfroot,combas
   character (len=16), allocatable :: fragname(:)
   character (len=16), allocatable :: fragstate(:,:)

@@ -374,6 +374,11 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
+    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,m,n,c_loc(at),n, &
+        c_loc(st),c_loc(ut),n,c_loc(vtt),n,c_loc(work), &
+        ROCBLAS_OUTOFPLACE,rocinfo))
+    call hipCheck(hipDeviceSynchronize())
   endif
 #endif
 

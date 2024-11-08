@@ -327,6 +327,9 @@ subroutine gronor_solver_final()
     if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
+#ifdef ROCSOLVER
+    call hipcheck(rocblas_destroy_handle(rocsolver_handle))
+#endif
   endif
 
   return
@@ -349,6 +352,24 @@ subroutine gronor_solver_create_handle()
   use cusolverDn
   use cuda_cusolver
 #endif
+
+#ifdef ROCSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
   
   ! Only accelerated ranks need to define cusolver handles
   
@@ -363,6 +384,10 @@ subroutine gronor_solver_create_handle()
 !      cptot=c_loc(memtot)
       ! istat=cudaMemGetInfo(cpfre,cptot)
     endif
+#endif
+
+#ifdef ROCSOLVER
+    call hipcheck(rocblas_create_handle(rocsolver_handle))
 #endif
     
   endif

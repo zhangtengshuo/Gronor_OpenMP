@@ -189,6 +189,8 @@ module gnome_parameters
   character (len=128), allocatable :: vecfile(:)
   character (len=128), allocatable :: detfile(:)
 
+  character (len=128) :: asvd,nsvd,aevd,nevd
+
 end module gnome_parameters
 
 module gnome_data

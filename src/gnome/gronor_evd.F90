@@ -301,6 +301,9 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
+    istatus=rocsolver_dsyev(rocsolver_handle,evect,uplo, &
+        m,c_loc(at),m,c_loc(dt),c_loc(et),rocinfo)
+    call hipCheck(hipDeviceSynchronize())
   endif
 #endif
 
@@ -310,6 +313,7 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
+    
   endif
 #endif
     

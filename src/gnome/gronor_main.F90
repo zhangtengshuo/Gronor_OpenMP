@@ -1550,6 +1550,8 @@ subroutine gronor_main()
       if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
+      asvd=istring
+      nsvd=jstring
     endif
     
     sv_solver=SOLVER_EISPACK
@@ -1577,7 +1579,7 @@ subroutine gronor_main()
     if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd"
     if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
     if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
-    if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd"
+    if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyev"
     if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
     if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
     if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev"
@@ -1591,6 +1593,8 @@ subroutine gronor_main()
       write(lfnout,613) trim(istring),trim(jstring)
 613   format(' Non-accelerated ranks use ',a,' and ',a)
     endif
+    aevd=istring
+    nevd=jstring
       
   endif
 
@@ -2433,13 +2437,15 @@ subroutine gronor_main()
         trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
 #ifdef SINGLEP
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'S'
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'S', &
+        trim(asvd),trim(nsvd),trim(aevd),trim(nevd)
 #else
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'D'
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off,'D', &
+        trim(asvd),trim(nsvd),trim(aevd),trim(nevd)
 #endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
 802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,1x,a1)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,1x,a1,4(1x,a))
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &

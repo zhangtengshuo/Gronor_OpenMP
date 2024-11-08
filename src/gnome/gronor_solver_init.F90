@@ -260,13 +260,13 @@ subroutine gronor_solver_init(ntemp)
   
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-      lwork1m=int(worksize(1))+1024*nelecs
+      lwork1m=max(int(worksize(1)),1+3*nelecs,5*nelecs)+1024*nelecs
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
           lapack_info)
-      lwork1m=int(worksize(1))+1024*nelecs
-      lworki=8*ndimm
+      lwork1m=max(int(worksize(1)),7*nelecs+4*nelecs*nelecs)+1024*nelecs
+      lworki=8*nelecs
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)

@@ -66,7 +66,7 @@ subroutine gronor_evd()
   
   ! ========== EISPACK =========
 
-  if(jsolver.eq.SOLVER_EISPACK) then
+  if(ev_solver.eq.SOLVER_EISPACK) then
 #ifdef ACC
 !$acc kernels present(sdiag)
 #endif
@@ -114,7 +114,7 @@ subroutine gronor_evd()
   
 ! ============ MKL ===========
 #ifdef MKL
-  if(jsolver.eq.SOLVER_MKL.or.jsolver.eq.SOLVER_MKLD) then
+  if(ev_solver.eq.SOLVER_MKL.or.ev_solver.eq.SOLVER_MKLD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -124,10 +124,10 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    if(jsolver.eq.SOLVER_MKL) then
+    if(ev_solver.eq.SOLVER_MKL) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
-    if(jsolver.eq.SOLVER_MKLD) then
+    if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
     if(iamacc.eq.1) then
@@ -143,7 +143,7 @@ subroutine gronor_evd()
   
 ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(jsolver.eq.SOLVER_LAPACK.or.jsolver.eq.SOLVER_LAPACKD) then
+  if(ev_solver.eq.SOLVER_LAPACK) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -153,12 +153,26 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    if(jsolver.eq.SOLVER_LAPACK) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
     endif
-    if(jsolver.eq.SOLVER_LAPACKD) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+  elseif(ev_solver.eq.SOLVER_LAPACKD) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
     endif
+    ndimm=nelecs
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -172,7 +186,7 @@ subroutine gronor_evd()
   
 ! ============ MAGMA ===========
 #ifdef MAGMA
-  if(jsolver.eq.SOLVER_MAGMA) then
+  if(ev_solver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc data create(workspace_d,workspace_i)
@@ -202,7 +216,7 @@ subroutine gronor_evd()
   ! ========= CUSOLVER =========
 
 #ifdef CUSOLVER
-  if(jsolver.eq.SOLVER_CUSOLVER) then
+  if(ev_solver.eq.SOLVER_CUSOLVER) then
     ndim=nelecs
     mdim=mbasel
     jobu = 'A'  ! all m columns of U
@@ -234,7 +248,7 @@ subroutine gronor_evd()
   ! ======== CUSOLVERJ =========
 
 #ifdef CUSOLVERJ  
-  if(jsolver.eq.SOLVER_CUSOLVERJ) then
+  if(ev_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
     jobz = CUSOLVER_EIG_MODE_NOVECTOR
@@ -266,7 +280,7 @@ subroutine gronor_evd()
   ! ======== HIPSOLVER =========
 
 #ifdef HIPSOLVER
-  if(jsolver.eq.SOLVER_HIPSOLVER) then
+  if(ev_solver.eq.SOLVER_HIPSOLVER) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -275,7 +289,7 @@ subroutine gronor_evd()
   ! ======= HIPSOLVERJ =========
   
 #ifdef HIPSOLVERJ
-  if(jsolver.eq.SOLVER_HIPSOLVERJ) then
+  if(ev_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -284,7 +298,7 @@ subroutine gronor_evd()
   ! ======== ROCSOLVER =========
   
 #ifdef ROCSOLVER
-  if(jsolver.eq.SOLVER_ROCSOLVER) then
+  if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -293,7 +307,7 @@ subroutine gronor_evd()
   ! ======= ROCSOLVERJ =========
   
 #ifdef ROCSOLVERJ
-  if(jsolver.eq.SOLVER_ROCSOLVERJ) then
+  if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -337,7 +351,7 @@ subroutine gronor_evd_omp()
 
   ! ========== EISPACK =========
 
-  if(jsolver.eq.SOLVER_EISPACK) then
+  if(ev_solver.eq.SOLVER_EISPACK) then
 #ifdef OMP
 !$omp parallel do shared(sdiag)
 #endif
@@ -356,7 +370,7 @@ subroutine gronor_evd_omp()
   ! ============ MKL ===========
   
 #ifdef MKL
-  if(jsolver.eq.SOLVER_MKL) then
+  if(ev_solver.eq.SOLVER_MKL) then
     ndimm=nelecs
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
         workspace_i,lworki,ierr)
@@ -366,7 +380,7 @@ subroutine gronor_evd_omp()
   ! ============ LAPACK ===========
   
 #ifdef LAPACK
-  if(jsolver.eq.SOLVER_LAPACK) then
+  if(ev_solver.eq.SOLVER_LAPACK) then
     ndimm=nelecs
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
         workspace_i,lworki,ierr)

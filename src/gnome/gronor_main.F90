@@ -348,8 +348,8 @@ subroutine gronor_main()
 
     !     Set solvers undefined
 
-    isolver=-1
-    jsolver=-1
+    sv_solver=-1
+    ev_solver=-1
     iaslvr=-1
     jaslvr=-1
     inslvr=-1
@@ -1465,124 +1465,124 @@ subroutine gronor_main()
   if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
 
   if(iamacc.eq.1) then
-    isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(iaslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(iaslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
-    jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jaslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jaslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
+    sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
   else
-    isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(inslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(inslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jnslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jnslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
+    sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
     
-    isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(iaslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(iaslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
-    jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jaslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jaslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
+    sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
     if(numacc.gt.0) then
-      if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd on CPU"
-      if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
-      if(isolver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd on CPU"
-      if(isolver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj on CPU"
-      if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
-      if(isolver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd on CPU"
-      if(isolver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
-      if(isolver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
-      if(isolver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
-      if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
-      if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
-      if(jsolver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
-      if(jsolver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj on CPU"
-      if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd on CPU"
-      if(jsolver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd on CPU"
-      if(jsolver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
-      if(jsolver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
-      if(jsolver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
+      if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd on CPU"
+      if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
+      if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd on CPU"
+      if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj on CPU"
+      if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
+      if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd on CPU"
+      if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
+      if(sv_solver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
+      if(sv_solver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
+      if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
+      if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj on CPU"
+      if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev on CPU"
+      if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
+      if(ev_solver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
+      if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
     endif
     
-    isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(inslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(inslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jnslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jnslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
+    sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
 
-    if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
-    if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
-    if(isolver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
-    if(isolver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
-    if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
-    if(isolver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd"
-    if(isolver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
-    if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
-    if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd"
-    if(jsolver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
-    if(jsolver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
-    if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd"
-    if(jsolver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
-    if(jsolver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
+    if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
+    if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
+    if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
+    if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
+    if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
+    if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd"
+    if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
+    if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
+    if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd"
+    if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
+    if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
+    if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev"
+    if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
+    if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
 
     if(numacc.eq.0) then
       write(lfnout,612) trim(istring),trim(jstring)

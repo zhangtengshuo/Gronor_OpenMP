@@ -262,9 +262,13 @@ subroutine gronor_input()
           iaslvr=SOLVER_MKLJ
         elseif(inp_compare(.false.,item,'LAPACK')) then
           iaslvr=SOLVER_LAPACK
+        elseif(inp_compare(.false.,item,'LAPACKQ')) then
+          iaslvr=SOLVER_LAPACKQ
         elseif(inp_compare(.false.,item,'LAPACKD')) then
           iaslvr=SOLVER_LAPACKD
         elseif(inp_compare(.false.,item,'LAPACKJ')) then
+          iaslvr=SOLVER_LAPACKJ
+        elseif(inp_compare(.false.,item,'LAPACKJH')) then
           iaslvr=SOLVER_LAPACKJ
         elseif(inp_compare(.false.,item,'MAGMA')) then
           iaslvr=SOLVER_MAGMA

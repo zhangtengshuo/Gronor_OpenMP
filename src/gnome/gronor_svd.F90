@@ -111,7 +111,7 @@ subroutine gronor_svd()
 
   ! ========== EISPACK =========
 
-  if(isolver.eq.SOLVER_EISPACK) then
+  if(sv_solver.eq.SOLVER_EISPACK) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -135,7 +135,7 @@ subroutine gronor_svd()
   
   ! ============ MKL ===========
 #ifdef MKL
-  if(isolver.eq.SOLVER_MKL) then
+  if(sv_solver.eq.SOLVER_MKL) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -180,7 +180,7 @@ subroutine gronor_svd()
   
   ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(isolver.eq.SOLVER_LAPACK) then
+  if(sv_solver.eq.SOLVER_LAPACK) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -220,13 +220,53 @@ subroutine gronor_svd()
 #ifdef ACC
 !$acc end kernels
 #endif
+  elseif(sv_solver.eq.SOLVER_LAPACKD) then
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif    
+    endif
+    ndimm=nelecs
+    call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
+        &       workspace_d,lwork1m,workspace_i,lapack_info)
+    if(iamacc.eq.1) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+    endif
+#ifdef ACC
+!$acc kernels present(temp,u,w,ta)
+!$acc loop collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        temp(i,j)=w(i,j)
+      enddo
+    enddo
+#ifdef ACC
+!$acc loop collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(j,i)=temp(i,j)
+      enddo
+    enddo
+#ifdef ACC
+!$acc end kernels
+#endif
   endif
 #endif 
   
   ! ========= CUSOLVER =========
 
 #ifdef CUSOLVER
-  if(isolver.eq.SOLVER_CUSOLVER) then
+  if(sv_solver.eq.SOLVER_CUSOLVER) then
     ndim=nelecs
     mdim=mbasel
     jobu = 'A'  ! all m columns of U
@@ -279,7 +319,7 @@ subroutine gronor_svd()
   ! ======== CUSOLVERJ =========
 
 #ifdef CUSOLVERJ  
-  if(isolver.eq.SOLVER_CUSOLVERJ) then
+  if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
     jobz=CUSOLVER_EIG_MODE_VECTOR
@@ -313,7 +353,7 @@ subroutine gronor_svd()
   ! ======== HIPSOLVER =========
 
 #ifdef HIPSOLVER
-  if(isolver.eq.SOLVER_HIPSOLVER) then
+  if(sv_solver.eq.SOLVER_HIPSOLVER) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -322,7 +362,7 @@ subroutine gronor_svd()
   ! ======= HIPSOLVERJ =========
   
 #ifdef HIPSOLVERJ
-  if(isolver.eq.SOLVER_HIPSOLVERJ) then
+  if(sv_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -331,7 +371,7 @@ subroutine gronor_svd()
   ! ======== ROCSOLVER =========
   
 #ifdef ROCSOLVER
-  if(isolver.eq.SOLVER_ROCSOLVER) then
+  if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -340,7 +380,7 @@ subroutine gronor_svd()
   ! ======= ROCSOLVERJ =========
   
 #ifdef ROCSOLVERJ
-  if(isolver.eq.SOLVER_ROCSOLVERJ) then
+  if(sv_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -378,7 +418,7 @@ subroutine gronor_svd_omp()
 
   ! ========== EISPACK =========
 
-  if(isolver.eq.SOLVER_EISPACK) then
+  if(sv_solver.eq.SOLVER_EISPACK) then
 #ifdef OMP
 !$omp parallel do shared(sdiag)
 #endif
@@ -396,12 +436,12 @@ subroutine gronor_svd_omp()
   ! ============ MKL ===========
   
 #ifdef MKL
-  if(isolver.eq.SOLVER_MKL.or.isolver.eq.SOLVER_MKLD) then
+  if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD) then
     ndimm=nelecs
-    if(isolver.eq.SOLVER_MKL) then
+    if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
     endif
-    if(isolver.eq.SOLVER_MKLD) then
+    if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
     endif
 #ifdef OMP
@@ -432,12 +472,12 @@ subroutine gronor_svd_omp()
   ! ============ LAPACK ===========
   
 #ifdef LAPACK
-  if(isolver.eq.SOLVER_LAPACK.or.isolver.eq.SOLVER_LAPACKD) then
+  if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
-    if(isolver.eq.SOLVER_LAPACK) then
+    if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
-    if(isolver.eq.SOLVER_LAPACKD) then
+    if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
 #ifdef OMP

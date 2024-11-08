@@ -162,7 +162,7 @@ module gnome_parameters
   implicit none
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp,ires,iint
-  integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
+  integer :: itest,ifault,sv_solver,ev_solver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
@@ -908,8 +908,10 @@ module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
     enumerator SOLVER_LAPACK
+    enumerator SOLVER_LAPACKQ
     enumerator SOLVER_LAPACKD
     enumerator SOLVER_LAPACKJ
+    enumerator SOLVER_LAPACKJH
     enumerator SOLVER_MKL
     enumerator SOLVER_MKLD
     enumerator SOLVER_MKLJ

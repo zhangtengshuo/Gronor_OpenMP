@@ -69,7 +69,7 @@ subroutine gronor_solver_init(ntemp)
   
   if(idbg.gt.50) then
     call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",isolver,jsolver
+    write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",sv_solver,ev_solver
     flush(lfndbg)
   endif
   
@@ -82,7 +82,7 @@ subroutine gronor_solver_init(ntemp)
     lwork2=0
 
 #ifdef CUSOLVERJ
-    if(isolver.eq.SOLVER_CUSOLVER) then
+    if(sv_solver.eq.SOLVER_CUSOLVER) then
 #endif
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
@@ -99,7 +99,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
 #ifdef CUSOLVERJ
-    elseif(isolver.eq.SOLVER_CUSOLVERJ) then
+    elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
       mdim=mbasel
@@ -142,7 +142,7 @@ subroutine gronor_solver_init(ntemp)
 ! Cusolver initialization for the syevd
 
 #ifdef CUSOLVERJ
-    if(jsolver.eq.SOLVER_CUSOLVER) then
+    if(ev_solver.eq.SOLVER_CUSOLVER) then
 #endif
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
@@ -160,7 +160,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
 #ifdef CUSOLVERJ
-    elseif(jsolver.eq.SOLVER_CUSOLVERJ) then
+    elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
 
@@ -226,28 +226,27 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-    if(isolver.eq.SOLVER_MKL) then
+    if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,ierr)
       lwork1m=int(worksize(1))
     endif
-    if(isolver.eq.SOLVER_MKLD) then
+    if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
       lworki=8*ndimm
     endif
-    if(jsolver.eq.SOLVER_MKL) then
+    if(ev_solver.eq.SOLVER_MKL) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))
     endif
-    if(jsolver.eq.SOLVER_MKLD) then
+    if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))
     endif
     lwork1m=max(8*ndimm,lwork1m,lwork2m)
     lworki=max(8*ndimm,lworki)
-    write(*,'(i4,a,2i10)') me,' LAPACK WORK SPACES ',lwork1m,lworki
     allocate(workspace_d(lwork1m))
     allocate(workspace_i(lworki))
 #endif
@@ -259,14 +258,24 @@ subroutine gronor_solver_init(ntemp)
     lwork2m=-1
     lworki=-1
   
-    if(isolver.eq.SOLVER_LAPACK) then
+    if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
       lwork1m=int(worksize(1))+1024*nelecs
     endif
-    if(jsolver.eq.SOLVER_LAPACK) then
-      call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+    if(sv_solver.eq.SOLVER_LAPACKD) then
+      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
+          lapack_info)
+      lwork1m=int(worksize(1))+1024*nelecs
+      lworki=8*ndimm
+    endif
+    if(ev_solver.eq.SOLVER_LAPACK) then
+      call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
       lwork2m=int(worksize(1))+1024*nelecs
-      lworki=int(iworksize(1))+1024*nelecs
+    endif
+    if(ev_solver.eq.SOLVER_LAPACKD) then
+      call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+      lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs)
+      lworki=max(int(iworksize(1)),3+5*nelecs)
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)
@@ -280,11 +289,11 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-!    if(isolver.eq.SOLVER_LAPACK) then
+!    if(sv_solver.eq.SOLVER_LAPACK) then
 !      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
 !      lwork1m=int(worksize(1))+1024*nelecs
 !    endif
-    if(jsolver.eq.SOLVER_MAGMA) then
+    if(ev_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.0) then
         call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       else

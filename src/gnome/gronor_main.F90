@@ -2409,13 +2409,13 @@ subroutine gronor_main()
 800   format( &
           80x,'      T             ',22x,'          ',/, &
           80x,'      h             ',22x,'      S   ',/, &
-          80x,'      r             ',22x,'F  B  t  P',/, &
-          80x,'      e    D        ',22x,'r  a  a  r',/, &
-          80x,'M  G  a  M i Solvers',22x,'g  s  t  e',/ &
-          80x,'P  P  d  g s SVD EV ',22x,'m  e  e  c',/, &
+          80x,'      r             ',22x,'F  B  t   ',/, &
+          80x,'      e    D        ',22x,'r  a  a  P',/, &
+          80x,'M  G  a  M i Solvers',22x,'g  s  t  r',/ &
+          80x,'P  P  d  g s SVD EV ',22x,'m  e  e  e',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
-          'a n a n   Task      Batch    s  s  s',/, &
+          'a n a n   Task      Batch    s  s  s  c',/, &
           'Compile time/date',t19,'Host',t43,'Compiler target',t68,'Compiler version', &
           t85,'MPI version',t118,'cmake version',/, &
           '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off',/)

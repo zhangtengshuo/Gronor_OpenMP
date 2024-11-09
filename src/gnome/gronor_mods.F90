@@ -680,11 +680,11 @@ module hipvars
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable, target :: workspace_d(:)
+!  real (kind=8), allocatable, target :: workspace_d(:)
   integer (kind=4) :: dev_info_d
   !     integer(kind=cuda_stream_kind) :: stream
-  integer (kind=8) :: jobz
-  integer (kind=8) :: uplo=0      
+!  integer (kind=8) :: jobz
+!  integer (kind=8) :: uplo=0      
 end module hipvars
 
 module amd_hipsolver
@@ -860,11 +860,11 @@ module rocvars
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable, target :: workspace_d(:)
+!  real (kind=8), allocatable, target :: workspace_d(:)
   integer (kind=4) :: dev_info_d
   !     integer(kind=cuda_stream_kind) :: stream
   integer (kind=4) :: esort,evect
-  integer (kind=4) :: uplo=0
+!  integer (kind=4) :: uplo=0
   integer (kind=4) :: rocinfo,workmode
   type(c_ptr)      :: workptr
 end module rocvars
@@ -877,32 +877,32 @@ end module amd_rocsolver
 #ifdef MKL
 module mkl_solver
 
-  integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
-  real (kind=8),allocatable :: rwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
+!  integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
+!  real (kind=8),allocatable :: rwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
 
 end module mkl_solver
 #endif
 
 #ifdef LAPACK
 module lapack_solver
-  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-  real(kind=8), allocatable :: work(:)
-  integer(kind=8), allocatable :: iwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
-  character*1 :: jobz,uplo
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+!  real(kind=8), allocatable :: work(:)
+!  integer(kind=8), allocatable :: iwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
+!  character*1 :: jobz,uplo
 end module lapack_solver
 #else
 #ifdef MAGMA
 module magma_solver
-  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-  real(kind=8), allocatable :: work(:)
-  integer(kind=8), allocatable :: iwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
-  character*1 :: jobz,uplo
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+!  real(kind=8), allocatable :: work(:)
+!  integer(kind=8), allocatable :: iwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
+!  character*1 :: jobz,uplo
 end module magma_solver
 #endif
 #endif
@@ -928,4 +928,10 @@ module gnome_solvers
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI
   end enum
+  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+  real(kind=8), allocatable :: work(:)
+  integer(kind=8), allocatable :: iwork(:)
+  real (kind=8),allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
+  character*1 :: jobz,uplo
 end module gnome_solvers

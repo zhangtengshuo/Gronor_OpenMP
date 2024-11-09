@@ -61,7 +61,7 @@ subroutine gronor_solver_init(ntemp)
   character(len=255) :: string
   
   real(kind=8) :: worksize(2)
-  integer (kind=8) :: iworksize(2)
+  integer (kind=4) :: iworksize(2)
 
   nelecs=ntemp
 
@@ -274,6 +274,7 @@ subroutine gronor_solver_init(ntemp)
           lapack_info)
       lwork1m=max(int(worksize(1)),7*nelecs+4*nelecs*nelecs)+1024*nelecs
       lworki=8*nelecs
+      len_work_int=max(len_work_int,lworki)
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
@@ -283,11 +284,13 @@ subroutine gronor_solver_init(ntemp)
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs)
       lworki=max(int(iworksize(1)),3+5*nelecs)
+      len_work_int=max(len_work_int,lworki)
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
+    
 #endif  
 
 #ifdef MAGMA
@@ -310,9 +313,10 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
+    
+    if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
+    if(len_work_int.gt.0) allocate(workspace_i(len_work_int))
 
-    allocate(workspace_d(len_work_dbl))
-    allocate(workspace_i(len_work_int))
     
     return
   end subroutine gronor_solver_init

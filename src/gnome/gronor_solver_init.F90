@@ -65,6 +65,9 @@ subroutine gronor_solver_init(ntemp)
 
   nelecs=ntemp
 
+  len_work_int=0
+  len_work_dbl=0
+
 ! Cusolver initialization for the svd
   
   if(idbg.gt.50) then
@@ -212,8 +215,8 @@ subroutine gronor_solver_init(ntemp)
           8*lwork1," needed as workspace for CUSOLVER solvers"
       call gronor_abort(500,string)
     endif
-    
-    allocate(workspace_d(lwork1))
+
+    len_work_dbl=max(len_work_dbl,lwork1)
 
 #endif
   endif
@@ -251,8 +254,8 @@ subroutine gronor_solver_init(ntemp)
     endif
     lwork1m=max(8*ndimm,lwork1m,lwork2m)
     lworki=max(8*ndimm,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
 #endif
 
 #ifdef LAPACK
@@ -283,8 +286,8 @@ subroutine gronor_solver_init(ntemp)
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
 #endif  
 
 #ifdef MAGMA
@@ -293,10 +296,6 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-!    if(sv_solver.eq.SOLVER_LAPACK) then
-!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-!      lwork1m=int(worksize(1))+1024*nelecs
-!    endif
     if(ev_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.0) then
         call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
@@ -308,9 +307,13 @@ subroutine gronor_solver_init(ntemp)
     endif
     lwork1m=max(8,lwork1m,lwork2m)
     lworki=max(8,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
 #endif
+
+    allocate(workspace_d(len_work_dbl))
+    allocate(workspace_i(len_work_int))
+    
     return
   end subroutine gronor_solver_init
 

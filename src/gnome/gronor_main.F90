@@ -2438,8 +2438,7 @@ subroutine gronor_main()
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
         trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
-        len_work_dbl,len_work_int
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off
     if(numacc.gt.0) then
       write(lfnlog,813) trim(asvd),trim(aevd),trim(nsvd),trim(nevd)
     else
@@ -2447,7 +2446,7 @@ subroutine gronor_main()
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
 802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,2i10)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2)
 813 format(2x,"GPU solvers: ",a," and ",a,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)

@@ -63,8 +63,6 @@ subroutine gronor_solver_init(ntemp)
   real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
 
-  integer (kind=4) :: lworki,lwork1m,lwork2m
-
   nelecs=ntemp
 
   len_work_int=0

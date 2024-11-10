@@ -321,7 +321,7 @@ module gnome_data
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
   real (kind=8), allocatable :: work(:)
-  integer (kind=4) :: lwrk,len_work_dbl,len_work_int,info
+  integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
 
@@ -877,7 +877,7 @@ end module amd_rocsolver
 #ifdef MKL
 module mkl_solver
 
-!  integer (kind=8)    :: ndimm,mdimm
+!  integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
 !  real (kind=8),allocatable :: rwork(:)
 !  real (kind=8),allocatable :: workspace_d(:)
 !  integer (kind=8), allocatable :: workspace_i(:)
@@ -887,7 +887,7 @@ end module mkl_solver
 
 #ifdef LAPACK
 module lapack_solver
-!  integer (kind=8) :: ndimm,mdimm
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
 !  real(kind=8), allocatable :: work(:)
 !  integer(kind=8), allocatable :: iwork(:)
 !  real (kind=8),allocatable :: workspace_d(:)
@@ -897,7 +897,7 @@ end module lapack_solver
 #else
 #ifdef MAGMA
 module magma_solver
-!  integer (kind=8) :: ndimm,mdimm
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
 !  real(kind=8), allocatable :: work(:)
 !  integer(kind=8), allocatable :: iwork(:)
 !  real (kind=8),allocatable :: workspace_d(:)
@@ -928,10 +928,10 @@ module gnome_solvers
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI
   end enum
-  integer (kind=8) :: ndimm,mdimm
+  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=4), allocatable :: workspace_i(:)
+  integer (kind=8), allocatable :: workspace_i(:)
   character*1 :: jobz,uplo
 end module gnome_solvers

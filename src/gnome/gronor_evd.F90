@@ -125,12 +125,10 @@ subroutine gronor_evd()
     endif
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_MKL) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
     if(ev_solver.eq.SOLVER_MKLD) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
     if(iamacc.eq.1) then
 #ifdef ACC
@@ -155,7 +153,7 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl,ierr)
+    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -174,8 +172,7 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-        workspace_i,len_work_int,ierr)
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -200,8 +197,7 @@ subroutine gronor_evd()
 !!!!!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif    
       ndimm=nelecs
-      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
+      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -212,8 +208,7 @@ subroutine gronor_evd()
 #endif
     else        
       ndimm=nelecs
-      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
+      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
   endif
 #endif 
@@ -381,11 +376,11 @@ subroutine gronor_evd_omp()
 #ifdef MKL
   if(ev_solver.eq.SOLVER_MKL) then
     ndimm=nelecs
-    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl,ierr)
+    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
   elseif(ev_solver.eq.SOLVER_MKLD) then
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-        workspace_i,len_work_int,ierr)
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+        workspace_i,lworki,ierr)
   endif
 #endif 
   
@@ -394,8 +389,8 @@ subroutine gronor_evd_omp()
 #ifdef LAPACK
   if(ev_solver.eq.SOLVER_LAPACK) then
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-        workspace_i,len_work_int,ierr)
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+        workspace_i,lworki,ierr)
   endif
 #endif 
 

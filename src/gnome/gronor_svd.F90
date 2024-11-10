@@ -146,7 +146,7 @@ subroutine gronor_svd()
     endif
     ndimm=nelecs
     call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,len_work_dbl,ierr)
+        &       workspace_d,lwork1m,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -191,7 +191,7 @@ subroutine gronor_svd()
     endif
     ndimm=nelecs
     call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,len_work_dbl,lapack_info)
+        &       workspace_d,lwork1m,lapack_info)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -231,7 +231,7 @@ subroutine gronor_svd()
     endif
     ndimm=nelecs
     call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,len_work_dbl,workspace_i,lapack_info)
+        &       workspace_d,lwork1m,workspace_i,lapack_info)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -444,16 +444,13 @@ subroutine gronor_svd_omp()
   if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD) then
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_MKL) then
-      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
-          workspace_d,len_work_dbl,ierr)
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLD) then
-      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
-          workspace_d,len_work_dbl,workspace_i,ierr)
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
-      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm, &
-          workspace_d,len_work_dbl,ierr)
+      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)
@@ -486,10 +483,10 @@ subroutine gronor_svd_omp()
   if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,len_work_dbl,ierr)
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,len_work_dbl,ierr)
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)

@@ -143,7 +143,7 @@ subroutine gronor_evd()
   
 ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(ev_solver.eq.SOLVER_LAPACK) then
+  if(ev_solver.eq.SOLVER_LAPACK.or.ev_solver.eq.SOLVER_LAPACKD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -153,26 +153,12 @@ subroutine gronor_evd()
 #endif    
     endif
     ndimm=nelecs
-    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
+    if(ev_solver.eq.SOLVER_LAPACK) then
+      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
+    elseif(ev_solver.eq.SOLVER_LAPACKD) then
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+          workspace_i,lworki,ierr)
     endif
-  elseif(ev_solver.eq.SOLVER_LAPACKD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif    
-    endif
-    ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -388,6 +374,10 @@ subroutine gronor_evd_omp()
   
 #ifdef LAPACK
   if(ev_solver.eq.SOLVER_LAPACK) then
+    ndimm=nelecs
+    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+        workspace_i,lworki,ierr)
+  elseif(ev_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
         workspace_i,lworki,ierr)

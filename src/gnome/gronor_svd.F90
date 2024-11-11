@@ -135,7 +135,7 @@ subroutine gronor_svd()
   
   ! ============ MKL ===========
 #ifdef MKL
-  if(sv_solver.eq.SOLVER_MKL) then
+  if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -145,8 +145,16 @@ subroutine gronor_svd()
 #endif    
     endif
     ndimm=nelecs
-    call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,ierr)
+    if(sv_solver.eq.SOLVER_MKL) then
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+    endif
+    if(sv_solver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,lwork1m,workspace_i,ierr)
+    endif
+    if(sv_solver.eq.SOLVER_MKLJ) then
+      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+    endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -180,7 +188,7 @@ subroutine gronor_svd()
   
   ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(sv_solver.eq.SOLVER_LAPACK) then
+  if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
@@ -190,48 +198,13 @@ subroutine gronor_svd()
 #endif    
     endif
     ndimm=nelecs
-    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,lapack_info)
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
+    if(sv_solver.eq.SOLVER_LAPACK) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
-#ifdef ACC
-!$acc kernels present(temp,u,w,ta)
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        temp(i,j)=w(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(j,i)=temp(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc end kernels
-#endif
-  elseif(sv_solver.eq.SOLVER_LAPACKD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif    
+    if(sv_solver.eq.SOLVER_LAPACKD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,lwork1m,workspace_i,ierr)
     endif
-    ndimm=nelecs
-    call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,workspace_i,lapack_info)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -441,13 +414,14 @@ subroutine gronor_svd_omp()
   ! ============ MKL ===========
   
 #ifdef MKL
-  if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD) then
+  if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLD) then
-      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,lwork1m,workspace_i,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
       call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
@@ -486,7 +460,8 @@ subroutine gronor_svd_omp()
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,lwork1m,workspace_i,ierr)
     endif
 #ifdef OMP
 !$omp parallel shared(temp,w,nelecs)

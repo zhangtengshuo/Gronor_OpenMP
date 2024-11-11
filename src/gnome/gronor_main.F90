@@ -95,7 +95,7 @@ subroutine gronor_main()
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
   integer :: node
   real (kind=8) :: rdum(6)
-  character (len=255) :: string,target,compiler
+  character (len=255) :: string,architecture,compiler
   logical exist,first_pass
 
   real(kind=8), external :: timer_wall_total
@@ -494,23 +494,23 @@ subroutine gronor_main()
         '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
 #ifdef _OPENMP
-    target='CPU: OpenMP'
+    architecture='CPU:OpenMP'
 #else
-    target='CPU'
+    architecture='CPU'
 #endif
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') "AMD GPU: OpenACC"
+    write(architecture,'(a)') "AMD-GPU:OpenACC"
 #else
-    write(target,'(a)') "NVIDIA GPU: OpenACC"
+    write(architecture,'(a)') "NVIDIA-GPU:OpenACC"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') "AMD GPU: OpenMP"
+    write(architecture,'(a)') "AMD-GPU:OpenMP"
 #else
-    write(target,'(a)') "NVIDIA GPU: OpenMP"
+    write(architecture,'(a)') "NVIDIA-GPU:OpenMP"
 #endif
 #endif
     
@@ -570,7 +570,7 @@ subroutine gronor_main()
 #endif
     endif
     if(ipr.gt.0) then
-        write(lfnout,655) trim(compiletime),trim(target)
+        write(lfnout,655) trim(compiletime),trim(architecture)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
         write(lfnout,654) trim(usedcmake)
@@ -2416,8 +2416,7 @@ subroutine gronor_main()
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s  c',/, &
-          'Compile time/date',t19,'Host',t43,'Compiler target',t68,'Compiler version', &
-          t85,'MPI version',t118,'cmake version',/, &
+          'Compile time/date',t19,'Host',t43,'Target, ','Compiler, ','MPI, ','cmake',/, &
           '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
@@ -2436,17 +2435,18 @@ subroutine gronor_main()
     separator=':'
     if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
-        trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
+        trim(architecture),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
+        len_work_dbl,len_work_int
     if(numacc.gt.0) then
       write(lfnlog,813) trim(asvd),trim(aevd),trim(nsvd),trim(nevd)
     else
       write(lfnlog,814) trim(nsvd),trim(nevd)
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
-802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2)
+802 format(a17,t19,a,a,a,t43,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,2i10)
 813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)

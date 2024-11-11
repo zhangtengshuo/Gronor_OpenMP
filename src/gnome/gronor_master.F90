@@ -373,6 +373,8 @@ subroutine gronor_master()
           endif
 705       format(a8,2x,a8,f12.3,a)
           flush(lfnday)
+          len_work_dbl=int(buffer(16),kind=8)
+          len_work_int=int(buffer(17),kind=8)
           call timer_start(99)
           call timer_start(98)
         endif

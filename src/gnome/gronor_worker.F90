@@ -110,6 +110,8 @@ subroutine gronor_worker()
   do i=1,17
     rbuf(i)=0.0d0
   enddo
+  rbuf(16)=dble(len_work_dbl)
+  rbuf(17)=dble(len_work_int)
   
   if(idbg.gt.0) then
     call swatch(date,time)

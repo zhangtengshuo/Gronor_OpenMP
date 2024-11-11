@@ -1582,7 +1582,7 @@ subroutine gronor_main()
     if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
     if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
     if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
-    if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd"
+    if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd"
     if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
     if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
     if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyev"

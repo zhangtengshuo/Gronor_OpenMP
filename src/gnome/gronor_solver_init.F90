@@ -250,7 +250,7 @@ subroutine gronor_solver_init(ntemp)
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
-      lworki=int(iworksize(1))
+      lworki=max(int(iworksize(1),lworki)
     endif
     lwork1m=max(8*ndimm,lwork1m,lwork2m)
     lworki=max(8*ndimm,lworki)
@@ -283,7 +283,7 @@ subroutine gronor_solver_init(ntemp)
     if(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs)
-      lworki=max(int(iworksize(1)),3+5*nelecs)
+      lworki=max(int(iworksize(1)),3+5*nelecs,lworki)
       len_work_int=max(len_work_int,lworki)
     endif
     lwork1m=max(8,lwork1m,lwork2m)

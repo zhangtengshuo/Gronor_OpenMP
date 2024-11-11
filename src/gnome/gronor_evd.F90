@@ -375,8 +375,7 @@ subroutine gronor_evd_omp()
 #ifdef LAPACK
   if(ev_solver.eq.SOLVER_LAPACK) then
     ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
-        workspace_i,lworki,ierr)
+    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
   elseif(ev_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
     call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &

@@ -236,7 +236,7 @@ subroutine gronor_solver_init(ntemp)
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=max(int(iworksize(1)),lworki)
+      lworki=max(8*nelecs,lworki)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
 !      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
@@ -252,7 +252,7 @@ subroutine gronor_solver_init(ntemp)
       lwork2m=max(int(worksize(1)),lwork2m)
       lworki=max(int(iworksize(1)),lworki)
     endif
-    lwork1m=max(0,lwork1m,lwork2m)
+    lwork1m=max(0,lwork1m,lwork2m,lwork1)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
@@ -264,7 +264,7 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-  
+    
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
       lwork1m=max(int(worksize(1)),lwork1m)
@@ -273,8 +273,7 @@ subroutine gronor_solver_init(ntemp)
       call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
           lapack_info)
       lwork1m=max(int(worksize(1)),lwork1m)
-      lworki=max(int(iworksize(1)),lworki)
-      len_work_int=max(len_work_int,lworki)
+      lworki=max(8*nelecs,lworki)
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
@@ -284,7 +283,6 @@ subroutine gronor_solver_init(ntemp)
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       lwork2m=max(int(worksize(1)),lwork2m)
       lworki=max(int(iworksize(1)),lworki)
-      len_work_int=max(len_work_int,lworki)
     endif
     lwork1m=max(0,lwork1m,lwork2m)
     lworki=max(0,lworki)
@@ -320,7 +318,6 @@ subroutine gronor_solver_init(ntemp)
     if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
     if(len_work_int.gt.0) allocate(workspace_i(len_work_int))
 
-    
     return
   end subroutine gronor_solver_init
 

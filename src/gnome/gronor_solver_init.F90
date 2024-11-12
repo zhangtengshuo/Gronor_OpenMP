@@ -236,12 +236,12 @@ subroutine gronor_solver_init(ntemp)
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=max(int(iworksize(1)),l8*ndimm,lworki)
+      lworki=max(int(iworksize(1)),lworki)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
 !      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
       lwork1m=max(int(worksize(1)),6,2*nelecs,lwork1m)
-      lworki=max(int(iworksize(1)),l8*ndimm,lworki)
+      lworki=max(int(iworksize(1)),lworki)
     endif
     if(ev_solver.eq.SOLVER_MKL) then
       call dsyev('N','L',ndimm,a,ndimm,w,worksize,lwork2m,ierr)
@@ -267,13 +267,13 @@ subroutine gronor_solver_init(ntemp)
   
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-      lwork1m=max(int(worksize(1)),1+3*nelecs,5*nelecs)+1024*nelecs
+      lwork1m=max(int(worksize(1)),lwork1m)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
           lapack_info)
-      lwork1m=max(int(worksize(1)),7*nelecs+4*nelecs*nelecs)+1024*nelecs
-      lworki=max(int(iworksize(1)),8*nelecs,lworki)
+      lwork1m=max(int(worksize(1)),lwork1m)
+      lworki=max(int(iworksize(1)),lworki)
       len_work_int=max(len_work_int,lworki)
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
@@ -282,8 +282,8 @@ subroutine gronor_solver_init(ntemp)
     endif
     if(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
-      lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs,lwork2m)
-      lworki=max(int(iworksize(1)),3+5*nelecs,lworki)
+      lwork2m=max(int(worksize(1)),lwork2m)
+      lworki=max(int(iworksize(1)),lworki)
       len_work_int=max(len_work_int,lworki)
     endif
     lwork1m=max(0,lwork1m,lwork2m)

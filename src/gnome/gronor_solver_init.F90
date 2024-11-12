@@ -236,12 +236,12 @@ subroutine gronor_solver_init(ntemp)
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=8*ndimm
+      lworki=max(int(iworksize(1)),l8*ndimm,lworki)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
 !      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
       lwork1m=max(int(worksize(1)),6,2*nelecs,lwork1m)
-      lworki=8*ndimm
+      lworki=max(int(iworksize(1)),l8*ndimm,lworki)
     endif
     if(ev_solver.eq.SOLVER_MKL) then
       call dsyev('N','L',ndimm,a,ndimm,w,worksize,lwork2m,ierr)
@@ -273,16 +273,16 @@ subroutine gronor_solver_init(ntemp)
       call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
           lapack_info)
       lwork1m=max(int(worksize(1)),7*nelecs+4*nelecs*nelecs)+1024*nelecs
-      lworki=8*nelecs
+      lworki=max(int(iworksize(1)),8*nelecs,lworki)
       len_work_int=max(len_work_int,lworki)
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
-      lwork2m=int(worksize(1))+1024*nelecs
+      lwork2m=max(int(worksize(1)),lwork2m)
     endif
     if(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
-      lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs)
+      lwork2m=max(int(worksize(1)),1+6*nelecs+2*nelecs*nelecs,lwork2m)
       lworki=max(int(iworksize(1)),3+5*nelecs,lworki)
       len_work_int=max(len_work_int,lworki)
     endif
@@ -305,8 +305,8 @@ subroutine gronor_solver_init(ntemp)
       else
         call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       endif
-      lwork2m=int(worksize(1))+1024*nelecs
-      lworki=int(iworksize(1))+1024*nelecs
+      lwork2m=max(int(worksize(1)),lwork2m)
+      lworki=max(int(iworksize(1)),lworki)
     endif
     lwork1m=max(0,lwork1m,lwork2m)
     lworki=max(0,lworki)

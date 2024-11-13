@@ -64,9 +64,24 @@ subroutine gronor_evd()
   character (len=1), target :: jobu, jobvt
 #endif
   
-  ! ========== EISPACK =========
-
-  if(ev_solver.eq.SOLVER_EISPACK) then
+  if(iamacc.eq.1) then
+     if(levcpu) then
+#ifdef ACC
+!$acc update host (a)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a)
+#endif 
+#ifdef OMP
+!$omp parallel do shared(sdiag)
+#endif
+      do i=1,nelecs
+        sdiag(i)=0.0d0
+      enddo
+#ifdef OMP
+!$omp end parallel do
+#endif   
+     endif
 #ifdef ACC
 !$acc kernels present(sdiag)
 #endif
@@ -90,39 +105,30 @@ subroutine gronor_evd()
 !$omp end target teams distribute parallel do
 #endif
 #endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
+   else
+#ifdef OMP
+!$omp parallel do shared(sdiag)
 #endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif    
-    endif
+      do i=1,nelecs
+        sdiag(i)=0.0d0
+      enddo
+#ifdef OMP
+!$omp end parallel do
+#endif
+   endif
+   
+  ! ========== EISPACK =========
+
+  if(ev_solver.eq.SOLVER_EISPACK) then
     call tred2(nelecs,nelecs,a,nelecs,nelecs,diag, &
         nelecs,sdiag,nelecs,a,nelecs,nelecs)
     call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs, &
         a,nelecs,nelecs,ierr)
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
   endif
   
 ! ============ MKL ===========
 #ifdef MKL
   if(ev_solver.eq.SOLVER_MKL.or.ev_solver.eq.SOLVER_MKLD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif    
-    endif
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_MKL) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
@@ -130,42 +136,18 @@ subroutine gronor_evd()
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
     endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
-  endif
+ endif
 #endif 
   
 ! ============ LAPACK ===========
 #ifdef LAPACK
   if(ev_solver.eq.SOLVER_LAPACK.or.ev_solver.eq.SOLVER_LAPACKD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif    
-    endif
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
     elseif(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
           workspace_i,lworki,ierr)
-    endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
     endif
   endif
 #endif 
@@ -304,84 +286,17 @@ subroutine gronor_evd()
 #endif
     
 
+  if(iamacc.eq.1) then
+     if(lsvcpu) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w)
+#endif
+     endif
+  endif
+
+
   return
 end subroutine gronor_evd
-
-
-
-subroutine gronor_evd_omp()
-  use cidist
-  use gnome_parameters
-  use gnome_data
-  use gnome_solvers
-
-  ! library specific modules
-
-#ifdef MKL
-  use mkl_solver
-#endif
-#ifdef LAPACK
-  use lapack_solver
-#endif
-
-  ! variable declarations
-
-  implicit none
-
-  external :: tred2,tql2
-#ifdef MKL
-  external :: dsyevd
-#endif
-#ifdef LAPACK
-  external :: dsyevd
-#endif
-  
-  integer :: i
-  integer :: ierr
-
-  ! ========== EISPACK =========
-
-  if(ev_solver.eq.SOLVER_EISPACK) then
-#ifdef OMP
-!$omp parallel do shared(sdiag)
-#endif
-    do i=1,nelecs
-      sdiag(i)=0.0d0
-    enddo
-#ifdef OMP
-!$omp end parallel do
-#endif
-    call tred2(nelecs,nelecs,a,nelecs,nelecs,diag, &
-        nelecs,sdiag,nelecs,a,nelecs,nelecs)
-    call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs,a,nelecs, &
-        nelecs,ierr)
-  endif
-  
-  ! ============ MKL ===========
-  
-#ifdef MKL
-  if(ev_solver.eq.SOLVER_MKL) then
-    ndimm=nelecs
-    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
-  elseif(ev_solver.eq.SOLVER_MKLD) then
-    ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
-        workspace_i,lworki,ierr)
-  endif
-#endif 
-  
-  ! ============ LAPACK ===========
-  
-#ifdef LAPACK
-  if(ev_solver.eq.SOLVER_LAPACK) then
-    ndimm=nelecs
-    call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
-  elseif(ev_solver.eq.SOLVER_LAPACKD) then
-    ndimm=nelecs
-    call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
-        workspace_i,lworki,ierr)
-  endif
-#endif 
-
-  return
-end subroutine gronor_evd_omp

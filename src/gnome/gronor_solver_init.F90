@@ -75,6 +75,39 @@ subroutine gronor_solver_init(ntemp)
     write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",sv_solver,ev_solver
     flush(lfndbg)
   endif
+
+  lsvcpu=.false.
+  levcpu=.false.
+  lsvtrns=.false.
+  
+  if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACK) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKD) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKQ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJH) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
+
+  if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKQ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJH) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
+  
+  if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKD) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKQ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKJ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKJH) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER

@@ -252,7 +252,7 @@ subroutine gronor_solver_init(ntemp)
       lwork2m=max(int(worksize(1)),lwork2m)
       lworki=max(int(iworksize(1)),lworki)
     endif
-    lwork1m=max(0,lwork1m,lwork2m,lwork1)
+    lwork1m=max(0,lwork1m,lwork2m)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)

@@ -287,7 +287,7 @@ subroutine gronor_evd()
     
 
   if(iamacc.eq.1) then
-     if(lsvcpu) then
+     if(levcpu) then
 #ifdef ACC
 !$acc update device (ev,u,w)
 #endif

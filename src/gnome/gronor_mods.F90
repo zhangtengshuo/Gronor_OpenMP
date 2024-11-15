@@ -323,6 +323,7 @@ module gnome_data
 
   real (kind=8), allocatable :: work(:)
   integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
+  integer (kind=4) :: len_work_dbl4,len_work_int4
 
   real (kind=8) :: buffer(17)
 
@@ -929,7 +930,7 @@ module gnome_solvers
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI
   end enum
-  integer (kind=8) :: lwork1m,lwork2m,lwork,liwork,ndimm,mdimm
+  integer (kind=8) :: lwork,liwork,ndimm,mdimm
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)

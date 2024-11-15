@@ -150,14 +150,16 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_MKL) then
-      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,len_work_dbl,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
-          workspace_d,lwork1m,workspace_i,ierr)
+          workspace_d,len_work_dbl,workspace_i,ierr)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
-      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm, &
+          workspace_d,len_work_dbl,ierr)
     endif
   endif
 #endif 
@@ -167,11 +169,12 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
+          workspace_d,len_work_dbl,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, &
-          workspace_d,lwork1m,workspace_i,ierr)
+          workspace_d,len_work_dbl,workspace_i,ierr)
     endif
   endif
 #endif 

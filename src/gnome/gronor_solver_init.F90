@@ -60,7 +60,7 @@ subroutine gronor_solver_init(ntemp)
   integer :: ntemp
   character(len=255) :: string
   
-  integer (kind=8) :: lworki
+  integer (kind=8) :: lworki,lwork1m,lwork2m
   
   real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
@@ -136,6 +136,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+      
 #ifdef CUSOLVERJ
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
@@ -280,11 +281,11 @@ subroutine gronor_solver_init(ntemp)
     endif
     if(ev_solver.eq.SOLVER_MKL) then
       call dsyev('N','L',ndimm,a,ndimm,w,worksize,lwork2m,ierr)
-      lwork2m=max(int(worksize(1)),lwork2m)
+      lwork2m=int(worksize(1))
     endif
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
-      lwork2m=max(int(worksize(1)),lwork2m)
+      lwork2m=int(worksize(1))
       lworki=max(int(iworksize(1)),lworki)
     endif
     lwork1m=max(0,lwork1m,lwork2m)
@@ -302,21 +303,21 @@ subroutine gronor_solver_init(ntemp)
     
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-      lwork1m=max(int(worksize(1)),lwork1m)
+      lwork1m=int(worksize(1))
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
           lapack_info)
-      lwork1m=max(int(worksize(1)),lwork1m)
-      lworki=max(8*nelecs,lworki)
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
     endif
     if(ev_solver.eq.SOLVER_LAPACK) then
       call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
-      lwork2m=max(int(worksize(1)),lwork2m)
+      lwork2m=int(worksize(1))
     endif
     if(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
-      lwork2m=max(int(worksize(1)),lwork2m)
+      lwork2m=int(worksize(1))
       lworki=max(int(iworksize(1)),lworki)
     endif
     lwork1m=max(0,lwork1m,lwork2m)
@@ -338,8 +339,8 @@ subroutine gronor_solver_init(ntemp)
       else
         call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       endif
-      lwork2m=max(int(worksize(1)),lwork2m)
-      lworki=max(int(iworksize(1)),lworki)
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
     endif
     lwork1m=max(0,lwork1m,lwork2m)
     lworki=max(0,lworki)

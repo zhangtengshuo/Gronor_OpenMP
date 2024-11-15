@@ -131,10 +131,10 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_MKL.or.ev_solver.eq.SOLVER_MKLD) then
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_MKL) then
-      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
+      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl,ierr)
     endif
     if(ev_solver.eq.SOLVER_MKLD) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
           workspace_i,len_work_int,ierr)
     endif
  endif
@@ -145,9 +145,9 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_LAPACK.or.ev_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_LAPACK) then
-      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
+      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl,ierr)
     elseif(ev_solver.eq.SOLVER_LAPACKD) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
           workspace_i,len_work_int,ierr)
     endif
   endif
@@ -166,7 +166,7 @@ subroutine gronor_evd()
 !!!!!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
 #endif    
       ndimm=nelecs
-      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
           workspace_i,l_work_int,ierr)
 #ifdef ACC
 !$acc end host_data
@@ -178,7 +178,7 @@ subroutine gronor_evd()
 #endif
     else        
       ndimm=nelecs
-      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m, &
+      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
       workspace_i,len_work_int,ierr)
     endif
   endif

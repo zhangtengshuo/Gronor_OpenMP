@@ -60,6 +60,8 @@ subroutine gronor_solver_init(ntemp)
   integer :: ntemp
   character(len=255) :: string
   
+  integer (kind=8) :: lworki
+  
   real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
 

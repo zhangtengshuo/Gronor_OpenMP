@@ -323,7 +323,6 @@ module gnome_data
 
   real (kind=8), allocatable :: work(:)
   integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
-  integer (kind=4) :: len_work_dbl4,len_work_int4
 
   real (kind=8) :: buffer(17)
 

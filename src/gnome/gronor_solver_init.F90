@@ -61,6 +61,7 @@ subroutine gronor_solver_init(ntemp)
   character(len=255) :: string
   
   integer (kind=8) :: lworki,lwork1m,lwork2m
+  integer (kind=4) :: lwork1,lwork2
   
   real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
@@ -136,7 +137,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
-      
+    len_work_dbl=max(len_work_dbl,lwork1)
 #ifdef CUSOLVERJ
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
@@ -175,6 +176,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+    len_work_dbl=max(len_work_dbl,lwork1)
     endif
 #endif
 
@@ -242,8 +244,6 @@ subroutine gronor_solver_init(ntemp)
     endif
 #endif
 
-    lwork1=max(lwork1,lwork2)
-
     call gronor_update_device_info()
 
     if(memavail.gt.0.and.8*lwork1.gt.memavail) then
@@ -252,7 +252,7 @@ subroutine gronor_solver_init(ntemp)
       call gronor_abort(500,string)
     endif
 
-    len_work_dbl=max(len_work_dbl,lwork1)
+    len_work_dbl=max(len_work_dbl,lwork1,lwork2)
 
 #endif
   endif
@@ -350,6 +350,8 @@ subroutine gronor_solver_init(ntemp)
     
     len_work_dbl=max(0,len_work_dbl)
     len_work_int=max(0,len_work_int)
+    len_work_dbl4=int(len_work_dbl,kind=4)
+    len_work_int4=int(len_work_int,kind=4)
     
     if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
     if(len_work_int.gt.0) allocate(workspace_i(len_work_int))

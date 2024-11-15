@@ -196,7 +196,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
         ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,           &
-        lwork1,rwork,dev_info_d)
+        len_work_dbl4,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -248,7 +248,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
                ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-               lwork1,dev_info_d,gesvdj_params)
+               len_work_dbl4,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data

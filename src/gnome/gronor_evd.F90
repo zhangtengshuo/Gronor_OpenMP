@@ -202,7 +202,7 @@ subroutine gronor_evd()
 #endif
     cusolver_status = cusolverDnDsyevd(cusolver_handle, &
         CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER, &
-        ndim,a,ndim,diag,workspace_d,lwork2,dev_info_d)
+        ndim,a,ndim,diag,workspace_d,len_work_dbl4,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -234,7 +234,7 @@ subroutine gronor_evd()
 #endif
     cusolver_status = cusolverDnDsyevj &
         (cusolver_handle, jobz, uplo, ndim,a,ndim,diag, &
-        workspace_d,lwork2,dev_info_d,syevj_params)
+        workspace_d,len_work_dbl4,dev_info_d,syevj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data   

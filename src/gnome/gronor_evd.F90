@@ -131,7 +131,7 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_MKL.or.ev_solver.eq.SOLVER_MKLD) then
     ndimm=nelecs
     if(ev_solver.eq.SOLVER_MKL) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)
+      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,ierr)
     endif
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,lwork1m,workspace_i,lworki,ierr)

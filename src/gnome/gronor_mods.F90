@@ -488,7 +488,11 @@ module cuda_cusolver
       integer(c_int), value    :: econ
       integer(c_int), value    :: m,n,lda,ldu,ldv
       integer(c_int)           :: lwork
+#ifdef ACC
       real(c_double), device   :: a(:,:),s(:),u(:,:),v(:,:)
+#else
+      real(c_double)           :: a(:,:),s(:),u(:,:),v(:,:)
+#endif
       type(gesvdjInfo)         :: info
     end function cusolverDnDgesvdj_bufferSize
   end interface
@@ -502,7 +506,11 @@ module cuda_cusolver
       type(cusolverDnHandle), value :: cusolver_Hndl
       integer(c_int), value   :: jobz
       integer(c_int), value   :: econ,m,n,lda,ldu,ldv
+#ifdef ACC
       real(c_double), device  :: a(:,:),s(:),u(:,:),v(:,:),work(:)
+#else
+      real(c_double)          :: a(:,:),s(:),u(:,:),v(:,:),work(:)
+#endif
       integer(c_int)          :: lwork
       integer(c_int)          :: devinfo
       type(gesvdjInfo)        :: info
@@ -571,7 +579,11 @@ module cuda_cusolver
       integer(c_int), value         :: uplo
       integer(c_int), value         :: n,lda
       integer(c_int)                :: lwork
+#ifdef ACC
       real(c_double) , device       :: a(:,:),v(:)
+#else
+      real(c_double)                :: a(:,:),v(:)
+#endif
       type(syevjInfo)               :: info
     end function cusolverDnDsyevj_bufferSize
   end interface
@@ -586,7 +598,11 @@ module cuda_cusolver
       integer(c_int), value   :: jobz
       integer(c_int), value   :: uplo
       integer(c_int), value   :: n,lda
+#ifdef ACC
       real(c_double), device  :: a(:,:),v(:),work(:)
+#else
+      real(c_double)          :: a(:,:),v(:),work(:)
+#endif
       integer(c_int)          :: lwork
       integer(c_int)          :: devinfo
       type(syevjInfo)         :: info

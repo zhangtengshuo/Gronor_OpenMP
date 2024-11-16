@@ -323,19 +323,47 @@ subroutine gronor_svd()
 !$acc kernels present(temp,u,w,ta)
 !$acc loop collapse(2)
 #endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+#endif
         do i=1,nelecs
            do j=1,nelecs
               temp(i,j)=w(i,j)
            enddo
         enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
 #ifdef ACC
 !$acc loop collapse(2)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
 #endif
         do i=1,nelecs
            do j=1,nelecs
               w(j,i)=temp(i,j)
            enddo
         enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
 #ifdef ACC
 !$acc end kernels
 #endif

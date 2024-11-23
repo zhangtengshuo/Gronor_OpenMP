@@ -242,14 +242,14 @@ module gnome_data
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
 #ifdef HIPSOLVER
   real (kind=8), allocatable, target :: a(:,:)
-  real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable, target :: u(:,:),w(:,:),wt(:,:),ev(:)
 #else
 #ifdef ROCSOLVER
   real (kind=8), allocatable, target :: a(:,:)
-  real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable, target :: u(:,:),w(:,:),wt(:,:),ev(:)
 #else
   real (kind=8), allocatable :: a(:,:)
-  real (kind=8), allocatable :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
 #endif
 #endif
   real (kind=8), allocatable :: sdiag(:)
@@ -260,7 +260,6 @@ module gnome_data
   real (kind=8), allocatable :: veca(:),vecb(:)
   real (kind=8), allocatable :: s12d(:,:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
-  real (kind=8), allocatable :: temp(:,:)
 
   real (kind=8), allocatable :: taa(:,:)
 #ifdef HIPSOLVER

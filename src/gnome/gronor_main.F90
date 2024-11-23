@@ -2146,6 +2146,7 @@ subroutine gronor_main()
       allocate(a(nelecs,nelecs))
       allocate(u(nelecs,nelecs))
       allocate(w(nelecs,nelecs))
+      allocate(wt(nelecs,nelecs))
       allocate(ev(nelecs))
       allocate(sdiag(max(nelecs,nbas,mbasel)))
       allocate(diag(max(nelecs,nbas,mbasel)))
@@ -2260,7 +2261,7 @@ subroutine gronor_main()
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
-      allocate(temp(nelecs,nelecs),rwork(nelecs))
+      allocate(rwork(nelecs))
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
@@ -2270,7 +2271,7 @@ subroutine gronor_main()
         endif
 #ifdef ACC
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork) &
+!$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
@@ -2278,7 +2279,7 @@ subroutine gronor_main()
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork) &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
@@ -2335,11 +2336,10 @@ subroutine gronor_main()
         deallocate(csdiag1,bdiag1,bsdiag1,diag1)
         deallocate(prefac1)
       endif
-      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
+      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
       deallocate(s,st)
-      deallocate(temp)
     endif
   endif
 

@@ -141,6 +141,7 @@ subroutine gronor_svd()
     enddo
 #ifdef OMP
 !$omp end do
+!$omp end parallel
 #endif
     if(iamacc.eq.1) then
 #ifdef ACC
@@ -184,6 +185,7 @@ subroutine gronor_svd()
     enddo
 #ifdef OMP
 !$omp end do
+!$omp end parallel
 #endif
     if(iamacc.eq.1) then
 #ifdef ACC

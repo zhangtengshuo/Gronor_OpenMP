@@ -227,7 +227,7 @@ subroutine gronor_svd()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
 #ifdef ACC
-!$acc kernels present(u,w,wt,ta)
+!$acc kernels present(w,wt)
 !$acc loop collapse(2)
 #endif
     do i=1,nelecs

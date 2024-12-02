@@ -300,8 +300,8 @@ subroutine gronor_svd()
     ndim=nelecs
     mdim=mbasel
     call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
-        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,m,n,c_loc(at),n, &
-        c_loc(st),c_loc(ut),n,c_loc(vtt),n,c_loc(work), &
+        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
         ROCBLAS_OUTOFPLACE,rocinfo))
     call hipCheck(hipDeviceSynchronize())
   endif

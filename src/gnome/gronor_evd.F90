@@ -46,6 +46,17 @@ subroutine gronor_evd()
   use cudafor
 #endif
 
+#ifdef ROCSOLVER
+  use rocvars
+  use iso_fortran_env
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
   ! variable declarations
 
   implicit none
@@ -273,7 +284,7 @@ subroutine gronor_evd()
     ndim=nelecs
     mdim=mbasel
     istatus=rocsolver_dsyev(rocsolver_handle,evect,uplo, &
-        m,c_loc(at),m,c_loc(dt),c_loc(et),rocinfo)
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
     call hipCheck(hipDeviceSynchronize())
   endif
 #endif

@@ -32,6 +32,7 @@ subroutine gronor_assign_managers()
     map2(i,9)=-1
     if(map2(i,8).eq.worker) map2(i,9)=mstr
   enddo
+  map2(np,9)=-1
   return
   endif
   

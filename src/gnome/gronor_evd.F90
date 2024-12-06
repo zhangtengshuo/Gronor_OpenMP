@@ -57,6 +57,17 @@ subroutine gronor_evd()
   use hipfort_rocsolver
 #endif
 
+#ifdef HIPSOLVER
+  use hipvars
+  use iso_fortran_env
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
   ! variable declarations
 
   implicit none

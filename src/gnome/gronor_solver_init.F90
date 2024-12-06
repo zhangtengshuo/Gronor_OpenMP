@@ -359,6 +359,41 @@ subroutine gronor_solver_init(ntemp)
 
 subroutine gronor_solver_final()
 
+  use mpi
+  use inp
+  use cidef
+  use cidist
+  use gnome_parameters
+  use gnome_data
+  use gnome_integrals
+  use iso_c_binding
+  use iso_fortran_env
+  use gnome_solvers
+
+#ifdef CUSOLVER
+  use cusolverDn
+  use cuda_cusolver
+#endif
+
+#ifdef ROCSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+  
   if(iamacc.gt.0) then
 #ifdef CUSOLVER
     cusolver_status = cusolverDnDestroy(cusolver_handle)
@@ -366,12 +401,12 @@ subroutine gronor_solver_final()
         write(*,*) 'cusolver_handle destruction failed'
 #endif
 #ifdef HIPSOLVER
-    hipsolver_status = hipsolverDestroy(hipsolver_handle)
-    if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS) &
+    if (hipsolverDestroy(hipsolver_handle) /= HIPSOLVER_STATUS_SUCCESS) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
 #ifdef ROCSOLVER
-    call hipcheck(rocblas_destroy_handle(rocsolver_handle))
+    if (rocsolverDestroy(rocsolver_handle) /= 0) &
+        write(*,*) 'hipsolver_handle destruction failed'
 #endif
   endif
 
@@ -430,7 +465,12 @@ subroutine gronor_solver_create_handle()
 #endif
 
 #ifdef ROCSOLVER
-    call hipcheck(rocblas_create_handle(rocsolver_handle))
+    call rocsolvercreate(rocsolver_handle)
+!    call hipcheck(rocblas_create_handle(rocsolver_handle))
+#endif
+
+#ifdef HIPSOLVER
+    call hipsolvercreate(hipsolver_handle)
 #endif
     
   endif

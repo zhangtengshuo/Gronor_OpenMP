@@ -320,7 +320,7 @@ module gnome_data
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
-  real (kind=8), allocatable :: work(:)
+!  real (kind=8), allocatable :: work(:)
   integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)

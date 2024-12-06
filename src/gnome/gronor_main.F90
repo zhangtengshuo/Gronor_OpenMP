@@ -822,7 +822,7 @@ subroutine gronor_main()
 
     endif
 
-    if(managers.gt.0) call gronor_assign_managers()
+    call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
 
@@ -994,7 +994,11 @@ subroutine gronor_main()
       do j=np,1,-1
         if(map2(j,6).eq.i-1.and.map2(j,5).ne.0) then
           k=k+1
-          if(k.le.nidle) map2(j,5)=0
+          if(j.ne.np) then
+            if(k.le.nidle) map2(j,5)=0
+          else
+            if(k.le.nidle-1) map2(j,5)=0
+          endif
         endif
       enddo
     enddo
@@ -1327,7 +1331,7 @@ subroutine gronor_main()
   enddo
 
   if(me.eq.mstr) then
-    if(managers.eq.0) then
+    if(managers.lt.0) then
       write(lfnrnk,6666)
 6666  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
           '    Rank  ND DI NT   Group    RSet Ac    Node  ', &

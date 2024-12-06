@@ -130,5 +130,9 @@ subroutine gronor_assign_managers()
     if(map2(i,8).eq.manager) numman=numman+1
   enddo
   nperman=nperman/numman
+
+  do i=1,np-1
+    if(map2(i,8).eq.manager) map2(i,9)=mstr
+  enddo
   
 end subroutine gronor_assign_managers

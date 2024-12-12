@@ -889,6 +889,9 @@ subroutine gronor_master()
       dqbase(ibin,jbin,8)=dqbase(ibin,jbin,8)+buffer(16)
       dqbase(ibin,jbin,9)=dqbase(ibin,jbin,9)+buffer(17)
 
+      numtasks=numtasks+1
+      tmax=max(tmax,buffer(3))
+
       !     Decrement the tasks still to be done for base pair
 
       ntasks(ibin,jbin)=ntasks(ibin,jbin)-1

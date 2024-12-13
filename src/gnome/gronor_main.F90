@@ -2458,15 +2458,16 @@ subroutine gronor_main()
     if(nbase.gt.1) then
       write(lfnlog,803) &
           (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
-      !        endif
-      write(lfnlog,803) (hevnoct(i),i=1,nbasenoct)
-      !     Close the cml file after closing the remaining open tags
-      !        if(nbase.gt.1) then
-      write(lfnlog,803) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=1,nbasenoct)
+      write(lfnlog,803) (hev(i),i=1,nbase)
+      write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
+      if(nbasenoct.lt.nbase) then
+        write(lfnlog,803) (hevnoct(i),i=1,nbasenoct)
+        write(lfnlog,803) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=1,nbasenoct)
+      endif
     endif
     call gronor_finalize_cml
     close(unit=lfncml,status='keep')
-    !
+
 803 format(5x,6f20.10)
     write(lfnlog,804)
 804 format(' ')

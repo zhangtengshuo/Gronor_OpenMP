@@ -106,7 +106,7 @@ module cidef
 
   implicit none
 
-  integer :: nmol,mstates,nbase,nspin
+  integer :: nmol,mstates,nbase,nspin,nbasenoct
 
   character (len=255) :: root,filinp,filout,filpro,fildbg,filday
   character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
@@ -136,7 +136,7 @@ module cidef
   integer (kind=8), allocatable :: nactb(:),idetb(:),alldets(:)
   real (kind=8), allocatable :: hbase(:,:),sbase(:,:),tbase(:,:)
   real (kind=8), allocatable :: dqbase(:,:,:)
-  real (kind=8), allocatable :: hev(:)
+  real (kind=8), allocatable :: hev(:),hevnoct(:)
   real (kind=8), allocatable :: nociwf(:,:)
   logical, allocatable :: bpdone(:,:)
   integer, allocatable :: nsing(:,:,:)

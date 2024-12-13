@@ -47,7 +47,6 @@ subroutine gronor_print_results(hb)
   real(kind=8), allocatable     :: tc(:,:),nociovlp(:,:)
   real(kind=8), allocatable     :: nociwf0(:)
 
-  integer                       :: nbasenoct
   integer, allocatable          :: ndxnbase(:)
   real(kind=8), allocatable     :: nociwfnoct(:,:)
   real(kind=8), allocatable     :: nociovlpnoct(:,:)
@@ -200,7 +199,7 @@ subroutine gronor_print_results(hb)
       enddo
       allocate(work(lwork))
       call dsygv(1,'V','L',nbasenoct,nociwfnoct,nbasenoct,nociovlpnoct,nbasenoct, &
-          hev,work,lwork,info)
+          hevnoct,work,lwork,info)
       deallocate(work)
       if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
       
@@ -216,19 +215,19 @@ subroutine gronor_print_results(hb)
         il=min(nbasenoct,k*ncols)
         if(.not.mebfLabels.or.lablen.gt.labmax) then
           write(lfnout,680) (i,i=ii,il)
-          write(lfnout,681) (hev(i),i=ii,il)
-          write(lfnout,682) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+          write(lfnout,681) (hevnoct(i),i=ii,il)
+          write(lfnout,682) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
         else
           write(lfnout,690) (i,i=ii,il)
-          write(lfnout,691) (hev(i),i=ii,il)
-          write(lfnout,692) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+          write(lfnout,691) (hevnoct(i),i=ii,il)
+          write(lfnout,692) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
         endif
         write(lfnarx,668) (i,i=ii,il)
         write(lfnxrx,668) (i,i=ii,il)
-        write(lfnarx,669) (hev(i),i=ii,il)
-        write(lfnxrx,669) (hev(i),i=ii,il)
-        write(lfnarx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
-        write(lfnxrx,669) (27.2114d0*(hev(i)-hev(1)),i=ii,il)
+        write(lfnarx,669) (hevnoct(i),i=ii,il)
+        write(lfnxrx,669) (hevnoct(i),i=ii,il)
+        write(lfnarx,669) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
+        write(lfnxrx,669) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
         write(lfnout,683)
         do j=1,nbasenoct
           if (.not.mebfLabels) then

@@ -2422,7 +2422,8 @@ subroutine gronor_main()
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
           'a n a n   Task      Batch    s  s  s  c',/, &
           'Compile time/date',t19,'Host',t43,'Target, ','Compiler, ','MPI, ','cmake',/, &
-          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off',/)
+          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off', &
+          ' Wspc svd  Wspc evd     Tasks',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &

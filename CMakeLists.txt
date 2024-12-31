@@ -41,7 +41,6 @@ option (AVX512 "Compiler option for AVX512." OFF)
 option (GPU "GPU Vendor" NVIDIA)
 option (GUI "Graphical User Interface" OFF)
 
-
 # Set global session identifier
 
 # Detect system information

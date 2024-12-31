@@ -95,7 +95,7 @@ subroutine gronor_main()
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
   integer :: node
   real (kind=8) :: rdum(6)
-  character (len=255) :: string,target,compiler
+  character (len=255) :: string,architecture,compiler
   logical exist,first_pass
 
   real(kind=8), external :: timer_wall_total
@@ -348,8 +348,8 @@ subroutine gronor_main()
 
     !     Set solvers undefined
 
-    isolver=-1
-    jsolver=-1
+    sv_solver=-1
+    ev_solver=-1
     iaslvr=-1
     jaslvr=-1
     inslvr=-1
@@ -364,6 +364,12 @@ subroutine gronor_main()
     iswsvj=15
     iswevj=15
     nabort=64
+
+#ifdef SINGLEP
+    prec='S'
+#else
+    prec='D'
+#endif
 
 #ifdef _OPENACC
     naccel=0
@@ -386,7 +392,8 @@ subroutine gronor_main()
     nspin=0
     ncorr=0
     mpibuf=168435456
-    tau_CI=1.0d-5
+    tau_CI=1.0d-6
+    tau_CI_off=1.0d-5
     tau_SIN=1.0d-12
     tolsvj=1.0d-07
     tolevj=1.0d-07
@@ -442,6 +449,8 @@ subroutine gronor_main()
     if(ixpert.eq.0) then
       if(tau_CI.lt.1.0d-6) tau_CI=1.0d-6
       if(tau_CI.gt.1.0d-4) tau_CI=1.0d-4
+      if(tau_CI_off.lt.1.0d-6) tau_CI=1.0d-5
+      if(tau_CI_off.gt.1.0d-4) tau_CI=1.0d-4
     endif
 
     major=_GRONOR_VERSION_MAJOR_
@@ -485,23 +494,23 @@ subroutine gronor_main()
         '3565 (2022) https://doi.org/10.1021/acs.jctc.2c00266',/)
 
 #ifdef _OPENMP
-    target='CPU: OpenMP'
+    architecture='CPU:OpenMP'
 #else
-    target='CPU'
+    architecture='CPU'
 #endif
     compiler=' '
 #ifdef ACC
 #ifdef GPUAMD
-    write(target,'(a)') "AMD GPU: OpenACC"
+    write(architecture,'(a)') "AMD-GPU:OpenACC"
 #else
-    write(target,'(a)') "NVIDIA GPU: OpenACC"
+    write(architecture,'(a)') "NVIDIA-GPU:OpenACC"
 #endif
 #endif
 #ifdef OMPTGT
 #ifdef GPUAMD
-    write(target,'(a)') "AMD GPU: OpenMP"
+    write(architecture,'(a)') "AMD-GPU:OpenMP"
 #else
-    write(target,'(a)') "NVIDIA GPU: OpenMP"
+    write(architecture,'(a)') "NVIDIA-GPU:OpenMP"
 #endif
 #endif
     
@@ -561,7 +570,7 @@ subroutine gronor_main()
 #endif
     endif
     if(ipr.gt.0) then
-        write(lfnout,655) trim(compiletime),trim(target)
+        write(lfnout,655) trim(compiletime),trim(architecture)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
         write(lfnout,654) trim(usedcmake)
@@ -650,9 +659,10 @@ subroutine gronor_main()
 
     call gronor_read_vectors_and_determinants()
 
-    if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_SIN
+    if(ipr.gt.0) write(lfnout,607) tau_MO,tau_CI,tau_CI_off,tau_SIN
 607 format(/,' Threshold common molecular orbital transformation ',t55,1pe10.3, &
         /,' Threshold product MEBF expansion coefficients ',t55,e10.3, &
+        /,' Threshold product MEBF expansion coefficients for off diagonal ',t55,e10.3, &
         /,' Threshold determining singularities ',t55,e10.3)
 
     if(ipr.gt.0) write(lfnout,609) nspin+1
@@ -738,7 +748,7 @@ subroutine gronor_main()
       idum(55)=nabort
 
       rdum(1)=tau_CI
-      rdum(2)=tau_CI
+      rdum(2)=tau_CI_off
       rdum(3)=tau_SIN
       rdum(4)=tolsvj
       rdum(5)=tolevj
@@ -812,7 +822,7 @@ subroutine gronor_main()
 
     endif
 
-    if(managers.gt.0) call gronor_assign_managers()
+    call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
 
@@ -825,7 +835,7 @@ subroutine gronor_main()
     endif
     
     tau_CI=rdum(1)
-    tau_CI=rdum(2)
+    tau_CI_off=rdum(2)
     tau_SIN=rdum(3)
     tolsvj=rdum(4)
     tolevj=rdum(5)
@@ -984,7 +994,11 @@ subroutine gronor_main()
       do j=np,1,-1
         if(map2(j,6).eq.i-1.and.map2(j,5).ne.0) then
           k=k+1
-          if(k.le.nidle) map2(j,5)=0
+          if(j.ne.np) then
+            if(k.le.nidle) map2(j,5)=0
+          else
+            if(k.le.nidle-1) map2(j,5)=0
+          endif
         endif
       enddo
     enddo
@@ -1316,7 +1330,7 @@ subroutine gronor_main()
   enddo
 
   if(me.eq.mstr) then
-    if(managers.eq.0) then
+    if(managers.lt.0) then
       write(lfnrnk,6666)
 6666  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
           '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
@@ -1460,124 +1474,126 @@ subroutine gronor_main()
   if(jaslvr.lt.0) jaslvr=SOLVER_EISPACK
 
   if(iamacc.eq.1) then
-    isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(iaslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(iaslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
-    jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jaslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jaslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
+    sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
   else
-    isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(inslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(inslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jnslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jnslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
+    sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
     
-    isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(iaslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(iaslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(iaslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) isolver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) isolver=SOLVER_CUSOLVERJ
-    jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jaslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jaslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jaslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) jsolver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) jsolver=SOLVER_CUSOLVERJ
+    sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
+    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
+    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
     if(numacc.gt.0) then
-      if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd on CPU"
-      if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
-      if(isolver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd on CPU"
-      if(isolver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj on CPU"
-      if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
-      if(isolver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd on CPU"
-      if(isolver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
-      if(isolver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
-      if(isolver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
-      if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
-      if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
-      if(jsolver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
-      if(jsolver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj on CPU"
-      if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd on CPU"
-      if(jsolver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd on CPU"
-      if(jsolver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
-      if(jsolver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
-      if(jsolver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
+      if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd on CPU"
+      if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
+      if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd on CPU"
+      if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj on CPU"
+      if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
+      if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd on CPU"
+      if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
+      if(sv_solver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
+      if(sv_solver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
+      if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
+      if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj on CPU"
+      if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev on CPU"
+      if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd on CPU"
+      if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
+      if(ev_solver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
+      if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
+      asvd=istring
+      aevd=jstring
     endif
     
-    isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_EISPACK) isolver=SOLVER_EISPACK
-    if(inslvr.eq.SOLVER_MKL) isolver=SOLVER_MKL
-    if(inslvr.eq.SOLVER_MKLD) isolver=SOLVER_MKLD
-    if(inslvr.eq.SOLVER_MKLJ) isolver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) isolver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) isolver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) isolver=SOLVER_LAPACKJ
-    jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_EISPACK) jsolver=SOLVER_EISPACK
-    if(jnslvr.eq.SOLVER_MKL) jsolver=SOLVER_MKL
-    if(jnslvr.eq.SOLVER_MKLD) jsolver=SOLVER_MKLD
-    if(jnslvr.eq.SOLVER_MKLJ) jsolver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) jsolver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) jsolver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) jsolver=SOLVER_LAPACKJ
+    sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
+    if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
+    if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
+    if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
+    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
+    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
+    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
+    if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
+    if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
+    if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
+    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
+    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
+    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
 
-    if(isolver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
-    if(isolver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
-    if(isolver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
-    if(isolver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
-    if(isolver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
-    if(isolver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesvd"
-    if(isolver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
-    if(jsolver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
-    if(jsolver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd"
-    if(jsolver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
-    if(jsolver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
-    if(jsolver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyevd"
-    if(jsolver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
-    if(jsolver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
+    if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
+    if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
+    if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
+    if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
+    if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
+    if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd"
+    if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
+    if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
+    if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyev"
+    if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
+    if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
+    if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev"
+    if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
+    if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
 
     if(numacc.eq.0) then
       write(lfnout,612) trim(istring),trim(jstring)
@@ -1586,6 +1602,8 @@ subroutine gronor_main()
       write(lfnout,613) trim(istring),trim(jstring)
 613   format(' Non-accelerated ranks use ',a,' and ',a)
     endif
+    nsvd=istring
+    nevd=jstring
       
   endif
 
@@ -1841,7 +1859,7 @@ subroutine gronor_main()
       else
         do i=1,ndeti
           do j=1,ndetj
-            if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
+            if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI_off) exit
             numdet=numdet+1
             melen=melen+1
           enddo
@@ -1873,7 +1891,8 @@ subroutine gronor_main()
 
   allocate(hbase(nbase,nbase),sbase(nbase,nbase),tbase(nbase,nbase))
   allocate(dqbase(nbase,nbase,9))      
-  allocate(hev(nbase))
+  allocate(hev(nbase))     
+  allocate(hevnoct(nbase))
   allocate(nsing(nbase,nbase,5))
   allocate(bpdone(nbase,nbase))
 
@@ -2131,6 +2150,7 @@ subroutine gronor_main()
       allocate(a(nelecs,nelecs))
       allocate(u(nelecs,nelecs))
       allocate(w(nelecs,nelecs))
+      allocate(wt(nelecs,nelecs))
       allocate(ev(nelecs))
       allocate(sdiag(max(nelecs,nbas,mbasel)))
       allocate(diag(max(nelecs,nbas,mbasel)))
@@ -2245,7 +2265,7 @@ subroutine gronor_main()
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
-      allocate(temp(nelecs,nelecs),rwork(nelecs))
+      allocate(rwork(nelecs))
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
@@ -2255,7 +2275,7 @@ subroutine gronor_main()
         endif
 #ifdef ACC
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$acc& create(a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork) &
+!$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
@@ -2263,7 +2283,7 @@ subroutine gronor_main()
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,ev,temp,rwork) &
+!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
@@ -2291,8 +2311,8 @@ subroutine gronor_main()
 !$omp end target data
 #endif
       elseif(ntask.ne.0) then
-        lwork=10
-        allocate(work(lwork))
+!        lwork=10
+!        allocate(work(lwork))
         call gronor_memory_usage()
         if(managers.eq.0) then
           if(role.eq.worker) call gronor_worker()
@@ -2320,17 +2340,15 @@ subroutine gronor_main()
         deallocate(csdiag1,bdiag1,bsdiag1,diag1)
         deallocate(prefac1)
       endif
-      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,u,a)
+      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
       deallocate(s,st)
-      deallocate(temp)
     endif
   endif
 
   call timer_stop(4)
   call timer_stop(98)
-  
   
   if(me.eq.mstr.and.ipr.ge.30) then
     key='     '
@@ -2340,9 +2358,6 @@ subroutine gronor_main()
     header='Overlap Matrix (unnormalized)'
     call gronor_print_matrix(lfnout,0,0,0,header,key, &
         mebfLabels,mebfLabel,.false.,1.0d0,sbase,nbase,7,6,lablen.le.labmax)
-
-    
-    
     
     write(lfnout,632)
 632 format(//,' Hamiltonian Matrix unnormalized')
@@ -2396,18 +2411,18 @@ subroutine gronor_main()
     if(.not.exist) then
       write(lfnlog,800)
 800   format( &
-          80x,'      T             ',22x,'       ',/, &
-          80x,'      h             ',22x,'      S',/, &
-          80x,'      r             ',22x,'F  B  t',/, &
-          80x,'      e    D        ',22x,'r  a  a',/, &
-          80x,'M  G  a  M i Solvers',22x,'g  s  t',/ &
-          80x,'P  P  d  g s SVD EV ',22x,'m  e  e',/, &
+          80x,'      T             ',22x,'          ',/, &
+          80x,'      h             ',22x,'      S   ',/, &
+          80x,'      r             ',22x,'F  B  t   ',/, &
+          80x,'      e    D        ',22x,'r  a  a  P',/, &
+          80x,'M  G  a  M i Solvers',22x,'g  s  t  r',/ &
+          80x,'P  P  d  g s SVD EV ',22x,'m  e  e  e',/, &
           '  Date     Time      Setup        Main       ', &
           'Total  Nodes  Ranks    Acc nonAcc  S  U  s  r t ', &
-          'a n a n   Task      Batch    s  s  s',/, &
-          'Compile time/date',t19,'Host',t43,'Compiler target',t68,'Compiler version', &
-          t85,'MPI version',t118,'cmake version',/, &
-          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI',/)
+          'a n a n   Task      Batch    s  s  s  c',/, &
+          'Compile time/date',t19,'Host',t43,'Target, ','Compiler, ','MPI, ','cmake',/, &
+          '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off', &
+          ' Wspc svd  Wspc evd     Tasks',/)
     endif
     write(lfnlog,801) date(1:8),time(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &
@@ -2415,7 +2430,7 @@ subroutine gronor_main()
         nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr, &
         idist,iaslvr,inslvr,jaslvr,jnslvr, &
         ntaska,ntask,max(1,nbatcha),max(1,nbatch), &
-        nmol,nbase,mstates
+        nmol,nbase,mstates,prec
     do i=len(command),1,-1
       if(command(i:i).eq.'/') then
         command=command(i+1:len(command))
@@ -2425,25 +2440,34 @@ subroutine gronor_main()
     separator=':'
     if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
     write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
-        trim(target),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
+        trim(architecture),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
-    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI
-801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3)
-802 format(a17,t19,a,a,a,t43,a,t68,a,'/',a,t85,a,'/',a,t118,"cmake/",a)
-812 format(2x,a,t12,a,t35,a,t45,1pe9.2,e9.2)
+    write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
+        len_work_dbl,len_work_int,numtasks
+    if(numacc.gt.0) then
+      write(lfnlog,813) trim(asvd),trim(aevd),trim(nsvd),trim(nevd)
+    else
+      write(lfnlog,814) trim(nsvd),trim(nevd)
+    endif
+801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
+802 format(a17,t19,a,a,a,t43,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,3i10)
+813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
+814 format(2x,"CPU solvers: ",a," and ",a)
     write(lfnlog,803) (hbase(i,i),i=1,nbase)
     if(nbase.gt.1) then
       write(lfnlog,803) &
           (27.2114d0*(hbase(i,i)-hbase(1,1)),i=1,nbase)
-      !        endif
       write(lfnlog,803) (hev(i),i=1,nbase)
-      !     Close the cml file after closing the remaining open tags
-      !        if(nbase.gt.1) then
       write(lfnlog,803) (27.2114d0*(hev(i)-hev(1)),i=1,nbase)
+      if(nbasenoct.lt.nbase) then
+        write(lfnlog,803) (hevnoct(i),i=1,nbasenoct)
+        write(lfnlog,803) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=1,nbasenoct)
+      endif
     endif
     call gronor_finalize_cml
     close(unit=lfncml,status='keep')
-    !
+
 803 format(5x,6f20.10)
     write(lfnlog,804)
 804 format(' ')
@@ -2461,7 +2485,7 @@ subroutine gronor_main()
   deallocate(idetm,inactm,nactm,nbasm,ncombv)
   if(nmol.ge.3) deallocate(inter_couplings)
 
-  deallocate(hbase,sbase,tbase,dqbase,hev,nsing,bpdone)
+  deallocate(hbase,sbase,tbase,dqbase,hev,hevnoct,nsing,bpdone)
 
   deallocate(ndxdet)
   
@@ -2560,6 +2584,14 @@ subroutine gronor_main()
       close(unit=lfnout,status='keep')
       call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
     else
+      if(idbg.gt.0) then
+        write(lfndbg,'(a)') "Issuing mpi_finalize"
+        flush(lfndbg)
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
+        flush(lfndbg)
+        close(unit=lfndbg,status='keep')
+      endif
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)
@@ -2567,22 +2599,8 @@ subroutine gronor_main()
       close(unit=lfnout,status='keep')
     endif
   endif
-  
-  if(idbg.gt.0) then
-    write(lfndbg,'(a)') "Issuing mpi_finalize"
-    flush(lfndbg)
-  endif
-
-  call MPI_Barrier(MPI_COMM_WORLD,ierr)
 
   call mpi_finalize(ierr)
-
-  if(idbg.gt.0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
-    flush(lfndbg)
-    close(unit=lfndbg,status='keep')
-  endif
 
   return
 992 write(lfnout,983) trim(filtim)

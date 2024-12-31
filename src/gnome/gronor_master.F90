@@ -336,6 +336,12 @@ subroutine gronor_master()
 
       !     Loop over the number of determinant pairs for the current base pair
       
+      if(idbg.gt.50) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering receive loop"
+        flush(lfndbg)
+      endif
+  
       call timer_start(95)
       do while(ndone.lt.ijend)
 
@@ -367,6 +373,8 @@ subroutine gronor_master()
           endif
 705       format(a8,2x,a8,f12.3,a)
           flush(lfnday)
+          len_work_dbl=int(buffer(16),kind=8)
+          len_work_int=int(buffer(17),kind=8)
           call timer_start(99)
           call timer_start(98)
         endif
@@ -880,6 +888,9 @@ subroutine gronor_master()
       dqbase(ibin,jbin,7)=dqbase(ibin,jbin,7)+buffer(15)
       dqbase(ibin,jbin,8)=dqbase(ibin,jbin,8)+buffer(16)
       dqbase(ibin,jbin,9)=dqbase(ibin,jbin,9)+buffer(17)
+
+      numtasks=numtasks+1
+      tmax=max(tmax,buffer(3))
 
       !     Decrement the tasks still to be done for base pair
 

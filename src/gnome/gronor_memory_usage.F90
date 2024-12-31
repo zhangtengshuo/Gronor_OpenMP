@@ -116,6 +116,12 @@ subroutine gronor_memory_usage()
 
   endif
 
+  if(idbg.gt.50) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Memory usage analysis completed"
+    flush(lfndbg)
+  endif
+      
   return
 end subroutine gronor_memory_usage
 

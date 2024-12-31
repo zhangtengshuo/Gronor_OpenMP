@@ -99,8 +99,9 @@ subroutine gronor_read_integrals()
 
   allocate(new_comm(mgr),new_comm1(mgr),new_comm2(mgr,nnodes))
 
-  allocate(ranks_list(numgrp))
-
+  allocate(ranks_list(numgrp+1))
+!  allocate(ranks_list(np))
+  
   !     Create communicators for all non-idle ranks
 
   nonidle=0

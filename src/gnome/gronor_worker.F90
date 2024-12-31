@@ -92,12 +92,26 @@ subroutine gronor_worker()
   jbase0=0
   idet0=0
   jdet0=0
+  
+  if(idbg.gt.50) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering solver initialization"
+    flush(lfndbg)
+  endif
 
   call gronor_solver_init(nelecs)
 
+  if(idbg.gt.50) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
+    flush(lfndbg)
+  endif
+      
   do i=1,17
     rbuf(i)=0.0d0
   enddo
+  rbuf(16)=dble(len_work_dbl)
+  rbuf(17)=dble(len_work_int)
   
   if(idbg.gt.0) then
     call swatch(date,time)
@@ -213,7 +227,7 @@ subroutine gronor_worker()
         else
           do i=1,ndeti
             do j=1,ndetj
-              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI) exit
+              if(dabs(civb(i,icur)*civb(j,jcur)).lt.tau_CI_off) exit
               k=k+1
               melist(k,1)=i
               melist(k,2)=j

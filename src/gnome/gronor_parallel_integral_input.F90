@@ -452,9 +452,11 @@ subroutine gronor_parallel_integral_input()
                 do i=2,numgrn
                   ncount=lint
                   mpitag=20
-!                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
-                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,int_comm,status,ierr)
-                  call MPI_Request_free(ireq,status)
+                  !                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,MPI_COMM_WORLD,status,ierr)
+                  call MPI_iSend(g(nint),ncount,MPI_REAL4,mpidest,mpitag,int_comm,mpireq,ierr)
+                  call MPI_Request_free(mpireq,ierr)
+!                  call MPI_iSend(g(nint),ncount,MPI_REAL4,igrn(i),mpitag,int_comm,status,ierr)
+!                  call MPI_Request_free(ireq,status)
                 enddo
               else
                 ncount=lint

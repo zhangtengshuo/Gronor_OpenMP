@@ -79,48 +79,23 @@ subroutine gronor_svd()
   integer :: jobu, jobvt, jobz
 #endif
 
-
-
-  
-#ifdef ACC
-!$acc kernels present(sdiag)
+#ifdef LAPACK
+  integer (kind=4) :: lapack_info
 #endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
-#endif
-      do i=1,nelecs
-        sdiag(i)=0.0d0
-      enddo
-#ifdef ACC
-!$acc end kernels
-#endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
-
-  
+   
   ! ========== EISPACK =========
 
-  if(isolver.eq.SOLVER_EISPACK) then
+  if(sv_solver.eq.SOLVER_EISPACK) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
 #endif
 #ifdef OMPTGT
 !$omp target update from(a)
-#endif    
+#endif 
     endif
-    call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,                         &
-        &       ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs,           &
-        &       ierr,sdiag,nelecs)
+    call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,ev,nelecs,.true., &
+        u,nelecs,nelecs,.true.,w,nelecs,nelecs,ierr,sdiag,nelecs)
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -133,18 +108,41 @@ subroutine gronor_svd()
   
   ! ============ MKL ===========
 #ifdef MKL
-  if(isolver.eq.SOLVER_MKL) then
+  if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
 #endif
 #ifdef OMPTGT
 !$omp target update from(a)
-#endif    
+#endif 
     endif
     ndimm=nelecs
-    call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,ierr)
+    if(sv_solver.eq.SOLVER_MKL) then
+      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+          workspace_d,len_work_dbl,ierr)
+    endif
+    if(sv_solver.eq.SOLVER_MKLD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+          workspace_d,len_work_dbl,workspace_i,ierr)
+    endif
+    if(sv_solver.eq.SOLVER_MKLJ) then
+      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,wt,ndimm, &
+          workspace_d,len_work_dbl,ierr)
+    endif
+#ifdef OMP
+!$omp parallel shared(w,wt,nelecs)
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(i,j)=wt(j,i)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -153,43 +151,42 @@ subroutine gronor_svd()
 !$omp target update to(ev,u,w)
 #endif
     endif
-#ifdef ACC
-!$acc kernels present(temp,u,w,ta)
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        temp(i,j)=w(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(j,i)=temp(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc end kernels
-#endif
   endif
 #endif 
   
   ! ============ LAPACK ===========
 #ifdef LAPACK
-  if(isolver.eq.SOLVER_LAPACK) then
+  if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update host (a)
 #endif
 #ifdef OMPTGT
 !$omp target update from(a)
-#endif    
+#endif 
     endif
     ndimm=nelecs
-    call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,         &
-        &       workspace_d,lwork1m,ierr)
+    if(sv_solver.eq.SOLVER_LAPACK) then
+      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+          workspace_d,len_work_dbl,ierr)
+    endif
+    if(sv_solver.eq.SOLVER_LAPACKD) then
+      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+          workspace_d,len_work_dbl,workspace_i,ierr)
+    endif
+#ifdef OMP
+!$omp parallel shared(w,wt,nelecs)
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(i,j)=wt(j,i)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc update device (ev,u,w)
@@ -198,47 +195,27 @@ subroutine gronor_svd()
 !$omp target update to(ev,u,w)
 #endif
     endif
-#ifdef ACC
-!$acc kernels present(temp,u,w,ta)
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        temp(i,j)=w(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(j,i)=temp(i,j)
-      enddo
-    enddo
-#ifdef ACC
-!$acc end kernels
-#endif
   endif
 #endif 
   
   ! ========= CUSOLVER =========
 
 #ifdef CUSOLVER
-  if(isolver.eq.SOLVER_CUSOLVER) then
+  if(sv_solver.eq.SOLVER_CUSOLVER) then
     ndim=nelecs
     mdim=mbasel
     jobu = 'A'  ! all m columns of U
     jobvt= 'A'  ! all m columns of VT
 #ifdef ACC
 !$acc data copy(dev_info_d) create(workspace_d)
-!$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$acc host_data use_device(a,ev,u,wt,dev_info_d,workspace_d,rwork)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
+!$omp target data use_device_addr(a,ev,u,wt,dev_info_d,workspace_d,rwork)
 #endif
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
-        ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,           &
-        lwork1,rwork,dev_info_d)
+        ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
+        int(len_work_dbl,kind=4),rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -250,34 +227,24 @@ subroutine gronor_svd()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
 #ifdef ACC
-!$acc kernels present(temp,u,w,ta)
+!$acc kernels present(w,wt)
 !$acc loop collapse(2)
 #endif
     do i=1,nelecs
       do j=1,nelecs
-        temp(i,j)=w(j,i)
-      enddo
-    enddo
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=temp(i,j)
+        w(i,j)=wt(j,i)
       enddo
     enddo
 #ifdef ACC
 !$acc end kernels
 #endif
-
-    
   endif
 #endif
   
   ! ======== CUSOLVERJ =========
 
 #ifdef CUSOLVERJ  
-  if(isolver.eq.SOLVER_CUSOLVERJ) then
+  if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
     jobz=CUSOLVER_EIG_MODE_VECTOR
@@ -290,7 +257,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
                ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-               lwork1,dev_info_d,gesvdj_params)
+               int(len_work_dbl,kind=4),dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data
@@ -304,14 +271,14 @@ subroutine gronor_svd()
     cusolver_status = cusolverDnXgesvdjGetSweeps &
         (cusolver_handle, gesvdj_params, exec_sweeps)
     cusolver_status = cusolverDnXgesvdjGetResidual &
-        (cusolver_handle, gesvdj_params, residual)
+        (cusolver_handle, gesvdj_params, residual)    
   endif
 #endif
   
   ! ======== HIPSOLVER =========
 
 #ifdef HIPSOLVER
-  if(isolver.eq.SOLVER_HIPSOLVER) then
+  if(sv_solver.eq.SOLVER_HIPSOLVER) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -320,7 +287,7 @@ subroutine gronor_svd()
   ! ======= HIPSOLVERJ =========
   
 #ifdef HIPSOLVERJ
-  if(isolver.eq.SOLVER_HIPSOLVERJ) then
+  if(sv_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
@@ -329,139 +296,25 @@ subroutine gronor_svd()
   ! ======== ROCSOLVER =========
   
 #ifdef ROCSOLVER
-  if(isolver.eq.SOLVER_ROCSOLVER) then
+  if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
+    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+        ROCBLAS_OUTOFPLACE,rocinfo))
+    call hipCheck(hipDeviceSynchronize())
   endif
 #endif
 
   ! ======= ROCSOLVERJ =========
   
 #ifdef ROCSOLVERJ
-  if(isolver.eq.SOLVER_ROCSOLVERJ) then
+  if(sv_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
   endif
 #endif
-    
-
-  return
+  
+  return  
 end subroutine gronor_svd
-
-
-
-subroutine gronor_svd_omp()
-  use cidist
-  use gnome_parameters
-  use gnome_data
-  use gnome_solvers
-
-  ! library specific modules
-
-#ifdef MKL
-  use mkl_solver
-#endif
-#ifdef LAPACK
-  use lapack_solver
-#endif
-
-  ! variable declarations
-
-  implicit none
-  
-  external :: svd,dgesvd
-  
-  integer :: i,j
-  integer :: ierr
-
-  ! ========== EISPACK =========
-
-  if(isolver.eq.SOLVER_EISPACK) then
-#ifdef OMP
-!$omp parallel do shared(sdiag)
-#endif
-    do i=1,nelecs
-      sdiag(i)=0.0d0
-    enddo
-#ifdef OMP
-!$omp end parallel do
-#endif
-    call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs, &
-        ev,nelecs,.true.,u,nelecs,nelecs,.true.,w,nelecs,nelecs, &
-        ierr,sdiag,nelecs)
-  endif
-  
-  ! ============ MKL ===========
-  
-#ifdef MKL
-  if(isolver.eq.SOLVER_MKL.or.isolver.eq.SOLVER_MKLD) then
-    ndimm=nelecs
-    if(isolver.eq.SOLVER_MKL) then
-      call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,ierr)
-    endif
-    if(isolver.eq.SOLVER_MKLD) then
-      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm, workspace_d,lwork1m,workspace_i,ierr)
-    endif
-#ifdef OMP
-!$omp parallel shared(temp,w,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        temp(i,j)=w(i,j)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(j,i)=temp(i,j)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
-  endif
-#endif 
-
-  ! ============ LAPACK ===========
-  
-#ifdef LAPACK
-  if(isolver.eq.SOLVER_LAPACK.or.isolver.eq.SOLVER_LAPACKD) then
-    ndimm=nelecs
-    if(isolver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
-    endif
-    if(isolver.eq.SOLVER_LAPACKD) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
-    endif
-#ifdef OMP
-!$omp parallel shared(temp,w,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        temp(i,j)=w(i,j)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(j,i)=temp(i,j)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
-  endif
-#endif 
-
-  return
-end subroutine gronor_svd_omp

@@ -26,6 +26,15 @@ subroutine gronor_assign_managers()
   implicit none
 
   integer :: i,j,m,n
+
+  if(managers.le.0) then
+  do i=1,np-1
+    map2(i,9)=-1
+    if(map2(i,8).eq.worker) map2(i,9)=mstr
+  enddo
+  map2(np,9)=-1
+  return
+  endif
   
   do i=1,np
     map2(i,8)=0
@@ -122,5 +131,9 @@ subroutine gronor_assign_managers()
     if(map2(i,8).eq.manager) numman=numman+1
   enddo
   nperman=nperman/numman
+
+  do i=1,np-1
+    if(map2(i,8).eq.manager) map2(i,9)=mstr
+  enddo
   
 end subroutine gronor_assign_managers

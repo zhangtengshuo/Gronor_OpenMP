@@ -106,7 +106,7 @@ module cidef
 
   implicit none
 
-  integer :: nmol,mstates,nbase,nspin
+  integer :: nmol,mstates,nbase,nspin,nbasenoct
 
   character (len=255) :: root,filinp,filout,filpro,fildbg,filday
   character (len=255) :: filsys,filciv,filvec,filint,filtst,fildet
@@ -136,7 +136,7 @@ module cidef
   integer (kind=8), allocatable :: nactb(:),idetb(:),alldets(:)
   real (kind=8), allocatable :: hbase(:,:),sbase(:,:),tbase(:,:)
   real (kind=8), allocatable :: dqbase(:,:,:)
-  real (kind=8), allocatable :: hev(:)
+  real (kind=8), allocatable :: hev(:),hevnoct(:)
   real (kind=8), allocatable :: nociwf(:,:)
   logical, allocatable :: bpdone(:,:)
   integer, allocatable :: nsing(:,:,:)
@@ -162,7 +162,7 @@ module gnome_parameters
   implicit none
 
   integer :: icalc,ipr,ipro,ipvec,idbg,itim,itmp,ires,iint
-  integer :: itest,ifault,isolver,jsolver,idevel,idist,labmax
+  integer :: itest,ifault,sv_solver,ev_solver,idevel,idist,labmax
   integer :: ntask,ntaska,nbatch,nbatcha
   integer :: ndbg,mdbg,load,loada
   integer :: iaslvr,jaslvr,inslvr,jnslvr
@@ -172,7 +172,7 @@ module gnome_parameters
   integer :: ins2
   integer :: ibase0,jbase0,idet0,jdet0
   integer :: ndeti,ndetj,nacti,nactj,inacti,inactj
-  real (kind=8) :: tau_MO,tau_CI,tau_SIN,thresh,thresh_SIN
+  real (kind=8) :: tau_MO,tau_CI,tau_CI_off,tau_SIN,thresh,thresh_SIN
   real (kind=8) :: tolsvj,tolevj
   integer :: numtasks
   real (kind=8) :: tmax
@@ -181,13 +181,17 @@ module gnome_parameters
   integer (kind=8) :: irbuf(4)
   logical :: odbg,odupl,oterm,otreq,otimeout
   logical :: corres
+  logical :: lsvcpu,levcpu,lsvtrns
 
+  character (len=1) :: prec
   character (len=128) :: mebfroot,combas
   character (len=16), allocatable :: fragname(:)
   character (len=16), allocatable :: fragstate(:,:)
   character (len=128), allocatable :: fragfile(:)
   character (len=128), allocatable :: vecfile(:)
   character (len=128), allocatable :: detfile(:)
+
+  character (len=128) :: asvd,nsvd,aevd,nevd
 
 end module gnome_parameters
 
@@ -238,14 +242,14 @@ module gnome_data
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
 #ifdef HIPSOLVER
   real (kind=8), allocatable, target :: a(:,:)
-  real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable, target :: u(:,:),w(:,:),wt(:,:),ev(:)
 #else
 #ifdef ROCSOLVER
   real (kind=8), allocatable, target :: a(:,:)
-  real (kind=8), allocatable, target :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable, target :: u(:,:),w(:,:),wt(:,:),ev(:)
 #else
   real (kind=8), allocatable :: a(:,:)
-  real (kind=8), allocatable :: u(:,:),w(:,:),ev(:)
+  real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
 #endif
 #endif
   real (kind=8), allocatable :: sdiag(:)
@@ -256,7 +260,6 @@ module gnome_data
   real (kind=8), allocatable :: veca(:),vecb(:)
   real (kind=8), allocatable :: s12d(:,:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
-  real (kind=8), allocatable :: temp(:,:)
 
   real (kind=8), allocatable :: taa(:,:)
 #ifdef HIPSOLVER
@@ -317,8 +320,8 @@ module gnome_data
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
-  real (kind=8), allocatable :: work(:)
-  integer (kind=8) :: lwrk,lwork,info
+!  real (kind=8), allocatable :: work(:)
+  integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
 
@@ -484,7 +487,11 @@ module cuda_cusolver
       integer(c_int), value    :: econ
       integer(c_int), value    :: m,n,lda,ldu,ldv
       integer(c_int)           :: lwork
+#ifdef ACC
       real(c_double), device   :: a(:,:),s(:),u(:,:),v(:,:)
+#else
+      real(c_double)           :: a(:,:),s(:),u(:,:),v(:,:)
+#endif
       type(gesvdjInfo)         :: info
     end function cusolverDnDgesvdj_bufferSize
   end interface
@@ -498,7 +505,11 @@ module cuda_cusolver
       type(cusolverDnHandle), value :: cusolver_Hndl
       integer(c_int), value   :: jobz
       integer(c_int), value   :: econ,m,n,lda,ldu,ldv
+#ifdef ACC
       real(c_double), device  :: a(:,:),s(:),u(:,:),v(:,:),work(:)
+#else
+      real(c_double)          :: a(:,:),s(:),u(:,:),v(:,:),work(:)
+#endif
       integer(c_int)          :: lwork
       integer(c_int)          :: devinfo
       type(gesvdjInfo)        :: info
@@ -567,7 +578,11 @@ module cuda_cusolver
       integer(c_int), value         :: uplo
       integer(c_int), value         :: n,lda
       integer(c_int)                :: lwork
+#ifdef ACC
       real(c_double) , device       :: a(:,:),v(:)
+#else
+      real(c_double)                :: a(:,:),v(:)
+#endif
       type(syevjInfo)               :: info
     end function cusolverDnDsyevj_bufferSize
   end interface
@@ -582,7 +597,11 @@ module cuda_cusolver
       integer(c_int), value   :: jobz
       integer(c_int), value   :: uplo
       integer(c_int), value   :: n,lda
+#ifdef ACC
       real(c_double), device  :: a(:,:),v(:),work(:)
+#else
+      real(c_double)          :: a(:,:),v(:),work(:)
+#endif
       integer(c_int)          :: lwork
       integer(c_int)          :: devinfo
       type(syevjInfo)         :: info
@@ -596,7 +615,7 @@ module cuda_cusolver
   type(syevjInfo)        :: syevj_params
 #endif
   integer (kind=4)       :: cusolver_status
-  integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+  integer (kind=4)       :: ndim,mdim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
@@ -671,17 +690,16 @@ module hipvars
   use iso_c_binding
   type(c_ptr)            :: hipsolver_handle
   integer (kind=4)       :: hipsolver_status
-  integer (kind=4)       :: lwork1,mdim
-  integer (kind=4)       :: lwork2
+  integer (kind=4)       :: mdim
   integer (kind=4)       :: ndim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable, target :: workspace_d(:)
+!  real (kind=8), allocatable, target :: workspace_d(:)
   integer (kind=4) :: dev_info_d
   !     integer(kind=cuda_stream_kind) :: stream
-  integer (kind=8) :: jobz
-  integer (kind=8) :: uplo=0      
+!  integer (kind=8) :: jobz
+!  integer (kind=8) :: uplo=0      
 end module hipvars
 
 module amd_hipsolver
@@ -853,14 +871,14 @@ module rocvars
   use iso_c_binding
   type(c_ptr)            :: rocsolver_handle
   integer (kind=4)       :: rocsolver_status
-  integer (kind=4)       :: lwork1,lwork2,ndim,mdim
+  integer (kind=4)       :: ndim,mdim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable, target :: workspace_d(:)
+!  real (kind=8), allocatable, target :: workspace_d(:)
   integer (kind=4) :: dev_info_d
   !     integer(kind=cuda_stream_kind) :: stream
-  integer (kind=4) :: esort,evect
+  integer (kind=4) :: esort,evect,istatus
   integer (kind=4) :: uplo=0
   integer (kind=4) :: rocinfo,workmode
   type(c_ptr)      :: workptr
@@ -874,32 +892,33 @@ end module amd_rocsolver
 #ifdef MKL
 module mkl_solver
 
-  integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
-  real (kind=8),allocatable :: rwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
+!  integer (kind=8)    :: lwork1m,lwork2m,lworki,ndimm,mdimm
+!  real (kind=8),allocatable :: rwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
 
 end module mkl_solver
 #endif
 
 #ifdef LAPACK
 module lapack_solver
-  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-  real(kind=8), allocatable :: work(:)
-  integer(kind=8), allocatable :: iwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
-  character*1 :: jobz,uplo
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+!  real(kind=8), allocatable :: work(:)
+!  integer(kind=8), allocatable :: iwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
+!  character*1 :: jobz,uplo
+   integer (kind=8) :: nofunction
 end module lapack_solver
 #else
 #ifdef MAGMA
 module magma_solver
-  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-  real(kind=8), allocatable :: work(:)
-  integer(kind=8), allocatable :: iwork(:)
-  real (kind=8),allocatable :: workspace_d(:)
-  integer (kind=8), allocatable :: workspace_i(:)
-  character*1 :: jobz,uplo
+!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
+!  real(kind=8), allocatable :: work(:)
+!  integer(kind=8), allocatable :: iwork(:)
+!  real (kind=8),allocatable :: workspace_d(:)
+!  integer (kind=8), allocatable :: workspace_i(:)
+!  character*1 :: jobz,uplo
 end module magma_solver
 #endif
 #endif
@@ -908,8 +927,10 @@ module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
     enumerator SOLVER_LAPACK
+    enumerator SOLVER_LAPACKQ
     enumerator SOLVER_LAPACKD
     enumerator SOLVER_LAPACKJ
+    enumerator SOLVER_LAPACKJH
     enumerator SOLVER_MKL
     enumerator SOLVER_MKLD
     enumerator SOLVER_MKLJ
@@ -923,4 +944,10 @@ module gnome_solvers
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI
   end enum
+  integer (kind=8) :: lwork,liwork,ndimm,mdimm
+  real(kind=8), allocatable :: work(:)
+  integer(kind=8), allocatable :: iwork(:)
+  real (kind=8),allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
+!  character*1 :: jobz,uplo
 end module gnome_solvers

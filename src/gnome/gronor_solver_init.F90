@@ -30,6 +30,24 @@ subroutine gronor_solver_init(ntemp)
   use cuda_cusolver
   use cudafor
 #endif
+#ifdef ROCSOLVER
+  use rocvars
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
 #ifdef MKL
   use mkl_solver
 #endif
@@ -383,6 +401,7 @@ subroutine gronor_solver_final()
 #endif
 
 #ifdef ROCSOLVER
+  use rocvars
   use hipfort
   use hipfort_check
   use hipfort_rocblas_enums
@@ -439,6 +458,7 @@ subroutine gronor_solver_create_handle()
 #endif
 
 #ifdef ROCSOLVER
+  use rocvars
   use hipfort
   use hipfort_check
   use hipfort_rocblas_enums

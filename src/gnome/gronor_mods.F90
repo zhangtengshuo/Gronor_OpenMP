@@ -939,7 +939,9 @@ module gnome_solvers
     enumerator SOLVER_HIPSOLVER
     enumerator SOLVER_HIPSOLVERJ
     enumerator SOLVER_ROCSOLVER
+    enumerator SOLVER_ROCSOLVERD
     enumerator SOLVER_ROCSOLVERJ
+    enumerator SOLVER_ROCSOLVERX
     enumerator SOLVER_MAGMA
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI

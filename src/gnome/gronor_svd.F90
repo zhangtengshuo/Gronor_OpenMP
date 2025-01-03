@@ -309,6 +309,33 @@ subroutine gronor_svd()
         ROCBLAS_OUTOFPLACE,rocinfo)
     istatus=hipDeviceSynchronize()
   endif
+
+#ifdef ACC
+!$acc kernels present(w,wt)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+#endif
+  do i=1,nelecs
+    do j=1,nelecs
+      w(i,j)=wt(j,i)
+    enddo
+  enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
 #endif
 
   return  

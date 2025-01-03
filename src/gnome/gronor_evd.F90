@@ -291,21 +291,21 @@ subroutine gronor_evd()
     mdim=mbasel
     istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-    istatus=hipDeviceSynchronize()
+!    istatus=hipDeviceSynchronize()
   endif
   if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
     istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-    istatus=hipDeviceSynchronize()
+!    istatus=hipDeviceSynchronize()
   endif
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
     istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-    istatus=hipDeviceSynchronize()
+!    istatus=hipDeviceSynchronize()
   endif
 #endif
 

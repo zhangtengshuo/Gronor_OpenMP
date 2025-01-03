@@ -325,7 +325,14 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
     
-#endif  
+#endif
+
+#ifdef ROCSOLVER
+    lwork1m=5*nelecs*nelecs
+    lworki=1
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
+#endif
 
 #ifdef MAGMA
     ndimm=nelecs

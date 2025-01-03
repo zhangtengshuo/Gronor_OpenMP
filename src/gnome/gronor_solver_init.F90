@@ -412,7 +412,7 @@ subroutine gronor_solver_final()
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
 #ifdef ROCSOLVER
-    if (rocsolverDestroy(rocsolver_handle) /= 0) &
+    if (rocblas_destroy_handle(rocsolver_handle) /= 0) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
   endif
@@ -467,13 +467,12 @@ subroutine gronor_solver_create_handle()
     if(numdev.gt.1) then
 !      cpfre=c_loc(memfre)
 !      cptot=c_loc(memtot)
-      ! istat=cudaMemGetInfo(cpfre,cptot)
+!      istat=cudaMemGetInfo(cpfre,cptot)
     endif
 #endif
 
 #ifdef ROCSOLVER
-    call rocsolvercreate(rocsolver_handle)
-!    call hipcheck(rocblas_create_handle(rocsolver_handle))
+    istatus=rocblas_create_handle(rocsolver_handle)
 #endif
 
 #ifdef HIPSOLVER

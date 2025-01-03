@@ -277,11 +277,6 @@ subroutine gronor_evd()
     ndim=nelecs
     mdim=mbasel
   endif
-#endif
-
-  ! ======= HIPSOLVERJ =========
-  
-#ifdef HIPSOLVERJ
   if(ev_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -294,22 +289,25 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyev(rocsolver_handle,evect,uplo, &
+    istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-    call hipCheck(hipDeviceSynchronize())
+    istatus=hipDeviceSynchronize()
   endif
-#endif
-
-  ! ======= ROCSOLVERJ =========
-  
-#ifdef ROCSOLVERJ
+  if(ev_solver.eq.SOLVER_ROCSOLVERD) then
+    ndim=nelecs
+    mdim=mbasel
+    istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+    istatus=hipDeviceSynchronize()
+  endif
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
-    
+    istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+    istatus=hipDeviceSynchronize()
   endif
 #endif
-    
 
   if(iamacc.eq.1) then
      if(levcpu) then

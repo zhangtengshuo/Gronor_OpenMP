@@ -282,11 +282,6 @@ subroutine gronor_svd()
     ndim=nelecs
     mdim=mbasel
   endif
-#endif
-
-  ! ======= HIPSOLVERJ =========
-  
-#ifdef HIPSOLVERJ
   if(sv_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -299,22 +294,22 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+    istatus=rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
         c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo))
-    call hipCheck(hipDeviceSynchronize())
+        ROCBLAS_OUTOFPLACE,rocinfo)
+    istatus=hipDeviceSynchronize()
+  endif
+  if(sv_solver.eq.SOLVER_ROCSOLVERX) then
+    ndim=nelecs
+    mdim=mbasel
+    istatus=rocsolver_dgesvd(rocsolver_handle, &
+        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+        ROCBLAS_OUTOFPLACE,rocinfo)
+    istatus=hipDeviceSynchronize()
   endif
 #endif
 
-  ! ======= ROCSOLVERJ =========
-  
-#ifdef ROCSOLVERJ
-  if(sv_solver.eq.SOLVER_ROCSOLVERJ) then
-    ndim=nelecs
-    mdim=mbasel
-  endif
-#endif
-  
   return  
 end subroutine gronor_svd

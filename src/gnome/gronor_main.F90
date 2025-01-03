@@ -1456,12 +1456,15 @@ subroutine gronor_main()
   if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVER
   if(jaslvr.lt.0) jaslvr=SOLVER_CUSOLVER
 #endif
+#ifdef ROCSOLVER
+  if(iaslvr.lt.0) iaslvr=SOLVER_ROCSOLVER
+  if(jaslvr.lt.0) iaslvr=SOLVER_ROCSOLVERD
+#endif
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
 #else
 #ifdef LAPACK
-! When LAPACK is working correctly the following four lines should be uncommented
   if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
   if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
   if(inslvr.lt.0) inslvr=SOLVER_LAPACK
@@ -1484,6 +1487,8 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
     if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
+    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1494,6 +1499,9 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
     if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
+    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
+    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
   else
     sv_solver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
@@ -1525,6 +1533,8 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
     if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
+    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1535,6 +1545,9 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
     if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
+    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
+    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
@@ -1548,6 +1561,8 @@ subroutine gronor_main()
       if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
       if(sv_solver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
       if(sv_solver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
+      if(sv_solver.eq.SOLVER_ROCSOLVER) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvd"
+      if(sv_solver.eq.SOLVER_ROCSOLVERX) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvdx"
       if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
       if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
       if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
@@ -1557,6 +1572,9 @@ subroutine gronor_main()
       if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
       if(ev_solver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
       if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
+      if(ev_solver.eq.SOLVER_ROCSOLVER) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyev"
+      if(ev_solver.eq.SOLVER_ROCSOLVERD) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevd"
+      if(ev_solver.eq.SOLVER_ROCSOLVERJ) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevj"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
       asvd=istring

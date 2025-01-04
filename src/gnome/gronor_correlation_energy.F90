@@ -52,7 +52,7 @@ subroutine gronor_correlation_energy(nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,s
   integer, intent(in)                  :: mstates,nbase,nmol,nwt
   integer, dimension(nbase)            :: ipiv
   integer, dimension(nmol,nbase)       :: ncombv
-  real(kind=8), allocatable            :: work(:)
+  real(kind=8), allocatable            :: workcorr(:)
   real(kind=8), dimension(nbase,nbase) :: hbase,sbase,hcorr,slow,wgn
   real(kind=8), dimension(nbase)       :: shft
   real(kind=8), dimension(mstates)     :: ecorr
@@ -126,10 +126,10 @@ subroutine gronor_correlation_energy(nwt,mstates,ecorr,nbase,nmol,ncombv,hbase,s
   endif
 
   !     Convert shifted H back to original non-orthogonal basis
-  allocate( work(nbase) )
+  allocate( workcorr(nbase) )
   call dgetrf(nbase,nbase,slow,nbase,ipiv,info)
-  call dgetri(nbase,slow,nbase,ipiv,work,3*nbase,info)
-  deallocate(work)
+  call dgetri(nbase,slow,nbase,ipiv,workcorr,3*nbase,info)
+  deallocate(workcorr)
   hcorr=matmul(transpose(slow),matmul(hcorr,slow))
   return
 end subroutine gronor_correlation_energy
@@ -148,7 +148,7 @@ subroutine gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
   real(kind=8), intent(in)   :: sbase(nbase,nbase)
   real(kind=8), intent(out)  :: slow (nbase,nbase)
-  real(kind=8), allocatable  :: work(:)
+  real(kind=8), allocatable  :: workcorr(:)
 
   real(kind=8)               :: u(nbase,nbase)
   real(kind=8)               :: ut(nbase,nbase)
@@ -156,16 +156,16 @@ subroutine gronor_lowdin(lfnout,ipr,nbase,sbase,slow)
 
   !     diagonalize S matrix:
   u=sbase
-  allocate(work(4*nbase))
-  work=0.0
+  allocate(workcorr(4*nbase))
+  workcorr=0.0
   info=0
-  call dsyev('V','L',nbase,u,nbase,ev,work,4*nbase,info)
+  call dsyev('V','L',nbase,u,nbase,ev,workcorr,4*nbase,info)
   if ( info .ne. 0 ) then
     write(lfnout,*)'Something went wrong in dsyev in gronor_lowdin '
     write(lfnout,*) 'info=',info
     call gronor_abort(330,"Error in Gronor_Lowdin dsyev")
   endif
-  deallocate(work)
+  deallocate(workcorr)
 
   if (ipr.ge.40) then
 671 format(6x,7(6x,i8,6x))
@@ -214,16 +214,16 @@ subroutine gronor_gnweight(nbase,wgn,slow,sbase)
   real(kind=8)              :: sinv(nbase,nbase)
   real(kind=8)              :: csum(nbase)
   real(kind=8)              :: ngn(nbase)
-  real(kind=8), allocatable :: work(:)
+  real(kind=8), allocatable :: workcorr(:)
 
   wgn=0.0d0
   !     invert S matrix
   sinv=sbase
   info=0
   call dgetrf(nbase,nbase,sinv,nbase,ipiv,info)
-  allocate(work(3*nbase))
-  call dgetri(nbase,sinv,nbase,ipiv,work,3*nbase,info)
-  deallocate(work)
+  allocate(workcorr(3*nbase))
+  call dgetri(nbase,sinv,nbase,ipiv,workcorr,3*nbase,info)
+  deallocate(workcorr)
 
   csum=0
   wsum=0

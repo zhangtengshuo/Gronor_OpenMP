@@ -2109,7 +2109,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 			for(int j=0; j<mebfSpecification[i][0]; j++) {
 				sumCharges=sumCharges+dimFragments[mebfFragments[i][j][0]][12];
 			}
-			mebfSpecification[i][2]=sumCharges;
+// Allow a charge different from the sum of the fragment charges: following statement commented out 10/10/2024
+//			mebfSpecification[i][2]=sumCharges;
 		}
 		
 		if(numMEBFs>1) {
@@ -3127,7 +3128,7 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		
 		energiesPanel = new JPanel();
 		energiesPanel.setLayout(new BoxLayout(energiesPanel,BoxLayout.X_AXIS));
-		TitledBorder energiesBorder = new TitledBorder(new LineBorder(Color.black),"Fragment Energies");
+		TitledBorder energiesBorder = new TitledBorder(new LineBorder(Color.black),"Fragment Spin State Energies");
 		energiesBorder.setTitleColor(Color.black);
 		energiesPanel.setBorder(energiesBorder);
 		energiesTable = new JTable(energiesTableModel);
@@ -3760,31 +3761,58 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Boolean swapped=true;
 		Integer[] itemp = new Integer[nmer];
 		Double etemp;
-		Integer numsi, numsj;
+		Integer nums0i, nums0j, nums0if, nums0jf, nums1i, nums1j, numt1i, numdpi, numt1j, numdpj, numdmi, numdmj;
 		
 		while(swapped) {
 			swapped=false;
 			for(int i=1; i<count; i++) {
 				for(int j=i+1; j<=count; j++) {
-					numsi=0;
-					numsj=0;
+					nums0i=0;
+					nums0j=0;
+					nums0if=0;
+					nums0jf=0;
+					nums1i=0;
+					nums1j=0;
+					numt1i=0;
+					numt1j=0;
+					numdpi=0;
+					numdpj=0;
+					numdmi=0;
+					numdmj=0;
 					for(int k=0; k<nmer; k++) {
-						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) numsi++; else break;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) nums0i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) nums0j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S1")) nums1i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S1")) nums1j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("T1")) numt1i++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("T1")) numt1j++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("D+")) numdpi++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("D+")) numdpj++;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("D-")) numdmi++;
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("D-")) numdmj++;
 					}
 					for(int k=0; k<nmer; k++) {
-						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) numsj++; else break;
+						if(stateNames[mebfFragments[mebf][k][i]].trim().equals("S0")) nums0if++; else break;
 					}
-					if(sumEnergies[i-1]>sumEnergies[j-1] || (sumEnergies[i-1]==sumEnergies[j-1] && numsi<numsj)) {
+					for(int k=0; k<nmer; k++) {
+						if(stateNames[mebfFragments[mebf][k][j]].trim().equals("S0")) nums0jf++; else break;
+					}
+//					System.out.println("TEST "+i+" "+j+" : "+nums0i+" "+nums0j+" "+nums1i+" "+nums1j);
+					if( nums0i<nums0j || (nums0i==nums0j && nums0if<nums0jf) ) {
+//						System.out.println("SWAP "+i+" "+j+" : "+nums0i+" "+nums0j+" "+nums1i+" "+nums1j);
+//						if(sumEnergies[i-1]>sumEnergies[j-1] || (sumEnergies[i-1]==sumEnergies[j-1] && numsi<numsj) || (sumEnergies[i-1]==sumEnergies[j-1] && numsi==numsj && numsi1<numsj1)) {
 						
 						for(int k=0; k<nmer; k++) itemp[k]=mebfFragments[mebf][k][j]; etemp=sumEnergies[j-1];
+						for(int k=0; k<nmer; k++) mebfFragments[mebf][k][j]=mebfFragments[mebf][k][i]; sumEnergies[j-1]=sumEnergies[i-1];
+						for(int k=0; k<nmer; k++) itemp[k]=mebfFragments[mebf][k][i]=itemp[k]; sumEnergies[i-1]=etemp;
 						
-						for(int k=0; k<nmer; k++) {
-							for(int m=j; m>i; m--) mebfFragments[mebf][k][m]=mebfFragments[mebf][k][m-1];
-							mebfFragments[mebf][k][i]=itemp[k];
-						}
+//						for(int k=0; k<nmer; k++) {
+//							for(int m=j; m>i; m--) mebfFragments[mebf][k][m]=mebfFragments[mebf][k][m-1];
+//							mebfFragments[mebf][k][i]=itemp[k];
+//						}
 						
-						for(int m=j; m>i; m--) sumEnergies[m-1]=sumEnergies[m-2];
-						sumEnergies[i-1]=etemp;
+//						for(int m=j; m>i; m--) sumEnergies[m-1]=sumEnergies[m-2];
+//						sumEnergies[i-1]=etemp;
 						
 						swapped=true;
 					}
@@ -3837,9 +3865,11 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		}
 		if(target==4) {
 			if(nS>=0 && nD==0 && nT==0 && nq==1 && nQ==0) result=true;
+			if(nS>=0 && nD==1 && nT==1 && nq==0 && nQ==0) result=true;
 		}
 		if(target==5) {
 			if(nS>=0 && nD==0 && nT==0 && nq==0 && nQ==1) result=true;
+			if(nS>=0 && nD==0 && nT==2 && nq==0 && nQ==0) result=true;
 		}
 		if(charge!=ch) result=false;
 
@@ -3920,7 +3950,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				}
 			} catch (NullPointerException e1) {
 			}
-
 			selectMEBFStates(mebf,nmer,spin,chrg,stat);
 			update();			
 		}
@@ -3931,7 +3960,16 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(value.length()>0) mebfSpecification[mebf][1]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
 			}
-
+			selectMEBFStates(mebf,nmer,spin,chrg, stat);
+			update();
+		}
+		
+		if(col==3) {
+			try {
+				value = JOptionPane.showInputDialog(jf,"Enter charge for MEBF "+mebfName[mebf].trim());
+				if(value.length()>0) mebfSpecification[mebf][2]=Integer.valueOf(value);
+			} catch (NullPointerException e1) {
+			}
 			selectMEBFStates(mebf,nmer,spin,chrg, stat);
 			update();
 		}
@@ -3943,7 +3981,6 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				if(value.length()>0) mebfSpecification[mebf][3]=Integer.valueOf(value);
 			} catch (NullPointerException e1) {
 			}
-
 			update();
 		}
 	}
@@ -3983,7 +4020,8 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 				fragment.write_Molcas_MEBF_One(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky);
 				fragment.write_Molcas_MEBF_CB(fileName,projectName, nfrags, frags, fstat, nfrz, lenStateList, ndxStateList, thresh_MO);
 				fragment.write_Molcas_MEBF_Two(fileName, pName, nfrags, fname, frags, randt, basisSets[basisSet], contracts[contract], cholesky, num_frozen);
-				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit);
+				Integer spin=mebfSpecification[i][1];
+				fragment.write_Run_Script_MEBFs(fileName, pName, nfrags, fname,frags,source,fstat, lenStateList, ndxStateList, numRanks,memory,fragmentDefinitions,account,jobName,timeLimit,spin);
 			}
 		}
 	}
@@ -3995,10 +4033,19 @@ public class gronor_Project extends JFrame implements ActionListener, ChangeList
 		Integer isp1, isp2, isp3, isp4, isp5, isp6, isp7, isp8, isp9, isp10;
 		
 		for(int i=0; i<numMEBFs; i++) {
-			String fileName = projectName.trim()+mebfName[i].trim()+"_GronOR.inp";
 			numME=mebfSpecification[i][3];
 			nmer=mebfSpecification[i][0];
 			spin=mebfSpecification[i][1];
+			String spinState = "GronOR";
+			if(spin==1) spinState="singlet";
+			if(spin==2) spinState="doublet";
+			if(spin==3) spinState="triplet";
+			if(spin==4) spinState="quartet";
+			if(spin==5) spinState="quintet";
+			if(spin==6) spinState="hextet";
+			if(spin==7) spinState="heptet";
+			if(spin==8) spinState="octet";
+			String fileName = projectName.trim()+mebfName[i].trim()+"_"+spinState.trim()+".inp";
 			try {
 				PrintfWriter inputFile = new PrintfWriter(new FileWriter(fileName));
 				inputFile.println("MEBFs "+projectName.trim()+" "+numME);

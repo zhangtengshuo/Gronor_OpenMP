@@ -5,11 +5,9 @@ Authors: T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN
 	 A. Sanchez, University Rovira i Virgili, Tarragona, Spain
 	 R. K. Kathir, University of Groningen, Groningen, Netherlands
 
-Please cite the following reference when publishing results obtained using GronOR:
-	 T. P. Straatsma, R. Broer, A. Sanchez-Mansilla, C. Sousa,  and C. de Graaf,
-	 “GronOR: Scalable and Accelerated Non-Orthogonal Configuration Interaction for Molecular Fragment Wave Functions”,
-	 J. Chem. Theory Comput., 18, 3549-3565 (2022).
-
+    T. P. Straatsma, R. Broer, A. Sanchez-Mansilla, C. Sousa, and C. de Graaf, 
+	“GronOR: Scalable and Accelerated Non-Orthogonal Configuration Interaction for Molecular fragment Wave Functions”, 
+	Journal of Chemical Theory and Computation, 18, 3549-3565 (2022).
 
 Downloading from the GitLab repository:
 

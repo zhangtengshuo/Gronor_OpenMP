@@ -60,12 +60,57 @@ subroutine gronor_solver_init(ntemp)
   integer :: ntemp
   character(len=255) :: string
   
+  integer (kind=8) :: lworki,lwork1m,lwork2m
+  integer (kind=4) :: lwork1,lwork2
+  
   real(kind=8) :: worksize(2)
-  integer (kind=8) :: iworksize(2)
+  integer (kind=4) :: iworksize(2)
 
-     nelecs=ntemp
+  nelecs=ntemp
+
+  len_work_int=0
+  len_work_dbl=0
 
 ! Cusolver initialization for the svd
+  
+  if(idbg.gt.50) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",sv_solver,ev_solver
+    flush(lfndbg)
+  endif
+
+  lsvcpu=.false.
+  levcpu=.false.
+  lsvtrns=.false.
+  
+  if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACK) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKD) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKQ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJH) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
+
+  if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKQ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_LAPACKJH) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
+  
+  if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKD) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKQ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKJ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_LAPACKJH) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
+  if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER
@@ -76,7 +121,7 @@ subroutine gronor_solver_init(ntemp)
     lwork2=0
 
 #ifdef CUSOLVERJ
-    if(isolver.eq.SOLVER_CUSOLVER) then
+    if(sv_solver.eq.SOLVER_CUSOLVER) then
 #endif
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
@@ -92,8 +137,9 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+    len_work_dbl=max(len_work_dbl,lwork1)
 #ifdef CUSOLVERJ
-    elseif(isolver.eq.SOLVER_CUSOLVERJ) then
+    elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
       mdim=mbasel
@@ -130,13 +176,14 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+    len_work_dbl=max(len_work_dbl,lwork1)
     endif
 #endif
 
 ! Cusolver initialization for the syevd
 
 #ifdef CUSOLVERJ
-    if(jsolver.eq.SOLVER_CUSOLVER) then
+    if(ev_solver.eq.SOLVER_CUSOLVER) then
 #endif
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
@@ -154,7 +201,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
 #ifdef CUSOLVERJ
-    elseif(jsolver.eq.SOLVER_CUSOLVERJ) then
+    elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
 
@@ -197,8 +244,6 @@ subroutine gronor_solver_init(ntemp)
     endif
 #endif
 
-    lwork1=max(lwork1,lwork2)
-
     call gronor_update_device_info()
 
     if(memavail.gt.0.and.8*lwork1.gt.memavail) then
@@ -206,8 +251,8 @@ subroutine gronor_solver_init(ntemp)
           8*lwork1," needed as workspace for CUSOLVER solvers"
       call gronor_abort(500,string)
     endif
-    
-    allocate(workspace_d(lwork1))
+
+    len_work_dbl=max(len_work_dbl,lwork1,lwork2)
 
 #endif
   endif
@@ -220,29 +265,33 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-    if(isolver.eq.SOLVER_MKL) then
+    if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,ierr)
       lwork1m=int(worksize(1))
     endif
-    if(isolver.eq.SOLVER_MKLD) then
+    if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=8*ndimm
+      lworki=max(8*nelecs,lworki)
     endif
-    if(jsolver.eq.SOLVER_MKL) then
+    if(sv_solver.eq.SOLVER_MKLJ) then
+!      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
+      lwork1m=max(int(worksize(1)),6,2*nelecs,lwork1m)
+      lworki=max(int(iworksize(1)),lworki)
+    endif
+    if(ev_solver.eq.SOLVER_MKL) then
+      call dsyev('N','L',ndimm,a,ndimm,w,worksize,lwork2m,ierr)
+      lwork2m=int(worksize(1))
+    endif
+    if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
-      lworki=int(iworksize(1))
+      lworki=max(int(iworksize(1)),lworki)
     endif
-    if(jsolver.eq.SOLVER_MKLD) then
-      call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
-      lwork2m=int(worksize(1))
-      lworki=int(iworksize(1))
-    endif
-    lwork1m=max(8*ndimm,lwork1m,lwork2m)
-    lworki=max(8*ndimm,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    lwork1m=max(0,lwork1m,lwork2m)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
 #endif
 
 #ifdef LAPACK
@@ -251,19 +300,31 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-    if(isolver.eq.SOLVER_LAPACK) then
+    
+    if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-      lwork1m=int(worksize(1))+1024*nelecs
+      lwork1m=int(worksize(1))
     endif
-    if(jsolver.eq.SOLVER_LAPACK) then
+    if(sv_solver.eq.SOLVER_LAPACKD) then
+      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
+          lapack_info)
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
+    endif
+    if(ev_solver.eq.SOLVER_LAPACK) then
+      call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
+      lwork2m=int(worksize(1))
+    endif
+    if(ev_solver.eq.SOLVER_LAPACKD) then
       call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
-      lwork2m=int(worksize(1))+1024*nelecs
-      lworki=int(iworksize(1))+1024*nelecs
+      lwork2m=int(worksize(1))
+      lworki=max(int(iworksize(1)),lworki)
     endif
-    lwork1m=max(8,lwork1m,lwork2m)
-    lworki=max(8,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    lwork1m=max(0,lwork1m,lwork2m)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
+    
 #endif  
 
 #ifdef MAGMA
@@ -272,29 +333,67 @@ subroutine gronor_solver_init(ntemp)
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-!    if(isolver.eq.SOLVER_LAPACK) then
-!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-!      lwork1m=int(worksize(1))+1024*nelecs
-!    endif
-    if(jsolver.eq.SOLVER_MAGMA) then
+    if(ev_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.0) then
         call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       else
         call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
       endif
-      lwork2m=int(worksize(1))+1024*nelecs
-      lworki=int(iworksize(1))+1024*nelecs
+      lwork2m=int(worksize(1))
+      lworki=int(iworksize(1))
     endif
-    lwork1m=max(8,lwork1m,lwork2m)
-    lworki=max(8,lworki)
-    allocate(workspace_d(lwork1m))
-    allocate(workspace_i(lworki))
+    lwork1m=max(0,lwork1m,lwork2m)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
 #endif
+    
+    len_work_dbl=max(0,len_work_dbl)
+    len_work_int=max(0,len_work_int)
+    
+    if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
+    if(len_work_int.gt.0) allocate(workspace_i(len_work_int))
+
     return
   end subroutine gronor_solver_init
 
 subroutine gronor_solver_final()
 
+  use mpi
+  use inp
+  use cidef
+  use cidist
+  use gnome_parameters
+  use gnome_data
+  use gnome_integrals
+  use iso_c_binding
+  use iso_fortran_env
+  use gnome_solvers
+
+#ifdef CUSOLVER
+  use cusolverDn
+  use cuda_cusolver
+#endif
+
+#ifdef ROCSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+  
   if(iamacc.gt.0) then
 #ifdef CUSOLVER
     cusolver_status = cusolverDnDestroy(cusolver_handle)
@@ -302,8 +401,11 @@ subroutine gronor_solver_final()
         write(*,*) 'cusolver_handle destruction failed'
 #endif
 #ifdef HIPSOLVER
-    hipsolver_status = hipsolverDestroy(hipsolver_handle)
-    if (hipsolver_status /= HIPSOLVER_STATUS_SUCCESS) &
+    if (hipsolverDestroy(hipsolver_handle) /= HIPSOLVER_STATUS_SUCCESS) &
+        write(*,*) 'hipsolver_handle destruction failed'
+#endif
+#ifdef ROCSOLVER
+    if (rocsolverDestroy(rocsolver_handle) /= 0) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
   endif
@@ -328,6 +430,24 @@ subroutine gronor_solver_create_handle()
   use cusolverDn
   use cuda_cusolver
 #endif
+
+#ifdef ROCSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
   
   ! Only accelerated ranks need to define cusolver handles
   
@@ -342,6 +462,15 @@ subroutine gronor_solver_create_handle()
 !      cptot=c_loc(memtot)
       ! istat=cudaMemGetInfo(cpfre,cptot)
     endif
+#endif
+
+#ifdef ROCSOLVER
+    call rocsolvercreate(rocsolver_handle)
+!    call hipcheck(rocblas_create_handle(rocsolver_handle))
+#endif
+
+#ifdef HIPSOLVER
+    call hipsolvercreate(hipsolver_handle)
 #endif
     
   endif

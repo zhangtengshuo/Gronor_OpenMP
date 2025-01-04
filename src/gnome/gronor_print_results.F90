@@ -44,8 +44,12 @@ subroutine gronor_print_results(hb)
   real(kind=8)                  :: debye,angstrom
   integer                       :: lfnt
 
-  real(kind=8), allocatable :: tc(:,:),nociovlp(:,:)
-  real(kind=8), allocatable :: nociwf0(:)
+  real(kind=8), allocatable     :: tc(:,:),nociovlp(:,:)
+  real(kind=8), allocatable     :: nociwf0(:)
+
+  integer, allocatable          :: ndxnbase(:)
+  real(kind=8), allocatable     :: nociwfnoct(:,:)
+  real(kind=8), allocatable     :: nociovlpnoct(:,:)
 
   allocate(tc(nbase,nbase),nociovlp(nbase,nbase))
 
@@ -173,6 +177,83 @@ subroutine gronor_print_results(hb)
       enddo
     enddo
     deallocate(nociwf0)
+
+    nbasenoct=0
+    allocate(ndxnbase(nbase))
+    do i=1,nbase
+      if(index(trim(mebfLabel(i)),'+').eq.0.or.index(trim(mebfLabel(i)),'-').eq.0) then
+        nbasenoct=nbasenoct+1
+        ndxnbase(nbasenoct)=i
+      endif
+    enddo
+    if(nbasenoct.lt.nbase.and.nbasenoct.gt.0) then
+      allocate(nociwfnoct(nbasenoct,nbasenoct))
+      allocate(nociovlpnoct(nbasenoct,nbasenoct))
+      info=0
+      lwork = 4*nbasenoct
+      do j=1,nbasenoct
+        do i=1,nbasenoct
+          nociwfnoct(i,j)=hb(ndxnbase(i),ndxnbase(j))
+          nociovlpnoct(i,j)=sbase(ndxnbase(i),ndxnbase(j))
+        enddo
+      enddo
+      allocate(work(lwork))
+      call dsygv(1,'V','L',nbasenoct,nociwfnoct,nbasenoct,nociovlpnoct,nbasenoct, &
+          hevnoct,work,lwork,info)
+      deallocate(work)
+      if ( info .ne. 0 ) write(*,*) 'something went wrong in dyegv'
+      
+      write(lfnout,688)
+688 format(//,' NOCI energies and wave functions without charge transfer states')
+      write(lfnarx,667) nbasenoct,ncols
+      write(lfnxrx,667) nbasenoct,ncols
+
+      nk=nbasenoct/ncols
+      if(mod(nbasenoct,ncols).ne.0) nk=nk+1
+      do k=1,nk
+        ii=(k-1)*ncols+1
+        il=min(nbasenoct,k*ncols)
+        if(.not.mebfLabels.or.lablen.gt.labmax) then
+          write(lfnout,680) (i,i=ii,il)
+          write(lfnout,681) (hevnoct(i),i=ii,il)
+          write(lfnout,682) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
+        else
+          write(lfnout,690) (i,i=ii,il)
+          write(lfnout,691) (hevnoct(i),i=ii,il)
+          write(lfnout,692) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
+        endif
+        write(lfnarx,668) (i,i=ii,il)
+        write(lfnxrx,668) (i,i=ii,il)
+        write(lfnarx,669) (hevnoct(i),i=ii,il)
+        write(lfnxrx,669) (hevnoct(i),i=ii,il)
+        write(lfnarx,669) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
+        write(lfnxrx,669) (27.2114d0*(hevnoct(i)-hevnoct(1)),i=ii,il)
+        write(lfnout,683)
+        do j=1,nbasenoct
+          if (.not.mebfLabels) then
+            write(lfnout,684) j,(nociwfnoct(j,i),i=ii,il)
+          else
+            if(lablen.le.labmax) then
+              write(lfnout,685) trim(mebfLabel(ndxnbase(j))),(nociwfnoct(j,i),i=ii,il)
+            else
+              write(lfnout,686) j,(nociwfnoct(j,i),i=ii,il)
+            endif
+          endif
+          write(lfnarx,655) (nociwfnoct(j,i),i=ii,il)
+          write(lfnxrx,655) (nociwfnoct(j,i),i=ii,il)
+          if(itest.eq.2) then
+            do i=ii,il
+              nociwf0(i)=nociwfnoct(j,i)
+              if(abs(nociwf0(i)).lt.1.0d-6) nociwf0(i)=0.0d0            
+            enddo
+            write(lfntst,687) j,(nociwf0(i),i=ii,il)
+          endif
+        enddo
+      enddo
+      deallocate(nociwfnoct,nociovlpnoct)
+    endif
+    deallocate(ndxnbase)
+
   endif
 
   !   Dumping the results in the cml file

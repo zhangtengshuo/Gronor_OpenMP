@@ -103,6 +103,8 @@ program grotate
   real(kind=8),dimension(2) :: alpha, beta, delta
   integer                   :: j,iState,iFrag
 
+  call SetMem('clear=off')
+  
   zero  = 0.0
   one   = 1.0
   pi    = 4.0 * atan(one)

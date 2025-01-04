@@ -359,7 +359,7 @@
       
       external :: timer_start,timer_stop
       external :: gronor_abort
-      external :: gronor_svd_omp,gronor_evd_omp
+      external :: gronor_svd,gronor_evd
       
       integer :: lfndbg
       integer :: i,j,idetuw,k
@@ -381,7 +381,7 @@
         enddo
       endif
 
-      call gronor_svd_omp()
+      call gronor_svd()
             
       call timer_start(42)
 
@@ -415,7 +415,7 @@
 
       call timer_start(43)
 
-      call gronor_evd_omp()
+      call gronor_evd()
 
       call timer_stop(43)
 

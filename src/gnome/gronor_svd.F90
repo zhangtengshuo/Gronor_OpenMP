@@ -47,8 +47,10 @@ subroutine gronor_svd()
   use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
+  use iso_fortran_env
   use rocvars
   use hipfort
+  use hipfort_check
   use hipfort_hipmalloc
   use hipfort_rocblas_enums
   use hipfort_rocblas
@@ -294,20 +296,32 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+!        ROCBLAS_OUTOFPLACE,rocinfo)
+!    istatus=hipDeviceSynchronize()
+!$omp target data use_device_addr(a,ev,u,wt,work,rocinfo)
+    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
         c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo)
-    istatus=hipDeviceSynchronize()
+        ROCBLAS_OUTOFPLACE,rocinfo))
+!$omp end target data
+    call hipcheck(hipDeviceSynchronize())
   endif
   if(sv_solver.eq.SOLVER_ROCSOLVERX) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+!        ROCBLAS_OUTOFPLACE,rocinfo)
+!    istatus=hipDeviceSynchronize()
+    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
         c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo)
-    istatus=hipDeviceSynchronize()
+        ROCBLAS_OUTOFPLACE,rocinfo))
+    call hipcheck(hipDeviceSynchronize())
   endif
 
 #ifdef ACC

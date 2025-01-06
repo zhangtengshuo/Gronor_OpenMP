@@ -346,8 +346,8 @@ subroutine gronor_solver_init(ntemp)
 #endif
 
 #ifdef ROCSOLVER
-    lwork1m=5*nelecs*nelecs
-    lworki=1
+    lwork1m=max(0,5*nelecs*nelecs)
+    lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
@@ -492,7 +492,8 @@ subroutine gronor_solver_create_handle()
 #endif
 
 #ifdef ROCSOLVER
-    istatus=rocblas_create_handle(rocsolver_handle)
+!    istatus=rocblas_create_handle(rocsolver_handle)
+    call hipcheck(rocblas_create_handle(rocsolver_handle))
 #endif
 
 #ifdef HIPSOLVER

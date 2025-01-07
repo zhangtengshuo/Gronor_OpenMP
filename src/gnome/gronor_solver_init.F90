@@ -350,6 +350,7 @@ subroutine gronor_solver_init(ntemp)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
+!!!!! !$omp target enter data map(rocinfo)
 #endif
 
 #ifdef MAGMA

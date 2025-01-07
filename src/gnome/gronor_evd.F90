@@ -78,13 +78,17 @@ subroutine gronor_evd()
   external :: dsyevd
 #endif
   
-  integer :: i
+  integer :: i,j
   integer :: ierr
 
   ! library specific declarations
 
 #ifdef CUSOLVER
   character (len=1), target :: jobu, jobvt
+#endif
+
+#ifdef ROCSOLVER
+  real(kind=8), allocatable, target :: at(:,:),dt(:),et(:,:)
 #endif
 
   if(iamacc.eq.1) then
@@ -290,33 +294,17 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-!    evect= rocblas_evect_original
-!    uplo = rocblas_fill_upper
-!    istatus=rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
-!        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!    istatus=hipDeviceSynchronize(
-!$omp target enter data map(alloc:workspace_d,rocinfo)
+!$omp target enter data map(rocinfo,workspace_d)
 !$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
+
      call hipcheck(rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
          ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
 !     call hipcheck(rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
 !         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
 !$omp end target data
-
      call hipcheck(hipDeviceSynchronize())
-!!#ifdef OMPTGT
-!!!$omp target update from(a)
-!!#endif 
-!!    call tred2(nelecs,nelecs,a,nelecs,nelecs,diag, &
-!!        nelecs,sdiag,nelecs,a,nelecs,nelecs)
-!!    call tql2(nelecs,nelecs,diag,nelecs,sdiag,nelecs, &
-!!        a,nelecs,nelecs,ierr)
-!!#ifdef OMPTGT
-!!!$omp target update to(ev,u,w)
-!!#endif 
-
-
   endif
+
   if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
@@ -324,6 +312,7 @@ subroutine gronor_evd()
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
 !    istatus=hipDeviceSynchronize()
   endif
+
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel

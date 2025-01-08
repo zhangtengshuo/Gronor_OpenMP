@@ -1815,7 +1815,7 @@ subroutine gronor_main()
         ndtot=ndtot+ndeti*ndetj
         do i=1,ndeti
           do j=1,ndetj
-            if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI) exit
+            if(dabs(civb(i,ibase)*civb(j,jbase)).lt.tau_CI_off) exit
             numdet=numdet+1
             melen=melen+1
             ibd=ibd+1

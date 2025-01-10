@@ -3,7 +3,7 @@ module corr_shift_input_data
   integer                       :: nbase,nstates,extraDim,nBlocks,nmol
   integer                       :: reduced_extraDim,maxLength,nUniqueExtra
   integer, allocatable          :: ncombv(:,:),dimens(:),blocks(:,:),nequiv(:)
-  integer, allocatable          :: ovlp_mebfs(:),nDressed_MEBFs(:),allExtra_mebfs(:)
+  integer, allocatable          :: ovlp_mebfs(:,:),nDressed_MEBFs(:),allExtra_mebfs(:)
   real (kind=8), allocatable    :: h(:,:),s(:,:)
   real (kind=8), allocatable    :: shift(:),ecorr(:,:),ecorr2(:,:)
   character(len=80)             :: project
@@ -53,7 +53,7 @@ if (dcec) then
   do j = 1, nbase
     write(*,679) trim(mebfLabel(j)),shift(j),(fragLabel(i,j),ecorr2(i,j),i=1,nmol)
   end do
-  679  format(A4,F15.8,8x,5(A6,F15.8,3x))
+  679  format(A4,F15.8,8x,8(A6,F15.8,3x))
   write(*,*)
 endif
 
@@ -248,7 +248,7 @@ write(*,*) title
 first = 1
 if (n.eq.2) write(*,'(a,f20.10)') 't(1,2) = ',27211.4d0*tc(2,1)
 last = min(7,n)
-do while (first .lt. n-1)
+do while (first .le. n-1)
   if ( useLabels ) then
     write(*,671) (adjustl(mebfLabel(j)),j=first,min(n-1,last))
     do k = first+1, n
@@ -431,73 +431,35 @@ return
 end subroutine corr_shift_printHam
 
 
-
-
-subroutine corr_shift_printblockHam(title,m,n,label)
-use  corr_shift_input_data, only : maxlength
-implicit none
-real ( kind = 8 ), intent(in)   :: m(n,n)
-character (len=18)              :: label(n)
-integer                         :: n,i,j,first,last
-character (len = 120)           :: title
-logical                         :: useLabels
-write(*,'(a120)') title
-write(*,*)
-if ( maxLength .gt. 18 ) then
-  useLabels = .false.
-else
-  useLabels = .true.
-endif
-first = 1 ; last = min(n,7)
-do while ( first .le. n )
-  if (useLabels) then
-    write(*,671) (adjustl(label(i)),i=first,last)
-    do i = 1, n
-      write(*,672)adjustr(label(i)),(m(i,j),j=first,last)
-    end do
-  else
-    write(*,673) (i,i=first,last)
-    do i = 1, n
-      write(*,674)i,(m(i,j),j=first,last)
-    end do
-  end if
-  first = last + 1
-  last = min(last + 7,n)
-  write(*,*)
-end do
-671 format(22x,7(a20))
-672 format(a20,1x,7f20.10)
-673 format(6x,7(6x,i8,6x))
-674 format(i5,1x,7f20.10)
-return
-end subroutine corr_shift_printblockHam
-
 subroutine corr_shift_superNOCI
 use corr_shift_input_data
 implicit none
 
 external :: dsygv,corr_shift_printHam,corr_shift_couplings,corr_shift_gnweight
 
-integer                      :: i,j,k,l,m,info,lwork,jj,offset,first,last
+integer                      :: i,j,k,l,m,info,lwork,kk,offset,first,last
 integer, allocatable         :: ncount(:)
 real (kind=8), allocatable   :: h_block(:,:)
 real (kind=8), allocatable   :: s_block(:,:),s_save(:,:)
-real (kind=8), allocatable   :: extraVec(:,:)
+real (kind=8), allocatable   :: extraVec(:,:,:),refVec(:,:,:)
 real (kind=8), allocatable   :: extraH(:,:),extraS(:,:)
-real (kind=8), allocatable   :: eps(:),h_unique(:),s_unique(:),h_symm(:,:),s_symm(:,:)
+real (kind=8), allocatable   :: eps(:),h_unique(:),s_unique(:)
 real (kind=8), allocatable   :: work(:),wGN(:,:)
-real (kind=8), allocatable   :: mVec(:,:),reduced_extraVec(:,:)
+real (kind=8), allocatable   :: reduced_extraVec(:,:)
 real (kind=8)                :: ovlp,maxovlp
 character (len=120)          :: title
-character(len=18), allocatable :: label_symm(:)
-logical, allocatable         :: used(:),useLabels
+logical, allocatable         :: used(:,:),useLabels
+logical                      :: debug
 
-allocate( extraVec(extraDim,nbase) )
+allocate( extraVec(nBlocks,extraDim,nbase) )
+allocate( used(nBlocks,nbase) )
+used = .false.
 allocate( extraH(reduced_extraDim,reduced_extraDim) )
 allocate( extraS(reduced_extraDim,reduced_extraDim) )
 extraVec = 0.0
 extraH   = 0.0
 extraS   = 0.0
+debug = .false.
 
 
 if ( averaging ) then
@@ -523,41 +485,35 @@ if ( averaging ) then
     s_unique(j) = s_unique(j) / ncount(j)
   end do
   m = 0
-  allocate(h_symm(nUniqueExtra,nUniqueExtra))
-  allocate(s_symm(nUniqueExtra,nUniqueExtra))
-  allocate(label_symm(nUniqueExtra))
-  h_symm=0.0d0
-  s_symm=0.0d0
   do k = 1, nUniqueExtra
     do l = 1, k
       m = m + 1
-      h(allExtra_mebfs(k),allExtra_mebfs(l)) = h_unique(nequiv(m))*   &
-               h(allExtra_mebfs(k),allExtra_mebfs(l))/abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      if (abs(h(allExtra_mebfs(k),allExtra_mebfs(l))) .gt. 1.0e-9) then
+        h(allExtra_mebfs(k),allExtra_mebfs(l)) = h_unique(nequiv(m))*   &
+                 h(allExtra_mebfs(k),allExtra_mebfs(l))/abs(h(allExtra_mebfs(k),allExtra_mebfs(l)))
+      endif
       h(allExtra_mebfs(l),allExtra_mebfs(k)) = h(allExtra_mebfs(k),allExtra_mebfs(l))
-      s(allExtra_mebfs(k),allExtra_mebfs(l)) = s_unique(nequiv(m))*   &
+      if (abs(s(allExtra_mebfs(k),allExtra_mebfs(l))) .gt. 1.0e-9) then
+        s(allExtra_mebfs(k),allExtra_mebfs(l)) = s_unique(nequiv(m))*   &
                s(allExtra_mebfs(k),allExtra_mebfs(l))/abs(s(allExtra_mebfs(k),allExtra_mebfs(l)))
+      endif
       s(allExtra_mebfs(l),allExtra_mebfs(k)) = s(allExtra_mebfs(k),allExtra_mebfs(l))
-      h_symm(k,l) = h(allExtra_mebfs(k),allExtra_mebfs(l))
-      h_symm(l,k) = h_symm(k,l)
-      s_symm(k,l) = s(allExtra_mebfs(k),allExtra_mebfs(l))
-      s_symm(l,k) = s_symm(k,l)
     end do
-    label_symm(k) = mebfLabel(allExtra_mebfs(k))
   end do
-  title = ' symmetrized Hamiltonian (only MEBFs considered in the block diagonalizations)'
-  call corr_shift_printblockham(title,h_symm,nUniqueExtra,label_symm)
+  title = ' (partially) symmetrized Hamiltonian'
+  useLabels = .true.
+  call corr_shift_printHam(title,h,nbase,useLabels)
   write(*,*)
   if (print_overlap) then
-    title = ' symmetrized overlap matrix (only MEBFs considered in the block diagonalizations)'
-    call corr_shift_printblockham(title,s_symm,nUniqueExtra,label_symm)
+    title = ' (partially) symmetrized overlap matrix'
+    call corr_shift_printHam(title,s,nbase,useLabels)
   endif
-  deallocate(h_symm,s_symm)
   deallocate(h_unique,s_unique,ncount)
 endif  
 
 
-jj = 0
 do i = 1 ,nBlocks
+
   lwork = 4 * dimens(i)
   allocate ( h_block(dimens(i),dimens(i)) )
   allocate ( s_block(dimens(i),dimens(i)) )
@@ -586,12 +542,10 @@ do i = 1 ,nBlocks
   write(*,'(12(2x,F14.8))')eps
   do j = 1, dimens(i)
     write(*,'(12F16.8)')h_block(j,:)
-    jj = jj + 1
     do k = 1, dimens(i)
-      extraVec(jj,blocks(i,k)) = h_block(k,j)
+      extraVec(i,j,blocks(i,k)) = h_block(k,j)
     end do
   end do
-!  h_block = transpose(h_block)
   useLabels = .false.
   call corr_shift_gnweight(dimens(i),wGN,h_block,s_block,useLabels)
   write(*,*)
@@ -601,116 +555,145 @@ do i = 1 ,nBlocks
   deallocate ( s_block , s_save)
   deallocate ( wGN )
 end do
-if (dressed_coupling ) then
-  allocate( h_block(reduced_extraDim,reduced_extraDim) )
-  allocate( s_block(reduced_extraDim,reduced_extraDim) )
-  do i = 1, reduced_extraDim
-    do j = 1, reduced_extraDim
-      h_block(i,j) = h(ovlp_mebfs(i),ovlp_mebfs(j))
-      s_block(i,j) = s(ovlp_mebfs(i),ovlp_mebfs(j))
+if (debug) then
+  write(*,*) 'dressed MEBFs'
+  do i = 1, nBlocks
+    write(*,'(a,i4)')'block :',i
+    do j = 1, dimens(i)
+      write(*,'(i4,a,20F12.5)')j,' : ',extraVec(i,j,:)
     end do
   end do
-  lwork = 4 * reduced_extraDim
-  info = 0
-  allocate( work(lwork) )
-  allocate( eps(reduced_extraDim) )
-  eps = 0.0
-  work = 0.0
-  call dsygv(1,'V','L',reduced_extraDim,h_block,reduced_extraDim,s_block,reduced_extraDim,eps,work,lwork,info)
-  deallocate( work, eps )
-  allocate( mVec(reduced_extraDim,nbase) )
-  allocate( reduced_extraVec(reduced_extraDim,nbase) )
-  if ( select_lowest ) then
-    offset = 0
-    k = 0
-    do i = 1, nBlocks
-      do j = 1, nDressed_MEBFs(i)
-        k = k + 1
-        reduced_extraVec(k,:) = extraVec(k + offset,:)
-      end do
-      offset = offset + dimens(i) - k
-    end do
-  else
-! keep track which vector has already been selected
-    allocate( used(extraDim) )
-    do j = 1, extraDim
-      used(j) = .false.
-    end do
-    mVec = 0.0
-    do i = 1, reduced_extraDim
-      do j = 1, nbase
-        do k = 1, reduced_extraDim
-          if ( j .eq. ovlp_mebfs(k) ) mVec(i,j) = h_block(k,i)
-        end do
-      end do
-    end do
-    if ( print_overlap ) then
-      write(*,*) 'Overlaps between original and dressed MEBFs'
-      write(*,*) '- - - - - - - - - - - - - - - - - - - - - -'
-      write(*,*) '    MEBF     dressed MEBF     overlap'
-    end if
-    do i = 1, reduced_extraDim
-      maxovlp = 0.0
-      do j = 1, extraDim
-        ovlp = 0.0
-        do k = 1, nbase
-          do l = 1, nbase
-            ovlp = ovlp + mVec(i,k) * extraVec(j,l) * S(k,l)
-          end do
-        end do
-        if ((abs(ovlp) .gt. maxovlp) .and. (.not.used(j))) then
-          maxovlp = abs(ovlp)
-          jj = j
-          reduced_extraVec(i,:) = extraVec(j,:)
-        end if
-        if ( print_overlap ) then
-          write(*,'(3x,I4,7x,I4,8x,F14.8)') i,j,ovlp
-        end if
-      end do
-      used(jj) = .true.
-    end do
-  end if
   write(*,*)
-  write(*,*) 'new MEBFs (in rows) expressed in orginal MEBFs'
-  first = 1; last = min(15,nbase)
-  do while (first .le. nbase)
-    if ( maxLength .le.10 ) then
-      write(*,'(7x,15(A10,4x))')(mebfLabel(i),i=first,last)
+endif
+
+allocate( reduced_extraVec(reduced_extraDim,nbase) )
+if ( select_lowest ) then
+  k = 0
+  do i = 1, nBlocks
+    do j = 1, nDressed_MEBFs(i)
+      k = k + 1
+      reduced_extraVec(k,:) = extraVec(i,j,:)
+    end do
+  end do
+else
+  allocate( refVec(nBlocks,extraDim,nbase) )
+  refVec = 0.0d0
+  do i = 1, nBlocks
+    if (nDressed_MEBFs(i) .eq. 1) then
+      refVec(i,1,ovlp_mebfs(i,1)) = 1.0d0
     else
-      write(*,'(15(10x,i4))')(i,i=first,last)
-    endif
-    do i = 1, reduced_extraDim
-      write(*,'(I3,a,15F14.8)')i,':',(reduced_extraVec(i,j),j=first,last)
-    end do
-    first = last + 1
-    last = min(first + 14,nbase)
-    write(*,*)
-  end do
-  write(*,*)
-  do i = 1, reduced_extraDim
-    do j = 1, reduced_extraDim
-      do k = 1, nbase
-        do l = 1, nbase
-          extraH(i,j) = extraH(i,j) + reduced_extraVec(i,k) * reduced_extraVec(j,l) * H(k,l)
-          extraS(i,j) = extraS(i,j) + reduced_extraVec(i,k) * reduced_extraVec(j,l) * S(k,l)
+      lwork = 4 * nDressed_MEBFs(i)
+      allocate( h_block(nDressed_MEBFs(i),nDressed_MEBFs(i)) )
+      allocate( s_block(nDressed_MEBFs(i),nDressed_MEBFs(i)) )
+      allocate( work(lwork) )
+      allocate( eps(nDressed_MEBFs(i)) )
+      h_block = 0.0d0
+      s_block = 0.0d0
+      do j = 1, nDressed_MEBFs(i)
+        do k = 1, j
+          h_block(j,k) = h(ovlp_mebfs(i,j),ovlp_mebfs(i,k))
+          s_block(j,k) = s(ovlp_mebfs(i,j),ovlp_mebfs(i,k))
+          if ( k .ne. j ) then
+            h_block(k,j) = h_block(j,k)
+            s_block(k,j) = s_block(j,k)
+          end if
         end do
+      end do
+      info = 0
+      call dsygv(1,'V','L',nDressed_MEBFs(i),h_block,nDressed_MEBFs(i),s_block,nDressed_MEBFs(i),eps,work,lwork,info)
+      do j = 1, nDressed_MEBFs(i)
+        do k = 1, nDressed_MEBFs(i)
+          refVec(i,j,ovlp_mebfs(i,k)) = h_block(k,j)
+        end do
+      end do
+      deallocate ( work, eps, h_block,s_block)
+    endif
+  end do
+  if (debug) then
+    write(*,*) 'Ref vectors for selection'
+    do i = 1, nBlocks
+      write(*,'(a,i4)')'block :',i
+      do j = 1, nDressed_MEBFs(i)
+        write(*,'(i4,a,20F12.5)')j,' : ',refVec(i,j,:)
+      end do
+    end do
+    write(*,*)
+  endif
+  offset = 0
+  kk = 0
+  if ( print_overlap ) then
+    write(*,*) 'Overlaps between original and dressed MEBFs'
+    write(*,*) '- - - - - - - - - - - - - - - - - - - - - -'
+    write(*,*) 'block    MEBF     dressed MEBF     overlap'
+  end if
+  do i = 1, nBlocks
+    do j = 1, nDressed_MEBFs(i)
+      maxovlp = 0.0d0
+      do k = 1, dimens(i)
+        ovlp = 0.0d0
+        do l = 1, nbase
+          do m = 1, nbase
+            ovlp = ovlp + refVec(i,j,l)*extraVec(i,k,m)*s(l,m)
+          end do
+        enddo
+        if ((abs(ovlp) .gt. maxovlp) .and. (.not.used(i,k))) then
+          maxovlp = abs(ovlp)
+          kk = k
+          reduced_extraVec(j+offset,:) = extraVec(i,k,:)
+        endif
+        if ( print_overlap ) then
+          write(*,'(I4,4x,I4,7x,I4,8x,F14.8)') i,j,k,ovlp
+        end if
+      end do
+      used(i,kk) = .true.
+    end do
+    offset = offset + nDressed_MEBFs(i)
+  end do
+end if    
+if (select_lowest) then
+  write(*,*)
+  write(*,*) 'new MEBFs (in rows) expressed in orginal MEBFs (selected by energy)'
+else
+  write(*,*)
+  write(*,*) 'new MEBFs (in rows) expressed in orginal MEBFs (selected by overlap)'
+endif
+first = 1; last = min(15,nbase)
+do while (first .le. nbase)
+!  if ( maxLength .le.10 ) then
+    write(*,'(9x,15(A10,4x))')(mebfLabel(i),i=first,last)
+!  else
+!    write(*,'(15(10x,i4))')(i,i=first,last)
+!  endif
+  do i = 1, reduced_extraDim
+    write(*,'(I3,a,15F14.8)')i,':',(reduced_extraVec(i,j),j=first,last)
+  end do
+  first = last + 1
+  last = min(first + 14,nbase)
+  write(*,*)
+end do
+write(*,*)
+do i = 1, reduced_extraDim
+  do j = 1, reduced_extraDim
+    do k = 1, nbase
+      do l = 1, nbase
+        extraH(i,j) = extraH(i,j) + reduced_extraVec(i,k) * reduced_extraVec(j,l) * H(k,l)
+        extraS(i,j) = extraS(i,j) + reduced_extraVec(i,k) * reduced_extraVec(j,l) * S(k,l)
       end do
     end do
   end do
-  title = ' Hamiltonian in new MEBF basis'
-  useLabels = .false.
-  call corr_shift_printHam(title,extraH,reduced_extraDim,useLabels)
-  title = ' Overlap matrix new MEBFs'
-  call corr_shift_printHam(title,extraS,reduced_extraDim,useLabels)
-  write(*,*)
-  write(*,*) '  *  *  *  Electronic Couplings  (meV) *  *  *'
-  title = ' '
-  useLabels = .false.
-  call corr_shift_couplings(title,extraH,extraS,reduced_extraDim,useLabels)
-  deallocate(h_block,s_block)
-  deallocate(mVec,reduced_extraVec)
-  deallocate(extraH,extraS)
-end if
+end do
+title = ' Hamiltonian in new MEBF basis'
+useLabels = .false.
+call corr_shift_printHam(title,extraH,reduced_extraDim,useLabels)
+title = ' Overlap matrix new MEBFs'
+call corr_shift_printHam(title,extraS,reduced_extraDim,useLabels)
+write(*,*)
+write(*,*) '  *  *  *  Electronic Couplings  (meV) *  *  *'
+title = ' '
+useLabels = .false.
+call corr_shift_couplings(title,extraH,extraS,reduced_extraDim,useLabels)
+deallocate(reduced_extraVec)
+deallocate(extraH,extraS)
 
 end subroutine corr_shift_superNOCI
 
@@ -730,7 +713,7 @@ character(len=4), dimension(nKeys)   :: keyword
 character(len=4)                     :: key
 character(len=5)                     :: dummy
 character(len=6),allocatable         :: user_label(:,:)
-character(len=18),allocatable        :: blocks_label(:,:),ovlp_mebflabels(:),unique_labels(:)
+character(len=18),allocatable        :: blocks_label(:,:),ovlp_mebflabels(:,:),unique_labels(:)
 character(len=132)                   :: line,filename
 
 logical                              :: all_ok = .true.
@@ -761,6 +744,11 @@ do while (all_ok)
   if (  jj .lt. 0 ) all_ok = .false.
 end do
 
+if ( hit(4) .and. hit(6) ) then
+  write(*,*) 'SELEct and LOWEst are mutually exclusive'
+  stop
+endif
+
 do iKey = 1, nKeys
   if ( hit(iKey) ) then
     select case(iKey)
@@ -787,7 +775,7 @@ do iKey = 1, nKeys
         read(11,*) line
         first = 1 
         last = min(7,nbase)
-        do while ( first .lt. nbase )
+        do while ( first .le. nbase )
           do i = 1, nbase
             read(11,662)jj,(h(i,j),j=first,last)
           end do
@@ -800,7 +788,7 @@ do iKey = 1, nKeys
         read(11,*) line
         first = 1
         last = min(7,nbase)
-        do while ( first .lt. nbase )
+        do while ( first .le. nbase )
           do i = 1, nbase
             read(11,662)jj,(s(i,j),j=first,last)
           end do
@@ -858,9 +846,7 @@ do iKey = 1, nKeys
           extraDim = extraDim + dimens(i)
           do iMEBF = 1, nbase
             do j = 1, dimens(i)
-              if (trim(blocks_label(i,j)) .eq. trim(mebfLabel(iMEBF))) then
-                blocks(i,j) = iMEBF
-              endif
+              if (trim(blocks_label(i,j)) .eq. trim(mebfLabel(iMEBF))) blocks(i,j) = iMEBF
             end do
           end do
         end do
@@ -892,16 +878,19 @@ do iKey = 1, nKeys
         extra = .true.
       case(4)
         call corr_shift_locate(5,'SELE',line)
-        read(*,*) reduced_extraDim
-        allocate( ovlp_mebfs(reduced_extraDim) )
-        allocate( ovlp_mebflabels(reduced_extraDim) )
+        allocate(nDressed_MEBFs(nBlocks))
+        allocate( ovlp_mebfs(nBlocks,nbase) )
+        allocate( ovlp_mebflabels(nBlocks,nbase) )
         ovlp_mebfs = 0
-        read(*,*) (ovlp_mebflabels(i),i=1,reduced_extraDim)
-        do iMEBF = 1, nbase
-          do j = 1, reduced_extraDim 
-            if (trim(ovlp_mebflabels(j)) .eq. trim(mebfLabel(iMEBF))) ovlp_mebfs(j) = iMEBF
+        do i = 1, nBlocks
+          read(*,*)nDressed_MEBFs(i),(ovlp_mebflabels(i,j),j=1,nDressed_MEBFs(i))
+          do iMEBF = 1, nbase
+            do j = 1, nDressed_MEBFs(i)
+              if (trim(ovlp_mebflabels(i,j)) .eq. trim(mebfLabel(iMEBF))) ovlp_mebfs(i,j) = iMEBF
+            end do
           end do
         end do
+        reduced_extraDim = sum(nDressed_MEBFs)
         dressed_coupling = .true.
       case(5)
         GN_weights = .true.
@@ -992,9 +981,8 @@ end subroutine corr_shift_locate
 !  4 S0S1 S1S0 D+D- D-D+                                    !
 !  3 T1T1 D+D- D-D+                                         !
 ! Select                                                    !
-!  3                                                        !
-!  S0S1 S1S0 T1T1                                           !
-!                                                           !
+!  2 S0S1 S1S0                                              !
+!  1 T1T1                                                   !
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -!
 !                                                           !
 ! PROJect :  Root of the arx file                           !
@@ -1006,9 +994,9 @@ end subroutine corr_shift_locate
 !            subblock and its MEBF labels                   !
 ! SELEct  :  Selection of the vectors resulting from the    !
 !            subblock diagonalizations to construct a       !
-!            new Hamiltonian with 'dressed' MEBFs. First,   !
-!            the number of vectors that will be selected,   !
-!            followed by the MEBF labels that should be     !
-!            dominant in the new 'dressed' MEBFs.           !
+!            new Hamiltonian with 'dressed' MEBFs. For each !
+!            block, the number of vectors that will be      !
+!            selected, followed by the MEBF labels that     !
+!            should be dominant in the new 'dressed' MEBFs. !
 !                                                           !
 !-----------------------------------------------------------!

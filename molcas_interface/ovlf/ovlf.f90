@@ -62,17 +62,23 @@
 !                  -introduced threshold for writing a det on the det file   !
 !                  -duplicate dets are eliminated                            !
 !                                                                            !
+!   December 2024: -Introduced the possiblity to 'freeze' the core orbitals  !
+!                  -Normalization of the corresponding orbitals, important   !
+!                   when dummy atoms are removed                             !
+!                  -Deactivated orthogonalized superorb                      !
+!                                                                            !
+!                                                                            !
 !****************************************************************************!
 
 module ovlfdets_data
 implicit none
 
-integer                  :: target_spin,nci,maxcib,maxnact
+integer                  :: target_spin,nci,maxcib,maxnact,nSym
 integer,dimension(2)     :: inactm,nactm,idetm,spinm
-integer,allocatable      :: ioccm(:,:,:)
+integer,allocatable      :: ioccm(:,:,:),nFrozen1(:),nFrozen2(:)
 real(kind=8),allocatable :: civm(:,:)
 real(kind=8)             :: ciThreshold,svdThreshold
-logical                  :: superorth
+logical                  :: normalize
 
 end module ovlfdets_data
 
@@ -83,78 +89,79 @@ implicit none
 external :: ovlf_readin,NameRun,Get_iArray,Get_cArray,OpnOne,RdOne,ClsOne
 external :: dgesvd,ovlf_dets
 
-integer                       :: iSym,nSym
+integer                       :: iSym
 integer                       :: lDim,offset1,offset2
-integer                       :: j,k,kk,l,m1,m2,m3,jOrb,first,last
+integer                       :: i,j,k,kk,l,m1,m2,m3,jOrb,first,last
 integer                       :: LuOne,iRC,iOpt,iComponent,iSymLbl
-integer                       :: nBasTot,iCounter,to_be_averaged
+integer                       :: nBasTot,iCounter
 integer                       :: lTriangle
 integer                       :: dummy,start,finish
-integer                       :: maxInact,nBasFinal
+integer                       :: maxInact,nBasFinal,maxFrozen
 integer, allocatable          :: nBas1(:),nBas2(:),nBas(:)
 integer, allocatable          :: nInact1(:),nInact2(:)
 integer, allocatable          :: nAct1(:),nAct2(:)
 integer, allocatable          :: nRas1_1(:),nRas1_2(:),nRas2_1(:),nRas2_2(:),nRas3_1(:),nRas3_2(:)
-integer, allocatable          :: n_elim(:)
+integer, allocatable          :: n_elim(:),to_be_averaged(:),to_be_averaged_frozen(:)
 
-real (kind = 8), allocatable  :: c1(:,:,:),c2(:,:,:),c3(:,:,:)
+real (kind = 8), allocatable  :: c1(:,:,:),c2(:,:,:),c3(:,:,:),c4(:,:,:)
 real (kind = 8), allocatable  :: c_1(:,:),c_2(:,:)
 real (kind = 8), allocatable  :: c1c(:,:),c2c(:,:)
 real (kind = 8), allocatable  :: occNu1(:,:),occNu2(:,:)
 real (kind = 8), allocatable  :: occNu3(:,:)
-real (kind = 8), allocatable  :: s(:),sAO(:,:,:),sMO(:,:)
+real (kind = 8), allocatable  :: s(:),sAO(:,:,:),sAO_mod(:,:,:),sMO(:,:)
 real (kind = 8), allocatable  :: U(:,:),VT(:,:),V(:,:)
 real (kind = 8), allocatable  :: aux(:,:),work(:)
 real (kind = 8), allocatable  :: sigma(:)
+real (kind = 8)               :: norm
 
 character (len = 132)         :: line,title
 character (len = 6)           :: mark
-character (len = 14) , allocatable    :: basLabel(:)
+character (len = 14) , allocatable    :: basLabel(:),basLabel_mod(:,:)
 character (len = 1 ) , allocatable    :: orbLabel(:),orblabel12(:,:)
 
 logical , allocatable         :: eliminate(:,:)
-logical                       :: debug
+logical                       :: debug,new
 
-real(kind=8),allocatable  :: super(:,:),super_orth(:,:)
-real(kind=8),allocatable  :: overlap(:,:),v_orth(:,:)
 integer,allocatable       :: nOcc(:)
-integer                   :: nB,i,nAct,nInact
+integer                   :: nB,nAct,nInact,nFrozen
 
+debug = .false.
+
+!...Open the RUNFILE and retrieve the number of irreps
+call NameRun('RUNFILE')
+call Get_iScalar('nSym',nSym)
+allocate(nFrozen1(nSym))
+allocate(nFrozen2(nSym))
+
+!...Read the input file
 call ovlf_readin
 write(*,'(A,F8.3)') 'Running ovlf with threshold        : ',svdThreshold
 write(*,'(A,I3)')   'for a state with spin multiplicity : ',target_spin
 write(*,*)
 target_spin = target_spin - 1
-debug = .false.
-
 
 !...Open the files where the corresponding orbitals will be stored
 open (12,file='SUPERORB',status='unknown')
 open (13,file='CORRORB.A',status='unknown')
 open (14,file='CORRORB.B',status='unknown')
-if ( superorth ) open (15,file='SUPERORB.ORTHO',status='unknown')
 
 !...Retrieving info from  INPORB1
 open (9,file='INPORB1',status='old')
 read(9,'(A132)') line
 write(12,'(A132)') line
 write(13,'(A132)') line
-if ( superorth ) write(15,'(A132)') line
 read(9,'(A132)') line
 write(12,'(A132)') line
 write(13,'(A132)') line
-if ( superorth ) write(15,'(A132)') line
 read(9,'(A132)') title
 write(6,*) "Title vector file 1 : ",title
 write(12,'(A32)')'* Superimposed fragment orbitals'
 write(13,'(A35)')'* Corresponding orbitals fragment A'
-if ( superorth ) write(15,'(A47)')'* Superimposed orthogonalized fragment orbitals'
 read(9,*) dummy, nSym, dummy
 write(12,'(3I8)')0,nSym,0
 write(13,'(3I8)')0,nSym,0
-if ( superorth ) write(15,'(3I8)')0,nSym,0
 allocate ( nBas1(nSym) )
-nBas1 = 0.0
+nBas1 = 0
 read(9,*)(nBas1(iSym),iSym=1,nSym)
 write(6,'(A,8I5)')"Number of basis functions : ",(nBas1(iSym),iSym=1,nSym)
 write(13,'(8I8)')(nBas1(iSym),iSym = 1, nSym)
@@ -218,8 +225,10 @@ do iSym = 1, nSym
     if (orbLabel(j) .eq. '2') nRas2_1(iSym) = nRas2_1(iSym) + 1
     if (orbLabel(j) .eq. '3') nRas3_1(iSym) = nRas3_1(iSym) + 1
   end do
-  nAct1(nSym) = nRas1_1(iSym) + nRas2_1(iSym) + nRas3_1(iSym)
+  nInact1(iSym) = nInact1(iSym) - nFrozen1(iSym)
+  nAct1(iSym) = nRas1_1(iSym) + nRas2_1(iSym) + nRas3_1(iSym)
 end do
+write(6,'(A,8I5)') '          frozen orbitals : ',(nFrozen1(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '        inactive orbitals : ',(nInact1(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '          active orbitals : ',(nAct1(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '          RAS1   orbitals : ',(nRas1_1(iSym),iSym=1,nSym)
@@ -241,7 +250,7 @@ write(14,'(A35)')'* Corresponding orbitals fragment B'
 read(10,*) dummy,nSym,dummy
 write(14,'(3I8)')0,nSym,0
 allocate ( nBas2(nSym) )
-nBas2 = 0.0
+nBas2 = 0
 read(10,*) (nBas2(iSym),iSym=1,nSym)
 write(6,'(A,8I5)')"Number of basis functions : ",(nBas2(iSym),iSym=1,nSym)
 write(14,'(8I8)')(nBas2(iSym),iSym = 1, nSym)
@@ -305,8 +314,10 @@ do iSym = 1, nSym
     if (orbLabel(j) .eq. '2') nRas2_2(iSym) = nRas2_2(iSym) + 1
     if (orbLabel(j) .eq. '3') nRas3_2(iSym) = nRas3_2(iSym) + 1
   end do
-  nAct2(nSym) = nRas1_2(iSym) + nRas2_2(iSym) + nRas3_2(iSym)
+  nAct2(iSym) = nRas1_2(iSym) + nRas2_2(iSym) + nRas3_2(iSym)
+  nInact2(iSym) = nInact2(iSym) - nFrozen2(iSym)
 end do
+write(6,'(A,8I5)') '          frozen orbitals : ',(nFrozen2(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '        inactive orbitals : ',(nInact2(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '          active orbitals : ',(nAct2(iSym),iSym=1,nSym)
 write(6,'(A,8I5)') '          RAS1   orbitals : ',(nRas1_2(iSym),iSym=1,nSym)
@@ -315,39 +326,42 @@ write(6,'(A,8I5)') '          RAS3   orbitals : ',(nRas3_2(iSym),iSym=1,nSym)
 write(6,*)
 close(10)
 
-!...Open the RunFile and read some info (number of basis functions and basis labels)
+!...Read some more info from the RunFile (number of basis functions and basis labels)
 allocate ( nBas(nSym) )
 allocate ( nOcc(nSym) )
 nBas = 0.0
 nOcc = 0.0
-Call NameRun('RUNFILE')
+!Call NameRun('RUNFILE')
 Call Get_iArray('nBas',nBas,nSym)
 nBasTot = sum(nBas)
-lTriangle = ( nBasTot * ( nBasTot + 1 ) ) / 2
+lTriangle = ( nBasTot * ( nBasTot + 1 ) ) / 2 + 4
 lDim = maxval(nBas)
 allocate ( basLabel(nBasTot) )
+allocate ( basLabel_mod(nSym,lDim) )
 allocate ( eliminate(nSym,lDim) )
-allocate ( n_elim(nSym) )
+allocate ( n_elim(nSym),to_be_averaged(nSym),to_be_averaged_frozen(nSym) )
+to_be_averaged = 0
+to_be_averaged_frozen = 0
 n_elim = 0
 Call Get_cArray('Unique Basis Names',basLabel,14*nBasTot)
+iCounter = 0
 do iSym = 1, nSym
+  l = 0
   do j = 1, nBas(iSym)
-    if (basLabel(j)(1:1) .eq. 'Q') then
+    iCounter = iCounter + 1
+    if (basLabel(iCounter)(1:1) .eq. 'Q') then
       eliminate(iSym,j) = .True.
       n_elim(iSym) = n_elim(iSym) + 1 
     else
       eliminate(iSym,j) = .False.
+      l = l + 1
+      basLabel_mod(iSym,l) = basLabel(iCounter)
     end if
   end do
 end do
 write(12,'(8I8)')(nBas(iSym)-n_elim(nSym),iSym = 1, nSym)
 write(12,'(8I8)')(nBas(iSym)-n_elim(nSym),iSym = 1, nSym)
 write(12,'(A4)')'#ORB'
-if ( superorth ) then
-  write(15,'(8I8)')(nBas(iSym)-n_elim(nSym),iSym = 1, nSym)
-  write(15,'(8I8)')(nBas(iSym)-n_elim(nSym),iSym = 1, nSym)
-  write(15,'(A4)')'#ORB'
-end if
 
 !...Open the OneInt file and read the overlap matrix of the ao-basis
 allocate ( s(lTriangle) )
@@ -382,13 +396,32 @@ do iSym = 1, nSym
   end if
 end do
 deallocate( s )
+iOpt = 0
 Call ClsOne(iRc,iOpt)
-
+!...Construct the AO overlap matrix of the supermolecule after removing the dummy atoms
+allocate( sAO_mod(nSym,lDim,lDim) )
+do iSym = 1, nSym
+  l = 0
+  do j = 1, nBas(iSym)
+    if ( .not. eliminate(iSym,j) ) then
+      l = l + 1
+      i = 0
+      do k = 1, nBas(iSym)
+        if ( .not. eliminate(iSym,k) ) then
+          i = i + 1
+          sAO_mod(iSym,l,i) = sAO(iSym,j,k)
+        endif
+      end do
+    endif
+  end do
+end do
 !...Open GUESSORB of the supermolecule for some reasonable virtual orbitals
 open(11,file='GUESSORB',status='old')
 allocate( c3(nSym,lDim,lDim) )
+allocate( c4(nSym,lDim,lDim) )
 allocate( occNu3(nSym,lDim) )
 c3 = 0.0
+c4 = 0.0
 occNu3 = 0.0
 mark = '#ORB'
 64 read(11,'(A132)') line
@@ -402,75 +435,286 @@ do iSym = 1, nSym
   endif
 end do
 close(11)
+!...End of data collection
 
-!...Replace the first vectors by the active orbitals of the fragments 
-!     to save them for the final vector file SUPERORB
+!...Replace the first vectors by the active orbitals of the
+!     fragments to save them for the final vector file SUPERORB
 do iSym = 1, nSym
   jOrb = 0
-  offset1 = nInact1(iSym)
-  offset2 = nInact2(iSym)
+  offset1 = nInact1(iSym)+nFrozen1(iSym)
+  offset2 = nInact2(iSym)+nFrozen2(iSym)
   do j = 1, nRas1_1(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0d0
     do k = 1, nBas1(iSym)
       c3(iSym,jOrb,k) = c1(iSym,j+offset1,k)
     end do
   end do
   do j = 1, nRas1_2(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0
     do k = 1, nBas2(iSym)
       c3(iSym,jOrb,k+nBas(iSym)-nBas2(iSym)) = c2(iSym,j+offset2,k)
     end do
   end do
-  offset1 = nInact1(iSym) + nRas1_1(iSym)
-  offset2 = nInact2(iSym) + nRas1_2(iSym)
+  offset1 = offset1 + nRas1_1(iSym)
+  offset2 = offset2 + nRas1_2(iSym)
   do j = 1, nRas2_1(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0
     do k = 1, nBas1(iSym)
       c3(iSym,jOrb,k) = c1(iSym,j+offset1,k)
     end do
   end do
   do j = 1, nRas2_2(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0
     do k = 1, nBas2(iSym)
       c3(iSym,jOrb,k+nBas(iSym)-nBas2(iSym)) = c2(iSym,j+offset2,k)
     end do
   end do
-  offset1 = nInact1(iSym) + nRas1_1(iSym) + nRas2_1(iSym)
-  offset2 = nInact2(iSym) + nRas1_2(iSym) + nRas2_2(iSym)
+  offset1 = offset1 + nRas2_1(iSym)
+  offset2 = offset2 + nRas2_2(iSym)
   do j = 1, nRas3_1(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0
     do k = 1, nBas1(iSym)
       c3(iSym,jOrb,k) = c1(iSym,j+offset1,k)
     end do
   end do
   do j = 1, nRas3_2(iSym)
     jOrb = jOrb + 1
-    do k = 1, nBas(iSym)
-      c3(iSym,jOrb,k) = 0.0
-    end do
+    c3(iSym,jOrb,:) = 0.0
     do k = 1, nBas2(iSym)
       c3(iSym,jOrb,k+nBas(iSym)-nBas2(iSym)) = c2(iSym,j+offset2,k)
     end do
   end do
 end do
-!...End of data collection
+!...Corresponding orbital transformation in the frozen orbitals
+do iSym = 1, nSym
+  m1 = nFrozen1(iSym) + nFrozen2(iSym)
+  if (m1 .eq. 0) cycle       !...No frozen in this irrep, try the next one
+  m2 = nBas(iSym)
+  m3 = nBas(iSym) - nBas2(iSym)
+  if (debug) write (6,*) 'm1 m2 m3 : ',m1,m2,m3
+  allocate ( aux(m1,m2) )
+  allocate ( sMO(m1,m1) )
+  allocate (   U(m1,m1) )
+  allocate (  VT(m1,m1) )
+  allocate (   V(m1,m1) )
+  allocate (  sigma(m1) )
+  allocate ( work(5*m1) )
+  allocate ( c_1(m1,m2) )
+  allocate ( c_2(m1,m2) )
+  allocate ( c1c(m1,m2) )
+  allocate ( c2c(m1,m2) )
+  c_1 = 0.0
+  c_2 = 0.0
+  c1c = 0.0
+  c2c = 0.0
+!...Adding zeros to c1 and c2 to fit the dimension of the "super molecule"
+  do j = 1, nFrozen1(iSym)
+    do k = 1, nBas1(iSym)
+      c_1(j,k) = c1(iSym,j,k)
+    end do
+  end do
+  do j = 1, nFrozen2(iSym)
+    do k = 1, nBas2(iSym)
+      c_2(j+nFrozen1(iSym),k + m3) = c2(iSym,j,k)
+    end do
+  end do
+  if ( debug ) then
+    write(6,*)'c_1 '
+    do j = 1, m1
+      write(*,*) j
+      write(6,'(20F10.5)') (c_1(j,k),k=1,m2)
+    end do
+    write(6,*)'c_2 '
+    do j = 1, m1
+      write(*,*) j
+      write(6,'(20F10.5)') (c_2(j,k),k=1,m2)
+    end do
+  end if
+  aux = 0.0
+  sMO = 0.0
+  do j = 1, m1
+    do k = 1, m2
+      do l = 1, m2
+        aux(j,k) = aux(j,k) + c_2(j,l) * sAO(iSym,l,k)
+      end do
+    end do
+  end do
+  do j = 1, m1
+    do k = 1, m1
+      do l = 1, m2
+        sMO(j,k) = sMO(j,k) + aux(j,l) * c_1(k,l)
+      end do
+    end do
+  end do
+  if (debug) then
+    write(*,*) 'frozen MO overlap'
+    do j = 1, m1
+      write(6,'(20F10.5)')(sMO(j,k),k=1,m1)
+    end do
+    write(6,*)
+  end if
+! Singular value decomposition of sMO
+  call dgesvd('A','A',m1,m1,sMO,m1,sigma,U,m1,VT,m1,work,5*m1,iRC)
+  V = Transpose(VT)
+  if ( debug ) then
+    write(6,*)'Singular Value Decomposition'
+    write(6,*) 'left sigular matrix, U'
+    do j = 1, m1
+      write(6,'(20F10.5)') (U(j,k),k = 1, m1)
+    end do
+    write(6,*) 'right sigular matrix, V'
+    do j = 1, m1
+      write(6,'(20F10.5)') (V(j,k),k = 1, m1)
+    end do
+  end if
+  write(6,*) 'Singular values, sigma'
+  write(6,'(10F12.6)') (sigma(j),j = 1, m1)
+  write(6,*)
+  do j = 1, m1
+    do k = 1, m2
+      do l = 1, m1
+        c1c(j,k) = c1c(j,k) + c_1(l,k) * V(l,j)
+        c2c(j,k) = c2c(j,k) + c_2(l,k) * U(l,j)
+      end do
+    end do
+  end do
+  if ( debug ) then
+    write(6,*)
+    write(6,*) 'Corresponding frozen orbitals'
+    write(6,*) 'transformed c1'
+    do j = 1, m1
+      write(6,'(20F10.5)') (c1c(j,k),k = 1, m2)
+    end do
+    write(6,*) 'transformed c2'
+    do j = 1, m1
+      write(*,'(20F10.5)') (c2c(j,k),k = 1, m2)
+    end do
+  end if
+!...Dump the corresponding orbitals on CORRORB.A and CORRORB.B
+  do j = 1, nFrozen1(iSym)
+    write(13,'(A,2I5)') '* ORBITAL',iSym,j
+    write(13,'(5E22.14)')(c1(iSym,j,k),k = 1, nBas1(iSym))
+    occNu1(iSym,j) = 2.0
+  end do
+  do j = 1, nFrozen2(iSym)
+    write(14,'(A,2I5)') '* ORBITAL',iSym,j
+    write(14,'(5E22.14)')(c2(iSym,j,k),k = 1, nBas2(iSym))
+    occNu2(iSym,j) = 2.0
+  end do
+!...Remove the basis functions belonging to the dummy atoms
+  l = 0
+  do k = 1, nBas(iSym)
+    if (.not.eliminate(iSym,k)) then
+      l = l + 1
+      do j = 1, nFrozen1(iSym)
+        c1c(j,l) = c1c(j,k)
+      end do
+      do j = 1, nFrozen2(iSym)
+        c2c(j,l) = c2c(j,k)
+      end do
+      do j = 1, nFrozen1(iSym)+nFrozen2(iSym)
+        c_1(j,l) = c_1(j,k)
+        c_2(j,l) = c_2(j,k)
+      end do
+    endif
+  end do
+!...Construct the frozen orbitals that belong to the overlapping fragment
+  nBasFinal = nBas(isym) - n_elim(iSym)
+  maxFrozen = max(nFrozen1(iSym),nFrozen2(iSym))
+  jOrb = 1
+  to_be_averaged_frozen(iSym) = 0
+  do j = 1, maxFrozen
+    if ( sigma(jOrb) .gt. svdThreshold ) then
+      to_be_averaged_frozen(iSym) = to_be_averaged_frozen(iSym) + 1
+      do k = 1, nBasFinal
+        c4(iSym,jOrb,k) = (c1c(j,k) + c2c(j,k)) / sqrt(2+2*sigma(jOrb))
+      end do
+      jOrb = jOrb + 1
+    else
+      if ( j .le. nFrozen1(iSym) ) then
+        c4(iSym,jOrb,:) = c1c(j,:)
+        jOrb = jOrb + 1
+      endif
+      if ( j .le. nFrozen2(iSym) ) then
+        c4(iSym,jOrb,:) = c2c(j,:)
+        jOrb = jOrb + 1
+      endif 
+    endif
+  enddo
+  sMO = 0.0d0
+  do j = 1, to_be_averaged_frozen(iSym)
+    do k = 1, nBasFinal
+      do l = 1, nBasFinal
+        aux(j,k) = aux(j,k) + c4(iSym,j,l) * sAO_mod(iSym,l,k)
+      enddo
+    enddo
+  enddo
+  do j = 1, to_be_averaged_frozen(iSym)
+    do k = 1, nFrozen1(iSym)
+      do l = 1, nBasFinal
+        sMO(j,k) = sMO(j,k) + aux(j,l) * c_1(k,l)
+      end do
+    end do
+    do k = nFrozen1(iSym) + 1, nFrozen1(iSym) + nFrozen2(iSym)
+      do l = 1, nBasFinal
+        sMO(j,k) = sMO(j,k) + aux(j,l) * c_2(k,l)
+      enddo
+    enddo
+  enddo
+!...Select the other frozen orbitals from the non-transformed ones by overlap
+!   with the corresponding frozen orbitals of the overlapping fragment. This
+!   might require an improved selection criterion instead of the numeric that we
+!   have now. For example, exclude the ones with the largest overlap
+  jOrb = to_be_averaged_frozen(iSym)
+  do j = 1, nFrozen1(iSym)
+    new = .true.
+    do k = 1, to_be_averaged_frozen(iSym)
+      if (abs(sMO(k,j)) .gt. 0.3) new = .false.
+    end do
+    if (new) then
+      jOrb = jOrb +1 
+      c4(iSym,jOrb,:) = c_1(j,:)
+    endif
+  end do
+  do j = nFrozen1(iSym) + 1, nFrozen1(iSym) + nFrozen2(iSym)
+    new = .true.
+    do k = 1, to_be_averaged_frozen(iSym)
+      if (abs(sMO(k,j)) .gt. 0.3) new = .false.
+    end do
+    if (new) then
+      jOrb = jOrb +1 
+      c4(iSym,jOrb,:) = c_2(j,:)
+    endif
+  end do
+  if (debug) then
+    do i = 1, nFrozen1(iSym) + nFrozen2(iSym) - to_be_averaged_frozen(iSym)
+      write(*,*) i
+      do k = 1, nBasFinal
+        if (abs(c4(iSym,i,k)) .gt. 5e-2) write(*,'(a,F15.6)')basLabel_mod(iSym,k),c4(iSym,i,k)
+      end do
+    end do
+  endif
+    
+! deallocate for next symmetry
+  deallocate ( aux )
+  deallocate ( sMO )
+  deallocate (   U )
+  deallocate (  VT )
+  deallocate (   V )
+  deallocate ( sigma )
+  deallocate ( work )
+  deallocate ( c_1 )
+  deallocate ( c_2 )
+  deallocate ( c1c )
+  deallocate ( c2c )
+end do
  
- 
+!...Next, the inactive orbitals 
 !...Construct overlap matrix of the MOs, sMO = (c2)^T x sAO x c1 
 do iSym = 1, nSym
   m1 = nInact1(iSym)+nInact2(iSym)
@@ -495,20 +739,20 @@ do iSym = 1, nSym
 ! Adding zeros to c1 and c2 to fit the dimension of the "super molecule"
   do j = 1, nInact1(iSym)
     do k = 1, nBas1(iSym)
-      c_1(j,k) = c1(iSym,j,k)
+      c_1(j,k) = c1(iSym,j+nFrozen1(iSym),k)
     end do
   end do
   do j = 1, nInact2(iSym)
     do k = 1, nBas2(iSym)
-      c_2(j+nInact1(iSym),k + m3) = c2(iSym,j,k)
+      c_2(j+nInact1(iSym),k + m3) = c2(iSym,j+nFrozen2(iSym),k)
     end do
   end do
   if ( debug ) then
-    write(6,*)'c_1'
+    write(6,*)'c_1 '
     do j = 1, m1
       write(6,'(20F10.5)') (c_1(j,k),k=1,m2)
     end do
-    write(6,*)'c_2'
+    write(6,*)'c_2 '
     do j = 1, m1
       write(6,'(20F10.5)') (c_2(j,k),k=1,m2)
     end do
@@ -551,7 +795,7 @@ do iSym = 1, nSym
     end do
   end if
   write(6,*) 'Singular values, sigma'
-  write(6,'(10F10.5)') (sigma(j),j = 1, m1)
+  write(6,'(10F12.6)') (sigma(j),j = 1, m1)
   write(6,*)
   do j = 1, m1
     do k = 1, m2
@@ -575,20 +819,20 @@ do iSym = 1, nSym
   end if
 ! Dump the corresponding orbitals on CORRORB.A and CORRORB.B
   do j = 1, nInact1(iSym)
-    write(13,'(A,2I5)') '* ORBITAL',iSym,j
+    write(13,'(A,2I5)') '* ORBITAL',iSym,j+nFrozen1(iSym)
     write(13,'(5E22.14)')(c1c(j,k),k = 1, nBas1(iSym))
-    occNu1(iSym,j) = sigma(j)
+    occNu1(iSym,j+nFrozen1(iSym)) = sigma(j)
   end do
-  do j = nInact1(iSym)+1,nBas1(iSym)
+  do j = nFrozen1(iSym)+nInact1(iSym)+1,nBas1(iSym)
     write(13,'(A,2I5)') '* ORBITAL',iSym,j
     write(13,'(5E22.14)')(c1(iSym,j,k),k = 1, nBas1(iSym))
   end do
   do j = 1, nInact2(iSym)
-    write(14,'(A,2I5)') '* ORBITAL',iSym,j
+    write(14,'(A,2I5)') '* ORBITAL',iSym,j+nFrozen2(iSym)
     write(14,'(5E22.14)')(c2c(j,k),k = m3+1, m2)
-    occNu2(iSym,j) = sigma(j)
+    occNu2(iSym,j+nFrozen2(iSym)) = sigma(j)
   end do
-  do j = nInact2(iSym)+1, nBas2(iSym)
+  do j = nFrozen2(iSym)+nInact2(iSym)+1, nBas2(iSym)
     write(14,'(A,2I5)') '* ORBITAL',iSym,j
     write(14,'(5E22.14)')(c2(iSym,j,k),k = 1, nBas2(iSym))
   end do
@@ -612,17 +856,26 @@ do iSym = 1, nSym
     end do
     write(6,*) 'Corresponding orbitals overlap'
     do j = 1, m1 
-      write(6,'(20F10.5)')(sMO(k,k),k=1,m1)
+      write(6,'(20F10.5)')(sMO(j,k),k=1,m1)
     end do
     write(*,*)
   end if
 ! Before writing the corresponding orbitals to SUPERORB (unit 12), we first
 ! eliminate (if needed) the basis function(s) associated to atoms not present
 ! in the final supermolecule (typically saturating hydrogens)
+
+  if ( debug ) then
+    write(*,*) 'basis functions to be eliminated :'
+    do k = 1, nBas(iSym)
+      write(*,*) k,eliminate(iSym,k)
+    end do
+  endif
+
   l = 0
   if ( sum(n_elim) .gt. 0 ) then
     write(*,'(I4,A)') sum(n_elim),' basis functions have been eliminated'
   end if
+  if ( normalize ) write(*,*) 'Corresponding orbitals of the supermolecule are normalized'
   do k = 1, nBas(iSym)
     if ( .not.eliminate(iSym,k) ) then
       l = l + 1
@@ -637,45 +890,109 @@ do iSym = 1, nSym
       end do
     end if
   end do
+
+  if ( debug ) then
+    write(*,*) 'c1c and c2c after eliminating some basis functions'
+    do k = 1, nBas(iSym)-n_elim(iSym)
+      write(*,'(I4,2x,A,30F15.8)')k,basLabel_mod(iSym,k),(c1c(j,k),c2c(j,k),j=1,min(nInact1(iSym),nInact2(iSym)))
+    end do
+    write(*,*) 'norm of c1c'
+    do i = 1, nInact1(iSym)
+      norm = 0.0d0
+      do j = 1, nBas(iSym)-n_elim(iSym)
+        do k = 1, nBas(iSym)-n_elim(iSym)
+          norm = norm + c1c(i,j) * c1c(i,k) * sAO_mod(iSym,j,k)
+        end do
+      end do
+      write(*,*) i,norm
+    end do
+    write(*,*) 'norm of c2c'
+    do i = 1, nInact2(iSym)
+      norm = 0.0d0
+      do j = 1, nBas(iSym)-n_elim(iSym)
+        do k = 1, nBas(iSym)-n_elim(iSym)
+          norm = norm + c2c(i,j) * c2c(i,k) * sAO_mod(iSym,j,k)
+        end do
+      end do
+      write(*,*) i,norm
+    end do
+    write(*,*) 'How does c3 look like?'
+    do k = 1, nBas(iSym)-n_elim(iSym)
+      write(*,'(I4,2x,A,30F15.8)')k,basLabel_mod(iSym,k),(c3(iSym,j,k),j=1,nAct1(iSym)+nAct2(iSym))
+    end do
+  endif
+
 ! dump corresponding orbitals in orbital file of the supermolecule 
 ! taking the average for those orbitals with a sigma larger than the threshold
-  to_be_averaged = 0
   nBasFinal = nBas(iSym) - n_elim(iSym)
+  nFrozen = nFrozen1(iSym) + nFrozen2(iSym) - to_be_averaged_frozen(iSym)
+  nAct = nAct1(iSym) + nAct2(iSym)
+  to_be_averaged(iSym) = 0
   do j = 1, m1
-    if ( sigma(j) .ge. svdThreshold ) to_be_averaged = to_be_averaged + 1
+    if ( sigma(j) .ge. svdThreshold ) to_be_averaged(iSym) = to_be_averaged(iSym) + 1
   end  do
-  nOcc(isym) = m1 - to_be_averaged + nAct1(iSym) + nAct2(iSym)
-  write (6,'(I4,A)') m1 - to_be_averaged,' inactive orbitals will be dumped on SUPERORB'
+  nOcc(isym) = m1 - to_be_averaged(iSym) + nAct1(iSym) + nAct2(iSym)
+  if (nFrozen .ne. 0) then
+    write (6,'(I4,A,I4,A)') nFrozen,' frozen orbitals and', &
+                   m1 - to_be_averaged(iSym),' inactive orbitals will be dumped on SUPERORB'
+  else
+    write (6,'(I4,A)') m1 - to_be_averaged(iSym),' inactive orbitals will be dumped on SUPERORB'
+  end if
   write(6,*) 'Please, check!!  If not correct, change --svdThreshold-- and run again'
   write(6,*)
   maxInact = max(nInact1(iSym),nInact2(iSym))
   jOrb = 1
   do j = 1, maxInact
     if ( sigma(jOrb) .gt. svdThreshold ) then
-      write(12,'(A,2I5)') '* ORBITAL',iSym,jOrb
-      write(12,'(5E22.14)')((c1c(j,k)+c2c(j,k))/sqrt(2+2*sigma(jOrb)),k=1,nBasFinal)
+      do k = 1, nBasFinal
+        c4(iSym,jOrb+nFrozen,k) = (c1c(j,k) + c2c(j,k)) / sqrt(2+2*sigma(jOrb))
+      end do
       jOrb = jOrb + 1
     else
       if (j .le. nInact1(iSym)) then
-        write(12,'(A,2I5)') '* ORBITAL',iSym,jOrb
-        write(12,'(5E22.14)')(c1c(j,k),k=1,nBasFinal)
+        c4(iSym,jOrb+nFrozen,:) = c1c(j,:)
         jOrb = jOrb + 1
       endif
       if (j .le. nInact2(iSym)) then
-        write(12,'(A,2I5)') '* ORBITAL',iSym,jOrb
-        write(12,'(5E22.14)')(c2c(j,k),k=1,nBasFinal)
+        c4(iSym,jOrb+nFrozen,:) = c2c(j,:)
         jOrb = jOrb + 1
       endif
     endif
   end do
-  do j = 1, nAct1(iSym) + nAct2(iSym)
-    write(12,'(A,2I5)')'* ORBITAL',iSym,j+jOrb-1
-    write(12,'(5E22.14)')(c3(iSym,j,k),k=1,nBasFinal)
+  do j = 1, nAct
+    c4(iSym,jOrb+nFrozen,:) = c3(iSym,j,:)
+    jOrb = jOrb + 1
   end do
-  jOrb = jOrb + nAct1(iSym) + nAct2(iSym)
-  do j = jOrb, nBasFinal
+  do j = jOrb+nFrozen, nBasFinal
+    c4(iSym,j,:) = c3(iSym,j,:)
+  end do
+  if ( normalize ) then
+    do j = 1, nBasFinal
+      norm = 0.0d0
+      do k = 1, nBasFinal
+        do l = 1, nBasFinal
+          norm = norm + c4(iSym,j,k) * c4(iSym,j,l) * sAO_mod(iSym,k,l)
+        end do
+      end do
+      if (debug) write(*,'(i4,F15.8)') j,norm
+      norm = 1.0d0/sqrt(norm)
+      do k = 1, nBasFinal
+        c4(iSym,j,k) = c4(iSym,j,k) * norm
+      end do
+      if ( debug ) then
+        norm = 0.0d0
+        do k = 1, nBasFinal
+          do l = 1, nBasFinal
+            norm = norm + c4(iSym,j,k) * c4(iSym,j,l) * sAO_mod(iSym,k,l)
+          end do
+        end do
+        write(*,'(i4,f14.7)') j,norm
+      endif
+    end do
+  endif
+  do j = 1, nBasFinal
     write(12,'(A,2I5)')'* ORBITAL',iSym,j
-    write(12,'(5E22.14)')(c3(iSym,j,k),k=1,nBasFinal)
+    write(12,'(5E22.14)')(c4(iSym,j,k),k=1,nBasFinal)
   end do
 ! deallocate for next symmetry
   deallocate ( aux )
@@ -693,7 +1010,7 @@ end do
 ! construct the occupation numbers of the supermolecule
 do iSym = 1, nSym
   start = 1
-  finish = nOcc(iSym) - nAct1(iSym) - nAct2(iSym)
+  finish = nFrozen1(iSym)+nFrozen2(iSym)+nInact1(iSym)+nInact2(iSym)-to_be_averaged_frozen(iSym)-to_be_averaged(iSym)
   do i = start, finish
     occNu3(iSym,i) = 2.0
   end do
@@ -702,14 +1019,14 @@ do iSym = 1, nSym
   iCounter = 0
   do i = start, finish
     iCounter = iCounter + 1
-    occNu3(iSym,i) = occNu1(iSym,nInact1(iSym)+iCounter)
+    occNu3(iSym,i) = occNu1(iSym,nFrozen1(iSym)+nInact1(iSym)+iCounter)
   end do
   start = finish + 1
   finish = start + nAct2(iSym) - 1
   iCounter = 0
   do i = start,finish
     iCounter = iCounter + 1
-    occNu3(iSym,i) = occNu2(iSym,nInact2(iSym)+iCounter)
+    occNu3(iSym,i) = occNu2(iSym,nFrozen2(iSym)+nInact2(iSym)+iCounter)
   end do
   do i = finish + 1, nBas(iSym) - n_elim(iSym)
     occNu3(iSym,i) = 0.0
@@ -733,21 +1050,23 @@ end do
 allocate(orblabel12(nSym,maxval(nBas)))
 orblabel12 = ' '
 do iSym = 1, nSym
-  nAct = nAct1(iSym) + nAct2(iSym)
-  nInact = nOcc(iSym) - nAct
-  nB = nBas(iSym) - n_elim(iSym)
   first = 1
-  last = nInact
+  last = nFrozen1(iSym)+nFrozen2(iSym)
+  do j = first, last
+    orblabel12(iSym,j) = 'f'
+  end do
+  first = last + 1
+  last = last + nInact1(iSym)+nInact2(iSym) - to_be_averaged(iSym)
   do j = first, last
     orblabel12(iSym,j) = 'i'
   end do
   first = last + 1
-  last = nInact + nAct
+  last = last + nAct1(iSym)+nAct2(iSym)
   do j = first, last
     orblabel12(iSym,j) = '2'
   end do
   first = last + 1
-  do j = first, nB
+  do j = first, nBas(iSym) - n_elim(iSym)
     orblabel12(iSym,j) = 's'
   end do
 end do
@@ -765,148 +1084,15 @@ do iSym = 1, nSym
     end do
   end if
 end do
-! Lowdin orthogonalize the inactive orbitals (if activated by the user,
-! recommended when atoms have been eliminated)
-! First, we must eliminate nelim rows and columns from sAO 
-if ( superorth ) then
-  write (*,*)
-  write (*,*) 'Inctive (corresponding) orbitals will be ',   &
-              'orthogonalized and dumped on SUPERORB.ORTHO'
-  do iSym = 1, nSym
-    k = 0
-    do i = 1, nBas(iSym)
-      if ( .not.eliminate(iSym,i) ) then 
-        k = k + 1
-        l = 0
-        do j = 1, nBas(iSym)
-          if ( .not.eliminate(iSym,j) ) then
-            l = l + 1
-            sAO(iSym,k,l) = sAO(iSym,i,j)
-          end if
-        end do
-      end if
-    end do
-  end do
-  rewind(12) 
-  mark = '#ORB'
-94 read(12,'(A132)') line
-  if (line(1:4).ne.mark) goto 94
-  do iSym = 1, nSym
-    nB = nBas(iSym)-n_elim(iSym)
-    nAct = nAct1(iSym) + nAct2(iSym)
-    nInact = nOcc(iSym) - nAct
-    allocate(     super(nB,nB) )
-    allocate(   overlap(nB,nB) )
-    allocate(    v_orth(nB,nB) )
-    allocate(super_orth(nB,nB) )
-    allocate(aux(nInact+nAct,nB))
-    v_orth = 0.0d0
-    overlap = 0.0d0
-    super_orth = 0.0d0
-    aux= 0.0d0
-    do j = 1, nB
-      read(12,'(A132)') line
-      read(12,'(5E22.14)') (super(j,k),k=1,nB)
-    end do
-! normalize the orbitals of the super molecule (norm is not equal to
-! zero when n_elim .neq. 0)
-    write(*,*) 'Norm of the super orbitals'
-    do i = 1, nInact + nAct
-      do j = 1, nB
-        do k = 1, nB
-          overlap(i,i) = overlap(i,i) + super(i,j) * super(i,k) * sAO(iSym,j,k)
-        end do
-      end do
-      write(*,*) i,overlap(i,i)
-      overlap(i,i) = 1 / sqrt(overlap(i,i))
-      do j = 1, nB
-        super(i,j) = super(i,j) * overlap(i,i)
-        super_orth(i,j) = super(i,j)
-      end do
-    end do
-! Prepare the MO overlap matrix for the Lowdin orthogonalization of the
-! inactive orbitals
-!    if ( debug ) write(*,*) 'overlap matrix between Lowdin'
-!    if ( debug ) write(*,*) '-- inactive orbitals only --'
-!    overlap = 0.0
-!    do i = 1, nInact
-!      do j = 1, nB
-!        do k = 1, nB
-!          aux(i,j) = aux(i,j) + super(i,k) * sAO(iSym,j,k)
-!        end do
-!      end do
-!    end do
-!    do i = 1, nInact
-!      do j = 1, i
-!        do k = 1, nB
-!          overlap(i,j) = overlap(i,j) + aux(i,k) * super(j,k)
-!        end do
-!        if ( debug ) write(*,'(2I4,F18.12)') i,j,overlap(i,j)
-!        overlap(j,i) = overlap(i,j)
-!      end do
-!    end do
-!    do i = nInact + 1, nB
-!      overlap(i,i) = 1.0d0
-!    end do
-!    call ovlf_lowdin(nB,overlap,v_orth)
-!    if ( debug ) write(*,*) 'overlap matrix after Lowdin'
-!    super_orth = matmul( transpose(v_orth),super )
-!    aux = 0.0d0
-!    overlap = 0.0d0
-!    do i = 1, nInact + nAct
-!      do j = 1, nB
-!        do k = 1, nB
-!          aux(i,j) = aux(i,j) + super_orth(i,k) * sAO(iSym,j,k)
-!        end do
-!      end do
-!    end do
-!    do i = 1, nInact + nAct
-!      do j = 1, i
-!        do k = 1, nB
-!         overlap(i,j) = overlap(i,j) + aux(i,k) * super_orth(j,k)
-!        end do
-!        if ( debug ) write(*,'(2I4,F18.12)') i,j,overlap(i,j)
-!      end do
-!    end do 
-    do j = 1, nB
-      write(15,'(A,2I5)')'* ORBITAL',iSym,j
-      write(15,'(5E22.14)')(super_orth(j,k),k=1,nB)
-    end do
-    deallocate( aux )
-    deallocate( super   )
-    deallocate( overlap )
-    deallocate( v_orth  )
-    deallocate( super_orth  )
-  end do  
-  do iSym=1,nSym
-     write(15,'(A4)')'#OCC'
-     write(15,'(A20)') '* OCCUPATION NUMBERS'
-     write(15,'(5E22.14)')(occNu3(iSym,j),j=1,nBas(iSym)-n_elim(iSym))
-  end do
-  write(15,'(A6)')'#INDEX'
-  do iSym = 1, nSym
-    write(15,'(A12)')'* 1234567890'
-    nB = nBas(iSym)-n_elim(iSym)
-    if (nB .gt. 0 .and. nOcc(iSym) .gt. 0) then
-      do k = 1, nB, 10
-        if ( k + 9 .le. nB) then
-          write(15,602)mod(int(k/10),10),(orblabel12(iSym,kk),kk=k,k+9)
-        else
-          write(15,602)mod(int(k/10),10),(orblabel12(iSym,kk),kk=k,nB)
-        end if
-      end do
-    end if
-  end do
-end if
-
 602 format(I1,x,10A1)
+nInact = sum(nFrozen1) + sum (nFrozen2) - sum(to_be_averaged_frozen)    &
+       + sum(nInact1) + sum(nInact2) - sum(to_be_averaged) 
 if (ciThreshold.ne.0.0) call ovlf_dets(nInact)
  
 ! clean up, deallocate all the rest
 close(12)
 close(13)
 close(14)
-close(15)
 deallocate (nBas)
 deallocate (nBas1)
 deallocate (nBas2)
@@ -922,7 +1108,7 @@ deallocate (nInact2)
 deallocate (nAct1)
 deallocate (nAct2)
 deallocate (sAO)
-deallocate (n_elim)
+deallocate (n_elim,to_be_averaged)
 deallocate (eliminate)
 deallocate (basLabel)
 deallocate (orbLabel,orblabel12)
@@ -998,11 +1184,8 @@ character (len=40)       :: determinant
 
 
 call ovlf_read_dets
-write(*,*) 'reading dets done'
 call ovlf_determine_nci
-write(*,*) 'nci = ',nci
 call ovlf_determine_maxcib
-write(*,*) 'maxcib = ',maxcib
 
 allocate(ndet1_ms(spinm(1)+1))
 allocate(ndet2_ms(spinm(2)+1))
@@ -1094,7 +1277,7 @@ end do
 
 !     Write to a new detfile
 
-write(*,'(A,I12)')'Number of determinants supemolecule : ',ndets
+write(*,'(A,I12)')'Number of determinants supermolecule : ',ndets
 
 ndet_large = 0
 lfnovlf = 23
@@ -1338,7 +1521,7 @@ real (kind=8), allocatable  :: cicoef_temp(:)
 
 spinm=0
 do i=1,2
-  do iact=1,nactm(1)
+  do iact=1,nactm(i)
     if(abs(ioccm(iact,1,i)).eq.1) then
       spinm(i)=spinm(i)+ioccm(iact,1,i)
     endif
@@ -1350,7 +1533,7 @@ minspin=abs(spinm(1)-spinm(2) )
 maxspin=    spinm(1)+spinm(2)
 if (( maxspin.lt.target_spin ).or.( minspin.gt.target_spin))then
   write(*,602) spinm(1),spinm(2),target_spin
-602 format(' Spins of fragments incompatible with total spin',               &
+602 format(' Spins of fragments incompatible with total spin',/              &
            ' Spin(1) = ',i4,/,' Spin(2) = ',i4,/,' cannot be coupled')
   stop 'Incompatible spin state'
 end if
@@ -1624,13 +1807,13 @@ end
 ! =============================================================================== !
 
 subroutine ovlf_readin
-use ovlfdets_data, only : target_spin,svdThreshold,ciThreshold,superorth
+use ovlfdets_data
 implicit none
 
 external :: ovlf_capitalize,ovlf_locate
 
-integer, parameter                   :: nKeys = 4
-integer                              :: jj,iKey
+integer, parameter                   :: nKeys = 5
+integer                              :: jj,iKey,inorm
 
 character (len=4)                    :: key
 character (len=4), dimension(nKeys)  :: keyword
@@ -1639,13 +1822,14 @@ character (len=132)                  :: line
 logical                              :: all_ok = .true.
 logical, dimension(nkeys)            :: hit = .false.
 
-data keyword /'SVDT','CITH','SPIN','ORTH'/
+data keyword /'SVDT','CITH','SPIN','NORM','FROZ'/
 
 svdThreshold = 0.2
 ciThreshold  = 1.0e-5
 target_spin  = 1
-superorth    = .false.
-
+normalize    = .true.
+nFrozen1     = 0
+nFrozen2     = 0
 
 do while (all_ok)
   read(5,*,iostat=jj) line
@@ -1671,8 +1855,14 @@ do iKey = 1, nKeys
         call ovlf_locate('SPIN')
         read(*,*) target_spin
       case(4)
-        call ovlf_locate('ORTH')
-        superorth = .true.
+        call ovlf_locate('NORM')
+        inorm = 1
+        read(*,*) inorm
+        if ( inorm .eq. 0 ) normalize = .false.
+      case(5)
+        call ovlf_locate('FROZ')
+        read(*,*) nFrozen1(:)
+        read(*,*) nFrozen2(:)
     end select
   end if
 end do

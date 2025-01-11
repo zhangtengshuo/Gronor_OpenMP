@@ -84,41 +84,27 @@ subroutine gronor_svd()
 #ifdef LAPACK
   integer (kind=4) :: lapack_info
 #endif
-   
-  ! ========== EISPACK =========
 
-  if(sv_solver.eq.SOLVER_EISPACK) then
-    if(iamacc.eq.1) then
+  if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
 #endif
 #ifdef OMPTGT
 !$omp target update from(a)
-#endif 
-    endif
+#endif
+  endif
+
+  
+  ! ========== EISPACK =========
+
+  if(sv_solver.eq.SOLVER_EISPACK) then
     call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,ev,nelecs,.true., &
         u,nelecs,nelecs,.true.,w,nelecs,nelecs,ierr,sdiag,nelecs)
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
   endif
   
   ! ============ MKL ===========
 #ifdef MKL
   if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif 
-    endif
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
@@ -145,28 +131,12 @@ subroutine gronor_svd()
 !$omp end do
 !$omp end parallel
 #endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
   endif
 #endif 
   
   ! ============ LAPACK ===========
 #ifdef LAPACK
   if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif 
-    endif
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
@@ -189,14 +159,6 @@ subroutine gronor_svd()
 !$omp end do
 !$omp end parallel
 #endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
   endif
 #endif 
   
@@ -352,5 +314,16 @@ subroutine gronor_svd()
 
 #endif
 
+  if(iamacc.eq.1.and.lsvcpu) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w) 
+#endif
+    
+  endif
+
+  
   return  
 end subroutine gronor_svd

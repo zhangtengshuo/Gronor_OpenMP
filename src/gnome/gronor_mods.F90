@@ -879,8 +879,8 @@ module rocvars
   integer (kind=4) :: dev_info_d
   !     integer(kind=cuda_stream_kind) :: stream
   integer (kind=4) :: esort,istatus
-  integer (kind(rocblas_evect_original)) :: evect
-  integer (kind(rocblas_fill_upper)) :: uplo
+!  integer (kind(rocblas_evect_original)) :: evect
+!  integer (kind(rocblas_fill_upper)) :: uplo
 
   integer (kind=4) :: rocinfo,workmode
   type(c_ptr)      :: workptr

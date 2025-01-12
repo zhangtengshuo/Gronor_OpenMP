@@ -13,14 +13,51 @@
 !     GronOR is copyright of the University of Groningen
 
 !> @brief
-!! Cofactor matrix evaluation and factorization
+!! Routine that provides all possible calls to Eigensolver library routines
 !!
-!! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
-!! @date    2016
+!! @date    2025
 !!
 
 subroutine gronor_evd()
+
+  !> Routine that provides all possible calls to Eigensolver library routines
+  !! including routines executed on the CPU or on GPU accelerators
+  !!
+  !! For CPU-executed ranks the vectors, matrices, and workspaces are expected in CPU memory
+  !! For GPU-accelerated ranks the vectors, matrices, and workspaces are expected in GPU memory
+  !! GPU-accelerated ranks can use CPU-based routines, in which case this routine will copy the
+  !! required input data from the GPU to the CPU and return result data from CPU to GPU memory
+  !!
+  !! The library routine that will be used is determined by variable ev_solver which is set in
+  !! routine gronor_solver_init based on the input provide in gronor_input. Currently implemented
+  !! options for ev_solver are:
+  !!
+  !! SOLVER_EISPACK      tred2 and tql2 as provided in the source code will run on the CPU
+  !! SOLVER_MKL          dsyev from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLD         dsyevd from external an Intel MKL library will run on the CPU
+  !! SOLVER_LAPACK       dsyevd from an external LAPACK library will run on the CPU
+  !! SOLVER_CUSOLVER     cusolverDnDsyevd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_CUSOLVERJ    cusolverDnDsyesvj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_ROCSOLVER    rocsolver_dsyevd from the AMD ROCSOLVER library will run on the GPU
+  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
+  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_MAGMA        planned
+  !!
+  !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
+  !!
+  !! The boolean flag levcpu is set in gronor_solver_init and indicates the solver routine runs
+  !! on the CPU (levcpu=.true.) or the GPU (levcpu=.false.)
+  !! The integer iamacc specifies is set in gronor_main and indicates if rank
+  !! is CPU resident (iamacc=0) or GPU resident (iamacc=1)
+  !!
+  !! The integer workspace_i and double workspace_d workspaces are allocated with total sizes
+  !! len_work_int and len_work_dbl, respectively. These workspace are shared between all possible
+  !! solver routines, including the eigensolver in gronor_svd. Separate copies exist in CPU memory
+  !! and in GPU memory. The maximum required workspace sizes are set in gronor_solver_init
+  
   use cidef
   use cidist
   use gnome_parameters
@@ -91,6 +128,8 @@ subroutine gronor_evd()
   real(kind=8), allocatable, target :: at(:,:),dt(:),et(:,:)
 #endif
 
+  if(idbg.eq.75) lsvcpu=.true.
+  
   if(iamacc.eq.1) then
      if(levcpu) then
 #ifdef ACC
@@ -143,6 +182,16 @@ subroutine gronor_evd()
 !$omp end parallel do
 #endif
    endif
+
+  if(idbg.eq.75) then
+    write(lfndbg,3000) "Matrix A for SVD"
+3000 format(/,a,/)
+    do j=1,nelecs
+      write(lfndbg,3001) (a(i,j),i=1,nelecs)
+3001  format(10f10.5)
+    enddo
+    flush(lfndbg)
+  endif
    
   ! ========== EISPACK =========
 
@@ -331,6 +380,20 @@ subroutine gronor_evd()
 #endif
   endif
 
+  if(idbg.eq.75) then
+    if(iamacc.eq.1.and..not.levcpu) then
+#ifdef ACC
+!$acc update host (a,diag)
+#endif
+#ifdef OMPTGT
+!$omp target update from(a,diag)
+#endif
+    endif
+    write(lfndbg,3000) "Eigenvalues"
+    write(lfndbg,3001) (diag(i),i=1,nelecs)
+    flush(lfndbg)
+    call gronor_abort(0," Abort in gronor_evd")
+  endif
 
   return
 end subroutine gronor_evd

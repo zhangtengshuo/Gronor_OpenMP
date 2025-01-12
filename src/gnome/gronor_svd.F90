@@ -13,14 +13,53 @@
 !     GronOR is copyright of the University of Groningen
 
 !> @brief
-!! Cofactor matrix evaluation and factorization
-!!
-!! @author  R. Broer, RUG
+!! Routine that provides all possible calls to Singular Value Decomposition library routines
 !! @author  T. P. Straatsma, ORNL
-!! @date    2016
+!! @date    2025
 !!
 
 subroutine gronor_svd()
+
+  !> Routine that provides all possible calls to Singular Value Decomposition library routines
+  !! including routines executed on the CPU or on GPU accelerators 
+  !!
+  !! For CPU-executed ranks the vectors, matrices, and workspaces are expected in CPU memory
+  !! For GPU-accelerated ranks the vectors, matrices, and workspaces are expected in GPU memory
+  !! GPU-accelerated ranks can use CPU-based routines, in which case this routine will copy the
+  !! required input data from the GPU to the CPU and return result data from CPU to GPU memory
+  !!
+  !! The library routine that will be used is determined by variable sv_solver which is set in
+  !! routine gronor_solver_init based on the input provide in gronor_input. Currently implemented
+  !! options for sv_solver are:
+  !!
+  !! SOLVER_EISPACK      svd as provided in the source code will run on the CPU
+  !! SOLVER_MKL          dgesvd from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLD         dgesdd from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLJ         dgesvj from external an Intel MKL library will run on the CPU
+  !! SOLVER_LAPACK       dgesvd from an external LAPACK library will run on the CPU
+  !! SOLVER_CUSOLVER     cusolverDnDgesvd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_CUSOLVERJ    cusolverDnDgesvdj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_ROCSOLVER    rocsolver_dgesvd from the AMD ROCSOLVER library will run on the GPU
+  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
+  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_MAGMA        planned
+  !!
+  !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
+  !!
+  !! The boolean flag lsvcpu is set in gronor_solver_init and indicates the solver routine runs
+  !! on the CPU (lsvcpu=.true.) or the GPU (lsvcpu=.false.)
+  !! The integer iamacc specifies is set in gronor_main and indicates if rank
+  !! is CPU resident (iamacc=0) or GPU resident (iamacc=1)
+  !!
+  !! The integer workspace_i and double workspace_d workspaces are allocated with total sizes
+  !! len_work_int and len_work_dbl, respectively. These workspace are shared between all possible
+  !! solver routines, including the eigensolver in gronor_evd. Separate copies exist in CPU memory
+  !! and in GPU memory. The maximum required workspace sizes are set in gronor_solver_init
+
+  
+  use cidef
   use cidist
   use gnome_parameters
   use gnome_data
@@ -85,6 +124,8 @@ subroutine gronor_svd()
   integer (kind=4) :: lapack_info
 #endif
 
+  if(idbg.eq.75) lsvcpu=.true.
+  
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
@@ -94,6 +135,15 @@ subroutine gronor_svd()
 #endif
   endif
 
+  if(idbg.eq.75) then
+    write(lfndbg,3000) "Matrix A for SVD"
+3000 format(/,a,/)
+    do j=1,nelecs
+      write(lfndbg,3001) (a(i,j),i=1,nelecs)
+3001  format(10f10.5)
+    enddo
+    flush(lfndbg)
+  endif
   
   ! ========== EISPACK =========
 
@@ -263,11 +313,13 @@ subroutine gronor_svd()
 !        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
 !        ROCBLAS_OUTOFPLACE,rocinfo)
 !    istatus=hipDeviceSynchronize()
-!$omp target data use_device_addr(a,ev,u,wt,work,rocinfo)
+    
+!$omp target enter data map(rocinfo,workspace_d)
+!$omp target data use_device_addr(a,ev,u,wt,workspace_d,rocinfo)
     call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo))
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(workspace_d), &
+        ROCBLAS_INPLACE,rocinfo))
 !$omp end target data
     call hipcheck(hipDeviceSynchronize())
   endif
@@ -320,10 +372,23 @@ subroutine gronor_svd()
 #endif
 #ifdef OMPTGT
 !$omp target update to(ev,u,w) 
-#endif
-    
+#endif  
   endif
 
-  
+  if(idbg.eq.75) then
+    if(iamacc.eq.1.and..not.lsvcpu) then
+#ifdef ACC
+!$acc update host (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update from(ev,u,w)
+#endif
+    endif
+    write(lfndbg,3000) "Singular Values"
+    write(lfndbg,3001) (ev(i),i=1,nelecs)
+    flush(lfndbg)
+    call gronor_abort(0," Abort in gronor_svd")
+  endif
+
   return  
 end subroutine gronor_svd

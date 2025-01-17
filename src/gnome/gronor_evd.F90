@@ -85,14 +85,17 @@ subroutine gronor_evd()
 #endif
 
 #ifdef ROCSOLVER
-  use rocvars
+  use iso_c_binding
   use iso_fortran_env
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocvars
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -343,21 +346,22 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-!$omp target enter data map(rocinfo,workspace_d)
 !$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
 
-     call hipcheck(rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_ORIGINAL,ROCBLAS_FILL_LOWER, &
-         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
+     rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+!     call hipcheck(rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_ORIGINAL,ROCBLAS_FILL_LOWER, &
+!         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
 !     call hipcheck(rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
 !         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
 !$omp end target data
-     call hipcheck(hipDeviceSynchronize())
+!     call hipcheck(hipDeviceSynchronize())
   endif
 
   if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_ORIGINAL,ROCBLAS_FILL_LOWER, &
+    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
 !    istatus=hipDeviceSynchronize()
   endif
@@ -365,7 +369,7 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_ORIGINAL,ROCBLAS_FILL_LOWER, &
+    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
 !    istatus=hipDeviceSynchronize()
   endif
@@ -373,10 +377,10 @@ subroutine gronor_evd()
 
   if(iamacc.eq.1.and.levcpu) then
 #ifdef ACC
-!$acc update device (a,diag)
+!$acc update device (diag)
 #endif
 #ifdef OMPTGT
-!$omp target update to(a,diag)
+!$omp target update to(diag)
 #endif
   endif
 

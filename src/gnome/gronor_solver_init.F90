@@ -32,12 +32,14 @@ subroutine gronor_solver_init(ntemp)
 #endif
 #ifdef ROCSOLVER
   use rocvars
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -374,11 +376,11 @@ subroutine gronor_solver_init(ntemp)
     len_work_int=max(len_work_int,lworki)
 #endif
     
-    len_work_dbl=max(0,len_work_dbl)
-    len_work_int=max(0,len_work_int)
+    len_work_dbl=max(1,len_work_dbl)
+    len_work_int=max(1,len_work_int)
     
-    if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
-    if(len_work_int.gt.0) allocate(workspace_i(len_work_int))
+    allocate(workspace_d(len_work_dbl))
+    allocate(workspace_i(len_work_int))
 
     return
   end subroutine gronor_solver_init
@@ -403,12 +405,14 @@ subroutine gronor_solver_final()
 
 #ifdef ROCSOLVER
   use rocvars
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -432,7 +436,7 @@ subroutine gronor_solver_final()
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
 #ifdef ROCSOLVER
-    if (rocblas_destroy_handle(rocsolver_handle) /= 0) &
+    if (rocsolver_destroy_handle(rocsolver_handle) /= 0) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
   endif
@@ -460,12 +464,14 @@ subroutine gronor_solver_create_handle()
 
 #ifdef ROCSOLVER
   use rocvars
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -493,8 +499,8 @@ subroutine gronor_solver_create_handle()
 #endif
 
 #ifdef ROCSOLVER
-!    istatus=rocblas_create_handle(rocsolver_handle)
-    call hipcheck(rocblas_create_handle(rocsolver_handle))
+    istatus=rocsolver_create_handle(rocsolver_handle)
+!    call hipcheck(rocblas_create_handle(rocsolver_handle))
 #endif
 
 #ifdef HIPSOLVER

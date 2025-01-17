@@ -99,7 +99,7 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-  call gronor_solver_init(nelecs)
+!  call gronor_solver_init(nelecs)
 
   if(idbg.gt.50) then
     call swatch(date,time)

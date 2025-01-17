@@ -86,15 +86,18 @@ subroutine gronor_svd()
   use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
+  use iso_c_binding
   use iso_fortran_env
   use rocvars
-  use hipfort
-  use hipfort_check
-  use hipfort_hipmalloc
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_hipmalloc
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
   ! variable declarations
@@ -105,6 +108,7 @@ subroutine gronor_svd()
   
   integer :: i,j
   integer :: ierr
+  integer (kind=4) :: istat
 
   ! library specific declarations
 
@@ -314,14 +318,13 @@ subroutine gronor_svd()
 !        ROCBLAS_OUTOFPLACE,rocinfo)
 !    istatus=hipDeviceSynchronize()
     
-!$omp target enter data map(rocinfo,workspace_d)
 !$omp target data use_device_addr(a,ev,u,wt,workspace_d,rocinfo)
-    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+    istat=rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
         c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(workspace_d), &
-        ROCBLAS_INPLACE,rocinfo))
+        ROCBLAS_INPLACE,rocinfo)
 !$omp end target data
-    call hipcheck(hipDeviceSynchronize())
+!    call hipcheck(hipDeviceSynchronize())
   endif
   if(sv_solver.eq.SOLVER_ROCSOLVERX) then
     ndim=nelecs
@@ -331,11 +334,11 @@ subroutine gronor_svd()
 !        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
 !        ROCBLAS_OUTOFPLACE,rocinfo)
 !    istatus=hipDeviceSynchronize()
-    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+    istat=rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
         c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo))
-    call hipcheck(hipDeviceSynchronize())
+        ROCBLAS_OUTOFPLACE,rocinfo)
+!    call hipcheck(hipDeviceSynchronize())
   endif
 
 #ifdef ACC

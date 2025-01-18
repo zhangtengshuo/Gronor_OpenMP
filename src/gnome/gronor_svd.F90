@@ -91,13 +91,6 @@ subroutine gronor_svd()
   use rocvars
   use rocsolver_interfaces_enums
   use rocsolver_interfaces
-!  use hipfort
-!  use hipfort_check
-!  use hipfort_hipmalloc
-!  use hipfort_rocblas_enums
-!  use hipfort_rocblas
-!  use hipfort_rocsolver_enums
-!  use hipfort_rocsolver
 #endif
 
   ! variable declarations
@@ -128,8 +121,6 @@ subroutine gronor_svd()
   integer (kind=4) :: lapack_info
 #endif
 
-  if(idbg.eq.75) lsvcpu=.true.
-  
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
@@ -139,16 +130,6 @@ subroutine gronor_svd()
 #endif
   endif
 
-  if(idbg.eq.75) then
-    write(lfndbg,3000) "Matrix A for SVD"
-3000 format(/,a,/)
-    do j=1,nelecs
-      write(lfndbg,3001) (a(i,j),i=1,nelecs)
-3001  format(10f10.5)
-    enddo
-    flush(lfndbg)
-  endif
-  
   ! ========== EISPACK =========
 
   if(sv_solver.eq.SOLVER_EISPACK) then
@@ -376,21 +357,6 @@ subroutine gronor_svd()
 #ifdef OMPTGT
 !$omp target update to(ev,u,w) 
 #endif  
-  endif
-
-  if(idbg.eq.75) then
-    if(iamacc.eq.1.and..not.lsvcpu) then
-#ifdef ACC
-!$acc update host (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update from(ev,u,w)
-#endif
-    endif
-    write(lfndbg,3000) "Singular Values"
-    write(lfndbg,3001) (ev(i),i=1,nelecs)
-    flush(lfndbg)
-    call gronor_abort(0," Abort in gronor_svd")
   endif
 
   return  

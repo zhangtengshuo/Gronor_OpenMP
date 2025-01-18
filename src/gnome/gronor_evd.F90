@@ -90,12 +90,6 @@ subroutine gronor_evd()
   use rocvars
   use rocsolver_interfaces_enums
   use rocsolver_interfaces
-!  use hipfort
-!  use hipfort_check
-!  use hipfort_rocblas_enums
-!  use hipfort_rocblas
-!  use hipfort_rocsolver_enums
-!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -131,8 +125,6 @@ subroutine gronor_evd()
   real(kind=8), allocatable, target :: at(:,:),dt(:),et(:,:)
 #endif
 
-  if(idbg.eq.75) lsvcpu=.true.
-  
   if(iamacc.eq.1) then
      if(levcpu) then
 #ifdef ACC
@@ -186,16 +178,6 @@ subroutine gronor_evd()
 #endif
    endif
 
-  if(idbg.eq.75) then
-    write(lfndbg,3000) "Matrix A for SVD"
-3000 format(/,a,/)
-    do j=1,nelecs
-      write(lfndbg,3001) (a(i,j),i=1,nelecs)
-3001  format(10f10.5)
-    enddo
-    flush(lfndbg)
-  endif
-   
   ! ========== EISPACK =========
 
   if(ev_solver.eq.SOLVER_EISPACK) then
@@ -347,31 +329,26 @@ subroutine gronor_evd()
     ndim=nelecs
     mdim=mbasel
 !$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
-
      rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
          ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!     call hipcheck(rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_ORIGINAL,ROCBLAS_FILL_LOWER, &
-!         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
-!     call hipcheck(rocsolver_dsyevd(rocsolver_handle,evect,uplo, &
-!         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo))
 !$omp end target data
-!     call hipcheck(hipDeviceSynchronize())
+!     rocsolver_status=hipDeviceSynchronize()
   endif
 
   if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!    istatus=hipDeviceSynchronize()
+!    rocsolver_status=hipDeviceSynchronize()
   endif
 
   if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!    istatus=hipDeviceSynchronize()
+!    rocsolverstatus=hipDeviceSynchronize()
   endif
 #endif
 
@@ -382,21 +359,6 @@ subroutine gronor_evd()
 #ifdef OMPTGT
 !$omp target update to(diag)
 #endif
-  endif
-
-  if(idbg.eq.75) then
-    if(iamacc.eq.1.and..not.levcpu) then
-#ifdef ACC
-!$acc update host (a,diag)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a,diag)
-#endif
-    endif
-    write(lfndbg,3000) "Eigenvalues"
-    write(lfndbg,3001) (diag(i),i=1,nelecs)
-    flush(lfndbg)
-    call gronor_abort(0," Abort in gronor_evd")
   endif
 
   return

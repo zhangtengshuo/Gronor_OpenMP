@@ -329,8 +329,8 @@ subroutine gronor_evd()
     ndim=nelecs
     mdim=mbasel
 !$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
-     rocsolver_status=rocsolver_dsyev(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
-         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
 !$omp end target data
 !     rocsolver_status=hipDeviceSynchronize()
   endif

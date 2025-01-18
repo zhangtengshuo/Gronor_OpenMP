@@ -153,19 +153,7 @@ subroutine gronor_svd()
       call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,wt,ndimm, &
           workspace_d,len_work_dbl,ierr)
     endif
-#ifdef OMP
-!$omp parallel shared(w,wt,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
+    !lsvtrns
   endif
 #endif 
   
@@ -173,27 +161,16 @@ subroutine gronor_svd()
 #ifdef LAPACK
   if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
     ndimm=nelecs
+    ndim=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+      call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
           workspace_d,len_work_dbl,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
+      call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
           workspace_d,len_work_dbl,workspace_i,ierr)
     endif
-#ifdef OMP
-!$omp parallel shared(w,wt,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
+    !lsvtrns
   endif
 #endif 
   
@@ -225,18 +202,7 @@ subroutine gronor_svd()
 #endif
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
-#ifdef ACC
-!$acc kernels present(w,wt)
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef ACC
-!$acc end kernels
-#endif
+    !lsvtrns
   endif
 #endif
   
@@ -321,7 +287,26 @@ subroutine gronor_svd()
         ROCBLAS_OUTOFPLACE,rocinfo)
 !    call hipcheck(hipDeviceSynchronize())
   endif
+  !lsvtrns
+#endif
 
+!! Evaluate right had matrix from its transpose if solver provided the transpose
+  if(lsvtrns) then
+    if(lsvcpu) then
+#ifdef OMP
+!$omp parallel shared(w,wt,nelecs)
+!$omp do collapse(2)
+#endif
+    do i=1,nelecs
+      do j=1,nelecs
+        w(i,j)=wt(j,i)
+      enddo
+    enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
+    elseif(iamacc.eq.1) then
 #ifdef ACC
 !$acc kernels present(w,wt)
 #endif
@@ -347,9 +332,10 @@ subroutine gronor_svd()
 #ifdef ACC
 !$acc end kernels
 #endif
+    endif
+  endif
 
-#endif
-
+!! Update device if SVD was performed on the host for accelerated ranks
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update device (ev,u,w)

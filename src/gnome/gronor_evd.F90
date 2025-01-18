@@ -343,7 +343,7 @@ subroutine gronor_evd()
 !    rocsolver_status=hipDeviceSynchronize()
   endif
 
-  if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
+  if(ev_solver.eq.SOLVER_ROCSOLVERX) then
     ndim=nelecs
     mdim=mbasel
     rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &

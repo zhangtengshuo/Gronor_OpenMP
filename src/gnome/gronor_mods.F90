@@ -615,7 +615,7 @@ module cuda_cusolver
   type(syevjInfo)        :: syevj_params
 #endif
   integer (kind=4)       :: cusolver_status
-  integer (kind=4)       :: ndim,mdim
+  integer (kind=4)       :: mdim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
@@ -691,7 +691,6 @@ module hipvars
   type(c_ptr)            :: hipsolver_handle
   integer (kind=4)       :: hipsolver_status
   integer (kind=4)       :: mdim
-  integer (kind=4)       :: ndim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
@@ -871,7 +870,6 @@ module rocvars
   use iso_c_binding
   type(c_ptr)            :: rocsolver_handle
   integer (kind=4)       :: rocsolver_status
-  integer (kind=4)       :: ndim,mdim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
@@ -1199,6 +1197,7 @@ module gnome_solvers
     enumerator SOLVER_CRAYLIBSCI
   end enum
   integer (kind=8) :: lwork,liwork,ndimm,mdimm
+  integer (kind=4) :: mdim,ndim
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)

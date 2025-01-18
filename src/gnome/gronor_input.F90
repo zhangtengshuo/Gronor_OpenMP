@@ -278,6 +278,8 @@ subroutine gronor_input()
           iaslvr=SOLVER_CUSOLVERJ
         elseif(inp_compare(.false.,item,'ROCSOLVER')) then
           iaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERD')) then
+          iaslvr=SOLVER_ROCSOLVERD
         elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
           iaslvr=SOLVER_ROCSOLVERJ
         else

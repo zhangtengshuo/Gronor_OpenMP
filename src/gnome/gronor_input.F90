@@ -333,6 +333,8 @@ subroutine gronor_input()
           jaslvr=SOLVER_CUSOLVERJ
         elseif(inp_compare(.false.,item,'ROCSOLVER')) then
           jaslvr=SOLVER_ROCSOLVER
+        elseif(inp_compare(.false.,item,'ROCSOLVERD')) then
+          jaslvr=SOLVER_ROCSOLVERD
         elseif(inp_compare(.false.,item,'ROCSOLVERJ')) then
           jaslvr=SOLVER_ROCSOLVERJ
         else

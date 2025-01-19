@@ -762,6 +762,8 @@ subroutine gronor_main()
     ncount=255
     call MPI_Bcast(root,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
+    call MPI_Bcast(string,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
+    ncount=255
     call MPI_Bcast(mebfroot,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
     call MPI_Bcast(combas,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
@@ -850,14 +852,15 @@ subroutine gronor_main()
   lfndbg=13
   lfnabt=26
   lfnwrn=27
+  print*,string
   if(idbg.gt.0) then
-    write(fildbg,1300) me
-1300 format('GronOR_',i5.5,'.dbg ')
+    write(fildbg,1300) trim(string),me
+1300 format(a,'-',i5.5,'.dbg ')
     open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
   endif
   if(itmp.gt.0) then
-    write(filtmp,1302) me
-1302 format('GronOR_',i5.5,'.tmp ')
+    write(filtmp,1302) trim(string),me
+1302 format(a,'-',i5.5,'.tmp ')
     open(unit=lfntmp,file=trim(filtmp),form='formatted',status='unknown',err=996)
   endif
 

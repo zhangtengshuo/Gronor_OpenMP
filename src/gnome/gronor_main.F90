@@ -852,7 +852,7 @@ subroutine gronor_main()
   lfndbg=13
   lfnabt=26
   lfnwrn=27
-  print*,string
+
   if(idbg.gt.0) then
     write(fildbg,1300) trim(string),me
 1300 format(a,'-',i5.5,'.dbg ')

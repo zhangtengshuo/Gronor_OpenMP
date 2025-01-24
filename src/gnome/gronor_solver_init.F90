@@ -112,6 +112,7 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
@@ -121,6 +122,8 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) lsvtrns=.true.
   
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
   if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
@@ -131,6 +134,7 @@ subroutine gronor_solver_init(ntemp)
   if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) levcpu=.true.
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER
@@ -344,7 +348,6 @@ subroutine gronor_solver_init(ntemp)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
-    
 #endif
 
 #ifdef ROCSOLVER
@@ -353,6 +356,42 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 !!!!! !$omp target enter data map(rocinfo)
+#endif
+
+#ifdef CRAYLIBSCI
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
+    
+    if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+!      lwork1m=int(worksize(1))
+    endif
+    if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+!      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
+!          lapack_info)
+!      lwork1m=int(worksize(1))
+!      lworki=8*nelecs
+    endif
+    if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+      call dsyevd_cpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,info)
+      lwork2m=int(worksize(1))
+    endif
+    if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+!$omp target enter data map(to:a) map(alloc:w,worksize,iworksize,info)
+!$omp target data use_device_addr(a,w,worksize,iworksize,info)
+      call dsyevd_acc('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,info)
+!$omp end target data
+      lwork2m=int(worksize(1))
+      lworki=max(int(iworksize(1)),lworki)
+    endif
+    lwork1m=max(0,lwork1m,lwork2m)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
+!$omp target exit data map(delete:worksize,iworksize)
 #endif
 
 #ifdef MAGMA

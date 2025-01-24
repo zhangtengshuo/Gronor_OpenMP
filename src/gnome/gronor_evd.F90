@@ -352,6 +352,24 @@ subroutine gronor_evd()
   endif
 #endif
 
+! ======== CRAYLIBSCI =========
+
+#ifdef CRAYLIBSCI
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+    ndim=nelecs
+    mdim=mbasel
+    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
+  endif
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+    ndim=nelecs
+    mdim=mbasel
+!$omp target enter data map(to:a)
+!$omp target data use_device_addr(a,diag,workspace_d,workspace_i,info)
+    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
+!$omp end target data
+  endif
+#endif
+
   if(iamacc.eq.1.and.levcpu) then
 #ifdef ACC
 !$acc update device (diag)

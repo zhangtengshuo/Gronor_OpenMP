@@ -114,7 +114,7 @@ subroutine gronor_svd()
 #endif
 
 #ifdef ROCSOLVER
-  integer :: jobu, jobvt, jobz
+  integer :: jobu, jobvt
 #endif
 
 #ifdef LAPACK

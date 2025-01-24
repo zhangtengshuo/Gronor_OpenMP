@@ -1194,7 +1194,8 @@ module gnome_solvers
     enumerator SOLVER_ROCSOLVERX
     enumerator SOLVER_MAGMA
     enumerator SOLVER_SLATE
-    enumerator SOLVER_CRAYLIBSCI
+    enumerator SOLVER_CRAYLIBSCID_CPU
+    enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
   integer (kind=8) :: lwork,liwork,ndimm,mdimm
   integer (kind=4) :: mdim,ndim
@@ -1202,5 +1203,5 @@ module gnome_solvers
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
-!  character*1 :: jobz,uplo
+  character*1 :: jobz,uplo
 end module gnome_solvers

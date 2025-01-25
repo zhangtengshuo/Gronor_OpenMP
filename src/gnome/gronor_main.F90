@@ -1452,11 +1452,8 @@ subroutine gronor_main()
 
   endif
 
-#ifdef CUSOLVERJ
-  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
-#endif
 #ifdef CUSOLVER
-  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVER
+  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
   if(jaslvr.lt.0) jaslvr=SOLVER_CUSOLVER
 #endif
 #ifdef ROCSOLVER

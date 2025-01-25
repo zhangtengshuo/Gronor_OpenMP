@@ -275,11 +275,7 @@ subroutine gronor_evd()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDsyevd failed',cusolver_status
   endif
-#endif
-  
-  ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVERJ  
   if(ev_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel

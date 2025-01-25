@@ -613,7 +613,6 @@ module cuda_cusolver
   type(gesvdjInfo)       :: gesvdj_params
   type(syevjInfo)        :: syevj_params
   integer (kind=4)       :: cusolver_status
-  integer (kind=4)       :: ndim,mdim
   real (kind=8)          :: tol,residual
   integer (kind=4)       :: max_sweeps,exec_sweeps
   integer (kind=4), parameter :: econ=0
@@ -942,6 +941,7 @@ module gnome_solvers
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCI
   end enum
+  integer (kind=4) :: ndim,mdim
   integer (kind=8) :: lwork,liwork,ndimm,mdimm
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)

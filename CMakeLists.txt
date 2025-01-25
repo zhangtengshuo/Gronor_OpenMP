@@ -828,7 +828,7 @@ endif()
 if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 24.11)
 set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
 else()
-set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -DCUSOLVERJ_INTERFACES-L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
+set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -DCUSOLVERJ_INTERFACES -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
 endif()
 set (FFLAGS_NVHPC_MAGMA "-DMAGMA -lmagma")
 # Fortran build targets

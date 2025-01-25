@@ -620,8 +620,6 @@ module cuda_cusolver
   real (kind=8), allocatable :: workspace_d(:)
   integer (kind=4) :: dev_info_d
   integer(kind=cuda_stream_kind) :: stream
-  integer (kind=4) :: jobz
-  integer (kind=4) :: uplo=0
 
 end module cuda_cusolver
 #endif
@@ -1201,5 +1199,6 @@ module gnome_solvers
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
-  character*1 :: jobz,uplo
+!  character*1 :: jobz,uplo
+  integer (kind=4) :: jobz,uplo
 end module gnome_solvers

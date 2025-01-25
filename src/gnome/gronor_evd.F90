@@ -79,6 +79,7 @@ subroutine gronor_evd()
 #endif
   
 #ifdef CUSOLVER
+  use iso_c_binding
   use cusolverDn
   use cuda_cusolver
   use cudafor

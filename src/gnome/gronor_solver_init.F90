@@ -120,9 +120,7 @@ subroutine gronor_solver_init(ntemp)
     lwork1=0
     lwork2=0
 
-#ifdef CUSOLVERJ
     if(sv_solver.eq.SOLVER_CUSOLVER) then
-#endif
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta)
@@ -138,7 +136,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
-#ifdef CUSOLVERJ
+
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
@@ -178,13 +176,11 @@ subroutine gronor_solver_init(ntemp)
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
     endif
-#endif
 
 ! Cusolver initialization for the syevd
 
-#ifdef CUSOLVERJ
     if(ev_solver.eq.SOLVER_CUSOLVER) then
-#endif
+
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta,w)
@@ -200,7 +196,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef CUSOLVERJ
+
     elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
@@ -242,7 +238,6 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
     endif
-#endif
 
     call gronor_update_device_info()
 

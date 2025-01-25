@@ -415,7 +415,6 @@ module cuda_cusolver
   use cusolverDN
   use cudafor
 
-#ifdef CUSOLVERJ
   type gesvdjInfo
     type(c_ptr) :: svInfo
   end type gesvdjInfo
@@ -424,6 +423,7 @@ module cuda_cusolver
     type(c_ptr) :: svInfo
   end type syevjInfo
 
+#ifdef CUSOLVERJ_INTERFACES
   interface
     integer(c_int) function cusolverDnCreateGesvdjInfo(info) &
         bind(C,name='cusolverDnCreateGesvdjInfo')
@@ -610,10 +610,8 @@ module cuda_cusolver
 #endif
 
   type(cusolverDnHandle) :: cusolver_handle
-#ifdef CUSOLVERJ
   type(gesvdjInfo)       :: gesvdj_params
   type(syevjInfo)        :: syevj_params
-#endif
   integer (kind=4)       :: cusolver_status
   integer (kind=4)       :: ndim,mdim
   real (kind=8)          :: tol,residual

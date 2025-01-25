@@ -243,7 +243,7 @@ subroutine gronor_svd()
   
   ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVERJ  
+#ifdef CUSOLVER  
   if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel

@@ -111,6 +111,9 @@ subroutine gronor_evd()
 #ifdef MKL
   external :: dsyevd
 #endif
+#ifdef CUSOLVER
+  external cusolverdndsyevj
+#endif
   
   integer :: i,j
   integer :: ierr
@@ -284,10 +287,10 @@ subroutine gronor_evd()
 
 #ifdef ACC
 !$acc data copy(dev_info_d,syevj_params) create(workspace_d)
-!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
+!$acc host_data use_device(a,diag,dev_info_d,workspace_d,syevj_params)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,syevj_params)
 #endif
     cusolver_status = cusolverDnDsyevj &
         (cusolver_handle, jobz, uplo, ndim,a,ndim,diag, &

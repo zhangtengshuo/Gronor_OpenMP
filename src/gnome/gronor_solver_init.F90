@@ -75,7 +75,11 @@ subroutine gronor_solver_init(ntemp)
   external :: magma_dsyevd,magma_dsyevd_gpu
   integer (kind=4) :: lapack_info,ierr
 #endif
-#endif  
+#endif
+#ifdef CUSOLVER
+  external :: cusolverdncreategesvdjinfo,cusolverdnxgesvdjsettolerance
+  external :: cusolverdnxgesvdjsetmaxsweeps,cusolverdndgesvdj_buffersize
+#endif
 
   integer :: ntemp
   character(len=255) :: string

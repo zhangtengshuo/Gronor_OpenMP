@@ -107,6 +107,7 @@ subroutine gronor_svd()
 
 #ifdef CUSOLVER
   character (len=1), target :: jobu, jobvt
+  external :: cusolverdndgesvdj,cusolverdnxgesvdjgetsweeps,cusolverdnxgesvdjgetresidual
 #endif
 
 #ifdef HIPSOLVER

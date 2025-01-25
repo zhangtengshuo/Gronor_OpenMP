@@ -348,6 +348,7 @@ end subroutine grotate_readin
 
 subroutine grotate_by_input(iFrag)
 use grotate_files_data
+use grotate_orbital_data
 implicit none
 
 external :: rotate_atoms,rotate_vec
@@ -372,6 +373,7 @@ if (translate) then
     y(1,j) = y(1,j) + transy(iFrag)
     z(1,j) = z(1,j) + transz(iFrag)
   end do
+  if ( inporb ) rotvec = vec
 endif
 
 end subroutine grotate_by_input

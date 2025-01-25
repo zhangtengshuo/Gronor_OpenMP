@@ -13,14 +13,52 @@
 !     GronOR is copyright of the University of Groningen
 
 !> @brief
-!! Cofactor matrix evaluation and factorization
+!! Routine that provides all possible calls to Eigensolver library routines
 !!
-!! @author  R. Broer, RUG
 !! @author  T. P. Straatsma, ORNL
-!! @date    2016
+!! @date    2025
 !!
 
 subroutine gronor_evd()
+
+  !> Routine that provides all possible calls to Eigensolver library routines
+  !! including routines executed on the CPU or on GPU accelerators
+  !!
+  !! For CPU-executed ranks the vectors, matrices, and workspaces are expected in CPU memory
+  !! For GPU-accelerated ranks the vectors, matrices, and workspaces are expected in GPU memory
+  !! GPU-accelerated ranks can use CPU-based routines, in which case this routine will copy the
+  !! required input data from the GPU to the CPU and return result data from CPU to GPU memory
+  !!
+  !! The library routine that will be used is determined by variable ev_solver which is set in
+  !! routine gronor_solver_init based on the input provide in gronor_input. Currently implemented
+  !! options for ev_solver are:
+  !!
+  !! SOLVER_EISPACK      tred2 and tql2 as provided in the source code will run on the CPU
+  !! SOLVER_MKL          dsyev from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLD         dsyevd from external an Intel MKL library will run on the CPU
+  !! SOLVER_LAPACK       dsyevd from an external LAPACK library will run on the CPU
+  !! SOLVER_CUSOLVER     cusolverDnDsyevd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_CUSOLVERJ    cusolverDnDsyesvj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_ROCSOLVER    rocsolver_dsyevd from the AMD ROCSOLVER library will run on the GPU
+  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
+  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_MAGMA        planned
+  !!
+  !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
+  !!
+  !! The boolean flag levcpu is set in gronor_solver_init and indicates the solver routine runs
+  !! on the CPU (levcpu=.true.) or the GPU (levcpu=.false.)
+  !! The integer iamacc specifies is set in gronor_main and indicates if rank
+  !! is CPU resident (iamacc=0) or GPU resident (iamacc=1)
+  !!
+  !! The integer workspace_i and double workspace_d workspaces are allocated with total sizes
+  !! len_work_int and len_work_dbl, respectively. These workspace are shared between all possible
+  !! solver routines, including the eigensolver in gronor_svd. Separate copies exist in CPU memory
+  !! and in GPU memory. The maximum required workspace sizes are set in gronor_solver_init
+  
+  use cidef
   use cidist
   use gnome_parameters
   use gnome_data
@@ -47,14 +85,11 @@ subroutine gronor_evd()
 #endif
 
 #ifdef ROCSOLVER
-  use rocvars
+  use iso_c_binding
   use iso_fortran_env
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocvars
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
 #endif
 
 #ifdef HIPSOLVER
@@ -77,7 +112,7 @@ subroutine gronor_evd()
   external :: dsyevd
 #endif
   
-  integer :: i
+  integer :: i,j
   integer :: ierr
 
   ! library specific declarations
@@ -85,7 +120,11 @@ subroutine gronor_evd()
 #ifdef CUSOLVER
   character (len=1), target :: jobu, jobvt
 #endif
-  
+
+#ifdef ROCSOLVER
+  real(kind=8), allocatable, target :: at(:,:),dt(:),et(:,:)
+#endif
+
   if(iamacc.eq.1) then
      if(levcpu) then
 #ifdef ACC
@@ -103,7 +142,7 @@ subroutine gronor_evd()
 #ifdef OMP
 !$omp end parallel do
 #endif   
-     endif
+    endif
 #ifdef ACC
 !$acc kernels present(sdiag)
 #endif
@@ -138,7 +177,7 @@ subroutine gronor_evd()
 !$omp end parallel do
 #endif
    endif
-   
+
   ! ========== EISPACK =========
 
   if(ev_solver.eq.SOLVER_EISPACK) then
@@ -236,11 +275,7 @@ subroutine gronor_evd()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDsyevd failed',cusolver_status
   endif
-#endif
-  
-  ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVERJ  
   if(ev_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -277,11 +312,6 @@ subroutine gronor_evd()
     ndim=nelecs
     mdim=mbasel
   endif
-#endif
-
-  ! ======= HIPSOLVERJ =========
-  
-#ifdef HIPSOLVERJ
   if(ev_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -294,34 +324,56 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-    istatus=rocsolver_dsyev(rocsolver_handle,evect,uplo, &
+!$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-    call hipCheck(hipDeviceSynchronize())
+!$omp end target data
+!     rocsolver_status=hipDeviceSynchronize()
   endif
-#endif
 
-  ! ======= ROCSOLVERJ =========
-  
-#ifdef ROCSOLVERJ
-  if(ev_solver.eq.SOLVER_ROCSOLVERJ) then
+  if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
-    
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+!    rocsolver_status=hipDeviceSynchronize()
+  endif
+
+  if(ev_solver.eq.SOLVER_ROCSOLVERX) then
+    ndim=nelecs
+    mdim=mbasel
+    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
+        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+!    rocsolverstatus=hipDeviceSynchronize()
   endif
 #endif
-    
 
-  if(iamacc.eq.1) then
-     if(levcpu) then
+! ======== CRAYLIBSCI =========
+
+#ifdef CRAYLIBSCI
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+    ndim=nelecs
+    mdim=mbasel
+    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
+  endif
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+    ndim=nelecs
+    mdim=mbasel
+!$omp target enter data map(to:a)
+!$omp target data use_device_addr(a,diag,workspace_d,workspace_i,info)
+    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
+!$omp end target data
+  endif
+#endif
+
+  if(iamacc.eq.1.and.levcpu) then
 #ifdef ACC
-!$acc update device (ev,u,w)
+!$acc update device (diag)
 #endif
 #ifdef OMPTGT
-!$omp target update to(ev,u,w)
+!$omp target update to(diag)
 #endif
-     endif
   endif
-
 
   return
 end subroutine gronor_evd

@@ -762,6 +762,8 @@ subroutine gronor_main()
     ncount=255
     call MPI_Bcast(root,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
+    call MPI_Bcast(string,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
+    ncount=255
     call MPI_Bcast(mebfroot,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
     ncount=255
     call MPI_Bcast(combas,ncount,MPI_CHAR,mstr,MPI_COMM_WORLD,ierr)
@@ -850,14 +852,15 @@ subroutine gronor_main()
   lfndbg=13
   lfnabt=26
   lfnwrn=27
+
   if(idbg.gt.0) then
-    write(fildbg,1300) me
-1300 format('GronOR_',i5.5,'.dbg ')
+    write(fildbg,1300) trim(string),me
+1300 format(a,'-',i5.5,'.dbg ')
     open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
   endif
   if(itmp.gt.0) then
-    write(filtmp,1302) me
-1302 format('GronOR_',i5.5,'.tmp ')
+    write(filtmp,1302) trim(string),me
+1302 format(a,'-',i5.5,'.tmp ')
     open(unit=lfntmp,file=trim(filtmp),form='formatted',status='unknown',err=996)
   endif
 
@@ -1449,19 +1452,25 @@ subroutine gronor_main()
 
   endif
 
-#ifdef CUSOLVERJ
-  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
-#endif
 #ifdef CUSOLVER
-  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVER
+  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
   if(jaslvr.lt.0) jaslvr=SOLVER_CUSOLVER
+#endif
+#ifdef ROCSOLVER
+  if(iaslvr.lt.0) iaslvr=SOLVER_ROCSOLVER
+  if(jaslvr.lt.0) iaslvr=SOLVER_ROCSOLVERD
+#endif
+#ifdef CRAYLIBSCI
+  if(iaslvr.lt.0) iaslvr=SOLVER_CRAYLIBSCID_ACC
+  if(jaslvr.lt.0) iaslvr=SOLVER_CRAYLIBSCID_ACC
+  if(inslvr.lt.0) inslvr=SOLVER_EISPACK
+  if(jnslvr.lt.0) jnslvr=SOLVER_CRAYLIBSCID_ACC
 #endif
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
 #else
 #ifdef LAPACK
-! When LAPACK is working correctly the following four lines should be uncommented
   if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
   if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
   if(inslvr.lt.0) inslvr=SOLVER_LAPACK
@@ -1484,6 +1493,10 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
     if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
+    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
+    if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
+    if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1494,6 +1507,11 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
     if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
+    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
+    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
+    if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
+    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
   else
     sv_solver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
@@ -1503,6 +1521,7 @@ subroutine gronor_main()
     if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
     if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
     if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1511,6 +1530,7 @@ subroutine gronor_main()
     if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
     if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
     if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
@@ -1525,6 +1545,10 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
     if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
+    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
+    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
+    if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
+    if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1535,6 +1559,11 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
     if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
+    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
+    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
+    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
+    if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
+    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) ev_solver=SOLVER_CRAYLIBSCID_ACC
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
@@ -1548,6 +1577,10 @@ subroutine gronor_main()
       if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
       if(sv_solver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
       if(sv_solver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
+      if(sv_solver.eq.SOLVER_ROCSOLVER) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvd"
+      if(sv_solver.eq.SOLVER_ROCSOLVERX) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvdx"
+      if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgesdd_cpu"
+      if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgesdd_acc"
       if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
       if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
       if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
@@ -1557,6 +1590,11 @@ subroutine gronor_main()
       if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
       if(ev_solver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
       if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
+      if(ev_solver.eq.SOLVER_ROCSOLVER) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyev"
+      if(ev_solver.eq.SOLVER_ROCSOLVERD) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevd"
+      if(ev_solver.eq.SOLVER_ROCSOLVERJ) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevj"
+      if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd_cpu"
+      if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgsyevd_acc"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
       asvd=istring
@@ -1571,6 +1609,7 @@ subroutine gronor_main()
     if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
     if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
     if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
+    if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1579,6 +1618,7 @@ subroutine gronor_main()
     if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
     if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
     if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
+    if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
 
     if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
     if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
@@ -1587,6 +1627,7 @@ subroutine gronor_main()
     if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
     if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd"
     if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
+    if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgesdd"
     if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
     if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyev"
     if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
@@ -1594,6 +1635,7 @@ subroutine gronor_main()
     if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev"
     if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
     if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
+    if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd"
 
     if(numacc.eq.0) then
       write(lfnout,612) trim(istring),trim(jstring)
@@ -2267,6 +2309,8 @@ subroutine gronor_main()
 
       allocate(rwork(nelecs))
 
+      call gronor_solver_init(nelecs)
+
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2279,7 +2323,8 @@ subroutine gronor_main()
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
+!$acc& create(rocinfo,workspace_d,workspace_i)
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
@@ -2287,7 +2332,8 @@ subroutine gronor_main()
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
-!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
+!$omp& map(rocinfo,workspace_d,workspace_i)
 #endif
         if(idbg.gt.0) then
           call swatch(date,time)

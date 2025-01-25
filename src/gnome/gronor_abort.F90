@@ -16,7 +16,7 @@
 !     string = error message printed to filabt
 !     icode  = informative value printed to filabt
 !
-      write(filabt,'(a,i5.5,a)') "GronOR_",me,".abt"
+      write(filabt,'(2a,i5.5,a)') trim(string),"-",me,".abt"
       open(unit=lfnabt,file=trim(filabt),form="formatted")
 
       select case(icode)

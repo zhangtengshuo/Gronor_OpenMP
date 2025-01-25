@@ -30,6 +30,26 @@ subroutine gronor_solver_init(ntemp)
   use cuda_cusolver
   use cudafor
 #endif
+#ifdef ROCSOLVER
+  use rocvars
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
+#endif
+
+#ifdef HIPSOLVER
+  use hipfort
+  use hipfort_check
+  use hipfort_rocblas_enums
+  use hipfort_rocblas
+  use hipfort_rocsolver_enums
+  use hipfort_rocsolver
+#endif
 #ifdef MKL
   use mkl_solver
 #endif
@@ -92,6 +112,7 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
@@ -101,6 +122,8 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) lsvtrns=.true.
   
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
   if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
@@ -111,6 +134,7 @@ subroutine gronor_solver_init(ntemp)
   if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
+  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) levcpu=.true.
   
   if(iamacc.ne.0) then
 #ifdef CUSOLVER
@@ -120,9 +144,8 @@ subroutine gronor_solver_init(ntemp)
     lwork1=0
     lwork2=0
 
-#ifdef CUSOLVERJ
     if(sv_solver.eq.SOLVER_CUSOLVER) then
-#endif
+
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta)
@@ -138,7 +161,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
-#ifdef CUSOLVERJ
+
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
@@ -178,13 +201,11 @@ subroutine gronor_solver_init(ntemp)
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
     endif
-#endif
 
 ! Cusolver initialization for the syevd
 
-#ifdef CUSOLVERJ
     if(ev_solver.eq.SOLVER_CUSOLVER) then
-#endif
+
 #ifdef ACC
 !$acc data copyin(w,ta) create(dev_info_d)
 !$acc host_data use_device(ta,w)
@@ -200,7 +221,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
-#ifdef CUSOLVERJ
+
     elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
@@ -242,7 +263,6 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
     endif
-#endif
 
     call gronor_update_device_info()
 
@@ -324,8 +344,51 @@ subroutine gronor_solver_init(ntemp)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
+#endif
+
+#ifdef ROCSOLVER
+    lwork1m=max(0,5*nelecs*nelecs)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
+!!!!! !$omp target enter data map(rocinfo)
+#endif
+
+#ifdef CRAYLIBSCI
+    ndimm=nelecs
+    mdimm=mbasel
+    lwork1m=-1
+    lwork2m=-1
+    lworki=-1
     
-#endif  
+    if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
+!      lwork1m=int(worksize(1))
+    endif
+    if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+!      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
+!          lapack_info)
+!      lwork1m=int(worksize(1))
+!      lworki=8*nelecs
+    endif
+    if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
+      call dsyevd_cpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,info)
+      lwork2m=int(worksize(1))
+    endif
+    if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
+!$omp target enter data map(to:a) map(alloc:w,worksize,iworksize,info)
+!$omp target data use_device_addr(a,w,worksize,iworksize,info)
+      call dsyevd_acc('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,info)
+!$omp end target data
+      lwork2m=int(worksize(1))
+      lworki=max(int(iworksize(1)),lworki)
+    endif
+    lwork1m=max(0,lwork1m,lwork2m)
+    lworki=max(0,lworki)
+    len_work_dbl=max(len_work_dbl,lwork1m)
+    len_work_int=max(len_work_int,lworki)
+!$omp target exit data map(delete:worksize,iworksize)
+#endif
 
 #ifdef MAGMA
     ndimm=nelecs
@@ -348,11 +411,11 @@ subroutine gronor_solver_init(ntemp)
     len_work_int=max(len_work_int,lworki)
 #endif
     
-    len_work_dbl=max(0,len_work_dbl)
-    len_work_int=max(0,len_work_int)
+    len_work_dbl=max(1,len_work_dbl)
+    len_work_int=max(1,len_work_int)
     
-    if(len_work_dbl.gt.0) allocate(workspace_d(len_work_dbl))
-    if(len_work_int.gt.0) allocate(workspace_i(len_work_int))
+    allocate(workspace_d(len_work_dbl))
+    allocate(workspace_i(len_work_int))
 
     return
   end subroutine gronor_solver_init
@@ -376,12 +439,15 @@ subroutine gronor_solver_final()
 #endif
 
 #ifdef ROCSOLVER
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocvars
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -405,7 +471,7 @@ subroutine gronor_solver_final()
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
 #ifdef ROCSOLVER
-    if (rocsolverDestroy(rocsolver_handle) /= 0) &
+    if (rocsolver_destroy_handle(rocsolver_handle) /= 0) &
         write(*,*) 'hipsolver_handle destruction failed'
 #endif
   endif
@@ -432,12 +498,15 @@ subroutine gronor_solver_create_handle()
 #endif
 
 #ifdef ROCSOLVER
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocvars
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
+!  use hipfort
+!  use hipfort_check
+!  use hipfort_rocblas_enums
+!  use hipfort_rocblas
+!  use hipfort_rocsolver_enums
+!  use hipfort_rocsolver
 #endif
 
 #ifdef HIPSOLVER
@@ -460,12 +529,12 @@ subroutine gronor_solver_create_handle()
     if(numdev.gt.1) then
 !      cpfre=c_loc(memfre)
 !      cptot=c_loc(memtot)
-      ! istat=cudaMemGetInfo(cpfre,cptot)
+!      istat=cudaMemGetInfo(cpfre,cptot)
     endif
 #endif
 
 #ifdef ROCSOLVER
-    call rocsolvercreate(rocsolver_handle)
+    istatus=rocsolver_create_handle(rocsolver_handle)
 !    call hipcheck(rocblas_create_handle(rocsolver_handle))
 #endif
 

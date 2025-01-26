@@ -420,8 +420,19 @@ module cuda_cusolver
   end type gesvdjInfo
 
   type syevjInfo
-    type(c_ptr) :: svInfo
+    type(c_ptr) :: evInfo
   end type syevjInfo
+
+  type(cusolverDnHandle) :: cusolver_handle
+  type(gesvdjInfo)       :: gesvdj_params
+  type(syevjInfo)        :: syevj_params
+  integer (kind=4)       :: cusolver_status
+  real (kind=8)          :: tol,residual
+  integer (kind=4)       :: max_sweeps,exec_sweeps
+  integer (kind=4), parameter :: econ=0
+  real (kind=8), allocatable :: workspace_d(:)
+  integer (kind=4) :: dev_info_d
+  integer(kind=cuda_stream_kind) :: stream
 
 #ifdef CUSOLVERJ_INTERFACES
   
@@ -609,17 +620,6 @@ module cuda_cusolver
     end function cusolverDnDsyevj
   end interface
 #endif
-
-  type(cusolverDnHandle) :: cusolver_handle
-  type(gesvdjInfo)       :: gesvdj_params
-  type(syevjInfo)        :: syevj_params
-  integer (kind=4)       :: cusolver_status
-  real (kind=8)          :: tol,residual
-  integer (kind=4)       :: max_sweeps,exec_sweeps
-  integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable :: workspace_d(:)
-  integer (kind=4) :: dev_info_d
-  integer(kind=cuda_stream_kind) :: stream
 
 end module cuda_cusolver
 #endif

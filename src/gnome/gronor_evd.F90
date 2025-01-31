@@ -227,9 +227,9 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
 #ifdef ACC
-!$acc data create(workspace_d,workspace_i)
+!$acc data create(workspace_d,workspace_i,workspace2_d)
 !$acc wait
-!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
+!!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
 #endif
 #ifdef OMPTGT
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,workspace_i4,workspace2_d)
@@ -241,7 +241,7 @@ subroutine gronor_evd()
       call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,workspace2_d,ndim4, &
           workspace_d,lwork4,workspace_i4,liwork4,magma_info)
 #ifdef ACC
-!$acc end host_data
+!!!!$acc end host_data
 !$acc wait
 !$acc end data   
 #endif

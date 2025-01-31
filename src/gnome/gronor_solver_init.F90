@@ -91,7 +91,7 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=8) :: lworki,lwork1m,lwork2m
   integer (kind=4) :: lwork1,lwork2
   
-  real(kind=8) :: worksize(2)
+  real(kind=8) :: worksize(2),worksize2(2)
   integer (kind=4) :: iworksize(2)
 
   nelecs=ntemp
@@ -410,10 +410,36 @@ subroutine gronor_solver_init(ntemp)
     lwork4=-1
     liwork4=-1
     if(ev_solver.eq.SOLVER_MAGMA) then
-      if(iamacc.eq.0) then
-!        call magmaf_dsyevd('V','L',ndim4,a,ndim4,w,worksize,lwork4,iworksize,liwork4,magma_info)
-      else
-!        call magmaf_dsyevd_gpu('V','L',ndim4,a,ndim4,w,worksize,lwork4,iworksize,liwork4,magma_info)
+      if(iamacc.eq.1) then
+#ifdef ACC
+!$acc data create(workspace_d,workspace_i,workspace2_d)
+!$acc wait
+!!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,workspace_i4,workspace2_d)
+#endif     
+        ndimm=nelecs
+        ndim4=nelecs
+        lwork4=-1
+        liwork4=-1
+        call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,worksize2,ndim4, &
+            worksize,lwork4,iworksize,liwork4,magma_info)
+#ifdef ACC
+!!!!$acc end host_data
+!$acc wait
+!$acc end data   
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+      else       
+        ndimm=nelecs
+        ndim4=nelecs
+        lwork4=-1
+        liwork4=-1
+        call magmaf_dsyevd('N','L',ndim4,a,ndim4,diag, &
+            worksize,lwork4,iworksize,liwork4,magma_info)
       endif
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))

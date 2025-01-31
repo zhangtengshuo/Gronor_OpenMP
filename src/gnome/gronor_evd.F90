@@ -232,7 +232,7 @@ subroutine gronor_evd()
 #endif    
       ndimm=nelecs
       call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,l_work_int,ierr)
+          workspace_i,len_work_int,ierr)
 #ifdef ACC
 !$acc end host_data
 !$acc wait

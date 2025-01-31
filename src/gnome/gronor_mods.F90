@@ -321,7 +321,7 @@ module gnome_data
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
 !  real (kind=8), allocatable :: work(:)
-  integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
+  integer (kind=8) :: lwrk,len_work_dbl,len_work2_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
 
@@ -1193,12 +1193,14 @@ module gnome_solvers
     enumerator SOLVER_CRAYLIBSCID_CPU
     enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
-  integer (kind=8) :: lwork,liwork,ndimm,mdimm
-  integer (kind=4) :: mdim,ndim
+  integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8
+  integer (kind=4) :: mdim,ndim,ndim4,lwork4,liwork4
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)
+  real (kind=8),allocatable :: workspace2_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
+  integer (kind=4), allocatable :: workspace_i4(:)
 !  character*1 :: jobz,uplo
   integer (kind=4) :: jobz,uplo
 end module gnome_solvers

@@ -25,6 +25,8 @@ subroutine gronor_solver_init(ntemp)
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+  use iso_c_binding
+  
 #ifdef CUSOLVER
   use cusolverDn
   use cuda_cusolver
@@ -57,6 +59,8 @@ subroutine gronor_solver_init(ntemp)
   use lapack_solver
 #else
 #ifdef MAGMA
+  use magma
+  use magma_dfortran
   use magma_solver
 #endif
 #endif
@@ -72,8 +76,8 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=4) :: lapack_info,ierr
 #else  
 #ifdef MAGMA
-  external :: magma_dsyevd,magma_dsyevd_gpu
-  integer (kind=4) :: lapack_info,ierr
+  external :: magmaf_dsyevd,magmaf_dsyevd_gpu
+  integer (kind=4) :: magma_info,ierr
 #endif
 #endif
 #ifdef CUSOLVER
@@ -94,6 +98,7 @@ subroutine gronor_solver_init(ntemp)
 
   len_work_int=0
   len_work_dbl=0
+  len_work2_dbl=0
 
 ! Cusolver initialization for the svd
   
@@ -397,14 +402,18 @@ subroutine gronor_solver_init(ntemp)
 #ifdef MAGMA
     ndimm=nelecs
     mdimm=mbasel
+    ndim=nelecs
     lwork1m=-1
     lwork2m=-1
     lworki=-1
+    ndim4=nelecs
+    lwork4=-1
+    liwork4=-1
     if(ev_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.0) then
-        call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+!        call magmaf_dsyevd('V','L',ndim4,a,ndim4,w,worksize,lwork4,iworksize,liwork4,magma_info)
       else
-        call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+!        call magmaf_dsyevd_gpu('V','L',ndim4,a,ndim4,w,worksize,lwork4,iworksize,liwork4,magma_info)
       endif
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))
@@ -413,13 +422,17 @@ subroutine gronor_solver_init(ntemp)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
+    len_work2_dbl=nelecs*nelecs
 #endif
     
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
+    len_work2_dbl=max(1,len_work2_dbl)
     
     allocate(workspace_d(len_work_dbl))
+    allocate(workspace2_d(len_work2_dbl))
     allocate(workspace_i(len_work_int))
+    allocate(workspace_i4(len_work_int))
 
     return
   end subroutine gronor_solver_init

@@ -63,6 +63,7 @@ subroutine gronor_evd()
   use gnome_parameters
   use gnome_data
   use gnome_solvers
+  use iso_c_binding
 
   ! library specific modules
 
@@ -73,20 +74,20 @@ subroutine gronor_evd()
 #ifdef LAPACK  
   use lapack_solver
 #else
-#ifdef MAGMA  
+#ifdef MAGMA
+  use magma
+  use magma_dfortran
   use magma_solver
 #endif
 #endif
   
 #ifdef CUSOLVER
-  use iso_c_binding
   use cusolverDn
   use cuda_cusolver
   use cudafor
 #endif
 
 #ifdef ROCSOLVER
-  use iso_c_binding
   use iso_fortran_env
   use rocvars
   use rocsolver_interfaces_enums
@@ -114,6 +115,9 @@ subroutine gronor_evd()
 #endif
 #ifdef CUSOLVER
   external cusolverdndsyevj
+#endif
+#ifdef MAGMA
+  integer (kind=4) :: magma_info
 #endif
   
   integer :: i,j
@@ -225,26 +229,32 @@ subroutine gronor_evd()
 #ifdef ACC
 !$acc data create(workspace_d,workspace_i)
 !$acc wait
-!$acc host_data use_device(a,diag,workspace_d,workspace_i)
+!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
 #endif
 #ifdef OMPTGT
-!!!!!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d)
+!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,workspace_i4,workspace2_d)
 #endif    
       ndimm=nelecs
-      call magma_dsyevd_gpu('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
+      ndim4=nelecs
+      lwork4=len_work_dbl
+      liwork4=len_work_int
+      call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,workspace2_d,ndim4, &
+          workspace_d,lwork4,workspace_i4,liwork4,magma_info)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
 !$acc end data   
 #endif
 #ifdef OMPTGT
-!!!!!$omp end target data
+!$omp end target data
 #endif
     else        
       ndimm=nelecs
-      call magma_dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-      workspace_i,len_work_int,ierr)
+      ndim4=nelecs
+      lwork4=len_work_dbl
+      liwork4=len_work_int
+      call magmaf_dsyevd('N','L',ndim4,a,ndim4,diag, &
+      workspace_d,lwork4,workspace_i4,liwork4,magma_info)
     endif
   endif
 #endif 

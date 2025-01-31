@@ -415,7 +415,8 @@ subroutine gronor_solver_init(ntemp)
     ndim4=nelecs
     lwork4=-1
     liwork4=-1
-    
+
+    call magmaf_init()
     
     if(sv_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.1) then

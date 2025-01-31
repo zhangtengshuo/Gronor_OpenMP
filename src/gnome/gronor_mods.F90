@@ -1189,6 +1189,7 @@ module gnome_solvers
     enumerator SOLVER_ROCSOLVERJ
     enumerator SOLVER_ROCSOLVERX
     enumerator SOLVER_MAGMA
+    enumerator SOLVER_MAGMAD
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCID_CPU
     enumerator SOLVER_CRAYLIBSCID_ACC

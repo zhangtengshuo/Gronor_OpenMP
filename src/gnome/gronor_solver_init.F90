@@ -122,6 +122,8 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MAGMA) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MAGMAD) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
@@ -409,6 +411,36 @@ subroutine gronor_solver_init(ntemp)
     ndim4=nelecs
     lwork4=-1
     liwork4=-1
+    ndimm=nelecs
+    ndim4=nelecs
+    lwork4=-1
+    liwork4=-1
+    
+    
+    if(sv_solver.eq.SOLVER_MAGMA) then
+      if(iamacc.eq.1) then
+        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,magma_info)
+      else
+        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,magma_info)
+      endif
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
+    endif
+      
+    if(sv_solver.eq.SOLVER_MAGMAD) then
+      if(iamacc.eq.1) then
+        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,iworksize,magma_info)
+      else
+        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,iworksize,magma_info)
+      endif
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
+    endif
+    
     if(ev_solver.eq.SOLVER_MAGMA) then
       if(iamacc.eq.1) then
 #ifdef ACC

@@ -25,6 +25,7 @@
 #include "gronor_config.fh"
 #include "gronor_compiler.fh"
 #include "gronor_compile_time.fh"
+#include "gronor_commit_hash.fh"
 
 subroutine gronor_main()
 
@@ -460,6 +461,7 @@ subroutine gronor_main()
     usedmpi=_LMODMPI_
     usedcmake=_CMAKE_
     compiletime=_COMPILE_TIME_
+    git_commit=_GRONOR_COMMIT_HASH_
 
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
@@ -570,6 +572,7 @@ subroutine gronor_main()
 #endif
     endif
     if(ipr.gt.0) then
+        write(lfnout,651) trim(git_commit)
         write(lfnout,655) trim(compiletime),trim(architecture)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
@@ -579,7 +582,8 @@ subroutine gronor_main()
            trim(filout),trim(filone), &
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
-    endif
+      endif
+651 format(/,' Git commit hash',t30,a)
 655 format(/,' Compile date and time',t30,a,' targeting ',a)  
 652 format(/,' Compiler',t30,a,' (currently loaded ',a,'/',a,')')  
 653 format(  ' MPI',t30,a,' (currently loaded ',a,'/',a,')')  
@@ -2337,8 +2341,6 @@ subroutine gronor_main()
 
       allocate(rwork(nelecs))
 
-!      call gronor_solver_init(nelecs)
-
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2352,7 +2354,6 @@ subroutine gronor_main()
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
-!!!!$acc& create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
@@ -2361,7 +2362,6 @@ subroutine gronor_main()
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
 !$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
-!!!!$omp& map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2513,7 +2513,7 @@ subroutine gronor_main()
     enddo
     separator=':'
     if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
-    write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
+    write(lfnlog,802) trim(compiletime),trim(git_commit),trim(machine),trim(separator),trim(host), &
         trim(architecture),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
     write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
@@ -2524,7 +2524,7 @@ subroutine gronor_main()
       write(lfnlog,814) trim(nsvd),trim(nevd)
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
-802 format(a17,t19,a,a,a,t43,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+802 format(a17,t19,a,1x,a,a,a,t53,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,3i10)
 813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)

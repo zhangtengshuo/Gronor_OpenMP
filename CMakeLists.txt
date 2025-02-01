@@ -146,6 +146,11 @@ message (STATUS "Project: ${PROJECT_NAME}")
 message (STATUS "Version: ${PROJECT_VERSION}")
 message (STATUS "Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
 
+execute_process(COMMAND bash -c "git describe" OUTPUT_VARIABLE COMMIT_HASH)
+string(STRIP ${COMMIT_HASH} COMMIT_HASH)
+message (STATUS "GIT commit hash: ${COMMIT_HASH}")
+set (ENV{GRONOR_COMMIT_HASH} ${COMMIT_HASH})
+
 # Enforce out-of-source builds only
 
 set (CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -440,6 +445,7 @@ configure_file (${GRONOR_DIR}/include/gronor_config.h.in ${MAIN_INCLUDE_DIR}/gro
 
 # Create the compiler_mpi.h to the include directory
 file(WRITE ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODCOMPILER_ \"${LMODCOMP}\"\n")
+file(WRITE ${MAIN_INCLUDE_DIR}/gronor_commit_hash.fh "#define _GRONOR_COMMIT_HASH_ \"${COMMIT_HASH}\"\n")
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _LMODMPI_ \"${LMODMPI}\"\n")
 file(APPEND ${MAIN_INCLUDE_DIR}/gronor_compiler.fh "#define _CMAKE_ \"${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}\"\n")
 

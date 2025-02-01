@@ -117,7 +117,7 @@ module cidef
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
   integer :: lfnwrn,lfnxrx,lfntmp
 
-  character (len=255) :: user,host,date,time,cwd,command
+  character (len=255) :: user,host,date,time,cwd,command,git_commit
   character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv
   integer :: nprocs
   integer :: nciaux

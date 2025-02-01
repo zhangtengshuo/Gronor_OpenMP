@@ -349,7 +349,7 @@ subroutine gronor_worker()
 
   call gronor_update_device_info()
   
-  call gronor_solver_final()
+  call gronor_solver_finalize()
 
 !  if(otreq) then
 !    call MPI_Test(itreq,flag,status,ierr)

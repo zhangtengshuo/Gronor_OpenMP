@@ -232,7 +232,7 @@ subroutine gronor_evd()
 !!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,workspace_i4,workspace2_d)
+!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d,workspace_i4,workspace2_d)
 #endif    
       ndimm=nelecs
       ndim4=nelecs

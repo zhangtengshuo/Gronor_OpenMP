@@ -447,10 +447,10 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc data create(workspace_d,workspace_i,workspace2_d)
 !$acc wait
-!!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
+!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
 #endif
 #ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,workspace_i4,workspace2_d)
+!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d,workspace_i4,workspace2_d)
 #endif     
         ndimm=nelecs
         ndim4=nelecs
@@ -459,7 +459,7 @@ subroutine gronor_solver_init(ntemp)
         call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,worksize2,ndim4, &
             worksize,lwork4,iworksize,liwork4,magma_info)
 #ifdef ACC
-!!!!$acc end host_data
+!!!$acc end host_data
 !$acc wait
 !$acc end data   
 #endif
@@ -496,7 +496,7 @@ subroutine gronor_solver_init(ntemp)
     return
   end subroutine gronor_solver_init
 
-subroutine gronor_solver_final()
+subroutine gronor_solver_finalize()
 
   use mpi
   use inp
@@ -535,6 +535,11 @@ subroutine gronor_solver_final()
   use hipfort_rocsolver
 #endif
 
+#ifdef MAGMA
+  use magma
+  use magma_dfortran
+  use magma_solver
+#endif  
   
   if(iamacc.gt.0) then
 #ifdef CUSOLVER
@@ -552,8 +557,12 @@ subroutine gronor_solver_final()
 #endif
   endif
 
+#ifdef MAGMA
+  call magmaf_finalize()
+#endif
+  
   return
-end subroutine gronor_solver_final
+end subroutine gronor_solver_finalize
 
 subroutine gronor_solver_create_handle()
   

@@ -198,8 +198,10 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
       call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,lwork4,workspace_i4,magma_info)  
+          workspace_d,lwork4,workspace_i4,magma_info) 
     else
+      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,workspace_i4,magma_info) 
     endif
   endif
   

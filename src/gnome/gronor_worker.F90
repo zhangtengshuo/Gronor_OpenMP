@@ -45,7 +45,15 @@ subroutine gronor_worker()
 
   logical (kind=4) :: flag
 
-  flush(lfnout)
+  call gronor_solver_init(nelecs)
+
+
+#ifdef ACC
+!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
+#ifdef OMPTGT
+!$omp target data map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
 
   if(managers.gt.0) then
     mstr=map2(me+1,9)
@@ -348,6 +356,13 @@ subroutine gronor_worker()
   enddo
 
   call gronor_update_device_info()
+
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
   
   call gronor_solver_finalize()
 

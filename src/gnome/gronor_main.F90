@@ -2337,7 +2337,7 @@ subroutine gronor_main()
 
       allocate(rwork(nelecs))
 
-      call gronor_solver_init(nelecs)
+!      call gronor_solver_init(nelecs)
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
@@ -2351,8 +2351,8 @@ subroutine gronor_main()
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
-!$acc& create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
+!!!!$acc& create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
@@ -2360,8 +2360,8 @@ subroutine gronor_main()
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
-!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
-!$omp& map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
+!!!!$omp& map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
         if(idbg.gt.0) then
           call swatch(date,time)

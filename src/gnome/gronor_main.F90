@@ -470,9 +470,10 @@ subroutine gronor_main()
     endif
     write(version,'(i2,a,i2.2)') major,'.',minor
 
-    if(ipr.gt.0) write(lfnout,600) major,minor,trim(version_type)
+    if(ipr.gt.0) write(lfnout,600) major,minor,trim(version_type),trim(git_commit)
 600 format(/, &
-        ' GronOR: Non-Orthogonal Configuration Interaction',//,' Version ',i2,'.',i2.2,a,//, &
+        ' GronOR: Non-Orthogonal Configuration Interaction',//, &
+        ' Version ',i2,'.',i2.2,a,', git commit hash ',a,//, &
         ' T. P. Straatsma',t50,'C. de Graaf',t82,'R. Broer',/, &
         t50,'A. Sanchez',t82,'R. K. Kathir',//, &
         ' National Center for Computational Sciences',t50, &
@@ -572,7 +573,6 @@ subroutine gronor_main()
 #endif
     endif
     if(ipr.gt.0) then
-        write(lfnout,651) trim(git_commit)
         write(lfnout,655) trim(compiletime),trim(architecture)
         write(lfnout,652) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
         write(lfnout,653) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
@@ -601,21 +601,30 @@ subroutine gronor_main()
     write(lfnarx,401) trim(user)
     write(lfnxrx,401) trim(user)
 401 format('User ',a)
-    write(lfnarx,402) trim(date)
-    write(lfnxrx,402) trim(date)
-402 format('Date ',a)
-    write(lfnarx,403) trim(time)
-    write(lfnxrx,403) trim(time)
-403 format('Time ',a)
-    write(lfnarx,404) trim(host),onlabel,trim(machine)
-    write(lfnxrx,404) trim(host),onlabel,trim(machine)
-404 format('Host ',a,a,a)
-    write(lfnarx,405) trim(root)
-    write(lfnxrx,405) trim(root)
-405 format('Root ',a)
-    write(lfnarx,406) nnodes,np
-    write(lfnxrx,406) nnodes,np
-406 format('Nodes',i10,i10)
+    write(lfnarx,402) trim(date),trim(time)
+    write(lfnxrx,402) trim(date),trim(time)
+402 format('Date ',a,1x,a)
+    write(lfnarx,403) trim(host),onlabel,trim(machine)
+    write(lfnxrx,403) trim(host),onlabel,trim(machine)
+403 format('Host ',a,a,a)
+    write(lfnarx,404) trim(root)
+    write(lfnxrx,404) trim(root)
+404 format('Root ',a)
+    write(lfnarx,405) trim(compiletime),trim(architecture)
+    write(lfnxrx,405) trim(compiletime),trim(architecture)
+405 format('Compile time ',a,' targeting ',a)
+    write(lfnarx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
+    write(lfnxrx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
+406 format('Compiler used ',a,' (currently loaded ',a,'/',a,')')
+    write(lfnarx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
+    write(lfnxrx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
+407 format(' MPI used ',a,' (currently loaded ',a,'/',a,')')
+    write(lfnarx,408) major,minor,trim(git_commit)
+    write(lfnxrx,408) major,minor,trim(git_commit)
+408 format('GronOR ',i2.2,'.',i2.2,1x,a)
+    write(lfnarx,409) nnodes,np
+    write(lfnxrx,409) nnodes,np
+409 format('Nodes',i10,i10)
 
     call gronor_number_integrals(numone,numtwo)
 

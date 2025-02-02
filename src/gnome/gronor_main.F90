@@ -615,13 +615,13 @@ subroutine gronor_main()
 405 format('Compile time ',a,' targeting ',a)
     write(lfnarx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
     write(lfnxrx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
-406 format('Compiler used ',a,' (currently loaded ',a,'/',a,')')
+406 format('Compiler ',a,' (currently loaded ',a,'/',a,')')
     write(lfnarx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
     write(lfnxrx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
-407 format(' MPI used ',a,' (currently loaded ',a,'/',a,')')
+407 format('MPI ',a,' (currently loaded ',a,'/',a,')')
     write(lfnarx,408) major,minor,trim(git_commit)
     write(lfnxrx,408) major,minor,trim(git_commit)
-408 format('GronOR ',i2.2,'.',i2.2,1x,a)
+408 format('GronOR version ',i2.2,'.',i2.2,' git commit hash ',a)
     write(lfnarx,409) nnodes,np
     write(lfnxrx,409) nnodes,np
 409 format('Nodes',i10,i10)
@@ -1632,6 +1632,9 @@ subroutine gronor_main()
       if(ev_solver.eq.SOLVER_MAGMAD) write(jstring,'(a)') "MAGMA magma_dsyevd_gpu"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
+      write(lfnarx,410) trim(istring),trim(jstring)
+      write(lfnxrx,410) trim(istring),trim(jstring)
+410   format('Solvers on accelerated ranks ',a,' and ',a)
       asvd=istring
       aevd=jstring
     endif
@@ -1685,6 +1688,9 @@ subroutine gronor_main()
       write(lfnout,613) trim(istring),trim(jstring)
 613   format(' Non-accelerated ranks use ',a,' and ',a)
     endif
+    write(lfnarx,411) trim(istring),trim(jstring)
+    write(lfnxrx,411) trim(istring),trim(jstring)
+411 format('Solvers on non-accelerated ranks ',a,' and ',a)
     nsvd=istring
     nevd=jstring
       

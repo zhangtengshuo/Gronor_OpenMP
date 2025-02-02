@@ -25,6 +25,8 @@ subroutine gronor_solver_init(ntemp)
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+  use iso_c_binding
+  
 #ifdef CUSOLVER
   use cusolverDn
   use cuda_cusolver
@@ -57,6 +59,8 @@ subroutine gronor_solver_init(ntemp)
   use lapack_solver
 #else
 #ifdef MAGMA
+  use magma
+  use magma_dfortran
   use magma_solver
 #endif
 #endif
@@ -72,10 +76,14 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=4) :: lapack_info,ierr
 #else  
 #ifdef MAGMA
-  external :: magma_dsyevd,magma_dsyevd_gpu
-  integer (kind=4) :: lapack_info,ierr
+  external :: magmaf_dsyevd,magmaf_dsyevd_gpu
+  integer (kind=4) :: magma_info,ierr
 #endif
-#endif  
+#endif
+#ifdef CUSOLVER
+  external :: cusolverdncreategesvdjinfo,cusolverdnxgesvdjsettolerance
+  external :: cusolverdnxgesvdjsetmaxsweeps,cusolverdndgesvdj_buffersize
+#endif
 
   integer :: ntemp
   character(len=255) :: string
@@ -83,13 +91,14 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=8) :: lworki,lwork1m,lwork2m
   integer (kind=4) :: lwork1,lwork2
   
-  real(kind=8) :: worksize(2)
+  real(kind=8) :: worksize(2),worksize2(2)
   integer (kind=4) :: iworksize(2)
 
   nelecs=ntemp
 
   len_work_int=0
   len_work_dbl=0
+  len_work2_dbl=0
 
 ! Cusolver initialization for the svd
   
@@ -113,6 +122,8 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MAGMA) lsvcpu=.true.
+  if(sv_solver.eq.SOLVER_MAGMAD) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
   if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
@@ -393,14 +404,75 @@ subroutine gronor_solver_init(ntemp)
 #ifdef MAGMA
     ndimm=nelecs
     mdimm=mbasel
+    ndim=nelecs
     lwork1m=-1
     lwork2m=-1
     lworki=-1
-    if(ev_solver.eq.SOLVER_MAGMA) then
-      if(iamacc.eq.0) then
-        call magma_dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+    ndim4=nelecs
+    lwork4=-1
+    liwork4=-1
+    ndimm=nelecs
+    ndim4=nelecs
+    lwork4=-1
+    liwork4=-1
+
+    call magmaf_init()
+    
+    if(sv_solver.eq.SOLVER_MAGMA) then
+      if(iamacc.eq.1) then
+        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,magma_info)
       else
-        call magma_dsyevd_gpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
+        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,magma_info)
+      endif
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
+    endif
+      
+    if(sv_solver.eq.SOLVER_MAGMAD) then
+      if(iamacc.eq.1) then
+        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,iworksize,magma_info)
+      else
+        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+            worksize,lwork4,iworksize,magma_info)
+      endif
+      lwork1m=int(worksize(1))
+      lworki=8*nelecs
+    endif
+    
+    if(ev_solver.eq.SOLVER_MAGMA) then
+      if(iamacc.eq.1) then
+#ifdef ACC
+!$acc data create(workspace_d,workspace_i,workspace2_d)
+!$acc wait
+!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
+#endif
+#ifdef OMPTGT
+!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d,workspace_i4,workspace2_d)
+#endif     
+        ndimm=nelecs
+        ndim4=nelecs
+        lwork4=-1
+        liwork4=-1
+        call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,worksize2,ndim4, &
+            worksize,lwork4,iworksize,liwork4,magma_info)
+#ifdef ACC
+!!!$acc end host_data
+!$acc wait
+!$acc end data   
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
+      else       
+        ndimm=nelecs
+        ndim4=nelecs
+        lwork4=-1
+        liwork4=-1
+        call magmaf_dsyevd('N','L',ndim4,a,ndim4,diag, &
+            worksize,lwork4,iworksize,liwork4,magma_info)
       endif
       lwork2m=int(worksize(1))
       lworki=int(iworksize(1))
@@ -409,18 +481,22 @@ subroutine gronor_solver_init(ntemp)
     lworki=max(0,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
+    len_work2_dbl=nelecs*nelecs
 #endif
     
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
+    len_work2_dbl=max(1,len_work2_dbl)
     
     allocate(workspace_d(len_work_dbl))
+    allocate(workspace2_d(len_work2_dbl))
     allocate(workspace_i(len_work_int))
+    allocate(workspace_i4(len_work_int))
 
     return
   end subroutine gronor_solver_init
 
-subroutine gronor_solver_final()
+subroutine gronor_solver_finalize()
 
   use mpi
   use inp
@@ -459,6 +535,11 @@ subroutine gronor_solver_final()
   use hipfort_rocsolver
 #endif
 
+#ifdef MAGMA
+  use magma
+  use magma_dfortran
+  use magma_solver
+#endif  
   
   if(iamacc.gt.0) then
 #ifdef CUSOLVER
@@ -476,8 +557,12 @@ subroutine gronor_solver_final()
 #endif
   endif
 
+#ifdef MAGMA
+  call magmaf_finalize()
+#endif
+  
   return
-end subroutine gronor_solver_final
+end subroutine gronor_solver_finalize
 
 subroutine gronor_solver_create_handle()
   

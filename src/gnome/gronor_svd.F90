@@ -64,6 +64,7 @@ subroutine gronor_svd()
   use gnome_parameters
   use gnome_data
   use gnome_solvers
+  use iso_c_binding
 
   ! library specific modules
 
@@ -73,6 +74,12 @@ subroutine gronor_svd()
   
 #ifdef LAPACK
   use lapack_solver
+#else
+#ifdef MAGMA
+  use magma
+  use magma_dfortran
+  use magma_solver
+#endif
 #endif
 
 #ifdef CUSOLVER
@@ -86,7 +93,6 @@ subroutine gronor_svd()
   use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
-  use iso_c_binding
   use iso_fortran_env
   use rocvars
   use rocsolver_interfaces_enums
@@ -107,6 +113,10 @@ subroutine gronor_svd()
 
 #ifdef CUSOLVER
   character (len=1), target :: jobu, jobvt
+  external :: cusolverdndgesvdj,cusolverdnxgesvdjgetsweeps,cusolverdnxgesvdjgetresidual
+#endif
+#ifdef MAGMA
+  integer (kind=4) :: magma_info
 #endif
 
 #ifdef HIPSOLVER
@@ -173,6 +183,40 @@ subroutine gronor_svd()
     !lsvtrns
   endif
 #endif 
+  
+! ============ MAGMA ===========
+  
+#ifdef MAGMA
+  
+  ndimm=nelecs
+  mdimm=mbasel
+  ndim=nelecs
+  ndim4=nelecs
+  lwork4=len_work_dbl
+  liwork4=len_work_int
+  
+  if(sv_solver.eq.SOLVER_MAGMA) then
+    if(iamacc.eq.1) then
+      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,workspace_i4,magma_info) 
+    else
+      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,workspace_i4,magma_info) 
+    endif
+  endif
+  
+  if(sv_solver.eq.SOLVER_MAGMAD) then
+    if(iamacc.eq.1) then
+      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,magma_info)
+    else
+      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,magma_info)
+    endif
+  endif
+  
+#endif 
+  
   
   ! ========= CUSOLVER =========
 

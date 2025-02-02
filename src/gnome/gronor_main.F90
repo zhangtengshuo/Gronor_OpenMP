@@ -25,6 +25,7 @@
 #include "gronor_config.fh"
 #include "gronor_compiler.fh"
 #include "gronor_compile_time.fh"
+#include "gronor_commit_hash.fh"
 
 subroutine gronor_main()
 
@@ -460,6 +461,7 @@ subroutine gronor_main()
     usedmpi=_LMODMPI_
     usedcmake=_CMAKE_
     compiletime=_COMPILE_TIME_
+    git_commit=_GRONOR_COMMIT_HASH_
 
     if(minor.eq.0.or.minor.gt.12) then
       version_type=" under active development"
@@ -468,9 +470,10 @@ subroutine gronor_main()
     endif
     write(version,'(i2,a,i2.2)') major,'.',minor
 
-    if(ipr.gt.0) write(lfnout,600) major,minor,trim(version_type)
+    if(ipr.gt.0) write(lfnout,600) major,minor,trim(version_type),trim(git_commit)
 600 format(/, &
-        ' GronOR: Non-Orthogonal Configuration Interaction',//,' Version ',i2,'.',i2.2,a,//, &
+        ' GronOR: Non-Orthogonal Configuration Interaction',//, &
+        ' Version ',i2,'.',i2.2,a,', git commit hash ',a,//, &
         ' T. P. Straatsma',t50,'C. de Graaf',t82,'R. Broer',/, &
         t50,'A. Sanchez',t82,'R. K. Kathir',//, &
         ' National Center for Computational Sciences',t50, &
@@ -579,7 +582,8 @@ subroutine gronor_main()
            trim(filout),trim(filone), &
            trim(mebfroot),trim(combas), &
            trim(mebfroot),trim(combas)
-    endif
+      endif
+651 format(/,' Git commit hash',t30,a)
 655 format(/,' Compile date and time',t30,a,' targeting ',a)  
 652 format(/,' Compiler',t30,a,' (currently loaded ',a,'/',a,')')  
 653 format(  ' MPI',t30,a,' (currently loaded ',a,'/',a,')')  
@@ -597,21 +601,30 @@ subroutine gronor_main()
     write(lfnarx,401) trim(user)
     write(lfnxrx,401) trim(user)
 401 format('User ',a)
-    write(lfnarx,402) trim(date)
-    write(lfnxrx,402) trim(date)
-402 format('Date ',a)
-    write(lfnarx,403) trim(time)
-    write(lfnxrx,403) trim(time)
-403 format('Time ',a)
-    write(lfnarx,404) trim(host),onlabel,trim(machine)
-    write(lfnxrx,404) trim(host),onlabel,trim(machine)
-404 format('Host ',a,a,a)
-    write(lfnarx,405) trim(root)
-    write(lfnxrx,405) trim(root)
-405 format('Root ',a)
-    write(lfnarx,406) nnodes,np
-    write(lfnxrx,406) nnodes,np
-406 format('Nodes',i10,i10)
+    write(lfnarx,402) trim(date),trim(time)
+    write(lfnxrx,402) trim(date),trim(time)
+402 format('Date ',a,1x,a)
+    write(lfnarx,403) trim(host),onlabel,trim(machine)
+    write(lfnxrx,403) trim(host),onlabel,trim(machine)
+403 format('Host ',a,a,a)
+    write(lfnarx,404) trim(root)
+    write(lfnxrx,404) trim(root)
+404 format('Root ',a)
+    write(lfnarx,405) trim(compiletime),trim(architecture)
+    write(lfnxrx,405) trim(compiletime),trim(architecture)
+405 format('Compile time ',a,' targeting ',a)
+    write(lfnarx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
+    write(lfnxrx,406) trim(usedcompiler),trim(lmodcomp),trim(lmodcompv)
+406 format('Compiler ',a,' (currently loaded ',a,'/',a,')')
+    write(lfnarx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
+    write(lfnxrx,407) trim(usedmpi),trim(lmodmpi),trim(lmodmpiv)
+407 format('MPI ',a,' (currently loaded ',a,'/',a,')')
+    write(lfnarx,408) major,minor,trim(git_commit)
+    write(lfnxrx,408) major,minor,trim(git_commit)
+408 format('GronOR version ',i2.2,'.',i2.2,' git commit hash ',a)
+    write(lfnarx,409) nnodes,np
+    write(lfnxrx,409) nnodes,np
+409 format('Nodes',i10,i10)
 
     call gronor_number_integrals(numone,numtwo)
 
@@ -1466,6 +1479,12 @@ subroutine gronor_main()
   if(inslvr.lt.0) inslvr=SOLVER_EISPACK
   if(jnslvr.lt.0) jnslvr=SOLVER_CRAYLIBSCID_ACC
 #endif
+#ifdef MAGMA
+  if(iaslvr.lt.0) iaslvr=SOLVER_MAGMA
+  if(jaslvr.lt.0) iaslvr=SOLVER_MAGMA
+  if(inslvr.lt.0) inslvr=SOLVER_MAGMA
+  if(jnslvr.lt.0) jnslvr=SOLVER_MAGMA
+#endif
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
@@ -1497,6 +1516,8 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
     if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
     if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
+    if(iaslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
+    if(iaslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1511,7 +1532,9 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
     if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
     if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
+    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) ev_solver=SOLVER_CRAYLIBSCID_ACC
+    if(jaslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
+    if(jaslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
   else
     sv_solver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
@@ -1522,6 +1545,8 @@ subroutine gronor_main()
     if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
     if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
+    if(inslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
+    if(inslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1531,6 +1556,8 @@ subroutine gronor_main()
     if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
     if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
+    if(jnslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
+    if(jnslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
@@ -1549,6 +1576,8 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
     if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
     if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
+    if(iaslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
+    if(iaslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1564,6 +1593,8 @@ subroutine gronor_main()
     if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
     if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
     if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) ev_solver=SOLVER_CRAYLIBSCID_ACC
+    if(jaslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
+    if(jaslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
@@ -1581,6 +1612,8 @@ subroutine gronor_main()
       if(sv_solver.eq.SOLVER_ROCSOLVERX) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvdx"
       if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgesdd_cpu"
       if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgesdd_acc"
+      if(sv_solver.eq.SOLVER_MAGMA) write(istring,'(a)') "MAGMA magma_dgesvd"
+      if(sv_solver.eq.SOLVER_MAGMAD) write(istring,'(a)') "MAGMA magma_dgesd"
       if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
       if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
       if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
@@ -1595,8 +1628,13 @@ subroutine gronor_main()
       if(ev_solver.eq.SOLVER_ROCSOLVERJ) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevj"
       if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd_cpu"
       if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgsyevd_acc"
+      if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd_gpu"
+      if(ev_solver.eq.SOLVER_MAGMAD) write(jstring,'(a)') "MAGMA magma_dsyevd_gpu"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
+      write(lfnarx,410) trim(istring),trim(jstring)
+      write(lfnxrx,410) trim(istring),trim(jstring)
+410   format('Solvers on accelerated ranks ',a,' and ',a)
       asvd=istring
       aevd=jstring
     endif
@@ -1610,6 +1648,8 @@ subroutine gronor_main()
     if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
     if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
     if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
+    if(inslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
+    if(inslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
@@ -1619,6 +1659,8 @@ subroutine gronor_main()
     if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
     if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
     if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
+    if(jnslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
+    if(jnslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
 
     if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
     if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
@@ -1636,6 +1678,8 @@ subroutine gronor_main()
     if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
     if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
     if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd"
+    if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd"
+    if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd"
 
     if(numacc.eq.0) then
       write(lfnout,612) trim(istring),trim(jstring)
@@ -1644,6 +1688,9 @@ subroutine gronor_main()
       write(lfnout,613) trim(istring),trim(jstring)
 613   format(' Non-accelerated ranks use ',a,' and ',a)
     endif
+    write(lfnarx,411) trim(istring),trim(jstring)
+    write(lfnxrx,411) trim(istring),trim(jstring)
+411 format('Solvers on non-accelerated ranks ',a,' and ',a)
     nsvd=istring
     nevd=jstring
       
@@ -2309,8 +2356,6 @@ subroutine gronor_main()
 
       allocate(rwork(nelecs))
 
-      call gronor_solver_init(nelecs)
-
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2323,8 +2368,7 @@ subroutine gronor_main()
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
-!$acc& create(rocinfo,workspace_d,workspace_i)
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
 #endif
 #ifdef OMPTGT
 !$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
@@ -2332,8 +2376,7 @@ subroutine gronor_main()
 !$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
-!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) &
-!$omp& map(rocinfo,workspace_d,workspace_i)
+!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
 #endif
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2485,7 +2528,7 @@ subroutine gronor_main()
     enddo
     separator=':'
     if(len(trim(machine)).eq.0.or.len(trim(host)).eq.0) separator=''
-    write(lfnlog,802) trim(compiletime),trim(machine),trim(separator),trim(host), &
+    write(lfnlog,802) trim(compiletime),trim(git_commit),trim(machine),trim(separator),trim(host), &
         trim(architecture),trim(lmodcomp),trim(lmodcompv),trim(lmodmpi), &
         trim(lmodmpiv),trim(usedcmake)
     write(lfnlog,812) trim(user),trim(string),trim(command),tau_MO,tau_CI,tau_CI_off, &
@@ -2496,7 +2539,7 @@ subroutine gronor_main()
       write(lfnlog,814) trim(nsvd),trim(nevd)
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
-802 format(a17,t19,a,a,a,t43,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+802 format(a17,t19,a,1x,a,a,a,t53,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,3i10)
 813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)

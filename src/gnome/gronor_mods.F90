@@ -117,7 +117,7 @@ module cidef
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
   integer :: lfnwrn,lfnxrx,lfntmp
 
-  character (len=255) :: user,host,date,time,cwd,command
+  character (len=255) :: user,host,date,time,cwd,command,git_commit
   character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv
   integer :: nprocs
   integer :: nciaux
@@ -321,7 +321,7 @@ module gnome_data
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
 !  real (kind=8), allocatable :: work(:)
-  integer (kind=8) :: lwrk,len_work_dbl,len_work_int,info
+  integer (kind=8) :: lwrk,len_work_dbl,len_work2_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
 
@@ -420,8 +420,19 @@ module cuda_cusolver
   end type gesvdjInfo
 
   type syevjInfo
-    type(c_ptr) :: svInfo
+    type(c_ptr) :: evInfo
   end type syevjInfo
+
+  type(cusolverDnHandle) :: cusolver_handle
+  type(gesvdjInfo)       :: gesvdj_params
+  type(syevjInfo)        :: syevj_params
+  integer (kind=4)       :: cusolver_status
+  real (kind=8)          :: tol,residual
+  integer (kind=4)       :: max_sweeps,exec_sweeps
+  integer (kind=4), parameter :: econ=0
+  real (kind=8), allocatable :: workspace_d(:)
+  integer (kind=4) :: dev_info_d
+  integer(kind=cuda_stream_kind) :: stream
 
 #ifdef CUSOLVERJ_INTERFACES
   
@@ -609,17 +620,6 @@ module cuda_cusolver
     end function cusolverDnDsyevj
   end interface
 #endif
-
-  type(cusolverDnHandle) :: cusolver_handle
-  type(gesvdjInfo)       :: gesvdj_params
-  type(syevjInfo)        :: syevj_params
-  integer (kind=4)       :: cusolver_status
-  real (kind=8)          :: tol,residual
-  integer (kind=4)       :: max_sweeps,exec_sweeps
-  integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable :: workspace_d(:)
-  integer (kind=4) :: dev_info_d
-  integer(kind=cuda_stream_kind) :: stream
 
 end module cuda_cusolver
 #endif
@@ -1189,16 +1189,19 @@ module gnome_solvers
     enumerator SOLVER_ROCSOLVERJ
     enumerator SOLVER_ROCSOLVERX
     enumerator SOLVER_MAGMA
+    enumerator SOLVER_MAGMAD
     enumerator SOLVER_SLATE
     enumerator SOLVER_CRAYLIBSCID_CPU
     enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
-  integer (kind=8) :: lwork,liwork,ndimm,mdimm
-  integer (kind=4) :: mdim,ndim
+  integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8
+  integer (kind=4) :: mdim,ndim,ndim4,lwork4,liwork4
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)
+  real (kind=8),allocatable :: workspace2_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
+  integer (kind=4), allocatable :: workspace_i4(:)
 !  character*1 :: jobz,uplo
   integer (kind=4) :: jobz,uplo
 end module gnome_solvers

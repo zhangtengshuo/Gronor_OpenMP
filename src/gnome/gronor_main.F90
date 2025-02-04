@@ -2378,6 +2378,16 @@ subroutine gronor_main()
 !$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
 !$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
 #endif
+
+  call gronor_solver_init(nelecs)
+
+#ifdef ACC
+!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
+#ifdef OMPTGT
+!$omp target data map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
+
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2393,6 +2403,12 @@ subroutine gronor_main()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
 #ifdef ACC
 !$acc end data
 #endif

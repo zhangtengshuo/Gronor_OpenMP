@@ -2555,7 +2555,7 @@ subroutine gronor_main()
       write(lfnlog,814) trim(nsvd),trim(nevd)
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
-802 format(a17,t19,a,1x,a,a,a,t53,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+802 format(a17,t19,a,1x,a,a,a,t63,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,3i10)
 813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)

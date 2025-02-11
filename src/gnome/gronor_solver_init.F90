@@ -110,7 +110,7 @@ subroutine gronor_solver_init(ntemp)
 
   lsvcpu=.false.
   levcpu=.false.
-  lsvtrns=.false.
+  lsvtrns=.true.
   
   if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_LAPACK) lsvcpu=.true.
@@ -125,16 +125,7 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MAGMA) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MAGMAD) lsvcpu=.true.
 
-  if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKQ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJH) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_EISPACK) lsvtrns=.false.
   
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
   if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.

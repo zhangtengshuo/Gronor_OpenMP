@@ -617,8 +617,8 @@ subroutine gronor_solver_create_handle()
 #ifdef HIPSOLVER
     call hipsolvercreate(hipsolver_handle)
 #endif
-    
+
   endif
-        
+
   return
 end subroutine gronor_solver_create_handle

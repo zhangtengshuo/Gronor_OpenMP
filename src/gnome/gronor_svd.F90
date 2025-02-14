@@ -252,7 +252,7 @@ subroutine gronor_svd()
   
   ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVER
+#ifdef CUSOLVERJ
   if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -265,8 +265,8 @@ subroutine gronor_svd()
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
-               ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-               int(len_work_dbl,kind=4),dev_info_d,gesvdj_params)
+        ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
+        int(len_work_dbl,kind=4),dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data
@@ -337,20 +337,54 @@ subroutine gronor_svd()
 !! Evaluate right had matrix from its transpose if solver provided the transpose
   if(lsvtrns) then
     if(lsvcpu) then
+
 #ifdef OMP
 !$omp parallel shared(w,wt,nelecs)
 !$omp do collapse(2)
 #endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
+      do i=1,nelecs
+        do j=1,nelecs
+          w(i,j)=wt(j,i)
+        enddo
       enddo
-    enddo
 #ifdef OMP
 !$omp end do
 !$omp end parallel
 #endif
     elseif(iamacc.eq.1) then
+
+!======================================
+      
+!#ifdef ACC
+!!$acc update host(wt)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update from(wt) 
+!#endif
+!   
+!#ifdef OMP
+!!$omp parallel shared(w,wt,nelecs)
+!!$omp do collapse(2)
+!#endif
+!      do i=1,nelecs
+!        do j=1,nelecs
+!          w(i,j)=wt(j,i)
+!        enddo
+!      enddo
+!#ifdef OMP
+!!$omp end do
+!!$omp end parallel
+!#endif
+!      
+!#ifdef ACC
+!!$acc update device(w)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update to(w) 
+!#endif  
+
+!======================================
+      
 #ifdef ACC
 !$acc kernels present(w,wt)
 #endif
@@ -376,6 +410,9 @@ subroutine gronor_svd()
 #ifdef ACC
 !$acc end kernels
 #endif
+
+!=========================================
+      
     endif
   endif
 

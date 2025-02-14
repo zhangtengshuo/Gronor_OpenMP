@@ -80,7 +80,7 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=4) :: magma_info,ierr
 #endif
 #endif
-#ifdef CUSOLVER
+#ifdef CUSOLVERJ
   external :: cusolverdncreategesvdjinfo,cusolverdnxgesvdjsettolerance
   external :: cusolverdnxgesvdjsetmaxsweeps,cusolverdndgesvdj_buffersize
 #endif
@@ -164,6 +164,7 @@ subroutine gronor_solver_init(ntemp)
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
 
+#ifdef CUSOLVERJ
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
@@ -201,7 +202,8 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
-    len_work_dbl=max(len_work_dbl,lwork1)
+      len_work_dbl=max(len_work_dbl,lwork1)
+#endif
     endif
 
 ! Cusolver initialization for the syevd
@@ -224,6 +226,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
 
+#ifdef CUSOLVERJ
     elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
@@ -263,6 +266,7 @@ subroutine gronor_solver_init(ntemp)
 
 #ifdef ACC
 !$acc end data
+#endif
 #endif
     endif
 
@@ -478,7 +482,7 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
     len_work2_dbl=max(1,len_work2_dbl)
-    
+
     allocate(workspace_d(len_work_dbl))
     allocate(workspace2_d(len_work2_dbl))
     allocate(workspace_i(len_work_int))

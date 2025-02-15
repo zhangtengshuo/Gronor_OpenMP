@@ -321,7 +321,8 @@ module gnome_data
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 
 !  real (kind=8), allocatable :: work(:)
-  integer (kind=8) :: lwrk,len_work_dbl,len_work2_dbl,len_work_int,info
+  integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info
+  integer (kind=4) :: len4_work_dbl,len4_work2_dbl,len4_work_int
 
   real (kind=8) :: buffer(17)
 

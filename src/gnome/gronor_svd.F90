@@ -131,6 +131,8 @@ subroutine gronor_svd()
   integer (kind=4) :: lapack_info
 #endif
 
+  lwork4=int(len_work_dbl,kind=4)
+
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
@@ -174,11 +176,11 @@ subroutine gronor_svd()
     ndim=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len_work_dbl,ierr)
+          workspace_d,lwork4,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len_work_dbl,workspace_i,ierr)
+          workspace_d,lwork4,workspace_i,ierr)
     endif
     !lsvtrns
   endif

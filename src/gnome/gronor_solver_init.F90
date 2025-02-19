@@ -483,10 +483,6 @@ subroutine gronor_solver_init(ntemp)
     len_work_int=max(1,len_work_int)
     len_work2_dbl=max(1,len_work2_dbl)
 
-    len4_work_dbl=int(len_work_dbl,kind=4)
-    len4_work_int=int(len_work_int,kind=4)
-    len4_work2_dbl=int(len_work2_dbl,kind=4)
-
     allocate(workspace_d(len_work_dbl))
     allocate(workspace2_d(len_work2_dbl))
     allocate(workspace_i(len_work_int))

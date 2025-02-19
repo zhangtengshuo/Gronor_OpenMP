@@ -131,6 +131,8 @@ subroutine gronor_svd()
   integer (kind=4) :: lapack_info
 #endif
 
+  lwork4=int(len_work_dbl,kind=4)
+  
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
@@ -174,11 +176,11 @@ subroutine gronor_svd()
     ndim=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len4_work_dbl,ierr)
+          workspace_d,lwork4,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len4_work_dbl,workspace_i,ierr)
+          workspace_d,lwork4,workspace_i,ierr)
     endif
     !lsvtrns
   endif
@@ -196,19 +198,19 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
       call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,len4_work_dbl,workspace_i4,magma_info) 
+          workspace_d,lwork4,workspace_i4,magma_info) 
     else
       call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,len4_work_dbl,workspace_i4,magma_info) 
+          workspace_d,lwork4,workspace_i4,magma_info) 
     endif
   endif
   if(sv_solver.eq.SOLVER_MAGMAD) then
     if(iamacc.eq.1) then
       call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,len4_work_dbl,magma_info)
+          workspace_d,lwork4,magma_info)
     else
       call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,len4_work_dbl,magma_info)
+          workspace_d,lwork4,magma_info)
     endif
   endif
   
@@ -232,7 +234,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
         ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
-        len4_work_dbl,rwork,dev_info_d)
+        lwork4,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -263,7 +265,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
         ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-        len4_work_dbl,dev_info_d,gesvdj_params)
+        lwork4,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data

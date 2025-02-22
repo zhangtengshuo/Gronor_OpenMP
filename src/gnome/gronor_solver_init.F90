@@ -298,7 +298,7 @@ subroutine gronor_solver_init(ntemp)
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=max(1,8*nelecs)
+      lworki=max(1000,8*nelecs)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
 !      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
@@ -312,10 +312,10 @@ subroutine gronor_solver_init(ntemp)
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
-      lworki=max(int(iworksize(1)),lworki)
+      lworki=max(1000,int(iworksize(1)),lworki)
     endif
-    lwork1m=max(0,lwork1m,lwork2m)
-    lworki=max(0,lworki)
+    lwork1m=max(1,lwork1m,lwork2m)
+    lworki=max(1,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif

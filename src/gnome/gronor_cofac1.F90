@@ -63,17 +63,21 @@
       call timer_stop(41)
 
       !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
-      
-#ifdef ACC
-!$acc kernels present(u,w,a)
-#endif
+
 #ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop private(coef,k)
-#else
-!$omp target teams distribute parallel do private(coef,k)
+!$omp target update from(u,w,a)
 #endif
-#endif
+
+!#ifdef ACC
+!!$acc kernels present(u,w,a)
+!#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp target teams loop private(coef,k)
+!#else
+!!$omp target teams distribute parallel do private(coef,k)
+!#endif
+!#endif
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -84,17 +88,22 @@
           a(j,i)=coef
         enddo
       enddo
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
-#ifdef ACC
-!$acc end kernels
-#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp end target teams loop
+!#else
+!!$omp end target teams distribute parallel do
+!#endif
+!#endif
+!#ifdef ACC
+!!$acc end kernels
+!#endif
       
+#ifdef OMPTGT
+!$omp target update to(a)
+#endif
+
+
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (u,w,a,ev)
@@ -135,16 +144,19 @@
 
       cmax=0.0d0
 
-#ifdef ACC
-!$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
-#endif
 #ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop reduction(max:cmax)
-#else
-!$omp target teams distribute parallel do reduction(max:cmax)
+!$omp target update from(diag,sdiag)
 #endif
-#endif
+!#ifdef ACC
+!!$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
+!#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp target teams loop reduction(max:cmax)
+!#else
+!!$omp target teams distribute parallel do reduction(max:cmax)
+!#endif
+!#endif
       
       !  Calculation of det(a) and x and y
       
@@ -154,16 +166,19 @@
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp end target teams loop
+!#else
+!!$omp end target teams distribute parallel do
+!#endif
+!#endif
 
-#ifdef ACC
-!$acc end kernels
+!#ifdef ACC
+!!$acc end kernels
+!#endif
+#ifdef OMPTGT
+!$omp target update to(cdiag,csdiag)
 #endif
 
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
@@ -268,13 +283,21 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
+
 #ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop collapse(2) private(coefu)
-#else
-!$omp target teams distribute parallel do collapse(2) private(coefu)
+!$omp target update from(u,w,ev)
 #endif
-#endif
+
+
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp target teams loop collapse(2) private(coefu)
+!#else
+!!$omp target teams distribute parallel do collapse(2) private(coefu)
+!#endif
+!#endif
+
+
         do i=1,nelecs
           do j=1,nelecs
             coefu=0.0d0
@@ -284,15 +307,18 @@
             ta(i,j)=coefu
           enddo
         enddo
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp end target teams loop
+!#else
+!!$omp end target teams distribute parallel do
+!#endif
+!#endif
 #ifdef ACC
 !$acc end kernels
+#endif
+#ifdef OMPTGT
+!$omp target update to(ta)
 #endif
         call timer_stop(44)
         return

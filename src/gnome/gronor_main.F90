@@ -2379,15 +2379,6 @@ subroutine gronor_main()
 !$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
 #endif
 
-  call gronor_solver_init(nelecs)
-
-#ifdef ACC
-!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
-#endif
-#ifdef OMPTGT
-!$omp target data map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
-#endif
-
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2397,18 +2388,12 @@ subroutine gronor_main()
         if(managers.eq.0) then
           if(role.eq.worker) call gronor_worker()
           if(role.eq.idle) call gronor_idle()
-!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
-#ifdef ACC
-!$acc end data
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
+        
 #ifdef ACC
 !$acc end data
 #endif
@@ -2416,13 +2401,10 @@ subroutine gronor_main()
 !$omp end target data
 #endif
       elseif(ntask.ne.0) then
-!        lwork=10
-!        allocate(work(lwork))
         call gronor_memory_usage()
         if(managers.eq.0) then
           if(role.eq.worker) call gronor_worker()
           if(role.eq.idle) call gronor_idle()
-!          call gronor_worker()
         else
           if(role.eq.worker) call gronor_worker()
           if(role.eq.manager) call gronor_manager()
@@ -2555,7 +2537,7 @@ subroutine gronor_main()
       write(lfnlog,814) trim(nsvd),trim(nevd)
     endif
 801 format(a8,1x,a8,f9.3,2f12.3,4i7,4i3,5i2,4i5,3i3,2x,a1)
-802 format(a17,t19,a,1x,a,a,a,t53,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
+802 format(a17,t19,a,1x,a,a,a,1x,a,1x,a,'/',a,1x,a,'/',a," cmake/",a)
 812 format(2x,a,t12,a,t35,a,t45,1pe9.2,2e9.2,3i10)
 813 format(2x,"GPU solvers: ",a," and ",a,5x,"CPU solvers: ",a," and ",a)
 814 format(2x,"CPU solvers: ",a," and ",a)

@@ -80,7 +80,7 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=4) :: magma_info,ierr
 #endif
 #endif
-#ifdef CUSOLVER
+#ifdef CUSOLVERJ
   external :: cusolverdncreategesvdjinfo,cusolverdnxgesvdjsettolerance
   external :: cusolverdnxgesvdjsetmaxsweeps,cusolverdndgesvdj_buffersize
 #endif
@@ -110,7 +110,7 @@ subroutine gronor_solver_init(ntemp)
 
   lsvcpu=.false.
   levcpu=.false.
-  lsvtrns=.false.
+  lsvtrns=.true.
   
   if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_LAPACK) lsvcpu=.true.
@@ -125,16 +125,7 @@ subroutine gronor_solver_init(ntemp)
   if(sv_solver.eq.SOLVER_MAGMA) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MAGMAD) lsvcpu=.true.
 
-  if(sv_solver.eq.SOLVER_LAPACK) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKD) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKQ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJH) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKL) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKLD) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_MKLJ) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvtrns=.true.
-  if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) lsvtrns=.true.
+  if(sv_solver.eq.SOLVER_EISPACK) lsvtrns=.false.
   
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
   if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
@@ -173,6 +164,7 @@ subroutine gronor_solver_init(ntemp)
 #endif
     len_work_dbl=max(len_work_dbl,lwork1)
 
+#ifdef CUSOLVERJ
     elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
 
       ndim=nelecs
@@ -210,7 +202,8 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
-    len_work_dbl=max(len_work_dbl,lwork1)
+      len_work_dbl=max(len_work_dbl,lwork1)
+#endif
     endif
 
 ! Cusolver initialization for the syevd
@@ -233,6 +226,7 @@ subroutine gronor_solver_init(ntemp)
 !$acc end data
 #endif
 
+#ifdef CUSOLVERJ
     elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
@@ -273,6 +267,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+#endif
     endif
 
     call gronor_update_device_info()
@@ -303,7 +298,7 @@ subroutine gronor_solver_init(ntemp)
     if(sv_solver.eq.SOLVER_MKLD) then
       call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize,ierr)
       lwork1m=int(worksize(1))
-      lworki=max(8*nelecs,lworki)
+      lworki=max(1000,8*nelecs)
     endif
     if(sv_solver.eq.SOLVER_MKLJ) then
 !      call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,w,ndimm,workspace_d,lwork1m,ierr)
@@ -317,10 +312,10 @@ subroutine gronor_solver_init(ntemp)
     if(ev_solver.eq.SOLVER_MKLD) then
       call dsyevd('N','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,ierr)
       lwork2m=int(worksize(1))
-      lworki=max(int(iworksize(1)),lworki)
+      lworki=max(1000,int(iworksize(1)),lworki)
     endif
-    lwork1m=max(0,lwork1m,lwork2m)
-    lworki=max(0,lworki)
+    lwork1m=max(1,lwork1m,lwork2m)
+    lworki=max(1,lworki)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
@@ -487,7 +482,7 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
     len_work2_dbl=max(1,len_work2_dbl)
-    
+
     allocate(workspace_d(len_work_dbl))
     allocate(workspace2_d(len_work2_dbl))
     allocate(workspace_i(len_work_int))
@@ -626,8 +621,8 @@ subroutine gronor_solver_create_handle()
 #ifdef HIPSOLVER
     call hipsolvercreate(hipsolver_handle)
 #endif
-    
+
   endif
-        
+
   return
 end subroutine gronor_solver_create_handle

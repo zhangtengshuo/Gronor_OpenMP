@@ -131,6 +131,8 @@ subroutine gronor_svd()
   integer (kind=4) :: lapack_info
 #endif
 
+  lwork4=int(len_work_dbl,kind=4)
+  
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
@@ -174,11 +176,11 @@ subroutine gronor_svd()
     ndim=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
       call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len_work_dbl,ierr)
+          workspace_d,lwork4,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
       call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,len_work_dbl,workspace_i,ierr)
+          workspace_d,lwork4,workspace_i,ierr)
     endif
     !lsvtrns
   endif
@@ -192,9 +194,7 @@ subroutine gronor_svd()
   mdimm=mbasel
   ndim=nelecs
   ndim4=nelecs
-  lwork4=len_work_dbl
-  liwork4=len_work_int
-  
+
   if(sv_solver.eq.SOLVER_MAGMA) then
     if(iamacc.eq.1) then
       call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
@@ -204,7 +204,6 @@ subroutine gronor_svd()
           workspace_d,lwork4,workspace_i4,magma_info) 
     endif
   endif
-  
   if(sv_solver.eq.SOLVER_MAGMAD) then
     if(iamacc.eq.1) then
       call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
@@ -235,7 +234,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
         ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
-        int(len_work_dbl,kind=4),rwork,dev_info_d)
+        lwork4,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -252,7 +251,7 @@ subroutine gronor_svd()
   
   ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVER
+#ifdef CUSOLVERJ
   if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -265,8 +264,8 @@ subroutine gronor_svd()
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
-               ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-               int(len_work_dbl,kind=4),dev_info_d,gesvdj_params)
+        ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
+        lwork4,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data
@@ -337,20 +336,54 @@ subroutine gronor_svd()
 !! Evaluate right had matrix from its transpose if solver provided the transpose
   if(lsvtrns) then
     if(lsvcpu) then
+
 #ifdef OMP
 !$omp parallel shared(w,wt,nelecs)
 !$omp do collapse(2)
 #endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
+      do i=1,nelecs
+        do j=1,nelecs
+          w(i,j)=wt(j,i)
+        enddo
       enddo
-    enddo
 #ifdef OMP
 !$omp end do
 !$omp end parallel
 #endif
     elseif(iamacc.eq.1) then
+
+!======================================
+      
+!#ifdef ACC
+!!$acc update host(wt)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update from(wt) 
+!#endif
+!   
+!#ifdef OMP
+!!$omp parallel shared(w,wt,nelecs)
+!!$omp do collapse(2)
+!#endif
+!      do i=1,nelecs
+!        do j=1,nelecs
+!          w(i,j)=wt(j,i)
+!        enddo
+!      enddo
+!#ifdef OMP
+!!$omp end do
+!!$omp end parallel
+!#endif
+!      
+!#ifdef ACC
+!!$acc update device(w)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update to(w) 
+!#endif  
+
+!======================================
+      
 #ifdef ACC
 !$acc kernels present(w,wt)
 #endif
@@ -376,6 +409,9 @@ subroutine gronor_svd()
 #ifdef ACC
 !$acc end kernels
 #endif
+
+!=========================================
+      
     endif
   endif
 

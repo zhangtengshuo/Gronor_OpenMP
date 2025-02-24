@@ -290,6 +290,7 @@ subroutine gronor_evd()
         write(*,*) 'cusolverDnDsyevd failed',cusolver_status
   endif
 
+#ifdef CUSOLVERJ
   if(ev_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -303,9 +304,9 @@ subroutine gronor_evd()
 #ifdef OMPTGT
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,syevj_params)
 #endif
-    cusolver_status = cusolverDnDsyevj &
-        (cusolver_handle, jobz, uplo, ndim,a,ndim,diag, &
-        workspace_d,int(len_work_dbl,kind=4),dev_info_d,syevj_params)
+!    cusolver_status = cusolverDnDsyevj &
+!        (cusolver_handle, jobz, uplo, ndim,a,ndim,diag, &
+!        workspace_d,int(len_work_dbl,kind=4),dev_info_d,syevj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data   
@@ -317,6 +318,7 @@ subroutine gronor_evd()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDsyevj failed',cusolver_status
   endif
+#endif
 #endif
   
   ! ======== HIPSOLVER =========
@@ -348,8 +350,10 @@ subroutine gronor_evd()
   if(ev_solver.eq.SOLVER_ROCSOLVERD) then
     ndim=nelecs
     mdim=mbasel
+!$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
     rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
         ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
+!$omp end target data
 !    rocsolver_status=hipDeviceSynchronize()
   endif
 

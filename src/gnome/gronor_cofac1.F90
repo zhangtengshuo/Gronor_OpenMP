@@ -64,21 +64,17 @@
 
       !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
 
-#ifdef OMPTGT
-!$omp target update from(u,w,a)
-#endif
-
 #ifdef ACC
 !$acc kernels present(u,w,a)
 #endif
       
-!#ifdef OMPTGT      
-!#ifdef OMP5
-!!$omp target teams loop private(coef,k)
-!#else
-!!$omp target teams distribute parallel do private(coef,k)
-!#endif
-!#endif
+#ifdef OMPTGT      
+#ifdef OMP5
+!$omp target teams loop private(coef,k)
+#else
+!$omp target teams distribute parallel do private(coef,k)
+#endif
+#endif
       do i=1,nelecs
         do j=1,i
           coef=0.0d0
@@ -89,23 +85,18 @@
           a(j,i)=coef
         enddo
       enddo
-!#ifdef OMPTGT
-!#ifdef OMP5
-!!$omp end target teams loop
-!#else
-!!$omp end target teams distribute parallel do
-!#endif
-!#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
       
 #ifdef ACC
 !$acc end kernels
 #endif
       
-#ifdef OMPTGT
-!$omp target update to(a)
-#endif
-
-
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (u,w,a,ev)
@@ -288,17 +279,12 @@
 #endif
 
 #ifdef OMPTGT
-!$omp target update from(u,w,ev)
+#ifdef OMP5
+!$omp target teams loop collapse(2) private(coefu)
+#else
+!$omp target teams distribute parallel do collapse(2) private(coefu)
 #endif
-
-
-!#ifdef OMPTGT
-!#ifdef OMP5
-!!$omp target teams loop collapse(2) private(coefu)
-!#else
-!!$omp target teams distribute parallel do collapse(2) private(coefu)
-!#endif
-!#endif
+#endif
         do i=1,nelecs
           do j=1,nelecs
             coefu=0.0d0
@@ -308,20 +294,18 @@
             ta(i,j)=coefu
           enddo
         enddo
-!#ifdef OMPTGT
-!#ifdef OMP5
-!!$omp end target teams loop
-!#else
-!!$omp end target teams distribute parallel do
-!#endif
-!#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
         
 #ifdef ACC
 !$acc end kernels
 #endif
-#ifdef OMPTGT
-!$omp target update to(ta)
-#endif
+
         call timer_stop(44)
         return
       endif
@@ -356,12 +340,7 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
-!c!_OMPTGT_($omp target teams distribute parallel do)
-!c        do i=1,nelecs
-!c          cdiag(i)=diag(i)
-!c          csdiag(i)=sdiag(i)
-!c        enddo
-!cc!_OMPTGT_($omp end target)
+
 #ifdef ACC
 !$acc end kernels
 #endif

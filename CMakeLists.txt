@@ -146,10 +146,10 @@ message (STATUS "Project: ${PROJECT_NAME}")
 message (STATUS "Version: ${PROJECT_VERSION}")
 message (STATUS "Set environment CMAKE_SESSION: $ENV{CMAKE_SESSION}")
 
-execute_process(COMMAND bash -c "git describe --abbrev=8" OUTPUT_VARIABLE COMMIT_HASH)
-string(STRIP ${COMMIT_HASH} COMMIT_HASH)
-message (STATUS "GIT commit hash: ${COMMIT_HASH}")
-set (ENV{GRONOR_COMMIT_HASH} ${COMMIT_HASH})
+# execute_process(COMMAND bash -c "git describe --abbrev=8" OUTPUT_VARIABLE COMMIT_HASH)
+# string(STRIP ${COMMIT_HASH} COMMIT_HASH)
+# message (STATUS "GIT commit hash: ${COMMIT_HASH}")
+# set (ENV{GRONOR_COMMIT_HASH} ${COMMIT_HASH})
 
 # Enforce out-of-source builds only
 

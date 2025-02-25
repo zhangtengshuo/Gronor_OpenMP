@@ -320,13 +320,13 @@ subroutine gronor_read_vectors_and_determinants()
     endif
     do i=1,nmol
       if(nbase.le.36) then
-        write(lfnout,608) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
+        write(lfnout,608) i,(adjustr(fragLabel(ncombv(i,j))(1:6)),j=1,nbase)
       else
-        write(lfnout,628) i,(adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
+        write(lfnout,628) i,(adjustr(fragLabel(ncombv(i,j))(1:6)),j=1,nbase)
       endif
-      write(lfnarx,*) (adjustr(fragLabel(ncombv(i,j))(1:4)),j=1,nbase)
-608   format(' Fragment',i4,t15,' : ',36(a4))
-628   format(/,' Fragment',i4,t15,' : ',36(a4),(/,t15,'   ',36(a4)))
+      write(lfnarx,'(36(2x,a6))') (adjustr(fragLabel(ncombv(i,j))(1:6)),j=1,nbase)
+608   format(' Fragment',i4,t15,' : ',36(a6))
+628   format(/,' Fragment',i4,t15,' : ',36(a6),(/,t15,'   ',36(a6)))
     enddo
   endif
 

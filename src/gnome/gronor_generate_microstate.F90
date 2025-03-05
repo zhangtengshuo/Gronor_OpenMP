@@ -107,7 +107,8 @@ do ms = 2, spinFrag
   if (idbg .ge. 20) then
     write(lfndbg,'(a,f4.1)')'Microstates with ms = ',(spinFrag-1-2*(ms-1))/2.0
     do idet = 1, micro_ndets(ms)
-      write(lfndbg,'(i5,f12.6,4x,a)')idet,micro_coef(idet+microdets),trim(micro_occ(idet+microdets))
+      write(lfndbg,'(i10,f12.6,4x,a)')idet,micro_coef(idet+microdets), &
+          trim(micro_occ(idet+microdets))
     end do
     write(lfndbg,*)
   endif

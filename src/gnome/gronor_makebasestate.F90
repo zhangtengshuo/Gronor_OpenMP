@@ -325,7 +325,7 @@ do iFrag=2,nmol
   enddo
 
   if(idbg.ge.20) then
-    write(lfndbg,'(2(a,i2),a,i5)') 'number of determinants combining fragment ', &
+    write(lfndbg,'(2(a,i2),a,i10)') 'number of determinants combining fragment ', &
         iFrag-1,' and ',iFrag,' : ',newdets
     flush(lfndbg)
   endif
@@ -366,7 +366,7 @@ do iFrag=2,nmol
   if(idbg.ge.20) then
     write(lfndbg,'(a,10i2)') 'MEBF after considering the fragments ',(i,i=1,iFrag)
     do idet=1,newdets
-      write(lfndbg,'(I6,F15.8,3x,A)') idet,coefmebf(idet),trim(occmebf(idet))
+      write(lfndbg,'(i10,F15.8,3x,A)') idet,coefmebf(idet),trim(occmebf(idet))
     enddo
     flush(lfndbg)
   endif

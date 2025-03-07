@@ -63,11 +63,12 @@
       call timer_stop(41)
 
       !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
-      
+
 #ifdef ACC
 !$acc kernels present(u,w,a)
 #endif
-#ifdef OMPTGT
+      
+#ifdef OMPTGT      
 #ifdef OMP5
 !$omp target teams loop private(coef,k)
 #else
@@ -91,6 +92,7 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
+      
 #ifdef ACC
 !$acc end kernels
 #endif
@@ -135,16 +137,20 @@
 
       cmax=0.0d0
 
+#ifdef OMPTGT
+!$omp target update from(diag,sdiag)
+#endif
 #ifdef ACC
 !$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
 #endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop reduction(max:cmax)
-#else
-!$omp target teams distribute parallel do reduction(max:cmax)
-#endif
-#endif
+      
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp target teams loop reduction(max:cmax)
+!#else
+!!$omp target teams distribute parallel do reduction(max:cmax)
+!#endif
+!#endif
       
       !  Calculation of det(a) and x and y
       
@@ -154,16 +160,19 @@
         cdiag(i)=diag(i)
         csdiag(i)=sdiag(i)
       enddo
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
+!#ifdef OMPTGT
+!#ifdef OMP5
+!!$omp end target teams loop
+!#else
+!!$omp end target teams distribute parallel do
+!#endif
+!#endif
 
 #ifdef ACC
 !$acc end kernels
+#endif
+#ifdef OMPTGT
+!$omp target update to(cdiag,csdiag)
 #endif
 
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
@@ -268,6 +277,7 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
+
 #ifdef OMPTGT
 #ifdef OMP5
 !$omp target teams loop collapse(2) private(coefu)
@@ -291,9 +301,11 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
+        
 #ifdef ACC
 !$acc end kernels
 #endif
+
         call timer_stop(44)
         return
       endif
@@ -328,12 +340,7 @@
 !$omp end target teams distribute parallel do
 #endif
 #endif
-!c!_OMPTGT_($omp target teams distribute parallel do)
-!c        do i=1,nelecs
-!c          cdiag(i)=diag(i)
-!c          csdiag(i)=sdiag(i)
-!c        enddo
-!cc!_OMPTGT_($omp end target)
+
 #ifdef ACC
 !$acc end kernels
 #endif

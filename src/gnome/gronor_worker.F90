@@ -45,8 +45,6 @@ subroutine gronor_worker()
 
   logical (kind=4) :: flag
 
-  flush(lfnout)
-
   if(managers.gt.0) then
     mstr=map2(me+1,9)
   endif
@@ -106,7 +104,64 @@ subroutine gronor_worker()
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
     flush(lfndbg)
   endif
+
+#ifdef ACC
+!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
+#ifdef OMPTGT
+!$omp target data map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
+  
+  call gronor_worker_process()
+  
+#ifdef ACC
+!$acc end data
+#endif
+#ifdef OMPTGT
+!$omp end target data
+#endif
       
+  call gronor_update_device_info()
+
+  call gronor_solver_finalize()
+
+!  if(otreq) then
+!    call MPI_Test(itreq,flag,status,ierr)
+!    if(.not.flag) call MPI_Request_free(itreq,ierr)
+!  endif
+  
+  return
+end subroutine gronor_worker
+
+subroutine gronor_worker_process()
+
+  use mpi
+  use cidef
+  use cidist
+  use gnome_integrals
+  use gnome_data
+  use gnome_parameters
+  use gnome_solvers
+
+  implicit none
+
+  external :: gronor_solver_init,gronor_solver_final
+  external :: gronor_calculate
+  external :: swatch,timer_start,timer_stop
+
+!  external :: MPI_Recv,MPI_iRecv,MPI_iSend
+
+  real(kind=8), external :: timer_wall_total, timer_wall
+
+  integer :: ibase,jbase,idet,jdet,nidet,njdet
+  integer :: i,j,k,l2,n,iact
+  integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
+  integer (kind=8) :: ibuf(4)
+  integer (kind=4) :: status(MPI_STATUS_SIZE)
+  real (kind=8) :: rbuf(17)
+
+  logical (kind=4) :: flag
+  
   do i=1,17
     rbuf(i)=0.0d0
   enddo
@@ -347,14 +402,5 @@ subroutine gronor_worker()
     
   enddo
 
-  call gronor_update_device_info()
-  
-  call gronor_solver_final()
-
-!  if(otreq) then
-!    call MPI_Test(itreq,flag,status,ierr)
-!    if(.not.flag) call MPI_Request_free(itreq,ierr)
-!  endif
-  
   return
-end subroutine gronor_worker
+end subroutine gronor_worker_process

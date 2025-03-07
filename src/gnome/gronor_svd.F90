@@ -13,18 +13,58 @@
 !     GronOR is copyright of the University of Groningen
 
 !> @brief
-!! Cofactor matrix evaluation and factorization
-!!
-!! @author  R. Broer, RUG
+!! Routine that provides all possible calls to Singular Value Decomposition library routines
 !! @author  T. P. Straatsma, ORNL
-!! @date    2016
+!! @date    2025
 !!
 
 subroutine gronor_svd()
+
+  !> Routine that provides all possible calls to Singular Value Decomposition library routines
+  !! including routines executed on the CPU or on GPU accelerators 
+  !!
+  !! For CPU-executed ranks the vectors, matrices, and workspaces are expected in CPU memory
+  !! For GPU-accelerated ranks the vectors, matrices, and workspaces are expected in GPU memory
+  !! GPU-accelerated ranks can use CPU-based routines, in which case this routine will copy the
+  !! required input data from the GPU to the CPU and return result data from CPU to GPU memory
+  !!
+  !! The library routine that will be used is determined by variable sv_solver which is set in
+  !! routine gronor_solver_init based on the input provide in gronor_input. Currently implemented
+  !! options for sv_solver are:
+  !!
+  !! SOLVER_EISPACK      svd as provided in the source code will run on the CPU
+  !! SOLVER_MKL          dgesvd from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLD         dgesdd from external an Intel MKL library will run on the CPU
+  !! SOLVER_MKLJ         dgesvj from external an Intel MKL library will run on the CPU
+  !! SOLVER_LAPACK       dgesvd from an external LAPACK library will run on the CPU
+  !! SOLVER_CUSOLVER     cusolverDnDgesvd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_CUSOLVERJ    cusolverDnDgesvdj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
+  !! SOLVER_ROCSOLVER    rocsolver_dgesvd from the AMD ROCSOLVER library will run on the GPU
+  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
+  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_HIPSOLVER    planned
+  !! SOLVER_MAGMA        planned
+  !!
+  !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
+  !!
+  !! The boolean flag lsvcpu is set in gronor_solver_init and indicates the solver routine runs
+  !! on the CPU (lsvcpu=.true.) or the GPU (lsvcpu=.false.)
+  !! The integer iamacc specifies is set in gronor_main and indicates if rank
+  !! is CPU resident (iamacc=0) or GPU resident (iamacc=1)
+  !!
+  !! The integer workspace_i and double workspace_d workspaces are allocated with total sizes
+  !! len_work_int and len_work_dbl, respectively. These workspace are shared between all possible
+  !! solver routines, including the eigensolver in gronor_evd. Separate copies exist in CPU memory
+  !! and in GPU memory. The maximum required workspace sizes are set in gronor_solver_init
+
+  
+  use cidef
   use cidist
   use gnome_parameters
   use gnome_data
   use gnome_solvers
+  use iso_c_binding
 
   ! library specific modules
 
@@ -34,6 +74,12 @@ subroutine gronor_svd()
   
 #ifdef LAPACK
   use lapack_solver
+#else
+#ifdef MAGMA
+  use magma
+  use magma_dfortran
+  use magma_solver
+#endif
 #endif
 
 #ifdef CUSOLVER
@@ -47,13 +93,10 @@ subroutine gronor_svd()
   use amd_hipsolver
 #endif
 #ifdef ROCSOLVER
+  use iso_fortran_env
   use rocvars
-  use hipfort
-  use hipfort_hipmalloc
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
+  use rocsolver_interfaces_enums
+  use rocsolver_interfaces
 #endif
 
   ! variable declarations
@@ -64,11 +107,16 @@ subroutine gronor_svd()
   
   integer :: i,j
   integer :: ierr
+  integer (kind=4) :: istat
 
   ! library specific declarations
 
 #ifdef CUSOLVER
   character (len=1), target :: jobu, jobvt
+  external :: cusolverdndgesvdj,cusolverdnxgesvdjgetsweeps,cusolverdnxgesvdjgetresidual
+#endif
+#ifdef MAGMA
+  integer (kind=4) :: magma_info
 #endif
 
 #ifdef HIPSOLVER
@@ -76,47 +124,34 @@ subroutine gronor_svd()
 #endif
 
 #ifdef ROCSOLVER
-  integer :: jobu, jobvt, jobz
+  integer :: jobu, jobvt
 #endif
 
 #ifdef LAPACK
   integer (kind=4) :: lapack_info
 #endif
-   
-  ! ========== EISPACK =========
 
-  if(sv_solver.eq.SOLVER_EISPACK) then
-    if(iamacc.eq.1) then
+  lwork4=int(len_work_dbl,kind=4)
+  
+  if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
 #endif
 #ifdef OMPTGT
 !$omp target update from(a)
-#endif 
-    endif
+#endif
+  endif
+
+  ! ========== EISPACK =========
+
+  if(sv_solver.eq.SOLVER_EISPACK) then
     call svd(nelecs,nelecs,nelecs,a,nelecs,nelecs,ev,nelecs,.true., &
         u,nelecs,nelecs,.true.,w,nelecs,nelecs,ierr,sdiag,nelecs)
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
   endif
   
   ! ============ MKL ===========
 #ifdef MKL
   if(sv_solver.eq.SOLVER_MKL.or.sv_solver.eq.SOLVER_MKLD.or.sv_solver.eq.SOLVER_MKLJ) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif 
-    endif
     ndimm=nelecs
     if(sv_solver.eq.SOLVER_MKL) then
       call dgesvd('All','All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
@@ -130,73 +165,57 @@ subroutine gronor_svd()
       call dgesvj('L','U','V',ndimm,ndimm,a,ndimm,ev,ndimm,wt,ndimm, &
           workspace_d,len_work_dbl,ierr)
     endif
-#ifdef OMP
-!$omp parallel shared(w,wt,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
+    !lsvtrns
   endif
 #endif 
   
   ! ============ LAPACK ===========
 #ifdef LAPACK
   if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif 
-    endif
     ndimm=nelecs
+    ndim=nelecs
     if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
-          workspace_d,len_work_dbl,ierr)
+      call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
+          workspace_d,lwork4,ierr)
     endif
     if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesdd('All',ndimm,ndimm,a,ndimm,ev,u,ndimm,wt,ndimm, &
-          workspace_d,len_work_dbl,workspace_i,ierr)
+      call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
+          workspace_d,lwork4,workspace_i,ierr)
     endif
-#ifdef OMP
-!$omp parallel shared(w,wt,nelecs)
-!$omp do collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w)
-#endif
-    endif
+    !lsvtrns
   endif
 #endif 
+  
+! ============ MAGMA ===========
+  
+#ifdef MAGMA
+  
+  ndimm=nelecs
+  mdimm=mbasel
+  ndim=nelecs
+  ndim4=nelecs
+
+  if(sv_solver.eq.SOLVER_MAGMA) then
+    if(iamacc.eq.1) then
+      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,workspace_i4,magma_info) 
+    else
+      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,workspace_i4,magma_info) 
+    endif
+  endif
+  if(sv_solver.eq.SOLVER_MAGMAD) then
+    if(iamacc.eq.1) then
+      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,magma_info)
+    else
+      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
+          workspace_d,lwork4,magma_info)
+    endif
+  endif
+  
+#endif 
+  
   
   ! ========= CUSOLVER =========
 
@@ -215,7 +234,7 @@ subroutine gronor_svd()
 #endif
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
         ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
-        int(len_work_dbl,kind=4),rwork,dev_info_d)
+        lwork4,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
 !$acc wait
@@ -226,24 +245,14 @@ subroutine gronor_svd()
 #endif
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
-#ifdef ACC
-!$acc kernels present(w,wt)
-!$acc loop collapse(2)
-#endif
-    do i=1,nelecs
-      do j=1,nelecs
-        w(i,j)=wt(j,i)
-      enddo
-    enddo
-#ifdef ACC
-!$acc end kernels
-#endif
+    !lsvtrns
   endif
 #endif
   
   ! ======== CUSOLVERJ =========
 
-#ifdef CUSOLVER  
+#ifdef CUSOLVERJ
+
   if(sv_solver.eq.SOLVER_CUSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -256,8 +265,8 @@ subroutine gronor_svd()
 !$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
 #endif
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
-               ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-               int(len_work_dbl,kind=4),dev_info_d,gesvdj_params)
+        ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
+        lwork4,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data
@@ -282,11 +291,6 @@ subroutine gronor_svd()
     ndim=nelecs
     mdim=mbasel
   endif
-#endif
-
-  ! ======= HIPSOLVERJ =========
-  
-#ifdef HIPSOLVERJ
   if(sv_solver.eq.SOLVER_HIPSOLVERJ) then
     ndim=nelecs
     mdim=mbasel
@@ -299,22 +303,128 @@ subroutine gronor_svd()
   if(sv_solver.eq.SOLVER_ROCSOLVER) then
     ndim=nelecs
     mdim=mbasel
-    call hipcheck(rocsolver_dgesvd(rocsolver_handle, &
+!    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+!        ROCBLAS_OUTOFPLACE,rocinfo)
+!    istatus=hipDeviceSynchronize()
+    
+!$omp target data use_device_addr(a,ev,u,wt,workspace_d,rocinfo)
+    istat=rocsolver_dgesvd(rocsolver_handle, &
         ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo))
-    call hipCheck(hipDeviceSynchronize())
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(workspace_d), &
+        ROCBLAS_INPLACE,rocinfo)
+!$omp end target data
+!    call hipcheck(hipDeviceSynchronize())
   endif
-#endif
-
-  ! ======= ROCSOLVERJ =========
-  
-#ifdef ROCSOLVERJ
-  if(sv_solver.eq.SOLVER_ROCSOLVERJ) then
+  if(sv_solver.eq.SOLVER_ROCSOLVERX) then
     ndim=nelecs
     mdim=mbasel
+!    istatus=rocsolver_dgesvd(rocsolver_handle, &
+!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+!        ROCBLAS_OUTOFPLACE,rocinfo)
+!    istatus=hipDeviceSynchronize()
+    istat=rocsolver_dgesvd(rocsolver_handle, &
+        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
+        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
+        ROCBLAS_OUTOFPLACE,rocinfo)
+!    call hipcheck(hipDeviceSynchronize())
   endif
+  !lsvtrns
 #endif
-  
+
+!! Evaluate right had matrix from its transpose if solver provided the transpose
+  if(lsvtrns) then
+    if(lsvcpu) then
+
+#ifdef OMP
+!$omp parallel shared(w,wt,nelecs)
+!$omp do collapse(2)
+#endif
+      do i=1,nelecs
+        do j=1,nelecs
+          w(i,j)=wt(j,i)
+        enddo
+      enddo
+#ifdef OMP
+!$omp end do
+!$omp end parallel
+#endif
+    elseif(iamacc.eq.1) then
+
+!======================================
+      
+!#ifdef ACC
+!!$acc update host(wt)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update from(wt) 
+!#endif
+!   
+!#ifdef OMP
+!!$omp parallel shared(w,wt,nelecs)
+!!$omp do collapse(2)
+!#endif
+!      do i=1,nelecs
+!        do j=1,nelecs
+!          w(i,j)=wt(j,i)
+!        enddo
+!      enddo
+!#ifdef OMP
+!!$omp end do
+!!$omp end parallel
+!#endif
+!      
+!#ifdef ACC
+!!$acc update device(w)
+!#endif
+!#ifdef OMPTGT
+!!$omp target update to(w) 
+!#endif  
+
+!======================================
+      
+#ifdef ACC
+!$acc kernels present(w,wt)
+#endif
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp target teams loop
+#else
+!$omp target teams distribute parallel do
+#endif
+#endif
+  do i=1,nelecs
+    do j=1,nelecs
+      w(i,j)=wt(j,i)
+    enddo
+  enddo
+#ifdef OMPTGT
+#ifdef OMP5
+!$omp end target teams loop
+#else
+!$omp end target teams distribute parallel do
+#endif
+#endif
+#ifdef ACC
+!$acc end kernels
+#endif
+
+!=========================================
+      
+    endif
+  endif
+
+!! Update device if SVD was performed on the host for accelerated ranks
+  if(iamacc.eq.1.and.lsvcpu) then
+#ifdef ACC
+!$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+!$omp target update to(ev,u,w) 
+#endif  
+  endif
+
   return  
 end subroutine gronor_svd

@@ -202,6 +202,7 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+
       len_work_dbl=max(len_work_dbl,lwork1)
 #endif
     endif
@@ -227,6 +228,7 @@ subroutine gronor_solver_init(ntemp)
 #endif
 
 #ifdef CUSOLVERJ
+
     elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
 
       ! Jacobi EVD
@@ -267,7 +269,9 @@ subroutine gronor_solver_init(ntemp)
 #ifdef ACC
 !$acc end data
 #endif
+
 #endif
+
     endif
 
     call gronor_update_device_info()

@@ -1194,8 +1194,10 @@ module gnome_solvers
     enumerator SOLVER_CRAYLIBSCID_CPU
     enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
+
   integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8
   integer (kind=4) :: mdim,ndim,ndim4,lwork4,liwork4
+
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)
   real (kind=8),allocatable :: workspace_d(:)

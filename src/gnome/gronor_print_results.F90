@@ -186,7 +186,8 @@ subroutine gronor_print_results(hb)
         ndxnbase(nbasenoct)=i
       endif
     enddo
-    if(nbasenoct.lt.nbase.and.nbasenoct.gt.0) then
+    if(nbasenoct.lt.nbase.and.nbasenoct.gt.1) then
+      allocate(nociwf0(nbasenoct))
       allocate(nociwfnoct(nbasenoct,nbasenoct))
       allocate(nociovlpnoct(nbasenoct,nbasenoct))
       info=0
@@ -251,6 +252,7 @@ subroutine gronor_print_results(hb)
         enddo
       enddo
       deallocate(nociwfnoct,nociovlpnoct)
+      deallocate(nociwf0)
     endif
     deallocate(ndxnbase)
 

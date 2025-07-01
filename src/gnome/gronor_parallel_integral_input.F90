@@ -41,11 +41,7 @@ subroutine gronor_parallel_integral_input()
   external :: gronor_abort
   external :: swatch
 
-#ifdef CRAY
-  integer :: nrecbd
-#else
   integer (kind=4) :: nrecbd
-#endif
   integer (kind=4) :: ierr,ncount,mpitag,mpidest,mpireq
   integer (kind=8) :: nrecb,i,j,kl,k,n,nn,igr,ngi,ls,kt
   integer (kind=8) :: nrectot,ilast,ninttot,nrecl,ielem

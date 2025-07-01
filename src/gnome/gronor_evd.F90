@@ -39,12 +39,6 @@ subroutine gronor_evd()
   !! SOLVER_LAPACK       dsyevd from an external LAPACK library will run on the CPU
   !! SOLVER_CUSOLVER     cusolverDnDsyevd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
   !! SOLVER_CUSOLVERJ    cusolverDnDsyesvj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
-  !! SOLVER_ROCSOLVER    rocsolver_dsyevd from the AMD ROCSOLVER library will run on the GPU
-  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
-  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
-  !! SOLVER_HIPSOLVER    planned
-  !! SOLVER_HIPSOLVER    planned
-  !! SOLVER_MAGMA        planned
   !!
   !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
   !!
@@ -87,24 +81,6 @@ subroutine gronor_evd()
   use cudafor
 #endif
 
-#ifdef ROCSOLVER
-  use iso_fortran_env
-  use rocvars
-  use rocsolver_interfaces_enums
-  use rocsolver_interfaces
-#endif
-
-#ifdef HIPSOLVER
-  use hipvars
-  use iso_fortran_env
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
-#endif
-
   ! variable declarations
 
   implicit none
@@ -129,61 +105,34 @@ subroutine gronor_evd()
   character (len=1), target :: jobu, jobvt
 #endif
 
-#ifdef ROCSOLVER
-  real(kind=8), allocatable, target :: at(:,:),dt(:),et(:,:)
-#endif
 
   if(iamacc.eq.1) then
      if(levcpu) then
 #ifdef ACC
 !$acc update host (a)
 #endif
-#ifdef OMPTGT
-!$omp target update from(a)
-#endif 
-#ifdef OMP
-!$omp parallel do shared(sdiag)
-#endif
       do i=1,nelecs
         sdiag(i)=0.0d0
       enddo
-#ifdef OMP
-!$omp end parallel do
-#endif   
+
     endif
 #ifdef ACC
 !$acc kernels present(sdiag)
 #endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
-#endif
+
       do i=1,nelecs
         sdiag(i)=0.0d0
       enddo
 #ifdef ACC
 !$acc end kernels
 #endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
+
    else
-#ifdef OMP
-!$omp parallel do shared(sdiag)
-#endif
+
       do i=1,nelecs
         sdiag(i)=0.0d0
       enddo
-#ifdef OMP
-!$omp end parallel do
-#endif
+
    endif
 
   ! ========== EISPACK =========
@@ -320,76 +269,10 @@ subroutine gronor_evd()
   endif
 #endif
 #endif
-  
-  ! ======== HIPSOLVER =========
-
-#ifdef HIPSOLVER
-  if(ev_solver.eq.SOLVER_HIPSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-  endif
-  if(ev_solver.eq.SOLVER_HIPSOLVERJ) then
-    ndim=nelecs
-    mdim=mbasel
-  endif
-#endif
-
-  ! ======== ROCSOLVER =========
-  
-#ifdef ROCSOLVER
-  if(ev_solver.eq.SOLVER_ROCSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-!$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
-    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
-        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!$omp end target data
-!     rocsolver_status=hipDeviceSynchronize()
-  endif
-
-  if(ev_solver.eq.SOLVER_ROCSOLVERD) then
-    ndim=nelecs
-    mdim=mbasel
-!$omp target data use_device_addr(a,diag,workspace_d,rocinfo)
-    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
-        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!$omp end target data
-!    rocsolver_status=hipDeviceSynchronize()
-  endif
-
-  if(ev_solver.eq.SOLVER_ROCSOLVERX) then
-    ndim=nelecs
-    mdim=mbasel
-    rocsolver_status=rocsolver_dsyevd(rocsolver_handle,ROCBLAS_EVECT_NONE,ROCBLAS_FILL_LOWER, &
-        ndim,c_loc(a),ndim,c_loc(diag),c_loc(workspace_d),rocinfo)
-!    rocsolverstatus=hipDeviceSynchronize()
-  endif
-#endif
-
-! ======== CRAYLIBSCI =========
-
-#ifdef CRAYLIBSCI
-  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
-    ndim=nelecs
-    mdim=mbasel
-    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
-  endif
-  if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
-    ndim=nelecs
-    mdim=mbasel
-!$omp target enter data map(to:a)
-!$omp target data use_device_addr(a,diag,workspace_d,workspace_i,info)
-    call dsyevd_acc(jobz, uplo, ndim, a, ndim, diag, workspace_d, lwork, workspace_i, liwork, info)
-!$omp end target data
-  endif
-#endif
 
   if(iamacc.eq.1.and.levcpu) then
 #ifdef ACC
 !$acc update device (diag)
-#endif
-#ifdef OMPTGT
-!$omp target update to(diag)
 #endif
   endif
 

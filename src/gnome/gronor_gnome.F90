@@ -32,16 +32,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   implicit none
 
   external :: timer_start,timer_stop
-  external :: gronor_gntwo_omp
-  external :: gronor_gntwo_omp_batch_canonical
-  external :: gronor_gntwo_omp_batch_indexed
-  external :: gronor_gnone_omp
-  external :: gronor_tramat2_omp
   external :: gronor_dipole
   external :: gronor_cororb
-  external :: gronor_cofac1_omp
-  external :: gronor_moover_omp
-  external :: gronor_gntwo_canonical
   external :: gronor_gntwo
   external :: gronor_gntwo_batch_indexed
   external :: gronor_gnone
@@ -160,12 +152,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
   if(iamacc.gt.0) then
 
-#ifdef ACC
 !$acc data copyin(va,vb)
-#endif
-#ifdef OMPTGT
-!$omp target data map(to:va,vb)
-#endif
     
     !  Calculations of the overlap matrices
 
@@ -252,95 +239,10 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       call timer_stop(22)
     endif
 
-#ifdef ACC
 !$acc end data
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
+
   else
-
-    !     OpenMP routines
-
-    !     Calculations of the overlap matrices
-
-    call timer_start(14)
-    call gronor_moover_omp(lfndbg)
-    call timer_stop(14)
-
-    !     Calculation of the cofactor matrices and arrays corresponding
-    !     to the total overlap
-
-    call timer_start(15)
-    call gronor_cofac1_omp(lfndbg)
-    call timer_stop(15)
-
-    if(idbg.ge.30) then
-      if(ising.eq.0) write(lfndbg,609)
-      if(ising.eq.1) write(lfndbg,610)
-      if(ising.eq.2) write(lfndbg,611)
-      if(ising.eq.3) write(lfndbg,612)
-    endif
-
-    if(ising.lt.3) then
-
-      if(corres) then
-        call timer_start(16)
-        call gronor_cororb()
-        call timer_stop(16)
-      endif
-
-      call timer_start(17)
-      !          call gronor_tramat_omp()
-      call timer_stop(17)
-
-      if(idipole.ne.0) then
-        call timer_start(18)
-        call gronor_dipole(lfndbg)
-        call timer_stop(18)
-      endif
-
-      if(idbg.ge.30) then
-        if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
-      endif
-
-      !     Transformation of the  m.o.'s into the bassisset of the two
-      !     electron integrals
-
-      call timer_start(19)
-      !     call gronor_trsym_omp(lfndbg)
-      call timer_stop(19)
-
-      !     transformation of the first order cofactor matrix
-      !     (x-matrix to f-matrix in terms of the basis set of the 2-el.integr
-
-      call timer_start(20)
-      call gronor_tramat2_omp(lfndbg)
-      call timer_stop(20)
-
-      !     Calculation of the one electron Hamiltonian matrix elements
-
-      call timer_start(21)
-      if(icalc.le.1.and.ising.le.1) call gronor_gnone_omp(lfndbg)
-      call timer_stop(21)
-
-    endif
-    !     Calculation of the two-electron matrix elements
-    
-    if((icalc.eq.2.or.icalc.eq.0)) then
-      call timer_start(22)
-      if(nbatch.gt.1) then
-        if(mgr.gt.1) then
-          call gronor_gntwo_omp_batch_indexed(lfndbg,ihc,nhc)
-        else
-          call gronor_gntwo_omp_batch_canonical(lfndbg,ihc,nhc)
-        endif
-      else
-        call gronor_gntwo_omp(lfndbg)
-      endif
-      call timer_stop(22)
-    endif
-
+! error! not in acc
   endif
 
   return

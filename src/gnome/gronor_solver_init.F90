@@ -32,26 +32,7 @@ subroutine gronor_solver_init(ntemp)
   use cuda_cusolver
   use cudafor
 #endif
-#ifdef ROCSOLVER
-  use rocvars
-  use rocsolver_interfaces_enums
-  use rocsolver_interfaces
-!  use hipfort
-!  use hipfort_check
-!  use hipfort_rocblas_enums
-!  use hipfort_rocblas
-!  use hipfort_rocsolver_enums
-!  use hipfort_rocsolver
-#endif
 
-#ifdef HIPSOLVER
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
-#endif
 #ifdef MKL
   use mkl_solver
 #endif
@@ -355,133 +336,6 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
-
-#ifdef ROCSOLVER
-    lwork1m=max(0,5*nelecs*nelecs)
-    lworki=max(0,lworki)
-    len_work_dbl=max(len_work_dbl,lwork1m)
-    len_work_int=max(len_work_int,lworki)
-!!!!! !$omp target enter data map(rocinfo)
-#endif
-
-#ifdef CRAYLIBSCI
-    ndimm=nelecs
-    mdimm=mbasel
-    lwork1m=-1
-    lwork2m=-1
-    lworki=-1
-    
-    if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
-!      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-!      lwork1m=int(worksize(1))
-    endif
-    if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
-!      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
-!          lapack_info)
-!      lwork1m=int(worksize(1))
-!      lworki=8*nelecs
-    endif
-    if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) then
-      call dsyevd_cpu('V','L',ndimm,a,ndimm,w,worksize,lwork2m,info)
-      lwork2m=int(worksize(1))
-    endif
-    if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) then
-!$omp target enter data map(to:a) map(alloc:w,worksize,iworksize,info)
-!$omp target data use_device_addr(a,w,worksize,iworksize,info)
-      call dsyevd_acc('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,info)
-!$omp end target data
-      lwork2m=int(worksize(1))
-      lworki=max(int(iworksize(1)),lworki)
-    endif
-    lwork1m=max(0,lwork1m,lwork2m)
-    lworki=max(0,lworki)
-    len_work_dbl=max(len_work_dbl,lwork1m)
-    len_work_int=max(len_work_int,lworki)
-!$omp target exit data map(delete:worksize,iworksize)
-#endif
-
-#ifdef MAGMA
-    ndimm=nelecs
-    mdimm=mbasel
-    ndim=nelecs
-    lwork1m=-1
-    lwork2m=-1
-    lworki=-1
-    ndim4=nelecs
-    lwork4=-1
-    liwork4=-1
-    ndimm=nelecs
-    ndim4=nelecs
-    lwork4=-1
-    liwork4=-1
-
-    call magmaf_init()
-    
-    if(sv_solver.eq.SOLVER_MAGMA) then
-      if(iamacc.eq.1) then
-        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-            worksize,lwork4,magma_info)
-      else
-        call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-            worksize,lwork4,magma_info)
-      endif
-      lwork1m=int(worksize(1))
-      lworki=8*nelecs
-    endif
-      
-    if(sv_solver.eq.SOLVER_MAGMAD) then
-      if(iamacc.eq.1) then
-        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-            worksize,lwork4,iworksize,magma_info)
-      else
-        call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-            worksize,lwork4,iworksize,magma_info)
-      endif
-      lwork1m=int(worksize(1))
-      lworki=8*nelecs
-    endif
-    
-    if(ev_solver.eq.SOLVER_MAGMA) then
-      if(iamacc.eq.1) then
-#ifdef ACC
-!$acc data create(workspace_d,workspace_i,workspace2_d)
-!$acc wait
-!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
-#endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d,workspace_i4,workspace2_d)
-#endif     
-        ndimm=nelecs
-        ndim4=nelecs
-        lwork4=-1
-        liwork4=-1
-        call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,worksize2,ndim4, &
-            worksize,lwork4,iworksize,liwork4,magma_info)
-#ifdef ACC
-!!!$acc end host_data
-!$acc wait
-!$acc end data   
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
-      else       
-        ndimm=nelecs
-        ndim4=nelecs
-        lwork4=-1
-        liwork4=-1
-        call magmaf_dsyevd('N','L',ndim4,a,ndim4,diag, &
-            worksize,lwork4,iworksize,liwork4,magma_info)
-      endif
-      lwork2m=int(worksize(1))
-      lworki=int(iworksize(1))
-    endif
-    lwork1m=max(0,lwork1m,lwork2m)
-    lworki=max(0,lworki)
-    len_work_dbl=max(len_work_dbl,lwork1m)
-    len_work_int=max(len_work_int,lworki)
-    len_work2_dbl=nelecs*nelecs
-#endif
     
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
@@ -513,26 +367,6 @@ subroutine gronor_solver_finalize()
   use cuda_cusolver
 #endif
 
-#ifdef ROCSOLVER
-  use rocvars
-  use rocsolver_interfaces_enums
-  use rocsolver_interfaces
-!  use hipfort
-!  use hipfort_check
-!  use hipfort_rocblas_enums
-!  use hipfort_rocblas
-!  use hipfort_rocsolver_enums
-!  use hipfort_rocsolver
-#endif
-
-#ifdef HIPSOLVER
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
-#endif
 
 #ifdef MAGMA
   use magma
@@ -541,19 +375,13 @@ subroutine gronor_solver_finalize()
 #endif  
   
   if(iamacc.gt.0) then
+
 #ifdef CUSOLVER
     cusolver_status = cusolverDnDestroy(cusolver_handle)
     if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolver_handle destruction failed'
 #endif
-#ifdef HIPSOLVER
-    if (hipsolverDestroy(hipsolver_handle) /= HIPSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'hipsolver_handle destruction failed'
-#endif
-#ifdef ROCSOLVER
-    if (rocsolver_destroy_handle(rocsolver_handle) /= 0) &
-        write(*,*) 'hipsolver_handle destruction failed'
-#endif
+
   endif
 
 #ifdef MAGMA
@@ -580,28 +408,7 @@ subroutine gronor_solver_create_handle()
   use cusolverDn
   use cuda_cusolver
 #endif
-
-#ifdef ROCSOLVER
-  use rocvars
-  use rocsolver_interfaces_enums
-  use rocsolver_interfaces
-!  use hipfort
-!  use hipfort_check
-!  use hipfort_rocblas_enums
-!  use hipfort_rocblas
-!  use hipfort_rocsolver_enums
-!  use hipfort_rocsolver
-#endif
-
-#ifdef HIPSOLVER
-  use hipfort
-  use hipfort_check
-  use hipfort_rocblas_enums
-  use hipfort_rocblas
-  use hipfort_rocsolver_enums
-  use hipfort_rocsolver
-#endif
-  
+ 
   ! Only accelerated ranks need to define cusolver handles
   
   if(iamacc.gt.0) then
@@ -615,15 +422,6 @@ subroutine gronor_solver_create_handle()
 !      cptot=c_loc(memtot)
 !      istat=cudaMemGetInfo(cpfre,cptot)
     endif
-#endif
-
-#ifdef ROCSOLVER
-    istatus=rocsolver_create_handle(rocsolver_handle)
-!    call hipcheck(rocblas_create_handle(rocsolver_handle))
-#endif
-
-#ifdef HIPSOLVER
-    call hipsolvercreate(hipsolver_handle)
 #endif
 
   endif

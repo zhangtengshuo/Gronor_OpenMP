@@ -24,13 +24,9 @@ subroutine gronor_environment()
   use inp
   use cidist
 
-#ifdef _OPENACC
   use openacc
-#ifdef CUDA
   use cuda_functions
-#endif
-  !      use cuda_rt
-#endif
+
 #ifdef _OPENMP
   use omp_lib
 #endif
@@ -56,9 +52,7 @@ subroutine gronor_environment()
 
   logical ohost
 
-#ifdef CUDA
   type(c_ptr) :: cpfre, cptot
-#endif
 
   string="HOME"
   call get_environment_variable(string,value,lenv,statv)
@@ -246,9 +240,6 @@ subroutine gronor_environment()
     endif
 #endif
     
-#ifdef OMPTGT
-    numdev=omp_get_num_devices()
-#endif
 
     ! Convert the nodename into a nodenumber stored in variable node
 

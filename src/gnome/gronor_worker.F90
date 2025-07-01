@@ -108,17 +108,11 @@ subroutine gronor_worker()
 #ifdef ACC
 !$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
-#ifdef OMPTGT
-!$omp target data map(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
-#endif
   
   call gronor_worker_process()
   
 #ifdef ACC
 !$acc end data
-#endif
-#ifdef OMPTGT
-!$omp end target data
 #endif
       
   call gronor_update_device_info()

@@ -87,17 +87,6 @@ subroutine gronor_svd()
   use cuda_cusolver
   use cudafor
 #endif
-#ifdef HIPSOLVER
-  use hipvars
-  use hipsolver_enums
-  use amd_hipsolver
-#endif
-#ifdef ROCSOLVER
-  use iso_fortran_env
-  use rocvars
-  use rocsolver_interfaces_enums
-  use rocsolver_interfaces
-#endif
 
   ! variable declarations
 
@@ -119,14 +108,6 @@ subroutine gronor_svd()
   integer (kind=4) :: magma_info
 #endif
 
-#ifdef HIPSOLVER
-  integer (kind=1) :: jobu, jobvt
-#endif
-
-#ifdef ROCSOLVER
-  integer :: jobu, jobvt
-#endif
-
 #ifdef LAPACK
   integer (kind=4) :: lapack_info
 #endif
@@ -136,9 +117,6 @@ subroutine gronor_svd()
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
-#endif
-#ifdef OMPTGT
-!$omp target update from(a)
 #endif
   endif
 
@@ -229,9 +207,7 @@ subroutine gronor_svd()
 !$acc data copy(dev_info_d) create(workspace_d)
 !$acc host_data use_device(a,ev,u,wt,dev_info_d,workspace_d,rwork)
 #endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,wt,dev_info_d,workspace_d,rwork)
-#endif
+
     cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
         ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
         lwork4,rwork,dev_info_d)
@@ -240,9 +216,7 @@ subroutine gronor_svd()
 !$acc wait
 !$acc end data
 #endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
+
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
         write(*,*) 'cusolverDnDgesvd failed',cusolver_status
     !lsvtrns
@@ -261,18 +235,13 @@ subroutine gronor_svd()
 !$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
 !$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d)
 #endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,rwork)
-#endif
+
     cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
         ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
         lwork4,dev_info_d,gesvdj_params)
 #ifdef ACC
 !$acc end host_data
 !$acc end data
-#endif
-#ifdef OMPTGT
-!$omp end target data
 #endif
     cusolver_status=cudaDeviceSynchronize()
     if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
@@ -284,134 +253,24 @@ subroutine gronor_svd()
   endif
 #endif
   
-  ! ======== HIPSOLVER =========
-
-#ifdef HIPSOLVER
-  if(sv_solver.eq.SOLVER_HIPSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-  endif
-  if(sv_solver.eq.SOLVER_HIPSOLVERJ) then
-    ndim=nelecs
-    mdim=mbasel
-  endif
-#endif
-
-  ! ======== ROCSOLVER =========
-  
-#ifdef ROCSOLVER
-  if(sv_solver.eq.SOLVER_ROCSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-!    istatus=rocsolver_dgesvd(rocsolver_handle, &
-!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-!        ROCBLAS_OUTOFPLACE,rocinfo)
-!    istatus=hipDeviceSynchronize()
-    
-!$omp target data use_device_addr(a,ev,u,wt,workspace_d,rocinfo)
-    istat=rocsolver_dgesvd(rocsolver_handle, &
-        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(workspace_d), &
-        ROCBLAS_INPLACE,rocinfo)
-!$omp end target data
-!    call hipcheck(hipDeviceSynchronize())
-  endif
-  if(sv_solver.eq.SOLVER_ROCSOLVERX) then
-    ndim=nelecs
-    mdim=mbasel
-!    istatus=rocsolver_dgesvd(rocsolver_handle, &
-!        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-!        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-!        ROCBLAS_OUTOFPLACE,rocinfo)
-!    istatus=hipDeviceSynchronize()
-    istat=rocsolver_dgesvd(rocsolver_handle, &
-        ROCBLAS_SVECT_ALL,ROCBLAS_SVECT_ALL,ndim,ndim,c_loc(a),ndim, &
-        c_loc(ev),c_loc(u),ndim,c_loc(wt),ndim,c_loc(work), &
-        ROCBLAS_OUTOFPLACE,rocinfo)
-!    call hipcheck(hipDeviceSynchronize())
-  endif
-  !lsvtrns
-#endif
 
 !! Evaluate right had matrix from its transpose if solver provided the transpose
   if(lsvtrns) then
     if(lsvcpu) then
 
-#ifdef OMP
-!$omp parallel shared(w,wt,nelecs)
-!$omp do collapse(2)
-#endif
-      do i=1,nelecs
-        do j=1,nelecs
-          w(i,j)=wt(j,i)
-        enddo
-      enddo
-#ifdef OMP
-!$omp end do
-!$omp end parallel
-#endif
     elseif(iamacc.eq.1) then
 
-!======================================
-      
-!#ifdef ACC
-!!$acc update host(wt)
-!#endif
-!#ifdef OMPTGT
-!!$omp target update from(wt) 
-!#endif
-!   
-!#ifdef OMP
-!!$omp parallel shared(w,wt,nelecs)
-!!$omp do collapse(2)
-!#endif
-!      do i=1,nelecs
-!        do j=1,nelecs
-!          w(i,j)=wt(j,i)
-!        enddo
-!      enddo
-!#ifdef OMP
-!!$omp end do
-!!$omp end parallel
-!#endif
-!      
-!#ifdef ACC
-!!$acc update device(w)
-!#endif
-!#ifdef OMPTGT
-!!$omp target update to(w) 
-!#endif  
-
-!======================================
-      
 #ifdef ACC
 !$acc kernels present(w,wt)
-#endif
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp target teams loop
-#else
-!$omp target teams distribute parallel do
-#endif
 #endif
   do i=1,nelecs
     do j=1,nelecs
       w(i,j)=wt(j,i)
     enddo
   enddo
-#ifdef OMPTGT
-#ifdef OMP5
-!$omp end target teams loop
-#else
-!$omp end target teams distribute parallel do
-#endif
-#endif
 #ifdef ACC
 !$acc end kernels
 #endif
-
-!=========================================
       
     endif
   endif
@@ -421,9 +280,6 @@ subroutine gronor_svd()
 #ifdef ACC
 !$acc update device (ev,u,w)
 #endif
-#ifdef OMPTGT
-!$omp target update to(ev,u,w) 
-#endif  
   endif
 
   return  

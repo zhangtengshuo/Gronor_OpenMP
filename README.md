@@ -1,26 +1,30 @@
-GronOR Non-Orthogonal Configuration Interaction
+# GronOR Non-Orthogonal Configuration Interaction
 
-Authors: T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN
-	 C. de Graaf, University Rovira i Virgili, Tarragona, Spain
-	 A. Sanchez, University Rovira i Virgili, Tarragona, Spain
-	 R. K. Kathir, University of Groningen, Groningen, Netherlands
+## Authors 
+     T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN  
+	 C. de Graaf, University Rovira i Virgili, Tarragona, Spain  
+	 A. Sanchez, University Rovira i Virgili, Tarragona, Spain  
+	 R. K. Kathir, University of Groningen, Groningen, Netherlands  
 
-    T. P. Straatsma, R. Broer, A. Sanchez-Mansilla, C. Sousa, and C. de Graaf, 
-	“GronOR: Scalable and Accelerated Non-Orthogonal Configuration Interaction for Molecular fragment Wave Functions”, 
-	Journal of Chemical Theory and Computation, 18, 3549-3565 (2022).
+## Reference
+    T. P. Straatsma, R. Broer, A. Sanchez-Mansilla, C. Sousa, and C. de Graaf,   
+	“GronOR: Scalable and Accelerated Non-Orthogonal Configuration Interaction for Molecular fragment Wave Functions”,   
+	Journal of Chemical Theory and Computation, 18, 3549-3565 (2022).  
 
-Downloading from the GitLab repository:
-
+## Install
+Downloading from the GitLab repository:  
+```bash
 git clone --recursive git@gitlab.com:gronor/gronor.git
-or
+#or
 git clone --recursive https://www.gitlab.com/gronor/gronor.git
-
-The resulting master branch is the most recent release of gronor. To use an earlier release (e.g. version 23.08) use 
-
+```
+The resulting master branch is the most recent release of gronor. To use an earlier release (e.g. version 23.08) use  
+```bash
 git checkout tags/23.08
+```
 
 The initial directory structure is as follows:
-
+```plain
 gronor --- src          	(source directory with sub-directories)
         |
 	-- aux           	(auxiliary programs)
@@ -36,17 +40,17 @@ gronor --- src          	(source directory with sub-directories)
 	-- CMakeLists.txt 	(the cmake build file)
 	|
 	-- CTestConfig.cmake 	(cmake script to setup automated testing)
-
+```
 
 To build, do the following within the gronor directory;
-
-1. mkdir build
-2. cd build
-3. cmake [flags] ../
-4. make -j 10
-
+```bash
+mkdir build
+cd build
+cmake [flags] ../
+make -j 10
+```
 This will expand the directory structure as follows:
-
+```plain
 gronor --- src         	 (source directory with sub-directories)
         |
 	-- aux              (auxiliary programs)
@@ -68,7 +72,7 @@ gronor --- src         	 (source directory with sub-directories)
 		  -- lib   	  (directory with the gronor libraries)
 		  |
 		  -- CMakeFiles  (cmake files created during build)
-
+```
 
 The following rules need to be followed for the src subdirectories:
 

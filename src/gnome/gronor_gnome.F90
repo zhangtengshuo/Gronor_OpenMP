@@ -59,9 +59,11 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   !     If duplicate check for terminate signal
 
   if(odupl.and.iint.ne.0) then
+#ifndef _OPENMP
     call MPI_Test(itreq,flag,status,ierr)
     oterm=flag
     if(oterm) return
+#endif
   endif
 
   if(idbg.ge.20) then

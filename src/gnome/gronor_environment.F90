@@ -210,7 +210,7 @@ subroutine gronor_environment()
   !     Set the device number
 
   numdev=-1
-  num_threads=1
+  num_threads=4
 
   memfre=0
   memtot=0

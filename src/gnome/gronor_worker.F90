@@ -25,6 +25,12 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+#ifdef _OPENMP
+  use omp_lib
+#endif
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
 
@@ -42,6 +48,9 @@ subroutine gronor_worker()
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17)
+#ifdef _OPENMP
+  integer :: tid,chunk,id1_loc,id2_loc
+#endif
 
   logical (kind=4) :: flag
 
@@ -108,9 +117,7 @@ subroutine gronor_worker()
 #ifdef ACC
 !$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
-  
   call gronor_worker_process()
-  
 #ifdef ACC
 !$acc end data
 #endif
@@ -352,7 +359,32 @@ subroutine gronor_worker_process()
         flush(lfndbg)
       endif
       call timer_start(47)
+#ifdef _OPENMP
+      do i=1,17
+        rbuf(i)=0.0d0
+      enddo
+      rbuf(16)=dble(len_work_dbl)
+      rbuf(17)=dble(len_work_int)
+!$omp parallel private(i,tid,id1_loc,id2_loc,chunk) num_threads(num_threads)
+      tid = omp_get_thread_num()
+      chunk = (jdet-idet+1 + omp_get_num_threads()-1)/omp_get_num_threads()
+      id1_loc = idet + tid*chunk
+      id2_loc = min(jdet, idet + (tid+1)*chunk - 1)
+      if(id1_loc.le.id2_loc) then
+        call gronor_calculate(ibase,jbase,id1_loc,id2_loc)
+      endif
+!$omp critical(rbuf_acc)
+      do i=1,17
+        rbuf(i)=rbuf(i)+buffer(i)
+      enddo
+!$omp end critical(rbuf_acc)
+!$omp end parallel
+#else
       call gronor_calculate(ibase,jbase,idet,jdet)
+      do i=1,17
+        rbuf(i)=buffer(i)
+      enddo
+#endif
       call timer_stop(47)
       
       if(oterm) then
@@ -363,7 +395,7 @@ subroutine gronor_worker_process()
         return
       endif
       
-      buffer(3)=timer_wall(47)
+      rbuf(3)=timer_wall(47)
       if(idbg.gt.30) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8), &
@@ -375,10 +407,6 @@ subroutine gronor_worker_process()
       endif
       call timer_start(48)
       if(iamhead.eq.1) then
-        !     call MPI_Wait(ireq,status,ierr)
-        do i=1,17
-          rbuf(i)=buffer(i)
-        enddo
         ncount=17
         mpitag=1
         call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)

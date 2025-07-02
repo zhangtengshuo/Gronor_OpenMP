@@ -116,6 +116,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
   do ij=id1,id2
 
+#ifndef _OPENMP
     if(otreq.and.iint.ne.0) then
       call MPI_Test(itreq,flag,status,ierr)
 
@@ -128,6 +129,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         return
       endif
     endif
+#endif
 
     call timer_start(5)
 
@@ -400,6 +402,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   !     accumulated results from all threads in the group
 
   call timer_start(37)
+#ifndef _OPENMP
   if(mgr.gt.1) then
     if(iamhead.eq.1) then
       do ii=1,mgr-1
@@ -429,6 +432,11 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     endif
     buffer(1)=buffer(1)+e2buff
   endif
+#else
+  if(mgr.gt.1) then
+    buffer(1)=buffer(1)+e2buff
+  endif
+#endif
   call timer_stop(37)
 
   return

@@ -74,7 +74,7 @@ Build flags are the following:
 `-DOMPTGT=ON` will activate OpenMP target directives to be interpreted for most compilers  
 `-DCUDA=ON` will activate basic access required for CUSOLVER and/or CUSOLVERJ   
 `-DCUSOLVER=ON` will activate the CUSOLVER library, and requires `-DOPENACC=ON`  
-`-DCUSOLVERJ=ON` will activate the CUSOLVER library including the iterative Jacobi solvers, and requires `-`DOPENACC=ON`  
+`-DCUSOLVERJ=ON` will activate the CUSOLVER library including the iterative Jacobi solvers, and requires `-DOPENACC=ON`  
 `-DMKL=ON` will link against MKL libraries for compatible compilers  
 `-DPROFILING=ON` will activate compiler flags enabling profiling tools (e.g. symbol tables)  
 

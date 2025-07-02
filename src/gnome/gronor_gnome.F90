@@ -232,7 +232,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
         if(idevel.eq.0.or.mgr.gt.1) then
           if(ising.le.2) call gronor_gntwo(lfndbg)
         else
-          if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
+          !if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
         endif
       endif
       !         call nvtxEndRange

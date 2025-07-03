@@ -80,7 +80,7 @@ subroutine gronor_environment()
 
   if(me.eq.mstr) role=master
 
-  if(me.eq.mstr) num_threads=1
+  if(me.eq.mstr) num_threads=1  ! master dont need OMP
 
   allocate(map1(np,7),map2(np,9))
 
@@ -97,151 +97,73 @@ subroutine gronor_environment()
   !     Using function "hostnm()" in stead of
   !     call MPI_get_processor_name(nodename, length, ierr)
   
-#ifdef IBM
-  call hostnm_(nodename)
-#else
+
   call hostnm(nodename)
-#endif
   length=len(trim(nodename))
 
   machine='            '
 
   ohost=.false.
 
-#ifdef FRONTIER
-  machine='Frontier    '
-  ohost=.true.
-#endif
-#ifdef DISCOVERY
-  machine='Discovery   '
-  ohost=.true.
-#endif
-#ifdef LEONARDO
-  machine='Leonardo    '
-  ohost=.true.
-#endif
-#ifdef CRUSHER
-  machine='Crusher     '
-  ohost=.true.
-#endif
-#ifdef SUMMIT
-!     Trim the OLCF Summit node name
-  if(ichar(nodename(1:1)).ge.97.and. &
-      ichar(nodename(1:1)).le.122.and. &
-      ichar(nodename(4:4)).ge.97.and. &
-      ichar(nodename(4:4)).le.122.and. &
-      ichar(nodename(2:2)).ge.48.and. &
-      ichar(nodename(2:2)).le.57.and. &
-      ichar(nodename(3:3)).ge.48.and. &
-      ichar(nodename(3:3)).le.57.and. &
-      ichar(nodename(5:5)).ge.48.and. &
-      ichar(nodename(5:5)).le.57.and. &
-      ichar(nodename(6:6)).ge.48.and. &
-      ichar(nodename(6:6)).le.57) then
-    length=6
-    machine='Summit      '
-  endif
-  machine='Summit      '
-  ohost=.true.
-#endif
-#ifdef LUMI
-  machine='Lumi        '
-  ohost=.true.
-#endif
-#ifdef JUWELS
-  machine='Juwels      '
-  ohost=.true.
-#endif
-#ifdef PIZDAINT
-  machine='Piz Daint   '
-  ohost=.true.
-#endif
-#ifdef LISA
-  machine='Lisa        '
-  ohost=.true.
-#endif
-#ifdef SNELLIUS
-  machine='Snellius    '
-  ohost=.true.
-#endif
-  
-!     Trim the JFZ Juwels Booster node name
-  if(nodename(1:3).eq.'jwb') then
-    nodename(1:4)=nodename(4:7)
-    length=4
-    machine='Juwels      '
-  endif
-
-!     Trim the CSCS Piz Daint node name
-  if(nodename(1:3).eq.'nid') then
-    nodename(1:5)=nodename(4:8)
-    length=5
-    machine='Piz Daint   '
-  endif
-
-!     Trim the SurfSara Lisa node name
-  if(index(nodename,'.lisa').gt.0) then
-    length=index(nodename,'.lisa')-1
-    nodename(length+1:length+1)=' '
-    machine='Lisa        '
-  endif
-
-!     Trim the Sara Snellius node name
-  if(nodename(1:3).eq.'gcn') then
-    nodename(1:2)=nodename(4:5)
-    length=2
-    machine='Snellius    '
-  endif
-
-!     Trim the Crusher node name
-  if(nodename(1:7).eq.'crusher') then
-    nodename(1:3)=nodename(8:10)
-    length=3
-    machine='Crusher     '
-  endif
-
-!     Trim the Frontier node name
-  if(nodename(1:8).eq.'frontier') then
-    nodename(1:5)=nodename(9:13)
-    length=5
-    machine='Frontier    '
-  endif
-
   !     Set the device number
 
-  numdev=-1
-  num_threads=1
+  numdev=-1           ! numbers of device(GPU)
+  num_threads=1       ! numbers of OMP threads to be used
 
   memfre=0
   memtot=0
 
-#ifdef _OPENACC
 #ifdef GPUAMD
   numdev=acc_get_num_devices(ACC_DEVICE_AMD)
   if(numdev.gt.1) then
-    if(machine.ne.'Juwels      ') then
-      mydev=mod(me,numdev)
-      call acc_set_device_num(mydev,ACC_DEVICE_AMD)
-    endif
+    mydev=mod(me,numdev)
+    call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+  endif 
 #else
-    numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-    if(numdev.gt.1) then
-      if(machine.ne.'Juwels      ') then
-        mydev=mod(me,numdev)
-        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-      endif
-#endif
-    endif
+  numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
+  if(numdev.gt.1) then
+    mydev=mod(me,numdev)
+    call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
+  endif
 #endif
 
 #ifdef CUDA
-    if(numdev.gt.0) then
-      call gronor_update_device_info()
-    endif
+  if(numdev.gt.0) then
+    call gronor_update_device_info()
+  endif
 #endif
     
 
     ! Convert the nodename into a nodenumber stored in variable node
+! 我们可以写得更简洁一些，但是能跑的代码暂时不改动。
+! j = 1
+! i = 1
+! do while(i <= length .and. nodename(i:i) /= ' ')
+!   select case(nodename(i:i))
+!     ! 处理数字字符
+!     case('0':'9')
+!       numeric(j:j) = nodename(i:i)
+!       j = j + 1
+!     
+!     ! 处理小写字母
+!     case('a':'z')
+!       write(numeric(j:j+1), '(I2.2)') ichar(nodename(i:i)) - ichar('a') + 1
+!       j = j + 2
+!     
+!     ! 处理大写字母
+!     case('A':'Z')
+!       write(numeric(j:j+1), '(I2.2)') ichar(nodename(i:i)) - ichar('A') + 1
+!       j = j + 2
+!   end select
+!   i = i + 1
+! end do
+! 
+! ! 转换数字字符串为整数
+! if (j == 1) then
+!   node = -1
+! else
+!   read(numeric(1:j-1), *) node
+! endif
 
     j=1
     i=1

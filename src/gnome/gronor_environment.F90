@@ -38,6 +38,7 @@ subroutine gronor_environment()
 
   integer :: i,j,k,node
   integer (kind=4) :: length, ierr, ncount
+  integer :: provided
   !      integer (kind=4) :: istat
 
   integer :: getcpucount
@@ -66,8 +67,8 @@ subroutine gronor_environment()
   me=0
   np=1
 
-  call mpi_init(ierr)
-  !     call mpi_init_thread(MPI_THREAD_SINGLE,iout,ierr)
+  ! Use multi thread initialization so OpenMP threads may call MPI directly
+  call mpi_init_thread(MPI_THREAD_MULTIPLE,provided,ierr)
   call mpi_comm_rank(MPI_COMM_WORLD,me,ierr)
   call mpi_comm_size(MPI_COMM_WORLD,np,ierr)
 
@@ -86,13 +87,6 @@ subroutine gronor_environment()
 
   ! Retrieve the hostname from which to extract the specific computer used
   ! This allows to set some variables to optimal values
-  ! Currently the code sets these for:
-  !     Juwels Booster (JFZ)
-  !     Piz Daint (CSCS)
-  !     Snellius (SARA)
-  !     Crusher (OLCF)
-  !     Frontier (OLCF)
-  !     Summit (OLCF)
   
   !     Using function "hostnm()" in stead of
   !     call MPI_get_processor_name(nodename, length, ierr)
@@ -108,7 +102,7 @@ subroutine gronor_environment()
   !     Set the device number
 
   numdev=-1           ! numbers of device(GPU)
-  num_threads=1       ! numbers of OMP threads to be used
+  num_threads=4       ! numbers of OMP threads to be used
 
   memfre=0
   memtot=0
@@ -118,13 +112,16 @@ subroutine gronor_environment()
   if(numdev.gt.1) then
     mydev=mod(me,numdev)
     call acc_set_device_num(mydev,ACC_DEVICE_AMD)
-  endif 
+
+  endif
+
 #else
   numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
   if(numdev.gt.1) then
     mydev=mod(me,numdev)
     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
   endif
+
 #endif
 
 #ifdef CUDA
@@ -550,6 +547,9 @@ subroutine gronor_environment()
       map2(i,8)=worker
     enddo
     map2(np,8)=master
+    do i=1,np
+      map2(i,9)=mstr
+    enddo
     
     ! Upon exit the array map2 contains the following rank specific values
     

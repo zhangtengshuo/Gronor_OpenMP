@@ -236,6 +236,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
         endif
       endif
 
+!$acc wait(1)
+
       call timer_stop(22)
     endif
 

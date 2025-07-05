@@ -25,21 +25,15 @@ git checkout tags/23.08
 
 The initial directory structure is as follows:
 ```plain
-gronor --- src          	(source directory with sub-directories)
-        |
-	-- aux           	(auxiliary programs)
-        |
-	-- include   	    	(with a few include files)
-        |
-	-- examples     	(example input files for full OpenMolcas/GronOR runs)
-        |
-	-- scripts       	(scripts directory)
-        |
-	-- molcas_interface	(auxiliary programs to interface with OpenMolcas)
-	|
-	-- CMakeLists.txt 	(the cmake build file)
-	|
-	-- CTestConfig.cmake 	(cmake script to setup automated testing)
+gronor 
+ ├─ src (source directory with sub-directories)
+ ├─ aux (auxiliary programs)
+ ├─ include (with a few include files)
+ ├─ examples (example input files for full OpenMolcas/GronOR runs)
+ ├─ scripts (scripts directory)
+ ├─ molcas_interface (auxiliary programs to interface with OpenMolcas)
+ ├─ CMakeLists.txt (the cmake build file)
+ └─ CTestConfig.cmake (cmake script to setup automated testing)
 ```
 
 To build, do the following within the gronor directory;
@@ -51,27 +45,19 @@ make -j 10
 ```
 This will expand the directory structure as follows:
 ```plain
-gronor --- src         	 (source directory with sub-directories)
-        |
-	-- aux              (auxiliary programs)
-        |
-	-- include          (with a few include files)
-        |
-	-- examples         (example input files for full OpenMolcas/GronOR runs)
-        |
-	-- scripts          (scripts directory)
-        |
-	-- molcas_interface	(auxiliary programs to interface with OpenMolcas)
-	|
-	-- CMakeLists.txt    (the cmake build file)
-	|
-	-- CTestConfig.cmake (cmake script to setup automated testing)
-	|
-	-- build --- bin     (directory with the gronor binary)
-	          |
-		  -- lib   	  (directory with the gronor libraries)
-		  |
-		  -- CMakeFiles  (cmake files created during build)
+gronor 
+ ├─ src (source directory with sub-directories)
+ ├─ aux (auxiliary programs)
+ ├─ include (with a few include files)
+ ├─ examples (example input files for full OpenMolcas/GronOR runs)
+ ├─ scripts (scripts directory)
+ ├─ molcas_interface (auxiliary programs to interface with OpenMolcas)
+ ├─ CMakeLists.txt (the cmake build file)
+ ├─ CTestConfig.cmake (cmake script to setup automated testing)
+ └─ build 
+      ├─ bin     (directory with the gronor binary)
+      ├─ lib   	  (directory with the gronor libraries)
+      └─ CMakeFiles  (cmake files created during build)	  
 ```
 
 The following rules need to be followed for the src subdirectories:
@@ -82,15 +68,15 @@ The following rules need to be followed for the src subdirectories:
 
 Build flags are the following:
 
--DMPI=ON is default as GronOR requires a minimum of 2 MPI ranks to run
--DACC=ON will activate OpenACC directives to be interpreted for PGI compilers 
--DOMP=ON will activate OpenMP directives to be interpreted for most compilers 
--DOMPTGT=ON will activate OpenMP target directives to be interpreted for most compilers
--DCUDA=ON will activate basic access required for CUSOLVER and/or CUSOLVERJ 
--DCUSOLVER=ON will activate the CUSOLVER library, and requires -DOPENACC=ON
--DCUSOLVERJ=ON will activate the CUSOLVER library including the iterative Jacobi solvers, and requires -DOPENACC=ON
--DMKL=ON will link against MKL libraries for compatible compilers
--DPROFILING=ON will activate compiler flags enabling profiling tools (e.g. symbol tables)
+`-DMPI=ON` is default as GronOR requires a minimum of 2 MPI ranks to run  
+`-DACC=ON` will activate OpenACC directives to be interpreted for PGI compilers   
+`-DOMP=ON` will activate OpenMP directives to be interpreted for most compilers   
+`-DOMPTGT=ON` will activate OpenMP target directives to be interpreted for most compilers  
+`-DCUDA=ON` will activate basic access required for CUSOLVER and/or CUSOLVERJ   
+`-DCUSOLVER=ON` will activate the CUSOLVER library, and requires `-DOPENACC=ON`  
+`-DCUSOLVERJ=ON` will activate the CUSOLVER library including the iterative Jacobi solvers, and requires `-DOPENACC=ON`  
+`-DMKL=ON` will link against MKL libraries for compatible compilers  
+`-DPROFILING=ON` will activate compiler flags enabling profiling tools (e.g. symbol tables)  
 
 GronOR is interfaced with OpenMolcas for integrals and CASSCF orbital coefficients.
 Some minor changes in the OpenMolcas source code are required for GronOR to properly 

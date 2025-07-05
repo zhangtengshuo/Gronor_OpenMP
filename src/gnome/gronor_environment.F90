@@ -81,7 +81,7 @@ subroutine gronor_environment()
 
   if(me.eq.mstr) role=master
 
-  if(me.eq.mstr) num_threads=1
+  if(me.eq.mstr) num_threads=1  ! master dont need OMP
 
   allocate(map1(np,7),map2(np,9))
 
@@ -91,51 +91,76 @@ subroutine gronor_environment()
   !     Using function "hostnm()" in stead of
   !     call MPI_get_processor_name(nodename, length, ierr)
   
-#ifdef IBM
-  call hostnm_(nodename)
-#else
+
   call hostnm(nodename)
-#endif
   length=len(trim(nodename))
 
   machine='            '
 
   ohost=.false.
 
-  
-
   !     Set the device number
 
-  numdev=-1
-  num_threads=4
+  numdev=-1           ! numbers of device(GPU)
+  num_threads=4       ! numbers of OMP threads to be used
 
   memfre=0
   memtot=0
 
-#ifdef _OPENACC
 #ifdef GPUAMD
   numdev=acc_get_num_devices(ACC_DEVICE_AMD)
   if(numdev.gt.1) then
     mydev=mod(me,numdev)
     call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+
   endif
+
 #else
   numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
   if(numdev.gt.1) then
     mydev=mod(me,numdev)
     call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
   endif
-#endif
+
 #endif
 
 #ifdef CUDA
-    if(numdev.gt.0) then
-      call gronor_update_device_info()
-    endif
+  if(numdev.gt.0) then
+    call gronor_update_device_info()
+  endif
 #endif
     
 
     ! Convert the nodename into a nodenumber stored in variable node
+! 我们可以写得更简洁一些，但是能跑的代码暂时不改动。
+! j = 1
+! i = 1
+! do while(i <= length .and. nodename(i:i) /= ' ')
+!   select case(nodename(i:i))
+!     ! 处理数字字符
+!     case('0':'9')
+!       numeric(j:j) = nodename(i:i)
+!       j = j + 1
+!     
+!     ! 处理小写字母
+!     case('a':'z')
+!       write(numeric(j:j+1), '(I2.2)') ichar(nodename(i:i)) - ichar('a') + 1
+!       j = j + 2
+!     
+!     ! 处理大写字母
+!     case('A':'Z')
+!       write(numeric(j:j+1), '(I2.2)') ichar(nodename(i:i)) - ichar('A') + 1
+!       j = j + 2
+!   end select
+!   i = i + 1
+! end do
+! 
+! ! 转换数字字符串为整数
+! if (j == 1) then
+!   node = -1
+! else
+!   read(numeric(1:j-1), *) node
+! endif
 
     j=1
     i=1

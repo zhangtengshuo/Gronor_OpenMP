@@ -225,17 +225,17 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
     if((icalc.eq.2.or.icalc.eq.0)) then
       call timer_start(22)
-      !           call nvtxStartRange("gntwo")
+
       if(nbatch.gt.1) then
         call gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
       else
         if(idevel.eq.0.or.mgr.gt.1) then
           if(ising.le.2) call gronor_gntwo(lfndbg)
         else
-          !if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
+          if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
         endif
       endif
-      !         call nvtxEndRange
+
       call timer_stop(22)
     endif
 

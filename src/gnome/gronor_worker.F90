@@ -212,7 +212,6 @@ subroutine gronor_worker_process()
       endif
 
       !     Send task to other worker threads in the same group as current head thread
-
       if(mgr.gt.1) then
         
         do i=1,mgr-1
@@ -232,9 +231,7 @@ subroutine gronor_worker_process()
       endif
 
     else
-
       !     Receive task from head thread
-
       if(idbg.gt.30) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &

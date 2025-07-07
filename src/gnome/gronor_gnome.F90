@@ -235,6 +235,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
           if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
         endif
       endif
+      !$acc wait(gntwo_stream)
       !         call nvtxEndRange
       call timer_stop(22)
     endif

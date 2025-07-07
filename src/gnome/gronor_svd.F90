@@ -213,7 +213,7 @@ subroutine gronor_svd()
         lwork4,rwork,dev_info_d)
 #ifdef ACC
 !$acc end host_data
-!$acc wait
+!$acc wait(acc_stream)
 !$acc end data
 #endif
 

@@ -86,7 +86,7 @@ subroutine gronor_gntwo(lfndbg)
   tsn=0.0d0
   fourdet=4.0d0*deta
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm) async(gntwo_stream)
   do i=1,nbas
     do k=1,nbas
       tt(i,k)=ta(k,i)
@@ -95,7 +95,7 @@ subroutine gronor_gntwo(lfndbg)
   enddo
 !$acc end kernels
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$acc kernels present(aat,aaa,tt,ta,sm) async(gntwo_stream)
   do i=1,nbas
     do k=1,nbas
       sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
@@ -114,7 +114,7 @@ subroutine gronor_gntwo(lfndbg)
     tst=ts
     kl=nbas*(nbas+1)/2
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx)
+!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx) async(gntwo_stream)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -140,7 +140,7 @@ subroutine gronor_gntwo(lfndbg)
     diagmax=0.0d0
     bdiagmax=0.0d0
     
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+!$acc kernels present(diag,bdiag,bsdiag,csdiag) async(gntwo_stream)
     do k=1,nbas
       diagmax=max(diagmax,abs(diag(k)))
       bdiagmax=max(bdiagmax,abs(bdiag(k)))
@@ -156,7 +156,7 @@ subroutine gronor_gntwo(lfndbg)
     if(ldiag.and.lbdiag) then
 
 !$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx) async(gntwo_stream)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -192,7 +192,7 @@ subroutine gronor_gntwo(lfndbg)
 
     elseif(.not.ldiag .and. lbdiag) then
 
-!$acc update host(aat,aaa,tt,ta,sm,g,lab,ndx,diag,bdiag,bsdiag,csdiag)
+!$acc update host(aat,aaa,tt,ta,sm,g,lab,ndx,diag,bdiag,bsdiag,csdiag) async(gntwo_stream)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -222,7 +222,7 @@ subroutine gronor_gntwo(lfndbg)
     elseif(ldiag .and. .not. lbdiag) then
 
 !$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx) async(gntwo_stream)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -330,7 +330,7 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
       prefac0(nb0)=4.0d0*deta*fctr
 
 !     ASSEMBLE ARRAYS ON GPU
-!$acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0) copyin(nb0)
+!$acc kernels present(aaa0,aat0,tt0,ta0,tt,aat,aaa,ta,sm0) copyin(nb0) async(gntwo_stream)
       do k=1,nbas
         do i=1,nbas
           sm0(i,k,nb0)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
@@ -348,7 +348,7 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
       prefac1(nb1)=fctr
 
 !     ASSEMBLE ARRAYS ON GPU
-!$acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1) copyin(nb1)
+!$acc kernels present(aaa1,aat1,tt1,ta1,tt,aat,aaa,ta,sm1) copyin(nb1) async(gntwo_stream)
       do k=1,nbas
         do i=1,nbas
           sm1(i,k,nb1)=aaa(k,i)+aaa(i,k)+ta(k,i)+ta(i,k)
@@ -361,7 +361,7 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
 !$acc end kernels
       !     END ASSEMBLY ON GPU
 
-!$acc kernels present(diag,bdiag,bsdiag,csdiag) present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1)
+!$acc kernels present(diag,bdiag,bsdiag,csdiag) present(diag1,bdiag1,bsdiag1,csdiag1) copyin(nb1) async(gntwo_stream)
       do i=1,nbas
         diag1(nb1,i)=diag(i)
         bdiag1(nb1,i)=bdiag(i)
@@ -389,7 +389,7 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
 
 !$acc data copyin(prefac0)
     kl=nbas*(nbas+1)/2
-!$acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0)
+!$acc kernels present(lab,ndx,g,sm0,aat0,aaa0,tt0,ta0,prefac0) async(gntwo_stream)
     do ibl=1,nb0
       do ii=intndx,jntndx
         do jj=ii,kl
@@ -427,7 +427,7 @@ subroutine gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
 
     kl=nbas*(nbas+1)/2
 
-!$acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1) present(diag1,bdiag1,bsdiag1,csdiag1)
+!$acc kernels present(lab,ndx,g,sm1,aat1,aaa1,tt1,ta1,prefac1) present(diag1,bdiag1,bsdiag1,csdiag1) async(gntwo_stream)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj

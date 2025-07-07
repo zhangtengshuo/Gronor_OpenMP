@@ -310,10 +310,16 @@ module gnome_data
   integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
+#ifdef _OPENMP
+!$omp threadprivate(buffer)
+#endif
 
   integer (kind=8) :: numdet,melen,memax,icur,jcur
   integer (kind=4), allocatable :: melist(:,:)
   integer (kind=8), allocatable :: ndxdet(:,:)
+#ifdef _OPENMP
+!$omp threadprivate(melist,icur,jcur)
+#endif
 
   real (kind=8) :: gbmelist
 
@@ -321,6 +327,12 @@ module gnome_data
   integer (kind=8), allocatable :: nbdet(:,:)
   real (kind=8), allocatable :: rwork(:)
 
+# Acceleration stream identifiers
+  integer :: gntwo_stream = 1
+  integer :: acc_stream = 2
+#ifdef _OPENMP
+!$omp threadprivate(acc_stream)
+#endif
 
 end module gnome_data
 

@@ -177,7 +177,7 @@ subroutine gronor_evd()
     if(iamacc.eq.1) then
 #ifdef ACC
 !$acc data create(workspace_d,workspace_i,workspace2_d)
-!$acc wait
+!$acc wait(acc_stream)
 !!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
 #endif
 #ifdef OMPTGT
@@ -191,7 +191,7 @@ subroutine gronor_evd()
           workspace_d,lwork4,workspace_i4,liwork4,magma_info)
 #ifdef ACC
 !!!!$acc end host_data
-!$acc wait
+!$acc wait(acc_stream)
 !$acc end data   
 #endif
 #ifdef OMPTGT
@@ -218,7 +218,7 @@ subroutine gronor_evd()
     jobvt= 'A'  ! all m columns of VT
 #ifdef ACC
 !$acc data copy(dev_info_d) create(workspace_d)
-!$acc wait
+!$acc wait(acc_stream)
 !$acc host_data use_device(a,diag,dev_info_d,workspace_d)
 #endif
 #ifdef OMPTGT
@@ -229,7 +229,7 @@ subroutine gronor_evd()
         ndim,a,ndim,diag,workspace_d,int(len_work_dbl,kind=4),dev_info_d)
 #ifdef ACC
 !$acc end host_data
-!$acc wait
+!$acc wait(acc_stream)
 !$acc end data   
 #endif
 #ifdef OMPTGT

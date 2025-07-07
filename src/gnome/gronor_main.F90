@@ -81,7 +81,7 @@ subroutine gronor_main()
   external :: gronor_prtmat,gronor_print_matrix
   external :: gronor_worker,gronor_memory_usage
   external :: gronor_master,gronor_read_integrals
-  external :: gronor_make_basestate,gronor_assign_managers
+  external :: gronor_make_basestate
   external :: gronor_solver_create_handle
   external :: gronor_results_header_cml,gronor_init_cml
   external :: gronor_env_cml,gronor_gnome_molcas_input
@@ -401,12 +401,7 @@ subroutine gronor_main()
     lcpr=.false.
 
     ngpus=0
-    if(numdev.ge.1) ngpus=1
-    if(machine.eq.'Juwels      '.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Summit      '.and.numdev.eq.1) ngpus=6
-    if(machine.eq.'Snellius    '.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Crusher     '.and.numdev.eq.1) ngpus=8
-    if(machine.eq.'Frontier    '.and.numdev.eq.1) ngpus=8
+    if(numdev.ge.1) ngpus=numdev
 
     call gronor_input()
 
@@ -805,6 +800,7 @@ subroutine gronor_main()
       ntask=idum(24)
       ntaska=idum(25)
       mgr=idum(26)
+      mgr=1
       itest=idum(27)
       naccel=idum(28)
       inpcib=idum(29)
@@ -827,6 +823,7 @@ subroutine gronor_main()
       nbatcha=idum(46)
       nspin=idum(47)
       managers=idum(48)
+      managers=0
       mbuf=idum(49)
       idist=idum(50)
       load=idum(51)
@@ -837,7 +834,7 @@ subroutine gronor_main()
 
     endif
 
-    call gronor_assign_managers()
+!    call gronor_assign_managers()
 
     int1=(nbas*(nbas+1))/2
 
@@ -1103,24 +1100,10 @@ subroutine gronor_main()
     enddo
   enddo
 
-  if(me.ne.mstr) then
-    iamhead=0
-    if(me.eq.thisgroup(2)) iamhead=1
-    myhead=thisgroup(2)
-    numdev=thisgroup(1)
-    if(numdev.lt.0) numdev=0
-  else
-    myhead=mstr
-    numdev=-1
-  endif
-
+  iamhead=1
+  myhead=mstr
   mygroup=0
-  do i=1,numgrp
-    ranks_heads(i)=allgroups(i,2)
-    do j=1,mgr
-      if(me.eq.allgroups(i,j+1)) mygroup=i
-    enddo
-  enddo
+  ranks_heads(1)=me
   ranks_heads(numgrp+1)=mstr
 
 

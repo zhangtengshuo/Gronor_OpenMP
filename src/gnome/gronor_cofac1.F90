@@ -57,7 +57,10 @@
       endif
 
       call timer_start(41)
-      
+#ifdef ACC
+      !$acc wait(gntwo_stream)
+      !$acc wait(acc_stream)
+#endif
       call gronor_svd()
 
       call timer_stop(41)
@@ -110,7 +113,10 @@
       idetuw=1
 
       call timer_start(43)
-      
+#ifdef ACC
+      !$acc wait(gntwo_stream)
+      !$acc wait(acc_stream)
+#endif
       call gronor_evd()
 
       call timer_stop(43)

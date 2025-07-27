@@ -46,7 +46,7 @@ option (GUI "Graphical User Interface" OFF)
 
 message ("Detecting system information:")
 
-set(COMPUTE_CAPABILITY "cc90")
+set(COMPUTE_CAPABILITY "cc89")
 
 if(DEFINED ENV{HOSTNAME})
   message(STATUS "Found hostname: $ENV{HOSTNAME}")
@@ -274,16 +274,16 @@ else()
   message (STATUS "Found cuda: $ENV{CUDA_HOME}")
 endif()
 
-find_program (GIT "git")
-if(DEFINED GIT)
-message (STATUS "Found git: ${GIT}")
-execute_process(COMMAND bash -c "git describe --abbrev=8" OUTPUT_VARIABLE COMMIT_HASH)
-string(STRIP ${COMMIT_HASH} COMMIT_HASH)
-message (STATUS "GIT commit hash: ${COMMIT_HASH}")
-set (ENV{GRONOR_COMMIT_HASH} ${COMMIT_HASH})
-else()
-message (STATUS "Not found: git")
-endif()
+#find_program (GIT "git")
+#if(DEFINED GIT)
+#message (STATUS "Found git: ${GIT}")
+#execute_process(COMMAND bash -c "git describe --abbrev=8" OUTPUT_VARIABLE COMMIT_HASH)
+#string(STRIP ${COMMIT_HASH} COMMIT_HASH)
+#message (STATUS "GIT commit hash: ${COMMIT_HASH}")
+#set (ENV{GRONOR_COMMIT_HASH} ${COMMIT_HASH})
+#else()
+#message (STATUS "Not found: git")
+#endif()
 
 set(MOLCAS "ON")
 
@@ -793,16 +793,37 @@ set (FFLAGS_NVIDIA_LAPACK "-DLAPACK")
 set (FFLAGS_NVIDIA_MKL "-DMKL")
 set (FFLAGS_NVIDIA_NVTX "-g -lnvhpcwrapnvtx")
 set (FFLAGS_NVIDIA_ILP64 "-i8")
-set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -gpu=cc80")
+set (FFLAGS_NVIDIA_ACC "-acc -Minfo -gpu=cc89")
+#set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -gpu=cc89")
 set (FFLAGS_NVIDIA_CUSOLVER "-DCUSOLVER -lcusolver")
 # Fortran build targets
 set (FFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_NVIDIA_RELEASE "-O2")
+set (FFLAGS_NVIDIA_RELEASE "-O2 -Minform=inform")
 set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
 
 # NVHPC Compilers
+
+# 将 LD_LIBRARY_PATH 中的路径拆分为列表
+string(REPLACE ":" ";" LD_LIBRARY_PATH_LIST $ENV{LD_LIBRARY_PATH})
+# 查找 cusolver 库
+find_library(CUSOLVER_LIB cusolver
+  PATHS ${LD_LIBRARY_PATH_LIST}
+  REQUIRED
+)
+# 获取库文件的目录
+get_filename_component(CUSOLVER_LIB_DIR ${CUSOLVER_LIB} DIRECTORY)
+# 根据编译器版本设置 FFLAGS_NVHPC_CUSOLVER
+#if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 24.11)
+#  set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -DCUSOLVERJ_INTERFACES -L${CUSOLVER_LIB_DIR} -lcusolver")
+#else()
+  set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -L${CUSOLVER_LIB_DIR} -lcusolver")
+#endif()
+# 输出结果
+message(STATUS "CUSOLVER library found: ${CUSOLVER_LIB}")
+message(STATUS "CUSOLVER library directory: ${CUSOLVER_LIB_DIR}")
+message(STATUS "FFLAGS_NVHPC_CUSOLVER: ${FFLAGS_NVHPC_CUSOLVER}")
 
 # C++ compiler
 list (APPEND SUPPORTED_CXX_COMPILERS "NVHPC")
@@ -828,11 +849,11 @@ set (CFLAGS_NVHPC_PROFILING "")
 set (CFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
 set (CFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
 set (CFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_NVHPC_RELEASE "-O2")
+set (CFLAGS_NVHPC_RELEASE "-O2 -Minfo")
 set (CFLAGS_NVHPC_FAST "-O2")
 # Fortran compiler
 list (APPEND SUPPORTED_Fortran_COMPILERS "NVHPC")
-set (FFLAGS_NVHPC_BASIC "-DNVHPC -Mbackslash -Mlist")
+set (FFLAGS_NVHPC_BASIC "-DNVHPC -Mbackslash -Mlist -Minform=inform")
 set (FFLAGS_NVHPC_PREPROCESS "-Mpreprocess")
 if(OMPTGT)
 set (FFLAGS_NVHPC_OPENMP "-mp=gpu")
@@ -847,19 +868,16 @@ set (FFLAGS_NVHPC_ILP64 "-i8")
 if(${GPU} STREQUAL "AMD")
    set (FFLAGS_NVHPC_ACC "-acc -DGPUAMD")
 else()
-   set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=cc80 -DGPUNVIDIA")
-endif()
-if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 24.11)
-set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -DCUSOLVERJ_INTERFACES -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
-else()
-set (FFLAGS_NVHPC_CUSOLVER "-DCUSOLVER -L/autofs/nccs-svm1_sw/summit/nvhpc_sdk/Linux_ppc64le/23.9/math_libs/12.2/targets/ppc64le-linux/lib -lcusolver")
+   set (FFLAGS_NVHPC_ACC "-acc -Minfo -gpu=cc89,maxregcount:64 -fast -DGPUNVIDIA")
+   #set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=cc89 -DGPUNVIDIA")
 endif()
 set (FFLAGS_NVHPC_MAGMA "-DMAGMA -I${MAGMAINC} -L${MAGMALIB} -lmagma")
 # Fortran build targets
 set (FFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
 set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_NVHPC_RELEASE "-O2")
+#set (FFLAGS_NVHPC_RELEASE "-O2 -Minform=inform")
+set (FFLAGS_NVHPC_RELEASE "-Minform=inform -acc -Minfo -gpu=cc89,maxregcount:64 -fast -DGPUNVIDIA")
 set (FFLAGS_NVHPC_FAST "-fast -fastsse")
 
 # Cray Compilers
@@ -1230,20 +1248,6 @@ endif()
 
 message(STATUS "Host: ${HOST} $ENV{CRAY}")
 
-if(HOST STREQUAL "CRUSHER")
-  if($ENV{CRAY} MATCHES "Y")
-#   list (APPEND EXTERNAL_LIBRARIES "-ltcmalloc")
-#   message(STATUS "Adding tcmalloc")
-  endif()
-endif()
-
-if(HOST STREQUAL "FRONTIER")
-  if($ENV{CRAY} MATCHES "Y")
-#   list (APPEND EXTERNAL_LIBRARIES "-ltcmalloc")
-#   message(STATUS "Adding tcmalloc")
-  endif()
-endif()
-
 message(STATUS "External libraries defined: ${EXTERNAL_LIBRARIES}")
 
 # Define the appropriate compiler flags
@@ -1315,10 +1319,6 @@ if(OPENOMP)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -DOMP")
 endif()
 
-if(OPENOMP)
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_OPENMP} -DOMP")
-endif()
-
 if(CUDA)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCUDA")
 endif()
@@ -1362,14 +1362,6 @@ endif()
 if(LAPACK)
   set (ENV{LAPACK} "Y")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_LAPACK}")
-endif()
-
-if(${PLATFORM} STREQUAL "PPC64")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
-endif()
-
-if(${PLATFORM} STREQUAL "LINUX64")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
 endif()
 
 if(${PLATFORM} STREQUAL "LINUX")
@@ -1789,3 +1781,4 @@ if(GUI)
     install_jar(${JAR_NAME} DESTINATION "${CMAKE_INSTALL_PREFIX}/jar")
   endif()
 endif()
+

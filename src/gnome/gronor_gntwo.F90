@@ -129,6 +129,26 @@ subroutine gronor_gntwo(lfndbg)
     enddo
 !$acc end kernels
 
+!!! 可选改动。上面的代码实际上外层循环就已经占满所有 sm。
+! !$acc parallel loop gang vector collapse(2) &
+! !$acc   reduction(+:tst)                    &
+! !$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx) &
+! !$acc   copyin(kl,intndx,jntndx)
+!     do ii=intndx,jntndx
+!       do jj=intndx,kl
+!         if (jj < ii) cycle
+!         intg=ndx(ii)+jj
+!         i=lab(1,ii)
+!         k=lab(2,ii)
+!         l=lab(1,jj)
+!         n=lab(2,jj)
+!         tst=tst+g(intg)*(sm(i,k)*sm(l,n) -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
+!             -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
+!             -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
+!       enddo
+!     enddo
+! !$acc end parallel
+
     ts=tst
 
     call timer_stop(31)

@@ -161,30 +161,12 @@ subroutine gronor_main()
 #ifdef USE_POSIXF
     call pxfgetlogin(user,len4,ierr4)
 #else
-#ifdef IBM
-    call hostnm_(host)
-    call getenv("USER",user)
-    call getenv("LMOD_FAMILY_COMPILER",lmodcomp)
-    call getenv("LMOD_FAMILY_COMPILER_VERSION",lmodcompv)
-    call getenv("LMOD_FAMILY_MPI",lmodmpi)
-    call getenv("LMOD_FAMILY_MPI_VERSION",lmodmpiv)
-#else
-#ifdef CRAY
-    call hostnm(host)
-    call getenv("USER",user)
-    call getenv("LMOD_FAMILY_COMPILER",lmodcomp)
-    call getenv("LMOD_FAMILY_COMPILER_VERSION",lmodcompv)
-    call getenv("LMOD_FAMILY_MPI",lmodmpi)
-    call getenv("LMOD_FAMILY_MPI_VERSION",lmodmpiv)
-#else
     call hostnm(host)
     call getlog(user)
     call getenv("LMOD_FAMILY_COMPILER",lmodcomp)
     call getenv("LMOD_FAMILY_COMPILER_VERSION",lmodcompv)
     call getenv("LMOD_FAMILY_MPI",lmodmpi)
     call getenv("LMOD_FAMILY_MPI_VERSION",lmodmpiv)
-#endif
-#endif
 #endif
 
     n=index(host,':')
@@ -252,21 +234,13 @@ subroutine gronor_main()
     lfntmp=29
 
     open(unit=lfnout,file=trim(filout),form='formatted',status='replace',err=996)
-
     open(unit=lfnpro,file=trim(filpro),form='formatted',status='unknown',err=996)
-
     open(unit=lfnday,file=trim(filday),form='formatted',status='replace',err=996)
-
     open(unit=lfntst,file=trim(filtst),form='formatted',status='unknown',err=996)
-
     open(unit=lfncpr,file=trim(filcpr),form='unformatted',status='unknown',err=996)
-
     open(unit=lfnarx,file=trim(filarx),form='formatted',status='unknown',err=996)
-
     open(unit=lfnxrx,file=trim(filxrx),form='formatted',status='unknown',position='append',err=996)
-
     open(unit=lfnrnk,file=trim(filrnk),form='formatted',status='replace',err=996)
-
     open(unit=lfncml,file=trim(filcml),form='formatted',status='replace',err=996)
 
     call gronor_prelude_cml()
@@ -2362,23 +2336,13 @@ subroutine gronor_main()
           write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),' mint2= ',mint2
           flush(lfndbg)
         endif
-#ifdef ACC
+
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
 !$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
 !$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
-#endif
-#ifdef OMPTGT
-!$omp target data map(to:g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$omp& map(alloc:a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
-!$omp& map(alloc:diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
-!$omp& map(alloc:diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl) &
-!$omp& map(alloc:tal,aaa0,tt0,aat0,ta0,ta1) &
-!$omp& map(alloc:diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
-#endif
-
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2393,13 +2357,8 @@ subroutine gronor_main()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
-        
-#ifdef ACC
 !$acc end data
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
+
       elseif(ntask.ne.0) then
         call gronor_memory_usage()
         if(managers.eq.0) then

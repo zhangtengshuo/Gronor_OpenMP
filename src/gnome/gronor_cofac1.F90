@@ -57,30 +57,55 @@
       endif
 
       call timer_start(41)
-      
       call gronor_svd()
-
       call timer_stop(41)
 
-      !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
-
-#ifdef ACC
-!$acc kernels present(u,w,a)
-#endif
-      do i=1,nelecs
-        do j=1,i
-          coef=0.0d0
-          do k=1,nelecs
-            coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
-          enddo
-          a(i,j)=coef
-          a(j,i)=coef
-        enddo
-      enddo
+  !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
+ !!! the MOST TIME COMSUMING CONSUMING loop if this subroutine!!!
+! !$acc kernels present(u,w,a)
+!   do i=1,nelecs
+!     do j=1,i
+!       coef=0.0d0
+!       do k=1,nelecs
+!         coef=coef+u(i,k)*w(k,j)+u(j,k)*w(k,i)
+!       enddo
+!       a(i,j)=coef
+!       a(j,i)=coef
+!     enddo
+!   enddo
+! !$acc end kernels
       
-#ifdef ACC
-!$acc end kernels
-#endif
+  ! "do j=1,i" 导致 j 依赖 i , 编译器无法有效并行化。
+  ! 直接写 “do j = 1, nelecs” ，计算量翻倍，但是有效并行，速度反而快。
+  ! 因为多出来的计算量是放在原来就没占满的计算单元上！
+
+  !$acc parallel loop gang vector collapse(2) present(u, w, a) 
+  do i = 1, nelecs
+    do j = 1, nelecs
+      coef = 0.0d0
+      !$acc loop seq reduction(+:coef)
+      do k = 1, nelecs
+        coef = coef + u(i,k) * w(k,j) + u(j,k) * w(k,i)
+      enddo
+      a(i,j) = coef
+    enddo
+  enddo
+
+  !可能的更快代码，但没有必要了。
+!   !$acc parallel loop gang vector collapse(2) present(u,w,a)
+! do i = 1, nelecs
+!   do j = 1, nelecs
+!     if (j <= i) then  ! 仅计算下三角
+!       coef = 0.0d0
+!       !$acc loop seq reduction(+:coef)
+!       do k = 1, nelecs
+!         coef = coef + u(i,k)*w(k,j) + u(j,k)*w(k,i)
+!       enddo
+!       a(i,j) = coef
+!       if (i /= j) a(j,i) = coef  ! 对称赋值
+!     endif
+!   enddo
+! enddo
       
       if(idbg.ge.90) then
 #ifdef ACC

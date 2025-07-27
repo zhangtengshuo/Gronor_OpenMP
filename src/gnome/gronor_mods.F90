@@ -329,11 +329,13 @@ module gnome_integrals
   integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
   integer :: igfr,igto
   real (kind=8), allocatable :: s(:,:),t(:),v(:),dqm(:,:)
+
 #ifdef SINGLEP
   real (kind=4), allocatable :: g(:),gg(:)
 #else
   real (kind=8), allocatable :: g(:),gg(:)
 #endif
+
   integer (kind=2), allocatable :: lab(:,:)
   integer (kind=8), allocatable :: ndx(:)
   integer (kind=8), allocatable :: ndxk(:)

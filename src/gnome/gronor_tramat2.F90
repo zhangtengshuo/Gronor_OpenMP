@@ -39,9 +39,9 @@ subroutine gronor_tramat2(lfndbg)
   if(idbg.ge.13) write(lfndbg,600)
 600 format(/,' Cofactor matrix transform to symmetry functions')
 
-#ifdef ACC
+
 !$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
-#endif
+
   do j=1,nbas
     diag(j)=0.0d0
     bdiag(j)=0.0d0
@@ -49,127 +49,87 @@ subroutine gronor_tramat2(lfndbg)
   enddo
 
   if(ising .ne. 0.) then
-
-
     !     transformation of diag and sdiag
 
     if(nalfa.ne.0) then
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+cdiag(k)*va(k,j)
         enddo
         diag(j)=sum
       enddo
-
     endif
 
     if(ntcla.ne.0) then
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum)
-#endif
         do k=1,ntcla
           kk=k+nalfa
           sum=sum+cdiag(kk)*va(k,j)
         enddo
         bdiag(j)=sum
       enddo
-
     endif
 
     if(nalfa.ne.nveca) then
       m1=nalfa+1
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum)
-#endif
         do k=m1,nveca
           kk=k+ntcla
           sum=sum+cdiag(kk)*va(k,j)
         enddo
         bdiag(j)=bdiag(j)+sum
       enddo
-
     endif
 
     if(nalfa.ne.0) then
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+csdiag(k)*vb(k,j)
         enddo
         w1(j)=sum
       enddo
-
     endif
 
     if(ntclb.ne.0) then
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum) private(kk)
-#endif
         do k=1,ntclb
           kk=k+nalfa
           sum=sum+csdiag(kk)*vb(k,j)
         enddo
         bsdiag(j)=sum
       enddo
-
     endif
 
     if(nalfa.ne.nvecb) then
       m1=nalfa+1
-
-#ifdef ACC
 !$acc loop private(sum)
-#endif
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum) private(kk)
-#endif
         do k=m1,nvecb
           kk=k+ntclb
           sum=sum+csdiag(kk)*vb(k,j)
         enddo
         bsdiag(j)=bsdiag(j)+sum
       enddo
-
     endif
 
-#ifdef ACC
 !$acc loop
-#endif
     do j=1,nbas
       csdiag(j)=w1(j)
     enddo
@@ -182,15 +142,11 @@ subroutine gronor_tramat2(lfndbg)
 
   if(nalfa.ne.0) then
 
-#ifdef ACC
 !$acc loop collapse(2) private(sum)
-#endif
     do i=1,nalfa
       do j=1,nbas
         sum=0.0d0
-#ifdef ACC
 !$acc loop reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+ta(i,k)*vb(k,j)
         enddo
@@ -198,9 +154,7 @@ subroutine gronor_tramat2(lfndbg)
       enddo
     enddo
 
-#ifdef ACC
 !$acc loop collapse(2)
-#endif
     do j=1,nbas
       do i=1,nalfa
         ta(i,j)=w2(i,j)
@@ -216,18 +170,14 @@ subroutine gronor_tramat2(lfndbg)
       do j=1,nbas
         sum=0.0d0
         if(ntclb.ne.0) then
-#ifdef ACC
 !$acc loop reduction(+:sum) private(kk)
-#endif
           do k=1,ntclb
             kk=k+nalfa
             sum=sum+ta(i,kk)*vb(k,j)
           enddo
         endif
         if(nalfa.ne.nvecb) then
-#ifdef ACC
 !$acc loop reduction(+:sum) private(kk)
-#endif
           do k=m1,nvecb
             kk=k+ntclb
             sum=sum+ta(i,kk)*vb(k,j)
@@ -248,15 +198,11 @@ subroutine gronor_tramat2(lfndbg)
 
   if(nalfa.ne.0) then
 
-#ifdef ACC
 !$acc loop collapse(2) private(sum)
-#endif
     do j=1,nbas
       do i=1,nbas
         sum=0.0
-#ifdef ACC
 !$acc loop seq reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+ta(k,j)*va(k,i)
         enddo
@@ -268,25 +214,19 @@ subroutine gronor_tramat2(lfndbg)
 
   if(nalfa.ne.nelecs) then
 
-#ifdef ACC
 !$acc loop collapse(2) private(sum)
-#endif
     do j=1,nbas
       do i=1,nbas
         sum=0.0d0
         if(ntcla.ne.0) then
-#ifdef ACC
 !$acc loop seq reduction(+:sum) private(kk)
-#endif
           do k=1,ntcla
             kk=k+nalfa
             sum=sum+ta(kk,j)*va(k,i)
           enddo
         endif
         if(nalfa.ne.nveca) then
-#ifdef ACC
 !$acc loop seq reduction(+:sum) private(kk)
-#endif
           do k=m1,nveca
             kk=k+ntcla
             sum=sum+ta(kk,j)*va(k,i)
@@ -296,9 +236,7 @@ subroutine gronor_tramat2(lfndbg)
       enddo
     enddo
 
-#ifdef ACC
 !$acc loop collapse(2)
-#endif
     do j=1,nbas
       do i=1,nbas
         ta(i,j)=w2(i,j)
@@ -307,9 +245,7 @@ subroutine gronor_tramat2(lfndbg)
 
   else
 
-#ifdef ACC
 !$acc loop collapse(2)
-#endif
     do j=1,nbas
       do i=1,nbas
         ta(i,j)=0.0d0
@@ -318,14 +254,10 @@ subroutine gronor_tramat2(lfndbg)
 
   endif
 
-#ifdef ACC
 !$acc end kernels
-#endif
+  
   if(idbg.gt.90) then
-#ifdef ACC
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
-#endif
-
     write(lfndbg,1601) nbas,nelecs
 1601 format(//,' diag:',3i6,/)
     do i=1,nbas

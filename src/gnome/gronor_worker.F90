@@ -25,6 +25,9 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
 
@@ -42,6 +45,7 @@ subroutine gronor_worker()
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17)
+  integer :: thread_id
 
   logical (kind=4) :: flag
 
@@ -91,7 +95,16 @@ subroutine gronor_worker()
   idet0=0
   jdet0=0
   
-  if(idbg.gt.50) then
+  icur=0
+  jcur=0
+
+#ifdef _OPENMP
+  call omp_set_num_threads(num_threads)
+!$omp parallel private(thread_id) copyin(icur,jcur)
+  thread_id = omp_get_thread_num()
+#endif
+
+  if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering solver initialization"
     flush(lfndbg)
@@ -99,7 +112,7 @@ subroutine gronor_worker()
 
   call gronor_solver_init(nelecs)
 
-  if(idbg.gt.50) then
+  if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
     flush(lfndbg)
@@ -108,16 +121,20 @@ subroutine gronor_worker()
 #ifdef ACC
 !$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
-  
+
   call gronor_worker_process()
-  
+
 #ifdef ACC
 !$acc end data
 #endif
-      
-  call gronor_update_device_info()
 
   call gronor_solver_finalize()
+
+#ifdef _OPENMP
+!$omp end parallel
+#endif
+
+  call gronor_update_device_info()
 
 !  if(otreq) then
 !    call MPI_Test(itreq,flag,status,ierr)

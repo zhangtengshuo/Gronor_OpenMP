@@ -37,7 +37,7 @@ subroutine gronor_environment()
 !  external :: MPI_AllReduce
 
   integer :: i,j,k,node
-  integer (kind=4) :: length, ierr, ncount
+  integer (kind=4) :: length, ierr, ncount, provided_thread_level
   !      integer (kind=4) :: istat
 
   integer :: getcpucount
@@ -66,10 +66,12 @@ subroutine gronor_environment()
   me=0
   np=1
 
-  call mpi_init(ierr)
-  !     call mpi_init_thread(MPI_THREAD_SINGLE,iout,ierr)
+  call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided_thread_level, ierr)
   call mpi_comm_rank(MPI_COMM_WORLD,me,ierr)
   call mpi_comm_size(MPI_COMM_WORLD,np,ierr)
+  if(provided_thread_level < MPI_THREAD_MULTIPLE) then
+    if(me == 0) write(*,*) 'Warning: MPI_THREAD_MULTIPLE not fully supported'
+  endif
 
   !     master process is last in the list to enable more effective
   !     allocation of the worker processors, starting at rank 0
@@ -210,7 +212,7 @@ subroutine gronor_environment()
   !     Set the device number
 
   numdev=-1
-  num_threads=1
+  num_threads=4
 
   memfre=0
   memtot=0

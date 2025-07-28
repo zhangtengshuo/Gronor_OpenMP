@@ -2201,6 +2201,7 @@ subroutine gronor_main()
       allocate(vb(nvecb,mbasel))
       allocate(veca(mbasel))
       allocate(vecb(mbasel))
+#ifndef _OPENMP
       allocate(ta(mbasel,max(mbasel,nveca)))
       allocate(taa(mbasel,max(mbasel,nveca)))
       allocate(aaa(mbasel,max(mbasel,nveca)))
@@ -2221,8 +2222,10 @@ subroutine gronor_main()
       allocate(bdiag(max(nelecs,nbas,mbasel)))
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
+#endif
 
-      if(nbatch.lt.0) then
+#ifndef _OPENMP
+        if(nbatch.lt.0) then
         allocate(prefac(ntask))
         allocate(diagl(ntask,nbas))
         allocate(bsdiagl(ntask,nbas))
@@ -2324,11 +2327,15 @@ subroutine gronor_main()
         allocate(tatl(1,1,1))
         allocate(prefac(1))
       endif
+#endif
+#endif
 
+#ifndef _OPENMP
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
       allocate(rwork(nelecs))
+#endif
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
@@ -2338,11 +2345,13 @@ subroutine gronor_main()
         endif
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
+#ifndef _OPENMP
 !$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
 !$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
 !$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
+!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
+#endif
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2369,9 +2378,10 @@ subroutine gronor_main()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
-      endif
-
-      if(nbatch.lt.0) then
+#endif
+      
+#ifndef _OPENMP
+        if(nbatch.lt.0) then
         deallocate(tal,tatl,aaal,aatl,ttl,sml)
         deallocate(csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(prefac)
@@ -2386,9 +2396,15 @@ subroutine gronor_main()
         deallocate(csdiag1,bdiag1,bsdiag1,diag1)
         deallocate(prefac1)
       endif
+#endif
+#ifndef _OPENMP
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
+#else
+      deallocate(aat,tt,sm)
+      deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
+#endif
       deallocate(s,st)
     endif
   endif

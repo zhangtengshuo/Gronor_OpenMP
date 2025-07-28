@@ -34,6 +34,8 @@ subroutine gronor_worker()
   external :: gronor_solver_init,gronor_solver_final
   external :: gronor_calculate
   external :: swatch,timer_start,timer_stop
+  external :: gronor_worker_thread_alloc
+  external :: gronor_worker_thread_dealloc
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
@@ -102,6 +104,9 @@ subroutine gronor_worker()
   call omp_set_num_threads(num_threads)
 !$omp parallel private(thread_id) copyin(icur,jcur)
   thread_id = omp_get_thread_num()
+  call gronor_worker_thread_alloc()
+#else
+  call gronor_worker_thread_alloc()
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then
@@ -119,7 +124,11 @@ subroutine gronor_worker()
   endif
 
 #ifdef ACC
-!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+!$acc data create(a,ta,w1,w2,u,w,wt,ev,rwork,diag,bdiag, &
+&diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal, &
+&sm0,aaa0,tt0,aat0,ta0,prefac0,prefac1,prefac, &
+&diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1,ta1, &
+&workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
 
   call gronor_worker_process()
@@ -129,6 +138,8 @@ subroutine gronor_worker()
 #endif
 
   call gronor_solver_finalize()
+
+  call gronor_worker_thread_dealloc()
 
 #ifdef _OPENMP
 !$omp end parallel
@@ -189,23 +200,21 @@ subroutine gronor_worker_process()
     flush(lfndbg)
   endif
 
-  !     If head thread signal master thread to start sending tasks
+  !     Each OpenMP thread signals the master it is ready to receive tasks
 
-  if(iamhead.eq.1) then
-    ncount=17
-    mpitag=1
-    call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
-    call MPI_Request_free(ireq,ierr)
-    if(idbg.gt.20) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
-      flush(lfndbg)
-    endif
-    if(idbg.gt.10) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
-      flush(lfndbg)
-    endif
+  ncount=17
+  mpitag=1
+  call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  call MPI_Request_free(ireq,ierr)
+  if(idbg.gt.20) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
+    flush(lfndbg)
+  endif
+  if(idbg.gt.10) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
+    flush(lfndbg)
   endif
 
   ibase=1
@@ -214,61 +223,16 @@ subroutine gronor_worker_process()
 
     call timer_start(39)
 
-    if(iamhead.eq.1) then
+    !     Receive next task directly from master
+    ncount=4
+    mpitag=2
+    call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 
-      !     Receive next task from master on head thread
-      ncount=4
-      mpitag=2
-      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
-
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-            me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
-        flush(lfndbg)
-      endif
-
-      !     Send task to other worker threads in the same group as current head thread
-
-      if(mgr.gt.1) then
-        
-        do i=1,mgr-1
-          ncount=4
-          mpidest=thisgroup(i+2)
-          mpitag=15
-          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
-          call MPI_Request_free(ireq,ierr)
-          if(idbg.gt.10) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-                me,' sent task to group rank ',thisgroup(i+2)
-            flush(lfndbg)
-          endif
-
-        enddo
-      endif
-
-    else
-
-      !     Receive task from head thread
-
-      if(idbg.gt.30) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-            me,' waiting for task from head rank ',thisgroup(2)
-        flush(lfndbg)
-      endif
-      ncount=4
-      mpidest=thisgroup(2)
-      mpitag=15
-      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-            me,' received task from head rank ',thisgroup(2)
-        flush(lfndbg)
-      endif
-
+    if(idbg.gt.10) then
+      call swatch(date,time)
+      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+          me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
+      flush(lfndbg)
     endif
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
@@ -391,21 +355,19 @@ subroutine gronor_worker_process()
         write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)          
       endif
       call timer_start(48)
-      if(iamhead.eq.1) then
-        !     call MPI_Wait(ireq,status,ierr)
-        do i=1,17
-          rbuf(i)=buffer(i)
-        enddo
-        ncount=17
-        mpitag=1
-        call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
-        call MPI_Request_free(ireq,ierr)
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              me,' sent results  ',mstr,(ibuf(i),i=1,4)
-          flush(lfndbg)
-        endif
+      !     Send results back to master
+      do i=1,17
+        rbuf(i)=buffer(i)
+      enddo
+      ncount=17
+      mpitag=1
+      call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+      call MPI_Request_free(ireq,ierr)
+      if(idbg.gt.10) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+            me,' sent results  ',mstr,(ibuf(i),i=1,4)
+        flush(lfndbg)
       endif
       call timer_stop(48)
     endif
@@ -415,3 +377,231 @@ subroutine gronor_worker_process()
 
   return
 end subroutine gronor_worker_process
+
+subroutine gronor_worker_thread_alloc()
+  use gnome_data
+  use gnome_parameters
+  implicit none
+
+  if(.not.allocated(a))      allocate(a(nelecs,nelecs))
+  if(.not.allocated(ta))     allocate(ta(mbasel,max(mbasel,nveca)))
+  if(.not.allocated(w1))     allocate(w1(max(nelecs,nbas,mbasel)))
+  if(.not.allocated(w2))     allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
+  if(.not.allocated(u))      allocate(u(nelecs,nelecs))
+  if(.not.allocated(w))      allocate(w(nelecs,nelecs))
+  if(.not.allocated(wt))     allocate(wt(nelecs,nelecs))
+  if(.not.allocated(ev))     allocate(ev(nelecs))
+  if(.not.allocated(rwork))  allocate(rwork(nelecs))
+  if(.not.allocated(diag))   allocate(diag(max(nelecs,nbas,mbasel)))
+  if(.not.allocated(bdiag))  allocate(bdiag(max(nelecs,nbas,mbasel)))
+
+  if(nbatch.lt.0) then
+    if(.not.allocated(prefac))  allocate(prefac(ntask))
+    if(.not.allocated(diagl))   allocate(diagl(ntask,nbas))
+    if(.not.allocated(bsdiagl)) allocate(bsdiagl(ntask,nbas))
+    if(.not.allocated(bdiagl))  allocate(bdiagl(ntask,nbas))
+    if(.not.allocated(csdiagl)) allocate(csdiagl(ntask,nbas))
+    if(.not.allocated(sml))     allocate(sml(ntask,nbas,nbas))
+    if(.not.allocated(tal))     allocate(tal(ntask,nbas,nbas))
+    if(.not.allocated(ttl))     allocate(ttl(ntask,nbas,nbas))
+    if(.not.allocated(aatl))    allocate(aatl(ntask,nbas,nbas))
+    if(.not.allocated(aaal))    allocate(aaal(ntask,nbas,nbas))
+    if(.not.allocated(tatl))    allocate(tatl(ntask,nbas,nbas))
+    if(.not.allocated(prefac0)) allocate(prefac0(1))
+    if(.not.allocated(sm0))     allocate(sm0(1,1,1))
+    if(.not.allocated(ta0))     allocate(ta0(1,1,1))
+    if(.not.allocated(tt0))     allocate(tt0(1,1,1))
+    if(.not.allocated(aat0))    allocate(aat0(1,1,1))
+    if(.not.allocated(aaa0))    allocate(aaa0(1,1,1))
+    if(.not.allocated(prefac1)) allocate(prefac1(1))
+    if(.not.allocated(diag1))   allocate(diag1(1,1))
+    if(.not.allocated(bsdiag1)) allocate(bsdiag1(1,1))
+    if(.not.allocated(bdiag1))  allocate(bdiag1(1,1))
+    if(.not.allocated(csdiag1)) allocate(csdiag1(1,1))
+    if(.not.allocated(sm1))     allocate(sm1(1,1,1))
+    if(.not.allocated(ta1))     allocate(ta1(1,1,1))
+    if(.not.allocated(tt1))     allocate(tt1(1,1,1))
+    if(.not.allocated(aat1))    allocate(aat1(1,1,1))
+    if(.not.allocated(aaa1))    allocate(aaa1(1,1,1))
+  elseif(nbatch.eq.0) then
+    if(.not.allocated(diagl))   allocate(diagl(1,1))
+    if(.not.allocated(bsdiagl)) allocate(bsdiagl(1,1))
+    if(.not.allocated(bdiagl))  allocate(bdiagl(1,1))
+    if(.not.allocated(csdiagl)) allocate(csdiagl(1,1))
+    if(.not.allocated(sml))     allocate(sml(1,1,1))
+    if(.not.allocated(tal))     allocate(tal(1,1,1))
+    if(.not.allocated(ttl))     allocate(ttl(1,1,1))
+    if(.not.allocated(aatl))    allocate(aatl(1,1,1))
+    if(.not.allocated(aaal))    allocate(aaal(1,1,1))
+    if(.not.allocated(tatl))    allocate(tatl(1,1,1))
+    if(.not.allocated(prefac))  allocate(prefac(1))
+    if(.not.allocated(prefac0)) allocate(prefac0(1))
+    if(.not.allocated(sm0))     allocate(sm0(1,1,1))
+    if(.not.allocated(ta0))     allocate(ta0(1,1,1))
+    if(.not.allocated(tt0))     allocate(tt0(1,1,1))
+    if(.not.allocated(aat0))    allocate(aat0(1,1,1))
+    if(.not.allocated(aaa0))    allocate(aaa0(1,1,1))
+    if(.not.allocated(prefac1)) allocate(prefac1(1))
+    if(.not.allocated(diag1))   allocate(diag1(1,1))
+    if(.not.allocated(bsdiag1)) allocate(bsdiag1(1,1))
+    if(.not.allocated(bdiag1))  allocate(bdiag1(1,1))
+    if(.not.allocated(csdiag1)) allocate(csdiag1(1,1))
+    if(.not.allocated(sm1))     allocate(sm1(1,1,1))
+    if(.not.allocated(ta1))     allocate(ta1(1,1,1))
+    if(.not.allocated(tt1))     allocate(tt1(1,1,1))
+    if(.not.allocated(aat1))    allocate(aat1(1,1,1))
+    if(.not.allocated(aaa1))    allocate(aaa1(1,1,1))
+  else
+    if(.not.allocated(prefac0)) allocate(prefac0(nbatch))
+    if(.not.allocated(prefac1)) allocate(prefac1(nbatch))
+    if(iamacc.eq.0) then
+      if(.not.allocated(sm0))   allocate(sm0(nbatch,nbas,nbas))
+      if(.not.allocated(ta0))   allocate(ta0(nbatch,nbas,nbas))
+      if(.not.allocated(tt0))   allocate(tt0(nbatch,nbas,nbas))
+      if(.not.allocated(aat0))  allocate(aat0(nbatch,nbas,nbas))
+      if(.not.allocated(aaa0))  allocate(aaa0(nbatch,nbas,nbas))
+      if(.not.allocated(diag1))   allocate(diag1(nbatch,nbas))
+      if(.not.allocated(bsdiag1)) allocate(bsdiag1(nbatch,nbas))
+      if(.not.allocated(bdiag1))  allocate(bdiag1(nbatch,nbas))
+      if(.not.allocated(csdiag1)) allocate(csdiag1(nbatch,nbas))
+      if(.not.allocated(sm1))   allocate(sm1(nbatch,nbas,nbas))
+      if(.not.allocated(ta1))   allocate(ta1(nbatch,nbas,nbas))
+      if(.not.allocated(tt1))   allocate(tt1(nbatch,nbas,nbas))
+      if(.not.allocated(aat1))  allocate(aat1(nbatch,nbas,nbas))
+      if(.not.allocated(aaa1))  allocate(aaa1(nbatch,nbas,nbas))
+    else
+      if(.not.allocated(sm0))   allocate(sm0(nbas,nbas,nbatch))
+      if(.not.allocated(ta0))   allocate(ta0(nbas,nbas,nbatch))
+      if(.not.allocated(tt0))   allocate(tt0(nbas,nbas,nbatch))
+      if(.not.allocated(aat0))  allocate(aat0(nbas,nbas,nbatch))
+      if(.not.allocated(aaa0))  allocate(aaa0(nbas,nbas,nbatch))
+      if(.not.allocated(diag1))   allocate(diag1(nbas,nbatch))
+      if(.not.allocated(bsdiag1)) allocate(bsdiag1(nbas,nbatch))
+      if(.not.allocated(bdiag1))  allocate(bdiag1(nbas,nbatch))
+      if(.not.allocated(csdiag1)) allocate(csdiag1(nbas,nbatch))
+      if(.not.allocated(sm1))   allocate(sm1(nbas,nbas,nbatch))
+      if(.not.allocated(ta1))   allocate(ta1(nbas,nbas,nbatch))
+      if(.not.allocated(tt1))   allocate(tt1(nbas,nbas,nbatch))
+      if(.not.allocated(aat1))  allocate(aat1(nbas,nbas,nbatch))
+      if(.not.allocated(aaa1))  allocate(aaa1(nbas,nbas,nbatch))
+    endif
+    if(.not.allocated(diagl))   allocate(diagl(1,1))
+    if(.not.allocated(bsdiagl)) allocate(bsdiagl(1,1))
+    if(.not.allocated(bdiagl))  allocate(bdiagl(1,1))
+    if(.not.allocated(csdiagl)) allocate(csdiagl(1,1))
+    if(.not.allocated(sml))     allocate(sml(1,1,1))
+    if(.not.allocated(tal))     allocate(tal(1,1,1))
+    if(.not.allocated(ttl))     allocate(ttl(1,1,1))
+    if(.not.allocated(aatl))    allocate(aatl(1,1,1))
+    if(.not.allocated(aaal))    allocate(aaal(1,1,1))
+    if(.not.allocated(tatl))    allocate(tatl(1,1,1))
+    if(.not.allocated(prefac))  allocate(prefac(1))
+  endif
+
+
+end subroutine gronor_worker_thread_alloc
+
+subroutine gronor_worker_thread_dealloc()
+  use gnome_data
+  use gnome_parameters
+  implicit none
+
+  if(allocated(a))      deallocate(a)
+  if(allocated(ta))     deallocate(ta)
+  if(allocated(w1))     deallocate(w1)
+  if(allocated(w2))     deallocate(w2)
+  if(allocated(u))      deallocate(u)
+  if(allocated(w))      deallocate(w)
+  if(allocated(wt))     deallocate(wt)
+  if(allocated(ev))     deallocate(ev)
+  if(allocated(rwork))  deallocate(rwork)
+  if(allocated(diag))   deallocate(diag)
+  if(allocated(bdiag))  deallocate(bdiag)
+
+  if(nbatch.lt.0) then
+    if(allocated(prefac))  deallocate(prefac)
+    if(allocated(diagl))   deallocate(diagl)
+    if(allocated(bsdiagl)) deallocate(bsdiagl)
+    if(allocated(bdiagl))  deallocate(bdiagl)
+    if(allocated(csdiagl)) deallocate(csdiagl)
+    if(allocated(sml))     deallocate(sml)
+    if(allocated(tal))     deallocate(tal)
+    if(allocated(ttl))     deallocate(ttl)
+    if(allocated(aatl))    deallocate(aatl)
+    if(allocated(aaal))    deallocate(aaal)
+    if(allocated(tatl))    deallocate(tatl)
+    if(allocated(prefac0)) deallocate(prefac0)
+    if(allocated(sm0))     deallocate(sm0)
+    if(allocated(ta0))     deallocate(ta0)
+    if(allocated(tt0))     deallocate(tt0)
+    if(allocated(aat0))    deallocate(aat0)
+    if(allocated(aaa0))    deallocate(aaa0)
+    if(allocated(prefac1)) deallocate(prefac1)
+    if(allocated(diag1))   deallocate(diag1)
+    if(allocated(bsdiag1)) deallocate(bsdiag1)
+    if(allocated(bdiag1))  deallocate(bdiag1)
+    if(allocated(csdiag1)) deallocate(csdiag1)
+    if(allocated(sm1))     deallocate(sm1)
+    if(allocated(ta1))     deallocate(ta1)
+    if(allocated(tt1))     deallocate(tt1)
+    if(allocated(aat1))    deallocate(aat1)
+    if(allocated(aaa1))    deallocate(aaa1)
+  elseif(nbatch.eq.0) then
+    if(allocated(diagl))   deallocate(diagl)
+    if(allocated(bsdiagl)) deallocate(bsdiagl)
+    if(allocated(bdiagl))  deallocate(bdiagl)
+    if(allocated(csdiagl)) deallocate(csdiagl)
+    if(allocated(sml))     deallocate(sml)
+    if(allocated(tal))     deallocate(tal)
+    if(allocated(ttl))     deallocate(ttl)
+    if(allocated(aatl))    deallocate(aatl)
+    if(allocated(aaal))    deallocate(aaal)
+    if(allocated(tatl))    deallocate(tatl)
+    if(allocated(prefac))  deallocate(prefac)
+    if(allocated(prefac0)) deallocate(prefac0)
+    if(allocated(sm0))     deallocate(sm0)
+    if(allocated(ta0))     deallocate(ta0)
+    if(allocated(tt0))     deallocate(tt0)
+    if(allocated(aat0))    deallocate(aat0)
+    if(allocated(aaa0))    deallocate(aaa0)
+    if(allocated(prefac1)) deallocate(prefac1)
+    if(allocated(diag1))   deallocate(diag1)
+    if(allocated(bsdiag1)) deallocate(bsdiag1)
+    if(allocated(bdiag1))  deallocate(bdiag1)
+    if(allocated(csdiag1)) deallocate(csdiag1)
+    if(allocated(sm1))     deallocate(sm1)
+    if(allocated(ta1))     deallocate(ta1)
+    if(allocated(tt1))     deallocate(tt1)
+    if(allocated(aat1))    deallocate(aat1)
+    if(allocated(aaa1))    deallocate(aaa1)
+  else
+    if(allocated(prefac0)) deallocate(prefac0)
+    if(allocated(prefac1)) deallocate(prefac1)
+    if(allocated(sm0))     deallocate(sm0)
+    if(allocated(ta0))     deallocate(ta0)
+    if(allocated(tt0))     deallocate(tt0)
+    if(allocated(aat0))    deallocate(aat0)
+    if(allocated(aaa0))    deallocate(aaa0)
+    if(allocated(diag1))   deallocate(diag1)
+    if(allocated(bsdiag1)) deallocate(bsdiag1)
+    if(allocated(bdiag1))  deallocate(bdiag1)
+    if(allocated(csdiag1)) deallocate(csdiag1)
+    if(allocated(sm1))     deallocate(sm1)
+    if(allocated(ta1))     deallocate(ta1)
+    if(allocated(tt1))     deallocate(tt1)
+    if(allocated(aat1))    deallocate(aat1)
+    if(allocated(aaa1))    deallocate(aaa1)
+    if(allocated(diagl))   deallocate(diagl)
+    if(allocated(bsdiagl)) deallocate(bsdiagl)
+    if(allocated(bdiagl))  deallocate(bdiagl)
+    if(allocated(csdiagl)) deallocate(csdiagl)
+    if(allocated(sml))     deallocate(sml)
+    if(allocated(tal))     deallocate(tal)
+    if(allocated(ttl))     deallocate(ttl)
+    if(allocated(aatl))    deallocate(aatl)
+    if(allocated(aaal))    deallocate(aaal)
+    if(allocated(tatl))    deallocate(tatl)
+    if(allocated(prefac))  deallocate(prefac)
+  endif
+
+end subroutine gronor_worker_thread_dealloc

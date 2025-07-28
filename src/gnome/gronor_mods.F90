@@ -257,6 +257,10 @@ module gnome_data
   real (kind=8), allocatable :: sm(:,:)
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
+!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm,&
+&diagl,bdiagl,csdiagl,bsdiagl,sml,prefac,aaal,aatl,ttl,tatl,tal,&
+&sm0,prefac0,aaa0,aat0,tt0,ta0,&
+&diag1,bdiag1,csdiag1,bsdiag1,sm1,prefac1,aaa1,aat1,tt1,ta1)
 
 #ifdef SINGLEP
   real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)

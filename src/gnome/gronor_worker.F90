@@ -395,6 +395,7 @@ subroutine gronor_worker_thread_alloc()
   if(.not.allocated(diag))   allocate(diag(max(nelecs,nbas,mbasel)))
   if(.not.allocated(bdiag))  allocate(bdiag(max(nelecs,nbas,mbasel)))
 
+
   ! Thread-local work arrays used by older batch scheme are allocated
   ! with minimal size as batching is no longer used.
   if(.not.allocated(prefac))  allocate(prefac(1))
@@ -424,6 +425,7 @@ subroutine gronor_worker_thread_alloc()
   if(.not.allocated(tt1))     allocate(tt1(1,1,1))
   if(.not.allocated(aat1))    allocate(aat1(1,1,1))
   if(.not.allocated(aaa1))    allocate(aaa1(1,1,1))
+
 
 end subroutine gronor_worker_thread_alloc
 

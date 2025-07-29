@@ -272,6 +272,8 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
+!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+
   integer :: ising
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
@@ -280,9 +282,11 @@ module gnome_data
   integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info
 
   real (kind=8) :: buffer(17)
+!$omp threadprivate(buffer,e2buff,e2summ)
 
   integer (kind=8) :: numdet,melen,memax,icur,jcur
   integer (kind=4), allocatable :: melist(:,:)
+!$omp threadprivate(icur,jcur,melist)
   integer (kind=8), allocatable :: ndxdet(:,:)
 
   real (kind=8) :: gbmelist
@@ -389,6 +393,7 @@ module gnome_solvers
   real (kind=8),allocatable :: workspace2_d(:)
   integer (kind=8), allocatable :: workspace_i(:)
   integer (kind=4), allocatable :: workspace_i4(:)
+!$omp threadprivate(workspace_d,workspace2_d,workspace_i,workspace_i4)
 !  character*1 :: jobz,uplo
   integer (kind=4) :: jobz,uplo
 end module gnome_solvers

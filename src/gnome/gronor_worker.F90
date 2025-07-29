@@ -25,12 +25,17 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
 
   external :: gronor_solver_init,gronor_solver_final
   external :: gronor_calculate
   external :: swatch,timer_start,timer_stop
+  external :: gronor_worker_thread_alloc
+  external :: gronor_worker_thread_dealloc
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
@@ -42,6 +47,7 @@ subroutine gronor_worker()
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17)
+  integer :: thread_id
 
   logical (kind=4) :: flag
 
@@ -49,7 +55,7 @@ subroutine gronor_worker()
     mstr=map2(me+1,9)
   endif
   
-  if(iamacc.eq.0.and.ntask.eq.0) return
+  if(ntask.eq.0) return
 
   otreq=.false.
 
@@ -91,7 +97,19 @@ subroutine gronor_worker()
   idet0=0
   jdet0=0
   
-  if(idbg.gt.50) then
+  icur=0
+  jcur=0
+
+#ifdef _OPENMP
+  call omp_set_num_threads(num_threads)
+!$omp parallel private(thread_id) copyin(icur,jcur)
+  thread_id = omp_get_thread_num()
+  call gronor_worker_thread_alloc()
+#else
+  call gronor_worker_thread_alloc()
+#endif
+
+  if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering solver initialization"
     flush(lfndbg)
@@ -99,25 +117,34 @@ subroutine gronor_worker()
 
   call gronor_solver_init(nelecs)
 
-  if(idbg.gt.50) then
+  if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
     flush(lfndbg)
   endif
 
 #ifdef ACC
-!$acc data create(rocinfo,workspace_d,workspace_i,workspace2_d,workspace_i4)
+
+!$acc data create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork, &
+&diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm, &
+&workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
-  
+
   call gronor_worker_process()
-  
+
 #ifdef ACC
 !$acc end data
 #endif
-      
-  call gronor_update_device_info()
 
   call gronor_solver_finalize()
+
+  call gronor_worker_thread_dealloc()
+
+#ifdef _OPENMP
+!$omp end parallel
+#endif
+
+  call gronor_update_device_info()
 
 !  if(otreq) then
 !    call MPI_Test(itreq,flag,status,ierr)
@@ -172,23 +199,21 @@ subroutine gronor_worker_process()
     flush(lfndbg)
   endif
 
-  !     If head thread signal master thread to start sending tasks
+  !     Each OpenMP thread signals the master it is ready to receive tasks
 
-  if(iamhead.eq.1) then
-    ncount=17
-    mpitag=1
-    call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
-    call MPI_Request_free(ireq,ierr)
-    if(idbg.gt.20) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
-      flush(lfndbg)
-    endif
-    if(idbg.gt.10) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
-      flush(lfndbg)
-    endif
+  ncount=17
+  mpitag=1
+  call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  call MPI_Request_free(ireq,ierr)
+  if(idbg.gt.20) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
+    flush(lfndbg)
+  endif
+  if(idbg.gt.10) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
+    flush(lfndbg)
   endif
 
   ibase=1
@@ -197,61 +222,16 @@ subroutine gronor_worker_process()
 
     call timer_start(39)
 
-    if(iamhead.eq.1) then
+    !     Receive next task directly from master
+    ncount=4
+    mpitag=2
+    call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 
-      !     Receive next task from master on head thread
-      ncount=4
-      mpitag=2
-      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
-
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-            me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
-        flush(lfndbg)
-      endif
-
-      !     Send task to other worker threads in the same group as current head thread
-
-      if(mgr.gt.1) then
-        
-        do i=1,mgr-1
-          ncount=4
-          mpidest=thisgroup(i+2)
-          mpitag=15
-          call MPI_iSend(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
-          call MPI_Request_free(ireq,ierr)
-          if(idbg.gt.10) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-                me,' sent task to group rank ',thisgroup(i+2)
-            flush(lfndbg)
-          endif
-
-        enddo
-      endif
-
-    else
-
-      !     Receive task from head thread
-
-      if(idbg.gt.30) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-            me,' waiting for task from head rank ',thisgroup(2)
-        flush(lfndbg)
-      endif
-      ncount=4
-      mpidest=thisgroup(2)
-      mpitag=15
-      call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-            me,' received task from head rank ',thisgroup(2)
-        flush(lfndbg)
-      endif
-
+    if(idbg.gt.10) then
+      call swatch(date,time)
+      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+          me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
+      flush(lfndbg)
     endif
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
@@ -374,21 +354,19 @@ subroutine gronor_worker_process()
         write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)          
       endif
       call timer_start(48)
-      if(iamhead.eq.1) then
-        !     call MPI_Wait(ireq,status,ierr)
-        do i=1,17
-          rbuf(i)=buffer(i)
-        enddo
-        ncount=17
-        mpitag=1
-        call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
-        call MPI_Request_free(ireq,ierr)
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              me,' sent results  ',mstr,(ibuf(i),i=1,4)
-          flush(lfndbg)
-        endif
+      !     Send results back to master
+      do i=1,17
+        rbuf(i)=buffer(i)
+      enddo
+      ncount=17
+      mpitag=1
+      call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+      call MPI_Request_free(ireq,ierr)
+      if(idbg.gt.10) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+            me,' sent results  ',mstr,(ibuf(i),i=1,4)
+        flush(lfndbg)
       endif
       call timer_stop(48)
     endif
@@ -398,3 +376,62 @@ subroutine gronor_worker_process()
 
   return
 end subroutine gronor_worker_process
+
+subroutine gronor_worker_thread_alloc()
+  use gnome_data
+  use gnome_parameters
+  implicit none
+
+  allocate(a(nelecs,nelecs))
+  allocate(ta(mbasel,max(mbasel,nveca)))
+  allocate(tb(mbasel,nvecb))
+  allocate(w1(max(nelecs,nbas,mbasel)))
+  allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
+  allocate(taa(mbasel,max(mbasel,nveca)))
+  allocate(u(nelecs,nelecs))
+  allocate(w(nelecs,nelecs))
+  allocate(wt(nelecs,nelecs))
+  allocate(ev(nelecs))
+  allocate(rwork(nelecs))
+  allocate(diag(max(nelecs,nbas,mbasel)))
+  allocate(bdiag(max(nelecs,nbas,mbasel)))
+  allocate(cdiag(max(nelecs,nbas,mbasel)))
+  allocate(bsdiag(max(nelecs,nbas,mbasel)))
+  allocate(csdiag(max(nelecs,nbas,mbasel)))
+  allocate(sdiag(max(nelecs,nbas,mbasel)))
+  allocate(aaa(mbasel,max(mbasel,nveca)))
+  allocate(tt(mbasel,max(mbasel,nveca)))
+  allocate(aat(mbasel,max(mbasel,nveca)))
+  allocate(sm(mbasel,max(mbasel,nveca)))
+
+end subroutine gronor_worker_thread_alloc
+
+subroutine gronor_worker_thread_dealloc()
+  use gnome_data
+  use gnome_parameters
+  implicit none
+
+  if(allocated(a))      deallocate(a)
+  if(allocated(ta))     deallocate(ta)
+  if(allocated(w1))     deallocate(w1)
+  if(allocated(w2))     deallocate(w2)
+  if(allocated(u))      deallocate(u)
+  if(allocated(w))      deallocate(w)
+  if(allocated(wt))     deallocate(wt)
+  if(allocated(ev))     deallocate(ev)
+  if(allocated(rwork))  deallocate(rwork)
+  if(allocated(diag))   deallocate(diag)
+  if(allocated(bdiag))  deallocate(bdiag)
+
+  if(allocated(cdiag))   deallocate(cdiag)
+  if(allocated(bsdiag))  deallocate(bsdiag)
+  if(allocated(csdiag))  deallocate(csdiag)
+  if(allocated(sdiag))   deallocate(sdiag)
+  if(allocated(taa))     deallocate(taa)
+  if(allocated(tb))      deallocate(tb)
+  if(allocated(aaa))     deallocate(aaa)
+  if(allocated(aat))     deallocate(aat)
+  if(allocated(tt))      deallocate(tt)
+  if(allocated(sm))      deallocate(sm)
+
+end subroutine gronor_worker_thread_dealloc

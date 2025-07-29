@@ -236,24 +236,38 @@ module gnome_data
   real (kind=8) :: e2buff,e2summ
   integer :: ttest
 
+  ! ntesta/ntestb count electrons on each fragment (closed + open shells) and must match
+  ! n1bas is the half-triangular dimension n_bas(n_bas+1)/2
+  ! nstdim and mbasel provide maximum array dimensions based on nelecs and nbas.
+  ! ijend stores the total number of determinant pairs for a base pair, 
+  ! it controls the task loops during parallel work distribution.
   integer :: ntesta,ntestb
   integer :: n1bas,nstdim,mbasel,ijend
   integer (kind=4) :: nelecs
-  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
-  real (kind=8), allocatable :: a(:,:)
+  
+  ! va/vb hold MO coefficients for the two fragments
+  ! tb is the intermediate matrix S⋅VB used to build the overlap matrix ta
+  ! After the MO overlap matrix ta is built, it is copied to a which serves as input to the SVD solver
+  ! The SVD produces singular vectors u and wt (transposed right-hand matrix). The transpose is stored in w
+  ! diag and sdiag are derived from specific columns of u and w when singular values fall below a threshold.
+  ! cdiag/csdiag store the same quantities for later reference
+  ! In gronor_tramat, the diagonal vectors and overlap matrices are transformed with va and vb
+  ! w1 and w2 are scratch arrays for accumulating intermediate sums
+  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)   
+  real (kind=8), allocatable :: ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
 
   real (kind=8), allocatable :: sdiag(:)
   real (kind=8), allocatable, target :: diag(:)
   real (kind=8), allocatable :: bsdiag(:),bdiag(:)
   real (kind=8), allocatable :: csdiag(:),cdiag(:)
-  real (kind=8), allocatable :: st(:)
-  real (kind=8), allocatable :: veca(:),vecb(:)
-  real (kind=8), allocatable :: s12d(:,:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
 
+  ! veca/vecb collect correlated orbitals for debugging (gronor_cororb.F90)
+  real (kind=8), allocatable :: veca(:),vecb(:)
+
+  ! The matrices taa, aaa, aat, tt, and sm are subsequently combined to compute the two-electron contributions in gronor_gntwo
   real (kind=8), allocatable :: taa(:,:)
-  real (kind=8), allocatable :: ta(:,:)
   real (kind=8), allocatable :: sm(:,:)
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
@@ -284,19 +298,22 @@ module gnome_integrals
 
   integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
   integer :: igfr,igto
-  real (kind=8), allocatable :: s(:,:),t(:),v(:),dqm(:,:)
+  real (kind=8), allocatable :: s(:,:)    ! 基函数间的重叠矩阵
+  real (kind=8), allocatable :: t(:)      ! 单电子动能积分
+  real (kind=8), allocatable :: v(:)      ! 核吸引积分
+  real (kind=8), allocatable :: dqm(:,:)  ! 偶极矩(前几列)和四极矩(其余列)积分
 
 #ifdef SINGLEP
-  real (kind=4), allocatable :: g(:),gg(:)
+  real (kind=4), allocatable :: g(:)!,gg(:)
 #else
-  real (kind=8), allocatable :: g(:),gg(:)
+  real (kind=8), allocatable :: g(:)!,gg(:) ! 双电子排斥积分
 #endif
 
-  integer (kind=2), allocatable :: lab(:,:)
-  integer (kind=8), allocatable :: ndx(:)
+  integer (kind=2), allocatable :: lab(:,:) !每个超索引对应的一对轨道索引
+  integer (kind=8), allocatable :: ndx(:)   !索引辅助数组，用于将轨道对转换为g和单电子积分中的位置
   integer (kind=8), allocatable :: ndxk(:)
-  integer, allocatable :: ig(:)
   integer (kind=4), allocatable :: ndxtv(:)
+  integer, allocatable :: ig(:)
   integer :: mbuf,mclab
   integer (kind=4) :: int_comm
   integer (kind=4), allocatable :: new_comm(:)

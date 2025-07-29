@@ -2052,7 +2052,6 @@ subroutine gronor_main()
       allocate(vec(mvec,mbasel,2))
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))
-      allocate(st(nstdim))
 
       allocate(va(nveca,mbasel))
       allocate(vb(nvecb,mbasel))
@@ -2062,7 +2061,6 @@ subroutine gronor_main()
       allocate(taa(mbasel,max(mbasel,nveca)))
       allocate(aaa(mbasel,max(mbasel,nveca)))
       allocate(tb(mbasel,nvecb))
-      allocate(s12d(mbasel,mbasel))
       allocate(tt(mbasel,max(mbasel,nveca)))
       allocate(aat(mbasel,max(mbasel,nveca)))
       allocate(sm(mbasel,max(mbasel,nveca)))
@@ -2141,8 +2139,8 @@ subroutine gronor_main()
 
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
-      deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
-      deallocate(s,st)
+      deallocate(tb,aaa,taa,ta,vecb,veca,vb,va)
+      deallocate(s)
     endif
   endif
 

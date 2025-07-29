@@ -36,9 +36,6 @@ subroutine gronor_evd()
   !! SOLVER_EISPACK      tred2 and tql2 as provided in the source code will run on the CPU
   !! SOLVER_MKL          dsyev from external an Intel MKL library will run on the CPU
   !! SOLVER_MKLD         dsyevd from external an Intel MKL library will run on the CPU
-  !! SOLVER_LAPACK       dsyevd from an external LAPACK library will run on the CPU
-  !! SOLVER_CUSOLVER     cusolverDnDsyevd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
-  !! SOLVER_CUSOLVERJ    cusolverDnDsyesvj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
   !!
   !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
   !!
@@ -65,22 +62,6 @@ subroutine gronor_evd()
   use mkl_solver
 #endif
 
-#ifdef LAPACK  
-  use lapack_solver
-#else
-#ifdef MAGMA
-  use magma
-  use magma_dfortran
-  use magma_solver
-#endif
-#endif
-  
-#ifdef CUSOLVER
-  use cusolverDn
-  use cuda_cusolver
-  use cudafor
-#endif
-
   ! variable declarations
 
   implicit none
@@ -89,22 +70,11 @@ subroutine gronor_evd()
 #ifdef MKL
   external :: dsyevd
 #endif
-#ifdef CUSOLVER
-  external cusolverdndsyevj
-#endif
-#ifdef MAGMA
-  integer (kind=4) :: magma_info
-#endif
   
   integer :: i,j
   integer :: ierr
 
   ! library specific declarations
-
-#ifdef CUSOLVER
-  character (len=1), target :: jobu, jobvt
-#endif
-
 
   if(iamacc.eq.1) then
      if(levcpu) then
@@ -157,118 +127,6 @@ subroutine gronor_evd()
     endif
  endif
 #endif 
-  
-! ============ LAPACK ===========
-#ifdef LAPACK
-  if(ev_solver.eq.SOLVER_LAPACK.or.ev_solver.eq.SOLVER_LAPACKD) then
-    ndimm=nelecs
-    if(ev_solver.eq.SOLVER_LAPACK) then
-      call dsyev('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl,ierr)
-    elseif(ev_solver.eq.SOLVER_LAPACKD) then
-      call dsyevd('N','L',ndimm,a,nelecs,diag,workspace_d,len_work_dbl, &
-          workspace_i,len_work_int,ierr)
-    endif
-  endif
-#endif 
-  
-! ============ MAGMA ===========
-#ifdef MAGMA
-  if(ev_solver.eq.SOLVER_MAGMA) then
-    if(iamacc.eq.1) then
-#ifdef ACC
-!$acc data create(workspace_d,workspace_i,workspace2_d)
-!$acc wait
-!!!!$acc host_data use_device(a,diag,workspace_d,workspace_i4,workspace2_d)
-#endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d,workspace_i4,workspace2_d)
-#endif    
-      ndimm=nelecs
-      ndim4=nelecs
-      lwork4=len_work_dbl
-      liwork4=len_work_int
-      call magmaf_dsyevd_gpu('N','L',ndim4,c_loc(a),ndim4,diag,workspace2_d,ndim4, &
-          workspace_d,lwork4,workspace_i4,liwork4,magma_info)
-#ifdef ACC
-!!!!$acc end host_data
-!$acc wait
-!$acc end data   
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
-    else        
-      ndimm=nelecs
-      ndim4=nelecs
-      lwork4=len_work_dbl
-      liwork4=len_work_int
-      call magmaf_dsyevd('N','L',ndim4,a,ndim4,diag, &
-      workspace_d,lwork4,workspace_i4,liwork4,magma_info)
-    endif
-  endif
-#endif 
-  
-  ! ========= CUSOLVER =========
-
-#ifdef CUSOLVER
-  if(ev_solver.eq.SOLVER_CUSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-    jobu = 'A'  ! all m columns of U
-    jobvt= 'A'  ! all m columns of VT
-#ifdef ACC
-!$acc data copy(dev_info_d) create(workspace_d)
-!$acc wait
-!$acc host_data use_device(a,diag,dev_info_d,workspace_d)
-#endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,diag,dev_info_d,workspace_d)
-#endif
-    cusolver_status = cusolverDnDsyevd(cusolver_handle, &
-        CUSOLVER_EIG_MODE_NOVECTOR,CUBLAS_FILL_MODE_LOWER, &
-        ndim,a,ndim,diag,workspace_d,int(len_work_dbl,kind=4),dev_info_d)
-#ifdef ACC
-!$acc end host_data
-!$acc wait
-!$acc end data   
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
-    if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'cusolverDnDsyevd failed',cusolver_status
-  endif
-
-#ifdef CUSOLVERJ
-  if(ev_solver.eq.SOLVER_CUSOLVERJ) then
-    ndim=nelecs
-    mdim=mbasel
-    jobz = CUSOLVER_EIG_MODE_NOVECTOR
-    uplo = CUBLAS_FILL_MODE_LOWER
-
-#ifdef ACC
-!$acc data copy(dev_info_d,syevj_params) create(workspace_d)
-!$acc host_data use_device(a,diag,dev_info_d,workspace_d,syevj_params)
-#endif
-#ifdef OMPTGT
-!$omp target data use_device_addr(a,ev,u,w,dev_info_d,workspace_d,syevj_params)
-#endif
-!    cusolver_status = cusolverDnDsyevj &
-!        (cusolver_handle, jobz, uplo, ndim,a,ndim,diag, &
-!        workspace_d,int(len_work_dbl,kind=4),dev_info_d,syevj_params)
-#ifdef ACC
-!$acc end host_data
-!$acc end data   
-#endif
-#ifdef OMPTGT
-!$omp end target data
-#endif
-    cusolver_status=cudaDeviceSynchronize()
-    if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'cusolverDnDsyevj failed',cusolver_status
-  endif
-#endif
-#endif
 
   if(iamacc.eq.1.and.levcpu) then
 #ifdef ACC

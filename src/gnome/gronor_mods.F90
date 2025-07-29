@@ -258,49 +258,24 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
-#ifdef SINGLEP
-  real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
-  real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-  real (kind=4), allocatable :: sml(:,:,:),prefac(:)
-  real (kind=4), allocatable :: aaal(:,:,:),aatl(:,:,:)
-  real (kind=4), allocatable :: ttl(:,:,:),tatl(:,:,:)
-  real (kind=4), allocatable :: tal(:,:,:)
-#else
   real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
   real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
   real (kind=8), allocatable :: sml(:,:,:),prefac(:)
   real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
   real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
   real (kind=8), allocatable :: tal(:,:,:)
-#endif
 
-#ifdef SINGLEP
-  real (kind=4), allocatable :: sm0(:,:,:),prefac0(:)
-  real (kind=4), allocatable :: aaa0(:,:,:),aat0(:,:,:)
-  real (kind=4), allocatable :: tt0(:,:,:)
-  real (kind=4), allocatable :: ta0(:,:,:)
-#else
   real (kind=8), allocatable :: sm0(:,:,:),prefac0(:)
   real (kind=8), allocatable :: aaa0(:,:,:),aat0(:,:,:)
   real (kind=8), allocatable :: tt0(:,:,:)
   real (kind=8), allocatable :: ta0(:,:,:)
-#endif
 
-#ifdef SINGLEP
-  real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
-  real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
-  real (kind=4), allocatable :: sm1(:,:,:),prefac1(:)
-  real (kind=4), allocatable :: aaa1(:,:,:),aat1(:,:,:)
-  real (kind=4), allocatable :: tt1(:,:,:)
-  real (kind=4), allocatable :: ta1(:,:,:)
-#else
   real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
   real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
   real (kind=8), allocatable :: sm1(:,:,:),prefac1(:)
   real (kind=8), allocatable :: aaa1(:,:,:),aat1(:,:,:)
   real (kind=8), allocatable :: tt1(:,:,:)
   real (kind=8), allocatable :: ta1(:,:,:)
-#endif
 
   integer :: ising
 
@@ -355,7 +330,6 @@ module gnome_integrals
 
 end module gnome_integrals
 
-#ifdef CUDA
 module cuda_functions
   use iso_c_binding
   interface
@@ -388,222 +362,6 @@ module cuda_functions
     end function cudaFree
   end interface
 end module cuda_functions
-#endif
-
-#ifdef CUSOLVER
-module cuda_cusolver
-
-  use cusolverDN
-  use cudafor
-
-  type gesvdjInfo
-    type(c_ptr) :: svInfo
-  end type gesvdjInfo
-
-  type syevjInfo
-    type(c_ptr) :: evInfo
-  end type syevjInfo
-
-  type(cusolverDnHandle) :: cusolver_handle
-  type(gesvdjInfo)       :: gesvdj_params
-  type(syevjInfo)        :: syevj_params
-  integer (kind=4)       :: cusolver_status
-  real (kind=8)          :: tol,residual
-  integer (kind=4)       :: max_sweeps,exec_sweeps
-  integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable :: workspace_d(:)
-  integer (kind=4) :: dev_info_d
-  integer(kind=cuda_stream_kind) :: stream
-
-#ifdef CUSOLVERJ_INTERFACES
-  
-  interface
-    integer(c_int) function cusolverDnCreateGesvdjInfo(info) &
-        bind(C,name='cusolverDnCreateGesvdjInfo')
-      import gesvdjInfo
-      type(gesvdjInfo) :: info
-    end function cusolverDnCreateGesvdjInfo
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjSetTolerance(info,tolerance) &
-        bind(C,name='cusolverDnXgesvdjSetTolerance')
-      use iso_c_binding
-      import gesvdjInfo
-      type(gesvdjInfo)       :: info
-      real(c_double), value  :: tolerance
-    end function cusolverDnXgesvdjSetTolerance
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjSetMaxSweeps(info,max_sweeps) &
-        bind(C,name='cusolverDnXgesvdjSetMaxSweeps')
-      use iso_c_binding
-      import gesvdjInfo
-      type(gesvdjInfo)       :: info
-      integer(c_int),value   :: max_sweeps
-    end function cusolverDnXgesvdjSetMaxSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjGetSweeps(cusolver_Hndl,info,executed_sweeps) &
-        bind(C,name='cusolverDnXgesvdjGetSweeps')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(gesvdjInfo)              :: info
-      integer(c_int)                :: executed_sweeps
-    end function cusolverDnXgesvdjGetSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjGetResidual(cusolver_Hndl,info,residual) &
-        bind(C,name='cusolverDnXgesvdjGetResidual')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(gesvdjInfo)              :: info
-      real(c_double)                :: residual
-    end function cusolverDnXgesvdjGetResidual
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDgesvdj_bufferSize(cusolver_Hndl,jobz,econ, &
-        m,n,a,lda,s,u,ldu,v,ldv,lwork,info) bind(C,name='cusolverDnDgesvdj_bufferSize')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value    :: jobz
-      integer(c_int), value    :: econ
-      integer(c_int), value    :: m,n,lda,ldu,ldv
-      integer(c_int)           :: lwork
-#ifdef ACC
-      real(c_double), device   :: a(:,:),s(:),u(:,:),v(:,:)
-#else
-      real(c_double)           :: a(:,:),s(:),u(:,:),v(:,:)
-#endif
-      type(gesvdjInfo)         :: info
-    end function cusolverDnDgesvdj_bufferSize
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDgesvdj(cusolver_Hndl,jobz,econ,m,n,a,lda,s,u,ldu,v,ldv, &
-        work,lwork,devinfo,info ) bind(C,name='cusolverDnDgesvdj')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value   :: jobz
-      integer(c_int), value   :: econ,m,n,lda,ldu,ldv
-#ifdef ACC
-      real(c_double), device  :: a(:,:),s(:),u(:,:),v(:,:),work(:)
-#else
-      real(c_double)          :: a(:,:),s(:),u(:,:),v(:,:),work(:)
-#endif
-      integer(c_int)          :: lwork
-      integer(c_int)          :: devinfo
-      type(gesvdjInfo)        :: info
-    end function cusolverDnDgesvdj
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnCreateSyevjInfo(info) bind(C,name='cusolverDnCreateSyevjInfo')
-      import syevjInfo
-      type(syevjInfo) :: info
-    end function cusolverDnCreateSyevjInfo
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjSetTolerance(info,tolerance) &
-        bind(C,name='cusolverDnXsyevjSetTolerance')
-      use iso_c_binding
-      import syevjInfo
-      type(syevjInfo)        :: info
-      real(c_double), value  :: tolerance
-    end function cusolverDnXsyevjSetTolerance
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjSetMaxSweeps(info,max_sweeps) &
-        bind(C,name='cusolverDnXsyevjSetMaxSweeps')
-      use iso_c_binding
-      import syevjInfo
-      type(syevjInfo)       :: info
-      integer(c_int),value  :: max_sweeps
-    end function cusolverDnXsyevjSetMaxSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjGetSweeps(cusolver_Hndl,info,executed_sweeps) &
-        bind(C,name='cusolverDnXsyevjGetSweeps')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(syevjInfo)               :: info
-      integer(c_int)                :: executed_sweeps
-    end function cusolverDnXsyevjGetSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjGetResidual(cusolver_Hndl,info,residual) &
-        bind(C,name='cusolverDnXsyevjGetResidual')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(syevjInfo)               :: info
-      real(c_double)                :: residual
-    end function cusolverDnXsyevjGetResidual
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDsyevj_bufferSize(cusolver_Hndl,jobz,uplo, &
-        n,a,lda,v,lwork,info) bind(C,name='cusolverDnDsyevj_bufferSize')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value         :: jobz
-      integer(c_int), value         :: uplo
-      integer(c_int), value         :: n,lda
-      integer(c_int)                :: lwork
-#ifdef ACC
-      real(c_double) , device       :: a(:,:),v(:)
-#else
-      real(c_double)                :: a(:,:),v(:)
-#endif
-      type(syevjInfo)               :: info
-    end function cusolverDnDsyevj_bufferSize
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDsyevj(cusolver_Hndl,jobz,uplo,n,a,lda,v,work,lwork, &
-        devinfo,info) bind(C,name='cusolverDnDsyevj')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value   :: jobz
-      integer(c_int), value   :: uplo
-      integer(c_int), value   :: n,lda
-#ifdef ACC
-      real(c_double), device  :: a(:,:),v(:),work(:)
-#else
-      real(c_double)          :: a(:,:),v(:),work(:)
-#endif
-      integer(c_int)          :: lwork
-      integer(c_int)          :: devinfo
-      type(syevjInfo)         :: info
-    end function cusolverDnDsyevj
-  end interface
-#endif
-
-end module cuda_cusolver
-#endif
 
 #ifdef MKL
 module mkl_solver
@@ -616,53 +374,12 @@ module mkl_solver
 end module mkl_solver
 #endif
 
-#ifdef LAPACK
-module lapack_solver
-!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-!  real(kind=8), allocatable :: work(:)
-!  integer(kind=8), allocatable :: iwork(:)
-!  real (kind=8),allocatable :: workspace_d(:)
-!  integer (kind=8), allocatable :: workspace_i(:)
-!  character*1 :: jobz,uplo
-   integer (kind=8) :: nofunction
-end module lapack_solver
-#else
-#ifdef MAGMA
-module magma_solver
-!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-!  real(kind=8), allocatable :: work(:)
-!  integer(kind=8), allocatable :: iwork(:)
-!  real (kind=8),allocatable :: workspace_d(:)
-!  integer (kind=8), allocatable :: workspace_i(:)
-!  character*1 :: jobz,uplo
-end module magma_solver
-#endif
-#endif
-
 module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
-    enumerator SOLVER_LAPACK
-    enumerator SOLVER_LAPACKQ
-    enumerator SOLVER_LAPACKD
-    enumerator SOLVER_LAPACKJ
-    enumerator SOLVER_LAPACKJH
     enumerator SOLVER_MKL
     enumerator SOLVER_MKLD
     enumerator SOLVER_MKLJ
-    enumerator SOLVER_CUSOLVER
-    enumerator SOLVER_CUSOLVERJ
-    enumerator SOLVER_HIPSOLVER
-    enumerator SOLVER_HIPSOLVERJ
-    enumerator SOLVER_ROCSOLVER
-    enumerator SOLVER_ROCSOLVERD
-    enumerator SOLVER_ROCSOLVERJ
-    enumerator SOLVER_ROCSOLVERX
-    enumerator SOLVER_MAGMA
-    enumerator SOLVER_MAGMAD
-    enumerator SOLVER_SLATE
-    enumerator SOLVER_CRAYLIBSCID_CPU
-    enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
 
   integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8

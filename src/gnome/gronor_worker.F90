@@ -124,6 +124,7 @@ subroutine gronor_worker()
   endif
 
 #ifdef ACC
+
 !$acc data create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork, &
 &diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm, &
 &workspace_d,workspace_i,workspace2_d,workspace_i4)
@@ -432,6 +433,5 @@ subroutine gronor_worker_thread_dealloc()
   if(allocated(aat))     deallocate(aat)
   if(allocated(tt))      deallocate(tt)
   if(allocated(sm))      deallocate(sm)
-
 
 end subroutine gronor_worker_thread_dealloc

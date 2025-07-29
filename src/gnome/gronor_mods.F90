@@ -257,51 +257,8 @@ module gnome_data
   real (kind=8), allocatable :: sm(:,:)
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
+
 !$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
-
-#ifdef SINGLEP
-  real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
-  real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-  real (kind=4), allocatable :: sml(:,:,:),prefac(:)
-  real (kind=4), allocatable :: aaal(:,:,:),aatl(:,:,:)
-  real (kind=4), allocatable :: ttl(:,:,:),tatl(:,:,:)
-  real (kind=4), allocatable :: tal(:,:,:)
-#else
-  real (kind=8), allocatable :: diagl(:,:),bdiagl(:,:)
-  real (kind=8), allocatable :: csdiagl(:,:),bsdiagl(:,:)
-  real (kind=8), allocatable :: sml(:,:,:),prefac(:)
-  real (kind=8), allocatable :: aaal(:,:,:),aatl(:,:,:)
-  real (kind=8), allocatable :: ttl(:,:,:),tatl(:,:,:)
-  real (kind=8), allocatable :: tal(:,:,:)
-#endif
-
-#ifdef SINGLEP
-  real (kind=4), allocatable :: sm0(:,:,:),prefac0(:)
-  real (kind=4), allocatable :: aaa0(:,:,:),aat0(:,:,:)
-  real (kind=4), allocatable :: tt0(:,:,:)
-  real (kind=4), allocatable :: ta0(:,:,:)
-#else
-  real (kind=8), allocatable :: sm0(:,:,:),prefac0(:)
-  real (kind=8), allocatable :: aaa0(:,:,:),aat0(:,:,:)
-  real (kind=8), allocatable :: tt0(:,:,:)
-  real (kind=8), allocatable :: ta0(:,:,:)
-#endif
-
-#ifdef SINGLEP
-  real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
-  real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
-  real (kind=4), allocatable :: sm1(:,:,:),prefac1(:)
-  real (kind=4), allocatable :: aaa1(:,:,:),aat1(:,:,:)
-  real (kind=4), allocatable :: tt1(:,:,:)
-  real (kind=4), allocatable :: ta1(:,:,:)
-#else
-  real (kind=8), allocatable :: diag1(:,:),bdiag1(:,:)
-  real (kind=8), allocatable :: csdiag1(:,:),bsdiag1(:,:)
-  real (kind=8), allocatable :: sm1(:,:,:),prefac1(:)
-  real (kind=8), allocatable :: aaa1(:,:,:),aat1(:,:,:)
-  real (kind=8), allocatable :: tt1(:,:,:)
-  real (kind=8), allocatable :: ta1(:,:,:)
-#endif
 
   integer :: ising
 

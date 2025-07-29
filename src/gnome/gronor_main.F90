@@ -2082,33 +2082,7 @@ subroutine gronor_main()
       if(nbatch < 0) then
         !not possible to go in here
       elseif(nbatch == 0) then
-        allocate(diagl(1,1))
-        allocate(bsdiagl(1,1))
-        allocate(bdiagl(1,1))
-        allocate(csdiagl(1,1))
-        allocate(sml(1,1,1))
-        allocate(tal(1,1,1))
-        allocate(ttl(1,1,1))
-        allocate(aatl(1,1,1))
-        allocate(aaal(1,1,1))
-        allocate(tatl(1,1,1))
-        allocate(prefac(1))
-        allocate(prefac0(1))
-        allocate(sm0(1,1,1))
-        allocate(ta0(1,1,1))
-        allocate(tt0(1,1,1))
-        allocate(aat0(1,1,1))
-        allocate(aaa0(1,1,1))
-        allocate(prefac1(1))
-        allocate(diag1(1,1))
-        allocate(bsdiag1(1,1))
-        allocate(bdiag1(1,1))
-        allocate(csdiag1(1,1))
-        allocate(sm1(1,1,1))
-        allocate(ta1(1,1,1))
-        allocate(tt1(1,1,1))
-        allocate(aat1(1,1,1))
-        allocate(aaa1(1,1,1))
+        !default no batch
       else
         ! batched
         ! Thanks! NO!
@@ -2128,10 +2102,7 @@ subroutine gronor_main()
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
 !$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
-!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
-!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
-!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1) 
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2164,12 +2135,10 @@ subroutine gronor_main()
         ! not possible 
       elseif(nbatch == 0) then
         ! default no batch
-        deallocate(tal,tatl,aaal,aatl,ttl,sml)
-        deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
       else
         ! Thanks! But no! We DO NOT USE Batch
       endif
+
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
       deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)

@@ -260,40 +260,11 @@ subroutine gronor_input()
           iaslvr=SOLVER_MKLD
         elseif(inp_compare(.false.,item,'MKLJ')) then
           iaslvr=SOLVER_MKLJ
-        elseif(inp_compare(.false.,item,'LAPACK')) then
-          iaslvr=SOLVER_LAPACK
-        elseif(inp_compare(.false.,item,'LAPACKQ')) then
-          iaslvr=SOLVER_LAPACKQ
-        elseif(inp_compare(.false.,item,'LAPACKD')) then
-          iaslvr=SOLVER_LAPACKD
-        elseif(inp_compare(.false.,item,'LAPACKJ')) then
-          iaslvr=SOLVER_LAPACKJ
-        elseif(inp_compare(.false.,item,'LAPACKJH')) then
-          iaslvr=SOLVER_LAPACKJ
-        elseif(inp_compare(.false.,item,'MAGMA')) then
-          iaslvr=SOLVER_MAGMA
-        elseif(inp_compare(.false.,item,'CUSOLVER')) then
-          iaslvr=SOLVER_CUSOLVER
-        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
-          iaslvr=SOLVER_CUSOLVERJ
-        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
-          iaslvr=SOLVER_ROCSOLVER
-        elseif(inp_compare(.false.,item,'ROCSOLVERX')) then
-          iaslvr=SOLVER_ROCSOLVERX
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_CPU')) then
-          iaslvr=SOLVER_CRAYLIBSCID_CPU
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_ACC')) then
-          iaslvr=SOLVER_CRAYLIBSCID_ACC
         else
           call gronor_abort(123,"Input error Solver")
         endif
         if(.not.inp_a(item)) then
           inslvr=iaslvr
-          if(iaslvr.eq.SOLVER_CUSOLVER) inslvr=SOLVER_EISPACK
-          if(iaslvr.eq.SOLVER_CUSOLVERJ) inslvr=SOLVER_EISPACK
-          if(iaslvr.eq.SOLVER_ROCSOLVER) inslvr=SOLVER_EISPACK
-          if(iaslvr.eq.SOLVER_ROCSOLVERX) inslvr=SOLVER_EISPACK
-          if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) inslvr=SOLVER_EISPACK
           goto 1
         endif
         if(inp_compare(.false.,item,'EISPACK')) then
@@ -304,14 +275,6 @@ subroutine gronor_input()
           inslvr=SOLVER_MKLD
         elseif(inp_compare(.false.,item,'MKLJ')) then
           inslvr=SOLVER_MKLJ
-        elseif(inp_compare(.false.,item,'LAPACK')) then
-          inslvr=SOLVER_LAPACK
-        elseif(inp_compare(.false.,item,'LAPACKD')) then
-          inslvr=SOLVER_LAPACKD
-        elseif(inp_compare(.false.,item,'LAPACKJ')) then
-          inslvr=SOLVER_LAPACKJ
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_CPU')) then
-          inslvr=SOLVER_CRAYLIBSCID_CPU
         else
           inslvr=iaslvr
           goto 5
@@ -328,39 +291,11 @@ subroutine gronor_input()
           jaslvr=SOLVER_MKLD
         elseif(inp_compare(.false.,item,'MKLJ')) then
           jaslvr=SOLVER_MKLJ
-        elseif(inp_compare(.false.,item,'LAPACK')) then
-          jaslvr=SOLVER_LAPACK
-        elseif(inp_compare(.false.,item,'LAPACKD')) then
-          jaslvr=SOLVER_LAPACKD
-        elseif(inp_compare(.false.,item,'LAPACKJ')) then
-          jaslvr=SOLVER_LAPACKJ
-        elseif(inp_compare(.false.,item,'MAGMA')) then
-          jaslvr=SOLVER_MAGMA
-        elseif(inp_compare(.false.,item,'CUSOLVER')) then
-          jaslvr=SOLVER_CUSOLVER
-        elseif(inp_compare(.false.,item,'CUSOLVERJ')) then
-          jaslvr=SOLVER_CUSOLVERJ
-        elseif(inp_compare(.false.,item,'ROCSOLVER')) then
-          jaslvr=SOLVER_ROCSOLVER
-        elseif(inp_compare(.false.,item,'ROCSOLVERD')) then
-          jaslvr=SOLVER_ROCSOLVERD
-        elseif(inp_compare(.false.,item,'ROCSOLVERX')) then
-          jaslvr=SOLVER_ROCSOLVERX
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_CPU')) then
-          jaslvr=SOLVER_CRAYLIBSCID_CPU
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_ACC')) then
-          jaslvr=SOLVER_CRAYLIBSCID_ACC
         else
           call gronor_abort(123,"Input error Solver")
         endif
         if(.not.inp_a(item)) then
           jnslvr=jaslvr
-          if(jaslvr.eq.SOLVER_CUSOLVER) jnslvr=SOLVER_EISPACK
-          if(jaslvr.eq.SOLVER_CUSOLVERJ) jnslvr=SOLVER_EISPACK
-          if(jaslvr.eq.SOLVER_ROCSOLVER) jnslvr=SOLVER_EISPACK
-          if(jaslvr.eq.SOLVER_ROCSOLVERD) jnslvr=SOLVER_EISPACK
-          if(jaslvr.eq.SOLVER_ROCSOLVERX) jnslvr=SOLVER_EISPACK
-          if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) jnslvr=SOLVER_EISPACK
           goto 1
         endif
         if(inp_compare(.false.,item,'EISPACK')) then
@@ -371,14 +306,6 @@ subroutine gronor_input()
           jnslvr=SOLVER_MKLD
         elseif(inp_compare(.false.,item,'MKLJ')) then
           jnslvr=SOLVER_MKLJ
-        elseif(inp_compare(.false.,item,'LAPACK')) then
-          jnslvr=SOLVER_LAPACK
-        elseif(inp_compare(.false.,item,'LAPACKD')) then
-          jnslvr=SOLVER_LAPACKD
-        elseif(inp_compare(.false.,item,'LAPACKJ')) then
-          jnslvr=SOLVER_LAPACKJ
-        elseif(inp_compare(.false.,item,'CRAYLIBSCID_CPU')) then
-          jnslvr=SOLVER_CRAYLIBSCID_CPU
         else
           jnslvr=jaslvr
           goto 5

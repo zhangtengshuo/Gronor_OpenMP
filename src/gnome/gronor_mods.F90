@@ -236,24 +236,38 @@ module gnome_data
   real (kind=8) :: e2buff,e2summ
   integer :: ttest
 
+  ! ntesta/ntestb count electrons on each fragment (closed + open shells) and must match
+  ! n1bas is the half-triangular dimension n_bas(n_bas+1)/2
+  ! nstdim and mbasel provide maximum array dimensions based on nelecs and nbas.
+  ! ijend stores the total number of determinant pairs for a base pair, 
+  ! it controls the task loops during parallel work distribution.
   integer :: ntesta,ntestb
   integer :: n1bas,nstdim,mbasel,ijend
   integer (kind=4) :: nelecs
-  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)
-  real (kind=8), allocatable :: a(:,:)
+  
+  ! va/vb hold MO coefficients for the two fragments
+  ! tb is the intermediate matrix S⋅VB used to build the overlap matrix ta
+  ! After the MO overlap matrix ta is built, it is copied to a which serves as input to the SVD solver
+  ! The SVD produces singular vectors u and wt (transposed right-hand matrix). The transpose is stored in w
+  ! diag and sdiag are derived from specific columns of u and w when singular values fall below a threshold.
+  ! cdiag/csdiag store the same quantities for later reference
+  ! In gronor_tramat, the diagonal vectors and overlap matrices are transformed with va and vb
+  ! w1 and w2 are scratch arrays for accumulating intermediate sums
+  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)   
+  real (kind=8), allocatable :: ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
 
   real (kind=8), allocatable :: sdiag(:)
   real (kind=8), allocatable, target :: diag(:)
   real (kind=8), allocatable :: bsdiag(:),bdiag(:)
   real (kind=8), allocatable :: csdiag(:),cdiag(:)
-  real (kind=8), allocatable :: st(:)
-  real (kind=8), allocatable :: veca(:),vecb(:)
-  real (kind=8), allocatable :: s12d(:,:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
 
+  ! veca/vecb collect correlated orbitals for debugging (gronor_cororb.F90)
+  real (kind=8), allocatable :: veca(:),vecb(:)
+
+  ! The matrices taa, aaa, aat, tt, and sm are subsequently combined to compute the two-electron contributions in gronor_gntwo
   real (kind=8), allocatable :: taa(:,:)
-  real (kind=8), allocatable :: ta(:,:)
   real (kind=8), allocatable :: sm(:,:)
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
@@ -288,19 +302,22 @@ module gnome_integrals
 
   integer :: intone,int1,int2,mint2,nt(3),myints(7),intndx,jntndx
   integer :: igfr,igto
-  real (kind=8), allocatable :: s(:,:),t(:),v(:),dqm(:,:)
+  real (kind=8), allocatable :: s(:,:)    ! 基函数间的重叠矩阵
+  real (kind=8), allocatable :: t(:)      ! 单电子动能积分
+  real (kind=8), allocatable :: v(:)      ! 核吸引积分
+  real (kind=8), allocatable :: dqm(:,:)  ! 偶极矩(前几列)和四极矩(其余列)积分
 
 #ifdef SINGLEP
-  real (kind=4), allocatable :: g(:),gg(:)
+  real (kind=4), allocatable :: g(:)!,gg(:)
 #else
-  real (kind=8), allocatable :: g(:),gg(:)
+  real (kind=8), allocatable :: g(:)!,gg(:) ! 双电子排斥积分
 #endif
 
-  integer (kind=2), allocatable :: lab(:,:)
-  integer (kind=8), allocatable :: ndx(:)
+  integer (kind=2), allocatable :: lab(:,:) !每个超索引对应的一对轨道索引
+  integer (kind=8), allocatable :: ndx(:)   !索引辅助数组，用于将轨道对转换为g和单电子积分中的位置
   integer (kind=8), allocatable :: ndxk(:)
-  integer, allocatable :: ig(:)
   integer (kind=4), allocatable :: ndxtv(:)
+  integer, allocatable :: ig(:)
   integer :: mbuf,mclab
   integer (kind=4) :: int_comm
   integer (kind=4), allocatable :: new_comm(:)
@@ -315,7 +332,6 @@ module gnome_integrals
 
 end module gnome_integrals
 
-#ifdef CUDA
 module cuda_functions
   use iso_c_binding
   interface
@@ -348,222 +364,6 @@ module cuda_functions
     end function cudaFree
   end interface
 end module cuda_functions
-#endif
-
-#ifdef CUSOLVER
-module cuda_cusolver
-
-  use cusolverDN
-  use cudafor
-
-  type gesvdjInfo
-    type(c_ptr) :: svInfo
-  end type gesvdjInfo
-
-  type syevjInfo
-    type(c_ptr) :: evInfo
-  end type syevjInfo
-
-  type(cusolverDnHandle) :: cusolver_handle
-  type(gesvdjInfo)       :: gesvdj_params
-  type(syevjInfo)        :: syevj_params
-  integer (kind=4)       :: cusolver_status
-  real (kind=8)          :: tol,residual
-  integer (kind=4)       :: max_sweeps,exec_sweeps
-  integer (kind=4), parameter :: econ=0
-  real (kind=8), allocatable :: workspace_d(:)
-  integer (kind=4) :: dev_info_d
-  integer(kind=cuda_stream_kind) :: stream
-
-#ifdef CUSOLVERJ_INTERFACES
-  
-  interface
-    integer(c_int) function cusolverDnCreateGesvdjInfo(info) &
-        bind(C,name='cusolverDnCreateGesvdjInfo')
-      import gesvdjInfo
-      type(gesvdjInfo) :: info
-    end function cusolverDnCreateGesvdjInfo
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjSetTolerance(info,tolerance) &
-        bind(C,name='cusolverDnXgesvdjSetTolerance')
-      use iso_c_binding
-      import gesvdjInfo
-      type(gesvdjInfo)       :: info
-      real(c_double), value  :: tolerance
-    end function cusolverDnXgesvdjSetTolerance
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjSetMaxSweeps(info,max_sweeps) &
-        bind(C,name='cusolverDnXgesvdjSetMaxSweeps')
-      use iso_c_binding
-      import gesvdjInfo
-      type(gesvdjInfo)       :: info
-      integer(c_int),value   :: max_sweeps
-    end function cusolverDnXgesvdjSetMaxSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjGetSweeps(cusolver_Hndl,info,executed_sweeps) &
-        bind(C,name='cusolverDnXgesvdjGetSweeps')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(gesvdjInfo)              :: info
-      integer(c_int)                :: executed_sweeps
-    end function cusolverDnXgesvdjGetSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXgesvdjGetResidual(cusolver_Hndl,info,residual) &
-        bind(C,name='cusolverDnXgesvdjGetResidual')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(gesvdjInfo)              :: info
-      real(c_double)                :: residual
-    end function cusolverDnXgesvdjGetResidual
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDgesvdj_bufferSize(cusolver_Hndl,jobz,econ, &
-        m,n,a,lda,s,u,ldu,v,ldv,lwork,info) bind(C,name='cusolverDnDgesvdj_bufferSize')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value    :: jobz
-      integer(c_int), value    :: econ
-      integer(c_int), value    :: m,n,lda,ldu,ldv
-      integer(c_int)           :: lwork
-#ifdef ACC
-      real(c_double), device   :: a(:,:),s(:),u(:,:),v(:,:)
-#else
-      real(c_double)           :: a(:,:),s(:),u(:,:),v(:,:)
-#endif
-      type(gesvdjInfo)         :: info
-    end function cusolverDnDgesvdj_bufferSize
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDgesvdj(cusolver_Hndl,jobz,econ,m,n,a,lda,s,u,ldu,v,ldv, &
-        work,lwork,devinfo,info ) bind(C,name='cusolverDnDgesvdj')
-      use iso_c_binding
-      import cusolverDnHandle
-      import gesvdjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value   :: jobz
-      integer(c_int), value   :: econ,m,n,lda,ldu,ldv
-#ifdef ACC
-      real(c_double), device  :: a(:,:),s(:),u(:,:),v(:,:),work(:)
-#else
-      real(c_double)          :: a(:,:),s(:),u(:,:),v(:,:),work(:)
-#endif
-      integer(c_int)          :: lwork
-      integer(c_int)          :: devinfo
-      type(gesvdjInfo)        :: info
-    end function cusolverDnDgesvdj
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnCreateSyevjInfo(info) bind(C,name='cusolverDnCreateSyevjInfo')
-      import syevjInfo
-      type(syevjInfo) :: info
-    end function cusolverDnCreateSyevjInfo
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjSetTolerance(info,tolerance) &
-        bind(C,name='cusolverDnXsyevjSetTolerance')
-      use iso_c_binding
-      import syevjInfo
-      type(syevjInfo)        :: info
-      real(c_double), value  :: tolerance
-    end function cusolverDnXsyevjSetTolerance
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjSetMaxSweeps(info,max_sweeps) &
-        bind(C,name='cusolverDnXsyevjSetMaxSweeps')
-      use iso_c_binding
-      import syevjInfo
-      type(syevjInfo)       :: info
-      integer(c_int),value  :: max_sweeps
-    end function cusolverDnXsyevjSetMaxSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjGetSweeps(cusolver_Hndl,info,executed_sweeps) &
-        bind(C,name='cusolverDnXsyevjGetSweeps')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(syevjInfo)               :: info
-      integer(c_int)                :: executed_sweeps
-    end function cusolverDnXsyevjGetSweeps
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnXsyevjGetResidual(cusolver_Hndl,info,residual) &
-        bind(C,name='cusolverDnXsyevjGetResidual')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      type(syevjInfo)               :: info
-      real(c_double)                :: residual
-    end function cusolverDnXsyevjGetResidual
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDsyevj_bufferSize(cusolver_Hndl,jobz,uplo, &
-        n,a,lda,v,lwork,info) bind(C,name='cusolverDnDsyevj_bufferSize')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value         :: jobz
-      integer(c_int), value         :: uplo
-      integer(c_int), value         :: n,lda
-      integer(c_int)                :: lwork
-#ifdef ACC
-      real(c_double) , device       :: a(:,:),v(:)
-#else
-      real(c_double)                :: a(:,:),v(:)
-#endif
-      type(syevjInfo)               :: info
-    end function cusolverDnDsyevj_bufferSize
-  end interface
-
-  interface
-    integer(c_int) function cusolverDnDsyevj(cusolver_Hndl,jobz,uplo,n,a,lda,v,work,lwork, &
-        devinfo,info) bind(C,name='cusolverDnDsyevj')
-      use iso_c_binding
-      import cusolverDnHandle
-      import syevjInfo
-      type(cusolverDnHandle), value :: cusolver_Hndl
-      integer(c_int), value   :: jobz
-      integer(c_int), value   :: uplo
-      integer(c_int), value   :: n,lda
-#ifdef ACC
-      real(c_double), device  :: a(:,:),v(:),work(:)
-#else
-      real(c_double)          :: a(:,:),v(:),work(:)
-#endif
-      integer(c_int)          :: lwork
-      integer(c_int)          :: devinfo
-      type(syevjInfo)         :: info
-    end function cusolverDnDsyevj
-  end interface
-#endif
-
-end module cuda_cusolver
-#endif
 
 #ifdef MKL
 module mkl_solver
@@ -576,53 +376,12 @@ module mkl_solver
 end module mkl_solver
 #endif
 
-#ifdef LAPACK
-module lapack_solver
-!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-!  real(kind=8), allocatable :: work(:)
-!  integer(kind=8), allocatable :: iwork(:)
-!  real (kind=8),allocatable :: workspace_d(:)
-!  integer (kind=8), allocatable :: workspace_i(:)
-!  character*1 :: jobz,uplo
-   integer (kind=8) :: nofunction
-end module lapack_solver
-#else
-#ifdef MAGMA
-module magma_solver
-!  integer (kind=8) :: lwork1m,lwork2m,lwork,lworki,liwork,ndimm,mdimm
-!  real(kind=8), allocatable :: work(:)
-!  integer(kind=8), allocatable :: iwork(:)
-!  real (kind=8),allocatable :: workspace_d(:)
-!  integer (kind=8), allocatable :: workspace_i(:)
-!  character*1 :: jobz,uplo
-end module magma_solver
-#endif
-#endif
-
 module gnome_solvers
   enum,bind(c)
     enumerator SOLVER_EISPACK
-    enumerator SOLVER_LAPACK
-    enumerator SOLVER_LAPACKQ
-    enumerator SOLVER_LAPACKD
-    enumerator SOLVER_LAPACKJ
-    enumerator SOLVER_LAPACKJH
     enumerator SOLVER_MKL
     enumerator SOLVER_MKLD
     enumerator SOLVER_MKLJ
-    enumerator SOLVER_CUSOLVER
-    enumerator SOLVER_CUSOLVERJ
-    enumerator SOLVER_HIPSOLVER
-    enumerator SOLVER_HIPSOLVERJ
-    enumerator SOLVER_ROCSOLVER
-    enumerator SOLVER_ROCSOLVERD
-    enumerator SOLVER_ROCSOLVERJ
-    enumerator SOLVER_ROCSOLVERX
-    enumerator SOLVER_MAGMA
-    enumerator SOLVER_MAGMAD
-    enumerator SOLVER_SLATE
-    enumerator SOLVER_CRAYLIBSCID_CPU
-    enumerator SOLVER_CRAYLIBSCID_ACC
   end enum
 
   integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8

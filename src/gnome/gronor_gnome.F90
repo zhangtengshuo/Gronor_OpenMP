@@ -35,7 +35,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   external :: gronor_dipole
   external :: gronor_cororb
   external :: gronor_gntwo
-  external :: gronor_gntwo_batch_indexed
+  external :: gronor_gntwo_canonical
+!  external :: gronor_gntwo_batch_indexed
   external :: gronor_gnone
   external :: gronor_tramat2
   external :: gronor_cofac1
@@ -226,15 +227,16 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     if((icalc.eq.2.or.icalc.eq.0)) then
       call timer_start(22)
       !           call nvtxStartRange("gntwo")
-      if(nbatch.gt.1) then
-        call gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
-      else
+      ! if(nbatch.gt.1) then
+      !   call gronor_gntwo_batch_indexed(lfndbg,ihc,nhc)
+      ! else
+      ! Thanks! but we do not use batch 
         if(idevel.eq.0.or.mgr.gt.1) then
           if(ising.le.2) call gronor_gntwo(lfndbg)
         else
           if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
         endif
-      endif
+      ! endif
       !         call nvtxEndRange
       call timer_stop(22)
     endif

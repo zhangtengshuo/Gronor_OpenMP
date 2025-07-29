@@ -376,11 +376,6 @@ subroutine gronor_main()
 
     ngpus=0
     if(numdev.ge.1) ngpus=1
-    if(machine.eq.'Juwels      '.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Summit      '.and.numdev.eq.1) ngpus=6
-    if(machine.eq.'Snellius    '.and.numdev.eq.1) ngpus=4
-    if(machine.eq.'Crusher     '.and.numdev.eq.1) ngpus=8
-    if(machine.eq.'Frontier    '.and.numdev.eq.1) ngpus=8
 
     call gronor_input()
 
@@ -481,13 +476,6 @@ subroutine gronor_main()
     write(architecture,'(a)') "AMD-GPU:OpenACC"
 #else
     write(architecture,'(a)') "NVIDIA-GPU:OpenACC"
-#endif
-#endif
-#ifdef OMPTGT
-#ifdef GPUAMD
-    write(architecture,'(a)') "AMD-GPU:OpenMP"
-#else
-    write(architecture,'(a)') "NVIDIA-GPU:OpenMP"
 #endif
 #endif
     
@@ -669,9 +657,7 @@ subroutine gronor_main()
     if(inslvr.lt.0) inslvr=iaslvr
     if(jnslvr.lt.0) jnslvr=jaslvr
   endif
-  
-  
-  
+
   !     Distribute input data to all processes
   
   if(np.gt.1) then
@@ -1439,37 +1425,11 @@ subroutine gronor_main()
 
   endif
 
-#ifdef CUSOLVER
-  if(iaslvr.lt.0) iaslvr=SOLVER_CUSOLVERJ
-  if(jaslvr.lt.0) jaslvr=SOLVER_CUSOLVER
-#endif
-#ifdef ROCSOLVER
-  if(iaslvr.lt.0) iaslvr=SOLVER_ROCSOLVER
-  if(jaslvr.lt.0) iaslvr=SOLVER_ROCSOLVERD
-#endif
-#ifdef CRAYLIBSCI
-  if(iaslvr.lt.0) iaslvr=SOLVER_CRAYLIBSCID_ACC
-  if(jaslvr.lt.0) iaslvr=SOLVER_CRAYLIBSCID_ACC
-  if(inslvr.lt.0) inslvr=SOLVER_EISPACK
-  if(jnslvr.lt.0) jnslvr=SOLVER_CRAYLIBSCID_ACC
-#endif
-#ifdef MAGMA
-  if(iaslvr.lt.0) iaslvr=SOLVER_MAGMA
-  if(jaslvr.lt.0) iaslvr=SOLVER_MAGMA
-  if(inslvr.lt.0) inslvr=SOLVER_MAGMA
-  if(jnslvr.lt.0) jnslvr=SOLVER_MAGMA
-#endif
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
-#else
-#ifdef LAPACK
-  if(iaslvr.lt.0) iaslvr=SOLVER_LAPACK
-  if(jaslvr.lt.0) jaslvr=SOLVER_LAPACK
-  if(inslvr.lt.0) inslvr=SOLVER_LAPACK
-  if(jnslvr.lt.0) jnslvr=SOLVER_LAPACK
 #endif
-#endif
+
   if(inslvr.lt.0) inslvr=SOLVER_EISPACK
   if(jnslvr.lt.0) jnslvr=SOLVER_EISPACK
   if(iaslvr.lt.0) iaslvr=SOLVER_EISPACK
@@ -1481,57 +1441,22 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
     if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
     if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
-    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
-    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
-    if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
-    if(iaslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
-    if(iaslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
     if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
     if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
-    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
-    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
-    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
-    if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) ev_solver=SOLVER_CRAYLIBSCID_ACC
-    if(jaslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
-    if(jaslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
   else
     sv_solver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_EISPACK) sv_solver=SOLVER_EISPACK
     if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
     if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
     if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
-    if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(inslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
-    if(inslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
     if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
     if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
-    if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
-    if(jnslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
-    if(jnslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
   endif
 
   if(me.eq.mstr.and.ipr.ge.20) then
@@ -1541,34 +1466,11 @@ subroutine gronor_main()
     if(iaslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
     if(iaslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
     if(iaslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
-    if(iaslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
-    if(iaslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
-    if(iaslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
-    if(iaslvr.eq.SOLVER_CUSOLVER) sv_solver=SOLVER_CUSOLVER
-    if(iaslvr.eq.SOLVER_CUSOLVERJ) sv_solver=SOLVER_CUSOLVERJ
-    if(iaslvr.eq.SOLVER_ROCSOLVER) sv_solver=SOLVER_ROCSOLVER
-    if(iaslvr.eq.SOLVER_ROCSOLVERX) sv_solver=SOLVER_ROCSOLVERX
-    if(iaslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(iaslvr.eq.SOLVER_CRAYLIBSCID_ACC) sv_solver=SOLVER_CRAYLIBSCID_ACC
-    if(iaslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
-    if(iaslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jaslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
     if(jaslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
     if(jaslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
-    if(jaslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
-    if(jaslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
-    if(jaslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
-    if(jaslvr.eq.SOLVER_CUSOLVER) ev_solver=SOLVER_CUSOLVER
-    if(jaslvr.eq.SOLVER_CUSOLVERJ) ev_solver=SOLVER_CUSOLVERJ
-    if(jaslvr.eq.SOLVER_ROCSOLVER) ev_solver=SOLVER_ROCSOLVER
-    if(jaslvr.eq.SOLVER_ROCSOLVERD) ev_solver=SOLVER_ROCSOLVERD
-    if(jaslvr.eq.SOLVER_ROCSOLVERJ) ev_solver=SOLVER_ROCSOLVERJ
-    if(jaslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
-    if(jaslvr.eq.SOLVER_CRAYLIBSCID_ACC) ev_solver=SOLVER_CRAYLIBSCID_ACC
-    if(jaslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
-    if(jaslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
     write(lfnout,610)
 610 format(/,' Linear algebra solvers',/)
     
@@ -1577,33 +1479,10 @@ subroutine gronor_main()
       if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd on CPU"
       if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd on CPU"
       if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj on CPU"
-      if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd on CPU"
-      if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd on CPU"
-      if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj on CPU"
-      if(sv_solver.eq.SOLVER_CUSOLVER) write(istring,'(a)') "CUSOLVER DnDgesvd"
-      if(sv_solver.eq.SOLVER_CUSOLVERJ) write(istring,'(a)') "CUSOLVER DnDgesvdj"
-      if(sv_solver.eq.SOLVER_ROCSOLVER) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvd"
-      if(sv_solver.eq.SOLVER_ROCSOLVERX) write(istring,'(a)') "ROCSOLVER rocsolver_dgesvdx"
-      if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgesdd_cpu"
-      if(sv_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgesdd_acc"
-      if(sv_solver.eq.SOLVER_MAGMA) write(istring,'(a)') "MAGMA magma_dgesvd"
-      if(sv_solver.eq.SOLVER_MAGMAD) write(istring,'(a)') "MAGMA magma_dgesd"
       if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql on CPU"
       if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyevd on CPU"
       if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd on CPU"
       if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj on CPU"
-      if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev on CPU"
-      if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd on CPU"
-      if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj on CPU"
-      if(ev_solver.eq.SOLVER_CUSOLVER) write(jstring,'(a)') "CUSOLVER DnDsyevd"
-      if(ev_solver.eq.SOLVER_CUSOLVERJ) write(jstring,'(a)') "CUSOLVER DnDsyevdj"
-      if(ev_solver.eq.SOLVER_ROCSOLVER) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyev"
-      if(ev_solver.eq.SOLVER_ROCSOLVERD) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevd"
-      if(ev_solver.eq.SOLVER_ROCSOLVERJ) write(jstring,'(a)') "ROCSOLVER rocsolver_dsyevj"
-      if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd_cpu"
-      if(ev_solver.eq.SOLVER_CRAYLIBSCID_ACC) write(istring,'(a)') "Cray LibSci dgsyevd_acc"
-      if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd_gpu"
-      if(ev_solver.eq.SOLVER_MAGMAD) write(jstring,'(a)') "MAGMA magma_dsyevd_gpu"
       write(lfnout,611) trim(istring),trim(jstring)
 611   format(' Accelerated ranks use ',a,' and ',a)
       write(lfnarx,410) trim(istring),trim(jstring)
@@ -1618,42 +1497,20 @@ subroutine gronor_main()
     if(inslvr.eq.SOLVER_MKL) sv_solver=SOLVER_MKL
     if(inslvr.eq.SOLVER_MKLD) sv_solver=SOLVER_MKLD
     if(inslvr.eq.SOLVER_MKLJ) sv_solver=SOLVER_MKLJ
-    if(inslvr.eq.SOLVER_LAPACK) sv_solver=SOLVER_LAPACK
-    if(inslvr.eq.SOLVER_LAPACKD) sv_solver=SOLVER_LAPACKD
-    if(inslvr.eq.SOLVER_LAPACKJ) sv_solver=SOLVER_LAPACKJ
-    if(inslvr.eq.SOLVER_CRAYLIBSCID_CPU) sv_solver=SOLVER_CRAYLIBSCID_CPU
-    if(inslvr.eq.SOLVER_MAGMA) sv_solver=SOLVER_MAGMA
-    if(inslvr.eq.SOLVER_MAGMAD) sv_solver=SOLVER_MAGMAD
     ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_EISPACK) ev_solver=SOLVER_EISPACK
     if(jnslvr.eq.SOLVER_MKL) ev_solver=SOLVER_MKL
     if(jnslvr.eq.SOLVER_MKLD) ev_solver=SOLVER_MKLD
     if(jnslvr.eq.SOLVER_MKLJ) ev_solver=SOLVER_MKLJ
-    if(jnslvr.eq.SOLVER_LAPACK) ev_solver=SOLVER_LAPACK
-    if(jnslvr.eq.SOLVER_LAPACKD) ev_solver=SOLVER_LAPACKD
-    if(jnslvr.eq.SOLVER_LAPACKJ) ev_solver=SOLVER_LAPACKJ
-    if(jnslvr.eq.SOLVER_CRAYLIBSCID_CPU) ev_solver=SOLVER_CRAYLIBSCID_CPU
-    if(jnslvr.eq.SOLVER_MAGMA) ev_solver=SOLVER_MAGMA
-    if(jnslvr.eq.SOLVER_MAGMAD) ev_solver=SOLVER_MAGMAD
 
     if(sv_solver.eq.SOLVER_EISPACK) write(istring,'(a)') "EISPACK svd"
     if(sv_solver.eq.SOLVER_MKL) write(istring,'(a)') "MKL dgesvd"
     if(sv_solver.eq.SOLVER_MKLD) write(istring,'(a)') "MKL dgesdd"
     if(sv_solver.eq.SOLVER_MKLJ) write(istring,'(a)') "MKL dgesvj"
-    if(sv_solver.eq.SOLVER_LAPACK) write(istring,'(a)') "LAPACK dgesvd"
-    if(sv_solver.eq.SOLVER_LAPACKD) write(istring,'(a)') "LAPACK dgesdd"
-    if(sv_solver.eq.SOLVER_LAPACKJ) write(istring,'(a)') "LAPACK dgesvj"
-    if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgesdd"
     if(ev_solver.eq.SOLVER_EISPACK) write(jstring,'(a)') "EISPACK tred2/tql"
     if(ev_solver.eq.SOLVER_MKL) write(jstring,'(a)') "MKL dsyev"
     if(ev_solver.eq.SOLVER_MKLD) write(jstring,'(a)') "MKL dsyevd"
     if(ev_solver.eq.SOLVER_MKLJ) write(jstring,'(a)') "MKL dsyevj"
-    if(ev_solver.eq.SOLVER_LAPACK) write(jstring,'(a)') "LAPACK dsyev"
-    if(ev_solver.eq.SOLVER_LAPACKD) write(jstring,'(a)') "LAPACK dsyevd"
-    if(ev_solver.eq.SOLVER_LAPACKJ) write(jstring,'(a)') "LAPACK dsyevj"
-    if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) write(istring,'(a)') "Cray LibSci dgsyevd"
-    if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd"
-    if(ev_solver.eq.SOLVER_MAGMA) write(jstring,'(a)') "MAGMA magma_dsyevd"
 
     if(numacc.eq.0) then
       write(lfnout,612) trim(istring),trim(jstring)
@@ -2195,18 +2052,15 @@ subroutine gronor_main()
       allocate(vec(mvec,mbasel,2))
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))
-      allocate(st(nstdim))
 
       allocate(va(nveca,mbasel))
       allocate(vb(nvecb,mbasel))
       allocate(veca(mbasel))
       allocate(vecb(mbasel))
-#ifndef _OPENMP
       allocate(ta(mbasel,max(mbasel,nveca)))
       allocate(taa(mbasel,max(mbasel,nveca)))
       allocate(aaa(mbasel,max(mbasel,nveca)))
       allocate(tb(mbasel,nvecb))
-      allocate(s12d(mbasel,mbasel))
       allocate(tt(mbasel,max(mbasel,nveca)))
       allocate(aat(mbasel,max(mbasel,nveca)))
       allocate(sm(mbasel,max(mbasel,nveca)))
@@ -2222,120 +2076,20 @@ subroutine gronor_main()
       allocate(bdiag(max(nelecs,nbas,mbasel)))
       allocate(csdiag(max(nelecs,nbas,mbasel)))
       allocate(cdiag(max(nelecs,nbas,mbasel)))
-#endif
 
-#ifndef _OPENMP
-        if(nbatch.lt.0) then
-        allocate(prefac(ntask))
-        allocate(diagl(ntask,nbas))
-        allocate(bsdiagl(ntask,nbas))
-        allocate(bdiagl(ntask,nbas))
-        allocate(csdiagl(ntask,nbas))
-        allocate(sml(ntask,nbas,nbas))
-        allocate(tal(ntask,nbas,nbas))
-        allocate(ttl(ntask,nbas,nbas))
-        allocate(aatl(ntask,nbas,nbas))
-        allocate(aaal(ntask,nbas,nbas))
-        allocate(tatl(ntask,nbas,nbas))
-        allocate(prefac0(1))
-        allocate(sm0(1,1,1))
-        allocate(ta0(1,1,1))
-        allocate(tt0(1,1,1))
-        allocate(aat0(1,1,1))
-        allocate(aaa0(1,1,1))
-        allocate(prefac1(1))
-        allocate(diag1(1,1))
-        allocate(bsdiag1(1,1))
-        allocate(bdiag1(1,1))
-        allocate(csdiag1(1,1))
-        allocate(sm1(1,1,1))
-        allocate(ta1(1,1,1))
-        allocate(tt1(1,1,1))
-        allocate(aat1(1,1,1))
-        allocate(aaa1(1,1,1))
-      elseif(nbatch.eq.0) then
-        allocate(diagl(1,1))
-        allocate(bsdiagl(1,1))
-        allocate(bdiagl(1,1))
-        allocate(csdiagl(1,1))
-        allocate(sml(1,1,1))
-        allocate(tal(1,1,1))
-        allocate(ttl(1,1,1))
-        allocate(aatl(1,1,1))
-        allocate(aaal(1,1,1))
-        allocate(tatl(1,1,1))
-        allocate(prefac(1))
-        allocate(prefac0(1))
-        allocate(sm0(1,1,1))
-        allocate(ta0(1,1,1))
-        allocate(tt0(1,1,1))
-        allocate(aat0(1,1,1))
-        allocate(aaa0(1,1,1))
-        allocate(prefac1(1))
-        allocate(diag1(1,1))
-        allocate(bsdiag1(1,1))
-        allocate(bdiag1(1,1))
-        allocate(csdiag1(1,1))
-        allocate(sm1(1,1,1))
-        allocate(ta1(1,1,1))
-        allocate(tt1(1,1,1))
-        allocate(aat1(1,1,1))
-        allocate(aaa1(1,1,1))
+      if(nbatch < 0) then
+        !not possible to go in here
+      elseif(nbatch == 0) then
+        !default no batch
       else
-        allocate(prefac0(nbatch))
-        allocate(prefac1(nbatch))
-        if(iamacc.eq.0) then
-          allocate(sm0(nbatch,nbas,nbas))
-          allocate(ta0(nbatch,nbas,nbas))
-          allocate(tt0(nbatch,nbas,nbas))
-          allocate(aat0(nbatch,nbas,nbas))
-          allocate(aaa0(nbatch,nbas,nbas))
-          allocate(diag1(nbatch,nbas))
-          allocate(bsdiag1(nbatch,nbas))
-          allocate(bdiag1(nbatch,nbas))
-          allocate(csdiag1(nbatch,nbas))
-          allocate(sm1(nbatch,nbas,nbas))
-          allocate(ta1(nbatch,nbas,nbas))
-          allocate(tt1(nbatch,nbas,nbas))
-          allocate(aat1(nbatch,nbas,nbas))
-          allocate(aaa1(nbatch,nbas,nbas))
-        else
-          allocate(sm0(nbas,nbas,nbatch))
-          allocate(ta0(nbas,nbas,nbatch))
-          allocate(tt0(nbas,nbas,nbatch))
-          allocate(aat0(nbas,nbas,nbatch))
-          allocate(aaa0(nbas,nbas,nbatch))
-          allocate(diag1(nbas,nbatch))
-          allocate(bsdiag1(nbas,nbatch))
-          allocate(bdiag1(nbas,nbatch))
-          allocate(csdiag1(nbas,nbatch))
-          allocate(sm1(nbas,nbas,nbatch))
-          allocate(ta1(nbas,nbas,nbatch))
-          allocate(tt1(nbas,nbas,nbatch))
-          allocate(aat1(nbas,nbas,nbatch))
-          allocate(aaa1(nbas,nbas,nbatch))
-        endif
-        allocate(diagl(1,1))
-        allocate(bsdiagl(1,1))
-        allocate(bdiagl(1,1))
-        allocate(csdiagl(1,1))
-        allocate(sml(1,1,1))
-        allocate(tal(1,1,1))
-        allocate(ttl(1,1,1))
-        allocate(aatl(1,1,1))
-        allocate(aaal(1,1,1))
-        allocate(tatl(1,1,1))
-        allocate(prefac(1))
+        ! batched
+        ! Thanks! NO!
       endif
-#endif
-#endif
 
-#ifndef _OPENMP
       allocate(w1(max(nelecs,nbas,mbasel)))
       allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
 
       allocate(rwork(nelecs))
-#endif
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
@@ -2345,13 +2099,8 @@ subroutine gronor_main()
         endif
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
-#ifndef _OPENMP
 !$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
-!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm) &
-!$acc& create(diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal) &
-!$acc& create(sm0,aaa0,tt0,aat0,ta0,ta1) &
-!$acc& create(diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1)
-#endif
+!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2378,34 +2127,20 @@ subroutine gronor_main()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
-#endif
-      
-#ifndef _OPENMP
-        if(nbatch.lt.0) then
-        deallocate(tal,tatl,aaal,aatl,ttl,sml)
-        deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
-      elseif(nbatch.eq.0) then
-        deallocate(tal,tatl,aaal,aatl,ttl,sml)
-        deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
-      else
-        deallocate(ta0,aaa0,aat0,tt0,sm0)
-        deallocate(prefac0)
-        deallocate(ta1,aaa1,aat1,tt1,sm1)
-        deallocate(csdiag1,bdiag1,bsdiag1,diag1)
-        deallocate(prefac1)
       endif
-#endif
-#ifndef _OPENMP
+
+      if(nbatch < 0) then
+        ! not possible 
+      elseif(nbatch == 0) then
+        ! default no batch
+      else
+        ! Thanks! But no! We DO NOT USE Batch
+      endif
+
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)
-      deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
-#else
-      deallocate(aat,tt,sm)
-      deallocate(s12d,tb,aaa,taa,ta,vecb,veca,vb,va)
-#endif
-      deallocate(s,st)
+      deallocate(tb,aaa,taa,ta,vecb,veca,vb,va)
+      deallocate(s)
     endif
   endif
 

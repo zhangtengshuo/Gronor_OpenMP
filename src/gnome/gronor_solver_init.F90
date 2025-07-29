@@ -36,34 +36,12 @@ subroutine gronor_solver_init(ntemp)
 #ifdef MKL
   use mkl_solver
 #endif
-#ifdef LAPACK
-  use lapack_solver
-#else
-#ifdef MAGMA
-  use magma
-  use magma_dfortran
-  use magma_solver
-#endif
-#endif
   
   implicit none
   
 #ifdef MKL
   external :: dgesvd,dsyevd
   integer (kind=4) :: ierr
-#endif
-#ifdef LAPACK
-  external :: dgesvd,dsyevd
-  integer (kind=4) :: lapack_info,ierr
-#else  
-#ifdef MAGMA
-  external :: magmaf_dsyevd,magmaf_dsyevd_gpu
-  integer (kind=4) :: magma_info,ierr
-#endif
-#endif
-#ifdef CUSOLVERJ
-  external :: cusolverdncreategesvdjinfo,cusolverdnxgesvdjsettolerance
-  external :: cusolverdnxgesvdjsetmaxsweeps,cusolverdndgesvdj_buffersize
 #endif
 
   integer :: ntemp
@@ -94,181 +72,18 @@ subroutine gronor_solver_init(ntemp)
   lsvtrns=.true.
   
   if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_LAPACK) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_LAPACKD) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_LAPACKQ) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJ) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_LAPACKJH) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_CRAYLIBSCID_CPU) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_MAGMA) lsvcpu=.true.
-  if(sv_solver.eq.SOLVER_MAGMAD) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_EISPACK) lsvtrns=.false.
   
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
-  if(ev_solver.eq.SOLVER_LAPACK) levcpu=.true.
-  if(ev_solver.eq.SOLVER_LAPACKD) levcpu=.true.
-  if(ev_solver.eq.SOLVER_LAPACKQ) levcpu=.true.
-  if(ev_solver.eq.SOLVER_LAPACKJ) levcpu=.true.
-  if(ev_solver.eq.SOLVER_LAPACKJH) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
-  if(ev_solver.eq.SOLVER_CRAYLIBSCID_CPU) levcpu=.true.
-  
-  if(iamacc.ne.0) then
-#ifdef CUSOLVER
 
-    ndim=nelecs
-    mdim=mbasel
-    lwork1=0
-    lwork2=0
-
-    if(sv_solver.eq.SOLVER_CUSOLVER) then
-
-#ifdef ACC
-!$acc data copyin(w,ta) create(dev_info_d)
-!$acc host_data use_device(ta)
-#endif
-      cusolver_status = cusolverDnDgesvd_bufferSize(cusolver_handle,ndim,ndim,lwork1)
-#ifdef ACC
-!$acc end host_data
-#endif
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-          write(*,*) 'cusolverDnDgesvd_bufferSize failed'
-
-#ifdef ACC
-!$acc end data
-#endif
-    len_work_dbl=max(len_work_dbl,lwork1)
-
-#ifdef CUSOLVERJ
-    elseif(sv_solver.eq.SOLVER_CUSOLVERJ) then
-
-      ndim=nelecs
-      mdim=mbasel
-      tol = tolsvj
-      max_sweeps = iswsvj
-
-      jobz=CUSOLVER_EIG_MODE_VECTOR
-
-#ifdef ACC
-!$acc data create(dev_info_d,u,w,ev,ta)
-#endif
-      cusolver_status = cudaStreamCreateWithFlags(stream,cudaStreamNonBlocking)
-
-      cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
-
-      cusolver_status = cusolverDnCreateGesvdjInfo(gesvdj_params)
-
-      cusolver_status = cusolverDnXgesvdjSetTolerance(gesvdj_params,tol)
-
-      cusolver_status = cusolverDnXgesvdjSetMaxSweeps(gesvdj_params,max_sweeps)
-
-#ifdef ACC
-!$acc host_data use_device(ta,ev,u,w)
-#endif
-      cusolver_status = cusolverDnDgesvdj_bufferSize(cusolver_handle,jobz,econ, &
-          ndim,ndim,ta,mdim,ev,u,ndim,w,ndim,lwork1,gesvdj_params)
-
-#ifdef ACC
-!$acc end host_data
-#endif
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-          print *,"cusolverDnDgesvdj_bufferSize failed",cusolver_status
-
-#ifdef ACC
-!$acc end data
-#endif
-
-      len_work_dbl=max(len_work_dbl,lwork1)
-#endif
-    endif
-
-! Cusolver initialization for the syevd
-
-    if(ev_solver.eq.SOLVER_CUSOLVER) then
-
-#ifdef ACC
-!$acc data copyin(w,ta) create(dev_info_d)
-!$acc host_data use_device(ta,w)
-#endif
-      cusolver_status = cusolverDnDsyevd_bufferSize(cusolver_handle,CUSOLVER_EIG_MODE_NOVECTOR, &
-          CUBLAS_FILL_MODE_LOWER,ndim,ta,mdim,w,lwork2)
-#ifdef ACC
-!$acc end host_data
-#endif
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-                   print *,"cusolverDnDsyevd_bufferSize failed",cusolver_status
-
-#ifdef ACC
-!$acc end data
-#endif
-
-#ifdef CUSOLVERJ
-
-    elseif(ev_solver.eq.SOLVER_CUSOLVERJ) then
-
-      ! Jacobi EVD
-
-      ndim=nelecs
-      mdim=mbasel
-      tol = tolevj
-      max_sweeps = iswevj
-
-      jobz = CUSOLVER_EIG_MODE_NOVECTOR
-      uplo = CUBLAS_FILL_MODE_LOWER
-
-#ifdef ACC
-!$acc data create(dev_info_d,w,ta,ev)
-#endif
-      cusolver_status = cudaStreamCreateWithFlags(stream,cudaStreamNonBlocking)
-
-      cusolver_status = cusolverDnSetStream(cusolver_handle,stream)
-
-      cusolver_status = cusolverDnCreateSyevjInfo(syevj_params)
-
-      cusolver_status = cusolverDnXsyevjSetTolerance(syevj_params,tol)
-
-      cusolver_status = cusolverDnXsyevjSetMaxSweeps(syevj_params,max_sweeps)
-
-#ifdef ACC
-!$acc host_data use_device(ta,w)
-#endif
-      cusolver_status = cusolverDnDsyevj_bufferSize(cusolver_handle,jobz,uplo, &
-          ndim,ta,mdim,ev,lwork2,syevj_params)
-
-#ifdef ACC
-!$acc end host_data
-#endif
-      if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-          print *,"cusolverDnDsyevj_bufferSize failed",cusolver_status
-
-#ifdef ACC
-!$acc end data
-#endif
-
-#endif
-
-    endif
-
-    call gronor_update_device_info()
-
-    if(memavail.gt.0.and.8*lwork1.gt.memavail) then
-      write(string,'(a,i10,a,i10)') "Available ",memavail," device memory insufficient for", &
-          8*lwork1," needed as workspace for CUSOLVER solvers"
-      call gronor_abort(500,string)
-    endif
-
-    len_work_dbl=max(len_work_dbl,lwork1,lwork2)
-
-#endif
-  endif
-
-! MKL initialization
+  ! MKL initialization
   
 #ifdef MKL
     ndimm=nelecs
@@ -304,38 +119,6 @@ subroutine gronor_solver_init(ntemp)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
-
-#ifdef LAPACK
-    ndimm=nelecs
-    mdimm=mbasel
-    lwork1m=-1
-    lwork2m=-1
-    lworki=-1
-    
-    if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,lapack_info)
-      lwork1m=int(worksize(1))
-    endif
-    if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesdd('A',ndimm,ndimm,a,ndimm,ev,u,ndimm,w,ndimm,worksize,lwork1m,iworksize, &
-          lapack_info)
-      lwork1m=int(worksize(1))
-      lworki=8*nelecs
-    endif
-    if(ev_solver.eq.SOLVER_LAPACK) then
-      call dsyev('V','L',ndimm,a,ndimm,w,worksize,lwork2m,lapack_info)
-      lwork2m=int(worksize(1))
-    endif
-    if(ev_solver.eq.SOLVER_LAPACKD) then
-      call dsyevd('V','L',ndimm,a,ndimm,w,worksize,lwork2m,iworksize,lworki,lapack_info)
-      lwork2m=int(worksize(1))
-      lworki=max(int(iworksize(1)),lworki)
-    endif
-    lwork1m=max(0,lwork1m,lwork2m)
-    lworki=max(0,lworki)
-    len_work_dbl=max(len_work_dbl,lwork1m)
-    len_work_int=max(len_work_int,lworki)
-#endif
     
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
@@ -362,31 +145,6 @@ subroutine gronor_solver_finalize()
   use iso_fortran_env
   use gnome_solvers
 
-#ifdef CUSOLVER
-  use cusolverDn
-  use cuda_cusolver
-#endif
-
-
-#ifdef MAGMA
-  use magma
-  use magma_dfortran
-  use magma_solver
-#endif  
-  
-  if(iamacc.gt.0) then
-
-#ifdef CUSOLVER
-    cusolver_status = cusolverDnDestroy(cusolver_handle)
-    if (cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'cusolver_handle destruction failed'
-#endif
-
-  endif
-
-#ifdef MAGMA
-  call magmaf_finalize()
-#endif
   
   return
 end subroutine gronor_solver_finalize
@@ -404,27 +162,7 @@ subroutine gronor_solver_create_handle()
   use iso_fortran_env
   use gnome_solvers
   
-#ifdef CUSOLVER
-  use cusolverDn
-  use cuda_cusolver
-#endif
- 
   ! Only accelerated ranks need to define cusolver handles
   
-  if(iamacc.gt.0) then
-    
-#ifdef CUSOLVER
-    cusolver_status=cusolverDnCreate(cusolver_handle)
-    if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        print *, me,'cusolver_handle creation failed'
-    if(numdev.gt.1) then
-!      cpfre=c_loc(memfre)
-!      cptot=c_loc(memtot)
-!      istat=cudaMemGetInfo(cpfre,cptot)
-    endif
-#endif
-
-  endif
-
   return
 end subroutine gronor_solver_create_handle

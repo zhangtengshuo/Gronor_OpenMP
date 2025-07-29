@@ -36,15 +36,6 @@ subroutine gronor_svd()
   !! SOLVER_MKL          dgesvd from external an Intel MKL library will run on the CPU
   !! SOLVER_MKLD         dgesdd from external an Intel MKL library will run on the CPU
   !! SOLVER_MKLJ         dgesvj from external an Intel MKL library will run on the CPU
-  !! SOLVER_LAPACK       dgesvd from an external LAPACK library will run on the CPU
-  !! SOLVER_CUSOLVER     cusolverDnDgesvd from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
-  !! SOLVER_CUSOLVERJ    cusolverDnDgesvdj from the NVIDIA CUSOLVER library wil run on NVDIA GPUs
-  !! SOLVER_ROCSOLVER    rocsolver_dgesvd from the AMD ROCSOLVER library will run on the GPU
-  !! SOLVER_ROCSOLVERD   same as SOLVER ROCSOLVER
-  !! SOLVER_ROCSOLVERX   same as SOLVER_ROCSOLVER
-  !! SOLVER_HIPSOLVER    planned
-  !! SOLVER_HIPSOLVER    planned
-  !! SOLVER_MAGMA        planned
   !!
   !! SOLVER_MKL and SOLVER LAPACK cannot be available in the same executable because of the name conflict
   !!
@@ -72,22 +63,6 @@ subroutine gronor_svd()
   use mkl_solver
 #endif
   
-#ifdef LAPACK
-  use lapack_solver
-#else
-#ifdef MAGMA
-  use magma
-  use magma_dfortran
-  use magma_solver
-#endif
-#endif
-
-#ifdef CUSOLVER
-  use cusolverDn
-  use cuda_cusolver
-  use cudafor
-#endif
-
   ! variable declarations
 
   implicit none
@@ -99,18 +74,6 @@ subroutine gronor_svd()
   integer (kind=4) :: istat
 
   ! library specific declarations
-
-#ifdef CUSOLVER
-  character (len=1), target :: jobu, jobvt
-  external :: cusolverdndgesvdj,cusolverdnxgesvdjgetsweeps,cusolverdnxgesvdjgetresidual
-#endif
-#ifdef MAGMA
-  integer (kind=4) :: magma_info
-#endif
-
-#ifdef LAPACK
-  integer (kind=4) :: lapack_info
-#endif
 
   lwork4=int(len_work_dbl,kind=4)
   
@@ -146,114 +109,7 @@ subroutine gronor_svd()
     !lsvtrns
   endif
 #endif 
-  
-  ! ============ LAPACK ===========
-#ifdef LAPACK
-  if(sv_solver.eq.SOLVER_LAPACK.or.sv_solver.eq.SOLVER_LAPACKD) then
-    ndimm=nelecs
-    ndim=nelecs
-    if(sv_solver.eq.SOLVER_LAPACK) then
-      call dgesvd('A','A',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,lwork4,ierr)
-    endif
-    if(sv_solver.eq.SOLVER_LAPACKD) then
-      call dgesdd('All',ndim,ndim,a,ndim,ev,u,ndim,wt,ndim, &
-          workspace_d,lwork4,workspace_i,ierr)
-    endif
-    !lsvtrns
-  endif
-#endif 
-  
-! ============ MAGMA ===========
-  
-#ifdef MAGMA
-  
-  ndimm=nelecs
-  mdimm=mbasel
-  ndim=nelecs
-  ndim4=nelecs
-
-  if(sv_solver.eq.SOLVER_MAGMA) then
-    if(iamacc.eq.1) then
-      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,lwork4,workspace_i4,magma_info) 
-    else
-      call magmaf_dgesdd('A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,lwork4,workspace_i4,magma_info) 
-    endif
-  endif
-  if(sv_solver.eq.SOLVER_MAGMAD) then
-    if(iamacc.eq.1) then
-      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,lwork4,magma_info)
-    else
-      call magmaf_dgesvd('A','A',ndim4,ndim4,a,ndim4,ev,u,ndim4,w,ndim4, &
-          workspace_d,lwork4,magma_info)
-    endif
-  endif
-  
-#endif 
-  
-  
-  ! ========= CUSOLVER =========
-
-#ifdef CUSOLVER
-  if(sv_solver.eq.SOLVER_CUSOLVER) then
-    ndim=nelecs
-    mdim=mbasel
-    jobu = 'A'  ! all m columns of U
-    jobvt= 'A'  ! all m columns of VT
-#ifdef ACC
-!$acc data copy(dev_info_d) create(workspace_d)
-!$acc host_data use_device(a,ev,u,wt,dev_info_d,workspace_d,rwork)
-#endif
-
-    cusolver_status=cusolverDnDgesvd(cusolver_handle,jobu,jobvt, &
-        ndim,ndim,a,ndim,ev,u,ndim,wt,ndim,workspace_d, &
-        lwork4,rwork,dev_info_d)
-#ifdef ACC
-!$acc end host_data
-!$acc wait
-!$acc end data
-#endif
-
-    if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'cusolverDnDgesvd failed',cusolver_status
-    !lsvtrns
-  endif
-#endif
-  
-  ! ======== CUSOLVERJ =========
-
-#ifdef CUSOLVERJ
-
-  if(sv_solver.eq.SOLVER_CUSOLVERJ) then
-    ndim=nelecs
-    mdim=mbasel
-    jobz=CUSOLVER_EIG_MODE_VECTOR
-#ifdef ACC
-!$acc data copy(dev_info_d,gesvdj_params) create(workspace_d)
-!$acc host_data use_device(a,ev,u,w,dev_info_d,workspace_d)
-#endif
-
-    cusolver_status=cusolverDnDgesvdj(cusolver_handle,jobz,econ, &
-        ndim,ndim,a,ndim,ev,u,ndim,w,ndim,workspace_d,    &
-        lwork4,dev_info_d,gesvdj_params)
-#ifdef ACC
-!$acc end host_data
-!$acc end data
-#endif
-    cusolver_status=cudaDeviceSynchronize()
-    if(cusolver_status /= CUSOLVER_STATUS_SUCCESS) &
-        write(*,*) 'cusolverDnDgesvdj failed',cusolver_status
-    cusolver_status = cusolverDnXgesvdjGetSweeps &
-        (cusolver_handle, gesvdj_params, exec_sweeps)
-    cusolver_status = cusolverDnXgesvdjGetResidual &
-        (cusolver_handle, gesvdj_params, residual)    
-  endif
-#endif
-  
-
+   
 !! Evaluate right had matrix from its transpose if solver provided the transpose
   if(lsvtrns) then
     if(lsvcpu) then

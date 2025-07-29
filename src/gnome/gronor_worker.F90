@@ -124,10 +124,9 @@ subroutine gronor_worker()
   endif
 
 #ifdef ACC
-!$acc data create(a,ta,w1,w2,u,w,wt,ev,rwork,diag,bdiag, &
-&diagl,bdiagl,bsdiagl,csdiagl,sml,aaal,ttl,aatl,tatl,tal, &
-&sm0,aaa0,tt0,aat0,ta0,prefac0,prefac1,prefac, &
-&diag1,bdiag1,bsdiag1,csdiag1,sm1,aaa1,tt1,aat1,ta1, &
+
+!$acc data create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork, &
+&diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm, &
 &workspace_d,workspace_i,workspace2_d,workspace_i4)
 #endif
 
@@ -383,49 +382,27 @@ subroutine gronor_worker_thread_alloc()
   use gnome_parameters
   implicit none
 
-  if(.not.allocated(a))      allocate(a(nelecs,nelecs))
-  if(.not.allocated(ta))     allocate(ta(mbasel,max(mbasel,nveca)))
-  if(.not.allocated(w1))     allocate(w1(max(nelecs,nbas,mbasel)))
-  if(.not.allocated(w2))     allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
-  if(.not.allocated(u))      allocate(u(nelecs,nelecs))
-  if(.not.allocated(w))      allocate(w(nelecs,nelecs))
-  if(.not.allocated(wt))     allocate(wt(nelecs,nelecs))
-  if(.not.allocated(ev))     allocate(ev(nelecs))
-  if(.not.allocated(rwork))  allocate(rwork(nelecs))
-  if(.not.allocated(diag))   allocate(diag(max(nelecs,nbas,mbasel)))
-  if(.not.allocated(bdiag))  allocate(bdiag(max(nelecs,nbas,mbasel)))
-
-
-  ! Thread-local work arrays used by older batch scheme are allocated
-  ! with minimal size as batching is no longer used.
-  if(.not.allocated(prefac))  allocate(prefac(1))
-  if(.not.allocated(diagl))   allocate(diagl(1,1))
-  if(.not.allocated(bsdiagl)) allocate(bsdiagl(1,1))
-  if(.not.allocated(bdiagl))  allocate(bdiagl(1,1))
-  if(.not.allocated(csdiagl)) allocate(csdiagl(1,1))
-  if(.not.allocated(sml))     allocate(sml(1,1,1))
-  if(.not.allocated(tal))     allocate(tal(1,1,1))
-  if(.not.allocated(ttl))     allocate(ttl(1,1,1))
-  if(.not.allocated(aatl))    allocate(aatl(1,1,1))
-  if(.not.allocated(aaal))    allocate(aaal(1,1,1))
-  if(.not.allocated(tatl))    allocate(tatl(1,1,1))
-  if(.not.allocated(prefac0)) allocate(prefac0(1))
-  if(.not.allocated(sm0))     allocate(sm0(1,1,1))
-  if(.not.allocated(ta0))     allocate(ta0(1,1,1))
-  if(.not.allocated(tt0))     allocate(tt0(1,1,1))
-  if(.not.allocated(aat0))    allocate(aat0(1,1,1))
-  if(.not.allocated(aaa0))    allocate(aaa0(1,1,1))
-  if(.not.allocated(prefac1)) allocate(prefac1(1))
-  if(.not.allocated(diag1))   allocate(diag1(1,1))
-  if(.not.allocated(bsdiag1)) allocate(bsdiag1(1,1))
-  if(.not.allocated(bdiag1))  allocate(bdiag1(1,1))
-  if(.not.allocated(csdiag1)) allocate(csdiag1(1,1))
-  if(.not.allocated(sm1))     allocate(sm1(1,1,1))
-  if(.not.allocated(ta1))     allocate(ta1(1,1,1))
-  if(.not.allocated(tt1))     allocate(tt1(1,1,1))
-  if(.not.allocated(aat1))    allocate(aat1(1,1,1))
-  if(.not.allocated(aaa1))    allocate(aaa1(1,1,1))
-
+  allocate(a(nelecs,nelecs))
+  allocate(ta(mbasel,max(mbasel,nveca)))
+  allocate(tb(mbasel,nvecb))
+  allocate(w1(max(nelecs,nbas,mbasel)))
+  allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
+  allocate(taa(mbasel,max(mbasel,nveca)))
+  allocate(u(nelecs,nelecs))
+  allocate(w(nelecs,nelecs))
+  allocate(wt(nelecs,nelecs))
+  allocate(ev(nelecs))
+  allocate(rwork(nelecs))
+  allocate(diag(max(nelecs,nbas,mbasel)))
+  allocate(bdiag(max(nelecs,nbas,mbasel)))
+  allocate(cdiag(max(nelecs,nbas,mbasel)))
+  allocate(bsdiag(max(nelecs,nbas,mbasel)))
+  allocate(csdiag(max(nelecs,nbas,mbasel)))
+  allocate(sdiag(max(nelecs,nbas,mbasel)))
+  allocate(aaa(mbasel,max(mbasel,nveca)))
+  allocate(tt(mbasel,max(mbasel,nveca)))
+  allocate(aat(mbasel,max(mbasel,nveca)))
+  allocate(sm(mbasel,max(mbasel,nveca)))
 
 end subroutine gronor_worker_thread_alloc
 
@@ -446,33 +423,15 @@ subroutine gronor_worker_thread_dealloc()
   if(allocated(diag))   deallocate(diag)
   if(allocated(bdiag))  deallocate(bdiag)
 
-  if(allocated(prefac))  deallocate(prefac)
-  if(allocated(diagl))   deallocate(diagl)
-  if(allocated(bsdiagl)) deallocate(bsdiagl)
-  if(allocated(bdiagl))  deallocate(bdiagl)
-  if(allocated(csdiagl)) deallocate(csdiagl)
-  if(allocated(sml))     deallocate(sml)
-  if(allocated(tal))     deallocate(tal)
-  if(allocated(ttl))     deallocate(ttl)
-  if(allocated(aatl))    deallocate(aatl)
-  if(allocated(aaal))    deallocate(aaal)
-  if(allocated(tatl))    deallocate(tatl)
-  if(allocated(prefac0)) deallocate(prefac0)
-  if(allocated(sm0))     deallocate(sm0)
-  if(allocated(ta0))     deallocate(ta0)
-  if(allocated(tt0))     deallocate(tt0)
-  if(allocated(aat0))    deallocate(aat0)
-  if(allocated(aaa0))    deallocate(aaa0)
-  if(allocated(prefac1)) deallocate(prefac1)
-  if(allocated(diag1))   deallocate(diag1)
-  if(allocated(bsdiag1)) deallocate(bsdiag1)
-  if(allocated(bdiag1))  deallocate(bdiag1)
-  if(allocated(csdiag1)) deallocate(csdiag1)
-  if(allocated(sm1))     deallocate(sm1)
-  if(allocated(ta1))     deallocate(ta1)
-  if(allocated(tt1))     deallocate(tt1)
-  if(allocated(aat1))    deallocate(aat1)
-  if(allocated(aaa1))    deallocate(aaa1)
-
+  if(allocated(cdiag))   deallocate(cdiag)
+  if(allocated(bsdiag))  deallocate(bsdiag)
+  if(allocated(csdiag))  deallocate(csdiag)
+  if(allocated(sdiag))   deallocate(sdiag)
+  if(allocated(taa))     deallocate(taa)
+  if(allocated(tb))      deallocate(tb)
+  if(allocated(aaa))     deallocate(aaa)
+  if(allocated(aat))     deallocate(aat)
+  if(allocated(tt))      deallocate(tt)
+  if(allocated(sm))      deallocate(sm)
 
 end subroutine gronor_worker_thread_dealloc

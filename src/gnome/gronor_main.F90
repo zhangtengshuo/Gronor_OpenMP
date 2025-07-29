@@ -2160,20 +2160,15 @@ subroutine gronor_main()
         endif
       endif
 
-      if(nbatch.lt.0) then
-        deallocate(tal,tatl,aaal,aatl,ttl,sml)
-        deallocate(csdiagl,bdiagl,bsdiagl,diagl)
-        deallocate(prefac)
-      elseif(nbatch.eq.0) then
+      if(nbatch < 0) then
+        ! not possible 
+      elseif(nbatch == 0) then
+        ! default no batch
         deallocate(tal,tatl,aaal,aatl,ttl,sml)
         deallocate(csdiagl,bdiagl,bsdiagl,diagl)
         deallocate(prefac)
       else
-        deallocate(ta0,aaa0,aat0,tt0,sm0)
-        deallocate(prefac0)
-        deallocate(ta1,aaa1,aat1,tt1,sm1)
-        deallocate(csdiag1,bdiag1,bsdiag1,diag1)
-        deallocate(prefac1)
+        ! Thanks! But no! We DO NOT USE Batch
       endif
       deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
       deallocate(aat,tt,sm)

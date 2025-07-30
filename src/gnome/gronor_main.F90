@@ -998,9 +998,6 @@ subroutine gronor_main()
   numnon=numnon/mgr
   maxgrp=numacc+numnon
 
-#ifdef _OPENMP
-  call omp_set_num_threads(int(map2(me+1,2),kind=4))
-#endif
   
   allocate(thisgroup(mgr+1))
   allocate(allgroups(maxgrp+1,mgr+1))
@@ -2057,40 +2054,6 @@ subroutine gronor_main()
       allocate(vb(nvecb,mbasel))
       allocate(veca(mbasel))
       allocate(vecb(mbasel))
-      allocate(ta(mbasel,max(mbasel,nveca)))
-      allocate(taa(mbasel,max(mbasel,nveca)))
-      allocate(aaa(mbasel,max(mbasel,nveca)))
-      allocate(tb(mbasel,nvecb))
-      allocate(tt(mbasel,max(mbasel,nveca)))
-      allocate(aat(mbasel,max(mbasel,nveca)))
-      allocate(sm(mbasel,max(mbasel,nveca)))
-
-      allocate(a(nelecs,nelecs))
-      allocate(u(nelecs,nelecs))
-      allocate(w(nelecs,nelecs))
-      allocate(wt(nelecs,nelecs))
-      allocate(ev(nelecs))
-      allocate(sdiag(max(nelecs,nbas,mbasel)))
-      allocate(diag(max(nelecs,nbas,mbasel)))
-      allocate(bsdiag(max(nelecs,nbas,mbasel)))
-      allocate(bdiag(max(nelecs,nbas,mbasel)))
-      allocate(csdiag(max(nelecs,nbas,mbasel)))
-      allocate(cdiag(max(nelecs,nbas,mbasel)))
-
-      if(nbatch < 0) then
-        !not possible to go in here
-      elseif(nbatch == 0) then
-        !default no batch
-      else
-        ! batched
-        ! Thanks! NO!
-      endif
-
-      allocate(w1(max(nelecs,nbas,mbasel)))
-      allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
-
-      allocate(rwork(nelecs))
-
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2098,9 +2061,7 @@ subroutine gronor_main()
           flush(lfndbg)
         endif
 
-!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
-!$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
-!$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2136,10 +2097,7 @@ subroutine gronor_main()
       else
         ! Thanks! But no! We DO NOT USE Batch
       endif
-
-      deallocate(cdiag,csdiag,bdiag,bsdiag,diag,sdiag,ev,w,wt,u,a)
-      deallocate(aat,tt,sm)
-      deallocate(tb,aaa,taa,ta,vecb,veca,vb,va)
+      deallocate(vecb,veca,vb,va)
       deallocate(s)
     endif
   endif

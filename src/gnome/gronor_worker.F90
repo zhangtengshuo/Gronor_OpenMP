@@ -121,8 +121,11 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-!$acc data present(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
-!$acc data create(workspace_d,workspace_i,workspace2_d,workspace_i4)
+#ifdef ACC
+!$acc data create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork, &
+&diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm, &
+&workspace_d,workspace_i,workspace2_d,workspace_i4)
+#endif
 
   call gronor_worker_process()
 

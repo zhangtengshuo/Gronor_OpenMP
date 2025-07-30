@@ -102,7 +102,7 @@ subroutine gronor_worker()
 
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
-!$omp parallel private(thread_id) copyin(icur,jcur)
+!$omp parallel private(thread_id) copyin(icur,jcur,nelecs,len_work_dbl,len_work2_dbl,len_work_int,memax)
   thread_id = omp_get_thread_num()
   call gronor_worker_thread_alloc()
 #endif

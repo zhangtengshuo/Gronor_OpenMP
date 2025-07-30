@@ -105,8 +105,6 @@ subroutine gronor_worker()
 !$omp parallel private(thread_id) copyin(icur,jcur)
   thread_id = omp_get_thread_num()
   call gronor_worker_thread_alloc()
-#else
-  call gronor_worker_thread_alloc()
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then
@@ -131,9 +129,7 @@ subroutine gronor_worker()
 
   call gronor_worker_process()
 
-#ifdef ACC
 !$acc end data
-#endif
 
   call gronor_solver_finalize()
 

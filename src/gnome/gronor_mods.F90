@@ -272,7 +272,7 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
-!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+!$omp threadprivate(a,ta,tb,va,vb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
 
   integer :: ising
 

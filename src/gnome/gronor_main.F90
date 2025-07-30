@@ -997,10 +997,6 @@ subroutine gronor_main()
   numacc=numacc/mgr
   numnon=numnon/mgr
   maxgrp=numacc+numnon
-
-#ifdef _OPENMP
-  call omp_set_num_threads(int(map2(me+1,2),kind=4))
-#endif
   
   allocate(thisgroup(mgr+1))
   allocate(allgroups(maxgrp+1,mgr+1))
@@ -1421,8 +1417,8 @@ subroutine gronor_main()
     endif
 #endif
 
-    call gronor_solver_create_handle()
-
+  !  call gronor_solver_create_handle()
+    !  Only accelerated ranks need to define cusolver handles
   endif
 
 #ifdef MKL

@@ -272,8 +272,6 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
-!$omp threadprivate(a,ta,tb,va,vb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
-
   integer :: ising
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
@@ -295,6 +293,7 @@ module gnome_data
   integer (kind=8), allocatable :: nbdet(:,:)
   real (kind=8), allocatable :: rwork(:)
 
+!$omp threadprivate(a,ta,tb,va,vb,w1,w2,taa,u,w,wt,ev,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm,rwork,nelecs,len_work_dbl,len_work2_dbl,len_work_int,memax)
 
 end module gnome_data
 

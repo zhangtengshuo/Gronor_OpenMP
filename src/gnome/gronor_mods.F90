@@ -293,6 +293,7 @@ module gnome_data
   integer (kind=8), allocatable :: nbdet(:,:)
   real (kind=8), allocatable :: rwork(:)
 
+  ! Each thread maintains its own scratch arrays and allocation sizes
 !$omp threadprivate(a,ta,tb,va,vb,w1,w2,taa,u,w,wt,ev,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm,rwork,nelecs,len_work_dbl,len_work2_dbl,len_work_int,memax)
 
 end module gnome_data

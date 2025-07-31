@@ -272,7 +272,6 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
-
   integer :: ising
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)

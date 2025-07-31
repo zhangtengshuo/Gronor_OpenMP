@@ -2049,8 +2049,6 @@ subroutine gronor_main()
       allocate(vtemp(mvec,mbasel,2))
       allocate(itemp(21),ioccn(20,2))
 
-      allocate(va(nveca,mbasel))
-      allocate(vb(nvecb,mbasel))
       allocate(veca(mbasel))
       allocate(vecb(mbasel))
       if(iamacc.eq.1) then
@@ -2096,7 +2094,7 @@ subroutine gronor_main()
       else
         ! Thanks! But no! We DO NOT USE Batch
       endif
-      deallocate(vecb,veca,vb,va)
+      deallocate(vecb,veca)
       deallocate(s)
     endif
   endif

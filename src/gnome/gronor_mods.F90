@@ -272,7 +272,6 @@ module gnome_data
   real (kind=8), allocatable :: aaa(:,:),aat(:,:)
   real (kind=8), allocatable :: tt(:,:)
 
-!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
 
   integer :: ising
 
@@ -295,6 +294,9 @@ module gnome_data
   integer (kind=8), allocatable :: nbdet(:,:)
   real (kind=8), allocatable :: rwork(:)
 
+!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,va,vb,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+
+  ! Scratch arrays are allocated per thread inside the worker routine
 
 end module gnome_data
 

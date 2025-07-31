@@ -104,8 +104,9 @@ subroutine gronor_worker()
   call omp_set_num_threads(num_threads)
 !$omp parallel private(thread_id) copyin(icur,jcur,nelecs,len_work_dbl,len_work2_dbl,len_work_int,memax)
   thread_id = omp_get_thread_num()
+#ifdef ACC
+!$acc data
   call gronor_worker_thread_alloc()
-#endif
 
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
@@ -121,14 +122,9 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-#ifdef ACC
-!$acc data create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork, diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm, &
-!$acc& workspace_d,workspace_i,workspace2_d,workspace_i4)
-#endif
-
   call gronor_worker_process()
-
 !$acc end data
+#endif
 
   call gronor_solver_finalize()
 

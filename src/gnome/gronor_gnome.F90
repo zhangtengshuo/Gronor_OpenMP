@@ -20,7 +20,7 @@
 !!
 
 
-subroutine gronor_gnome(lfndbg,ihc,nhc)
+subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidist
@@ -30,6 +30,11 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   !      use nvtx
 
   implicit none
+
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
+  real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
+  real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
+  real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: timer_start,timer_stop
   external :: gronor_dipole
@@ -158,13 +163,13 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     !  Calculations of the overlap matrices
 
     call timer_start(14)
-    call gronor_moover(lfndbg)
+    call gronor_moover(lfndbg,va,vb,tb,ta,a)
     call timer_stop(14)
 
     !  Calculation of the cofactor matrices and arrays corresponding to the total overlap
 
     call timer_start(15)
-    call gronor_cofac1(lfndbg)
+    call gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
     call timer_stop(15)
 
     if(idbg.ge.20) then
@@ -182,7 +187,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       if(corres) then
         call timer_start(16)
-        call gronor_cororb()
+        call gronor_cororb(u,w,va,vb,ev)
         call timer_stop(16)
       endif
 
@@ -192,7 +197,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
       if(idipole.ne.0) then
         call timer_start(18)
-        call gronor_dipole(lfndbg)
+        call gronor_dipole(lfndbg,ta,diag,sdiag)
         call timer_stop(18)
       endif
 
@@ -212,13 +217,13 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       !     (x-matrix to f-matrix in terms of the basis set of the 2-el.integr
 
       call timer_start(20)
-      call gronor_tramat2(lfndbg)
+      call gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
       call timer_stop(20)
 
       !     Calculation of the one electron Hamiltonian matrix elements
 
       call timer_start(21)
-      if(icalc.le.1.and.ising.le.1) call gronor_gnone(lfndbg)
+      if(icalc.le.1.and.ising.le.1) call gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
       call timer_stop(21)
     endif
 
@@ -232,9 +237,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       ! else
       ! Thanks! but we do not use batch 
         if(idevel.eq.0.or.mgr.gt.1) then
-          if(ising.le.2) call gronor_gntwo(lfndbg)
+          if(ising.le.2) call gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
         else
-          if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
+          if(ising.le.2) call gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
         endif
       ! endif
       !         call nvtxEndRange

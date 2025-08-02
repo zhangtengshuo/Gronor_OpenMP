@@ -19,7 +19,7 @@
 !! @date    2025
 !!
 
-subroutine gronor_evd()
+subroutine gronor_evd(a,diag,sdiag)
 
   !> Routine that provides all possible calls to Eigensolver library routines
   !! including routines executed on the CPU or on GPU accelerators
@@ -66,11 +66,13 @@ subroutine gronor_evd()
 
   implicit none
 
+  real (kind=8), intent(inout) :: a(:,:),diag(:),sdiag(:)
+
   external :: tred2,tql2
 #ifdef MKL
   external :: dsyevd
 #endif
-  
+
   integer :: i,j
   integer :: ierr
 

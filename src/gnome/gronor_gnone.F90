@@ -27,7 +27,7 @@
 !!
 
 
-subroutine gronor_gnone(lfndbg)
+subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   use cidist
   use gnome_parameters
   use gnome_data
@@ -35,6 +35,7 @@ subroutine gronor_gnone(lfndbg)
 
   implicit none
   integer :: lfndbg
+  real (kind=8), intent(inout) :: diag(:),bdiag(:),bsdiag(:),csdiag(:),ta(:,:),aaa(:,:)
 
   integer :: j,k,ielem,jkoff,nn
   real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj

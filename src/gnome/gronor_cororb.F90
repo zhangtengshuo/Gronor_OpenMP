@@ -19,10 +19,11 @@
 !! @date    2016
 !!
 
-subroutine gronor_cororb()
+subroutine gronor_cororb(u,w,va,vb,ev)
   use gnome_parameters
   use gnome_data
   implicit none
+  real (kind=8), intent(inout) :: u(:,:),w(:,:),va(:,:),vb(:,:),ev(:)
   integer :: i,j,k
 
   do i=1,nelecs

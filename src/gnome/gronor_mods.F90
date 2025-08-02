@@ -245,32 +245,13 @@ module gnome_data
   integer :: n1bas,nstdim,mbasel,ijend
   integer (kind=4) :: nelecs
   
-  ! va/vb hold MO coefficients for the two fragments
-  ! tb is the intermediate matrix S⋅VB used to build the overlap matrix ta
-  ! After the MO overlap matrix ta is built, it is copied to a which serves as input to the SVD solver
-  ! The SVD produces singular vectors u and wt (transposed right-hand matrix). The transpose is stored in w
-  ! diag and sdiag are derived from specific columns of u and w when singular values fall below a threshold.
-  ! cdiag/csdiag store the same quantities for later reference
-  ! In gronor_tramat, the diagonal vectors and overlap matrices are transformed with va and vb
-  ! w1 and w2 are scratch arrays for accumulating intermediate sums
-  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:)   
-  real (kind=8), allocatable :: ta(:,:),a(:,:)
-  real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
-
-  real (kind=8), allocatable :: sdiag(:)
-  real (kind=8), allocatable, target :: diag(:)
-  real (kind=8), allocatable :: bsdiag(:),bdiag(:)
-  real (kind=8), allocatable :: csdiag(:),cdiag(:)
-  real (kind=8), allocatable :: w1(:),w2(:,:)
+  ! Scratch arrays such as va, vb, ta, etc. are allocated privately for each
+  ! OpenMP worker thread inside gronor_worker and passed explicitly to the
+  ! routines that require them.  They are therefore no longer declared here in
+  ! the global data module.
 
   ! veca/vecb collect correlated orbitals for debugging (gronor_cororb.F90)
   real (kind=8), allocatable :: veca(:),vecb(:)
-
-  ! The matrices taa, aaa, aat, tt, and sm are subsequently combined to compute the two-electron contributions in gronor_gntwo
-  real (kind=8), allocatable :: taa(:,:)
-  real (kind=8), allocatable :: sm(:,:)
-  real (kind=8), allocatable :: aaa(:,:),aat(:,:)
-  real (kind=8), allocatable :: tt(:,:)
 
   integer :: ising
 
@@ -291,9 +272,8 @@ module gnome_data
 
   real (kind=8), allocatable :: c2sum(:,:)
   integer (kind=8), allocatable :: nbdet(:,:)
-  real (kind=8), allocatable :: rwork(:)
 
-!$omp threadprivate(a,ta,tb,w1,w2,taa,u,w,wt,ev,va,vb,rwork,diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+! Scratch arrays are assigned on a per-thread basis within gronor_worker
 
   ! Scratch arrays are allocated per thread inside the worker routine
 

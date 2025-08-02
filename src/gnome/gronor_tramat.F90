@@ -20,7 +20,7 @@
 !!
 
 
-subroutine gronor_tramat()
+subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   !      This routine mutiplies the input-matrix (a)
   !       (which is positioned in a workmatrix (aa))
@@ -37,6 +37,7 @@ subroutine gronor_tramat()
   use gnome_parameters
   use gnome_data
   implicit none
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),ta(:,:),taa(:,:),w1(:),w2(:,:),diag(:),sdiag(:)
   integer :: i,j,k,kk,m1
   real (kind=8) :: sum
 

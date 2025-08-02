@@ -19,12 +19,13 @@
 !! @date    2016
 !!
 
-subroutine gronor_dipole(lfndbg)
+subroutine gronor_dipole(lfndbg,ta,diag,sdiag)
   use cidist
   use gnome_parameters
   use gnome_data
   implicit none
   integer :: lfndbg
+  real (kind=8), intent(inout) :: ta(:,:),diag(:),sdiag(:)
 
   integer :: i,j
   real (kind=8) :: x,y,z,aij,dx,dy,dz,z1,xc,yc,zc,dtot

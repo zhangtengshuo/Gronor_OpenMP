@@ -18,7 +18,7 @@
 !! @date    2025
 !!
 
-subroutine gronor_svd()
+subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
   !> Routine that provides all possible calls to Singular Value Decomposition library routines
   !! including routines executed on the CPU or on GPU accelerators 
@@ -67,8 +67,10 @@ subroutine gronor_svd()
 
   implicit none
 
+  real (kind=8), intent(inout) :: a(:,:),ev(:),u(:,:),w(:,:),sdiag(:),wt(:,:)
+
   external :: svd,dgesvd
-  
+
   integer :: i,j
   integer :: ierr
   integer (kind=4) :: istat

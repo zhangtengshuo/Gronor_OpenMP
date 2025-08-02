@@ -28,7 +28,7 @@
 !!    @param[in] id2 : index of final matrix contribution
 !!    @date    2016
 
-subroutine gronor_calculate(ib,jb,id1,id2)
+subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidist
@@ -41,6 +41,11 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 #endif
 
   implicit none
+
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
+  real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
+  real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
+  real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: swatch,timer_start,timer_stop
 !  external :: MPI_iSend,MPI_Recv
@@ -324,7 +329,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 618   format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
       call timer_start(6)
-      call gronor_gnome(lfndbg,ihc,nhc)
+      call gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
       call timer_stop(6)
 
       if(oterm) then

@@ -28,7 +28,7 @@
 !! </table>
 !!
 
-subroutine gronor_gntwo(lfndbg)
+subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   use mpi
   use cidist
@@ -41,6 +41,8 @@ subroutine gronor_gntwo(lfndbg)
   use cuda_functions
 
   implicit none
+
+  real (kind=8), intent(inout) :: aat(:,:),aaa(:,:),tt(:,:),ta(:,:),sm(:,:),diag(:),bdiag(:),bsdiag(:),csdiag(:)
 
   external :: timer_start,timer_stop
 
@@ -293,7 +295,7 @@ subroutine gronor_gntwo(lfndbg)
   return
 end subroutine gronor_gntwo
 
-subroutine gronor_gntwo_canonical(lfndbg)
+subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   use mpi
   use cidist
@@ -310,6 +312,8 @@ subroutine gronor_gntwo_canonical(lfndbg)
 #endif
 
   implicit none
+
+  real (kind=8), intent(inout) :: aat(:,:),aaa(:,:),tt(:,:),ta(:,:),sm(:,:),diag(:),bdiag(:),bsdiag(:),csdiag(:)
 
   external :: timer_start,timer_stop
 

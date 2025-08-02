@@ -34,8 +34,6 @@ subroutine gronor_worker()
   external :: gronor_solver_init,gronor_solver_final
   external :: gronor_calculate
   external :: swatch,timer_start,timer_stop
-  external :: gronor_worker_thread_alloc
-  external :: gronor_worker_thread_dealloc
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
@@ -48,6 +46,13 @@ subroutine gronor_worker()
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17)
   integer :: thread_id
+
+  real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
+  real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
+  real (kind=8), allocatable :: sdiag(:),diag(:),bsdiag(:),bdiag(:)
+  real (kind=8), allocatable :: csdiag(:),cdiag(:)
+  real (kind=8), allocatable :: w1(:),w2(:,:)
+  real (kind=8), allocatable :: taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
 
   logical (kind=4) :: flag
 
@@ -102,11 +107,35 @@ subroutine gronor_worker()
 
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
-!$omp parallel private(thread_id) copyin(icur,jcur,nelecs,len_work_dbl,len_work2_dbl,len_work_int,memax)
+!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
   thread_id = omp_get_thread_num()
+
+  allocate(a(nelecs,nelecs))
+  allocate(ta(mbasel,max(mbasel,nveca)))
+  allocate(tb(mbasel,nvecb))
+  allocate(va(nveca,mbasel))
+  allocate(vb(nvecb,mbasel))
+  allocate(w1(max(nelecs,nbas,mbasel)))
+  allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
+  allocate(taa(mbasel,max(mbasel,nveca)))
+  allocate(u(nelecs,nelecs))
+  allocate(w(nelecs,nelecs))
+  allocate(wt(nelecs,nelecs))
+  allocate(ev(nelecs))
+  allocate(diag(max(nelecs,nbas,mbasel)))
+  allocate(bdiag(max(nelecs,nbas,mbasel)))
+  allocate(cdiag(max(nelecs,nbas,mbasel)))
+  allocate(bsdiag(max(nelecs,nbas,mbasel)))
+  allocate(csdiag(max(nelecs,nbas,mbasel)))
+  allocate(sdiag(max(nelecs,nbas,mbasel)))
+  allocate(aaa(mbasel,max(mbasel,nveca)))
+  allocate(tt(mbasel,max(mbasel,nveca)))
+  allocate(aat(mbasel,max(mbasel,nveca)))
+  allocate(sm(mbasel,max(mbasel,nveca)))
+
 #ifdef ACC
 !$acc data
-  call gronor_worker_thread_alloc()
+#endif
 
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
@@ -122,15 +151,37 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-  call gronor_worker_process()
+  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
+#ifdef ACC
 !$acc end data
 #endif
 
   call gronor_solver_finalize()
 
-  call gronor_worker_thread_dealloc()
+  deallocate(a)
+  deallocate(ta)
+  deallocate(tb)
+  deallocate(va)
+  deallocate(vb)
+  deallocate(w1)
+  deallocate(w2)
+  deallocate(taa)
+  deallocate(u)
+  deallocate(w)
+  deallocate(wt)
+  deallocate(ev)
+  deallocate(diag)
+  deallocate(bdiag)
+  deallocate(cdiag)
+  deallocate(bsdiag)
+  deallocate(csdiag)
+  deallocate(sdiag)
+  deallocate(aaa)
+  deallocate(tt)
+  deallocate(aat)
+  deallocate(sm)
 
-#ifdef _OPENMP
 !$omp end parallel
 #endif
 
@@ -144,7 +195,7 @@ subroutine gronor_worker()
   return
 end subroutine gronor_worker
 
-subroutine gronor_worker_process()
+subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidef
@@ -155,6 +206,11 @@ subroutine gronor_worker_process()
   use gnome_solvers
 
   implicit none
+
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
+  real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
+  real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
+  real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: gronor_solver_init,gronor_solver_final
   external :: gronor_calculate
@@ -322,7 +378,7 @@ subroutine gronor_worker_process()
         flush(lfndbg)
       endif
       call timer_start(47)
-      call gronor_calculate(ibase,jbase,idet,jdet)
+      call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
       call timer_stop(47)
       
       if(oterm) then
@@ -366,66 +422,3 @@ subroutine gronor_worker_process()
 
   return
 end subroutine gronor_worker_process
-
-subroutine gronor_worker_thread_alloc()
-  use gnome_data
-  use gnome_parameters
-  implicit none
-
-  allocate(a(nelecs,nelecs))
-  allocate(ta(mbasel,max(mbasel,nveca)))
-  allocate(tb(mbasel,nvecb))
-  allocate(va(nveca,mbasel))
-  allocate(vb(nvecb,mbasel))
-  allocate(w1(max(nelecs,nbas,mbasel)))
-  allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
-  allocate(taa(mbasel,max(mbasel,nveca)))
-  allocate(u(nelecs,nelecs))
-  allocate(w(nelecs,nelecs))
-  allocate(wt(nelecs,nelecs))
-  allocate(ev(nelecs))
-  allocate(rwork(nelecs))
-  allocate(diag(max(nelecs,nbas,mbasel)))
-  allocate(bdiag(max(nelecs,nbas,mbasel)))
-  allocate(cdiag(max(nelecs,nbas,mbasel)))
-  allocate(bsdiag(max(nelecs,nbas,mbasel)))
-  allocate(csdiag(max(nelecs,nbas,mbasel)))
-  allocate(sdiag(max(nelecs,nbas,mbasel)))
-  allocate(aaa(mbasel,max(mbasel,nveca)))
-  allocate(tt(mbasel,max(mbasel,nveca)))
-  allocate(aat(mbasel,max(mbasel,nveca)))
-  allocate(sm(mbasel,max(mbasel,nveca)))
-
-end subroutine gronor_worker_thread_alloc
-
-subroutine gronor_worker_thread_dealloc()
-  use gnome_data
-  use gnome_parameters
-  implicit none
-
-  if(allocated(a))      deallocate(a)
-  if(allocated(ta))     deallocate(ta)
-  if(allocated(w1))     deallocate(w1)
-  if(allocated(w2))     deallocate(w2)
-  if(allocated(va))     deallocate(va)
-  if(allocated(vb))     deallocate(vb)
-  if(allocated(u))      deallocate(u)
-  if(allocated(w))      deallocate(w)
-  if(allocated(wt))     deallocate(wt)
-  if(allocated(ev))     deallocate(ev)
-  if(allocated(rwork))  deallocate(rwork)
-  if(allocated(diag))   deallocate(diag)
-  if(allocated(bdiag))  deallocate(bdiag)
-
-  if(allocated(cdiag))   deallocate(cdiag)
-  if(allocated(bsdiag))  deallocate(bsdiag)
-  if(allocated(csdiag))  deallocate(csdiag)
-  if(allocated(sdiag))   deallocate(sdiag)
-  if(allocated(taa))     deallocate(taa)
-  if(allocated(tb))      deallocate(tb)
-  if(allocated(aaa))     deallocate(aaa)
-  if(allocated(aat))     deallocate(aat)
-  if(allocated(tt))      deallocate(tt)
-  if(allocated(sm))      deallocate(sm)
-
-end subroutine gronor_worker_thread_dealloc

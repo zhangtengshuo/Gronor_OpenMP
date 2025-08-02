@@ -107,7 +107,9 @@ subroutine gronor_worker()
 
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
+
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
   thread_id = omp_get_thread_num()
 
   allocate(a(nelecs,nelecs))
@@ -118,6 +120,7 @@ subroutine gronor_worker()
   allocate(w1(max(nelecs,nbas,mbasel)))
   allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
   allocate(taa(mbasel,max(mbasel,nveca)))
+
   allocate(u(nelecs,nelecs))
   allocate(w(nelecs,nelecs))
   allocate(wt(nelecs,nelecs))
@@ -150,6 +153,7 @@ subroutine gronor_worker()
     write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
     flush(lfndbg)
   endif
+
 
   call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
@@ -378,7 +382,9 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
         flush(lfndbg)
       endif
       call timer_start(47)
+
       call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
       call timer_stop(47)
       
       if(oterm) then

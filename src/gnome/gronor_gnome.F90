@@ -87,7 +87,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     endif
 
     call timer_start(11)
-    call gronor_transvc(lfndbg,idet)
+    call gronor_transvc(lfndbg,idet,ntcl,ntop,nclose,nopen,iocopen)
     call timer_stop(11)
 
     call timer_start(12)
@@ -95,7 +95,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     call timer_stop(12)
 
     call timer_start(13)
-    call gronor_tranout(lfndbg,idet)
+    call gronor_tranout(lfndbg,idet,ntcl,ntop)
     call timer_stop(13)
 
     if(idbg.ge.20) write(lfndbg,606) idet

@@ -204,10 +204,7 @@ module gnome_data
 
   integer :: nnucl,nbas,numint,numfiles
 
-  integer :: nelec(2),ntcl(2),ntop(2)
   integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb
-  integer :: nclose(2)
-  integer :: nopen(2),iocopen(100,2)
 
   character (len=80) :: text,name(2),namint(2)
   real (kind=8) :: potnuc,zNucTot
@@ -220,7 +217,7 @@ module gnome_data
   integer, allocatable :: ic(:),it(:),ictr(:)
   integer, allocatable :: icentn(:),itypen(:),icount(:),istand(:)
 
-  integer :: ninact(2),nact(2),mnact,ittr(3)
+  integer :: mnact,ittr(3)
 
   integer :: nbasis,mvec,nvec(2)
 

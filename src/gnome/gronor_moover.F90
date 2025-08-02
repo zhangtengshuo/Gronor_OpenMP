@@ -19,7 +19,7 @@
 !! @date    2016
 !!
 
-subroutine gronor_moover(lfndbg)
+subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   use mpi
   use cidist
@@ -28,6 +28,8 @@ subroutine gronor_moover(lfndbg)
   use gnome_data
 
   implicit none
+
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
 
   external :: gronor_abort
 

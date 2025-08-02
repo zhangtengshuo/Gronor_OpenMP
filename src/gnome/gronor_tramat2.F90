@@ -19,7 +19,7 @@
 !! @date    2016
 !!
 
-subroutine gronor_tramat2(lfndbg)
+subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
 
   !      Transformation of the  m.o.'s
   !      the new  m.o.'s are adapted to the basis set of the two electon
@@ -30,6 +30,7 @@ subroutine gronor_tramat2(lfndbg)
   use gnome_data
   implicit none
   integer :: lfndbg
+  real (kind=8), intent(inout) :: va(:,:),vb(:,:),ta(:,:),aaa(:,:),w1(:),w2(:,:),diag(:),bdiag(:),bsdiag(:),cdiag(:),csdiag(:),sdiag(:)
 
   integer :: i,j,k,kk,m1
   real (kind=8) :: sum

@@ -20,7 +20,7 @@
 !! @date    2016
 !!
 
-      subroutine gronor_cofac1(lfndbg)
+      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
       use cidist
       use gnome_parameters
       use gnome_data
@@ -28,10 +28,13 @@
       
       implicit none
 
+      real (kind=8), intent(inout) :: a(:,:),u(:,:),w(:,:),wt(:,:),ev(:),ta(:,:)
+      real (kind=8), intent(inout) :: diag(:),sdiag(:),cdiag(:),csdiag(:)
+
       external :: timer_start,timer_stop
       external :: gronor_abort
       external :: gronor_svd,gronor_evd
-      
+
       integer :: lfndbg
       integer :: i,j,idetuw,k
       real (kind=8) :: coef
@@ -57,7 +60,7 @@
       endif
 
       call timer_start(41)
-      call gronor_svd()
+      call gronor_svd(a,ev,u,w,sdiag,wt)
       call timer_stop(41)
 
   !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
@@ -136,7 +139,7 @@
 
       call timer_start(43)
       
-      call gronor_evd()
+      call gronor_evd(a,diag,sdiag)
 
       call timer_stop(43)
       

@@ -53,9 +53,6 @@ subroutine gronor_worker()
   real (kind=8), allocatable :: csdiag(:),cdiag(:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
   real (kind=8), allocatable :: taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
-  integer, allocatable :: nelec(:),ntcl(:),ntop(:),nopen(:),nclose(:)
-  integer, allocatable :: ninact(:),nact(:)
-  integer, allocatable :: iocopen(:,:)
 
   logical (kind=4) :: flag
 
@@ -110,7 +107,9 @@ subroutine gronor_worker()
 
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
-!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,nelec,ntcl,ntop,nopen,nclose,iocopen,ninact,nact)
+
+!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
   thread_id = omp_get_thread_num()
 
   allocate(a(nelecs,nelecs))
@@ -121,17 +120,7 @@ subroutine gronor_worker()
   allocate(w1(max(nelecs,nbas,mbasel)))
   allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
   allocate(taa(mbasel,max(mbasel,nveca)))
-  allocate(nelec(2),ntcl(2),ntop(2),nopen(2),nclose(2))
-  allocate(ninact(2),nact(2))
-  allocate(iocopen(100,2))
-  nelec=0
-  ntcl=0
-  ntop=0
-  nopen=0
-  nclose=0
-  ninact=0
-  nact=0
-  iocopen=0
+
   allocate(u(nelecs,nelecs))
   allocate(w(nelecs,nelecs))
   allocate(wt(nelecs,nelecs))
@@ -165,7 +154,8 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,nelec,ntcl,ntop,nopen,nclose,iocopen,ninact,nact)
+
+  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
 #ifdef ACC
 !$acc end data
@@ -195,14 +185,6 @@ subroutine gronor_worker()
   deallocate(tt)
   deallocate(aat)
   deallocate(sm)
-  deallocate(nelec)
-  deallocate(ntcl)
-  deallocate(ntop)
-  deallocate(nopen)
-  deallocate(nclose)
-  deallocate(ninact)
-  deallocate(nact)
-  deallocate(iocopen)
 
 !$omp end parallel
 #endif
@@ -217,7 +199,7 @@ subroutine gronor_worker()
   return
 end subroutine gronor_worker
 
-subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,nelec,ntcl,ntop,nopen,nclose,iocopen,ninact,nact)
+subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidef
@@ -233,8 +215,6 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
   real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
-  integer, intent(inout) :: nelec(:),ntcl(:),ntop(:),nopen(:),nclose(:)
-  integer, intent(inout) :: iocopen(:,:),ninact(:),nact(:)
 
   external :: gronor_solver_init,gronor_solver_final
   external :: gronor_calculate
@@ -402,7 +382,9 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
         flush(lfndbg)
       endif
       call timer_start(47)
-      call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,nelec,ntcl,ntop,nopen,nclose,iocopen,ninact,nact)
+
+      call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
       call timer_stop(47)
       
       if(oterm) then

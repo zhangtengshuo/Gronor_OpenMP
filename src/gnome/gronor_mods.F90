@@ -251,6 +251,9 @@ module gnome_data
   real (kind=8), allocatable :: veca(:),vecb(:)
 
   integer :: ising
+!$omp threadprivate(nelec,ntcl,ntop,nclose,nopen,iocopen,ninact,nact,ntesta,ntestb,ijend)
+!$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,n1bas,nstdim,mbasel,nelecs)
+!$omp threadprivate(e1,e2,e2c,etot,etotb,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
 
   real (kind=8), allocatable :: result(:,:),resultt(:,:)
 

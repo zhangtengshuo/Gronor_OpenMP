@@ -49,14 +49,16 @@ subroutine gronor_master()
   integer :: ibase,jbase,mdet,ibin,jbin
   integer :: l2,i,j,k,l,ndone,nleft
   integer :: igrp, ltemp, last, nthdet
-  integer :: tid
+  integer :: tid, jt
   logical :: osame,ofirst,oskipn
 
   real (kind=8) :: tsum
   real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
 
   integer (kind=8) :: ibuf(4),nsingt(5), ltotal
-  integer, allocatable :: lgroup(:,:), lactive(:), lcount(:)
+  integer, allocatable :: lgroup(:,:,:), lactive(:), lcount(:)
+  real (kind=8) :: tbuf(18)
+  integer :: gtid, lfnmpi
 
   integer (kind=4) :: ierr,ireq2,ireq9,iremote,ncount,mpitag
   integer (kind=4) :: status(MPI_STATUS_SIZE)
@@ -67,7 +69,7 @@ subroutine gronor_master()
 
   integer :: ioff
 
-  allocate(lgroup(npg,5))
+  allocate(lgroup(npg,num_threads,5))
   allocate(lactive(npg))
   allocate(ntasks(nbase,nbase))
   allocate(ndets(nbase,nbase,2))
@@ -88,6 +90,8 @@ subroutine gronor_master()
   send_req = MPI_REQUEST_NULL
   allocate(itbuf(4,np))
   allocate(lcount(npg))
+  lgroup=0
+  open(newunit=lfnmpi,file='mpi_master.log',status='replace',action='write',iostat=ierr)
 
   ofirst=.true.
   oskipn=numacc.gt.np/2
@@ -111,12 +115,6 @@ subroutine gronor_master()
   !     lgroup(igrp,3) : index to first determinant pair for H(i,j) in the current task sent to group igrp
   !     lgroup(igrp,4) : index to last determinant pair for H(i,j) in the current task sent to group igrp
   !     lgroup(igrp,5) : 0:group is done, 1:group has task, 2:group has duplicate task
-
-  do j=1,5
-    do i=1,npg
-      lgroup(i,j)=0
-    enddo
-  enddo
 
   do i=1,npg
     lcount(i)=5*npg
@@ -363,9 +361,14 @@ subroutine gronor_master()
         !     Wait for a request for a task from any worker group
 
         call timer_start(94)
-        ncount=17
+        ncount=18
         mpitag=1
-        call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+        call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+        tid=int(tbuf(1))+1
+        do k=1,17
+          buffer(k)=tbuf(k+1)
+        enddo
+        write(lfnmpi,'("recv from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
         call timer_stop(94)
 
         ! If a buffer is received the integrals were distributed to the worker ranks
@@ -408,22 +411,22 @@ subroutine gronor_master()
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              mstr,' received buffer from',iremote,igrp,(lgroup(igrp,i),i=1,5)
+              mstr,' received buffer from',iremote,igrp,(lgroup(igrp,tid,i),i=1,5)
           flush(lfndbg)
         endif
 
         !     If the request group completed a task accumulate into appropriate arrays
         !     The very first request comes without results so this is skipped
 
-        if(lgroup(igrp,5).ne.0) then
+        if(lgroup(igrp,tid,5).ne.0) then
 
-          ibin=lgroup(igrp,1)
-          jbin=lgroup(igrp,2)
+          ibin=lgroup(igrp,tid,1)
+          jbin=lgroup(igrp,tid,2)
 
           !     Determine the number of determinants completed for the base pair in ndets
           !     Determine the percent complete for the base pair in pnrb
 
-          ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+lgroup(igrp,4)-lgroup(igrp,3)+1
+          ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1
           pnrb(ibin,jbin)=dble(100*ndets(ibin,jbin,2))/ndets(ibin,jbin,1)
           
           !     Write entry to progress file
@@ -431,16 +434,16 @@ subroutine gronor_master()
           if(ipro.eq.1.or.ipro.eq.3) then
             call swatch(date,time)
             if(ipro.eq.1) rewind(unit=lfnpro)
-            write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                lgroup(igrp,4)-lgroup(igrp,3)+1, &
+            write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,tid,j),j=1,4), &
+                lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1, &
               pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
 680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ',2e16.8,5i8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
             call swatch(date,time)
             if(ipro.eq.2) rewind(unit=lfnpro)
-            write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-                lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
+            write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,tid,j),j=1,4), &
+                lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1,pnrb(ibin,jbin)
 681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ')
             flush(lfnpro)
           endif
@@ -695,7 +698,7 @@ subroutine gronor_master()
           !     Reset the task information for the group from which request came
 
           do k=1,5
-            lgroup(igrp,k)=0
+            lgroup(igrp,tid,k)=0
           enddo
 
           !     Loop over all base pairs to check if all tasks have been completed
@@ -744,6 +747,7 @@ subroutine gronor_master()
 
         call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
+        write(lfnmpi,'("send task to",i0," tid",i0," ibuf=",4i12)') iremote,tid-1,ibuf
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
@@ -771,9 +775,9 @@ subroutine gronor_master()
         !     Store the buffer information sent to remote rank in lgroup
 
         do k=1,4
-          lgroup(igrp,k)=ibuf(k)
+          lgroup(igrp,tid,k)=ibuf(k)
         enddo
-        lgroup(igrp,5)=1
+        lgroup(igrp,tid,5)=1
 
       enddo
 
@@ -802,7 +806,9 @@ subroutine gronor_master()
 
   nleft=0
   do i=1,npg
-    if(lgroup(i,5).gt.0) nleft=nleft+1
+    do k=1,num_threads
+      if(lgroup(i,k,5).gt.0) nleft=nleft+1
+    enddo
     lactive(i)=0
   enddo
 
@@ -814,17 +820,22 @@ subroutine gronor_master()
     !     Wait for request from any remote rank
 
     call timer_start(96)
-    ncount=17
+    ncount=18
     mpitag=1
-    call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+    call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+    tid=int(tbuf(1))+1
+    do k=1,17
+      buffer(k)=tbuf(k+1)
+    enddo
+    write(lfnmpi,'("recv dup from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
     call timer_stop(96)
 
     !     Determine the rank, group and base pair of received buffer
 
     iremote=status(MPI_SOURCE)
     igrp=map2(iremote+1,3)
-    ibin=lgroup(igrp,1)
-    jbin=lgroup(igrp,2)
+    ibin=lgroup(igrp,tid,1)
+    jbin=lgroup(igrp,tid,2)
 
     do k=1,npg
       lcount(k)=lcount(k)-1
@@ -845,26 +856,26 @@ subroutine gronor_master()
     
     !     Accumulate results into appropriate arrays
     
-    if(lgroup(igrp,5).gt.0) then
+    if(lgroup(igrp,tid,5).gt.0) then
 
       !     Determine the number of determinants completed for the base pair in ndets
       !     Determine the percent complete for the base pair in pnrb
 
-      ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+lgroup(igrp,4)-lgroup(igrp,3)+1
+      ndets(ibin,jbin,2)=ndets(ibin,jbin,2)+lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1
       pnrb=dble(100*ndets(ibin,jbin,2))/ndets(ibin,jbin,1)
 
       !     Write entry to progress file
 
       if(ipro.eq.1.or.ipro.eq.3) then
         if(ipro.eq.1) rewind(unit=lfnpro)
-        write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            lgroup(igrp,4)-lgroup(igrp,3)+1, &
+        write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,tid,j),j=1,4), &
+            lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1, &
             pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
         flush(lfnpro)
       elseif(ipro.eq.2.or.ipro.eq.4) then
         if(ipro.eq.2) rewind(unit=lfnpro)
-        write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
+        write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,tid,j),j=1,4), &
+            lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1,pnrb(ibin,jbin)
         flush(lfnpro)
       endif
       
@@ -1072,15 +1083,17 @@ subroutine gronor_master()
       !     Remove duplicates that have already been sent
 
       do i=1,npg
-        if(lgroup(i,1).eq.lgroup(igrp,1).and.lgroup(i,2).eq.lgroup(igrp,2).and. &
-            lgroup(i,3).eq.lgroup(igrp,3).and.lgroup(i,4).eq.lgroup(igrp,4).and. &
-            lgroup(i,5).gt.0.and.i.ne.igrp) lgroup(i,5)=0
+        do k=1,num_threads
+          if(lgroup(i,k,1).eq.lgroup(igrp,tid,1).and.lgroup(i,k,2).eq.lgroup(igrp,tid,2).and. &
+              lgroup(i,k,3).eq.lgroup(igrp,tid,3).and.lgroup(i,k,4).eq.lgroup(igrp,tid,4).and. &
+              lgroup(i,k,5).gt.0.and.(i.ne.igrp.or.k.ne.tid)) lgroup(i,k,5)=0
+        enddo
       enddo
 
       !     Reset the current entry
 
       do i=1,5
-        lgroup(igrp,i)=0
+        lgroup(igrp,tid,i)=0
       enddo
 
       if(.not.oskipn.or.map2(iremote+1,5).gt.0) then
@@ -1088,19 +1101,25 @@ subroutine gronor_master()
         !     Send a duplicate of an outstanding entry
 
         j=0
+        jt=0
         do i=1,npg
           if(j.eq.0) then
             last=last+1
             if(last.gt.npg) last=last-npg
-            if(lgroup(last,5).eq.1) j=last
+            do k=1,num_threads
+              if(lgroup(last,k,5).eq.1) then
+                j=last
+                jt=k
+                exit
+              endif
+            enddo
           endif
         enddo
 
         if(j.gt.0) then
 
-
           do i=1,4
-            ibuf(i)=lgroup(j,i)
+            ibuf(i)=lgroup(j,jt,i)
           enddo
 
           !     Send the duplicate buffer to requesting rank without waiting for completion of mpi
@@ -1124,6 +1143,7 @@ subroutine gronor_master()
 
           call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
+          write(lfnmpi,'("send dup to",i0," tid",i0," ibuf=",4i12)') iremote,tid-1,ibuf
 
           !     Debug message
           
@@ -1146,10 +1166,10 @@ subroutine gronor_master()
           !     Store the buffer information sent to remote rank in lgroup
 
           do k=1,4
-            lgroup(igrp,k)=ibuf(k)
+            lgroup(igrp,tid,k)=ibuf(k)
           enddo
-          lgroup(igrp,5)=2
-          lgroup(j,5)=2
+          lgroup(igrp,tid,5)=2
+          lgroup(j,jt,5)=2
 
         endif
       endif
@@ -1159,8 +1179,8 @@ subroutine gronor_master()
       !     Received data other than matrix elements, should currently be impossible
 
       if(ipro.eq.1.or.ipro.eq.3) then
-        write(lfnpro,683) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
-            lgroup(igrp,4)-lgroup(igrp,3)+1
+        write(lfnpro,683) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,tid,j),j=1,4), &
+            lgroup(igrp,tid,4)-lgroup(igrp,tid,3)+1
 683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,i6)
       endif
     endif
@@ -1169,7 +1189,9 @@ subroutine gronor_master()
 
     nleft=0
     do i=1,npg
-      if(lgroup(i,5).gt.0) nleft=nleft+1
+      do k=1,num_threads
+        if(lgroup(i,k,5).gt.0) nleft=nleft+1
+      enddo
     enddo
 
   enddo
@@ -1364,6 +1386,7 @@ subroutine gronor_master()
     enddo
   enddo
 
+  close(lfnmpi)
   deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,send_req,lcount)
 
   return

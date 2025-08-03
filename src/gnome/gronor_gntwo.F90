@@ -28,6 +28,7 @@
 !! </table>
 !!
 
+!$omp declare target
 subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   use mpi
@@ -37,7 +38,6 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
   use gnome_integrals
   use iso_c_binding, only : c_loc, c_ptr
 
-  use openacc
   use cuda_functions
 
   implicit none
@@ -88,22 +88,22 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
   tsn=0.0d0
   fourdet=4.0d0*deta
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm)
   do i=1,nbas
     do k=1,nbas
       tt(i,k)=ta(k,i)
       aat(i,k)=aaa(k,i)
     enddo
   enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm)
   do i=1,nbas
     do k=1,nbas
       sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
     enddo
   enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   call timer_stop(30)
 
@@ -116,7 +116,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
     tst=ts
     kl=nbas*(nbas+1)/2
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -129,13 +129,13 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
             -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
 !!! 可选改动。上面的代码实际上外层循环就已经占满所有 sm。
-! !$acc parallel loop gang vector collapse(2) &
-! !$acc   reduction(+:tst)                    &
-! !$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-! !$acc   copyin(kl,intndx,jntndx)
+! !$omp target teams distribute parallel do gang vector collapse(2) &
+! !   reduction(+:tst)                    &
+! !   map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) &
+! !   copyin(kl,intndx,jntndx)
 !     do ii=intndx,jntndx
 !       do jj=intndx,kl
 !         if (jj < ii) cycle
@@ -149,7 +149,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 !             -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
 !       enddo
 !     enddo
-! !$acc end parallel
+! ! end parallel
 
     ts=tst
 
@@ -162,12 +162,12 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
     diagmax=0.0d0
     bdiagmax=0.0d0
     
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+!$omp target teams distribute parallel do map(tofrom:diag,bdiag,bsdiag,csdiag)
     do k=1,nbas
       diagmax=max(diagmax,abs(diag(k)))
       bdiagmax=max(bdiagmax,abs(bdiag(k)))
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     ldiag=diagmax.gt.1.0e-16
     lbdiag=bdiagmax.gt.1.0e-16
@@ -177,8 +177,8 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
     
     if(ldiag.and.lbdiag) then
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) &
+!& map(tofrom:diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -210,11 +210,11 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
             -bal*(aaa(l,i)*aak+aaa(l,k)*aai)-bbl*(ta(l,i)*abk+ta(l,k)*abi))
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     elseif(.not.ldiag .and. lbdiag) then
 
-!$acc update host(aat,aaa,tt,ta,sm,g,lab,ndx,diag,bdiag,bsdiag,csdiag)
+!$omp target update from(aat,aaa,tt,ta,sm,g,lab,ndx,diag,bdiag,bsdiag,csdiag)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -243,8 +243,8 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
     elseif(ldiag .and. .not. lbdiag) then
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-!$acc& present(diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) &
+!& map(tofrom:diag,bdiag,bsdiag,csdiag) copyin(kl,intndx,jntndx)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -270,7 +270,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
             -bak*(aat(n,i)*aaj+aat(l,i)*aal)-bal*(aaa(l,i)*aak+aaa(l,k)*aai))
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     endif
     
@@ -294,6 +294,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   return
 end subroutine gronor_gntwo
+!$omp end declare target
 
 subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
@@ -305,7 +306,6 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
   use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef _OPENACC
-  use openacc
 #ifdef CUDA
   use cuda_functions
 #endif
@@ -362,22 +362,22 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
   tsn=0.0d0
   fourdet=4.0d0*deta
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm)
   do i=1,nbas
     do k=1,nbas
       tt(i,k)=ta(k,i)
       aat(i,k)=aaa(k,i)
     enddo
   enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
-!$acc kernels present(aat,aaa,tt,ta,sm)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm)
   do i=1,nbas
     do k=1,nbas
       sm(k,i)=aat(k,i)+aaa(k,i)+tt(k,i)+ta(k,i)
     enddo
   enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   call timer_stop(30)
 
@@ -391,7 +391,7 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
     kl=nbas*(nbas+1)/2
     intg=0
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(intg,nbas)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) copyin(intg,nbas)
     do k=1,nbas
       do i=1,k
         tsn=0.0d0
@@ -410,7 +410,7 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
         tst=tst+tsn
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     ts=tst
 
@@ -423,12 +423,12 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
     diagmax=0.0d0
     bdiagmax=0.0d0
     
-!$acc kernels present(diag,bdiag,bsdiag,csdiag)
+!$omp target teams distribute parallel do map(tofrom:diag,bdiag,bsdiag,csdiag)
     do k=1,nbas
       diagmax=max(diagmax,abs(diag(k)))
       bdiagmax=max(bdiagmax,abs(bdiag(k)))
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     ldiag=diagmax.gt.1.0e-16
     lbdiag=bdiagmax.gt.1.0e-16
@@ -439,8 +439,8 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
 
     if(ldiag.and.lbdiag) then
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
-!$acc& copyin(intg,kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) map(tofrom:diag,bdiag,bsdiag,csdiag) &
+!& copyin(intg,kl,intndx,jntndx)
     do k=1,nbas
       aak=diag(k)
       abk=bdiag(k)
@@ -481,12 +481,12 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
         e2t=e2t+e2n
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   elseif(.not.ldiag .and. lbdiag) then
     
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
-!$acc& copyin(intg,kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) map(tofrom:diag,bdiag,bsdiag,csdiag) &
+!& copyin(intg,kl,intndx,jntndx)
     do k=1,nbas
       abk=bdiag(k)
       bak=csdiag(k)
@@ -521,12 +521,12 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
         e2t=e2t+e2n
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   elseif(ldiag .and. .not. lbdiag) then
     
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) present(diag,bdiag,bsdiag,csdiag) &
-!$acc& copyin(intg,kl,intndx,jntndx)
+!$omp target teams distribute parallel do map(tofrom:aat,aaa,tt,ta,sm,g,lab,ndx) map(tofrom:diag,bdiag,bsdiag,csdiag) &
+!& copyin(intg,kl,intndx,jntndx)
     do k=1,nbas
       aak=diag(k)
       bak=csdiag(k)
@@ -561,7 +561,7 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
         e2t=e2t+e2n
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     endif
 

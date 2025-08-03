@@ -20,6 +20,7 @@
 !!
 
 
+!$omp declare target
 subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
@@ -158,7 +159,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
   if(iamacc.gt.0) then
 
-!$acc data copyin(va,vb)
     
     !  Calculations of the overlap matrices
 
@@ -246,7 +246,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
       call timer_stop(22)
     endif
 
-!$acc end data
 
   else
 ! error! not in acc
@@ -254,3 +253,4 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
   return
 end subroutine gronor_gnome
+!$omp end declare target

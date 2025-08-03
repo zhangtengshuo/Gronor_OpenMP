@@ -27,6 +27,7 @@
 !!
 
 
+!$omp declare target
 subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   use cidist
   use gnome_parameters
@@ -59,11 +60,10 @@ subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   ielem=0
   jkoff=0
 
-!$acc kernels present(t,v,dqm,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
+!$omp target teams distribute parallel do map(tofrom:t,v,dqm,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
   if(ising.eq.0) then
-!$acc loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3, &
-!$acc& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6) private(tsj,vsj, &
-!$acc& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
+!& qsum1,qsum2,qsum3,qsum4,qsum5,qsum6) private(tsj,vsj, &
+!& dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5,qsj6,abjk,j,k,nn)
     do j=1,nbas
       nn=ndxtv(j)
       tsj=0.0d0
@@ -107,7 +107,6 @@ subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
       qsum6=qsum6+qsj6
     enddo
   else
-!$acc loop reduction(+:tsum,vsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5,qsum6)
     do j=1,nbas
       nn=ndxtv(j)
       tsj=0.0d0
@@ -151,7 +150,7 @@ subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
       qsum6=qsum6+qsj6
     enddo
   endif
-!$acc end kernels
+!$omp end target teams distribute parallel do
   potnuc1=potnuc*deta
   e1=tsum+vsum+potnuc1
   mpoles(1)=dsum1
@@ -187,3 +186,4 @@ subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   endif
   return
 end subroutine gronor_gnone
+!$omp end declare target

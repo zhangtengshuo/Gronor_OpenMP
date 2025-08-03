@@ -20,6 +20,7 @@
 !!
 
 
+!$omp declare target
 subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   !      This routine mutiplies the input-matrix (a)
@@ -43,12 +44,7 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   m1=nalfa+1
 
-#ifdef ACC
-!$acc kernels present(va,vb,diag,sdiag,ta,taa,w1,w2)
-#endif
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
+!$omp target teams distribute parallel do map(tofrom:va,vb,diag,sdiag,ta,taa,w1,w2)
   do i=1,nelecs
     do j=1,nelecs
       taa(j,i)=ta(j,i)
@@ -61,16 +57,10 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
     do j=1,nbas
       sum=0.0d0
       if(nalfa .ne. 0) then
-#ifdef ACC
-!$acc loop reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+diag(k)*va(k,j)
         enddo
         if(ntcla .ne. 0) then
-#ifdef ACC
-!$acc loop reduction(+:sum)
-#endif
           do k=1,ntcla
             kk=k+nalfa
             sum=sum+diag(kk)*va(k,j)
@@ -78,9 +68,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
         endif
       endif
       if(nalfa .ne. nveca) then
-#ifdef ACC
-!$acc loop reduction(+:sum)
-#endif
         do k=m1,nveca
           kk=k+ntcla
           sum=sum+diag(kk)*va(k,j)
@@ -97,23 +84,14 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
   !                first :
   !     calculation of an intermediate array (w)
 
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
   do j=1,nelecs
     do i=1,nbas
       sum=0.0d0
       if(nalfa .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+va(k,i)*taa(k,j)
         enddo
         if(ntcla .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
           do k=1,ntcla
             kk=k+nalfa
             sum=sum+va(k,i)*taa(kk,j)
@@ -121,9 +99,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
         endif
       endif
       if(nalfa .ne. nveca) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
         do k=m1,nveca
           kk=k+ntcla
           sum=sum+va(k,i)*taa(kk,j)
@@ -134,9 +109,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
   enddo
 
   !     put w in the work-matrix (aa)
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
   do j=1,nelecs
     do i=1,nbas
       taa(i,j)=w2(i,j)
@@ -145,23 +117,14 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   !     calculation of the final matrix aa
 
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
   do i=1,nbas
     do j=1,nbas
       sum=0.0d0
       if(nalfa .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+taa(i,k)*vb(k,j)
         enddo
         if(ntclb .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
           do k=1,ntclb
             kk=k+nalfa
             sum=sum+taa(i,kk)*vb(k,j)
@@ -169,9 +132,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
         endif
       endif
       if(nalfa .ne. nvecb) then
-#ifdef ACC
-!$acc loop reduction(+:sum)
-#endif
         do k=m1,nvecb
           kk=k+ntclb
           sum=sum+taa(i,kk)*vb(k,j)
@@ -183,9 +143,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   !     put w back in the work-matrix aa
 
-#ifdef ACC
-!$acc loop collapse(2)
-#endif
   do j=1,nbas
     do i=1,nbas
       taa(i,j)=w2(i,j)
@@ -198,16 +155,10 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
     do j=1,nbas
       sum=0.0d0
       if(nalfa .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
         do k=1,nalfa
           sum=sum+sdiag(k)*vb(k,j)
         enddo
         if(ntclb .ne. 0) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
           do k=1,ntclb
             kk=k+nalfa
             sum=sum+sdiag(kk)*vb(k,j)
@@ -215,9 +166,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
         endif
       endif
       if(nalfa .ne. nvecb) then
-#ifdef ACC
-!$acc loop seq reduction(+:sum)
-#endif
         do k=m1,nvecb
           kk=k+ntclb
           sum=sum+sdiag(kk)*vb(k,j)
@@ -232,9 +180,8 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   endif
 
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
   return
 end subroutine gronor_tramat
+!$omp end declare target
 

@@ -27,6 +27,7 @@
 #include "gronor_compile_time.fh"
 #include "gronor_commit_hash.fh"
 
+!$omp declare target
 subroutine gronor_main()
 
   !>    Initialization of the calculation
@@ -63,13 +64,8 @@ subroutine gronor_main()
   use gnome_solvers
 #ifdef _OPENMP
   use omp_lib
-#endif
   !      use iso_c_binding, only : c_loc, c_ptr
 
-#ifdef _OPENACC
-  use openacc
-  !     use cuda_functions
-#endif
   
   implicit none
 
@@ -135,11 +131,9 @@ subroutine gronor_main()
 
 #ifdef USE_POSIXF
   integer*4 len4,ierr4
-#endif
 
 #ifdef _OPENACC
   type(c_ptr) :: cpfre, cptot
-#endif
 
   call timer_init()
 
@@ -167,7 +161,6 @@ subroutine gronor_main()
     call getenv("LMOD_FAMILY_COMPILER_VERSION",lmodcompv)
     call getenv("LMOD_FAMILY_MPI",lmodmpi)
     call getenv("LMOD_FAMILY_MPI_VERSION",lmodmpiv)
-#endif
 
     n=index(host,':')
     l2=len(trim(host))
@@ -344,11 +337,9 @@ subroutine gronor_main()
     prec='S'
 #else
     prec='D'
-#endif
 
 #ifdef _OPENACC
     naccel=0
-#endif
 
     !     Default print flag set to medium (20)
 
@@ -469,15 +460,11 @@ subroutine gronor_main()
     architecture='CPU:OpenMP'
 #else
     architecture='CPU'
-#endif
     compiler=' '
-#ifdef ACC
 #ifdef GPUAMD
     write(architecture,'(a)') "AMD-GPU:OpenACC"
 #else
     write(architecture,'(a)') "NVIDIA-GPU:OpenACC"
-#endif
-#endif
     
     onlabel='    '
     if(machine.ne.'            ') onlabel=' on '
@@ -526,13 +513,11 @@ subroutine gronor_main()
 602   format(' AMD Accelerator', &
           t60,'Available memory on device',t90,f24.3,' GB',/, &
           t60,'Total memory on device',t90,f24.3,' GB')
-#endif
 #ifdef GPUNVIDIA
       write(lfnout,602) dble(memfre)/dble(1073741824),dble(memtot)/dble(1073741824)
 602   format(' NVIDIA Accelerator', &
           t60,'Available memory on device',t90,f24.3,' GB',/, &
           t60,'Total memory on device',t90,f24.3,' GB')
-#endif
     endif
     if(ipr.gt.0) then
         write(lfnout,655) trim(compiletime),trim(architecture)
@@ -921,7 +906,7 @@ subroutine gronor_main()
 
   !     On the JFZ Juwels Booster the slurm implementation sets the
   !     device on each ranks based on best affinity. As a result
-  !     numdev from acc_get_num_devices returns 1 as each rank
+  !     numdev from omp_get_num_devices returns 1 as each rank
   !     is already associated with the clostest gpu. To get the
   !     correct map2 entries, the ngpus is set to 4 and nummps
   !     multiplied by ngpus.
@@ -1390,17 +1375,12 @@ subroutine gronor_main()
 
     !     On the JFZ Juwels Booster the slurm implementation sets the
     !     device on each ranks based on best affinity. As a result
-    !     no acc_set_device_num should be executed here.
+    !     no omp_set_default_device should be executed here.
 
-#ifdef _OPENACC
     if(numdev.gt.1) then
       mydev=map2(me+1,7)
       if(mydev.ge.0) then
-#ifdef GPUAMD
-        call acc_set_device_num(mydev,ACC_DEVICE_AMD)
-#else
-        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-#endif
+        call omp_set_default_device(mydev)
         cpfre=c_loc(memfre)
         cptot=c_loc(memtot)
         !     istat=cudaMemGetInfo(cpfre,cptot)
@@ -1415,7 +1395,6 @@ subroutine gronor_main()
         iamacc=0
       endif
     endif
-#endif
 
   !  call gronor_solver_create_handle()
     !  Only accelerated ranks need to define cusolver handles
@@ -1424,7 +1403,6 @@ subroutine gronor_main()
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
-#endif
 
   if(inslvr.lt.0) inslvr=SOLVER_EISPACK
   if(jnslvr.lt.0) jnslvr=SOLVER_EISPACK
@@ -1909,7 +1887,6 @@ subroutine gronor_main()
     rint=dble(4*int2)*1.073741824d-9
 #else
     rint=dble(8*int2)*1.073741824d-9
-#endif
     rndx=(dble(mlab*4)+dble(mlab*4))*1.073741824d-09
     rlst=dble(2*8*numdet)*1.073741824d-9
     igb=1
@@ -1968,7 +1945,6 @@ subroutine gronor_main()
 #else
     write(lfnout,640)
 640 format(/,' Integrals are used in double precision')
-#endif
   endif
   if(me.eq.mstr) flush(lfnout)
 
@@ -1990,7 +1966,6 @@ subroutine gronor_main()
 #else
     write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8), &
         ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,(map2(me+1,i),i=1,5)
-#endif
     flush(lfndbg)
   endif
 
@@ -2058,7 +2033,6 @@ subroutine gronor_main()
           flush(lfndbg)
         endif
 
-!$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)
         if(idbg.gt.0) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
@@ -2073,7 +2047,6 @@ subroutine gronor_main()
           if(role.eq.manager) call gronor_manager()
           if(role.eq.idle) call gronor_idle()
         endif
-!$acc end data
 
       elseif(ntask.ne.0) then
         call gronor_memory_usage()
@@ -2376,10 +2349,10 @@ subroutine gronor_main()
 987 format('Unable to open vects file ',a)
 988 format('Unable to open civec file ',a)
 end subroutine gronor_main
+!$omp end declare target
 
 #ifdef IBM
 integer function getcpucount()
   getcpucount=0
   return
 end function getcpucount
-#endif

@@ -24,12 +24,8 @@ subroutine gronor_environment()
   use inp
   use cidist
 
-  use openacc
   use cuda_functions
-
-#ifdef _OPENMP
   use omp_lib
-#endif
 
   implicit none
 
@@ -217,24 +213,13 @@ subroutine gronor_environment()
   memfre=0
   memtot=0
 
-#ifdef _OPENACC
-#ifdef GPUAMD
-  numdev=acc_get_num_devices(ACC_DEVICE_AMD)
+  numdev=omp_get_num_devices()
   if(numdev.gt.1) then
     if(machine.ne.'Juwels      ') then
       mydev=mod(me,numdev)
-      call acc_set_device_num(mydev,ACC_DEVICE_AMD)
+      call omp_set_default_device(mydev)
     endif
-#else
-    numdev=acc_get_num_devices(ACC_DEVICE_NVIDIA)
-    if(numdev.gt.1) then
-      if(machine.ne.'Juwels      ') then
-        mydev=mod(me,numdev)
-        call acc_set_device_num(mydev,ACC_DEVICE_NVIDIA)
-      endif
-#endif
-    endif
-#endif
+  endif
 
 #ifdef CUDA
     if(numdev.gt.0) then
@@ -600,31 +585,10 @@ subroutine gronor_environment()
     endif
 
     
-#ifdef _OPENACC
     if(numdev.ge.1) then
-#ifdef GPUAMD
-      mydev=acc_get_device_num(ACC_DEVICE_AMD)
-#else
-      mydev=acc_get_device_num(ACC_DEVICE_NVIDIA)
-#endif
+      mydev=omp_get_default_device()
       map2(me+1,7)=mydev
     endif
-#endif
-
-#ifdef OMPTGT
-    if(numdev.ge.1) then
-#ifdef IBM
-      mydev=omp_get_default_device()
-#else
-#ifdef GPUAMD
-      mydev=omp_get_default_device()
-#else
-      mydev=omp_get_device_num()
-#endif
-#endif
-      map2(me+1,7)=mydev
-    endif
-#endif
 
     do i=1,np-1
       map2(i,8)=worker

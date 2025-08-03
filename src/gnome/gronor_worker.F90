@@ -16,6 +16,7 @@
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)
 
+!$omp declare target
 subroutine gronor_worker()
 
   use mpi
@@ -27,7 +28,6 @@ subroutine gronor_worker()
   use gnome_solvers
 #ifdef _OPENMP
   use omp_lib
-#endif
 
   implicit none
 
@@ -136,9 +136,6 @@ subroutine gronor_worker()
   allocate(aat(mbasel,max(mbasel,nveca)))
   allocate(sm(mbasel,max(mbasel,nveca)))
 
-#ifdef ACC
-!$acc data
-#endif
 
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)
@@ -157,9 +154,6 @@ subroutine gronor_worker()
 
   call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
-#ifdef ACC
-!$acc end data
-#endif
 
   call gronor_solver_finalize()
 
@@ -187,7 +181,6 @@ subroutine gronor_worker()
   deallocate(sm)
 
 !$omp end parallel
-#endif
 
   call gronor_update_device_info()
 
@@ -198,6 +191,7 @@ subroutine gronor_worker()
   
   return
 end subroutine gronor_worker
+!$omp end declare target
 
 subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 

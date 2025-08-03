@@ -254,7 +254,7 @@ module gnome_data
   integer :: ising
 !$omp threadprivate(ntesta,ntestb,ijend)
 !$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,n1bas,nstdim,mbasel,nelecs)
-!$omp threadprivate(e1,e2,e2c,etot,etotb,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
+!$omp threadprivate(e1,e2,e2c,etot,etotb,deta,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
 !$omp threadprivate(ioccup,vec,vtemp,ioccn)
 
 !  real (kind=8), allocatable :: work(:)

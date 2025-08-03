@@ -141,6 +141,7 @@ subroutine gronor_worker()
   allocate(aat(mbasel,max(mbasel,nveca)))
   allocate(sm(mbasel,max(mbasel,nveca)))
   allocate(ioccup(mnact,2))
+  allocate(iocopen(mnact,2))
   allocate(vec(mvec,mbasel,2))
   allocate(vtemp(mvec,mbasel,2))
   allocate(ioccn(nsrep,2))
@@ -149,7 +150,7 @@ subroutine gronor_worker()
 
 #ifdef ACC
 !$acc data create(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
-!$acc& ioccup,vec,vtemp,ioccn)
+!$acc& ioccup,iocopen,vec,vtemp,ioccn)
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then
@@ -194,6 +195,7 @@ subroutine gronor_worker()
   deallocate(aat)
   deallocate(sm)
   deallocate(ioccup)
+  deallocate(iocopen)
   deallocate(vec)
   deallocate(vtemp)
   deallocate(veca)

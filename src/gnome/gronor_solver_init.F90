@@ -16,7 +16,7 @@
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
 !!    @author T. P. Straatsma (ORNL)subroutine gronor_solver_init()
 
-subroutine gronor_solver_init(ntemp)
+subroutine gronor_solver_init(ntemp,a,u,w,ev)
   
   use mpi
   use cidef
@@ -44,7 +44,8 @@ subroutine gronor_solver_init(ntemp)
   integer (kind=4) :: ierr
 #endif
 
-  integer :: ntemp
+  integer, intent(in) :: ntemp
+  real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
   character(len=255) :: string
   
   integer (kind=8) :: lworki,lwork1m,lwork2m

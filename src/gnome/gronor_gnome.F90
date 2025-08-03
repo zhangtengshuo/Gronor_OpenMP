@@ -158,7 +158,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
   if(iamacc.gt.0) then
 
-!$acc data copyin(va,vb)
+!$acc data present(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
+!$acc& ioccup,vec,vtemp,ioccn)
     
     !  Calculations of the overlap matrices
 

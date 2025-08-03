@@ -62,7 +62,11 @@ subroutine gronor_worker()
   
   if(ntask.eq.0) return
 
-  otreq=.false.
+  oterm = .false.
+  otreq = .false.
+  odupl = .false.
+  itreq = 0
+  irbuf = 0_8
 
   l2=0
   mnact=0
@@ -108,7 +112,8 @@ subroutine gronor_worker()
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
 
-!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag) &
+!$omp& copyin(oterm,otreq,odupl,itreq,irbuf)
 
   thread_id = omp_get_thread_num()
 

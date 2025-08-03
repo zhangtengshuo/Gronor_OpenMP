@@ -523,7 +523,7 @@ endif()
 set (FFLAGS_NVHPC_MAGMA "-DMAGMA -I${MAGMAINC} -L${MAGMALIB} -lmagma")
 # Fortran build targets
 set (FFLAGS_NVHPC_DEBUG
-    "-O0 -g -traceback -Mbounds -Mchkptr -Mchkstk -Mchkinit -gpu=${COMPUTE_CAPABILITY},lineinfo -Minform=inform -acc -Minfo -DGPUNVIDIA")
+    "-O0 -g -traceback -Mbounds -Mchkptr -Mchkstk -gpu=${COMPUTE_CAPABILITY},lineinfo -Minform=inform -acc -Minfo -DGPUNVIDIA")
 set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 #set (FFLAGS_NVHPC_RELEASE "-O2 -Minform=inform")

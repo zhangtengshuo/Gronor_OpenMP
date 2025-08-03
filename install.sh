@@ -9,5 +9,5 @@ rm -rf build
 mkdir build
 cd build
 cmake -DOPENMP=ON -DMKL=ON -DACC=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/home/shuo/bin/gronor-25.06_openmp_shuo ..
-make -j
+make
 make install

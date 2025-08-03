@@ -1,0 +1,1282 @@
+Programming Environment:
+-- CMake Version: 3.22.1
+-- The Fortran compiler identification is NVHPC 25.5.0
+-- The C compiler identification is NVHPC 25.5.0
+-- The CXX compiler identification is NVHPC 25.5.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpif90 - skipped
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicxx - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+Detecting system information:
+-- Using compute capability cc89
+-- Operating System: Linux-x86_64
+-- Address Mode: 64
+-- Platform: LINUX64
+Configuring session:
+-- Project: GronOR
+-- Version: 25.3
+-- Set environment CMAKE_SESSION: GronOR
+-- Source directory: /home/shuo/develop/gronor-25.06_openmp_shuo
+-- Binary directory: /home/shuo/develop/gronor-25.06_openmp_shuo/build
+-- Build type: Debug
+-- Install prefix: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3
+-- Install  rpath: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib
+Configuring MPI parallellization:
+-- Found MPI_C: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicc (found version "3.1") 
+-- Found MPI_CXX: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicxx (found version "3.1") 
+-- Found MPI_Fortran: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpif90 (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1")  
+-- MPI_C_INCLUDE_PATH: 
+-- MPI_C_LIBRARIES: 
+-- MPI_Fortran_INCLUDE_PATH: 
+-- MPI_Fortran_MODULE_DIR: 
+-- MPI_Fortran_LIBRARIES: 
+-- MPIEXEC: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpiexec
+-- MPI_IMPLEMENTATION: openmpi
+External packages, programs and libraries:
+-- Found cuda: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/cuda
+-- Not found: molcas
+-- Found mkl: /opt/intel/oneapi/mkl/2024.2
+-- Not found: magma
+-- Not found: ga
+-- Not found: utils
+-- Looking for Fortran sgemm
+-- Looking for Fortran sgemm - not found
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Looking for Fortran sgemm
+-- Looking for Fortran sgemm - found
+-- Found BLAS: /opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl  
+-- Looking for Fortran cheev
+-- Looking for Fortran cheev - found
+-- Found LAPACK: /opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl;-lm;-ldl  
+-- Molcas dependent auxiliary programs will not be compiled
+Configuring base directories
+-- CMAKE_CURRENT_LIST DIR: /home/shuo/develop/gronor-25.06_openmp_shuo
+-- Base directories /home/shuo/develop/gronor-25.06_openmp_shuo
+-- Adding auxiliary programs
+-- Source root directories: src;aux
+-- Test root directories: tests
+-- GPU Vendor is OFF
+-- CUSOLVER library found: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/math_libs/lib64/libcusolver.so
+-- CUSOLVER library directory: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/math_libs/lib64
+-- FFLAGS_NVHPC_CUSOLVER: -DCUSOLVER -L/opt/nvidia/hpc_sdk/Linux_x86_64/25.5/math_libs/lib64 -lcusolver
+-- C compiler used is supported: NVHPC
+-- C++ compiler used is supported: NVHPC
+-- Fortran compiler used is supported: NVHPC
+-- External libraries defined: 
+Configuring linear algebra libraries:
+-- Using Intel Math Kernel Library (MKL)
+-- MKLROOT = /opt/intel/oneapi/mkl/2024.2
+-- MKL_LIBRARY_PATH is /opt/intel/oneapi/mkl/2024.2/lib/intel64
+-- MKL_INCLUDE_PATH = /opt/intel/oneapi/mkl/2024.2/include
+-- MKL_LIBRARY_PATH = /opt/intel/oneapi/mkl/2024.2/lib/intel64
+-- Linear Algebra Libraries: /opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_intel_ilp64.so;/opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_core.so;/opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_intel_thread.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl;-lm;-ldl
+-- External Libraries: /opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_intel_ilp64.so;/opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_core.so;/opt/intel/oneapi/mkl/2024.2/lib/intel64/libmkl_intel_thread.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_intel_lp64.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_sequential.so;/opt/intel/oneapi/mkl/2024.2/lib/libmkl_core.so;-lm;-ldl;-lm;-ldl
+Build Summary:
+-- Build type: Debug
+-- C compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicc
+-- C compiler flags:  -c99 -pgf90libs -mp -O0 -g -Minform=warn
+-- C++ compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpicxx
+-- C++ compiler flags:    
+-- Fortran compiler: /opt/nvidia/hpc_sdk/Linux_x86_64/25.5/comm_libs/mpi/bin/mpif90
+-- Fortran compiler flags:  -DNVHPC -Mbackslash -Mlist -Minform=inform -Mpreprocess -i8 -mp -acc -Minfo -gpu=cc89 -DGPUNVIDIA -DACC -DMKL -O0 -g -traceback -Mbounds -Mchkptr -Mchkstk -gpu=cc89,lineinfo -Minform=inform -acc -Minfo -DGPUNVIDIA
+-- Definitions: _LINUX_;_MKL_
+-- Debug definitions: 
+Configuring libraries list:
+-- Create library for /home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome: 48 library files
+-- Create library for /home/shuo/develop/gronor-25.06_openmp_shuo/src/inp: 1 library files
+-- Create library for /home/shuo/develop/gronor-25.06_openmp_shuo/src/utils: 39 library files
+-- Libraries constructed: gnome;inp;utils
+-- Dependencies gnome: utils;inp
+Configuring program list:
+-- Create program executable gronor for src/gronor/gronor.F
+-- Create program executable alter for aux/alter/alter.f90
+-- Create program executable corr_shift for aux/corr_shift/corr_shift.f90
+-- Create program executable det_header for aux/det_header/det_header.f
+-- Create program executable ecorradd for aux/ecorradd/ecorradd.f
+-- Create program executable merge_xyz for aux/merge_xyz/merge_xyz.f
+-- Create program executable molcas_input for aux/molcas_input/molcas_input.f90
+-- Create program executable reorder for aux/reorder/reorder.f90
+-- Programs constructed: gronor;alter;corr_shift;det_header;ecorradd;merge_xyz;molcas_input;reorder
+Configuring java list:
+-- Create java classes for /home/shuo/develop/gronor-25.06_openmp_shuo/src/gui: 6 java files src/gui/Graph.java;src/gui/extensionFilter.java;src/gui/gronor_Fragment.java;src/gui/gronor_Main.java;src/gui/gronor_Project.java;src/gui/gronor_Window.java
+Configuring install list:
+Configuring testing:
+Finalization:
+-- Link directories: /home/shuo/develop/gronor-25.06_openmp_shuo/build/lib
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/shuo/develop/gronor-25.06_openmp_shuo/build
+Scanning dependencies of target utils
+[  1%] Building Fortran object CMakeFiles/utils.dir/src/utils/bubble_sort.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  2%] Building Fortran object CMakeFiles/utils.dir/src/utils/clebsch_gordan.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+clebsch_gordon:
+     22, FMA (fused multiply-add) instruction(s) generated
+     35, FMA (fused multiply-add) instruction(s) generated
+recurrence_factor:
+     52, FMA (fused multiply-add) instruction(s) generated
+     53, FMA (fused multiply-add) instruction(s) generated
+a0:
+     64, FMA (fused multiply-add) instruction(s) generated
+[  3%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/close_tag.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  4%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/open_tag.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  5%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/t_spaces.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  6%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/write_simpletag.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  7%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_array_integer.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  8%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_array_real.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  9%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_array_string.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[  9%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_atom.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 10%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_bond.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 11%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_matrix_integer.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 12%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_matrix_real.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 13%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_matrix_string.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 14%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_scalar_integer.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 15%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_scalar_real.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 16%] Building Fortran object CMakeFiles/utils.dir/src/utils/cml_utils/writetag_scalar_string.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 17%] Building Fortran object CMakeFiles/utils.dir/src/utils/dgefa.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 18%] Building Fortran object CMakeFiles/utils.dir/src/utils/dsum.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 19%] Building C object CMakeFiles/utils.dir/src/utils/erfc.c.o
+[ 20%] Building Fortran object CMakeFiles/utils.dir/src/utils/errquit.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 21%] Building Fortran object CMakeFiles/utils.dir/src/utils/icopy.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 22%] Building C object CMakeFiles/utils.dir/src/utils/linux_random.c.o
+[ 23%] Building C object CMakeFiles/utils.dir/src/utils/linux_setfpucw.c.o
+[ 23%] Building Fortran object CMakeFiles/utils.dir/src/utils/linux_shift.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 24%] Building Fortran object CMakeFiles/utils.dir/src/utils/normalize.f90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+normalize:
+     11, FMA (fused multiply-add) instruction(s) generated
+[ 25%] Building Fortran object CMakeFiles/utils.dir/src/utils/pascal.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 26%] Building Fortran object CMakeFiles/utils.dir/src/utils/svd.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic scale loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/utils/svd.F90: 85)
+NVFORTRAN-I-0035-Predefined intrinsic scale loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/utils/svd.F90: 519)
+svd2:
+    104, FMA (fused multiply-add) instruction(s) generated
+    109, FMA (fused multiply-add) instruction(s) generated
+    117, FMA (fused multiply-add) instruction(s) generated
+    123, FMA (fused multiply-add) instruction(s) generated
+    149, FMA (fused multiply-add) instruction(s) generated
+    154, FMA (fused multiply-add) instruction(s) generated
+    167, FMA (fused multiply-add) instruction(s) generated
+    171, FMA (fused multiply-add) instruction(s) generated
+    210, FMA (fused multiply-add) instruction(s) generated
+    214, FMA (fused multiply-add) instruction(s) generated
+    259, FMA (fused multiply-add) instruction(s) generated
+    267, FMA (fused multiply-add) instruction(s) generated
+    328, FMA (fused multiply-add) instruction(s) generated
+    337, FMA (fused multiply-add) instruction(s) generated
+    338, FMA (fused multiply-add) instruction(s) generated
+    358, FMA (fused multiply-add) instruction(s) generated
+    359, FMA (fused multiply-add) instruction(s) generated
+    360, FMA (fused multiply-add) instruction(s) generated
+    371, FMA (fused multiply-add) instruction(s) generated
+    375, FMA (fused multiply-add) instruction(s) generated
+    376, FMA (fused multiply-add) instruction(s) generated
+    384, FMA (fused multiply-add) instruction(s) generated
+    385, FMA (fused multiply-add) instruction(s) generated
+    389, FMA (fused multiply-add) instruction(s) generated
+    396, FMA (fused multiply-add) instruction(s) generated
+    397, FMA (fused multiply-add) instruction(s) generated
+    404, FMA (fused multiply-add) instruction(s) generated
+    405, FMA (fused multiply-add) instruction(s) generated
+svd:
+    538, FMA (fused multiply-add) instruction(s) generated
+    543, FMA (fused multiply-add) instruction(s) generated
+    551, FMA (fused multiply-add) instruction(s) generated
+    557, FMA (fused multiply-add) instruction(s) generated
+    579, FMA (fused multiply-add) instruction(s) generated
+    584, FMA (fused multiply-add) instruction(s) generated
+    597, FMA (fused multiply-add) instruction(s) generated
+    601, FMA (fused multiply-add) instruction(s) generated
+    634, FMA (fused multiply-add) instruction(s) generated
+    638, FMA (fused multiply-add) instruction(s) generated
+    678, FMA (fused multiply-add) instruction(s) generated
+    686, FMA (fused multiply-add) instruction(s) generated
+    729, FMA (fused multiply-add) instruction(s) generated
+    738, FMA (fused multiply-add) instruction(s) generated
+    739, FMA (fused multiply-add) instruction(s) generated
+    753, FMA (fused multiply-add) instruction(s) generated
+    754, FMA (fused multiply-add) instruction(s) generated
+    755, FMA (fused multiply-add) instruction(s) generated
+    766, FMA (fused multiply-add) instruction(s) generated
+    770, FMA (fused multiply-add) instruction(s) generated
+    771, FMA (fused multiply-add) instruction(s) generated
+    779, FMA (fused multiply-add) instruction(s) generated
+    780, FMA (fused multiply-add) instruction(s) generated
+    783, FMA (fused multiply-add) instruction(s) generated
+    789, FMA (fused multiply-add) instruction(s) generated
+    790, FMA (fused multiply-add) instruction(s) generated
+    797, FMA (fused multiply-add) instruction(s) generated
+    798, FMA (fused multiply-add) instruction(s) generated
+[ 27%] Building C object CMakeFiles/utils.dir/src/utils/tps_cutils.c.o
+[ 28%] Building Fortran object CMakeFiles/utils.dir/src/utils/tps_utils.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic sum loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/utils/tps_utils.F90: 459)
+NVFORTRAN-I-0035-Predefined intrinsic idim loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/utils/tps_utils.F90: 699)
+tps_rotate:
+    180, FMA (fused multiply-add) instruction(s) generated
+    196, FMA (fused multiply-add) instruction(s) generated
+    197, FMA (fused multiply-add) instruction(s) generated
+    198, FMA (fused multiply-add) instruction(s) generated
+    199, FMA (fused multiply-add) instruction(s) generated
+    200, FMA (fused multiply-add) instruction(s) generated
+    201, FMA (fused multiply-add) instruction(s) generated
+    202, FMA (fused multiply-add) instruction(s) generated
+    203, FMA (fused multiply-add) instruction(s) generated
+    204, FMA (fused multiply-add) instruction(s) generated
+    206, FMA (fused multiply-add) instruction(s) generated
+angl:
+    226, FMA (fused multiply-add) instruction(s) generated
+    227, FMA (fused multiply-add) instruction(s) generated
+    228, FMA (fused multiply-add) instruction(s) generated
+argos_jacobi:
+    492, FMA (fused multiply-add) instruction(s) generated
+    494, FMA (fused multiply-add) instruction(s) generated
+    498, FMA (fused multiply-add) instruction(s) generated
+    499, FMA (fused multiply-add) instruction(s) generated
+    503, FMA (fused multiply-add) instruction(s) generated
+    504, FMA (fused multiply-add) instruction(s) generated
+    508, FMA (fused multiply-add) instruction(s) generated
+    509, FMA (fused multiply-add) instruction(s) generated
+    513, FMA (fused multiply-add) instruction(s) generated
+    514, FMA (fused multiply-add) instruction(s) generated
+    517, FMA (fused multiply-add) instruction(s) generated
+    518, FMA (fused multiply-add) instruction(s) generated
+matinv:
+    731, FMA (fused multiply-add) instruction(s) generated
+auto_corr:
+   1226, FMA (fused multiply-add) instruction(s) generated
+   1232, FMA (fused multiply-add) instruction(s) generated
+   1239, FMA (fused multiply-add) instruction(s) generated
+argos_zmat:
+   1478, FMA (fused multiply-add) instruction(s) generated
+   1479, FMA (fused multiply-add) instruction(s) generated
+   1480, FMA (fused multiply-add) instruction(s) generated
+   1482, FMA (fused multiply-add) instruction(s) generated
+[ 29%] Building Fortran object CMakeFiles/utils.dir/src/utils/tql2.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+tql2:
+     51, FMA (fused multiply-add) instruction(s) generated
+     75, FMA (fused multiply-add) instruction(s) generated
+     81, FMA (fused multiply-add) instruction(s) generated
+     85, FMA (fused multiply-add) instruction(s) generated
+     86, FMA (fused multiply-add) instruction(s) generated
+     92, FMA (fused multiply-add) instruction(s) generated
+     93, FMA (fused multiply-add) instruction(s) generated
+[ 30%] Building Fortran object CMakeFiles/utils.dir/src/utils/tred2.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic scale loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/utils/tred2.F90: 28)
+tred2:
+     46, FMA (fused multiply-add) instruction(s) generated
+     52, FMA (fused multiply-add) instruction(s) generated
+     63, FMA (fused multiply-add) instruction(s) generated
+     70, FMA (fused multiply-add) instruction(s) generated
+     76, FMA (fused multiply-add) instruction(s) generated
+     85, FMA (fused multiply-add) instruction(s) generated
+     89, FMA (fused multiply-add) instruction(s) generated
+    116, FMA (fused multiply-add) instruction(s) generated
+    120, FMA (fused multiply-add) instruction(s) generated
+[ 31%] Building Fortran object CMakeFiles/utils.dir/src/utils/util_bitops.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 32%] Building C object CMakeFiles/utils.dir/src/utils/util_cflush.c.o
+[ 33%] Building Fortran object CMakeFiles/utils.dir/src/utils/util_cpusec.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 34%] Building C object CMakeFiles/utils.dir/src/utils/util_date.c.o
+[ 35%] Building Fortran object CMakeFiles/utils.dir/src/utils/util_getarg.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 36%] Building Fortran object CMakeFiles/utils.dir/src/utils/util_pack.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 37%] Building Fortran object CMakeFiles/utils.dir/src/utils/util_wallsec.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 38%] Linking Fortran static library lib/libutils.a
+[ 38%] Built target utils
+Scanning dependencies of target inp
+[ 39%] Building Fortran object CMakeFiles/inp.dir/src/inp/input_util.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0122-Character string truncated (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 55)
+NVFORTRAN-I-0122-Character string truncated (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 59)
+NVFORTRAN-I-0035-Predefined intrinsic isign loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 548)
+NVFORTRAN-I-0035-Predefined intrinsic btest loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 683)
+NVFORTRAN-I-0035-Predefined intrinsic btest loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 750)
+NVFORTRAN-I-0035-Predefined intrinsic shift loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 804)
+NVFORTRAN-I-0035-Predefined intrinsic shift loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 851)
+NVFORTRAN-I-0122-Character string truncated (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 55)
+NVFORTRAN-I-0122-Character string truncated (/home/shuo/develop/gronor-25.06_openmp_shuo/src/inp/input_util.F90: 59)
+inp_f:
+    580, FMA (fused multiply-add) instruction(s) generated
+[ 40%] Linking Fortran static library lib/libinp.a
+[ 40%] Built target inp
+Scanning dependencies of target gnome
+[ 41%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_mods.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic date loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 121)
+NVFORTRAN-I-0035-Predefined intrinsic time loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 121)
+NVFORTRAN-I-0035-Predefined intrinsic iint loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 165)
+NVFORTRAN-I-0035-Predefined intrinsic int1 loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 293)
+NVFORTRAN-I-0035-Predefined intrinsic int2 loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 293)
+NVFORTRAN-I-0035-Predefined intrinsic size loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 335)
+NVFORTRAN-I-0035-Predefined intrinsic count loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 342)
+NVFORTRAN-I-0035-Predefined intrinsic kind loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_mods.F90: 342)
+[ 42%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_abort.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 43%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_assign_managers.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 44%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_calculate.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_calculate:
+    334, Possible copy in and copy out of tt in call to gronor_gnome
+         Possible copy in and copy out of u in call to gronor_gnome
+         Possible copy in and copy out of ta in call to gronor_gnome
+         Possible copy in and copy out of aat in call to gronor_gnome
+         Possible copy in and copy out of tb in call to gronor_gnome
+         Possible copy in and copy out of va in call to gronor_gnome
+         Possible copy in and copy out of wt in call to gronor_gnome
+         Possible copy in and copy out of w2 in call to gronor_gnome
+         Possible copy in and copy out of w in call to gronor_gnome
+         Possible copy in and copy out of vb in call to gronor_gnome
+         Possible copy in and copy out of sm in call to gronor_gnome
+         Possible copy in and copy out of aaa in call to gronor_gnome
+         Possible copy in and copy out of a in call to gronor_gnome
+         Possible copy in and copy out of taa in call to gronor_gnome
+    358, FMA (fused multiply-add) instruction(s) generated
+    361, FMA (fused multiply-add) instruction(s) generated
+    371, FMA (fused multiply-add) instruction(s) generated
+    372, FMA (fused multiply-add) instruction(s) generated
+    375, FMA (fused multiply-add) instruction(s) generated
+    387, FMA (fused multiply-add) instruction(s) generated
+    398, FMA (fused multiply-add) instruction(s) generated
+[ 45%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_cml.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_init_cml:
+    271, maxval reduction inlined
+[ 46%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_cofac1.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_cofac1:
+     51, Generating update self(a(:,:))
+     63, Possible copy in and copy out of a in call to gronor_svd
+         Possible copy in and copy out of u in call to gronor_svd
+         Possible copy in and copy out of wt in call to gronor_svd
+         Possible copy in and copy out of w in call to gronor_svd
+     85, Generating present(a(:,:),u(:,:),w(:,:))
+         Generating implicit firstprivate(nelecs)
+         Generating NVIDIA GPU code
+         86, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         87,   ! blockidx%x threadidx%x collapsed
+         90, !$acc loop seq
+             Generating reduction(+:coef)
+     87, Generating implicit firstprivate(coef)
+     91, FMA (fused multiply-add) instruction(s) generated
+    115, Generating update self(a(:,:),u(:,:),w(:,:),ev(:))
+    142, Possible copy in and copy out of a in call to gronor_evd
+    151, Generating present(csdiag(:),cdiag(:),sdiag(:),ev(:),diag(:))
+         Generating implicit copy(cmax) [if not already present]
+    156, Loop carried scalar dependence for idetuw at line 157
+         Scalar last value needed after loop for idetuw at line 178
+         Accelerator serial kernel generated
+         Generating NVIDIA GPU code
+        156, !$acc loop seq
+             Generating implicit reduction(max:cmax)
+    156, Loop carried scalar dependence for idetuw at line 157
+         Scalar last value needed after loop for idetuw at line 178
+    170, Generating update self(diag(:),cdiag(:),csdiag(:),sdiag(:))
+    184, Generating update self(ev(:))
+    209, Generating present(ev(:),ta(:,:),w(:,:),u(:,:))
+         Generating implicit firstprivate(nelecs)
+         Generating NVIDIA GPU code
+        211, !$acc loop gang collapse(2) ! blockidx%x
+        212,   ! blockidx%x collapsed
+        214, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:coefu)
+    212, Generating implicit firstprivate(coefu)
+    214, Loop is parallelizable
+    229, Generating present(sdiag(:),ta(:,:),w(:,:),u(:,:),diag(:),csdiag(:),cdiag(:),ev(:))
+    231, Loop is parallelizable
+         Generating NVIDIA GPU code
+        231, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+    237, Loop is parallelizable
+    238, Loop is parallelizable
+         Generating implicit private(coefu)
+         Generating NVIDIA GPU code
+        237, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x collapsed-innermost
+        238,   ! blockidx%x threadidx%x auto-collapsed
+        240, !$acc loop seq
+             Generating implicit reduction(+:coefu)
+    240, Loop is parallelizable
+    259, Generating present(csdiag(:),cdiag(:),diag(:),ta(:,:),u(:,:),w(:,:),sdiag(:))
+    261, Loop is parallelizable
+         Generating implicit private(coefu)
+         Generating NVIDIA GPU code
+        261, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+        267, !$acc loop seq
+    267, Loop is parallelizable
+[ 47%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_cororb.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_cororb:
+     37, FMA (fused multiply-add) instruction(s) generated
+     38, FMA (fused multiply-add) instruction(s) generated
+[ 48%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_correlation_energy.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_correlation_energy:
+    118, FMA (fused multiply-add) instruction(s) generated
+gronor_gnweight:
+    232, FMA (fused multiply-add) instruction(s) generated
+[ 48%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_determine_nci.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 49%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_dipole.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_dipole:
+     89, FMA (fused multiply-add) instruction(s) generated
+     90, FMA (fused multiply-add) instruction(s) generated
+     91, FMA (fused multiply-add) instruction(s) generated
+    105, FMA (fused multiply-add) instruction(s) generated
+[ 50%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_environment.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 51%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_evd.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_evd:
+     84, Generating update self(a(:,:))
+     92, Generating present(sdiag(:))
+     95, Loop is parallelizable
+         Generating NVIDIA GPU code
+         95, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+    113, Possible copy in and copy out of a in call to tred2
+    115, Possible copy in and copy out of a in call to tql2
+    124, Possible copy in and copy out of a in call to dsyev
+    127, Possible copy in and copy out of a in call to dsyevd
+    135, Generating update device(diag(:))
+[ 52%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_generate_microstate.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_generate_microstates:
+    101, FMA (fused multiply-add) instruction(s) generated
+[ 53%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_gnome.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_gnome:
+    161, Generating present(u(:,:),va(:,:),ta(:,:),sm(:,:),tt(:,:),vb(:,:),w2(:,:),wt(:,:),diag(:),w(:,:),w1(:),sdiag(:),a(:,:),aaa(:,:),tb(:,:),ev(:),csdiag(:),bdiag(:),aat(:,:),cdiag(:),bsdiag(:))
+    166, Possible copy in and copy out of ta in call to gronor_moover
+         Possible copy in and copy out of tb in call to gronor_moover
+         Possible copy in and copy out of a in call to gronor_moover
+         Possible copy in and copy out of va in call to gronor_moover
+         Possible copy in and copy out of vb in call to gronor_moover
+    172, Possible copy in and copy out of a in call to gronor_cofac1
+         Possible copy in and copy out of ta in call to gronor_cofac1
+         Possible copy in and copy out of u in call to gronor_cofac1
+         Possible copy in and copy out of w in call to gronor_cofac1
+         Possible copy in and copy out of wt in call to gronor_cofac1
+    190, Possible copy in and copy out of va in call to gronor_cororb
+         Possible copy in and copy out of u in call to gronor_cororb
+         Possible copy in and copy out of vb in call to gronor_cororb
+         Possible copy in and copy out of w in call to gronor_cororb
+    200, Possible copy in and copy out of ta in call to gronor_dipole
+    220, Possible copy in and copy out of aaa in call to gronor_tramat2
+         Possible copy in and copy out of ta in call to gronor_tramat2
+         Possible copy in and copy out of va in call to gronor_tramat2
+         Possible copy in and copy out of vb in call to gronor_tramat2
+         Possible copy in and copy out of w2 in call to gronor_tramat2
+    226, Possible copy in and copy out of aaa in call to gronor_gnone
+         Possible copy in and copy out of ta in call to gronor_gnone
+    240, Possible copy in and copy out of sm in call to gronor_gntwo
+         Possible copy in and copy out of aat in call to gronor_gntwo
+         Possible copy in and copy out of aaa in call to gronor_gntwo
+         Possible copy in and copy out of ta in call to gronor_gntwo
+         Possible copy in and copy out of tt in call to gronor_gntwo
+    242, Possible copy in and copy out of tt in call to gronor_gntwo_canonical
+         Possible copy in and copy out of ta in call to gronor_gntwo_canonical
+         Possible copy in and copy out of sm in call to gronor_gntwo_canonical
+         Possible copy in and copy out of aat in call to gronor_gntwo_canonical
+         Possible copy in and copy out of aaa in call to gronor_gntwo_canonical
+[ 54%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_gnome_molcas_input.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 55%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_gnone.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_gnone:
+     62, Generating present(ndxtv(:),ta(:,:),v(:),diag(:),csdiag(:),aaa(:,:),bdiag(:),bsdiag(:),t(:),dqm(:,:))
+         Generating implicit copy(qsum5,qsum4,qsum3,qsum2,qsum1,dsum3,dsum2,dsum1,vsum,tsum,qsum6) [if not already present]
+     67, Loop is parallelizable
+         Generating NVIDIA GPU code
+         67, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+             Generating reduction(+:qsum6,vsum,tsum,dsum1,dsum2,dsum3,qsum1,qsum2,qsum3,qsum4,qsum5)
+         80, !$acc loop seq
+             Generating implicit reduction(+:qsj5,qsj4,qsj3,qsj2,qsj1,dsj3,dsj2,dsj1,vsj,tsj,qsj6)
+     80, Loop is parallelizable
+     83, FMA (fused multiply-add) instruction(s) generated
+     84, FMA (fused multiply-add) instruction(s) generated
+     86, FMA (fused multiply-add) instruction(s) generated
+     87, FMA (fused multiply-add) instruction(s) generated
+     88, FMA (fused multiply-add) instruction(s) generated
+     90, FMA (fused multiply-add) instruction(s) generated
+     91, FMA (fused multiply-add) instruction(s) generated
+     92, FMA (fused multiply-add) instruction(s) generated
+     93, FMA (fused multiply-add) instruction(s) generated
+     94, FMA (fused multiply-add) instruction(s) generated
+     95, FMA (fused multiply-add) instruction(s) generated
+    111, Loop is parallelizable
+         Generating implicit private(qsj5,qsj4,qsj3,qsj2,qsj1,nn,dsj2,dsj1,vsj,tsj,qsj6,dsj3)
+         Generating NVIDIA GPU code
+        111, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+             Generating reduction(+:qsum5,qsum4,qsum3,qsum2,qsum1,dsum3,dsum2,dsum1,vsum,tsum,qsum6)
+        124, !$acc loop seq
+             Generating implicit reduction(+:qsj6,vsj,tsj,dsj1,dsj2,dsj3,qsj1,qsj2,qsj3,qsj4,qsj5)
+    124, Loop is parallelizable
+         Generating implicit private(abjk)
+    125, FMA (fused multiply-add) instruction(s) generated
+    127, FMA (fused multiply-add) instruction(s) generated
+    128, FMA (fused multiply-add) instruction(s) generated
+    130, FMA (fused multiply-add) instruction(s) generated
+    131, FMA (fused multiply-add) instruction(s) generated
+    132, FMA (fused multiply-add) instruction(s) generated
+    134, FMA (fused multiply-add) instruction(s) generated
+    135, FMA (fused multiply-add) instruction(s) generated
+    136, FMA (fused multiply-add) instruction(s) generated
+    137, FMA (fused multiply-add) instruction(s) generated
+    138, FMA (fused multiply-add) instruction(s) generated
+    139, FMA (fused multiply-add) instruction(s) generated
+[ 56%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_gntwo.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_gntwo:
+     91, Generating present(aaa(:,:),ta(:,:),tt(:,:),sm(:,:),aat(:,:))
+     92, Loop is parallelizable
+     93, Loop is parallelizable
+         Generating NVIDIA GPU code
+         92, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         93,   ! blockidx%x threadidx%x auto-collapsed
+    100, Generating present(aaa(:,:),ta(:,:),tt(:,:),sm(:,:),aat(:,:))
+    101, Loop is parallelizable
+    102, Loop is parallelizable
+         Generating NVIDIA GPU code
+        101, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        102,   ! blockidx%x threadidx%x auto-collapsed
+    119, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),aat(:,:),g(:),lab(:,:))
+         Generating copyin(jntndx,intndx) [if not already present]
+         Generating implicit copy(tst) [if not already present]
+         Generating copyin(kl) [if not already present]
+    120, Loop is parallelizable
+         Generating NVIDIA GPU code
+        120, !$acc loop gang ! blockidx%x
+             Generating implicit reduction(+:tst)
+        121, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:tst)
+    121, Loop is parallelizable
+         Generating implicit private(n,l,k,intg,i)
+    127, FMA (fused multiply-add) instruction(s) generated
+    165, Generating present(diag(:),csdiag(:),bdiag(:),bsdiag(:))
+         Generating implicit copy(bdiagmax,diagmax) [if not already present]
+    166, Loop is parallelizable
+         Generating NVIDIA GPU code
+        166, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+             Generating implicit reduction(max:diagmax,bdiagmax)
+    180, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),diag(:),g(:),lab(:,:),csdiag(:),aat(:,:),bdiag(:),bsdiag(:))
+         Generating copyin(kl,jntndx) [if not already present]
+         Generating implicit copy(e2t) [if not already present]
+         Generating copyin(intndx) [if not already present]
+    182, Loop is parallelizable
+         Generating NVIDIA GPU code
+        182, !$acc loop gang ! blockidx%x
+             Generating implicit reduction(+:e2t)
+        183, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:e2t)
+    183, Loop is parallelizable
+         Generating implicit private(bbk,bak,abk,aak,bbi,bai,abi,aai,sum2,n,bbj,baj,abj,aaj,bal,abl,aal,l,k,intg,bbl,i)
+    197, FMA (fused multiply-add) instruction(s) generated
+    206, FMA (fused multiply-add) instruction(s) generated
+    217, Generating update self(bsdiag(:),bdiag(:),aat(:,:),csdiag(:),lab(:,:),g(:),diag(:),ndx(:),sm(:,:),tt(:,:),ta(:,:),aaa(:,:))
+    231, FMA (fused multiply-add) instruction(s) generated
+    238, FMA (fused multiply-add) instruction(s) generated
+    246, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),diag(:),g(:),lab(:,:),csdiag(:),aat(:,:),bdiag(:),bsdiag(:))
+         Generating copyin(kl,jntndx) [if not already present]
+         Generating implicit copy(e2t) [if not already present]
+         Generating copyin(intndx) [if not already present]
+    248, Loop is parallelizable
+         Generating NVIDIA GPU code
+        248, !$acc loop gang ! blockidx%x
+             Generating implicit reduction(+:e2t)
+        249, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:e2t)
+    249, Loop is parallelizable
+         Generating implicit private(bak,aak,bai,aai,sum2,n,baj,aaj,aal,l,k,intg,bal,i)
+    261, FMA (fused multiply-add) instruction(s) generated
+    268, FMA (fused multiply-add) instruction(s) generated
+gronor_gntwo_canonical:
+    365, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),aat(:,:))
+    366, Loop is parallelizable
+    367, Loop is parallelizable
+         Generating NVIDIA GPU code
+        366, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        367,   ! blockidx%x threadidx%x auto-collapsed
+    374, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),aat(:,:))
+    375, Loop is parallelizable
+    376, Loop is parallelizable
+         Generating NVIDIA GPU code
+        375, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        376,   ! blockidx%x threadidx%x auto-collapsed
+    394, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),aat(:,:),g(:),lab(:,:))
+         Generating copyin(intg,nbas) [if not already present]
+         Generating implicit copy(tst) [if not already present]
+    395, Loop is parallelizable
+         Generating NVIDIA GPU code
+        395, !$acc loop gang ! blockidx%x
+             Generating implicit reduction(+:tst)
+        396, !$acc loop seq
+             Generating implicit reduction(+:tst)
+        398, !$acc loop seq
+             Generating implicit reduction(+:tsn)
+        402, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:tsl)
+    396, Loop is parallelizable
+         Generating implicit private(tsn)
+    398, Loop is parallelizable
+         Generating implicit private(tsl,ls)
+    402, Loop is parallelizable
+    404, FMA (fused multiply-add) instruction(s) generated
+    426, Generating present(csdiag(:),diag(:),bdiag(:),bsdiag(:))
+         Generating implicit copy(diagmax,bdiagmax) [if not already present]
+    427, Loop is parallelizable
+         Generating NVIDIA GPU code
+        427, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+             Generating implicit reduction(max:diagmax,bdiagmax)
+    442, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),diag(:),g(:),lab(:,:),csdiag(:),aat(:,:),bdiag(:),bsdiag(:))
+         Generating implicit copy(e2t) [if not already present]
+         Generating copyin(kl,jntndx,intg,intndx) [if not already present]
+    444, Loop carried scalar dependence for intg at line 431,465,478
+         Generating implicit private(bbk,bak,abk,aak)
+         Generating NVIDIA GPU code
+        444, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        449, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        457, !$acc loop seq
+             Generating implicit reduction(+:e2n)
+        466, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:e2l)
+    444, Loop carried scalar dependence for intg at line 431,465
+    449, Loop carried scalar dependence for intg at line 465,431,478
+         Generating implicit private(bbi,sum2,sum1,e2n,bai,abi,aai)
+         Loop carried scalar dependence for intg at line 431
+    455, FMA (fused multiply-add) instruction(s) generated
+    457, Loop carried scalar dependence for intg at line 465,431,478
+         Generating implicit private(e2l,bbl,ls,intl,bal,abl,aal)
+    466, Loop is parallelizable
+         Generating implicit private(bbj,baj,abj,aaj)
+    472, FMA (fused multiply-add) instruction(s) generated
+    488, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),diag(:),g(:),lab(:,:),csdiag(:),aat(:,:),bdiag(:),bsdiag(:))
+         Generating implicit copy(e2t) [if not already present]
+         Generating copyin(kl,jntndx,intg,intndx) [if not already present]
+    490, Loop carried scalar dependence for intg at line 508,484,518
+         Generating implicit private(bbk,abk)
+         Generating NVIDIA GPU code
+        490, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        494, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        501, !$acc loop seq
+             Generating implicit reduction(+:e2n)
+        509, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:e2l)
+    494, Loop carried scalar dependence for intg at line 508,484,518
+         Generating implicit private(bbi,sum2,sum1,e2n,abi)
+    499, FMA (fused multiply-add) instruction(s) generated
+    501, Loop carried scalar dependence for intg at line 484,518,508
+         Generating implicit private(e2l,bbl,ls,intl,abl)
+         Loop carried scalar dependence for intg at line 484,518,508
+    509, Loop is parallelizable
+         Generating implicit private(bbj,abj)
+    514, FMA (fused multiply-add) instruction(s) generated
+    528, Generating present(aaa(:,:),tt(:,:),ta(:,:),sm(:,:),ndx(:),diag(:),g(:),lab(:,:),csdiag(:),aat(:,:),bdiag(:),bsdiag(:))
+         Generating implicit copy(e2t) [if not already present]
+         Generating copyin(kl,jntndx,intg,intndx) [if not already present]
+    530, Loop carried scalar dependence for intg at line 548,524,558
+         Generating implicit private(bak,aak)
+         Generating NVIDIA GPU code
+        530, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        534, !$acc loop seq
+             Generating implicit reduction(+:e2t)
+        541, !$acc loop seq
+             Generating implicit reduction(+:e2n)
+        549, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:e2l)
+    530, Loop carried scalar dependence for intg at line 524
+    534, Loop carried scalar dependence for intg at line 524,558,548
+         Generating implicit private(bai,sum2,sum1,e2n,aai)
+         Loop carried scalar dependence for intg at line 524,558,548
+    539, FMA (fused multiply-add) instruction(s) generated
+    541, Loop carried scalar dependence for intg at line 524,558,548
+         Generating implicit private(e2l,bal,ls,intl,aal)
+         Loop carried scalar dependence for intg at line 524,558,548
+    549, Loop is parallelizable
+         Generating implicit private(baj,aaj)
+    554, FMA (fused multiply-add) instruction(s) generated
+[ 57%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_idle.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 58%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_input.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 59%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_main.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_main:
+   1724, FMA (fused multiply-add) instruction(s) generated
+   1726, FMA (fused multiply-add) instruction(s) generated
+   1738, FMA (fused multiply-add) instruction(s) generated
+   2054, Generating copyin(dqm(:,:),g(:),lab(:,:),s(:,:),v(:),t(:),ndx(:),ndxtv(:)) [if not already present]
+[ 60%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_makebasestate.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 61%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_manager.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 62%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_master.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 62%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_memory_usage.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 63%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_molecule_cml.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_molecule_cml:
+     91, FMA (fused multiply-add) instruction(s) generated
+    125, Copy in and copy out of ncntr in call to writetag_array_integer
+[ 64%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_moover.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic sum loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_moover.F90: 74)
+gronor_moover:
+     64, Generating present(s(:,:),ta(:,:),tb(:,:),vb(:,:))
+     65, Loop is parallelizable
+     66, Loop is parallelizable
+         Generating NVIDIA GPU code
+         65, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         66,   ! blockidx%x threadidx%x auto-collapsed
+     72, Loop is parallelizable
+     73, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+         72, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         73,   ! blockidx%x threadidx%x auto-collapsed
+         75, !$acc loop seq
+             Generating implicit reduction(+:sum)
+     75, Loop is parallelizable
+     76, FMA (fused multiply-add) instruction(s) generated
+     83, Loop is parallelizable
+     84, Loop is parallelizable
+         Generating NVIDIA GPU code
+         83, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         84,   ! blockidx%x threadidx%x auto-collapsed
+     93, Generating present(va(:,:),tb(:,:))
+         Generating implicit copyout(ta(:nalfa,:nalfa)) [if not already present]
+     94, Loop is parallelizable
+     95, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+         94, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         95,   ! blockidx%x threadidx%x auto-collapsed
+         97, !$acc loop seq
+             Generating implicit reduction(+:sum)
+     97, Loop is parallelizable
+     98, FMA (fused multiply-add) instruction(s) generated
+    112, Generating present(ta(:,:))
+         Generating implicit firstprivate(ntcla,ntclb)
+         Generating NVIDIA GPU code
+        113, !$acc loop gang ! blockidx%x
+        116, !$acc loop vector(128) ! threadidx%x
+    113, Generating implicit firstprivate(nalfa)
+    116, Loop is parallelizable
+    132, Generating present(va(:,:),tb(:,:),ta(:,:))
+    133, Loop is parallelizable
+    135, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        133, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        135,   ! blockidx%x threadidx%x auto-collapsed
+        137, !$acc loop seq
+             Generating implicit reduction(+:sum)
+    137, Loop is parallelizable
+    138, FMA (fused multiply-add) instruction(s) generated
+    149, Generating present(va(:,:),tb(:,:),ta(:,:))
+    150, Loop is parallelizable
+    152, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        150, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        152,   ! blockidx%x threadidx%x auto-collapsed
+        154, !$acc loop seq
+             Generating implicit reduction(+:sum)
+    154, Loop is parallelizable
+    155, FMA (fused multiply-add) instruction(s) generated
+    168, Generating present(va(:,:),tb(:,:),ta(:,:))
+    169, Loop is parallelizable
+    170, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        169, !$acc loop gang collapse(2) ! blockidx%x collapsed-innermost
+        170,   ! blockidx%x auto-collapsed
+        172, !$acc loop vector(128) ! threadidx%x
+             Generating implicit reduction(+:sum)
+    172, Loop is parallelizable
+    173, FMA (fused multiply-add) instruction(s) generated
+    185, Generating present(ta(:,:))
+         Generating implicit copyout(a(:nelecs,:nelecs)) [if not already present]
+    187, Loop is parallelizable
+    188, Loop is parallelizable
+         Generating NVIDIA GPU code
+        187, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x collapsed-innermost
+        188,   ! blockidx%x threadidx%x auto-collapsed
+[ 65%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_multipoles_nuclear.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_multipoles_nuclear:
+     36, FMA (fused multiply-add) instruction(s) generated
+     37, FMA (fused multiply-add) instruction(s) generated
+     38, FMA (fused multiply-add) instruction(s) generated
+     44, FMA (fused multiply-add) instruction(s) generated
+     45, FMA (fused multiply-add) instruction(s) generated
+     46, FMA (fused multiply-add) instruction(s) generated
+     47, FMA (fused multiply-add) instruction(s) generated
+     48, FMA (fused multiply-add) instruction(s) generated
+     49, FMA (fused multiply-add) instruction(s) generated
+[ 66%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_number_integrals.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 67%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_parallel_integral_input.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic jint loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_parallel_integral_input.F90: 365)
+NVFORTRAN-I-0035-Predefined intrinsic nint loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_parallel_integral_input.F90: 421)
+[ 68%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_permutations.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic index loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_permutations.F90: 120)
+[ 69%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_print_dipole_moments.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_print_dipole_moments:
+     74, FMA (fused multiply-add) instruction(s) generated
+     83, FMA (fused multiply-add) instruction(s) generated
+     90, FMA (fused multiply-add) instruction(s) generated
+    137, FMA (fused multiply-add) instruction(s) generated
+    141, FMA (fused multiply-add) instruction(s) generated
+    144, FMA (fused multiply-add) instruction(s) generated
+    153, FMA (fused multiply-add) instruction(s) generated
+    188, FMA (fused multiply-add) instruction(s) generated
+    191, FMA (fused multiply-add) instruction(s) generated
+    193, FMA (fused multiply-add) instruction(s) generated
+    214, FMA (fused multiply-add) instruction(s) generated
+    217, FMA (fused multiply-add) instruction(s) generated
+    219, FMA (fused multiply-add) instruction(s) generated
+[ 70%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_print_matrix.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic scale loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_print_matrix.F90: 1)
+[ 71%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_print_results.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_print_results:
+     85, FMA (fused multiply-add) instruction(s) generated
+    336, Copy in and copy out of nociwf in call to writetag_array_real
+[ 72%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_prtmat.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 73%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_quicksort.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 74%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_read_integrals.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 75%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_read_vectors_and_determinants.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 75%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_sminop.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 76%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_solver_init.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 77%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_svd.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_svd:
+     84, Generating update self(a(:,:))
+     91, Possible copy in and copy out of a in call to svd
+         Possible copy in and copy out of u in call to svd
+         Possible copy in and copy out of w in call to svd
+    100, Possible copy in and copy out of a in call to dgesvd
+         Possible copy in and copy out of u in call to dgesvd
+         Possible copy in and copy out of wt in call to dgesvd
+    104, Possible copy in and copy out of a in call to dgesdd
+         Possible copy in and copy out of u in call to dgesdd
+         Possible copy in and copy out of wt in call to dgesdd
+    108, Possible copy in and copy out of wt in call to dgesvj
+         Possible copy in and copy out of a in call to dgesvj
+    122, Generating present(wt(:,:),w(:,:))
+    124, Loop is parallelizable
+    125, Loop is parallelizable
+         Generating NVIDIA GPU code
+        124, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        125,   ! blockidx%x threadidx%x auto-collapsed
+    139, Generating update device(w(:,:),u(:,:),ev(:))
+[ 78%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_timings.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic date loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_timings.F90: 241)
+NVFORTRAN-I-0035-Predefined intrinsic time loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_timings.F90: 241)
+[ 79%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_tramat.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic sum loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_tramat.F90: 62)
+gronor_tramat:
+     47, Generating present(taa(:,:),va(:,:),diag(:),sdiag(:),ta(:,:),vb(:,:),w1(:),w2(:,:))
+     52, Loop is parallelizable
+     53, Loop is parallelizable
+         Generating NVIDIA GPU code
+         52, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+         53,   ! blockidx%x threadidx%x collapsed
+     61, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+         61, !$acc loop gang ! blockidx%x
+         67, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+         74, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+         84, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+     67, Loop is parallelizable
+     68, FMA (fused multiply-add) instruction(s) generated
+     74, Loop is parallelizable
+     76, FMA (fused multiply-add) instruction(s) generated
+     84, Loop is parallelizable
+     86, FMA (fused multiply-add) instruction(s) generated
+     91, Loop is parallelizable
+         Generating NVIDIA GPU code
+         91, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+    103, Loop is parallelizable
+    104, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        103, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        104,   ! blockidx%x threadidx%x collapsed
+        110, !$acc loop seq
+             Generating reduction(+:sum)
+        117, !$acc loop seq
+             Generating reduction(+:sum)
+        127, !$acc loop seq
+             Generating reduction(+:sum)
+    111, FMA (fused multiply-add) instruction(s) generated
+    119, FMA (fused multiply-add) instruction(s) generated
+    129, FMA (fused multiply-add) instruction(s) generated
+    140, Loop is parallelizable
+    141, Loop is parallelizable
+         Generating NVIDIA GPU code
+        140, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        141,   ! blockidx%x threadidx%x collapsed
+    151, Loop is parallelizable
+    152, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        151, !$acc loop gang collapse(2) ! blockidx%x collapsed-innermost
+        152,   ! blockidx%x collapsed
+        158, !$acc loop seq
+             Generating reduction(+:sum)
+        165, !$acc loop seq
+             Generating reduction(+:sum)
+        175, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+    159, FMA (fused multiply-add) instruction(s) generated
+    167, FMA (fused multiply-add) instruction(s) generated
+    175, Loop is parallelizable
+    177, FMA (fused multiply-add) instruction(s) generated
+    189, Loop is parallelizable
+    190, Loop is parallelizable
+         Generating NVIDIA GPU code
+        189, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        190,   ! blockidx%x threadidx%x collapsed
+    198, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        198, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+        204, !$acc loop seq
+             Generating reduction(+:sum)
+        211, !$acc loop seq
+             Generating reduction(+:sum)
+        221, !$acc loop seq
+             Generating reduction(+:sum)
+    205, FMA (fused multiply-add) instruction(s) generated
+    213, FMA (fused multiply-add) instruction(s) generated
+    223, FMA (fused multiply-add) instruction(s) generated
+    229, Loop is parallelizable
+         Generating NVIDIA GPU code
+        229, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+[ 80%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_tramat2.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic sum loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/src/gnome/gronor_tramat2.F90: 56)
+gronor_tramat2:
+     44, Generating present(ta(:,:),va(:,:),csdiag(:),aaa(:,:),bsdiag(:),bdiag(:),cdiag(:),diag(:),vb(:,:),w2(:,:),w1(:))
+     46, Loop is parallelizable
+         Generating NVIDIA GPU code
+         46, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+     57, Loop is parallelizable
+         Generating NVIDIA GPU code
+         57, !$acc loop gang ! blockidx%x
+         60, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+     60, Loop is parallelizable
+     61, FMA (fused multiply-add) instruction(s) generated
+     69, Loop is parallelizable
+         Generating NVIDIA GPU code
+         69, !$acc loop gang ! blockidx%x
+         72, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+     72, Loop is parallelizable
+     74, FMA (fused multiply-add) instruction(s) generated
+     83, Loop is parallelizable
+         Generating NVIDIA GPU code
+         83, !$acc loop gang ! blockidx%x
+         86, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+     86, Loop is parallelizable
+     88, FMA (fused multiply-add) instruction(s) generated
+     96, Loop is parallelizable
+         Generating NVIDIA GPU code
+         96, !$acc loop gang ! blockidx%x
+         99, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+     99, Loop is parallelizable
+    100, FMA (fused multiply-add) instruction(s) generated
+    108, Loop is parallelizable
+         Generating NVIDIA GPU code
+        108, !$acc loop gang ! blockidx%x
+        111, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+    111, Loop is parallelizable
+    113, FMA (fused multiply-add) instruction(s) generated
+    122, Loop is parallelizable
+         Generating NVIDIA GPU code
+        122, !$acc loop gang ! blockidx%x
+        125, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+    125, Loop is parallelizable
+    127, FMA (fused multiply-add) instruction(s) generated
+    134, Loop is parallelizable
+         Generating NVIDIA GPU code
+        134, !$acc loop gang, vector(128) ! blockidx%x threadidx%x
+    147, Loop is parallelizable
+    148, Loop is parallelizable
+         Generating NVIDIA GPU code
+        147, !$acc loop gang collapse(2) ! blockidx%x collapsed-innermost
+        148,   ! blockidx%x collapsed
+        151, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+    151, Loop is parallelizable
+    152, FMA (fused multiply-add) instruction(s) generated
+    159, Loop is parallelizable
+    160, Loop is parallelizable
+         Generating NVIDIA GPU code
+        159, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        160,   ! blockidx%x threadidx%x collapsed
+    170, Loop is parallelizable
+    171, Loop is parallelizable
+         Generating implicit private(sum)
+         Generating NVIDIA GPU code
+        170, !$acc loop gang collapse(2) ! blockidx%x collapsed-innermost
+        171,   ! blockidx%x auto-collapsed
+        175, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+        182, !$acc loop vector(128) ! threadidx%x
+             Generating reduction(+:sum)
+    175, Loop is parallelizable
+    177, FMA (fused multiply-add) instruction(s) generated
+    182, Loop is parallelizable
+    184, FMA (fused multiply-add) instruction(s) generated
+    190, Loop is parallelizable
+    191, Loop is parallelizable
+         Generating NVIDIA GPU code
+        190, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        191,   ! blockidx%x threadidx%x auto-collapsed
+    203, Loop is parallelizable
+    204, Loop is parallelizable
+         Generating NVIDIA GPU code
+        203, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        204,   ! blockidx%x threadidx%x collapsed
+        207, !$acc loop seq
+             Generating reduction(+:sum)
+    208, FMA (fused multiply-add) instruction(s) generated
+    219, Loop is parallelizable
+    220, Loop is parallelizable
+         Generating NVIDIA GPU code
+        219, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        220,   ! blockidx%x threadidx%x collapsed
+        224, !$acc loop seq
+             Generating reduction(+:sum)
+        231, !$acc loop seq
+             Generating reduction(+:sum)
+    226, FMA (fused multiply-add) instruction(s) generated
+    233, FMA (fused multiply-add) instruction(s) generated
+    241, Loop is parallelizable
+    242, Loop is parallelizable
+         Generating NVIDIA GPU code
+        241, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        242,   ! blockidx%x threadidx%x collapsed
+    250, Loop is parallelizable
+    251, Loop is parallelizable
+         Generating NVIDIA GPU code
+        250, !$acc loop gang, vector(128) collapse(2) ! blockidx%x threadidx%x
+        251,   ! blockidx%x threadidx%x collapsed
+    261, Generating update self(diag(:),bsdiag(:),bdiag(:),aaa(:,:),csdiag(:),ta(:,:),sdiag(:))
+[ 81%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_tranout.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 82%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_transvc.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 83%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_update_device_info.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 84%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_warning.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 85%] Building Fortran object CMakeFiles/gnome.dir/src/gnome/gronor_worker.F90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+gronor_worker:
+    114, !$omp parallel
+    151, Generating create(u(:,:),va(:,:),taa(:,:),sm(:,:),tt(:,:),vb(:,:),wt(:,:),w2(:,:),diag(:),w(:,:),w1(:),ta(:,:),sdiag(:),a(:,:),aaa(:,:),tb(:,:),ev(:),csdiag(:),bdiag(:),aat(:,:),cdiag(:),bsdiag(:)) [if not already present]
+gronor_worker_process:
+    419, Possible copy in and copy out of tt in call to gronor_calculate
+         Possible copy in and copy out of u in call to gronor_calculate
+         Possible copy in and copy out of ta in call to gronor_calculate
+         Possible copy in and copy out of aat in call to gronor_calculate
+         Possible copy in and copy out of tb in call to gronor_calculate
+         Possible copy in and copy out of va in call to gronor_calculate
+         Possible copy in and copy out of wt in call to gronor_calculate
+         Possible copy in and copy out of w2 in call to gronor_calculate
+         Possible copy in and copy out of w in call to gronor_calculate
+         Possible copy in and copy out of vb in call to gronor_calculate
+         Possible copy in and copy out of sm in call to gronor_calculate
+         Possible copy in and copy out of aaa in call to gronor_calculate
+         Possible copy in and copy out of a in call to gronor_calculate
+         Possible copy in and copy out of taa in call to gronor_calculate
+[ 86%] Linking Fortran static library lib/libgnome.a
+[ 86%] Built target gnome
+Scanning dependencies of target gronor
+[ 87%] Building Fortran object CMakeFiles/gronor.dir/src/gronor/gronor.F.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 88%] Linking Fortran executable bin/gronor
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 88%] Built target gronor
+Scanning dependencies of target alter
+[ 88%] Building Fortran object CMakeFiles/alter.dir/aux/alter/alter.f90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 89%] Linking Fortran executable bin/alter
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 89%] Built target alter
+Scanning dependencies of target corr_shift
+[ 90%] Building Fortran object CMakeFiles/corr_shift.dir/aux/corr_shift/corr_shift.f90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+NVFORTRAN-I-0035-Predefined intrinsic shift loses intrinsic property (/home/shuo/develop/gronor-25.06_openmp_shuo/aux/corr_shift/corr_shift.f90: 8)
+corr_shift_main:
+     76, FMA (fused multiply-add) instruction(s) generated
+corr_shift_couplings:
+    244, FMA (fused multiply-add) instruction(s) generated
+corr_shift_gnweight:
+    360, FMA (fused multiply-add) instruction(s) generated
+corr_shift_supernoci:
+    468, maxval reduction inlined
+    469, maxval reduction inlined
+    470, maxval reduction inlined
+    483, maxval reduction inlined
+    636, FMA (fused multiply-add) instruction(s) generated
+    679, FMA (fused multiply-add) instruction(s) generated
+    680, FMA (fused multiply-add) instruction(s) generated
+corr_shift_readin:
+    815, maxval reduction inlined
+    853, sum reduction inlined
+    857, any reduction inlined
+    893, sum reduction inlined
+    901, sum reduction inlined
+[ 91%] Linking Fortran executable bin/corr_shift
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 91%] Built target corr_shift
+Scanning dependencies of target det_header
+[ 92%] Building Fortran object CMakeFiles/det_header.dir/aux/det_header/det_header.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 93%] Linking Fortran executable bin/det_header
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 93%] Built target det_header
+Scanning dependencies of target ecorradd
+[ 94%] Building Fortran object CMakeFiles/ecorradd.dir/aux/ecorradd/ecorradd.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 95%] Linking Fortran executable bin/ecorradd
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 95%] Built target ecorradd
+Scanning dependencies of target merge_xyz
+[ 95%] Building Fortran object CMakeFiles/merge_xyz.dir/aux/merge_xyz/merge_xyz.f.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 96%] Linking Fortran executable bin/merge_xyz
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 96%] Built target merge_xyz
+Scanning dependencies of target molcas_input
+[ 97%] Building Fortran object CMakeFiles/molcas_input.dir/aux/molcas_input/molcas_input.f90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+molcas_rotate:
+   1169, FMA (fused multiply-add) instruction(s) generated
+   1185, FMA (fused multiply-add) instruction(s) generated
+   1186, FMA (fused multiply-add) instruction(s) generated
+   1187, FMA (fused multiply-add) instruction(s) generated
+   1188, FMA (fused multiply-add) instruction(s) generated
+   1189, FMA (fused multiply-add) instruction(s) generated
+   1190, FMA (fused multiply-add) instruction(s) generated
+   1191, FMA (fused multiply-add) instruction(s) generated
+   1192, FMA (fused multiply-add) instruction(s) generated
+   1193, FMA (fused multiply-add) instruction(s) generated
+   1195, FMA (fused multiply-add) instruction(s) generated
+[ 98%] Linking Fortran executable bin/molcas_input
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[ 98%] Built target molcas_input
+Scanning dependencies of target reorder
+[ 99%] Building Fortran object CMakeFiles/reorder.dir/aux/reorder/reorder.f90.o
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+reorder_analyze:
+    309, FMA (fused multiply-add) instruction(s) generated
+[100%] Linking Fortran executable bin/reorder
+nvfortran-Warning-CUDA Fortran or OpenACC GPU targets disables -Mbounds
+[100%] Built target reorder
+Consolidate compiler generated dependencies of target utils
+[ 38%] Built target utils
+[ 40%] Built target inp
+[ 86%] Built target gnome
+[ 88%] Built target gronor
+[ 89%] Built target alter
+[ 91%] Built target corr_shift
+[ 93%] Built target det_header
+[ 95%] Built target ecorradd
+[ 96%] Built target merge_xyz
+[ 98%] Built target molcas_input
+[100%] Built target reorder
+Install the project...
+-- Install configuration: "Debug"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib/libgnome.a
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib/libinp.a
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib/libutils.a
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/gronor
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/gronor" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/alter
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/alter" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/corr_shift
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/corr_shift" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/det_header
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/det_header" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/ecorradd
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/ecorradd" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/merge_xyz
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/merge_xyz" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/molcas_input
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/molcas_input" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"
+-- Installing: /home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/reorder
+-- Set runtime path of "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/bin/reorder" to "/home/shuo/bin/gronor-25.06_openmp_shuo/gronor/25.3/lib"

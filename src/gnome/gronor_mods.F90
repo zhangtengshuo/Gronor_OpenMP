@@ -368,6 +368,7 @@ module gnome_solvers
 
   integer (kind=8) :: lwork,liwork,ndimm,mdimm,ndim8,lwork8,liwork8
   integer (kind=4) :: mdim,ndim,ndim4,lwork4,liwork4
+!$omp threadprivate(ndimm,mdimm,lwork,liwork,ndim8,lwork8,liwork8,mdim,ndim,ndim4,lwork4,liwork4)
 
   real(kind=8), allocatable :: work(:)
   integer(kind=8), allocatable :: iwork(:)

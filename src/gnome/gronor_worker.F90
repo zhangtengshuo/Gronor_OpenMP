@@ -25,12 +25,7 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
-#ifdef _OPENMP
   use omp_lib
-#endif
-#ifdef _OPENMP
-  use omp_lib
-#endif
 
   implicit none
 
@@ -231,7 +226,8 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   use gnome_data
   use gnome_parameters
   use gnome_solvers
-
+  use omp_lib
+  
   implicit none
 
   real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
@@ -270,8 +266,8 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   open(newunit=lfnmpi,file=mpifile,status='replace',action='write',iostat=ierr)
   write(lfnmpi,'(a,2(i0,1x),a)') 'rank ',me,' thread ',thread_id,' starting'
   write(lfnmpi,'(a,2i8)') 'len_work_dbl len_work_int ',len_work_dbl,len_work_int
-  write(lfnmpi,'("va=",i0,"x",i0," vb=",i0,"x",i0," tb=",i0,"x",i0,
- &" ta=",i0,"x",i0," a=",i0,"x",i0)') size(va,1),size(va,2),size(vb,1),size(vb,2), &
+  write(lfnmpi,'("va=",i0,"x",i0," vb=",i0,"x",i0," tb=",i0,"x",i0,&
+  " ta=",i0,"x",i0," a=",i0,"x",i0)') size(va,1),size(va,2),size(vb,1),size(vb,2), &
   size(tb,1),size(tb,2),size(ta,1),size(ta,2),size(a,1),size(a,2)
   
   if(idbg.gt.0) then

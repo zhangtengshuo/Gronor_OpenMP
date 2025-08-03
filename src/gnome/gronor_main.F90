@@ -2044,8 +2044,6 @@ subroutine gronor_main()
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 
-      allocate(veca(mbasel))
-      allocate(vecb(mbasel))
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
           call swatch(date,time)
@@ -2089,7 +2087,6 @@ subroutine gronor_main()
       else
         ! Thanks! But no! We DO NOT USE Batch
       endif
-      deallocate(vecb,veca)
       deallocate(s)
     endif
   endif

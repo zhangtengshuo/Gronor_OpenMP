@@ -250,6 +250,7 @@ module gnome_data
 
   ! veca/vecb collect correlated orbitals for debugging (gronor_cororb.F90)
   real (kind=8), allocatable :: veca(:),vecb(:)
+!$omp threadprivate(veca,vecb)
 
   integer :: ising
 !$omp threadprivate(ntesta,ntestb,ijend)

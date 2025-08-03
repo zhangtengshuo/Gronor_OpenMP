@@ -74,7 +74,12 @@ subroutine gronor_master()
   allocate(pnrb(nbase,nbase))
   allocate(fday(nbase,nbase))
 #ifdef _OPENMP
-  num_threads = omp_get_max_threads()
+  if (num_threads > omp_get_max_threads()) then
+    write(lfnout,*) 'Warning: Requested num_threads', num_threads, &
+         & ' exceeds available threads ', omp_get_max_threads()
+    flush(lfnout)
+    num_threads = omp_get_max_threads()
+  endif
 #else
   num_threads = 1
 #endif

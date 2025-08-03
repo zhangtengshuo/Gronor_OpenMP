@@ -8,6 +8,6 @@ cd /home/shuo/develop/gronor.26.06.dev/gronor-25.06_openmp_shuo
 rm -rf build
 mkdir build
 cd build
-cmake -DOPENMP=OFF -DMKL=ON -DACC=ON -DCMAKE_INSTALL_PREFIX=/home/shuo/bin/gronor-25.06_openmp_shuo ..
+cmake -DOPENMP=OFF -DMKL=ON -DACC=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/home/shuo/bin/gronor-25.06_openmp_shuo ..
 make -j8
 make install

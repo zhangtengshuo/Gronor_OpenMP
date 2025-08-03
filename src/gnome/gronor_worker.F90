@@ -139,6 +139,8 @@ subroutine gronor_worker()
   allocate(vec(mvec,mbasel,2))
   allocate(vtemp(mvec,mbasel,2))
   allocate(ioccn(nsrep,2))
+  allocate(veca(mbasel))
+  allocate(vecb(mbasel))
 
 #ifdef ACC
 !$acc data
@@ -192,6 +194,8 @@ subroutine gronor_worker()
   deallocate(ioccup)
   deallocate(vec)
   deallocate(vtemp)
+  deallocate(veca)
+  deallocate(vecb)
   deallocate(ioccn)
 
 !$omp end parallel

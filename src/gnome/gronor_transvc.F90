@@ -32,7 +32,7 @@
 !! @date    2016
 !!
 
-subroutine gronor_transvc(lfndbg,idet,ntcl,ntop,nclose,nopen,iocopen)
+subroutine gronor_transvc(lfndbg, idet)
   
   use cidist
   use gnome_data
@@ -40,9 +40,7 @@ subroutine gronor_transvc(lfndbg,idet,ntcl,ntop,nclose,nopen,iocopen)
   
   implicit none
 
-  integer, intent(in) :: lfndbg,idet
-  integer, intent(inout) :: ntcl(:),ntop(:),nclose(:),nopen(:)
-  integer, intent(inout) :: iocopen(:,:)
+  integer, intent(in) :: lfndbg, idet
   integer :: m,n1,iop,ib,iv,k,i,l,im,ls,norbs
   if(idbg.ge.17) write(lfndbg,601)
 601 format(/,' Determinant Irrep  Nclose  Nopen OccActive',/)

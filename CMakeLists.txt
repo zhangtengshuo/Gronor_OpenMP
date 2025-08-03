@@ -16,8 +16,6 @@ project (GronOR VERSION 25.03 LANGUAGES Fortran C CXX)
 # CMake optional parameters with defaults
 #    Note: MPI is not optional and removed from options list
 
-set(TARGET "" CACHE STRING "Target computer system")
-
 option (ACC "Enable OPENACC off-loading." OFF)
 option (OPENACC "Enable OPENACC off-loading." OFF)
 option (OPENMP "Enable multi-threading." OFF)
@@ -46,44 +44,23 @@ option (GUI "Graphical User Interface" OFF)
 
 message ("Detecting system information:")
 
-set(COMPUTE_CAPABILITY "cc89")
-
-if(DEFINED ENV{HOSTNAME})
-  message(STATUS "Found hostname: $ENV{HOSTNAME}")
-  if($ENV{HOSTNAME} MATCHES ".juwels$")
-    set(HOST "JUWELS")
+# Automatically determine NVIDIA GPU compute capability when available
+set(COMPUTE_CAPABILITY "")
+if(NOT ${GPU} STREQUAL "AMD")
+  find_program(NVIDIA_SMI nvidia-smi)
+  if(NVIDIA_SMI)
+    execute_process(
+      COMMAND ${NVIDIA_SMI} --query-gpu=compute_cap --format=csv,noheader
+      OUTPUT_VARIABLE _cc_raw ERROR_QUIET)
+    string(REGEX MATCH "[0-9]+\\.[0-9]+" _cc_match "${_cc_raw}")
+    string(REPLACE "." "" COMPUTE_CAPABILITY "cc${_cc_match}")
   endif()
-  if($ENV{HOSTNAME} MATCHES ".vega.izum.si$")
-	  set(HOST "VEGA")
+  if(NOT COMPUTE_CAPABILITY)
+    set(COMPUTE_CAPABILITY "cc70")
   endif()
-  if($ENV{HOSTNAME} MATCHES ".crusher.olcf.ornl.gov$")
-	  set(HOST "CRUSHER")
-  endif()  
-  if($ENV{HOSTNAME} MATCHES ".frontier.olcf.ornl.gov$")
-	  set(HOST "FRONTIER")
-  endif() 
-  if($ENV{HOSTNAME} MATCHES ".leonardo.local$")
-    set(HOST "LEONARDO")
-  endif() 
-  if($ENV{HOSTNAME} MATCHES "presidio")
-    set(COMPUTE_CAPABILITY "cc35")
-    set(HOST "PRESIDIO")
-  endif()
-  if($ENV{HOSTNAME} MATCHES "houston")
-    set(COMPUTE_CAPABILITY "cc50")
-    set(HOST "HOUSTON")
-  endif()
-  if($ENV{HOSTNAME} MATCHES "texas")
-    set(COMPUTE_CAPABILITY "cc60")
-    set(HOST "TEXAS")
-  endif()
-else()
-  message(STATUS "Not found: hostname")
 endif()
-
-if(NOT "${TARGET}" STREQUAL "")
-  set(HOST "${TARGET}")
-  message(STATUS "Target host is ${HOST}")
+if(COMPUTE_CAPABILITY)
+  message(STATUS "Using compute capability ${COMPUTE_CAPABILITY}")
 endif()
 
 # Operating system
@@ -210,46 +187,23 @@ message (STATUS "MPI_Fortran_MODULE_DIR: ${MPI_Fortran_MODULE_DIR}")
 message (STATUS "MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
 message (STATUS "MPIEXEC: ${MPIEXEC}")
 
-message (STATUS "HOST: ${HOST}")
-if(HOST STREQUAL "VEGA")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "JUWELS")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "LEONARDO")
-  set (MPI_IMPLEMENTATION "openmpi")
-else ()
-execute_process (
+execute_process(
   COMMAND ${MPIEXEC} "--version"
   OUTPUT_VARIABLE MPIEXEC_VERSION
   ERROR_VARIABLE MPIEXEC_VERSION
-  )
-if (MPIEXEC_VERSION MATCHES "OpenRTE")
+)
+if (MPIEXEC_VERSION MATCHES "OpenRTE" OR
+    MPIEXEC_VERSION MATCHES "mpirun \(Open MPI\)" OR
+    MPIEXEC_VERSION MATCHES "mpiexec \(Open MPI\)" OR
+    MPIEXEC_VERSION MATCHES "mpiexec \(OpenRTE\)" OR
+    MPIEXEC_VERSION MATCHES "mpiexec \(IBM Spectrum MPI\)")
   set (MPI_IMPLEMENTATION "openmpi")
 elseif (MPIEXEC_VERSION MATCHES "Intel\\(R\\) MPI")
   set (MPI_IMPLEMENTATION "impi")
 elseif (MPIEXEC_VERSION MATCHES "HYDRA")
   set (MPI_IMPLEMENTATION "mpich")
-elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(IBM Spectrum MPI\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "mpirun \\(Open MPI\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(Open MPI\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif (MPIEXEC_VERSION MATCHES "mpiexec \\(OpenRTE\\)")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "JUWELS")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "LEONARDO")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "VEGA")
-  set (MPI_IMPLEMENTATION "openmpi")
-elseif(HOST STREQUAL "CRUSHER")
-  set (MPI_IMPLEMENTATION "cray-mpich")
-elseif(HOST STREQUAL "FRONTIER")
-  set (MPI_IMPLEMENTATION "cray-mpich")
 else ()
   message (FATAL_ERROR "Unknown or unsupported MPI implementation:\n${MPIEXEC_VERSION}")
-endif ()
 endif ()
 message (STATUS "MPI_IMPLEMENTATION: ${MPI_IMPLEMENTATION}")
 
@@ -311,14 +265,6 @@ else()
   set(MAGMAINC "$ENV{MAGMA_ROOT}/include")
 endif()
 
-if(HOST STREQUAL "FRONTIER")
-  if(NOT DEFINED ENV{CRAY_LIBSCI_PREFIX})
-	  message (STATUS "Not found: libsci LAPACK")
-  else()
-	  message (STATUS "Found LAPACK: $ENV{CRAY_LIBSCI_PREFIX}")
-	  set(LAPACKROOT $ENV{CRAY_LIBSCI_PREFIX})
-  endif()
-endif()
 
 if(NOT DEFINED ENV{GA})
   set(MOLCAS "")
@@ -504,304 +450,7 @@ endfunction ()
 
 message(STATUS "GPU Vendor is ${GPU}")
 
-# Generate a list of supported c, c++ and fortran compilers with definitions of compiler flags
-
-# GNU Compiler Collection (GCC)
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "GNU")
-set (CXXFLAGS_GNU_BASIC "")
-set (CXXFLAGS_GNU_OPENMP "-fopenmp")
-set (CXXFLAGS_GNU_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_GNU_DEBUG "-O0 -g -Wall")
-set (CXXFLAGS_GNU_GARBLE "-O2 -g -Wall")
-set (CXXFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
-set (CXXFLAGS_GNU_RELEASE "-O2")
-set (CXXFLAGS_GNU_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "GNU")
-set (CFLAGS_GNU_BASIC "-std=gnu99")
-set (CFLAGS_GNU_OPENMP "-fopenmp")
-set (CFLAGS_GNU_PROFILING "")
-# C build targets
-set (CFLAGS_GNU_DEBUG "-O0 -g -Wall")
-set (CFLAGS_GNU_GARBLE "-O2 -g -Wall")
-set (CFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
-set (CFLAGS_GNU_RELEASE "-O2")
-set (CFLAGS_GNU_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "GNU")
-set (FFLAGS_GNU_BASIC "-DGNU -fallow-argument-mismatch")
-set (FFLAGS_GNU_PREPROCESS "-cpp")
-set (FFLAGS_GNU_OPENMP "-fopenmp")
-set (FFLAGS_GNU_PROFILING "")
-set (FFLAGS_GNU_ILP64 "-fdefault-integer-8")
-# Fortran build targets
-set (FFLAGS_GNU_DEBUG "-O0 -g -Wall")
-set (FFLAGS_GNU_GARBLE "-O2 -g -Wall -finit-real=snan -finit-integer=730432726 -fno-unsafe-math-optimizations -frounding-math -fsignaling-nans")
-set (FFLAGS_GNU_RELWITHDEBINFO "-O2 -g -Wall")
-set (FFLAGS_GNU_RELEASE "-O2")
-set (FFLAGS_GNU_FAST "-O3")
-# Fix for GNU Fortran compiler version >= 4.8 to prevent wrong optimization
-# version check for Fortran doesn't work yet, assume it is the same as the C compiler GCC version
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND
-    CMAKE_Fortran_COMPILER_ID STREQUAL "GNU" AND
-    (NOT CMAKE_C_COMPILER_VERSION VERSION_LESS "4.8"))
-  set (FFLAGS_GNU_BASIC "${FFLAGS_GNU_BASIC} -fno-aggressive-loop-optimizations")
-  set (FFLAGS_GNU_BOUNDS "-fsanitize=address -fno-omit-frame-pointer")
-endif ()
-# Add runtime checks
-# (No boundary checks because of the Work arrays)
-if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  if (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "6")
-    set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=array-temps,do,mem,pointer,recursion")
-  else ()
-    set (FFLAGS_GNU_GARBLE "${FFLAGS_GNU_GARBLE} -fcheck=all,no-bounds")
-  endif ()
-endif ()
-
-# LLVM C frontend (Clang)
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "Clang")
-set (CXXFLAGS_Clang_BASIC "-std=gnu99")
-set (CXXFLAGS_Clang_OPENMP "-fopenmp")
-set (CXXFLAGS_Clang_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_Clang_DEBUG "-O0 -g -Wall")
-set (CXXFLAGS_Clang_GARBLE "-O2 -g -Wall")
-set (CXXFLAGS_Clang_RELWITHDEBINFO "-O2 -g -Wall")
-set (CXXFLAGS_Clang_RELEASE "-O2")
-set (CXXFLAGS_Clang_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "Clang")
-set (CFLAGS_Clang_BASIC "-std=gnu99")
-set (CFLAGS_Clang_OPENMP "-fopenmp")
-set (CFLAGS_Clang_PROFILING "")
-# C build targets
-set (CFLAGS_Clang_DEBUG "-O0 -g -Wall")
-set (CFLAGS_Clang_GARBLE "-O2 -g -Wall")
-set (CFLAGS_Clang_RELWITHDEBINFO "-O2 -g -Wall")
-set (CFLAGS_Clang_RELEASE "-O2")
-set (CFLAGS_Clang_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "Flang")
-set (FFLAGS_Flang_BASIC "-DFLANG -fbackslash")
-set (FFLAGS_Flang_PREPROCESS "")
-#set (FFLAGS_Flang_OPENMP "-mp")
-set (FFLAGS_Flang_PROFILING "")
-set (FFLAGS_Flang_ILP64 "-fdefault-integer-8")
-# Fortran build targets
-set (FFLAGS_Flang_DEBUG "-O0 -g -Minform=warn")
-set (FFLAGS_Flang_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_Flang_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_Flang_RELEASE "-O2")
-set (FFLAGS_Flang_FAST "-fast -fastsse")
-
-if(HOST STREQUAL "CRUSHER")
-set (FFLAGS_Flang_OPENMP "-DAMD -fopenmp -DGPUAMD")
-else()
-if(HOST STREQUAL "FRONTIER")
-set (FFLAGS_Flang_OPENMP "-DAMD -fopenmp -DGPUAMD -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx90a")
-else()
-set (FFLAGS_Flang_OPENMP "-mp -h")
-endif()
-endif()
-
-# Intel C++/C/Fortran Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "Intel")
-set (CXXFLAGS_Intel_BASIC "")
-set (CXXFLAGS_Intel_OPENMP "-qopenmp")
-set (CXXFLAGS_Intel_PROFILING "-g -parallel-source-info=2")
-# C++ build targets
-set (CXXFLAGS_Intel_DEBUG "-debug -w3")
-set (CXXFLAGS_Intel_GARBLE "-O2 -debug -w3")
-set (CXXFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -w3")
-set (CXXFLAGS_Intel_RELEASE "-O2")
-set (CXXFLAGS_Intel_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "Intel")
-set (CFLAGS_Intel_BASIC "-std=gnu99")
-set (CFLAGS_Intel_OPENMP "-qopenmp")
-set (CFLAGS_Intel_PROFILING "-g -parallel-source-info=2")
-# C build targets
-set (CFLAGS_Intel_DEBUG "-debug -w3")
-set (CFLAGS_Intel_GARBLE "-O2 -debug -w3")
-set (CFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -w3")
-set (CFLAGS_Intel_RELEASE "-O2")
-set (CFLAGS_Intel_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "Intel")
-set (FFLAGS_Intel_BASIC "-DINTEL")
-set (FFLAGS_Intel_PREPROCESS "-fpp")
-set (FFLAGS_Intel_OPENMP "-qopenmp -DOMP")
-set (FFLAGS_Intel_PROFILING "-g -parallel-source-info=2")
-set (FFLAGS_Intel_MKL "-DMKL")
-set (FFLAGS_Intel_LAPACK "-DLAPACK")
-set (FFLAGS_Intel_ILP64 "-i8 -r8 -heap-arrays")
-#set (FFLAGS_Intel_ILP64 "-r8 -heap-arrays")
-# Fortran build targets
-set (FFLAGS_Intel_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations -check bounds")
-set (FFLAGS_Intel_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check all,nobounds,noarg_temp_created")
-set (FFLAGS_Intel_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
-set (FFLAGS_Intel_RELEASE "-O2 -traceback")
-set (FFLAGS_Intel_FAST "-xHOST")
-set (FFLAGS_Intel_AVX512 "-xCOMMON-AVX512")
-# Intel versions prior to 15 used -openmp
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND
-    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (CXXFLAGS_Intel_OPENMP "-openmp")
-endif ()
-if (CMAKE_C_COMPILER_ID STREQUAL "Intel" AND
-    CMAKE_C_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (CFLAGS_Intel_OPENMP "-openmp")
-endif ()
-if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" AND
-    CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (FFLAGS_Intel_OPENMP "-openmp")
-endif ()
-
-# IntelLLVM C++/C/Fortran Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "IntelLLVM")
-set (CXXFLAGS_IntelLLVM_BASIC "")
-set (CXXFLAGS_IntelLLVM_OPENMP "-qopenmp")
-set (CXXFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
-# C++ build targets
-set (CXXFLAGS_IntelLLVM_DEBUG "-debug -w3")
-set (CXXFLAGS_IntelLLVM_GARBLE "-O2 -debug -w3")
-set (CXXFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -w3")
-set (CXXFLAGS_IntelLLVM_RELEASE "-O2")
-set (CXXFLAGS_IntelLLVM_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "IntelLLVM")
-set (CFLAGS_IntelLLVM_BASIC "-std=gnu99")
-set (CFLAGS_IntelLLVM_OPENMP "-qopenmp")
-set (CFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
-# C build targets
-set (CFLAGS_IntelLLVM_DEBUG "-debug -w3")
-set (CFLAGS_IntelLLVM_GARBLE "-O2 -debug -w3")
-set (CFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -w3")
-set (CFLAGS_IntelLLVM_RELEASE "-O2")
-set (CFLAGS_IntelLLVM_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "IntelLLVM")
-set (FFLAGS_IntelLLVM_BASIC "-DINTEL")
-set (FFLAGS_IntelLLVM_PREPROCESS "-fpp")
-set (FFLAGS_IntelLLVM_OPENMP "-qopenmp -DOMP")
-set (FFLAGS_IntelLLVM_PROFILING "-g -parallel-source-info=2")
-set (FFLAGS_IntelLLVM_MKL "-DMKL")
-set (FFLAGS_IntelLLVM_LAPACK "-DLAPACK")
-set (FFLAGS_IntelLLVM_ILP64 "-i8 -r8 -heap-arrays")
-#set (FFLAGS_IntelLLVM_ILP64 "-r8 -heap-arrays")
-# Fortran build targets
-set (FFLAGS_IntelLLVM_DEBUG "-init=snan -debug -traceback -warn all,nodeclarations -check bounds")
-set (FFLAGS_IntelLLVM_GARBLE "-O2 -debug -traceback -warn all,nodeclarations -check all,nobounds,noarg_temp_created")
-set (FFLAGS_IntelLLVM_RELWITHDEBINFO "-O2 -debug -traceback -warn all,nodeclarations")
-set (FFLAGS_IntelLLVM_RELEASE "-O2 -traceback")
-set (FFLAGS_IntelLLVM_FAST "-xHOST")
-set (FFLAGS_IntelLLVM_AVX512 "-xCOMMON-AVX512")
-# IntelLLVM versions prior to 15 used -openmp
-if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND
-    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (CXXFLAGS_IntelLLVM_OPENMP "-openmp")
-endif ()
-if (CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM" AND
-    CMAKE_C_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (CFLAGS_IntelLLVM_OPENMP "-openmp")
-endif ()
-if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" AND
-    CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "15.0.0.20140528")
-  set (FFLAGS_IntelLLVM_OPENMP "-openmp")
-endif ()
-
-# Portland Group (PGI) Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "PGI")
-set (CXXFLAGS_PGI_BASIC "-c99 -pgf90libs")
-set (CXXFLAGS_PGI_OPENMP "-mp")
-set (CXXFLAGS_PGI_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
-set (CXXFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_PGI_RELEASE "-O2")
-set (CXXFLAGS_PGI_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "PGI")
-set (CFLAGS_PGI_BASIC "-c99 -pgf90libs")
-set (CFLAGS_PGI_OPENMP "-mp")
-set (CFLAGS_PGI_PROFILING "")
-# C build targets
-set (CFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
-set (CFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
-set (CFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_PGI_RELEASE "-O2")
-set (CFLAGS_PGI_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "PGI")
-set (FFLAGS_PGI_BASIC "-DPGI -Mbackslash")
-set (FFLAGS_PGI_PREPROCESS "-Mpreprocess")
-set (FFLAGS_PGI_OPENMP "-mp")
-set (FFLAGS_PGI_PROFILING "")
-set (FFLAGS_PGI_LAPACK "-DLAPACK")
-set (FFLAGS_PGI_ILP64 "-i8")
-set (FFLAGS_PGI_CUSOLVER "-DCUSOLVER -lcusolver")
-# Fortran build targets
-set (FFLAGS_PGI_DEBUG "-O0 -g -Minform=warn")
-set (FFLAGS_PGI_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_PGI_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_PGI_RELEASE "-O2")
-set (FFLAGS_PGI_FAST "-fast -fastsse")
-
-# NVIDIA Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "NVIDIA")
-set (CXXFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
-set (CXXFLAGS_NVIDIA_OPENMP "-mp")
-set (CXXFLAGS_NVIDIA_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
-set (CXXFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_NVIDIA_RELEASE "-O2")
-set (CXXFLAGS_NVIDIA_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "NVIDIA")
-set (CFLAGS_NVIDIA_BASIC "-c99 -pgf90libs")
-set (CFLAGS_NVIDIA_OPENMP "-mp")
-set (CFLAGS_NVIDIA_PROFILING "")
-# C build targets
-set (CFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
-set (CFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
-set (CFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_NVIDIA_RELEASE "-O2")
-set (CFLAGS_NVIDIA_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "NVIDIA")
-set (FFLAGS_NVIDIA_BASIC "-DNVIDIA -Mbackslash")
-set (FFLAGS_NVIDIA_PREPROCESS "-Mpreprocess")
-set (FFLAGS_NVIDIA_OPENMP "-mp")
-set (FFLAGS_NVIDIA_PROFILING "-g")
-set (FFLAGS_NVIDIA_LAPACK "-DLAPACK")
-set (FFLAGS_NVIDIA_MKL "-DMKL")
-set (FFLAGS_NVIDIA_NVTX "-g -lnvhpcwrapnvtx")
-set (FFLAGS_NVIDIA_ILP64 "-i8")
-set (FFLAGS_NVIDIA_ACC "-acc -Minfo -gpu=cc89")
-#set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -gpu=cc89")
-set (FFLAGS_NVIDIA_CUSOLVER "-DCUSOLVER -lcusolver")
-# Fortran build targets
-set (FFLAGS_NVIDIA_DEBUG "-O0 -g -Minform=warn")
-set (FFLAGS_NVIDIA_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_NVIDIA_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_NVIDIA_RELEASE "-O2 -Minform=inform")
-set (FFLAGS_NVIDIA_FAST "-fast -fastsse")
+# Configure NVHPC compiler flags
 
 # NVHPC Compilers
 
@@ -868,169 +517,18 @@ set (FFLAGS_NVHPC_ILP64 "-i8")
 if(${GPU} STREQUAL "AMD")
    set (FFLAGS_NVHPC_ACC "-acc -DGPUAMD")
 else()
-   set (FFLAGS_NVHPC_ACC "-acc -Minfo -gpu=cc89,maxregcount:64 -fast -DGPUNVIDIA")
-   #set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=cc89 -DGPUNVIDIA")
+   set (FFLAGS_NVHPC_ACC "-acc -DGPUNVIDIA")
+   #set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=${COMPUTE_CAPABILITY} -DGPUNVIDIA")
 endif()
 set (FFLAGS_NVHPC_MAGMA "-DMAGMA -I${MAGMAINC} -L${MAGMALIB} -lmagma")
 # Fortran build targets
-set (FFLAGS_NVHPC_DEBUG "-O0 -g -Minform=warn")
+set (FFLAGS_NVHPC_DEBUG
+    "-O0 -g -traceback -Mbounds -Mchkptr -Mchkstk -Mchkinit -gpu=${COMPUTE_CAPABILITY},lineinfo -Minform=inform -acc -Minfo -DGPUNVIDIA")
 set (FFLAGS_NVHPC_GARBLE "-O2 -gopt -Minform=warn")
 set (FFLAGS_NVHPC_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
 #set (FFLAGS_NVHPC_RELEASE "-O2 -Minform=inform")
-set (FFLAGS_NVHPC_RELEASE "-Minform=inform -acc -Minfo -gpu=cc89,maxregcount:64 -fast -DGPUNVIDIA")
+set (FFLAGS_NVHPC_RELEASE "-Minform=inform -acc -Minfo -gpu=${COMPUTE_CAPABILITY},maxregcount:64 -fast -DGPUNVIDIA")
 set (FFLAGS_NVHPC_FAST "-fast -fastsse")
-
-# Cray Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "Cray")
-set (CXXFLAGS_Cray_BASIC "-c99 -pgf90libs")
-set (CXXFLAGS_Cray_OPENMP "-h omp")
-set (CXXFLAGS_Cray_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
-set (CXXFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_Cray_RELEASE "-O2")
-set (CXXFLAGS_Cray_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "Cray")
-set (CFLAGS_Cray_BASIC "-c99 -pgf90libs")
-set (CFLAGS_Cray_OPENMP "-h omp")
-set (CFLAGS_Cray_PROFILING "")
-# C build targets
-set (CFLAGS_Cray_DEBUG "-O0 -g -Minform=warn")
-set (CFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
-set (CFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_Cray_RELEASE "-O2")
-set (CFLAGS_Cray_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "Cray")
-#set (FFLAGS_Cray_BASIC "-Mbackslash")
-set (FFLAGS_Cray_BASIC "-DCRAY")
-set (FFLAGS_Cray_LAPACK "-DLAPACK")
-set (FFLAGS_Cray_MAGMA "-DMAGMA -L${MAGMALIB} -lmagma")
-#set (FFLAGS_Cray_PREPROCESS "-Mpreprocess")
-
-if(HOST STREQUAL "CRUSHER")
-set (FFLAGS_Cray_OPENMP "-DCRAY -DOMP5 -h omp -h list=a -DGPUAMD")
-else()
-if(HOST STREQUAL "FRONTIER")
-set (FFLAGS_Cray_OPENMP "-DCRAY -DOMP5 -h omp -h list=a -DGPUAMD")
-else()
-set (FFLAGS_Cray_OPENMP "-DCRAY -h omp -h list=a")
-endif()
-endif()
-
-if(HOST STREQUAL "CRUSHER")
-set (FFLAGS_Cray_OPENMP "-DCRAY -DOMP5 -h omp -h list=a -DGPUAMD")
-else()
-if(HOST STREQUAL "FRONTIER")
-set (FFLAGS_Cray_OPENMP "-DCRAY -DOMP5 -h omp -h list=a -DGPUAMD")
-else()
-set (FFLAGS_Cray_OPENMP "-DCRAY -h omp -h list=a")
-endif()
-endif()
-
-set (FFLAGS_Cray_PROFILING "")
-set (FFLAGS_Cray_ILP64 "-s integer64")
-if(${GPU} STREQUAL "AMD")
-   set (FFLAGS_Cray_ACC "-h acc -DGPUAMD -h list=a")
-else()
-   set (FFLAGS_Cray_ACC "-h acc -h list=a -DGPUNVIDIA")
-endif()
-set (FFLAGS_Cray_CUSOLVER "-DCUSOLVER -lcusolver")
-set (FFLAGS_Cray_HIPSOLVER "-M878 -DHIPSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L/opt/rocm-5.3.0/hipsolver/lib -lhipsolver")
-set (FFLAGS_Cray_HIPSOLVERJ "-M878 -DHIPSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L/opt/rocm-5.3.0/hipsolver/lib -DHIPSOLVERJ -lhipsolver")
-set (FFLAGS_Cray_ROCSOLVER "-M878 -DROCSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L$ENV{OLCF_HIPFORT_ROOT}/lib -lhipfort-amdgcn -L$ENV{ROCM_PATH}/lib -lrocsolver -lrocblas -lhipblas -lamdhip64")
-set (FFLAGS_Cray_ROCSOLVERJ "-M878 -DROCSOLVERJ -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L$ENV{OLCF_HIPFORT_ROOT}/lib -lhipfort-amdgcn -L$ENV{ROCM_PATH}/lib -lrocsolver -lrocblas -lhipblas -lamdhip64")
-#set (FFLAGS_Cray_ROCSOLVER "-M878 -DROCSOLVER -I$ENV{OLCF_HIPFORT_ROOT}/include/hipfort/amdgcn -L$ENV{OLCF_HIPFORT_ROOT}/lib -lhipfort-amdgcn -L$ENV{ROCM_PATH}/lib -lhipblas -lamdhip64")
-# Fortran build targets
-set (FFLAGS_Cray_DEBUG "-O0 -g")
-set (FFLAGS_Cray_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_Cray_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_Cray_RELEASE "-O2")
-set (FFLAGS_Cray_FAST "-fast -fastsse")
-
-# IBM XL Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "IBM")
-set (CXXFLAGS_IBM_BASIC "-c99 -pgf90libs")
-set (CXXFLAGS_IBM_OPENMP "-mp")
-set (CXXFLAGS_IBM_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
-set (CXXFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_IBM_RELEASE "-O2")
-set (CXXFLAGS_IBM_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "IBM")
-set (CFLAGS_IBM_BASIC "-c99 -pgf90libs -qxlf77")
-set (CFLAGS_IBM_OPENMP "-mp")
-# C build targets
-set (CFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
-set (CFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
-set (CFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_IBM_RELEASE "-O2")
-set (CFLAGS_IBM_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "IBM")
-set (FFLAGS_IBM_BASIC "-DIBM -Mbackslash -qlanglvl=77std -qintsize=8")
-set (FFLAGS_IBM_PREPROCESS "-Mpreprocess")
-set (FFLAGS_IBM_OPENMP "-mp -qoffload -qsmp")
-set (FFLAGS_IBM_PROFILING "")
-set (FFLAGS_IBM_ILP64 "-i8")
-set (FFLAGS_IBM_ACC "-acc -Minfo=accel -Mcuda=rdc")
-set (FFLAGS_IBM_CUSOLVER "-DCUSOLVER -lcusolver")
-set (FFLAGS_IBM_MAGMA "-DMAGMA -lmagma")
-# Fortran build targets
-set (FFLAGS_IBM_DEBUG "-O0 -g -Minform=warn")
-set (FFLAGS_IBM_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_IBM_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_IBM_RELEASE "-O2")
-set (FFLAGS_IBM_FAST "-fast -fastsse")
-
-# IBM XL Compilers
-
-# C++ compiler
-list (APPEND SUPPORTED_CXX_COMPILERS "XL")
-set (CXXFLAGS_XL_BASIC "")
-set (CXXFLAGS_XL_OPENMP "-qsmp=omp")
-set (CXXFLAGS_XL_PROFILING "")
-# C++ build targets
-set (CXXFLAGS_XL_DEBUG "-O0 -g -Minform=warn")
-set (CXXFLAGS_XL_GARBLE "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_XL_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CXXFLAGS_XL_RELEASE "-O2")
-set (CXXFLAGS_XL_FAST "-O2")
-# C compiler
-list (APPEND SUPPORTED_C_COMPILERS "XL")
-set (CFLAGS_XL_BASIC "")
-set (CFLAGS_XL_OPENMP "-qsmp=omp")
-# C build targets
-set (CFLAGS_XL_DEBUG "-O0 -g -Minform=warn")
-set (CFLAGS_XL_GARBLE "-O2 -gopt -Minform=warn")
-set (CFLAGS_XL_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (CFLAGS_XL_RELEASE "-O2")
-set (CFLAGS_XL_FAST "-O2")
-# Fortran compiler
-list (APPEND SUPPORTED_Fortran_COMPILERS "XL")
-set (FFLAGS_XL_BASIC "-DIBM -qintsize=8")
-set (FFLAGS_XL_PREPROCESS "")
-set (FFLAGS_XL_OPENMP "-qsmp=omp -qoffload")
-set (FFLAGS_XL_PROFILING "")
-set (FFLAGS_XL_ILP64 "")
-set (FFLAGS_XL_ACC "-acc -Minfo=accel -Mcuda=rdc")
-set (FFLAGS_XL_CUSOLVER "-DCUSOLVER -lcusolver")
-set (FFLAGS_XL_MAGMA "-DMAGMA -lmagma")
-# Fortran build targets
-set (FFLAGS_XL_DEBUG "-O0 -g -Minform=warn")
-set (FFLAGS_XL_GARBLE "-O2 -gopt -Minform=warn")
-set (FFLAGS_XL_RELWITHDEBINFO "-O2 -gopt -Minform=warn")
-set (FFLAGS_XL_RELEASE "-O2")
-set (FFLAGS_XL_FAST "-fast -fastsse")
 
 # Test if a supported c compiler is used
 foreach (C_COMPILER ${SUPPORTED_C_COMPILERS})
@@ -1063,18 +561,11 @@ foreach (Fortran_COMPILER ${SUPPORTED_Fortran_COMPILERS})
     #	  message (STATUS "Fortran compiler ID is ${FCID}")
   endif ()
 endforeach ()
-if (NOT FCID)
-  message (FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
-else()
-  message (STATUS "Fortran compiler used is supported: ${CMAKE_Fortran_COMPILER_ID}")
-  if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Cray")
-   set (ENV{CRAY} "Y")
-#   message(STATUS "Fortran compiler is ${CMAKE_Fortran_COMPILER_ID}")
-   else()
-   unset(ENV{CRAY})
-#   message(STATUS "Fortran compiler is ${CMAKE_Fortran_COMPILER_ID}")
-  endif()
-endif ()
+  if (NOT FCID)
+    message (FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER_ID}")
+  else()
+    message (STATUS "Fortran compiler used is supported: ${CMAKE_Fortran_COMPILER_ID}")
+  endif ()
 
 # Change selected compiler defaults set by cmake
 
@@ -1194,39 +685,6 @@ endif ()
 set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEFAULT}")
 
 
-# Fortran accelerator flags
-if("$ENV{HOST}" MATCHES "daint")
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -ta=tesla,cc60 -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags for DAINT: ${FFLAGS_NVHPC_ACC}")
-elseif(HOST STREQUAL "JUWELS")
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags for JUWELS: ${FFLAGS_NVHPC_ACC}")
-elseif(HOST STREQUAL "LEONARDO")
-  set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -gpu=cc80 -DCUDA")
-  set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -DCUDA")
-  message (STATUS "Custom OpenACC compiler flags for LEONARDO: ${FFLAGS_NVHPC_ACC}")
-else()
-   if(${GPU} STREQUAL "AMD")
-	   set (FFLAGS_Cray_ACC "-h acc -h list=a -DAMD -DGPUAMD")
-   else()
-     if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 24.01)
-       set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
-     else()    
-       set (FFLAGS_NVHPC_ACC "-acc -Minfo=accel -cuda -gpu=${COMPUTE_CAPABILITY} -cudalib -Mlist -DCUDA -DGPUNVIDIA")
-     endif()
-     set (FFLAGS_NVIDIA_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
-     set (FFLAGS_PGI_ACC "-acc -Minfo=accel -Mcuda=rdc -Mlist -DCUDA -DGPUNVIDIA")
-     set (FFLAGS_GNU_ACC "-fopenacc -lcuda -fopt-info-optimized-omp -DGPUNVIDIA")
-     set (FFLAGS_GCC_ACC "-fopenacc -lcuda -fopt-info-optimized-omp -DGPUNVIDIA")
-   endif()
-#  message (STATUS "Generic OpenACC compiler flags: ${FFLAGS_NVHPC_ACC}")
-endif()
-
 # molcas dependent auxiliary programs need the molcas libraries
 if(DEFINED MOLCAS)
   list (APPEND EXTERNAL_LIBRARIES "-L$ENV{MOLCAS}/lib -lmolcas")
@@ -1246,9 +704,7 @@ if(DEFINED UTILS)
   include_directories ("$ENV{UTILS}/include")
 endif()
 
-message(STATUS "Host: ${HOST} $ENV{CRAY}")
-
-message(STATUS "External libraries defined: ${EXTERNAL_LIBRARIES}")
+  message(STATUS "External libraries defined: ${EXTERNAL_LIBRARIES}")
 
 # Define the appropriate compiler flags
 
@@ -1368,13 +824,7 @@ if(${PLATFORM} STREQUAL "LINUX")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DLINUX")
 endif()
 
-# Set target computer system flag
-
-if(NOT "${TARGET}" STREQUAL "")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -D${TARGET}")
-endif()
-
-# Allow user-specified modifications
+  # Allow user-specified modifications
 
 if (EXTRA_CXXFLAGS)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CXXFLAGS}")
@@ -1472,42 +922,14 @@ if (MKL)
   find_library (LIBMKL_CORE NAMES "mkl_core"
     PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
   # compiler-specific library interface
-  if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    find_library (LIBMKL_INTERFACE NAMES "mkl_gf_ilp64"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI") # apparently PGI uses this too
-    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
+    # sequential/compiler-specific threading interface
+    find_library (LIBMKL_SEQUENTIAL NAMES "mkl_sequential"
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA") # apparently NVIDIA uses this too
-    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC") # apparently NVIDIA uses this too
-    find_library (LIBMKL_INTERFACE NAMES "mkl_intel_ilp64"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  endif ()
-  # sequential/compiler-specific threading interface
-  find_library (LIBMKL_SEQUENTIAL NAMES "mkl_sequential"
-    PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_GNU_OPENMP}")
-    find_library (LIBMKL_THREADING NAMES "mkl_gnu_thread"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_Intel_OPENMP}")
-    find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVIDIA")
-    set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_NVIDIA_OPENMP}")
-    find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
-      PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
     set (LIBMKL_OMP_LINK_FLAGS "${FFLAGS_NVHPC_OPENMP}")
     find_library (LIBMKL_THREADING NAMES "mkl_intel_thread"
       PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)
-  endif ()
   # find scalapack/blacs for parallel lapack support
   find_library (LIBMKL_SCALAPACK NAMES "mkl_scalapack_ilp64"
     PATHS ${MKL_LIBRARY_PATH} NO_DEFAULT_PATH)

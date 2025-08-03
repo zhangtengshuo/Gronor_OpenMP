@@ -30,28 +30,29 @@ subroutine gronor_manager()
   integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest,iremote
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
-  real (kind=8) :: rbuf(17),tbuf(17),buffer(17)
+  real (kind=8) :: tbuf(18),buffer(18)
+  integer :: tid
   integer (kind=8) :: numsnd,numrcv,numdets,idet,jdet,ibase,jbase,numtsk
 
   integer (kind=8) :: i,j,k,m
   
   ! Signal the master to start sending tasks
 
-  do i=1,17
-    rbuf(i)=0.0d0
+  do i=1,18
     tbuf(i)=0.0d0
   enddo
+  tbuf(1)=0.0d0
 
   numtsk=0
   do i=1,np
     if(map2(i,9).eq.me) numtsk=numtsk+1
   enddo
   
-  ncount=17
+  ncount=18
   mpitag=1
-  call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
   call MPI_Request_free(ireq,ierr)
-!  write(*,'(a,4f12.3)') "to mstr",(rbuf(k),k=1,4)
+!  write(*,'(a,4f12.3)') "to mstr",(tbuf(k),k=1,4)
   if(idbg.gt.20) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signaled master'
@@ -87,7 +88,7 @@ subroutine gronor_manager()
 
     call timer_start(52)
     
-    do i=1,17
+    do i=1,18
       tbuf(i)=0.0d0
     enddo
 
@@ -176,16 +177,16 @@ subroutine gronor_manager()
     call timer_start(53)
     
     do while(numrcv.lt.numbuf)
-      ncount=17
+      ncount=18
       mpitag=1
       call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
+      tid=int(buffer(1))
       iremote=status(MPI_SOURCE)
-!      write(*,'(a,i5,4f12.3)') "from wrkr",iremote,(buffer(k),k=1,4)
       do j=1,numwrk
         if(mgrwrk(j,1).eq.iremote) then
           if(mgrwrk(j,2).eq.0) then
             numrcv=numrcv+1
-            do i=1,17
+            do i=2,18
               tbuf(i)=tbuf(i)+buffer(i)
             enddo
             mgrwrk(j,2)=1
@@ -216,7 +217,8 @@ subroutine gronor_manager()
     
     ! Send results buffer to master
     call timer_start(54)
-    ncount=17
+    tbuf(1)=0.0d0
+    ncount=18
     mpitag=1
     call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
     call MPI_Request_free(ireq,ierr)
@@ -227,8 +229,7 @@ subroutine gronor_manager()
           me,' sent results  ',mstr,(ibuf(i),i=1,4)
       flush(lfndbg)
     endif
-    do i=1,17
-      rbuf(i)=0.0d0
+    do i=1,18
       tbuf(i)=0.0d0
     enddo
     call timer_stop(54)

@@ -159,7 +159,7 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-  call gronor_solver_init(nelecs)
+  call gronor_solver_init(nelecs, a, u, w, ev)
 
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(date,time)

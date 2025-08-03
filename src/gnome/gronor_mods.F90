@@ -209,6 +209,10 @@ module gnome_data
 
   integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb
 
+  integer :: ntcl(2), ntop(2), nclose(2), nopen(2), nelec(2)
+  integer :: nact(2), ninact(2)
+  integer(kind=1), allocatable :: iocopen(:,:)
+
   character (len=80) :: text,name(2),namint(2)
   real (kind=8) :: potnuc,zNucTot
   character (len=4), allocatable :: centn(:)
@@ -258,7 +262,8 @@ module gnome_data
 !$omp threadprivate(ntesta,ntestb,ijend)
 !$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,n1bas,nstdim,mbasel,nelecs)
 !$omp threadprivate(e1,e2,e2c,etot,etotb,deta,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
-!$omp threadprivate(ioccup,vec,vtemp,ioccn)
+!$omp threadprivate(ntcl,ntop,nclose,nopen,nelec,nact,ninact,iocopen)
+!$omp threadprivate(ioccup,vec,vtemp,ioccn,iocopen)
 
 !  real (kind=8), allocatable :: work(:)
   integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info

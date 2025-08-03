@@ -19,6 +19,7 @@
 !! @date    2016
 !!
 
+!$omp declare target
 subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   use mpi
@@ -61,7 +62,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
   
   ! Calculation of the overlap matrix ta from va, vb and s
 
-!$acc kernels present(ta,tb,s,vb)
+!$omp target teams distribute parallel do map(tofrom:ta,tb,s,vb)
   do iv=1,nvecb
     do ib=1,nbas
       tb(ib,iv)=0.0d0
@@ -85,12 +86,12 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
       ta(ie,le)=0.0d0
     enddo
   enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   if(nalfa.ne.0) then
 
 
-!$acc kernels present(va,tb)
+!$omp target teams distribute parallel do map(tofrom:va,tb)
     do ke=1,nalfa
       do ie=1,nalfa
         sum=0.0d0
@@ -100,7 +101,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
         ta(ie,ke)=sum
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   endif
 
@@ -109,10 +110,9 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
   if(ntcla.ne.0.and.ntclb.ne.0) then
 
 
-!$acc parallel loop present(ta) private(ii,kk)
+!$omp target teams distribute parallel do map(tofrom:ta) private(ii,kk)
     do i=1,ntcla
       ii=i+nalfa
-!$acc loop vector
       do k=1,ntclb
         kk=k+nalfa
         ta(ii,kk)=ta(i,k)
@@ -129,7 +129,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
     if(ntclb.gt.0) then
 
-!$acc kernels present(va,ta,tb)
+!$omp target teams distribute parallel do map(tofrom:va,ta,tb)
       do k=1,ntclb
         kk=k+nalfa
         do i=m1,nveca
@@ -140,13 +140,13 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
           ta(i+ntcla,kk)=sum
         enddo
       enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     endif
 
     if(nvecb.gt.nalfa) then
 
-!$acc kernels present(va,ta,tb)
+!$omp target teams distribute parallel do map(tofrom:va,ta,tb)
       do k=nalfa+1,nvecb
         kk=k+ntclb
         do i=m1,nveca
@@ -157,7 +157,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
           ta(i+ntcla,kk)=sum
         enddo
       enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
     endif
 
@@ -165,7 +165,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   if(nvecb.ne.nalfa.and.ntcla.ne.0) then
 
-!$acc kernels present(va,ta,tb)
+!$omp target teams distribute parallel do map(tofrom:va,ta,tb)
     do i=1,ntcla
       do k=m1,nvecb
         sum=0.0d0
@@ -175,14 +175,14 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
         ta(i+nalfa,k+ntclb)=sum
       enddo
     enddo
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   endif
 
   !  There are problems with svd if many off diagonal elements occur
   !  of size 1.0 e-13. therefore all elements < 1.0 e-10 are set to zero
 
-!$acc kernels present(ta)
+!$omp target teams distribute parallel do map(tofrom:ta)
 
   do i1=1,nelecs
     do i2=1,nelecs
@@ -191,8 +191,9 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
     enddo
   enddo
 
-!$acc end kernels
+!$omp end target teams distribute parallel do
 
   return
 end subroutine gronor_moover
+!$omp end declare target
 

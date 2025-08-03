@@ -18,6 +18,7 @@
 !! @date    2025
 !!
 
+!$omp declare target
 subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
   !> Routine that provides all possible calls to Singular Value Decomposition library routines
@@ -61,7 +62,6 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
 #ifdef MKL
   use mkl_solver
-#endif
   
   ! variable declarations
 
@@ -80,9 +80,7 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   lwork4=int(len_work_dbl,kind=4)
   
   if(iamacc.eq.1.and.lsvcpu) then
-#ifdef ACC
-!$acc update host (a)
-#endif
+!$omp target update from(a)
   endif
 
   ! ========== EISPACK =========
@@ -118,27 +116,22 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
     elseif(iamacc.eq.1) then
 
-#ifdef ACC
-!$acc kernels present(w,wt)
-#endif
+!$omp target teams distribute parallel do map(tofrom:w,wt)
   do i=1,nelecs
     do j=1,nelecs
       w(i,j)=wt(j,i)
     enddo
   enddo
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
       
     endif
   endif
 
 !! Update device if SVD was performed on the host for accelerated ranks
   if(iamacc.eq.1.and.lsvcpu) then
-#ifdef ACC
-!$acc update device (ev,u,w)
-#endif
+!$omp target update to(ev,u,w)
   endif
 
   return  
 end subroutine gronor_svd
+!$omp end declare target

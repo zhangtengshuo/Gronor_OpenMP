@@ -19,6 +19,7 @@
 !! @date    2025
 !!
 
+!$omp declare target
 subroutine gronor_evd(a,diag,sdiag)
 
   !> Routine that provides all possible calls to Eigensolver library routines
@@ -60,7 +61,6 @@ subroutine gronor_evd(a,diag,sdiag)
 
 #ifdef MKL
   use mkl_solver
-#endif
 
   ! variable declarations
 
@@ -71,7 +71,6 @@ subroutine gronor_evd(a,diag,sdiag)
   external :: tred2,tql2
 #ifdef MKL
   external :: dsyevd
-#endif
 
   integer :: i,j
   integer :: ierr
@@ -80,24 +79,18 @@ subroutine gronor_evd(a,diag,sdiag)
 
   if(iamacc.eq.1) then
      if(levcpu) then
-#ifdef ACC
-!$acc update host (a)
-#endif
+!$omp target update from(a)
       do i=1,nelecs
         sdiag(i)=0.0d0
       enddo
 
     endif
-#ifdef ACC
-!$acc kernels present(sdiag)
-#endif
+!$omp target teams distribute parallel do map(tofrom:sdiag)
 
       do i=1,nelecs
         sdiag(i)=0.0d0
       enddo
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
 
    else
 
@@ -131,10 +124,9 @@ subroutine gronor_evd(a,diag,sdiag)
 #endif 
 
   if(iamacc.eq.1.and.levcpu) then
-#ifdef ACC
-!$acc update device (diag)
-#endif
+!$omp target update to(diag)
   endif
 
   return
 end subroutine gronor_evd
+!$omp end declare target

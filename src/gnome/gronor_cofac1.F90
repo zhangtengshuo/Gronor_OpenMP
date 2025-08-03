@@ -20,7 +20,8 @@
 !! @date    2016
 !!
 
-      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
+      !$omp declare target
+subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
       use cidist
       use gnome_parameters
       use gnome_data
@@ -47,9 +48,7 @@
 
 
       if(idbg.ge.90) then
-#ifdef ACC
-!$acc update host (a)
-#endif
+!$omp target update from(a)
         write(lfndbg,1601) nelecs,nelecs,mbasel
  1601   format(//,' SVD input matrix:',3i6,/)
         do j=1,nelecs
@@ -65,7 +64,7 @@
 
   !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
  !!! the MOST TIME COMSUMING CONSUMING loop if this subroutine!!!
-! !$acc kernels present(u,w,a)
+! !$omp target teams distribute parallel do map(tofrom:u,w,a)
 !   do i=1,nelecs
 !     do j=1,i
 !       coef=0.0d0
@@ -76,17 +75,16 @@
 !       a(j,i)=coef
 !     enddo
 !   enddo
-! !$acc end kernels
+! !$omp end target teams distribute parallel do
       
   ! "do j=1,i" 导致 j 依赖 i , 编译器无法有效并行化。
   ! 直接写 “do j = 1, nelecs” ，计算量翻倍，但是有效并行，速度反而快。
   ! 因为多出来的计算量是放在原来就没占满的计算单元上！
 
-  !$acc parallel loop gang vector collapse(2) present(u, w, a) 
+  !$omp target teams distribute parallel do gang vector collapse(2) map(tofrom:u, w, a) 
   do i = 1, nelecs
     do j = 1, nelecs
       coef = 0.0d0
-      !$acc loop seq reduction(+:coef)
       do k = 1, nelecs
         coef = coef + u(i,k) * w(k,j) + u(j,k) * w(k,i)
       enddo
@@ -95,12 +93,11 @@
   enddo
 
   !可能的更快代码，但没有必要了。
-!   !$acc parallel loop gang vector collapse(2) present(u,w,a)
+!   !$omp target teams distribute parallel do gang vector collapse(2) map(tofrom:u,w,a)
 ! do i = 1, nelecs
 !   do j = 1, nelecs
 !     if (j <= i) then  ! 仅计算下三角
 !       coef = 0.0d0
-!       !$acc loop seq reduction(+:coef)
 !       do k = 1, nelecs
 !         coef = coef + u(i,k)*w(k,j) + u(j,k)*w(k,i)
 !       enddo
@@ -111,8 +108,7 @@
 ! enddo
       
       if(idbg.ge.90) then
-#ifdef ACC
-!$acc update host (u,w,a,ev)
+!$omp target update from(u,w,a,ev)
 #endif 
         write(lfndbg,601) (ev(i),i=1,nelecs)
  601    format(//,' Eigenvalues of diagonalized overlap matrix:',               &
@@ -147,9 +143,7 @@
 
       cmax=0.0d0
 
-#ifdef ACC
-!$acc kernels present(cdiag,diag,csdiag,sdiag,ev)
-#endif
+!$omp target teams distribute parallel do map(tofrom:cdiag,diag,csdiag,sdiag,ev)
       
       !  Calculation of det(a) and x and y
       
@@ -160,15 +154,11 @@
         csdiag(i)=sdiag(i)
       enddo
 
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
 
       if(idbg.ge.90) then
-#ifdef ACC
-!$acc update host (diag,cdiag,csdiag,sdiag)
-#endif
+!$omp target update from(diag,cdiag,csdiag,sdiag)
         write(lfndbg,604) (diag(i),cdiag(i),csdiag(i),sdiag(i),i=1,nelecs)
  604    format(//,' Diagonals:',//,(3x,4e20.12))
         flush(lfndbg)
@@ -180,9 +170,7 @@
       nz2=0
       deta=0.0d0
 
-#ifdef ACC
-!$acc update host(ev)
-#endif
+!$omp target update from(ev)
       do i=1,nelecs
         coefu=ev(i)
         if(abs(coefu) .le. cnorm) then
@@ -205,9 +193,7 @@
           deta=coef
           ising=0
 
-#ifdef ACC
-!$acc parallel loop gang collapse(2) present(ta,u,w,ev)
-#endif
+!$omp target teams distribute parallel do gang collapse(2) map(tofrom:ta,u,w,ev)
           do i=1,nelecs
             do j=1,nelecs
               coefu=0.0d0
@@ -217,17 +203,13 @@
               ta(i,j)=coefu*0.5d0
             enddo
           enddo
-#ifdef ACC
-!$acc end parallel loop
-#endif
+!$omp end target teams distribute parallel do
           call timer_stop(44)
           return
           ising=1
         endif
 
-#ifdef ACC
-!$acc kernels present(ta,u,w,ev,cdiag,diag,csdiag,sdiag)
-#endif
+!$omp target teams distribute parallel do map(tofrom:ta,u,w,ev,cdiag,diag,csdiag,sdiag)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -244,9 +226,7 @@
           enddo
         enddo
         
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
 
         call timer_stop(44)
         return
@@ -255,9 +235,7 @@
       if(abs(coef).lt.tau_SIN) then
         ising=3
       else
-#ifdef ACC
-!$acc kernels present(cdiag,diag,csdiag,sdiag,u,w,ta)
-#endif
+!$omp target teams distribute parallel do map(tofrom:cdiag,diag,csdiag,sdiag,u,w,ta)
         do i=1,nelecs
           diag(i)=u(i,nz1)*coef
           sdiag(i)=w(i,nz1)
@@ -269,9 +247,7 @@
           enddo
         enddo
 
-#ifdef ACC
-!$acc end kernels
-#endif
+!$omp end target teams distribute parallel do
         call timer_stop(44)
         return
       endif
@@ -279,4 +255,5 @@
       call timer_stop(44)
 
       return
-      end subroutine gronor_cofac1
+end subroutine gronor_cofac1
+!$omp end declare target

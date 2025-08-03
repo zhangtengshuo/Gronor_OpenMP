@@ -19,6 +19,7 @@
 !! @date    2016
 !!
 
+!$omp declare target
 subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
 
   !      Transformation of the  m.o.'s
@@ -41,7 +42,7 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 600 format(/,' Cofactor matrix transform to symmetry functions')
 
 
-!$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
+!$omp target teams distribute parallel do map(tofrom:va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
 
   do j=1,nbas
     diag(j)=0.0d0
@@ -53,10 +54,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
     !     transformation of diag and sdiag
 
     if(nalfa.ne.0) then
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum)
         do k=1,nalfa
           sum=sum+cdiag(k)*va(k,j)
         enddo
@@ -65,10 +64,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
     endif
 
     if(ntcla.ne.0) then
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum)
         do k=1,ntcla
           kk=k+nalfa
           sum=sum+cdiag(kk)*va(k,j)
@@ -79,10 +76,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
     if(nalfa.ne.nveca) then
       m1=nalfa+1
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum)
         do k=m1,nveca
           kk=k+ntcla
           sum=sum+cdiag(kk)*va(k,j)
@@ -92,10 +87,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
     endif
 
     if(nalfa.ne.0) then
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum)
         do k=1,nalfa
           sum=sum+csdiag(k)*vb(k,j)
         enddo
@@ -104,10 +97,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
     endif
 
     if(ntclb.ne.0) then
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum) private(kk)
         do k=1,ntclb
           kk=k+nalfa
           sum=sum+csdiag(kk)*vb(k,j)
@@ -118,10 +109,8 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
     if(nalfa.ne.nvecb) then
       m1=nalfa+1
-!$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum) private(kk)
         do k=m1,nvecb
           kk=k+ntclb
           sum=sum+csdiag(kk)*vb(k,j)
@@ -130,7 +119,6 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
       enddo
     endif
 
-!$acc loop
     do j=1,nbas
       csdiag(j)=w1(j)
     enddo
@@ -143,11 +131,9 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   if(nalfa.ne.0) then
 
-!$acc loop collapse(2) private(sum)
     do i=1,nalfa
       do j=1,nbas
         sum=0.0d0
-!$acc loop reduction(+:sum)
         do k=1,nalfa
           sum=sum+ta(i,k)*vb(k,j)
         enddo
@@ -155,7 +141,6 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
       enddo
     enddo
 
-!$acc loop collapse(2)
     do j=1,nbas
       do i=1,nalfa
         ta(i,j)=w2(i,j)
@@ -171,14 +156,12 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
       do j=1,nbas
         sum=0.0d0
         if(ntclb.ne.0) then
-!$acc loop reduction(+:sum) private(kk)
           do k=1,ntclb
             kk=k+nalfa
             sum=sum+ta(i,kk)*vb(k,j)
           enddo
         endif
         if(nalfa.ne.nvecb) then
-!$acc loop reduction(+:sum) private(kk)
           do k=m1,nvecb
             kk=k+ntclb
             sum=sum+ta(i,kk)*vb(k,j)
@@ -199,11 +182,9 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   if(nalfa.ne.0) then
 
-!$acc loop collapse(2) private(sum)
     do j=1,nbas
       do i=1,nbas
         sum=0.0
-!$acc loop seq reduction(+:sum)
         do k=1,nalfa
           sum=sum+ta(k,j)*va(k,i)
         enddo
@@ -215,19 +196,16 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   if(nalfa.ne.nelecs) then
 
-!$acc loop collapse(2) private(sum)
     do j=1,nbas
       do i=1,nbas
         sum=0.0d0
         if(ntcla.ne.0) then
-!$acc loop seq reduction(+:sum) private(kk)
           do k=1,ntcla
             kk=k+nalfa
             sum=sum+ta(kk,j)*va(k,i)
           enddo
         endif
         if(nalfa.ne.nveca) then
-!$acc loop seq reduction(+:sum) private(kk)
           do k=m1,nveca
             kk=k+ntcla
             sum=sum+ta(kk,j)*va(k,i)
@@ -237,7 +215,6 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
       enddo
     enddo
 
-!$acc loop collapse(2)
     do j=1,nbas
       do i=1,nbas
         ta(i,j)=w2(i,j)
@@ -246,7 +223,6 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   else
 
-!$acc loop collapse(2)
     do j=1,nbas
       do i=1,nbas
         ta(i,j)=0.0d0
@@ -255,10 +231,10 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   endif
 
-!$acc end kernels
+!$omp end target teams distribute parallel do
   
   if(idbg.gt.90) then
-!$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
+!$omp target update from(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
     write(lfndbg,1601) nbas,nelecs
 1601 format(//,' diag:',3i6,/)
     do i=1,nbas
@@ -289,3 +265,4 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   return
 end subroutine gronor_tramat2
+!$omp end declare target

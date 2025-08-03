@@ -148,7 +148,8 @@ subroutine gronor_worker()
   allocate(vecb(mbasel))
 
 #ifdef ACC
-!$acc data
+!$acc data create(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
+!$acc& ioccup,vec,vtemp,ioccn)
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then
@@ -167,10 +168,6 @@ subroutine gronor_worker()
 
 
   call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
-
-#ifdef ACC
-!$acc end data
-#endif
 
   call gronor_solver_finalize()
 
@@ -202,6 +199,10 @@ subroutine gronor_worker()
   deallocate(veca)
   deallocate(vecb)
   deallocate(ioccn)
+
+#ifdef ACC
+!$acc end data
+#endif
 
 !$omp end parallel
 #endif

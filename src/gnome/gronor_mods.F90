@@ -57,7 +57,8 @@ module cidist
   integer (kind=4), allocatable  :: map1(:,:),map2(:,:)
   integer, allocatable :: thisgroup(:),allgroups(:,:),allheads(:)
   integer, allocatable :: numrecs(:)
-  integer (kind=8), allocatable :: ipbuf(:,:),itbuf(:,:)
+  integer (kind=8), allocatable :: ipbuf(:,:,:),itbuf(:,:)
+  integer (kind=4), allocatable :: send_req(:,:)
 
   !     OpenMP distribution
 

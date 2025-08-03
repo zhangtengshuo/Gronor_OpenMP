@@ -37,6 +37,9 @@ subroutine gronor_master()
   use cidist
   use gnome_data
   use gnome_parameters
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
 
@@ -46,7 +49,8 @@ subroutine gronor_master()
   integer :: ibase,jbase,mdet,ibin,jbin
   integer :: l2,i,j,k,l,ndone,nleft
   integer :: igrp, ltemp, last, nthdet
-  logical :: osame,ofirst,owait,oskipn
+  integer :: tid
+  logical :: osame,ofirst,oskipn
 
   real (kind=8) :: tsum
   real (kind=8), allocatable :: fday(:,:),pnrb(:,:)
@@ -54,7 +58,7 @@ subroutine gronor_master()
   integer (kind=8) :: ibuf(4),nsingt(5), ltotal
   integer, allocatable :: lgroup(:,:), lactive(:), lcount(:)
 
-  integer (kind=4) :: ierr,ireq,ireq2,ireq9,iremote,ncount,mpitag
+  integer (kind=4) :: ierr,ireq2,ireq9,iremote,ncount,mpitag
   integer (kind=4) :: status(MPI_STATUS_SIZE)
 
   real(kind=8), external :: timer_wall_total
@@ -69,12 +73,18 @@ subroutine gronor_master()
   allocate(ndets(nbase,nbase,2))
   allocate(pnrb(nbase,nbase))
   allocate(fday(nbase,nbase))
-  allocate(ipbuf(4,np))
+#ifdef _OPENMP
+  num_threads = omp_get_max_threads()
+#else
+  num_threads = 1
+#endif
+  allocate(ipbuf(4,np,num_threads))
+  allocate(send_req(np,num_threads))
+  send_req = MPI_REQUEST_NULL
   allocate(itbuf(4,np))
   allocate(lcount(npg))
 
   ofirst=.true.
-  owait=.false.
   oskipn=numacc.gt.np/2
 
   !     nsing(i,j,k) collects the number of singularities (0:k=1, 1:k=2, 2:k=3 3+:k=4)
@@ -696,7 +706,6 @@ subroutine gronor_master()
 
         !     ndone becomes the last index of the determinant pairs that have been put in a task
 
-        !            if(owait) call MPI_Wait(ireq,status,ierr)
 
         ibuf(1)=ibase
         ibuf(2)=jbase
@@ -710,25 +719,26 @@ subroutine gronor_master()
         
         !     Send buffer to requesting rank without waiting for completion of mpi
         !     In order to allow immediate reuse of the buffer ipbuf has dedicated
-        !     entries for each rank
+        !     entries for each rank and thread
         !     Some MPI implementations allow immediate reuse, but this is not MPI standard
-        
-        ipbuf(1,iremote+1)=ibuf(1)
-        ipbuf(2,iremote+1)=ibuf(2)
-        ipbuf(3,iremote+1)=ibuf(3)
-        ipbuf(4,iremote+1)=ibuf(4)
+
+#ifdef _OPENMP
+        tid = omp_get_thread_num() + 1
+#else
+        tid = 1
+#endif
+        if (send_req(iremote+1,tid) /= MPI_REQUEST_NULL) then
+          call MPI_Wait(send_req(iremote+1,tid),status,ierr)
+        endif
+        ipbuf(1,iremote+1,tid)=ibuf(1)
+        ipbuf(2,iremote+1,tid)=ibuf(2)
+        ipbuf(3,iremote+1,tid)=ibuf(3)
+        ipbuf(4,iremote+1,tid)=ibuf(4)
         ncount=4
         mpitag=2
 
-        call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
-            iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
-
-        ! The request handle can be freed because the first possible response from the
-        ! remote rank will come in the form of a result buffer.
-        ! This guarantees that this integer buffer was received
-        
-        call MPI_Request_free(ireq,ierr)
-        owait=.true.
+        call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
+            iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
@@ -1083,7 +1093,6 @@ subroutine gronor_master()
 
         if(j.gt.0) then
 
-          !     call MPI_Wait(ireq,status,ierr)
 
           do i=1,4
             ibuf(i)=lgroup(j,i)
@@ -1093,16 +1102,23 @@ subroutine gronor_master()
           !     On the receiving worker rank a check for sign of first element indicates a duplicate
           !     The first integer is negative to indicate to worker this is a duplicate
 
-          ipbuf(1,iremote+1)=-ibuf(1)
-          ipbuf(2,iremote+1)=ibuf(2)
-          ipbuf(3,iremote+1)=ibuf(3)
-          ipbuf(4,iremote+1)=ibuf(4)
+#ifdef _OPENMP
+          tid = omp_get_thread_num() + 1
+#else
+          tid = 1
+#endif
+          if (send_req(iremote+1,tid) /= MPI_REQUEST_NULL) then
+            call MPI_Wait(send_req(iremote+1,tid),status,ierr)
+          endif
+          ipbuf(1,iremote+1,tid)=-ibuf(1)
+          ipbuf(2,iremote+1,tid)=ibuf(2)
+          ipbuf(3,iremote+1,tid)=ibuf(3)
+          ipbuf(4,iremote+1,tid)=ibuf(4)
           ncount=4
           mpitag=2
 
-          call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
-              iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
-          call MPI_Request_free(ireq,ierr)
+          call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
+              iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
 
           !     Debug message
           
@@ -1335,7 +1351,15 @@ subroutine gronor_master()
   flush(lfnout)
   flush(lfnday)
 
-  deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,lcount)
+  do tid=1,num_threads
+    do i=1,np
+      if (send_req(i,tid) /= MPI_REQUEST_NULL) then
+        call MPI_Wait(send_req(i,tid),status,ierr)
+      endif
+    enddo
+  enddo
+
+  deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,send_req,lcount)
 
   return
 end subroutine gronor_master

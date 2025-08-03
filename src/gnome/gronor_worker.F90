@@ -149,8 +149,7 @@ subroutine gronor_worker()
   allocate(vecb(mbasel))
 
 #ifdef ACC
-!$acc data create(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
-!$acc& ioccup,iocopen,vec,vtemp,ioccn)
+!$acc data create(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then

@@ -258,6 +258,7 @@ module gnome_data
 
 !  real (kind=8), allocatable :: work(:)
   integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info
+!$omp threadprivate(len_work_dbl,len_work2_dbl,len_work_int,info)
 
   real (kind=8) :: buffer(17)
 !$omp threadprivate(buffer,e2buff,e2summ)

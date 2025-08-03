@@ -28,6 +28,9 @@ subroutine gronor_worker()
 #ifdef _OPENMP
   use omp_lib
 #endif
+#ifdef _OPENMP
+  use omp_lib
+#endif
 
   implicit none
 
@@ -44,8 +47,9 @@ subroutine gronor_worker()
   integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
-  real (kind=8) :: rbuf(17)
-  integer :: thread_id
+  real (kind=8) :: tbuf(18)
+  integer :: thread_id, lfnmpi
+  character(len=128) :: mpifile
 
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
@@ -248,15 +252,27 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
   integer (kind=8) :: ibuf(4)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
-  real (kind=8) :: rbuf(17)
+  real (kind=8) :: tbuf(18)
+  integer :: thread_id, lfnmpi
+  character(len=128) :: mpifile
 
   logical (kind=4) :: flag
-  
-  do i=1,17
-    rbuf(i)=0.0d0
+
+  thread_id = omp_get_thread_num()
+  do i=1,18
+    tbuf(i)=0.0d0
   enddo
-  rbuf(16)=dble(len_work_dbl)
-  rbuf(17)=dble(len_work_int)
+  tbuf(1)=dble(thread_id)
+  tbuf(17)=dble(len_work_dbl)
+  tbuf(18)=dble(len_work_int)
+
+  write(mpifile,'("mpi_log_rank",i0,"_thread",i0,".log")') me,thread_id
+  open(newunit=lfnmpi,file=mpifile,status='replace',action='write',iostat=ierr)
+  write(lfnmpi,'(a,2(i0,1x),a)') 'rank ',me,' thread ',thread_id,' starting'
+  write(lfnmpi,'(a,2i8)') 'len_work_dbl len_work_int ',len_work_dbl,len_work_int
+  write(lfnmpi,'("va=",i0,"x",i0," vb=",i0,"x",i0," tb=",i0,"x",i0,
+ &" ta=",i0,"x",i0," a=",i0,"x",i0)') size(va,1),size(va,2),size(vb,1),size(vb,2), &
+  size(tb,1),size(tb,2),size(ta,1),size(ta,2),size(a,1),size(a,2)
   
   if(idbg.gt.0) then
     call swatch(date,time)
@@ -270,10 +286,11 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
 
   !     Each OpenMP thread signals the master it is ready to receive tasks
 
-  ncount=17
+  ncount=18
   mpitag=1
-  call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
   call MPI_Request_free(ireq,ierr)
+  write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(17)),int(tbuf(18))
   if(idbg.gt.20) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
@@ -295,6 +312,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
     ncount=4
     mpitag=2
     call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
+    write(lfnmpi,'("recv task ibuf=",4i12)') ibuf
 
     if(idbg.gt.10) then
       call swatch(date,time)
@@ -427,12 +445,14 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
       call timer_start(48)
       !     Send results back to master
       do i=1,17
-        rbuf(i)=buffer(i)
+        tbuf(i+1)=buffer(i)
       enddo
-      ncount=17
+      tbuf(1)=dble(thread_id)
+      ncount=18
       mpitag=1
-      call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+      call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
       call MPI_Request_free(ireq,ierr)
+      write(lfnmpi,'("send result buffer=",17(1x,e16.8))') (buffer(i),i=1,17)
       if(idbg.gt.10) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
@@ -444,6 +464,8 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
     call timer_stop(46)
     
   enddo
+
+  close(lfnmpi)
 
   return
 end subroutine gronor_worker_process

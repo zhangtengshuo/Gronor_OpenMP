@@ -19,13 +19,12 @@
 !! @date    2016
 !!
 
-subroutine gronor_tranout(lfndbg,idet,ntcl,ntop)
+subroutine gronor_tranout(lfndbg,idet)
   use cidist
   use gnome_parameters
   use gnome_data
   implicit none
   integer, intent(in) :: lfndbg,idet
-  integer, intent(inout) :: ntcl(:),ntop(:)
   integer :: ivc,ntvc,ibas,i
 
   ntvc=ntcl(idet)+ntop(idet)

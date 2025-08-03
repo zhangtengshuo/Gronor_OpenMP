@@ -223,7 +223,7 @@ module gnome_data
 
   integer :: nb0,nb1
 
-  integer, allocatable :: ioccup(:,:),itemp(:),ioccn(:,:)
+  integer, allocatable :: ioccup(:,:),ioccn(:,:)
   real (kind=8), allocatable :: vec(:,:,:),vtemp(:,:,:)
   real (kind=8) :: bias,deta,smat,hmat
   real (kind=8) :: etot,e1,e2,e2c,etotb,fac,fctr
@@ -251,11 +251,10 @@ module gnome_data
   real (kind=8), allocatable :: veca(:),vecb(:)
 
   integer :: ising
-!$omp threadprivate(nelec,ntcl,ntop,nclose,nopen,iocopen,ninact,nact,ntesta,ntestb,ijend)
+!$omp threadprivate(ntesta,ntestb,ijend)
 !$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,n1bas,nstdim,mbasel,nelecs)
 !$omp threadprivate(e1,e2,e2c,etot,etotb,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
-
-  real (kind=8), allocatable :: result(:,:),resultt(:,:)
+!$omp threadprivate(ioccup,vec,vtemp,ioccn)
 
 !  real (kind=8), allocatable :: work(:)
   integer (kind=8) :: len_work_dbl,len_work2_dbl,len_work_int,info

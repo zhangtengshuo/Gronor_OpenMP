@@ -2044,11 +2044,6 @@ subroutine gronor_main()
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 
-      allocate(ioccup(mnact,2))
-      allocate(vec(mvec,mbasel,2))
-      allocate(vtemp(mvec,mbasel,2))
-      allocate(itemp(21),ioccn(20,2))
-
       allocate(veca(mbasel))
       allocate(vecb(mbasel))
       if(iamacc.eq.1) then

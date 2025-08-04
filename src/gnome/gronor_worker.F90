@@ -310,6 +310,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
     call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
   endif
   call MPI_Request_free(ireq,ierr)
+  if(ierr .ne. MPI_SUCCESS) then
+    call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+    write(lfndbg,'(a)') 'MPI_Request_free failed: '//mpi_err_str(1:mpi_err_len)
+    flush(lfndbg)
+    call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+  endif
   write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(16)),int(tbuf(17))
   if(idbg.gt.20) then
     call swatch(date,time)
@@ -496,6 +502,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
         call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
       endif
       call MPI_Request_free(ireq,ierr)
+      if(ierr .ne. MPI_SUCCESS) then
+        call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+        write(lfndbg,'(a)') 'MPI_Request_free failed: '//mpi_err_str(1:mpi_err_len)
+        flush(lfndbg)
+        call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+      endif
       write(lfnmpi,'("send result buffer=",17(1x,e16.8))') (buffer(i),i=1,17)
       if(idbg.gt.10) then
         call swatch(date,time)

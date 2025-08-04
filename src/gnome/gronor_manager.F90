@@ -41,7 +41,6 @@ subroutine gronor_manager()
   do i=1,18
     tbuf(i)=0.0d0
   enddo
-  tbuf(1)=0.0d0
 
   numtsk=0
   do i=1,np
@@ -180,13 +179,13 @@ subroutine gronor_manager()
       ncount=18
       mpitag=1
       call MPI_Recv(buffer,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
-      tid=int(buffer(1))
+      tid=int(buffer(18))
       iremote=status(MPI_SOURCE)
       do j=1,numwrk
         if(mgrwrk(j,1).eq.iremote) then
           if(mgrwrk(j,2).eq.0) then
             numrcv=numrcv+1
-            do i=2,18
+            do i=1,17
               tbuf(i)=tbuf(i)+buffer(i)
             enddo
             mgrwrk(j,2)=1
@@ -212,12 +211,12 @@ subroutine gronor_manager()
         endif
       enddo
     enddo
-    
+
     call timer_stop(53)
-    
+
     ! Send results buffer to master
     call timer_start(54)
-    tbuf(1)=0.0d0
+    tbuf(18)=0.0d0
     ncount=18
     mpitag=1
     call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)

@@ -37,7 +37,7 @@ subroutine gronor_environment()
 !  external :: MPI_AllReduce
 
   integer :: i,j,k,node
-  integer (kind=4) :: length, ierr, ncount, provided_thread_level
+  integer (kind=4) :: length, ierr, ncount, provided_thread_level, ierr2
   !      integer (kind=4) :: istat
 
   integer :: getcpucount
@@ -71,6 +71,7 @@ subroutine gronor_environment()
   call mpi_comm_size(MPI_COMM_WORLD,np,ierr)
   if(provided_thread_level < MPI_THREAD_MULTIPLE) then
     if(me == 0) write(*,*) 'Warning: MPI_THREAD_MULTIPLE not fully supported'
+    call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
   endif
 
   !     master process is last in the list to enable more effective

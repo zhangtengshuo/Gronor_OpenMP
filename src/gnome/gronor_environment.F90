@@ -36,11 +36,12 @@ subroutine gronor_environment()
   external :: hostnm
 !  external :: MPI_AllReduce
 
-  integer :: i,j,k,node
-  integer :: length, ierr, ncount, provided_thread_level, ierr2
+  integer(MPI_INTEGER_KIND) :: i,j,k,node
+  integer(MPI_INTEGER_KIND) :: length, ierr, provided_thread_level, ierr2
+  integer(MPI_COUNT_KIND) :: ncount
   !      integer :: istat
 
-  integer :: getcpucount
+  integer(MPI_INTEGER_KIND) :: getcpucount
   external :: getcpucount
 
   character (len=MPI_MAX_PROCESSOR_NAME) :: nodename
@@ -48,7 +49,7 @@ subroutine gronor_environment()
   character (len=40) :: numeric
   character (len=128) :: value
 
-  integer :: lenv,statv
+  integer(MPI_INTEGER_KIND) :: lenv,statv
 
   logical ohost
 
@@ -451,9 +452,9 @@ subroutine gronor_environment()
     map1(me+1,4)=node
     map1(me+1,5)=0
     map1(me+1,6)=0
-    ncount=4*np
-    call MPI_AllReduce(map1,map2,ncount,MPI_INTEGER4,MPI_SUM,                 &
-        & MPI_COMM_WORLD,ierr)
+    ncount=int(4*np, MPI_COUNT_KIND)
+    call MPI_Allreduce(map1, map2, ncount, MPI_INTEGER, MPI_SUM,               &
+        & MPI_COMM_WORLD, ierr)
 
     deallocate(map1)
 

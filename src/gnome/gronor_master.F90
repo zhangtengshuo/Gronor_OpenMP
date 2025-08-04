@@ -60,8 +60,8 @@ subroutine gronor_master()
   real (kind=8) :: tbuf(18)
   integer :: gtid, lfnmpi
 
-  integer (kind=4) :: ierr,ireq2,ireq9,iremote,ncount,mpitag
-  integer (kind=4) :: status(MPI_STATUS_SIZE)
+  integer :: ierr, ireq2, ireq9, iremote, ncount, mpitag
+  integer :: status(MPI_STATUS_SIZE)
   integer :: err_len, ierr_abort
   character(len=MPI_MAX_ERROR_STRING) :: err_msg
 
@@ -1344,6 +1344,7 @@ subroutine gronor_master()
           write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
               ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
         endif
+      endif
     enddo
   endif
 

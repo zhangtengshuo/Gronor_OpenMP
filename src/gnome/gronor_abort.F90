@@ -8,7 +8,7 @@
 
       character*(*) :: string
       integer :: icode
-      integer (kind=4) :: ierror,ierr
+      integer :: err_code, ierr_abort
       character (len=255) :: filabt
 !
 !     error termination
@@ -228,8 +228,8 @@
 
       close(unit=lfnabt)
 !
-      ierror=0
-      call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
+      err_code = 0
+      call MPI_Abort(MPI_COMM_WORLD, err_code, ierr_abort)
 !
       return
       end

@@ -92,7 +92,7 @@ subroutine gronor_main()
 
 !  external :: MPI_Bcast
 
-  integer :: ierror, ierr, ncount
+  integer (kind=4) :: ierror, ierr, ncount
   integer (kind=8) :: iarg,i,j,jp,idum(55),k,l,iact
   integer :: node
   real (kind=8) :: rdum(6)
@@ -105,7 +105,7 @@ subroutine gronor_main()
   external :: getcpucount
 
   integer :: igr,numone,numtwo,maxgrp
-  integer :: new
+  integer (kind=4) :: new
 
   integer :: ibase,jbase,lnxt,lcur,ksr,nsr(4)
 

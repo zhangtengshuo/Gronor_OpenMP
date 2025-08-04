@@ -39,9 +39,9 @@ subroutine gronor_worker()
 
   integer :: ibase,jbase,idet,jdet,nidet,njdet
   integer :: i,j,k,l2,n,iact
-  integer :: ireq, ierr, ncount, mpitag, mpidest
+  integer (kind=4) :: ireq, ierr, ncount, mpitag, mpidest
   integer (kind=8) :: ibuf(4)
-  integer :: status(MPI_STATUS_SIZE)
+  integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
@@ -53,7 +53,7 @@ subroutine gronor_worker()
   real (kind=8), allocatable :: w1(:),w2(:,:)
   real (kind=8), allocatable :: taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
 
-  logical :: flag
+  logical (kind=4) :: flag
 
   ! Manager layer removed; master rank stored globally in mstr
   

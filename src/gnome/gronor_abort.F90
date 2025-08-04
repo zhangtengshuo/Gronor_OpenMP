@@ -88,9 +88,6 @@
       case(121)
         write(lfnabt,'(a)') "Input: Label : label length maximum not properly specified"
         
-      case(122)
-        write(lfnabt,'(a)') "Input: Managers : number of managers not properly specified"
-        
       case(123)
         write(lfnabt,'(a)') "Input: Solver : solver option not specified"
 

@@ -55,9 +55,7 @@ subroutine gronor_worker()
 
   logical (kind=4) :: flag
 
-  if(managers.gt.0) then
-    mstr=map2(me+1,9)
-  endif
+  ! Manager layer removed; master rank stored globally in mstr
   
   if(ntask.eq.0) return
 

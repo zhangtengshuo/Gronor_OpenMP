@@ -71,22 +71,18 @@ module cidist
   integer (kind=8), target :: memfre,memtot,memavail
   integer (kind=4), allocatable :: igrn(:)
 
-  integer (kind=8) :: managers,numwrk,maxbuf,numbuf
-  integer (kind=8), allocatable :: mgrbuf(:,:)
-  integer (kind=8), allocatable :: mgrwrk(:,:)
-  integer (kind=8), allocatable :: mipbuf(:,:)
+  ! Manager layer removed; retain only variables used by master and workers
+  ! formerly: managers,numwrk,maxbuf,numbuf,mgrbuf,mgrwrk,mipbuf
   
   character (len=12) :: machine
 
   integer (kind=4), parameter :: master=1
-  integer (kind=4), parameter :: manager=2
-  integer (kind=4), parameter :: worker=3
-  integer (kind=4), parameter :: idle=4
+  integer (kind=4), parameter :: worker=2
+  integer (kind=4), parameter :: idle=3
 
-  character (len=1), parameter :: crole(4)=(/"M","m","w","i"/)
+  character (len=1), parameter :: crole(3)=(/"M","w","i"/)
 
   integer (kind=4) :: role
-  integer (kind=8) :: nperman,numman
 
 end module cidist
 

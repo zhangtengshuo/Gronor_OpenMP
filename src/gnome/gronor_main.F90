@@ -81,7 +81,7 @@ subroutine gronor_main()
   external :: gronor_prtmat,gronor_print_matrix
   external :: gronor_worker,gronor_memory_usage
   external :: gronor_master,gronor_read_integrals
-  external :: gronor_make_basestate,gronor_assign_managers
+  external :: gronor_make_basestate
   external :: gronor_solver_create_handle
   external :: gronor_results_header_cml,gronor_init_cml
   external :: gronor_env_cml,gronor_gnome_molcas_input
@@ -711,7 +711,7 @@ subroutine gronor_main()
       idum(45)=nbatch
       idum(46)=nbatcha
       idum(47)=nspin
-      idum(48)=managers
+      idum(48)=0
       idum(49)=mbuf
       idum(50)=idist
       idum(51)=load
@@ -786,7 +786,6 @@ subroutine gronor_main()
       nbatch=idum(45)
       nbatcha=idum(46)
       nspin=idum(47)
-      managers=idum(48)
       mbuf=idum(49)
       idist=idum(50)
       load=idum(51)
@@ -797,7 +796,11 @@ subroutine gronor_main()
 
     endif
 
-    call gronor_assign_managers()
+    do i=1,np
+      map2(i,9)=-1
+      if(map2(i,8).eq.worker) map2(i,9)=mstr
+    enddo
+    role=map2(me+1,8)
 
     int1=(nbas*(nbas+1))/2
 
@@ -978,12 +981,6 @@ subroutine gronor_main()
         endif
       enddo
     enddo
-  endif
-
-  if(managers.eq.0) then
-    role=idle
-    if(map2(me+1,5).ne.0) role=worker
-    if(me.eq.mstr) role=master
   endif
 
   numacc=0
@@ -1302,56 +1299,29 @@ subroutine gronor_main()
   enddo
 
   if(me.eq.mstr) then
-    if(managers.lt.0) then
-      write(lfnrnk,6666)
-6666  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
-          '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
-          '    Rank  ND DI NT   Group    RSet Ac    Node  ', &
-          '    Rank  ND DI NT   Group    RSet Ac    Node',/)
-      nc=3
-      lc=np/nc
-      i=np
-      mc=mod(i,nc)
-      if(mc.gt.0) lc=lc+1
-      do i=1,lc
-        if(mc.gt.0.and.i.eq.lc) nc=mc
-        write(ident(1),'(a3)') '   '
-        write(ident(2),'(a3)') '   '
-        write(ident(3),'(a3)') '   '
-        nnc=nc
-        if(i+(nc-1)*lc.gt.np) nnc=nnc-1
-        do j=1,nnc
-          if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
-        enddo
-        write(lfnrnk,6667) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
-            (map2(i+(j-1)*lc,k),k=2,6),j=1,nnc)
-6667    format(3(i8,':',i3,a3,i3,2i8,i3,i8,2x))
-      enddo
-    else
-      write(lfnrnk,6668)
+    write(lfnrnk,6668)
 6668  format(//,' Rank map ND=NumDev DI=DevId Nt=NumThr Ac=Accel',//, &
-          '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ', &
-          '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ',/)
-      nc=2
-      lc=np/nc
-      i=np
-      mc=mod(i,nc)
-      if(mc.gt.0) lc=lc+1
-      do i=1,lc
-        if(mc.gt.0.and.i.eq.lc) nc=mc
-        write(ident(1),'(a3)') '   '
-        write(ident(2),'(a3)') '   '
-        write(ident(3),'(a3)') '   '
-        nnc=nc
-        if(i+(nc-1)*lc.gt.np) nnc=nnc-1
-        do j=1,nnc
-          if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
-        enddo
-        write(lfnrnk,6669) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
-            (map2(i+(j-1)*lc,k),k=2,9),j=1,nnc)
-6669    format(2(i8,':',i3,a3,i3,2i8,i3,2i8,i5,i8,2x))
+        '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ', &
+        '    Rank  ND DI NT   Group    RSet Ac    Node    AcID Role Manager  ',/)
+    nc=2
+    lc=np/nc
+    i=np
+    mc=mod(i,nc)
+    if(mc.gt.0) lc=lc+1
+    do i=1,lc
+      if(mc.gt.0.and.i.eq.lc) nc=mc
+      write(ident(1),'(a3)') '   '
+      write(ident(2),'(a3)') '   '
+      write(ident(3),'(a3)') '   '
+      nnc=nc
+      if(i+(nc-1)*lc.gt.np) nnc=nnc-1
+      do j=1,nnc
+        if(map2(i+(j-1)*lc,5).gt.0) write(ident(j),'(i3)') map2(i+(j-1)*lc,7)
       enddo
-    endif
+      write(lfnrnk,6669) (i+(j-1)*lc-1,map2(i+(j-1)*lc,1),ident(j), &
+          (map2(i+(j-1)*lc,k),k=2,9),j=1,nnc)
+6669  format(2(i8,':',i3,a3,i3,2i8,i3,2i8,i5,i8,2x))
+    enddo
     flush(lfnrnk)
   endif
 
@@ -2058,26 +2028,14 @@ subroutine gronor_main()
           flush(lfndbg)
         endif
         call gronor_memory_usage()
-        if(managers.eq.0) then
-          if(role.eq.worker) call gronor_worker()
-          if(role.eq.idle) call gronor_idle()
-        else
-          if(role.eq.worker) call gronor_worker()
-          if(role.eq.manager) call gronor_manager()
-          if(role.eq.idle) call gronor_idle()
-        endif
+        if(role.eq.worker) call gronor_worker()
+        if(role.eq.idle) call gronor_idle()
 !$acc end data
 
       elseif(ntask.ne.0) then
         call gronor_memory_usage()
-        if(managers.eq.0) then
-          if(role.eq.worker) call gronor_worker()
-          if(role.eq.idle) call gronor_idle()
-        else
-          if(role.eq.worker) call gronor_worker()
-          if(role.eq.manager) call gronor_manager()
-          if(role.eq.idle) call gronor_idle()
-        endif
+        if(role.eq.worker) call gronor_worker()
+        if(role.eq.idle) call gronor_idle()
       endif
 
       if(nbatch < 0) then

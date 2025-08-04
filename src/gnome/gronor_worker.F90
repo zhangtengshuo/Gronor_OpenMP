@@ -100,11 +100,6 @@ subroutine gronor_worker()
   nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
   mbasel=max(nelecs,nbas)
 
-  ibase0=0
-  jbase0=0
-  idet0=0
-  jdet0=0
-
   icur=0
   jcur=0
   ndeti=0
@@ -121,7 +116,7 @@ subroutine gronor_worker()
   call omp_set_num_threads(num_threads)
 
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag) &
-!$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns,ndeti,ndetj,nacti,nactj,inacti,inactj)
+!$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns,ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel)
 
   thread_id = omp_get_thread_num()
 

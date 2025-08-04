@@ -104,15 +104,24 @@ subroutine gronor_worker()
   jbase0=0
   idet0=0
   jdet0=0
-  
+
   icur=0
   jcur=0
+  ndeti=0
+  ndetj=0
+  nacti=0
+  nactj=0
+  inacti=0
+  inactj=0
+  lsvcpu=.false.
+  levcpu=.false.
+  lsvtrns=.false.
 
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
 
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag) &
-!$omp& copyin(oterm,otreq,odupl,itreq,irbuf)
+!$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns,ndeti,ndetj,nacti,nactj,inacti,inactj)
 
   thread_id = omp_get_thread_num()
 
@@ -146,6 +155,7 @@ subroutine gronor_worker()
   allocate(ioccn(nsrep,2))
   allocate(veca(mbasel))
   allocate(vecb(mbasel))
+  allocate(melist(memax,2))
 
 #ifdef ACC
 !$acc data create(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
@@ -199,6 +209,7 @@ subroutine gronor_worker()
   deallocate(veca)
   deallocate(vecb)
   deallocate(ioccn)
+  if(allocated(melist)) deallocate(melist)
 
 #ifdef ACC
 !$acc end data
@@ -320,7 +331,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
 
     if((icur.ne.iabs(ibuf(1)).or.jcur.ne.ibuf(2)).and.ibuf(2).gt.0) then
-      if(icur.eq.0.and.jcur.eq.0) allocate(melist(memax,2))
+      if(.not.allocated(melist)) allocate(melist(memax,2))
       icur=iabs(ibuf(1))
       jcur=ibuf(2)
       if(icur.gt.0.and.jcur.gt.0) then

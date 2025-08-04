@@ -1455,6 +1455,7 @@ subroutine gronor_master()
         endif
       endif
     enddo
+  enddo
 
   close(lfnmpi)
   deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,send_req,lcount)

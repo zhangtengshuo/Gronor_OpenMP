@@ -44,10 +44,10 @@ module cidist
   !     comm_first : communicator of all first processes in each group
   !     mpibuf : size of the MPI buffer for integrals in reals
 
-  integer (MPI_INTEGER_KIND) :: me,np,mstr,rocinfo
-  integer (MPI_INTEGER_KIND) :: numdev,mydev
-  integer (MPI_INTEGER_KIND) :: group_batch,group_heads,group_world
-  integer (MPI_INTEGER_KIND), allocatable :: ranks_list(:),ranks_heads(:)
+  integer (kind=4) :: me,np,mstr,rocinfo
+  integer (kind=4) :: numdev,mydev
+  integer (kind=4) :: group_batch,group_heads,group_world
+  integer (kind=4), allocatable :: ranks_list(:),ranks_heads(:)
 
   integer :: nnodes,nrsets,nranks,ncycls,nrnsets,ngpus
 
@@ -55,11 +55,11 @@ module cidist
   integer :: ngr,meg,npg,comm_group,comm_first,mgr,nalive,nabort
   integer :: mynode,mygroup,myhead,ime,mpibuf
   integer :: iamhead,iamacc,iamactive,nonidle
-  integer (MPI_INTEGER_KIND), allocatable  :: map1(:,:),map2(:,:)
+  integer (kind=4), allocatable  :: map1(:,:),map2(:,:)
   integer, allocatable :: thisgroup(:),allgroups(:,:),allheads(:)
   integer, allocatable :: numrecs(:)
   integer (kind=8), allocatable :: ipbuf(:,:,:),itbuf(:,:)
-  integer (MPI_INTEGER_KIND), allocatable :: send_req(:,:)
+  integer (kind=4), allocatable :: send_req(:,:)
 
   !     OpenMP distribution
 
@@ -70,20 +70,20 @@ module cidist
   !     Accelerator data
 
   integer (kind=8), target :: memfre,memtot,memavail
-  integer (MPI_INTEGER_KIND), allocatable :: igrn(:)
+  integer (kind=4), allocatable :: igrn(:)
 
   ! Manager layer removed; retain only variables used by master and workers
   ! formerly: managers,numwrk,maxbuf,numbuf,mgrbuf,mgrwrk,mipbuf
   
   character (len=12) :: machine
 
-  integer (MPI_INTEGER_KIND), parameter :: master=1
-  integer (MPI_INTEGER_KIND), parameter :: worker=2
-  integer (MPI_INTEGER_KIND), parameter :: idle=3
+  integer (kind=4), parameter :: master=1
+  integer (kind=4), parameter :: worker=2
+  integer (kind=4), parameter :: idle=3
 
   character (len=1), parameter :: crole(3)=(/"M","w","i"/)
 
-  integer (MPI_INTEGER_KIND) :: role
+  integer (kind=4) :: role
 
 end module cidist
 

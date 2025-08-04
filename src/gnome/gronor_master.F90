@@ -743,7 +743,7 @@ subroutine gronor_master()
         ipbuf(3,iremote+1,tid)=ibuf(3)
         ipbuf(4,iremote+1,tid)=ibuf(4)
         ncount=4
-        mpitag=2
+        mpitag=100+tid-1
 
         call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
@@ -1139,7 +1139,7 @@ subroutine gronor_master()
           ipbuf(3,iremote+1,tid)=ibuf(3)
           ipbuf(4,iremote+1,tid)=ibuf(4)
           ncount=4
-          mpitag=2
+          mpitag=100+tid-1
 
           call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
@@ -1246,17 +1246,19 @@ subroutine gronor_master()
     itbuf(4,iremote+1)=-1
 
     ncount=4
-    mpitag=2
+    do tid=1,num_threads
+      mpitag=100+tid-1
 
-    call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
-    call MPI_Request_free(ireq2,ierr)
+      call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
+      call MPI_Request_free(ireq2,ierr)
 
-    if(idbg.gt.10) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-          mstr,' sent return to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq2
-      flush(lfndbg)
-    endif
+      if(idbg.gt.10) then
+        call swatch(date,time)
+        write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
+            mstr,' sent return to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq2
+        flush(lfndbg)
+      endif
+    enddo
   enddo
  
   if(iint.gt.0) then 

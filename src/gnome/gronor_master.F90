@@ -1344,6 +1344,7 @@ subroutine gronor_master()
           write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
               ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
         endif
+      endif
     enddo
   endif
 

@@ -65,6 +65,9 @@ subroutine gronor_master()
   integer :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
+  integer :: mpi_err_len, ierr2
+  character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
+
   real(kind=8), external :: timer_wall_total
 
   integer, allocatable :: ntasks(:,:),ndets(:,:,:)
@@ -365,6 +368,7 @@ subroutine gronor_master()
         call timer_start(94)
         ncount=18
         mpitag=1
+
         call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
         if(ierr .ne. MPI_SUCCESS) then
           call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
@@ -376,6 +380,7 @@ subroutine gronor_master()
         do k=1,17
           buffer(k)=tbuf(k)
         enddo
+
         write(lfnmpi,'("recv from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
         call timer_stop(94)
 
@@ -743,6 +748,7 @@ subroutine gronor_master()
 #else
         tid = 1
 #endif
+
         if (send_req(iremote+1,tid) /= MPI_REQUEST_NULL) then
           call MPI_Wait(send_req(iremote+1,tid),status,ierr)
           if(ierr .ne. MPI_SUCCESS) then
@@ -842,6 +848,7 @@ subroutine gronor_master()
     call timer_start(96)
     ncount=18
     mpitag=1
+
     call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
     if(ierr .ne. MPI_SUCCESS) then
       call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
@@ -1173,8 +1180,7 @@ subroutine gronor_master()
           ncount=4
           mpitag=100+tid-1
 
-          call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8, &
-              iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
+          call MPI_iSend(ipbuf(1,iremote+1,tid),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,send_req(iremote+1,tid),ierr)
           if(ierr .ne. MPI_SUCCESS) then
             call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
             write(lfnmpi,'(a)') 'MPI_iSend failed: '//mpi_err_str(1:mpi_err_len)
@@ -1320,9 +1326,9 @@ subroutine gronor_master()
       itbuf(2,iremote+1)=-1
       itbuf(3,iremote+1)=-1
       itbuf(4,iremote+1)=-1
+
       if(iremote.ne.mstr) then
-        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
-            iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
+        call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
         if(ierr .ne. MPI_SUCCESS) then
           call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
           write(lfnmpi,'(a)') 'MPI_iSend failed: '//mpi_err_str(1:mpi_err_len)
@@ -1341,7 +1347,6 @@ subroutine gronor_master()
           write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
               ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
         endif
-      endif
     enddo
   endif
 
@@ -1453,7 +1458,6 @@ subroutine gronor_master()
         endif
       endif
     enddo
-  enddo
 
   close(lfnmpi)
   deallocate(pnrb,fday,lgroup,lactive,ntasks,ndets,ipbuf,send_req,lcount)

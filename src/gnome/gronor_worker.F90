@@ -39,9 +39,9 @@ subroutine gronor_worker()
 
   integer :: ibase,jbase,idet,jdet,nidet,njdet
   integer :: i,j,k,l2,n,iact
-  integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
+  integer :: ireq, ierr, ncount, mpitag, mpidest
   integer (kind=8) :: ibuf(4)
-  integer (kind=4) :: status(MPI_STATUS_SIZE)
+  integer :: status(MPI_STATUS_SIZE)
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
@@ -53,7 +53,7 @@ subroutine gronor_worker()
   real (kind=8), allocatable :: w1(:),w2(:,:)
   real (kind=8), allocatable :: taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
 
-  logical (kind=4) :: flag
+  logical :: flag
 
   ! Manager layer removed; master rank stored globally in mstr
   
@@ -249,16 +249,16 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
 
   integer :: ibase,jbase,idet,jdet,nidet,njdet
   integer :: i,j,k,l2,n,iact
-  integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest
+  integer :: ireq, ierr, ncount, mpitag, mpidest
   integer (kind=8) :: ibuf(4)
-  integer (kind=4) :: status(MPI_STATUS_SIZE)
+  integer :: status(MPI_STATUS_SIZE)
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
   integer :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
-  logical (kind=4) :: flag
+  logical :: flag
 
   thread_id = omp_get_thread_num()
   if(idbg.gt.0) then

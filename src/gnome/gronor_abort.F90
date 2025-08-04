@@ -8,7 +8,7 @@
 
       character*(*) :: string
       integer :: icode
-      integer (kind=4) :: ierror,ierr
+      integer :: ierror, ierr
       character (len=255) :: filabt
 !
 !     error termination

@@ -184,6 +184,7 @@ module gnome_parameters
   logical :: lsvcpu,levcpu,lsvtrns
 !$omp threadprivate(lsvcpu,levcpu,lsvtrns)
 !$omp threadprivate(oterm,otreq,odupl,itreq,irbuf)
+!$omp threadprivate(ndeti,ndetj,nacti,nactj,inacti,inactj)
 
   character (len=1) :: prec
   character (len=128) :: mebfroot,combas

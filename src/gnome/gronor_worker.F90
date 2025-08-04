@@ -255,7 +255,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
-  integer :: mpi_err_len, ierr2
+  integer (kind=4) :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
   logical (kind=4) :: flag
@@ -330,7 +330,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
 
     !     Receive next task directly from master
     ncount=4
-    mpitag=2
+    mpitag=100+thread_id
     call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
     if(ierr .ne. MPI_SUCCESS) then
       call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)

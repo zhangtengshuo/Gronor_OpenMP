@@ -55,9 +55,7 @@ subroutine gronor_worker()
 
   logical (kind=4) :: flag
 
-  if(managers.gt.0) then
-    mstr=map2(me+1,9)
-  endif
+  ! Manager layer removed; master rank stored globally in mstr
   
   if(ntask.eq.0) return
 
@@ -278,9 +276,9 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   do i=1,18
     tbuf(i)=0.0d0
   enddo
-  tbuf(1)=dble(thread_id)
-  tbuf(17)=dble(len_work_dbl)
-  tbuf(18)=dble(len_work_int)
+  tbuf(16)=dble(len_work_dbl)
+  tbuf(17)=dble(len_work_int)
+  tbuf(18)=dble(thread_id)
 
   write(mpifile,'("mpi_log_rank",i0,"_thread",i0,".log")') me,thread_id
   open(newunit=lfnmpi,file=mpifile,status='replace',action='write',iostat=ierr)
@@ -312,7 +310,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
     call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
   endif
   call MPI_Request_free(ireq,ierr)
-  write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(17)),int(tbuf(18))
+  write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(16)),int(tbuf(17))
   if(idbg.gt.20) then
     call swatch(date,time)
     write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
@@ -485,9 +483,9 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
       call timer_start(48)
       !     Send results back to master
       do i=1,17
-        tbuf(i+1)=buffer(i)
+        tbuf(i)=buffer(i)
       enddo
-      tbuf(1)=dble(thread_id)
+      tbuf(18)=dble(thread_id)
       ncount=18
       mpitag=1
       call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)

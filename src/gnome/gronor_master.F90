@@ -364,9 +364,9 @@ subroutine gronor_master()
         ncount=18
         mpitag=1
         call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
-        tid=int(tbuf(1))+1
+        tid=int(tbuf(18))+1
         do k=1,17
-          buffer(k)=tbuf(k+1)
+          buffer(k)=tbuf(k)
         enddo
         write(lfnmpi,'("recv from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
         call timer_stop(94)
@@ -823,9 +823,9 @@ subroutine gronor_master()
     ncount=18
     mpitag=1
     call MPI_Recv(tbuf,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
-    tid=int(tbuf(1))+1
+    tid=int(tbuf(18))+1
     do k=1,17
-      buffer(k)=tbuf(k+1)
+      buffer(k)=tbuf(k)
     enddo
     write(lfnmpi,'("recv dup from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
     call timer_stop(96)
@@ -1229,7 +1229,6 @@ subroutine gronor_master()
   enddo
 
   nalive=max(k,l)
-  if(managers.gt.0) nalive=nalive*nperman
 
   !     Signal worker processes to return from gronor_master
 

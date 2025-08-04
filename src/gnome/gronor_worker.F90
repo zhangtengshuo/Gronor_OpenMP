@@ -30,7 +30,7 @@ subroutine gronor_worker()
   implicit none
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate
+  external :: gronor_calculate,gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
@@ -242,7 +242,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate
+  external :: gronor_calculate,gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
@@ -261,6 +261,18 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   logical (kind=4) :: flag
 
   thread_id = omp_get_thread_num()
+  if(idbg.gt.0) then
+    write(lfndbg,'(a,i0,a,i0,a,i0,a,i0,a,i0)') 'thread_id=',thread_id,&
+         ' len_work_dbl=',len_work_dbl,' len_work_int=',len_work_int,&
+         ' me=',me,' mstr=',mstr
+    flush(lfndbg)
+  endif
+  if(thread_id.lt.0 .or. len_work_dbl.lt.0_8 .or. len_work_int.lt.0_8 .or.&
+     me.lt.0 .or. mstr.lt.0) then
+    write(*,'(a,5(1x,i0))') 'Error: invalid worker parameters', thread_id,&
+         len_work_dbl,len_work_int,me,mstr
+    call gronor_abort(910,'Invalid worker parameters')
+  endif
   do i=1,18
     tbuf(i)=0.0d0
   enddo

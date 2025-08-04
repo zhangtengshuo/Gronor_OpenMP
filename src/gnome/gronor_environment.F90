@@ -49,7 +49,7 @@ subroutine gronor_environment()
   character (len=40) :: numeric
   character (len=128) :: value
 
-  integer(kind=4) :: lenv,statv
+  integer :: lenv, statv
 
   logical ohost
 

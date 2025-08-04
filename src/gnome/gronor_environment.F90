@@ -37,8 +37,8 @@ subroutine gronor_environment()
 !  external :: MPI_AllReduce
 
   integer :: i,j,k,node
-  integer (kind=4) :: length, ierr, ncount, provided_thread_level, ierr2
-  !      integer (kind=4) :: istat
+  integer :: length, ierr, ncount, provided_thread_level, ierr2
+  !      integer :: istat
 
   integer :: getcpucount
   external :: getcpucount

@@ -257,6 +257,8 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
+  integer :: mpi_err_len, ierr2
+  character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
   logical (kind=4) :: flag
 
@@ -291,6 +293,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   ncount=18
   mpitag=1
   call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+  if(ierr .ne. MPI_SUCCESS) then
+    call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+    write(lfndbg,'(a)') 'MPI_iSend failed: '//mpi_err_str(1:mpi_err_len)
+    flush(lfndbg)
+    call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+  endif
   call MPI_Request_free(ireq,ierr)
   write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(17)),int(tbuf(18))
   if(idbg.gt.20) then
@@ -314,6 +322,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
     ncount=4
     mpitag=2
     call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
+    if(ierr .ne. MPI_SUCCESS) then
+      call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+      write(lfndbg,'(a)') 'MPI_Recv failed: '//mpi_err_str(1:mpi_err_len)
+      flush(lfndbg)
+      call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+    endif
     write(lfnmpi,'("recv task ibuf=",4i12)') ibuf
 
     if(idbg.gt.10) then
@@ -375,6 +389,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
       if(.not.otreq) then
         call MPI_iRecv(irbuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE, &
             mpitag,MPI_COMM_WORLD,itreq,ierr)
+        if(ierr .ne. MPI_SUCCESS) then
+          call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+          write(lfndbg,'(a)') 'MPI_iRecv failed: '//mpi_err_str(1:mpi_err_len)
+          flush(lfndbg)
+          call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+        endif
         !            call MPI_Request_free(itreq,ierr)
         if(idbg.gt.10) then
           call swatch(date,time)
@@ -384,6 +404,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
         otreq=.true.
       endif
       call MPI_Test(itreq,flag,status,ierr)
+      if(ierr .ne. MPI_SUCCESS) then
+        call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+        write(lfndbg,'(a)') 'MPI_Test failed: '//mpi_err_str(1:mpi_err_len)
+        flush(lfndbg)
+        call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+      endif
       if(flag) then
 !            call MPI_Cancel(itreq,ierr)
         if(idbg.gt.10) then
@@ -453,6 +479,12 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
       ncount=18
       mpitag=1
       call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
+      if(ierr .ne. MPI_SUCCESS) then
+        call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+        write(lfndbg,'(a)') 'MPI_iSend failed: '//mpi_err_str(1:mpi_err_len)
+        flush(lfndbg)
+        call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+      endif
       call MPI_Request_free(ireq,ierr)
       write(lfnmpi,'("send result buffer=",17(1x,e16.8))') (buffer(i),i=1,17)
       if(idbg.gt.10) then

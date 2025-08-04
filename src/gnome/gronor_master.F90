@@ -60,9 +60,9 @@ subroutine gronor_master()
   real (kind=8) :: tbuf(18)
   integer :: gtid, lfnmpi
 
-  integer :: ierr, ireq2, ireq9, iremote, ncount, mpitag
-  integer :: status(MPI_STATUS_SIZE)
-  integer :: err_len, ierr_abort
+  integer (kind=4):: ierr, ireq2, ireq9, iremote, ncount, mpitag
+  integer (kind=4):: status(MPI_STATUS_SIZE)
+  integer (kind=4):: err_len, ierr_abort
   character(len=MPI_MAX_ERROR_STRING) :: err_msg
 
   real(kind=8), external :: timer_wall_total

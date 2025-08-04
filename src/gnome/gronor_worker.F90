@@ -249,16 +249,16 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
 
   integer :: ibase,jbase,idet,jdet,nidet,njdet
   integer :: i,j,k,l2,n,iact
-  integer :: ireq, ierr, ncount, mpitag, mpidest
+  integer (kind=4) :: ireq, ierr, ncount, mpitag, mpidest
   integer (kind=8) :: ibuf(4)
-  integer :: status(MPI_STATUS_SIZE)
+  integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
-  integer :: mpi_err_len, ierr2
+  integer (kind=4) :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
-  logical :: flag
+  logical (kind=4) :: flag
 
   thread_id = omp_get_thread_num()
   if(idbg.gt.0) then

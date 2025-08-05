@@ -28,17 +28,18 @@
 !! </table>
 !!
 
-subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
-
+module gronor_gntwo_mod
   use mpi
   use cidist
   use gnome_parameters
   use gnome_data
   use gnome_integrals
   use iso_c_binding, only : c_loc, c_ptr
-
   use openacc
   use cuda_functions
+  implicit none
+contains
+subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   implicit none
 
@@ -587,3 +588,5 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
 
   return
 end subroutine gronor_gntwo_canonical
+
+end module gronor_gntwo_mod

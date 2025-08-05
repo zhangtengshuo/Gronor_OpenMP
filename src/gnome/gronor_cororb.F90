@@ -19,9 +19,12 @@
 !! @date    2016
 !!
 
-subroutine gronor_cororb(u,w,va,vb,ev)
+module gronor_cororb_mod
   use gnome_parameters
   use gnome_data
+  implicit none
+contains
+subroutine gronor_cororb(u,w,va,vb,ev)
   implicit none
   real (kind=8), intent(inout) :: u(:,:),w(:,:),va(:,:),vb(:,:),ev(:)
   integer :: i,j,k
@@ -43,3 +46,5 @@ subroutine gronor_cororb(u,w,va,vb,ev)
 
   return
 end subroutine gronor_cororb
+
+end module gronor_cororb_mod

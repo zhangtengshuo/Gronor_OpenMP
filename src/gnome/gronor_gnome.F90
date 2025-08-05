@@ -20,14 +20,22 @@
 !!
 
 
-subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
-
+module gronor_gnome_mod
   use mpi
   use cidist
   use gnome_integrals
   use gnome_parameters
   use gnome_data
-  !      use nvtx
+  use gronor_moover_mod,    only: gronor_moover
+  use gronor_cofac1_mod,    only: gronor_cofac1
+  use gronor_cororb_mod,    only: gronor_cororb
+  use gronor_gntwo_mod,     only: gronor_gntwo, gronor_gntwo_canonical
+  use gronor_gnone_mod,     only: gronor_gnone
+  use gronor_tramat2_mod,   only: gronor_tramat2
+  use gronor_dipole_mod,    only: gronor_dipole
+  implicit none
+contains
+subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   implicit none
 
@@ -37,15 +45,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: timer_start,timer_stop
-  external :: gronor_dipole
-  external :: gronor_cororb
-  external :: gronor_gntwo
-  external :: gronor_gntwo_canonical
-!  external :: gronor_gntwo_batch_indexed
-  external :: gronor_gnone
-  external :: gronor_tramat2
-  external :: gronor_cofac1
-  external :: gronor_moover
   external :: gronor_abort
   external :: gronor_tranout
   external :: gronor_transvc
@@ -254,3 +253,5 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
   return
 end subroutine gronor_gnome
+
+end module gronor_gnome_mod

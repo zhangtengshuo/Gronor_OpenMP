@@ -19,10 +19,13 @@
 !! @date    2016
 !!
 
-subroutine gronor_dipole(lfndbg,ta,diag,sdiag)
+module gronor_dipole_mod
   use cidist
   use gnome_parameters
   use gnome_data
+  implicit none
+contains
+subroutine gronor_dipole(lfndbg,ta,diag,sdiag)
   implicit none
   integer :: lfndbg
   real (kind=8), intent(inout) :: ta(:,:),diag(:),sdiag(:)
@@ -114,4 +117,6 @@ subroutine gronor_dipole(lfndbg,ta,diag,sdiag)
 
   return
 end subroutine gronor_dipole
+
+end module gronor_dipole_mod
 

@@ -46,6 +46,8 @@ subroutine gronor_worker()
   real (kind=8) :: tbuf(18)
   integer :: thread_id, lfnmpi
   character(len=128) :: mpifile
+  integer (kind=4) :: mpi_err_len, ierr2
+  character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
 
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
@@ -114,7 +116,9 @@ subroutine gronor_worker()
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
 
-!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag) &
+!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
+!$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
+!$omp& mpi_err_len,ierr2,mpi_err_str,flag) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns,ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel)
 
   thread_id = omp_get_thread_num()
@@ -169,8 +173,38 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
+  if(idbg.gt.50 .and. thread_id==0) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check:"
+    ! 输出二维数组维度
+    write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
+    write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
+    write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)
+    write(lfndbg,'(a,2i10)') " ta:    ", size(ta,1), size(ta,2)
+    write(lfndbg,'(a,2i10)') " a:     ", size(a,1), size(a,2)
+    write(lfndbg,'(a,2i10)') " u:     ", size(u,1), size(u,2)
+    write(lfndbg,'(a,2i10)') " w:     ", size(w,1), size(w,2)
+    write(lfndbg,'(a,2i10)') " wt:    ", size(wt,1), size(wt,2)
+    write(lfndbg,'(a,2i10)') " sm:    ", size(sm,1), size(sm,2)
+    write(lfndbg,'(a,2i10)') " aaa:   ", size(aaa,1), size(aaa,2)
+    write(lfndbg,'(a,2i10)') " aat:   ", size(aat,1), size(aat,2)
+    write(lfndbg,'(a,2i10)') " tt:    ", size(tt,1), size(tt,2)
+    ! 输出一维数组维度
+    write(lfndbg,'(a,i10)')  " ev:    ", size(ev)
+    write(lfndbg,'(a,i10)')  " w1:    ", size(w1)
+    write(lfndbg,'(a,2i10)') " w2:    ", size(w2,1), size(w2,2)  ! 注意w2是二维
+    write(lfndbg,'(a,i10)')  " sdiag: ", size(sdiag)
+    write(lfndbg,'(a,i10)')  " diag:  ", size(diag)
+    write(lfndbg,'(a,i10)')  " bsdiag:", size(bsdiag)
+    write(lfndbg,'(a,i10)')  " bdiag: ", size(bdiag)
+    write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
+    write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
+    write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
+    flush(lfndbg)
+  endif
 
-  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+
+  call gronor_worker_process()
 
   call gronor_solver_finalize()
 
@@ -223,7 +257,7 @@ subroutine gronor_worker()
 
 contains
 
-  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  subroutine gronor_worker_process()
 
   use mpi
   use cidef
@@ -233,40 +267,46 @@ contains
   use gnome_parameters
   use gnome_solvers
   use omp_lib
-  
+
   implicit none
 
-  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
-  real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
-  real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
-  real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
-
-  external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_abort
-  external :: swatch,timer_start,timer_stop
-
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
-
-  real(kind=8), external :: timer_wall_total, timer_wall
-
-  integer :: ibase,jbase,idet,jdet,nidet,njdet
-  integer :: i,j,k,l2,n,iact
-  integer (kind=4) :: ireq, ierr, ncount, mpitag, mpidest
-  integer (kind=8) :: ibuf(4)
-  integer (kind=4) :: status(MPI_STATUS_SIZE)
-  real (kind=8) :: tbuf(18)
-  integer :: thread_id, lfnmpi
-  character(len=128) :: mpifile
-  integer (kind=4) :: mpi_err_len, ierr2
-  character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
-
-  logical (kind=4) :: flag
 
   thread_id = omp_get_thread_num()
   if(idbg.gt.0) then
     write(lfndbg,'(a,i0,a,i0,a,i0,a,i0,a,i0)') 'thread_id=',thread_id,&
          ' len_work_dbl=',len_work_dbl,' len_work_int=',len_work_int,&
          ' me=',me,' mstr=',mstr
+    flush(lfndbg)
+  endif
+
+  if(idbg.gt.50 .and. thread_id==0) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check:"
+    ! 输出二维数组维度
+    write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
+    write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
+    write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)
+    write(lfndbg,'(a,2i10)') " ta:    ", size(ta,1), size(ta,2)
+    write(lfndbg,'(a,2i10)') " a:     ", size(a,1), size(a,2)
+    write(lfndbg,'(a,2i10)') " u:     ", size(u,1), size(u,2)
+    write(lfndbg,'(a,2i10)') " w:     ", size(w,1), size(w,2)
+    write(lfndbg,'(a,2i10)') " wt:    ", size(wt,1), size(wt,2)
+    write(lfndbg,'(a,2i10)') " sm:    ", size(sm,1), size(sm,2)
+    write(lfndbg,'(a,2i10)') " aaa:   ", size(aaa,1), size(aaa,2)
+    write(lfndbg,'(a,2i10)') " aat:   ", size(aat,1), size(aat,2)
+    write(lfndbg,'(a,2i10)') " tt:    ", size(tt,1), size(tt,2)
+    ! 输出一维数组维度
+    write(lfndbg,'(a,i10)')  " ev:    ", size(ev)
+    write(lfndbg,'(a,i10)')  " w1:    ", size(w1)
+    write(lfndbg,'(a,2i10)') " w2:    ", size(w2,1), size(w2,2)  ! 注意w2是二维
+    write(lfndbg,'(a,i10)')  " sdiag: ", size(sdiag)
+    write(lfndbg,'(a,i10)')  " diag:  ", size(diag)
+    write(lfndbg,'(a,i10)')  " bsdiag:", size(bsdiag)
+    write(lfndbg,'(a,i10)')  " bdiag: ", size(bdiag)
+    write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
+    write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
+    write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
     flush(lfndbg)
   endif
   if(thread_id.lt.0 .or. len_work_dbl.lt.0_8 .or. len_work_int.lt.0_8 .or.&

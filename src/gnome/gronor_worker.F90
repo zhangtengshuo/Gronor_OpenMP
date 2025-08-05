@@ -284,7 +284,7 @@ contains
 
   write(mpifile,'("mpi_log_rank",i0,"_thread",i0,".log")') me,thread_id
   open(newunit=lfnmpi,file=mpifile,status='replace',action='write',iostat=ierr)
-  write(lfnmpi,'(a,2(i0,1x),a)') 'rank ',me,' thread ',thread_id,' starting'
+  write(lfnmpi,'(a,i0,a,i0,a)') 'rank ',me,' thread ',thread_id,' starting'
   write(lfnmpi,'(a,2i8)') 'len_work_dbl len_work_int ',len_work_dbl,len_work_int
   write(lfnmpi,'("va=",i0,"x",i0," vb=",i0,"x",i0," tb=",i0,"x",i0,&
   " ta=",i0,"x",i0," a=",i0,"x",i0)') size(va,1),size(va,2),size(vb,1),size(vb,2), &

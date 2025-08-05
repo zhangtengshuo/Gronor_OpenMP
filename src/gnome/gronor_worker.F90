@@ -170,7 +170,7 @@ subroutine gronor_worker()
   endif
 
 
-  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  call gronor_worker_process()
 
   call gronor_solver_finalize()
 
@@ -223,7 +223,7 @@ subroutine gronor_worker()
 
 contains
 
-  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  subroutine gronor_worker_process()
 
   use mpi
   use cidef
@@ -236,12 +236,6 @@ contains
   
   implicit none
 
-  real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
-  real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
-  real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
-  real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
-
-  external :: gronor_solver_init,gronor_solver_final
   external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 

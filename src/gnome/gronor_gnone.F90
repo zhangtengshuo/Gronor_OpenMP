@@ -27,12 +27,14 @@
 !!
 
 
-subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
+module gronor_gnone_mod
   use cidist
   use gnome_parameters
   use gnome_data
   use gnome_integrals
-
+  implicit none
+contains
+subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   implicit none
   integer :: lfndbg
   real (kind=8), intent(inout) :: diag(:),bdiag(:),bsdiag(:),csdiag(:),ta(:,:),aaa(:,:)
@@ -187,3 +189,5 @@ subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
   endif
   return
 end subroutine gronor_gnone
+
+end module gronor_gnone_mod

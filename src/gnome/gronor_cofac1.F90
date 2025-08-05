@@ -20,12 +20,15 @@
 !! @date    2016
 !!
 
-      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
+      module gronor_cofac1_mod
       use cidist
       use gnome_parameters
       use gnome_data
       use gnome_solvers
-      
+      implicit none
+      contains
+      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
+
       implicit none
 
       real (kind=8), intent(inout) :: a(:,:),u(:,:),w(:,:),wt(:,:),ev(:),ta(:,:)
@@ -280,3 +283,5 @@
 
       return
       end subroutine gronor_cofac1
+
+      end module gronor_cofac1_mod

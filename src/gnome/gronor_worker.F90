@@ -26,11 +26,12 @@ subroutine gronor_worker()
   use gnome_parameters
   use gnome_solvers
   use omp_lib
+  use gronor_calculate_mod, only: gronor_calculate
 
   implicit none
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate,gronor_abort
+  external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
@@ -241,7 +242,7 @@ contains
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate,gronor_abort
+  external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend

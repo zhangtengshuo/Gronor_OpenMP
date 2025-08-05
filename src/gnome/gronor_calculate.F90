@@ -29,17 +29,19 @@
 !!    @date    2016
 
 
-subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
-
+module gronor_calculate_mod
   use mpi
   use cidist
   use cidef
   use gnome_data
   use gnome_parameters
-
 #ifdef _OPENMP
   use omp_lib
 #endif
+  use gronor_gnome_mod, only: gronor_gnome
+  implicit none
+contains
+subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   implicit none
 
@@ -49,8 +51,7 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: swatch,timer_start,timer_stop
-!  external :: MPI_iSend,MPI_Recv
-  external :: gronor_gnome,gronor_abort
+  external :: gronor_abort
 
   integer (kind=4) :: ireq,ierr
   integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
@@ -441,3 +442,5 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
 
   return
 end subroutine gronor_calculate
+
+end module gronor_calculate_mod

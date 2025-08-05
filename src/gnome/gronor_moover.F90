@@ -19,13 +19,15 @@
 !! @date    2016
 !!
 
-subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
-
+module gronor_moover_mod
   use mpi
   use cidist
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+  implicit none
+contains
+subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   implicit none
 
@@ -195,4 +197,6 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   return
 end subroutine gronor_moover
+
+end module gronor_moover_mod
 

@@ -1098,7 +1098,14 @@ foreach (dir ${source_roots})
       message (STATUS "Create library for ${SRCDIRPATH}: ${numsrc} library files")
     endif()
     if(numsrc GREATER 0)
+      # Place module files for each library in a dedicated directory and
+      # expose that directory to dependents so that "use" associations across
+      # targets resolve correctly even with the new module-based routines.
+      set(mod_path "${CMAKE_Fortran_MODULE_DIRECTORY}/${srcdir}")
+      file(MAKE_DIRECTORY ${mod_path})
       add_library(${srcdir} STATIC ${srcfiles})
+      set_target_properties(${srcdir} PROPERTIES Fortran_MODULE_DIRECTORY ${mod_path})
+      target_include_directories(${srcdir} INTERFACE ${mod_path})
       list(APPEND libraries ${srcdir})
       list(APPEND dir_libs ${srcdir})
     endif()

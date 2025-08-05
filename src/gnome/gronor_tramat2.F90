@@ -19,15 +19,18 @@
 !! @date    2016
 !!
 
+module gronor_tramat2_mod
+  use cidist
+  use gnome_parameters
+  use gnome_data
+  implicit none
+contains
 subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
 
   !      Transformation of the  m.o.'s
   !      the new  m.o.'s are adapted to the basis set of the two electon
   !      integrals
 
-  use cidist
-  use gnome_parameters
-  use gnome_data
   implicit none
   integer :: lfndbg
   real (kind=8), intent(inout) :: va(:,:),vb(:,:),ta(:,:),aaa(:,:),w1(:),w2(:,:),diag(:),bdiag(:),bsdiag(:),cdiag(:),csdiag(:),sdiag(:)
@@ -289,3 +292,5 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
 
   return
 end subroutine gronor_tramat2
+
+end module gronor_tramat2_mod

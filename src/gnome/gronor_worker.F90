@@ -26,11 +26,12 @@ subroutine gronor_worker()
   use gnome_parameters
   use gnome_solvers
   use omp_lib
+  use gronor_calculate_mod, only: gronor_calculate
 
   implicit none
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate,gronor_abort
+  external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
@@ -217,11 +218,12 @@ subroutine gronor_worker()
 !    call MPI_Test(itreq,flag,status,ierr)
 !    if(.not.flag) call MPI_Request_free(itreq,ierr)
 !  endif
-  
-  return
-end subroutine gronor_worker
 
-subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  return
+
+contains
+
+  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidef
@@ -240,7 +242,7 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
 
   external :: gronor_solver_init,gronor_solver_final
-  external :: gronor_calculate,gronor_abort
+  external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
@@ -524,4 +526,6 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   close(lfnmpi)
 
   return
-end subroutine gronor_worker_process
+  end subroutine gronor_worker_process
+
+end subroutine gronor_worker

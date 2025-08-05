@@ -217,11 +217,12 @@ subroutine gronor_worker()
 !    call MPI_Test(itreq,flag,status,ierr)
 !    if(.not.flag) call MPI_Request_free(itreq,ierr)
 !  endif
-  
-  return
-end subroutine gronor_worker
 
-subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  return
+
+contains
+
+  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
   use mpi
   use cidef
@@ -524,4 +525,6 @@ subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt
   close(lfnmpi)
 
   return
-end subroutine gronor_worker_process
+  end subroutine gronor_worker_process
+
+end subroutine gronor_worker

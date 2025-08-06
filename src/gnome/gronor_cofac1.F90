@@ -41,6 +41,7 @@
 
       integer :: lfndbg
       integer :: i,j,idetuw,k
+      integer :: imax,jmax,iout,jout
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
@@ -68,6 +69,52 @@
         write(lfndbg,'(a,1x,es12.4)') ' a(1,1)=', a(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' u(1,1)=', u(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' w(1,1)=', w(1,1)
+        imax = min(size(a,1),500)
+        jmax = min(size(a,2),500)
+        write(lfndbg,'(a)') ' a contents:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
+        enddo
+        imax = min(size(u,1),500)
+        jmax = min(size(u,2),500)
+        write(lfndbg,'(a)') ' u contents:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (u(iout,jout),jout=1,jmax)
+        enddo
+        imax = min(size(w,1),500)
+        jmax = min(size(w,2),500)
+        write(lfndbg,'(a)') ' w contents:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (w(iout,jout),jout=1,jmax)
+        enddo
+        imax = min(size(wt,1),500)
+        jmax = min(size(wt,2),500)
+        write(lfndbg,'(a)') ' wt contents:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (wt(iout,jout),jout=1,jmax)
+        enddo
+        imax = min(size(ta,1),500)
+        jmax = min(size(ta,2),500)
+        write(lfndbg,'(a)') ' ta contents:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (ta(iout,jout),jout=1,jmax)
+        enddo
+        jmax = min(size(ev),500)
+        write(lfndbg,'(a)') ' ev contents:'
+        write(lfndbg,'(1x,*(es12.4))') (ev(jout),jout=1,jmax)
+        jmax = min(size(diag),500)
+        write(lfndbg,'(a)') ' diag contents:'
+        write(lfndbg,'(1x,*(es12.4))') (diag(jout),jout=1,jmax)
+        jmax = min(size(sdiag),500)
+        write(lfndbg,'(a)') ' sdiag contents:'
+        write(lfndbg,'(1x,*(es12.4))') (sdiag(jout),jout=1,jmax)
+        jmax = min(size(cdiag),500)
+        write(lfndbg,'(a)') ' cdiag contents:'
+        write(lfndbg,'(1x,*(es12.4))') (cdiag(jout),jout=1,jmax)
+        jmax = min(size(csdiag),500)
+        write(lfndbg,'(a)') ' csdiag contents:'
+        write(lfndbg,'(1x,*(es12.4))') (csdiag(jout),jout=1,jmax)
+        flush(lfndbg)
       end if
 
       if(idbg.ge.30) write(lfndbg,600)

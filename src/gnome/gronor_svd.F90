@@ -56,6 +56,7 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   use gnome_data
   use gnome_solvers
   use iso_c_binding
+  use omp_lib
 
   ! library specific modules
 
@@ -74,10 +75,61 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   integer :: i,j
   integer :: ierr
   integer (kind=4) :: istat
+  integer :: thread_id, imax, jmax, iout, jout
+  character(len=10) :: today, now
 
   ! library specific declarations
 
   lwork4=int(len_work_dbl,kind=4)
+
+#ifdef _OPENMP
+  thread_id = omp_get_thread_num()
+#else
+  thread_id = 0
+#endif
+  if(idbg.gt.10 .and. thread_id==0) then
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), &
+         ' Array dimensions check in gronor_svd:'
+    write(lfndbg,'(a,2i10)') ' a:     ', size(a,1), size(a,2)
+    write(lfndbg,'(a,2i10)') ' u:     ', size(u,1), size(u,2)
+    write(lfndbg,'(a,2i10)') ' w:     ', size(w,1), size(w,2)
+    write(lfndbg,'(a,2i10)') ' wt:    ', size(wt,1), size(wt,2)
+    write(lfndbg,'(a,i10)')  ' ev:    ', size(ev)
+    write(lfndbg,'(a,i10)')  ' sdiag: ', size(sdiag)
+
+    imax = min(size(a,1),500)
+    jmax = min(size(a,2),500)
+    write(lfndbg,'(a)') ' a contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(u,1),500)
+    jmax = min(size(u,2),500)
+    write(lfndbg,'(a)') ' u contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (u(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(w,1),500)
+    jmax = min(size(w,2),500)
+    write(lfndbg,'(a)') ' w contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (w(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(wt,1),500)
+    jmax = min(size(wt,2),500)
+    write(lfndbg,'(a)') ' wt contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (wt(iout,jout),jout=1,jmax)
+    enddo
+    jmax = min(size(ev),500)
+    write(lfndbg,'(a)') ' ev contents:'
+    write(lfndbg,'(1x,*(es12.4))') (ev(jout),jout=1,jmax)
+    jmax = min(size(sdiag),500)
+    write(lfndbg,'(a)') ' sdiag contents:'
+    write(lfndbg,'(1x,*(es12.4))') (sdiag(jout),jout=1,jmax)
+    flush(lfndbg)
+  end if
   
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC

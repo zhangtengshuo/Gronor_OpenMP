@@ -38,6 +38,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
   integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
+  integer :: imax,jmax,iout,jout
   real (kind=8) :: sum
   integer :: thread_id
   character(len=10) :: today, now
@@ -79,6 +80,37 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
     write(lfndbg,'(a,2i10)') ' ntcla ntclb:', ntcla, ntclb
     write(lfndbg,'(a,1x,es12.4)') ' va(1,1)=', va(1,1)
     write(lfndbg,'(a,1x,es12.4)') ' vb(1,1)=', vb(1,1)
+    imax = min(size(va,1),500)
+    jmax = min(size(va,2),500)
+    write(lfndbg,'(a)') ' va contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (va(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(vb,1),500)
+    jmax = min(size(vb,2),500)
+    write(lfndbg,'(a)') ' vb contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (vb(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(tb,1),500)
+    jmax = min(size(tb,2),500)
+    write(lfndbg,'(a)') ' tb contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (tb(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(ta,1),500)
+    jmax = min(size(ta,2),500)
+    write(lfndbg,'(a)') ' ta contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (ta(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(a,1),500)
+    jmax = min(size(a,2),500)
+    write(lfndbg,'(a)') ' a contents:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
+    enddo
+    flush(lfndbg)
   end if
 
   ! Calculation of the overlap matrix ta from va, vb and s

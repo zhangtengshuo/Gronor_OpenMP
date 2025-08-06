@@ -25,7 +25,7 @@ module gronor_tramat2_mod
   use gnome_data
   implicit none
 contains
-subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag,nveca_task)
+subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
 
   !      Transformation of the  m.o.'s
   !      the new  m.o.'s are adapted to the basis set of the two electon
@@ -34,7 +34,6 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
   implicit none
   integer :: lfndbg
   real (kind=8), intent(inout) :: va(:,:),vb(:,:),ta(:,:),aaa(:,:),w1(:),w2(:,:),diag(:),bdiag(:),bsdiag(:),cdiag(:),csdiag(:),sdiag(:)
-  integer, intent(in) :: nveca_task
 
   integer :: i,j,k,kk,m1
   real (kind=8) :: sum
@@ -81,13 +80,13 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
       enddo
     endif
 
-    if(nalfa.ne.nveca_task) then
+    if(nalfa.ne.nveca) then
       m1=nalfa+1
 !$acc loop private(sum)
       do j=1,nbas
         sum=0.0d0
 !$acc loop reduction(+:sum)
-        do k=m1,nveca_task
+        do k=m1,nveca
           kk=k+ntcla
           sum=sum+cdiag(kk)*va(k,j)
         enddo
@@ -230,9 +229,9 @@ subroutine gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdi
             sum=sum+ta(kk,j)*va(k,i)
           enddo
         endif
-        if(nalfa.ne.nveca_task) then
+        if(nalfa.ne.nveca) then
 !$acc loop seq reduction(+:sum) private(kk)
-          do k=m1,nveca_task
+          do k=m1,nveca
             kk=k+ntcla
             sum=sum+ta(kk,j)*va(k,i)
           enddo

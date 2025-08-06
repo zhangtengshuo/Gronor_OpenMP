@@ -18,6 +18,10 @@
 !! @date    2025
 !!
 
+module gronor_svd_mod
+  implicit none
+contains
+
 subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
   !> Routine that provides all possible calls to Singular Value Decomposition library routines
@@ -194,3 +198,5 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
 
   return  
 end subroutine gronor_svd
+
+end module gronor_svd_mod

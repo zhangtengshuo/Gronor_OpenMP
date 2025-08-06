@@ -24,10 +24,9 @@ module gronor_cororb_mod
   use gnome_data
   implicit none
 contains
-subroutine gronor_cororb(u,w,va,vb,ev,nveca_task)
+subroutine gronor_cororb(u,w,va,vb,ev)
   implicit none
   real (kind=8), intent(inout) :: u(:,:),w(:,:),va(:,:),vb(:,:),ev(:)
-  integer, intent(in) :: nveca_task
   integer :: i,j,k
 
   do i=1,nelecs
@@ -36,7 +35,7 @@ subroutine gronor_cororb(u,w,va,vb,ev,nveca_task)
         veca(j)=0.0d0
         vecb(j)=0.0d0
       enddo
-      do j=1,nveca_task
+      do j=1,nveca
         do k=1,mbasel
           veca(k)=veca(k)+u(j,i)*va(j,k)
           vecb(k)=vecb(k)+w(j,i)*vb(j,k)

@@ -19,6 +19,10 @@
 !! @date    2025
 !!
 
+module gronor_evd_mod
+  implicit none
+contains
+
 subroutine gronor_evd(a,diag,sdiag)
 
   !> Routine that provides all possible calls to Eigensolver library routines
@@ -138,3 +142,5 @@ subroutine gronor_evd(a,diag,sdiag)
 
   return
 end subroutine gronor_evd
+
+end module gronor_evd_mod

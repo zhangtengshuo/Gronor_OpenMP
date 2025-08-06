@@ -98,6 +98,7 @@ subroutine gronor_main()
   real (kind=8) :: rdum(6)
   character (len=255) :: string,architecture,compiler
   logical exist,first_pass
+  character(len=10) :: today, now
 
   real(kind=8), external :: timer_wall_total
 
@@ -173,7 +174,7 @@ subroutine gronor_main()
     l2=len(trim(host))
     if(n.gt.0.and.n.lt.l2) write(host,'(a)') host(n+1:l2)
 
-    call swatch(date,time)
+    call swatch(today,now)
     call getcwd(cwd)
 
     !     Read a single string argument 'root' from the command line, that
@@ -246,8 +247,8 @@ subroutine gronor_main()
     call gronor_prelude_cml()
 
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Start of job'
+    call swatch(today,now)
+    write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  Start of job'
 702 format(a8,2x,a8,f12.3,a)
     flush(lfnday)
     call timer_start(99)
@@ -485,7 +486,7 @@ subroutine gronor_main()
 #if defined(GPUAMD) || defined(GPUNVIDIA)
     if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
         trim(host),onlabel,trim(machine),nnodes, &
-        date(1:8),time(1:8),nrsets, &
+        today(1:8),now(1:8),nrsets, &
         nrnsets,numdev,ngpus,nummps, &
         np,np/nnodes,np/nrsets, &
         ncycls,num_threads
@@ -506,7 +507,7 @@ subroutine gronor_main()
 #else
     if(ipr.ge.20) write(lfnout,601) trim(user),getcpucount(), &
         trim(host),onlabel,trim(machine),nnodes, &
-        date(1:8),time(1:8),np,np/nnodes,ncycls,num_threads
+        today(1:8),now(1:8),np,np/nnodes,ncycls,num_threads
 601 format(//, &
         ' User',t30,a,t60,'CPU count',t100,i10,/,/, &
         ' Host',t30,a,a,a,t60,'Number of nodes',t100,i10,/, &
@@ -559,7 +560,7 @@ subroutine gronor_main()
         ' CI vector file(s) are',t25,a,a,'_lbl.det',/ &
         ' MO vector file(s) are',t25,a,a,'_lbl.vec')
 
-    call swatch(date,time)
+    call swatch(today,now)
     write(lfnarx,401) trim(user)
     write(lfnxrx,401) trim(user)
 401 format('User ',a)
@@ -806,8 +807,8 @@ subroutine gronor_main()
 
     if(me.eq.mstr) then
       call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Input broadcasted'
+      call swatch(today,now)
+      write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  Input broadcasted'
       flush(lfnday)
       call timer_start(99)
     endif
@@ -1376,8 +1377,8 @@ subroutine gronor_main()
         !     istat=cudaMemGetInfo(cpfre,cptot)
         memavail=memfre
         if(idbg.gt.0) then
-          call swatch(date,time)
-          write(lfndbg,1301) date(1:8),time(1:8),' Device set to ',mydev,' of ',numdev
+          call swatch(today,now)
+          write(lfndbg,1301) today(1:8),now(1:8),' Device set to ',mydev,' of ',numdev
 1301      format(a,1x,a,1x,a,i3,a,i3)
           flush(lfndbg)
         endif
@@ -1500,8 +1501,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,1707) date(1:8),time(1:8),timer_wall_total(99), &
+    call swatch(today,now)
+    write(lfnday,1707) today(1:8),now(1:8),timer_wall_total(99), &
         '  :  Start of base state generation'
 1707 format(a8,2x,a8,f12.3,a)
     flush(lfnday)
@@ -1516,8 +1517,8 @@ subroutine gronor_main()
   do i=1,nbase
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' entering make_basestate for ibase ',i
       flush(lfndbg)
     endif
@@ -1525,16 +1526,16 @@ subroutine gronor_main()
     call gronor_make_basestate(i,first_pass)
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' returned from make_basestate for ibase ',i
       flush(lfndbg)
     endif
 
     if(me.eq.mstr) then
       call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99), &
+      call swatch(today,now)
+      write(lfnday,1706) today(1:8),now(1:8),timer_wall_total(99), &
           '  :  First pass for base state  ',i,' completed '
 1706  format(a8,2x,a8,f12.3,a,i4,a)
       flush(lfnday)
@@ -1542,8 +1543,8 @@ subroutine gronor_main()
     endif
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' Base state completed for ibase ',i
       flush(lfndbg)
     endif
@@ -1558,8 +1559,8 @@ subroutine gronor_main()
   do i=1,nbase
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' entering make_basestate for ibase ',i
       flush(lfndbg)
     endif
@@ -1567,24 +1568,24 @@ subroutine gronor_main()
     call gronor_make_basestate(i,first_pass)
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' returned from make_basestate for ibase ',i
       flush(lfndbg)
     endif
 
     if(me.eq.mstr) then
       call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,1706) date(1:8),time(1:8),timer_wall_total(99), &
+      call swatch(today,now)
+      write(lfnday,1706) today(1:8),now(1:8),timer_wall_total(99), &
           '  :  Second pass for base state ',i,' completed '
       flush(lfnday)
       call timer_start(99)
     endif
 
     if(idbg.ge.50) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,i4)') today(1:8),now(1:8), &
           ' Base state completed for ibase ',i
       flush(lfndbg)
     endif
@@ -1623,8 +1624,8 @@ subroutine gronor_main()
     idetb(ibase)=ndet_rev
     if(me.eq.mstr) then
       call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,1710) date(1:8),time(1:8),timer_wall_total(99), &
+      call swatch(today,now)
+      write(lfnday,1710) today(1:8),now(1:8),timer_wall_total(99), &
           '  :  Base state ',ibase, &
           ' coefficient list reduced from    ', &
           alldets(ibase),' to ',ndet_rev
@@ -1661,8 +1662,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,1708) date(1:8),time(1:8),timer_wall_total(99),'  :  Start of ME list generation'
+    call swatch(today,now)
+    write(lfnday,1708) today(1:8),now(1:8),timer_wall_total(99),'  :  Start of ME list generation'
 1708 format(a8,2x,a8,f12.3,a)
     flush(lfnday)
     call timer_start(99)
@@ -1719,8 +1720,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,1703) date(1:8),time(1:8),timer_wall_total(99), &
+    call swatch(today,now)
+    write(lfnday,1703) today(1:8),now(1:8),timer_wall_total(99), &
         '  :  ME list dimension reduced from   ',ndtot,' to ',numdet
 1703 format(a8,2x,a8,f12.3,a,16x,i16,a,i16)
     flush(lfnday)
@@ -1769,8 +1770,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Base states generated'
+    call swatch(today,now)
+    write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  Base states generated'
     flush(lfnday)
     call timer_start(99)
   endif
@@ -1853,8 +1854,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,1702) date(1:8),time(1:8),timer_wall_total(99),'  :  Start reading integrals'
+    call swatch(today,now)
+    write(lfnday,1702) today(1:8),now(1:8),timer_wall_total(99),'  :  Start reading integrals'
 1702 format(a8,2x,a8,f12.3,a)
     flush(lfnday)
     call timer_start(99)
@@ -1866,8 +1867,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  Reading of integrals completed'
+    call swatch(today,now)
+    write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  Reading of integrals completed'
     flush(lfnday)
     call timer_start(99)
   endif
@@ -1953,12 +1954,12 @@ subroutine gronor_main()
   call timer_start(4)
 
   if(idbg.gt.0) then
-    call swatch(date,time)
+    call swatch(today,now)
 #ifdef GPUAMD
-    write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8), &
+    write(lfndbg,'(a,1x,a,1x,a,11i5)') today(1:8),now(1:8), &
         ' AMD    ',numdev,mydev,iamacc,nummps,numgpu,(map2(me+1,i),i=1,5)
 #else
-    write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8), &
+    write(lfndbg,'(a,1x,a,1x,a,11i5)') today(1:8),now(1:8), &
         ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,(map2(me+1,i),i=1,5)
 #endif
     flush(lfndbg)
@@ -1966,16 +1967,16 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     if(idbg.gt.0) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_master'
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a)') today(1:8),now(1:8),' Calling GronOR_master'
       flush(lfndbg)
     endif
     call gronor_memory_usage()
     call gronor_master()
   else
     if(idbg.gt.0) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,2i5)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,1x,a,2i5)') today(1:8),now(1:8), &
  &         ' iamactive, iamacc=',iamactive,iamacc
       flush(lfndbg)
     endif
@@ -2016,15 +2017,15 @@ subroutine gronor_main()
 
       if(iamacc.eq.1) then
         if(idbg.gt.0) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),' mint2= ',mint2
+          call swatch(today,now)
+          write(lfndbg,'(a,1x,a,1x,a,i12)') today(1:8),now(1:8),' mint2= ',mint2
           flush(lfndbg)
         endif
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s)
         if(idbg.gt.0) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
+          call swatch(today,now)
+          write(lfndbg,'(a,1x,a,1x,a)') today(1:8),now(1:8),' Calling GronOR_worker'
           flush(lfndbg)
         endif
         call gronor_memory_usage()
@@ -2109,7 +2110,7 @@ subroutine gronor_main()
     inquire(file=trim(fillog),exist=EXIST)
     open(unit=lfnlog,file=trim(fillog),form='formatted',status='unknown',position='append',err=993)
     call timer_stop(99)
-    call swatch(date,time)
+    call swatch(today,now)
     if(.not.exist) then
       write(lfnlog,800)
 800   format( &
@@ -2126,7 +2127,7 @@ subroutine gronor_main()
           '  User',t12,'Jobname',t35,'Command',t45,'tau_MO   tau_CI   tau_CI_off', &
           ' Wspc svd  Wspc evd     Tasks',/)
     endif
-    write(lfnlog,801) date(1:8),time(1:8), &
+    write(lfnlog,801) today(1:8),now(1:8), &
         timer_wall_total(99)-timer_wall_total(98), &
         timer_wall_total(98),timer_wall_total(99), &
         nnodes,np,numacc,numnon,nummps,numgpu,num_threads,mgr, &
@@ -2197,8 +2198,8 @@ subroutine gronor_main()
 
   if(me.eq.mstr) then
     call timer_stop(99)
-    call swatch(date,time)
-    write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99), &
+    call swatch(today,now)
+    write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99), &
         '  :  End of Hamiltonian calculation'
     flush(lfnday)
     call timer_start(99)
@@ -2279,7 +2280,7 @@ subroutine gronor_main()
         write(lfndbg,'(a)') "Issuing mpi_abort"
         flush(lfndbg)
       endif
-      call swatch(date,time)
+      call swatch(today,now)
       if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
 637   format(/,' Completion/abort of run ',2a10,/)
       flush(lfnout)
@@ -2289,12 +2290,12 @@ subroutine gronor_main()
       if(idbg.gt.0) then
         write(lfndbg,'(a)') "Issuing mpi_finalize"
         flush(lfndbg)
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,a,a)') today(1:8),now(1:8),' Closing ',trim(fildbg)
         flush(lfndbg)
         close(unit=lfndbg,status='keep')
       endif
-      call swatch(date,time)
+      call swatch(today,now)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)
       flush(lfnout)

@@ -119,7 +119,9 @@ subroutine gronor_worker()
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
 !$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
 !$omp& mpi_err_len,ierr2,mpi_err_str,flag) &
-!$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns,ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel)
+!$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
+!$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel, &
+!$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact)
 
   thread_id = omp_get_thread_num()
 

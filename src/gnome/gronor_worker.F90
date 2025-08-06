@@ -175,9 +175,9 @@ subroutine gronor_worker()
     flush(lfndbg)
   endif
 
-  if(idbg.gt.50 .and. thread_id==0) then
+  if(idbg.gt.10 .and. thread_id==0) then
     call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check:"
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check in gronor_worker_process:"
     ! 输出二维数组维度
     write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
     write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
@@ -202,6 +202,11 @@ subroutine gronor_worker()
     write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
     write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
     write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
+    write(lfndbg,'(a,i10)')  " nelecs:", nelecs
+    write(lfndbg,'(a,i10)')  " nveca: ", nveca
+    write(lfndbg,'(a,i10)')  " nvecb: ", nvecb
+    write(lfndbg,'(a,i10)')  " mbasel:", mbasel
+    write(lfndbg,'(a,i10)')  " nstdim:", nstdim
     flush(lfndbg)
   endif
 
@@ -279,6 +284,19 @@ contains
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
+  thread_id = 0
+  lfnmpi    = 0
+  mpifile   = ' '
+  ireq      = 0
+  ierr      = 0
+  ncount    = 0
+  mpitag    = 0
+  mpidest   = 0
+  ibuf      = 0_8
+  status    = 0
+  tbuf      = 0.0d0
+  flag      = .false.
+
   thread_id = omp_get_thread_num()
   if(idbg.gt.0) then
     write(lfndbg,'(a,i0,a,i0,a,i0,a,i0,a,i0)') 'thread_id=',thread_id,&
@@ -287,35 +305,6 @@ contains
     flush(lfndbg)
   endif
 
-  if(idbg.gt.50 .and. thread_id==0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check:"
-    ! 输出二维数组维度
-    write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
-    write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
-    write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)
-    write(lfndbg,'(a,2i10)') " ta:    ", size(ta,1), size(ta,2)
-    write(lfndbg,'(a,2i10)') " a:     ", size(a,1), size(a,2)
-    write(lfndbg,'(a,2i10)') " u:     ", size(u,1), size(u,2)
-    write(lfndbg,'(a,2i10)') " w:     ", size(w,1), size(w,2)
-    write(lfndbg,'(a,2i10)') " wt:    ", size(wt,1), size(wt,2)
-    write(lfndbg,'(a,2i10)') " sm:    ", size(sm,1), size(sm,2)
-    write(lfndbg,'(a,2i10)') " aaa:   ", size(aaa,1), size(aaa,2)
-    write(lfndbg,'(a,2i10)') " aat:   ", size(aat,1), size(aat,2)
-    write(lfndbg,'(a,2i10)') " tt:    ", size(tt,1), size(tt,2)
-    ! 输出一维数组维度
-    write(lfndbg,'(a,i10)')  " ev:    ", size(ev)
-    write(lfndbg,'(a,i10)')  " w1:    ", size(w1)
-    write(lfndbg,'(a,2i10)') " w2:    ", size(w2,1), size(w2,2)  ! 注意w2是二维
-    write(lfndbg,'(a,i10)')  " sdiag: ", size(sdiag)
-    write(lfndbg,'(a,i10)')  " diag:  ", size(diag)
-    write(lfndbg,'(a,i10)')  " bsdiag:", size(bsdiag)
-    write(lfndbg,'(a,i10)')  " bdiag: ", size(bdiag)
-    write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
-    write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
-    write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
-    flush(lfndbg)
-  endif
   if(thread_id.lt.0 .or. len_work_dbl.lt.0_8 .or. len_work_int.lt.0_8 .or.&
      me.lt.0 .or. mstr.lt.0) then
     write(*,'(a,5(1x,i0))') 'Error: invalid worker parameters', thread_id,&

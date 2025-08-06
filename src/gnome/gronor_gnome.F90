@@ -26,6 +26,9 @@ module gronor_gnome_mod
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+#ifdef _OPENMP
+  use omp_lib
+#endif
   use gronor_moover_mod,    only: gronor_moover
   use gronor_cofac1_mod,    only: gronor_cofac1
   use gronor_cororb_mod,    only: gronor_cororb
@@ -48,12 +51,21 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   external :: gronor_abort
   external :: gronor_tranout
   external :: gronor_transvc
+  external :: swatch
 
-  integer :: lfndbg,idet,k,iv,ib,ihc,nhc,ntvc,ivc,ibas
+  integer :: lfndbg,ihc,nhc
+  integer :: idet=0,k=0,iv=0,ib=0,ntvc=0,ivc=0,ibas=0
 
-  logical (kind=4) :: flag
-  integer (kind=4) :: ierr,status(MPI_STATUS_SIZE)
+  logical (kind=4) :: flag=.false.
+  integer (kind=4) :: ierr=0,status(MPI_STATUS_SIZE)=0
 
+  integer :: thread_id
+
+#ifdef _OPENMP
+  thread_id = omp_get_thread_num()
+#else
+  thread_id = 0
+#endif
 
   e1=0.0d0
   e2=0.0d0
@@ -118,6 +130,40 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   n1bas=nbas*(nbas+1)/2
   nstdim=max(1,nelecs*nelecs,n1bas)
   mbasel=max(nelecs,nbas)
+
+  if(idbg.gt.10 .and. thread_id==0) then
+    call swatch(date,time)
+    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check in gronor_gnome:"
+    write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
+    write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
+    write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)
+    write(lfndbg,'(a,2i10)') " ta:    ", size(ta,1), size(ta,2)
+    write(lfndbg,'(a,2i10)') " a:     ", size(a,1), size(a,2)
+    write(lfndbg,'(a,2i10)') " u:     ", size(u,1), size(u,2)
+    write(lfndbg,'(a,2i10)') " w:     ", size(w,1), size(w,2)
+    write(lfndbg,'(a,2i10)') " wt:    ", size(wt,1), size(wt,2)
+    write(lfndbg,'(a,2i10)') " sm:    ", size(sm,1), size(sm,2)
+    write(lfndbg,'(a,2i10)') " aaa:   ", size(aaa,1), size(aaa,2)
+    write(lfndbg,'(a,2i10)') " aat:   ", size(aat,1), size(aat,2)
+    write(lfndbg,'(a,2i10)') " tt:    ", size(tt,1), size(tt,2)
+    write(lfndbg,'(a,i10)')  " ev:    ", size(ev)
+    write(lfndbg,'(a,i10)')  " w1:    ", size(w1)
+    write(lfndbg,'(a,2i10)') " w2:    ", size(w2,1), size(w2,2)
+    write(lfndbg,'(a,i10)')  " sdiag: ", size(sdiag)
+    write(lfndbg,'(a,i10)')  " diag:  ", size(diag)
+    write(lfndbg,'(a,i10)')  " bsdiag:", size(bsdiag)
+    write(lfndbg,'(a,i10)')  " bdiag: ", size(bdiag)
+    write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
+    write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
+    write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
+    write(lfndbg,'(a,i10)')  " ihc:   ", ihc
+    write(lfndbg,'(a,i10)')  " nhc:   ", nhc
+    write(lfndbg,'(a,i10)')  " nveca: ", nveca
+    write(lfndbg,'(a,i10)')  " nvecb: ", nvecb
+    write(lfndbg,'(a,i10)')  " nelecs:", nelecs
+    write(lfndbg,'(a,i10)')  " mbasel:", mbasel
+    flush(lfndbg)
+  endif
 
   if(nveca.ne.ntcl(1)+ntop(1)) call gronor_abort(306,"Incompatible nveca")
   if(nvecb.ne.ntcl(2)+ntop(2)) call gronor_abort(307,"Incompatible nvecb")

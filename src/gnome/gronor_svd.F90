@@ -101,6 +101,8 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
     write(lfndbg,'(a,2i10)') ' wt:    ', size(wt,1), size(wt,2)
     write(lfndbg,'(a,i10)')  ' ev:    ', size(ev)
     write(lfndbg,'(a,i10)')  ' sdiag: ', size(sdiag)
+    write(lfndbg,'(" len_work_dbl=",i0," len_work_int=",i0," flags",3l1)') &
+         len_work_dbl,len_work_int,lsvcpu,levcpu,lsvtrns
 
     imax = min(size(a,1),500)
     jmax = min(size(a,2),500)

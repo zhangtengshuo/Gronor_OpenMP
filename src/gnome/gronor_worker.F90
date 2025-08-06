@@ -25,12 +25,12 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+  use gronor_solver_mod
   use omp_lib
   use gronor_calculate_mod, only: gronor_calculate
 
   implicit none
 
-  external :: gronor_solver_init,gronor_solver_final
   external :: gronor_abort
   external :: swatch,timer_start,timer_stop
 
@@ -173,6 +173,13 @@ subroutine gronor_worker()
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8)," Solver initialization completed"
+    flush(lfndbg)
+  endif
+
+  if(idbg.gt.10 .and. thread_id==0) then
+    write(lfndbg,'(" solver workspaces: len_work_dbl=",i0,
+ &" len_work_int=",i0," flags",3l1)') len_work_dbl,len_work_int,
+ &lsvcpu,levcpu,lsvtrns
     flush(lfndbg)
   endif
 

@@ -47,7 +47,7 @@ subroutine gronor_memory_usage()
   if(me.eq.0) then
     membuf(1)=mbasel
     membuf(2)=mvec
-    membuf(3)=nveca
+    membuf(3)=nveca_max
     membuf(4)=nvecb
     membuf(5)=nstdim
     membuf(6)=nelecs
@@ -68,7 +68,7 @@ subroutine gronor_memory_usage()
     call MPI_Recv(membuf,ncount,MPI_INTEGER8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,istat,ierr)
     mbasel=membuf(1)
     mvec=membuf(2)
-    nveca=membuf(3)
+    nveca_max=membuf(3)
     nvecb=membuf(4)
     nstdim=membuf(5)
     nelecs=membuf(6)
@@ -102,7 +102,7 @@ subroutine gronor_memory_usage()
     gb=real(4*ni)/real(1073741824)
     write(lfnout,601) "ME List",gb
 
-    ni=mbasel*(2+4*mvec+nveca+2*nvecb+7*max(mbasel,nveca)+mbasel)
+    ni=mbasel*(2+4*mvec+nveca_max+2*nvecb+7*max(mbasel,nveca_max)+mbasel)
     ni=ni+nstdim+nelecs*(1+3*nelecs+6*mbasel)
     if(nbatch.lt.0) then
       ni=ni+ntask*(1+4*nbas+6*nbas*nbas)+16

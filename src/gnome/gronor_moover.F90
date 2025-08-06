@@ -28,11 +28,12 @@ module gronor_moover_mod
   use omp_lib
   implicit none
 contains
-subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
+subroutine gronor_moover(lfndbg,va,vb,tb,ta,a,nveca_task)
 
   implicit none
 
   real (kind=8), intent(inout) :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
+  integer, intent(in) :: nveca_task
 
   external :: gronor_abort
 
@@ -76,7 +77,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
     write(lfndbg,'(a,2i10)') ' ta:    ', size(ta,1), size(ta,2)
     write(lfndbg,'(a,2i10)') ' a:     ', size(a,1), size(a,2)
     write(lfndbg,'(a,5i10)') ' nbas nelecs nveca nvecb nalfa:', &
-         nbas, nelecs, nveca, nvecb, nalfa
+         nbas, nelecs, nveca_task, nvecb, nalfa
     write(lfndbg,'(a,2i10)') ' ntcla ntclb:', ntcla, ntclb
     write(lfndbg,'(a,1x,es12.4)') ' va(1,1)=', va(1,1)
     write(lfndbg,'(a,1x,es12.4)') ' vb(1,1)=', vb(1,1)
@@ -179,14 +180,14 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   ! Calculation for beta spin in open-shell-m.o.'s
 
-  if(nveca.ne.nalfa) then
+  if(nveca_task.ne.nalfa) then
 
     if(ntclb.gt.0) then
 
 !$acc kernels present(va,ta,tb)
       do k=1,ntclb
         kk=k+nalfa
-        do i=m1,nveca
+        do i=m1,nveca_task
           sum=0.0d0
           do l=1,nbas
             sum=sum+va(i,l)*tb(l,k)
@@ -203,7 +204,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 !$acc kernels present(va,ta,tb)
       do k=nalfa+1,nvecb
         kk=k+ntclb
-        do i=m1,nveca
+        do i=m1,nveca_task
           sum=0.0d0
           do l=1,nbas
             sum=sum+va(i,l)*tb(l,k)

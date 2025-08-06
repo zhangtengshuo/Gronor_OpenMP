@@ -204,7 +204,7 @@ module gnome_data
 
   integer :: nnucl,nbas,numint,numfiles
 
-  integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb
+  integer :: nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,nveca_max
 
   integer :: ntcl(2), ntop(2), nclose(2), nopen(2), nelec(2)
   integer :: nact(2), ninact(2)
@@ -257,7 +257,7 @@ module gnome_data
 
   integer :: ising
 !$omp threadprivate(ntesta,ntestb,ijend)
-!$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,n1bas,nstdim,mbasel,nelecs)
+!$omp threadprivate(nalfa,nveca,nvecb,ntcla,ntclb,ntopa,ntopb,nveca_max,n1bas,nstdim,mbasel,nelecs)
 !$omp threadprivate(e1,e2,e2c,etot,etotb,deta,fac,fctr,mpoles,e1tot,e2tot,sstot,hh,ss,ttest,ising)
 !$omp threadprivate(ntcl,ntop,nclose,nopen,nelec,nact,ninact,iocopen)
 !$omp threadprivate(ioccup,vec,vtemp,ioccn,iocopen)

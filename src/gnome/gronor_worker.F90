@@ -177,9 +177,9 @@ subroutine gronor_worker()
   endif
 
   if(idbg.gt.10 .and. thread_id==0) then
-    write(lfndbg,'(" solver workspaces: len_work_dbl=",i0,
- &" len_work_int=",i0," flags",3l1)') len_work_dbl,len_work_int,
- &lsvcpu,levcpu,lsvtrns
+    write(lfndbg,'(" solver workspaces: len_work_dbl=",i0, &
+  " len_work_int=",i0," flags",3l1)') len_work_dbl,len_work_int, &
+  lsvcpu,levcpu,lsvtrns
     flush(lfndbg)
   endif
 

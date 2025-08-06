@@ -380,6 +380,7 @@ subroutine gronor_master()
         enddo
 
         write(lfnmpi,'("recv from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
+        flush(lfnmpi)
         call timer_stop(94)
 
         ! If a buffer is received the integrals were distributed to the worker ranks
@@ -772,6 +773,7 @@ subroutine gronor_master()
           call MPI_Abort(MPI_COMM_WORLD, ierr, ierr_abort)
         endif
         write(lfnmpi,'("send task to",i0," tid",i0," ibuf=",4i12)') iremote,tid-1,ibuf
+        flush(lfnmpi)
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
@@ -859,6 +861,7 @@ subroutine gronor_master()
       buffer(k)=tbuf(k)
     enddo
     write(lfnmpi,'("recv dup from",i0," tid",i0," buf=",17(1x,e16.8))') status(MPI_SOURCE),tid-1,(buffer(k),k=1,17)
+    flush(lfnmpi)
     call timer_stop(96)
 
     !     Determine the rank, group and base pair of received buffer
@@ -1186,6 +1189,7 @@ subroutine gronor_master()
             call MPI_Abort(MPI_COMM_WORLD, ierr, ierr_abort)
           endif
           write(lfnmpi,'("send dup to",i0," tid",i0," ibuf=",4i12)') iremote,tid-1,ibuf
+          flush(lfnmpi)
 
           !     Debug message
           

@@ -322,10 +322,13 @@ contains
   write(mpifile,'("mpi_log_rank",i0,"_thread",i0,".log")') me,thread_id
   open(newunit=lfnmpi,file=mpifile,status='replace',action='write',iostat=ierr)
   write(lfnmpi,'(a,i0,a,i0,a)') 'rank ',me,' thread ',thread_id,' starting'
+  flush(lfnmpi)
   write(lfnmpi,'(a,2i8)') 'len_work_dbl len_work_int ',len_work_dbl,len_work_int
+  flush(lfnmpi)
   write(lfnmpi,'("va=",i0,"x",i0," vb=",i0,"x",i0," tb=",i0,"x",i0,&
   " ta=",i0,"x",i0," a=",i0,"x",i0)') size(va,1),size(va,2),size(vb,1),size(vb,2), &
   size(tb,1),size(tb,2),size(ta,1),size(ta,2),size(a,1),size(a,2)
+  flush(lfnmpi)
   
   if(idbg.gt.0) then
     call swatch(today,now)
@@ -356,6 +359,7 @@ contains
     call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
   endif
   write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(16)),int(tbuf(17))
+  flush(lfnmpi)
   if(idbg.gt.20) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,1x,a)') today(1:8),now(1:8),' Head signalled master'
@@ -384,6 +388,7 @@ contains
       call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
     endif
     write(lfnmpi,'("recv task ibuf=",4i12)') ibuf
+    flush(lfnmpi)
 
     if(idbg.gt.10) then
       call swatch(today,now)
@@ -434,6 +439,7 @@ contains
 !        call MPI_Test(itreq,flag,status,ierr)
 !        if(.not.flag) call MPI_Request_free(itreq,ierr)
 !      endif
+      close(lfnmpi)
       return
     endif
     odupl=ibuf(1).lt.0
@@ -475,6 +481,7 @@ contains
         call timer_stop(39)
 !        call MPI_Request_free(itreq,ierr)
         oterm=.true.
+        close(lfnmpi)
         return
       endif
     endif
@@ -506,12 +513,13 @@ contains
       call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
 
       call timer_stop(47)
-      
+
       if(oterm) then
 !        if(otreq) then
 !          call MPI_Test(itreq,flag,status,ierr)
 !          if(.not.flag) call MPI_Request_free(itreq,ierr)
 !        endif
+        close(lfnmpi)
         return
       endif
       
@@ -540,14 +548,15 @@ contains
         flush(lfndbg)
         call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
       endif
-      call MPI_Request_free(ireq,ierr)
-      if(ierr .ne. MPI_SUCCESS) then
-        call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
-        write(lfndbg,'(a)') 'MPI_Request_free failed: '//mpi_err_str(1:mpi_err_len)
-        flush(lfndbg)
-        call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
-      endif
+    call MPI_Request_free(ireq,ierr)
+    if(ierr .ne. MPI_SUCCESS) then
+      call MPI_Error_string(ierr, mpi_err_str, mpi_err_len, ierr2)
+      write(lfndbg,'(a)') 'MPI_Request_free failed: '//mpi_err_str(1:mpi_err_len)
+      flush(lfndbg)
+      call MPI_Abort(MPI_COMM_WORLD, ierr, ierr2)
+    endif
       write(lfnmpi,'("send result buffer=",17(1x,e16.8))') (buffer(i),i=1,17)
+      flush(lfnmpi)
       if(idbg.gt.10) then
         call swatch(today,now)
         write(lfndbg,'(a,1x,a,i5,a,7i7)') today(1:8),now(1:8), &

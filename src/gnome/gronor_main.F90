@@ -61,6 +61,7 @@ subroutine gronor_main()
   use iso_c_binding
   use iso_fortran_env
   use gnome_solvers
+  use gronor_solver_mod
 #ifdef _OPENMP
   use omp_lib
 #endif
@@ -82,7 +83,6 @@ subroutine gronor_main()
   external :: gronor_worker,gronor_memory_usage
   external :: gronor_master,gronor_read_integrals
   external :: gronor_make_basestate
-  external :: gronor_solver_create_handle
   external :: gronor_results_header_cml,gronor_init_cml
   external :: gronor_env_cml,gronor_gnome_molcas_input
   external :: gronor_read_vectors_and_determinants

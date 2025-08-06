@@ -14,10 +14,12 @@
 
 !>    Driver routine for worker ranks
 !!    @brief Driver for calculation Hamiltonian matrix elements on worker ranks
-!!    @author T. P. Straatsma (ORNL)subroutine gronor_solver_init()
+module gronor_solver_mod
+  implicit none
+contains
 
 subroutine gronor_solver_init(ntemp,a,u,w,ev)
-  
+
   use mpi
   use cidef
   use cidist
@@ -26,7 +28,7 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   use gnome_parameters
   use gnome_solvers
   use iso_c_binding
-  
+
 #ifdef CUSOLVER
   use cusolverDn
   use cuda_cusolver
@@ -36,22 +38,24 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 #ifdef MKL
   use mkl_solver
 #endif
-  
+
   implicit none
-  
+
 #ifdef MKL
   external :: dgesvd,dsyevd
   integer (kind=4) :: ierr
 #endif
+  external :: gronor_abort
 
   integer, intent(in) :: ntemp
   real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
   character(len=255) :: string
   character(len=10) :: today, now
-  
+
   integer (kind=8) :: lworki,lwork1m,lwork2m
+  integer (kind=8) :: min_work_dbl,min_work_int
   integer (kind=4) :: lwork1,lwork2
-  
+
   real(kind=8) :: worksize(2),worksize2(2)
   integer (kind=4) :: iworksize(2)
 
@@ -62,31 +66,43 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   len_work2_dbl=0
 
 ! Cusolver initialization for the svd
-  
+
   if(idbg.gt.50) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a,2i4)') today(1:8),now(1:8)," Solver init for ",sv_solver,ev_solver
     flush(lfndbg)
   endif
 
+  select case(sv_solver)
+  case(SOLVER_EISPACK,SOLVER_MKL,SOLVER_MKLD,SOLVER_MKLJ)
+  case default
+    call gronor_abort(901,"Unknown SVD solver")
+  end select
+
+  select case(ev_solver)
+  case(SOLVER_EISPACK,SOLVER_MKL,SOLVER_MKLD,SOLVER_MKLJ)
+  case default
+    call gronor_abort(902,"Unknown eigenvalue solver")
+  end select
+
   lsvcpu=.false.
   levcpu=.false.
   lsvtrns=.true.
-  
+
   if(sv_solver.eq.SOLVER_EISPACK) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKL) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLD) lsvcpu=.true.
   if(sv_solver.eq.SOLVER_MKLJ) lsvcpu=.true.
 
   if(sv_solver.eq.SOLVER_EISPACK) lsvtrns=.false.
-  
+
   if(ev_solver.eq.SOLVER_EISPACK) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKL) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLD) levcpu=.true.
   if(ev_solver.eq.SOLVER_MKLJ) levcpu=.true.
 
   ! MKL initialization
-  
+
 #ifdef MKL
     ndimm=nelecs
     mdimm=mbasel
@@ -121,10 +137,22 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
-    
+
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
     len_work2_dbl=max(1,len_work2_dbl)
+
+    min_work_dbl=max(1_8,3*nelecs)
+    min_work_int=max(1_8,nelecs)
+    if(len_work_dbl<min_work_dbl .or. len_work_int<min_work_int) then
+      call gronor_abort(903,"Workspace too small")
+    endif
+
+    if(idbg.gt.50) then
+      write(lfndbg,'(a,i0,a,i0,a,3l1)') ' workspace dbl=',len_work_dbl,
+          ' int=',len_work_int,' flags',lsvcpu,levcpu,lsvtrns
+      flush(lfndbg)
+    endif
 
     allocate(workspace_d(len_work_dbl))
     allocate(workspace2_d(len_work2_dbl))
@@ -132,7 +160,7 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
     allocate(workspace_i4(len_work_int))
 
     return
-  end subroutine gronor_solver_init
+end subroutine gronor_solver_init
 
 subroutine gronor_solver_finalize()
 
@@ -147,12 +175,11 @@ subroutine gronor_solver_finalize()
   use iso_fortran_env
   use gnome_solvers
 
-  
   return
 end subroutine gronor_solver_finalize
 
 subroutine gronor_solver_create_handle()
-  
+
   use mpi
   use inp
   use cidef
@@ -163,8 +190,10 @@ subroutine gronor_solver_create_handle()
   use iso_c_binding
   use iso_fortran_env
   use gnome_solvers
-  
+
   ! Only accelerated ranks need to define cusolver handles
-  
+
   return
 end subroutine gronor_solver_create_handle
+
+end module gronor_solver_mod

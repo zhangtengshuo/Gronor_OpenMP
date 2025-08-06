@@ -87,18 +87,16 @@ subroutine gronor_worker()
   enddo
 
   nelecs=0
-  nveca=0
+  nveca_max=0
   n=0
   do ibase=1,nbase
-    nveca=max(nveca,inactb(ibase)+nactb(ibase))
+    nveca_max=max(nveca_max,inactb(ibase)+nactb(ibase))
     n=2*inactb(ibase)
     do iact=1,nactb(ibase)
       n=n+iabs(int(iocc(1,ibase,iact),kind=kind(n)))
     enddo
     nelecs=max(nelecs,n)
   enddo
-
-  nvecb=nveca
   nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
   mbasel=max(nelecs,nbas)
 
@@ -121,19 +119,19 @@ subroutine gronor_worker()
 !$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
 !$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
-!$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel, &
+!$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca_max,nstdim,mbasel, &
 !$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact)
 
   thread_id = omp_get_thread_num()
 
   allocate(a(nelecs,nelecs))
-  allocate(ta(mbasel,max(mbasel,nveca)))
-  allocate(tb(mbasel,nvecb))
-  allocate(va(nveca,mbasel))
-  allocate(vb(nvecb,mbasel))
+  allocate(ta(mbasel,max(mbasel,nveca_max)))
+  allocate(tb(mbasel,nveca_max))
+  allocate(va(nveca_max,mbasel))
+  allocate(vb(nveca_max,mbasel))
   allocate(w1(max(nelecs,nbas,mbasel)))
   allocate(w2(max(nelecs,nbas,mbasel),max(nelecs,nbas,mbasel)))
-  allocate(taa(mbasel,max(mbasel,nveca)))
+  allocate(taa(mbasel,max(mbasel,nveca_max)))
 
   allocate(u(nelecs,nelecs))
   allocate(w(nelecs,nelecs))
@@ -145,10 +143,10 @@ subroutine gronor_worker()
   allocate(bsdiag(max(nelecs,nbas,mbasel)))
   allocate(csdiag(max(nelecs,nbas,mbasel)))
   allocate(sdiag(max(nelecs,nbas,mbasel)))
-  allocate(aaa(mbasel,max(mbasel,nveca)))
-  allocate(tt(mbasel,max(mbasel,nveca)))
-  allocate(aat(mbasel,max(mbasel,nveca)))
-  allocate(sm(mbasel,max(mbasel,nveca)))
+  allocate(aaa(mbasel,max(mbasel,nveca_max)))
+  allocate(tt(mbasel,max(mbasel,nveca_max)))
+  allocate(aat(mbasel,max(mbasel,nveca_max)))
+  allocate(sm(mbasel,max(mbasel,nveca_max)))
   allocate(ioccup(mnact,2))
   allocate(iocopen(mnact,2))  ! thread-local open-shell occupation
   allocate(vec(mvec,mbasel,2))
@@ -204,8 +202,7 @@ subroutine gronor_worker()
     write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
     write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
     write(lfndbg,'(a,i10)')  " nelecs:", nelecs
-    write(lfndbg,'(a,i10)')  " nveca: ", nveca
-    write(lfndbg,'(a,i10)')  " nvecb: ", nvecb
+    write(lfndbg,'(a,i10)')  " nveca_max: ", nveca_max
     write(lfndbg,'(a,i10)')  " mbasel:", mbasel
     write(lfndbg,'(a,i10)')  " nstdim:", nstdim
     flush(lfndbg)

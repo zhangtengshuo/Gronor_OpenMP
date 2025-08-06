@@ -2000,18 +2000,17 @@ subroutine gronor_main()
       enddo
 
       nelecs=0
-      nveca=0
+      nveca_max=0
       n=0
       do ibase=1,nbase
-        nveca=max(nveca,inactb(ibase)+nactb(ibase))
+        nveca_max=max(nveca_max,inactb(ibase)+nactb(ibase))
         n=2*inactb(ibase)
         do iact=1,nactb(ibase)
           n=n+iabs(int(iocc(1,ibase,iact),kind=kind(n)))
         enddo
         nelecs=max(nelecs,n)
       enddo
-
-      nvecb=nveca
+      nvecb=nveca_max
       nstdim=max(1,nelecs*nelecs,nbas*(nbas+1)/2)
       mbasel=max(nelecs,nbas)
 

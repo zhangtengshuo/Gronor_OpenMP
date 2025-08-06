@@ -69,7 +69,6 @@
         write(lfndbg,'(a,1x,es12.4)') ' a(1,1)=', a(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' u(1,1)=', u(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' w(1,1)=', w(1,1)
-
         imax = min(size(a,1),500)
         jmax = min(size(a,2),500)
         write(lfndbg,'(a)') ' a contents:'

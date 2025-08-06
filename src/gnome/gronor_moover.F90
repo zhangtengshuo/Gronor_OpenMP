@@ -80,7 +80,6 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
     write(lfndbg,'(a,2i10)') ' ntcla ntclb:', ntcla, ntclb
     write(lfndbg,'(a,1x,es12.4)') ' va(1,1)=', va(1,1)
     write(lfndbg,'(a,1x,es12.4)') ' vb(1,1)=', vb(1,1)
-
     imax = min(size(va,1),500)
     jmax = min(size(va,2),500)
     write(lfndbg,'(a)') ' va contents:'

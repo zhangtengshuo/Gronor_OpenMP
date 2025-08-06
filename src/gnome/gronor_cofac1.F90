@@ -25,20 +25,20 @@
       use gnome_parameters
       use gnome_data
       use gnome_solvers
+      use gronor_svd_mod, only: gronor_svd
+      use gronor_evd_mod, only: gronor_evd
       use omp_lib
       implicit none
       contains
-      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,nveca_task)
+      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
 
       implicit none
 
       real (kind=8), intent(inout) :: a(:,:),u(:,:),w(:,:),wt(:,:),ev(:),ta(:,:)
       real (kind=8), intent(inout) :: diag(:),sdiag(:),cdiag(:),csdiag(:)
-      integer, intent(in) :: nveca_task
 
       external :: timer_start,timer_stop
       external :: gronor_abort
-      external :: gronor_svd,gronor_evd
 
       integer :: lfndbg
       integer :: i,j,idetuw,k
@@ -66,7 +66,7 @@
         write(lfndbg,'(a,1i10)') ' cdiag: ', size(cdiag)
         write(lfndbg,'(a,1i10)') ' csdiag:', size(csdiag)
         write(lfndbg,'(a,5i10)') ' scalars nelecs mbasel ntcla ntclb nveca:', &
-             nelecs, mbasel, ntcla, ntclb, nveca_task
+             nelecs, mbasel, ntcla, ntclb, nveca
         write(lfndbg,'(a,1x,es12.4)') ' a(1,1)=', a(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' u(1,1)=', u(1,1)
         write(lfndbg,'(a,1x,es12.4)') ' w(1,1)=', w(1,1)

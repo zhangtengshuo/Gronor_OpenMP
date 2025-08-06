@@ -20,7 +20,7 @@
 !!
 
 
-subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag,nveca_task)
+subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag)
 
   !      This routine mutiplies the input-matrix (a)
   !       (which is positioned in a workmatrix (aa))
@@ -38,7 +38,6 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag,nveca_task)
   use gnome_data
   implicit none
   real (kind=8), intent(inout) :: va(:,:),vb(:,:),ta(:,:),taa(:,:),w1(:),w2(:,:),diag(:),sdiag(:)
-  integer, intent(in) :: nveca_task
   integer :: i,j,k,kk,m1
   real (kind=8) :: sum
 
@@ -78,11 +77,11 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag,nveca_task)
           enddo
         endif
       endif
-      if(nalfa .ne. nveca_task) then
+      if(nalfa .ne. nveca) then
 #ifdef ACC
 !$acc loop reduction(+:sum)
 #endif
-        do k=m1,nveca_task
+        do k=m1,nveca
           kk=k+ntcla
           sum=sum+diag(kk)*va(k,j)
         enddo
@@ -121,11 +120,11 @@ subroutine gronor_tramat(va,vb,ta,taa,w1,w2,diag,sdiag,nveca_task)
           enddo
         endif
       endif
-      if(nalfa .ne. nveca_task) then
+      if(nalfa .ne. nveca) then
 #ifdef ACC
 !$acc loop seq reduction(+:sum)
 #endif
-        do k=m1,nveca_task
+        do k=m1,nveca
           kk=k+ntcla
           sum=sum+va(k,i)*taa(kk,j)
         enddo

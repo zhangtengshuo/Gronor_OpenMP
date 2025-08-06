@@ -55,7 +55,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
   integer :: lfndbg,ihc,nhc
   integer :: idet=0,k=0,iv=0,ib=0,ntvc=0,ivc=0,ibas=0
-  integer :: nveca_task
 
   logical (kind=4) :: flag=.false.
   integer (kind=4) :: ierr=0,status(MPI_STATUS_SIZE)=0
@@ -121,9 +120,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   ntopa=ntop(1)
   ntopb=ntop(2)
 
-  nveca_task=ntcla+ntopa
+  nveca=ntcla+ntopa
   nvecb=ntclb+ntopb
-  ntesta=nveca_task+ntcla
+  ntesta=nveca+ntcla
   ntestb=nvecb+ntclb
 
   if(ntesta.ne.ntestb) call gronor_abort(305,"Number of electrons is inconsistent")
@@ -160,14 +159,14 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
     write(lfndbg,'(a,i10)')  " ihc:   ", ihc
     write(lfndbg,'(a,i10)')  " nhc:   ", nhc
-    write(lfndbg,'(a,i10)')  " nveca: ", nveca_task
+    write(lfndbg,'(a,i10)')  " nveca: ", nveca
     write(lfndbg,'(a,i10)')  " nvecb: ", nvecb
     write(lfndbg,'(a,i10)')  " nelecs:", nelecs
     write(lfndbg,'(a,i10)')  " mbasel:", mbasel
     flush(lfndbg)
   endif
 
-  if(nveca_task.ne.ntcl(1)+ntop(1)) call gronor_abort(306,"Incompatible nveca")
+  if(nveca.ne.ntcl(1)+ntop(1)) call gronor_abort(306,"Incompatible nveca")
   if(nvecb.ne.ntcl(2)+ntop(2)) call gronor_abort(307,"Incompatible nvecb")
 
   if(idbg.gt.40) then
@@ -187,7 +186,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   endif
 
   do ib=1,nbas
-    do iv=1,nveca_task
+    do iv=1,nveca
       va(iv,ib)=vec(iv,ib,1)
     enddo
   enddo
@@ -210,13 +209,13 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     !  Calculations of the overlap matrices
 
     call timer_start(14)
-    call gronor_moover(lfndbg,va,vb,tb,ta,a,nveca_task)
+    call gronor_moover(lfndbg,va,vb,tb,ta,a)
     call timer_stop(14)
 
     !  Calculation of the cofactor matrices and arrays corresponding to the total overlap
 
     call timer_start(15)
-    call gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,nveca_task)
+    call gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
     call timer_stop(15)
 
     if(idbg.ge.20) then
@@ -234,7 +233,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
 
       if(corres) then
         call timer_start(16)
-        call gronor_cororb(u,w,va,vb,ev,nveca_task)
+        call gronor_cororb(u,w,va,vb,ev)
         call timer_stop(16)
       endif
 
@@ -264,7 +263,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
       !     (x-matrix to f-matrix in terms of the basis set of the 2-el.integr
 
       call timer_start(20)
-      call gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag,nveca_task)
+      call gronor_tramat2(lfndbg,va,vb,ta,aaa,w1,w2,diag,bdiag,bsdiag,cdiag,csdiag,sdiag)
       call timer_stop(20)
 
       !     Calculation of the one electron Hamiltonian matrix elements

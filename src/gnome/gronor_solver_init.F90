@@ -47,7 +47,7 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 #endif
   external :: gronor_abort
 
-  integer, intent(in) :: ntemp
+  integer(kind=kind(nelecs)), intent(in) :: ntemp
   real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
   character(len=255) :: string
   character(len=10) :: today, now

@@ -60,6 +60,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   integer (kind=4) :: ierr=0,status(MPI_STATUS_SIZE)=0
 
   integer :: thread_id
+  character(len=10) :: today, now
 
 #ifdef _OPENMP
   thread_id = omp_get_thread_num()
@@ -132,8 +133,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   mbasel=max(nelecs,nbas)
 
   if(idbg.gt.10 .and. thread_id==0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check in gronor_gnome:"
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), " Array dimensions check in gronor_gnome:"
     write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
     write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
     write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)

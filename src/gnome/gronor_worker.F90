@@ -48,6 +48,7 @@ subroutine gronor_worker()
   character(len=128) :: mpifile
   integer (kind=4) :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
+  character(len=10) :: today, now
 
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
@@ -118,7 +119,7 @@ subroutine gronor_worker()
 
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
 !$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
-!$omp& mpi_err_len,ierr2,mpi_err_str,flag) &
+!$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
 !$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel, &
 !$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact)
@@ -162,22 +163,22 @@ subroutine gronor_worker()
 #endif
 
   if(idbg.gt.50 .and. thread_id==0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering solver initialization"
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8)," Entering solver initialization"
     flush(lfndbg)
   endif
 
   call gronor_solver_init(nelecs, a, u, w, ev)
 
   if(idbg.gt.50 .and. thread_id==0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Solver initialization completed"
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8)," Solver initialization completed"
     flush(lfndbg)
   endif
 
   if(idbg.gt.10 .and. thread_id==0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), " Array dimensions check in gronor_worker_process:"
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), " Array dimensions check in gronor_worker_process:"
     ! 输出二维数组维度
     write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
     write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
@@ -327,11 +328,11 @@ contains
   size(tb,1),size(tb,2),size(ta,1),size(ta,2),size(a,1),size(a,2)
   
   if(idbg.gt.0) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,1x,a,5i5)') date(1:8),time(1:8), &
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,1x,a,5i5)') today(1:8),now(1:8), &
         ' iamhead, numdev, master, mygroup =',iamhead,numdev,mstr,mygroup
-    call swatch(date,time)
-    write(lfndbg,130) date(1:8),time(1:8),' thisgroup=',(thisgroup(i),i=1,mgr+1)
+    call swatch(today,now)
+    write(lfndbg,130) today(1:8),now(1:8),' thisgroup=',(thisgroup(i),i=1,mgr+1)
 130 format(a,1x,a,1x,a,t30,11i5,/,(t35,10i5))
     flush(lfndbg)
   endif
@@ -356,13 +357,13 @@ contains
   endif
   write(lfnmpi,'("send ready len_work_dbl=",i0," len_work_int=",i0)') int(tbuf(16)),int(tbuf(17))
   if(idbg.gt.20) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,1x,a)') today(1:8),now(1:8),' Head signalled master'
     flush(lfndbg)
   endif
   if(idbg.gt.10) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,i5,a,4i7)') today(1:8),now(1:8),me,' sent buffer   ',mstr
     flush(lfndbg)
   endif
 
@@ -385,8 +386,8 @@ contains
     write(lfnmpi,'("recv task ibuf=",4i12)') ibuf
 
     if(idbg.gt.10) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,i5,a,7i7)') today(1:8),now(1:8), &
           me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
       flush(lfndbg)
     endif
@@ -451,9 +452,9 @@ contains
         endif
         !            call MPI_Request_free(itreq,ierr)
         if(idbg.gt.10) then
-          call swatch(date,time)
+          call swatch(today,now)
           write(lfndbg,'(a,1x,a,a)') &
-              date(1:8),time(1:8),' Terminate iRecv posted '
+              today(1:8),now(1:8),' Terminate iRecv posted '
         endif
         otreq=.true.
       endif
@@ -467,8 +468,8 @@ contains
       if(flag) then
 !            call MPI_Cancel(itreq,ierr)
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8), &
+          call swatch(today,now)
+          write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), &
               ' Terminating in gronor_worker'
         endif
         call timer_stop(39)
@@ -481,8 +482,8 @@ contains
     call timer_stop(39)
     
     if(idbg.gt.15) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,a,f12.6)') date(1:8),time(1:8), &
+      call swatch(today,now)
+      write(lfndbg,'(a,1x,a,a,f12.6)') today(1:8),now(1:8), &
           ' Cumulative COMM1 Wait Time ',timer_wall_total(39)
       flush(lfndbg)
     endif
@@ -495,8 +496,8 @@ contains
     call timer_start(46)
     if(ibase.ne.0.and..not.oterm) then
       if(idbg.gt.30) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8), &
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,i5,a,6i10)') today(1:8),now(1:8), &
             me,' Entering gronor_calculate with ',ibase,jbase,idet,jdet,ntask,nbatch
         flush(lfndbg)
       endif
@@ -516,8 +517,8 @@ contains
       
       buffer(3)=timer_wall(47)
       if(idbg.gt.30) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8), &
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,i5,a)') today(1:8),now(1:8), &
             me,' Returned from gronor_calculate '
         flush(lfndbg)
       endif
@@ -548,8 +549,8 @@ contains
       endif
       write(lfnmpi,'("send result buffer=",17(1x,e16.8))') (buffer(i),i=1,17)
       if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,i5,a,7i7)') today(1:8),now(1:8), &
             me,' sent results  ',mstr,(ibuf(i),i=1,4)
         flush(lfndbg)
       endif

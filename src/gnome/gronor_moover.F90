@@ -25,6 +25,7 @@ module gronor_moover_mod
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+  use omp_lib
   implicit none
 contains
 subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
@@ -38,6 +39,8 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
   integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
   integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
   real (kind=8) :: sum
+  integer :: thread_id
+  character(len=10) :: today, now
 
   if(idbg.ge.13) write(lfndbg,601)
 601 format(/,' Calculation of the overlap matrix')
@@ -60,7 +63,24 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
   if(idbg.ge.14) write(lfndbg,602)
 602 format('  itypen icentn jtype jcent   icount      indbas     ' &
         ,' indbas         overlap',//)
-  
+
+  thread_id = omp_get_thread_num()
+  if(idbg.gt.10 .and. thread_id==0) then
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), &
+         ' Array dimensions check in gronor_moover:'
+    write(lfndbg,'(a,2i10)') ' va:    ', size(va,1), size(va,2)
+    write(lfndbg,'(a,2i10)') ' vb:    ', size(vb,1), size(vb,2)
+    write(lfndbg,'(a,2i10)') ' tb:    ', size(tb,1), size(tb,2)
+    write(lfndbg,'(a,2i10)') ' ta:    ', size(ta,1), size(ta,2)
+    write(lfndbg,'(a,2i10)') ' a:     ', size(a,1), size(a,2)
+    write(lfndbg,'(a,5i10)') ' nbas nelecs nveca nvecb nalfa:', &
+         nbas, nelecs, nveca, nvecb, nalfa
+    write(lfndbg,'(a,2i10)') ' ntcla ntclb:', ntcla, ntclb
+    write(lfndbg,'(a,1x,es12.4)') ' va(1,1)=', va(1,1)
+    write(lfndbg,'(a,1x,es12.4)') ' vb(1,1)=', vb(1,1)
+  end if
+
   ! Calculation of the overlap matrix ta from va, vb and s
 
 !$acc kernels present(ta,tb,s,vb)

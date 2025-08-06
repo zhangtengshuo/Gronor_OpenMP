@@ -47,6 +47,7 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   integer, intent(in) :: ntemp
   real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
   character(len=255) :: string
+  character(len=10) :: today, now
   
   integer (kind=8) :: lworki,lwork1m,lwork2m
   integer (kind=4) :: lwork1,lwork2
@@ -63,8 +64,8 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 ! Cusolver initialization for the svd
   
   if(idbg.gt.50) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a,2i4)') date(1:8),time(1:8)," Solver init for ",sv_solver,ev_solver
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a,2i4)') today(1:8),now(1:8)," Solver init for ",sv_solver,ev_solver
     flush(lfndbg)
   endif
 

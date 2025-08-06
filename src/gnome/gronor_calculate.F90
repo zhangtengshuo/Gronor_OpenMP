@@ -53,25 +53,70 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
   external :: swatch,timer_start,timer_stop
   external :: gronor_abort
 
-  integer (kind=4) :: ireq,ierr
-  integer (kind=4) :: iremote,status(MPI_STATUS_SIZE)
-  integer (kind=4) :: ncount,mpitag,mpidest
-  integer :: ib,jb,id1,id2,ii,ihc,nhc,iact
+  integer (kind=4) :: ireq=0,ierr=0
+  integer (kind=4) :: iremote=0,status(MPI_STATUS_SIZE)=0
+  integer (kind=4) :: ncount=0,mpitag=0,mpidest=0
+  integer :: ib,jb,id1,id2,ii=0,ihc=0,nhc=0,iact=0
 
-  integer :: i,ibv,idet,ij,j,k,l2,m,nop,nvc,indxx
-  integer :: idown,iup,iv,ncleff,nopeff,mspin,iclose,nb,ncl,indexv
-  integer :: ntvc,ivc,ibas
+  integer :: i=0,ibv=0,idet=0,ij=0,j=0,k=0,l2=0,m=0,nop=0,nvc=0,indxx=0
+  integer :: idown=0,iup=0,iv=0,ncleff=0,nopeff=0,mspin=0,iclose=0,nb=0,ncl=0,indexv=0
+  integer :: ntvc=0,ivc=0,ibas=0
 
-  integer :: ioff
+  integer :: ioff=0
 
-  real (kind=8) :: btemp,btemp2
+  real (kind=8) :: btemp=0.0d0,btemp2=0.0d0
 
-  logical (kind=4) :: flag
+  logical (kind=4) :: flag=.false.
+
+  integer :: thread_id
+  character(len=10) :: today, now
+
+#ifdef _OPENMP
+  thread_id = omp_get_thread_num()
+#else
+  thread_id = 0
+#endif
 
   ndeti=idetb(ib)
   ndetj=idetb(jb)
   nacti=nactb(ib)
   nactj=nactb(jb)
+
+  if(idbg.gt.10 .and. thread_id==0) then
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), " Array dimensions check in gronor_calculate:"
+    write(lfndbg,'(a,2i10)') " va:    ", size(va,1), size(va,2)
+    write(lfndbg,'(a,2i10)') " vb:    ", size(vb,1), size(vb,2)
+    write(lfndbg,'(a,2i10)') " tb:    ", size(tb,1), size(tb,2)
+    write(lfndbg,'(a,2i10)') " ta:    ", size(ta,1), size(ta,2)
+    write(lfndbg,'(a,2i10)') " a:     ", size(a,1), size(a,2)
+    write(lfndbg,'(a,2i10)') " u:     ", size(u,1), size(u,2)
+    write(lfndbg,'(a,2i10)') " w:     ", size(w,1), size(w,2)
+    write(lfndbg,'(a,2i10)') " wt:    ", size(wt,1), size(wt,2)
+    write(lfndbg,'(a,2i10)') " sm:    ", size(sm,1), size(sm,2)
+    write(lfndbg,'(a,2i10)') " aaa:   ", size(aaa,1), size(aaa,2)
+    write(lfndbg,'(a,2i10)') " aat:   ", size(aat,1), size(aat,2)
+    write(lfndbg,'(a,2i10)') " tt:    ", size(tt,1), size(tt,2)
+    write(lfndbg,'(a,i10)')  " ev:    ", size(ev)
+    write(lfndbg,'(a,i10)')  " w1:    ", size(w1)
+    write(lfndbg,'(a,2i10)') " w2:    ", size(w2,1), size(w2,2)
+    write(lfndbg,'(a,i10)')  " sdiag: ", size(sdiag)
+    write(lfndbg,'(a,i10)')  " diag:  ", size(diag)
+    write(lfndbg,'(a,i10)')  " bsdiag:", size(bsdiag)
+    write(lfndbg,'(a,i10)')  " bdiag: ", size(bdiag)
+    write(lfndbg,'(a,i10)')  " csdiag:", size(csdiag)
+    write(lfndbg,'(a,i10)')  " cdiag: ", size(cdiag)
+    write(lfndbg,'(a,2i10)') " taa:   ", size(taa,1), size(taa,2)
+    write(lfndbg,'(a,i10)')  " ib:    ", ib
+    write(lfndbg,'(a,i10)')  " jb:    ", jb
+    write(lfndbg,'(a,i10)')  " id1:   ", id1
+    write(lfndbg,'(a,i10)')  " id2:   ", id2
+    write(lfndbg,'(a,i10)')  " ndeti: ", ndeti
+    write(lfndbg,'(a,i10)')  " ndetj: ", ndetj
+    write(lfndbg,'(a,i10)')  " nacti: ", nacti
+    write(lfndbg,'(a,i10)')  " nactj: ", nactj
+    flush(lfndbg)
+  endif
   if(idbg.ge.50) then
     write(lfndbg,600) ib,jb,id1,id2
 600 format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
@@ -128,8 +173,8 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
 
       if(flag) then
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),' Terminating in gronor_calculate'
+          call swatch(today,now)
+          write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8),' Terminating in gronor_calculate'
         endif
         oterm=.true.
         return
@@ -365,8 +410,8 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
         endif
       endif
       if(idbg.ge.12) then
-        call swatch(date,time)
-        write(lfndbg,651) date(1:8),time(1:8),ij,i,j,hh,ss
+        call swatch(today,now)
+        write(lfndbg,651) today(1:8),now(1:8),ij,i,j,hh,ss
 651     format(a,1x,a,' Calculated values from gronor_gnome ',3i7,'  H:',f20.10,'  S:',f20.10)
       endif
       buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
@@ -417,8 +462,8 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
         call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
         iremote=status(MPI_SOURCE)
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),me,' received e2buf from',iremote
+          call swatch(today,now)
+          write(lfndbg,'(a,1x,a,i5,a,i5)') today(1:8),now(1:8),me,' received e2buf from',iremote
           flush(lfndbg)
         endif
         e2buff=e2buff+e2summ
@@ -430,8 +475,8 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
       call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
       call MPI_Request_free(ireq,ierr)
       if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),me,' sent e2buf to',thisgroup(2)
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,i5,a,i5)') today(1:8),now(1:8),me,' sent e2buf to',thisgroup(2)
         flush(lfndbg)
       endif
 

@@ -58,6 +58,7 @@ subroutine gronor_parallel_integral_input()
   integer (kind=8), allocatable :: nag(:),nig(:),nng(:)
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   integer (kind=4) :: source
+  character(len=10) :: today, now
 
   inode=map2(me+1,6)
 
@@ -496,8 +497,8 @@ subroutine gronor_parallel_integral_input()
         endif
 
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,130) date(1:8),time(1:8),jint
+          call swatch(today,now)
+          write(lfndbg,130) today(1:8),now(1:8),jint
 130       format(a,1x,a,1x,' Integrals broadcasted for batch ',i5)
           flush(lfndbg)
         endif

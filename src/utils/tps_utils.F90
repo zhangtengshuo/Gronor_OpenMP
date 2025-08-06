@@ -557,118 +557,27 @@ subroutine swatch(today,now)
 
   implicit none
 
-#if defined(LINUX) && !defined(IBM)
-  external :: linux_date,linux_time
-#endif
-  external :: tps_abort
+  character(len=10) :: today,now
+  character(len=8)  :: dstring,tstring
+  character(len=5)  :: zone
+  integer           :: values(8)
 
-  character*10 today,now
+  call date_and_time(dstring,tstring,zone,values)
 
-  !#if defined(LINUX)
-  !      character*26 string
-  !#endif
-#if defined(IBM)
-  character*26 dstring,tstring,tzone
-  integer :: dtvalue(8)
-#endif
-#if defined(KSR)
-  integer :: time
-  character*24 ctime,string
-#endif
-#if defined(SP1) || defined(CRAY_T3D) || defined(CRAY_T3E) || defined(SOLARIS)
-  character*26 string
-#endif
-#if defined(SGI)
-  character*9 string
-#endif
+  today(1:2) = dstring(3:4)
+  today(3:3) = '/'
+  today(4:5) = dstring(5:6)
+  today(6:6) = '/'
+  today(7:8) = dstring(7:8)
+  today(9:10) = '  '
 
-  today='00/00/00  '
-  now='00:00:00   '
+  now(1:2) = tstring(1:2)
+  now(3:3) = ':'
+  now(4:5) = tstring(3:4)
+  now(6:6) = ':'
+  now(7:8) = tstring(5:6)
+  now(9:10) = '  '
 
-#if defined(IBM)
-  !     call fdate(string)
-  call date_and_time(dstring,tstring,tzone,dtvalue)
-  today(1:2)=dstring(5:6)
-  today(4:5)=dstring(7:8)
-  today(7:8)=dstring(3:4)
-  !      if(string(4:6).eq.'Jan') today(1:2)='01'
-  !      if(string(4:6).eq.'Feb') today(1:2)='02'
-  !      if(string(4:6).eq.'Mar') today(1:2)='03'
-  !      if(string(4:6).eq.'Apr') today(1:2)='04'
-  !      if(string(4:6).eq.'May') today(1:2)='05'
-  !      if(string(4:6).eq.'Jun') today(1:2)='06'
-  !      if(string(4:6).eq.'Jul') today(1:2)='07'
-  !      if(string(4:6).eq.'Aug') today(1:2)='08'
-  !      if(string(4:6).eq.'Sep') today(1:2)='09'
-  !      if(string(4:6).eq.'Oct') today(1:2)='10'
-  !      if(string(4:6).eq.'Nov') today(1:2)='11'
-  !      if(string(4:6).eq.'Dec') today(1:2)='12'
-  !      today(7:8)=string(8:9)
-  !      today(4:5)=string(1:2)
-  now(1:2)=tstring(1:2)
-  now(4:5)=tstring(3:4)
-  now(7:8)=tstring(5:6)
-#endif
-#if defined(KSR)
-  string=ctime(time())
-  if(string(5:7).eq.'Jan') today(1:2)='01'
-  if(string(5:7).eq.'Feb') today(1:2)='02'
-  if(string(5:7).eq.'Mar') today(1:2)='03'
-  if(string(5:7).eq.'Apr') today(1:2)='04'
-  if(string(5:7).eq.'May') today(1:2)='05'
-  if(string(5:7).eq.'Jun') today(1:2)='06'
-  if(string(5:7).eq.'Jul') today(1:2)='07'
-  if(string(5:7).eq.'Aug') today(1:2)='08'
-  if(string(5:7).eq.'Sep') today(1:2)='09'
-  if(string(5:7).eq.'Oct') today(1:2)='10'
-  if(string(5:7).eq.'Nov') today(1:2)='11'
-  if(string(5:7).eq.'Dec') today(1:2)='12'
-  today(7:8)=string(23:24)
-  today(4:5)=string(9:10)
-  now=string(11:20)
-#endif
-#if defined(CRAY_T3D) || defined(SP1) || defined(CRAY_T3E) || defined(SOLARIS)
-  call date(string)
-  if(string(5:7).eq.'Jan') today(1:2)='01'
-  if(string(5:7).eq.'Feb') today(1:2)='02'
-  if(string(5:7).eq.'Mar') today(1:2)='03'
-  if(string(5:7).eq.'Apr') today(1:2)='04'
-  if(string(5:7).eq.'May') today(1:2)='05'
-  if(string(5:7).eq.'Jun') today(1:2)='06'
-  if(string(5:7).eq.'Jul') today(1:2)='07'
-  if(string(5:7).eq.'Aug') today(1:2)='08'
-  if(string(5:7).eq.'Sep') today(1:2)='09'
-  if(string(5:7).eq.'Oct') today(1:2)='10'
-  if(string(5:7).eq.'Nov') today(1:2)='11'
-  if(string(5:7).eq.'Dec') today(1:2)='12'
-  today(7:8)=string(23:24)
-  today(4:5)=string(9:10)
-  now=string(11:20)
-#endif
-#if defined(LINUX) && !defined(IBM)
-  call linux_date(today)
-  call linux_time(now)
-#endif
-#if defined(SGI)
-  call date(string)
-  if(string(4:6).eq.'Jan') today(1:2)='01'
-  if(string(4:6).eq.'Feb') today(1:2)='02'
-  if(string(4:6).eq.'Mar') today(1:2)='03'
-  if(string(4:6).eq.'Apr') today(1:2)='04'
-  if(string(4:6).eq.'May') today(1:2)='05'
-  if(string(4:6).eq.'Jun') today(1:2)='06'
-  if(string(4:6).eq.'Jul') today(1:2)='07'
-  if(string(4:6).eq.'Aug') today(1:2)='08'
-  if(string(4:6).eq.'Sep') today(1:2)='09'
-  if(string(4:6).eq.'Oct') today(1:2)='10'
-  if(string(4:6).eq.'Nov') today(1:2)='11'
-  if(string(4:6).eq.'Dec') today(1:2)='12'
-  today(7:8)=string(8:9)
-  today(4:5)=string(1:2)
-  call time(now(1:8))
-  now(9:10)='  '
-#endif
-  if(today(4:4).eq.' ') today(4:4)='0'
   return
 end subroutine swatch
 

@@ -25,6 +25,7 @@
       use gnome_parameters
       use gnome_data
       use gnome_solvers
+      use omp_lib
       implicit none
       contains
       subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
@@ -43,7 +44,31 @@
       real (kind=8) :: coef
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
+      integer :: thread_id
+      character(len=10) :: today, now
 
+
+      thread_id = omp_get_thread_num()
+      if(idbg.gt.10 .and. thread_id==0) then
+        call swatch(today,now)
+        write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), &
+             ' Array dimensions check in gronor_cofac1:'
+        write(lfndbg,'(a,2i10)') ' a:     ', size(a,1), size(a,2)
+        write(lfndbg,'(a,2i10)') ' u:     ', size(u,1), size(u,2)
+        write(lfndbg,'(a,2i10)') ' w:     ', size(w,1), size(w,2)
+        write(lfndbg,'(a,2i10)') ' wt:    ', size(wt,1), size(wt,2)
+        write(lfndbg,'(a,2i10)') ' ta:    ', size(ta,1), size(ta,2)
+        write(lfndbg,'(a,1i10)') ' ev:    ', size(ev)
+        write(lfndbg,'(a,1i10)') ' diag:  ', size(diag)
+        write(lfndbg,'(a,1i10)') ' sdiag: ', size(sdiag)
+        write(lfndbg,'(a,1i10)') ' cdiag: ', size(cdiag)
+        write(lfndbg,'(a,1i10)') ' csdiag:', size(csdiag)
+        write(lfndbg,'(a,5i10)') ' scalars nelecs mbasel ntcla ntclb nveca:', &
+             nelecs, mbasel, ntcla, ntclb, nveca
+        write(lfndbg,'(a,1x,es12.4)') ' a(1,1)=', a(1,1)
+        write(lfndbg,'(a,1x,es12.4)') ' u(1,1)=', u(1,1)
+        write(lfndbg,'(a,1x,es12.4)') ' w(1,1)=', w(1,1)
+      end if
 
       if(idbg.ge.30) write(lfndbg,600)
  600  format(/,' Cofactor matrix will be calculated')

@@ -42,6 +42,7 @@ subroutine gronor_memory_usage()
   real (kind=8) ::gb
   integer (kind=4) :: ireq,ierr,istat(MPI_STATUS_SIZE)
   integer (kind=4) :: ncount,mpitag,mpisrc
+  character(len=10) :: today, now
 
   if(me.eq.0) then
     membuf(1)=mbasel
@@ -117,8 +118,8 @@ subroutine gronor_memory_usage()
   endif
 
   if(idbg.gt.50) then
-    call swatch(date,time)
-    write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Memory usage analysis completed"
+    call swatch(today,now)
+    write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8)," Memory usage analysis completed"
     flush(lfndbg)
   endif
       

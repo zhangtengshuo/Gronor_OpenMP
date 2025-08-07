@@ -80,33 +80,33 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
     write(lfndbg,'(a,2i10)') ' ntcla ntclb:', ntcla, ntclb
     write(lfndbg,'(a,1x,es12.4)') ' va(1,1)=', va(1,1)
     write(lfndbg,'(a,1x,es12.4)') ' vb(1,1)=', vb(1,1)
-    imax = min(size(va,1),500)
-    jmax = min(size(va,2),500)
-    write(lfndbg,'(a)') ' va contents:'
+    imax = min(size(va,1),10)
+    jmax = min(size(va,2),10)
+    write(lfndbg,'(a)') ' va contents (host):'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (va(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(vb,1),500)
-    jmax = min(size(vb,2),500)
-    write(lfndbg,'(a)') ' vb contents:'
+    imax = min(size(vb,1),10)
+    jmax = min(size(vb,2),10)
+    write(lfndbg,'(a)') ' vb contents (host):'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (vb(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(tb,1),500)
-    jmax = min(size(tb,2),500)
-    write(lfndbg,'(a)') ' tb contents:'
+    imax = min(size(tb,1),10)
+    jmax = min(size(tb,2),10)
+    write(lfndbg,'(a)') ' tb contents before update:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (tb(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(ta,1),500)
-    jmax = min(size(ta,2),500)
-    write(lfndbg,'(a)') ' ta contents:'
+    imax = min(size(ta,1),10)
+    jmax = min(size(ta,2),10)
+    write(lfndbg,'(a)') ' ta contents before update:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (ta(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(a,1),500)
-    jmax = min(size(a,2),500)
-    write(lfndbg,'(a)') ' a contents:'
+    imax = min(size(a,1),10)
+    jmax = min(size(a,2),10)
+    write(lfndbg,'(a)') ' a contents before update:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
     enddo
@@ -246,6 +246,35 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
   enddo
 
 !$acc end kernels
+
+  if(idbg.gt.10 .and. thread_id==0) then
+#ifdef ACC
+    if(iamacc.eq.1) then
+      !$acc update host(tb(1:min(size(tb,1),10),1:min(size(tb,2),10)))
+      !$acc update host(ta(1:min(size(ta,1),10),1:min(size(ta,2),10)))
+      !$acc update host(a(1:min(size(a,1),10),1:min(size(a,2),10)))
+    endif
+#endif
+    imax = min(size(tb,1),10)
+    jmax = min(size(tb,2),10)
+    write(lfndbg,'(a)') ' tb contents after update:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (tb(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(ta,1),10)
+    jmax = min(size(ta,2),10)
+    write(lfndbg,'(a)') ' ta contents after update:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (ta(iout,jout),jout=1,jmax)
+    enddo
+    imax = min(size(a,1),10)
+    jmax = min(size(a,2),10)
+    write(lfndbg,'(a)') ' a contents after update:'
+    do iout=1,imax
+      write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
+    enddo
+    flush(lfndbg)
+  endif
 
   return
 end subroutine gronor_moover

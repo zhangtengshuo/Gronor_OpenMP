@@ -69,52 +69,58 @@
         write(lfndbg,'(a,1i10)') ' csdiag:', size(csdiag)
         write(lfndbg,'(a,5i10)') ' scalars nelecs mbasel ntcla ntclb nveca:', &
              nelecs, mbasel, ntcla, ntclb, nveca
-        write(lfndbg,'(a,1x,es12.4)') ' a(1,1)=', a(1,1)
-        write(lfndbg,'(a,1x,es12.4)') ' u(1,1)=', u(1,1)
-        write(lfndbg,'(a,1x,es12.4)') ' w(1,1)=', w(1,1)
-        imax = min(size(a,1),500)
-        jmax = min(size(a,2),500)
-        write(lfndbg,'(a)') ' a contents:'
+        imax = min(size(a,1),10)
+        jmax = min(size(a,2),10)
+        write(lfndbg,'(a)') ' a contents before update:'
         do iout=1,imax
           write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
         enddo
-        imax = min(size(u,1),500)
-        jmax = min(size(u,2),500)
+#ifdef ACC
+        if(iamacc.eq.1) then
+          !$acc update host(a(1:imax,1:jmax))
+        endif
+#endif
+        write(lfndbg,'(a)') ' a contents after update:'
+        do iout=1,imax
+          write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
+        enddo
+        imax = min(size(u,1),10)
+        jmax = min(size(u,2),10)
         write(lfndbg,'(a)') ' u contents:'
         do iout=1,imax
           write(lfndbg,'(1x,*(es12.4))') (u(iout,jout),jout=1,jmax)
         enddo
-        imax = min(size(w,1),500)
-        jmax = min(size(w,2),500)
+        imax = min(size(w,1),10)
+        jmax = min(size(w,2),10)
         write(lfndbg,'(a)') ' w contents:'
         do iout=1,imax
           write(lfndbg,'(1x,*(es12.4))') (w(iout,jout),jout=1,jmax)
         enddo
-        imax = min(size(wt,1),500)
-        jmax = min(size(wt,2),500)
+        imax = min(size(wt,1),10)
+        jmax = min(size(wt,2),10)
         write(lfndbg,'(a)') ' wt contents:'
         do iout=1,imax
           write(lfndbg,'(1x,*(es12.4))') (wt(iout,jout),jout=1,jmax)
         enddo
-        imax = min(size(ta,1),500)
-        jmax = min(size(ta,2),500)
+        imax = min(size(ta,1),10)
+        jmax = min(size(ta,2),10)
         write(lfndbg,'(a)') ' ta contents:'
         do iout=1,imax
           write(lfndbg,'(1x,*(es12.4))') (ta(iout,jout),jout=1,jmax)
         enddo
-        jmax = min(size(ev),500)
+        jmax = min(size(ev),10)
         write(lfndbg,'(a)') ' ev contents:'
         write(lfndbg,'(1x,*(es12.4))') (ev(jout),jout=1,jmax)
-        jmax = min(size(diag),500)
+        jmax = min(size(diag),10)
         write(lfndbg,'(a)') ' diag contents:'
         write(lfndbg,'(1x,*(es12.4))') (diag(jout),jout=1,jmax)
-        jmax = min(size(sdiag),500)
+        jmax = min(size(sdiag),10)
         write(lfndbg,'(a)') ' sdiag contents:'
         write(lfndbg,'(1x,*(es12.4))') (sdiag(jout),jout=1,jmax)
-        jmax = min(size(cdiag),500)
+        jmax = min(size(cdiag),10)
         write(lfndbg,'(a)') ' cdiag contents:'
         write(lfndbg,'(1x,*(es12.4))') (cdiag(jout),jout=1,jmax)
-        jmax = min(size(csdiag),500)
+        jmax = min(size(csdiag),10)
         write(lfndbg,'(a)') ' csdiag contents:'
         write(lfndbg,'(1x,*(es12.4))') (csdiag(jout),jout=1,jmax)
         flush(lfndbg)
@@ -130,12 +136,18 @@
 #endif
         write(lfndbg,1601) nelecs,nelecs,mbasel
  1601   format(//,' SVD input matrix:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (a(i,j),i=1,nelecs)
+        do j=1,min(nelecs,10)
+          write(lfndbg,1602) (a(i,j),i=1,min(nelecs,10))
  1602     format((3x,6e20.12))
         enddo
         flush(lfndbg)
       endif
+
+      if(iamacc.eq.1 .and. lsvcpu) then
+#ifdef ACC
+!$acc update host(a)
+#endif
+      end if
 
       call timer_start(41)
       call gronor_svd(a,ev,u,w,sdiag,wt,workspace_d,workspace_i)
@@ -191,27 +203,33 @@
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (u,w,a,ev)
-#endif 
-        write(lfndbg,601) (ev(i),i=1,nelecs)
+#endif
+        write(lfndbg,601) (ev(i),i=1,min(nelecs,10))
  601    format(//,' Eigenvalues of diagonalized overlap matrix:',               &
      &       //,(3x,6e20.12))
-        write(lfndbg,1603) nelecs,nelecs,mbasel
+        write(lfndbg,1603) min(nelecs,10),min(nelecs,10),mbasel
  1603   format(//,' Matrix u:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (u(i,j),i=1,nelecs)
+        do j=1,min(nelecs,10)
+          write(lfndbg,1602) (u(i,j),i=1,min(nelecs,10))
         enddo
-        write(lfndbg,1604) nelecs,nelecs,mbasel
+        write(lfndbg,1604) min(nelecs,10),min(nelecs,10),mbasel
  1604   format(//,' Matrix w:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (w(i,j),i=1,nelecs)
+        do j=1,min(nelecs,10)
+          write(lfndbg,1602) (w(i,j),i=1,min(nelecs,10))
         enddo
-        write(lfndbg,1605) nelecs,nelecs,mbasel
+        write(lfndbg,1605) min(nelecs,10),min(nelecs,10),mbasel
  1605   format(//,' Coefficient matrix:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (a(i,j),i=1,nelecs)
+        do j=1,min(nelecs,10)
+          write(lfndbg,1602) (a(i,j),i=1,min(nelecs,10))
         enddo
         flush(lfndbg)
       endif
+
+      if(iamacc.eq.1 .and. levcpu) then
+#ifdef ACC
+!$acc update host(a)
+#endif
+      end if
 
       idetuw=1
 

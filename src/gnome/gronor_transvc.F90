@@ -32,15 +32,16 @@
 !! @date    2016
 !!
 
-subroutine gronor_transvc(lfndbg, idet)
-  
+subroutine gronor_transvc(idet)
+
   use cidist
   use gnome_data
   use gnome_parameters
-  
+  use cidef
+
   implicit none
 
-  integer, intent(in) :: lfndbg, idet
+  integer, intent(in) :: idet
   integer :: m,n1,iop,ib,iv,k,i,l,im,ls,norbs
   if(idbg.ge.17) write(lfndbg,601)
 601 format(/,' Determinant Irrep  Nclose  Nopen OccActive',/)

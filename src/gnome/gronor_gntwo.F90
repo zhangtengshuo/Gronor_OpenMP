@@ -37,9 +37,10 @@ module gronor_gntwo_mod
   use iso_c_binding, only : c_loc, c_ptr
   use openacc
   use cuda_functions
+  use cidef
   implicit none
 contains
-subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
+subroutine gronor_gntwo(aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   implicit none
 
@@ -47,7 +48,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg
+  integer :: i,ii,jj,k,l,n,kl,intg
 
   real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
@@ -296,7 +297,7 @@ subroutine gronor_gntwo(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
   return
 end subroutine gronor_gntwo
 
-subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
+  subroutine gronor_gntwo_canonical(aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdiag)
 
   use mpi
   use cidist
@@ -311,6 +312,7 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
   use cuda_functions
 #endif
 #endif
+  use cidef
 
   implicit none
 
@@ -318,7 +320,7 @@ subroutine gronor_gntwo_canonical(lfndbg,aat,aaa,tt,ta,sm,diag,bdiag,bsdiag,csdi
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,k,l,n,kl,intg,intl,ls
+  integer :: i,k,l,n,kl,intg,intl,ls
   !     integer :: ii,jj
 
   real(kind=8) :: sum1,sum2,ts,fourdet

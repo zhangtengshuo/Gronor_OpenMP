@@ -198,6 +198,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     enddo
   enddo
 
+!$acc update device(va(1:nveca,1:nbas), vb(1:nvecb,1:nbas))
+
   if(idbg.ge.10) then
     write(lfndbg,3612) iamacc
 3612 format(" GNOME with iamacc ",i5)
@@ -237,6 +239,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
         call timer_start(16)
         call gronor_cororb(u,w,va,vb,ev)
         call timer_stop(16)
+!$acc update device(va(1:nveca,1:nbas), vb(1:nvecb,1:nbas))
       endif
 
       call timer_start(17)

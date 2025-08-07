@@ -234,7 +234,7 @@
       idetuw=1
 
       call timer_start(43)
-
+      
       call gronor_evd(a,diag,sdiag,workspace_d,workspace_i)
 
       call timer_stop(43)

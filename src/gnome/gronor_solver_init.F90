@@ -165,7 +165,7 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
 
-    if(idbg.gt.50) then
+    if(idbg.gt.10) then
       write(lfndbg,'(a,i0,a,i0,a,3l1)') ' workspace dbl=',len_work_dbl, &
           ' int=',len_work_int,' flags',lsvcpu,levcpu,lsvtrns
       flush(lfndbg)

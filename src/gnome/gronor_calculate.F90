@@ -41,7 +41,7 @@ module gronor_calculate_mod
   use gronor_gnome_mod, only: gronor_gnome
   implicit none
 contains
-subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
   implicit none
 
@@ -49,6 +49,8 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
   real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
   real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
+  real (kind=8), intent(inout) :: workspace_d(:)
+  integer (kind=8), intent(inout) :: workspace_i(:)
 
   external :: swatch,timer_start,timer_stop
   external :: gronor_abort
@@ -377,7 +379,7 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
 
       call timer_start(6)
 
-      call gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+      call gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
       call timer_stop(6)
 

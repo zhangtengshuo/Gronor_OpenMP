@@ -30,12 +30,14 @@
       use omp_lib
       implicit none
       contains
-      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
+      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,workspace_d,workspace_i)
 
       implicit none
 
       real (kind=8), intent(inout) :: a(:,:),u(:,:),w(:,:),wt(:,:),ev(:),ta(:,:)
       real (kind=8), intent(inout) :: diag(:),sdiag(:),cdiag(:),csdiag(:)
+      real (kind=8), intent(inout) :: workspace_d(:)
+      integer (kind=8), intent(inout) :: workspace_i(:)
 
       external :: timer_start,timer_stop
       external :: gronor_abort
@@ -136,7 +138,7 @@
       endif
 
       call timer_start(41)
-      call gronor_svd(a,ev,u,w,sdiag,wt)
+      call gronor_svd(a,ev,u,w,sdiag,wt,workspace_d,workspace_i)
       call timer_stop(41)
 
   !  Calculation of det(uw) by determination of the number of eigenvalues -2 of a=uw+transpose(uw)
@@ -215,7 +217,7 @@
 
       call timer_start(43)
       
-      call gronor_evd(a,diag,sdiag)
+      call gronor_evd(a,diag,sdiag,workspace_d,workspace_i)
 
       call timer_stop(43)
       

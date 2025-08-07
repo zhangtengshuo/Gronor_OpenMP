@@ -54,16 +54,14 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 
   integer (kind=8) :: lworki,lwork1m,lwork2m
   integer (kind=8) :: min_work_dbl,min_work_int
-  integer (kind=4) :: lwork1,lwork2
 
-  real(kind=8) :: worksize(2),worksize2(2)
+  real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
 
   nelecs=ntemp
 
   len_work_int=0
   len_work_dbl=0
-  len_work2_dbl=0
 
 ! Cusolver initialization for the svd
 
@@ -140,8 +138,6 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
-    len_work2_dbl=max(1,len_work2_dbl)
-
     min_work_dbl=max(1_8,3*nelecs)
     min_work_int=max(1_8,nelecs)
     if(len_work_dbl<min_work_dbl .or. len_work_int<min_work_int) then
@@ -153,11 +149,6 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
           ' int=',len_work_int,' flags',lsvcpu,levcpu,lsvtrns
       flush(lfndbg)
     endif
-
-    allocate(workspace_d(len_work_dbl))
-    allocate(workspace2_d(len_work2_dbl))
-    allocate(workspace_i(len_work_int))
-    allocate(workspace_i4(len_work_int))
 
     return
 end subroutine gronor_solver_init

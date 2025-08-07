@@ -1395,6 +1395,8 @@ subroutine gronor_main()
 #ifdef MKL
   if(inslvr.lt.0) inslvr=SOLVER_MKL
   if(jnslvr.lt.0) jnslvr=SOLVER_MKL
+  if(iaslvr.lt.0) iaslvr=SOLVER_MKL
+  if(jaslvr.lt.0) jaslvr=SOLVER_MKL
 #endif
 
   if(inslvr.lt.0) inslvr=SOLVER_EISPACK

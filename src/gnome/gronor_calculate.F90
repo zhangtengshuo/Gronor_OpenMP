@@ -379,6 +379,13 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
 
       call timer_start(6)
 
+      e1   = 0.0d0
+      e2   = 0.0d0
+      deta = 0.0d0
+      hh   = 0.0d0
+      etot = 0.0d0
+      ss   = 0.0d0
+
       call gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
       call timer_stop(6)

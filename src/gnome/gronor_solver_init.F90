@@ -48,28 +48,48 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   external :: gronor_abort
 
   integer(kind=kind(nelecs)), intent(in) :: ntemp
-  real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
+  real(kind=8), intent(inout), contiguous :: a(:,:), u(:,:), w(:,:)
+  real(kind=8), intent(inout), contiguous :: ev(:)
   character(len=255) :: string
   character(len=10) :: today, now
 
   integer (kind=8) :: lworki,lwork1m,lwork2m
-  integer (kind=8) :: min_work_dbl,min_work_int
-  integer (kind=4) :: lwork1,lwork2
 
-  real(kind=8) :: worksize(2),worksize2(2)
+  real(kind=8) :: worksize(2)
   integer (kind=4) :: iworksize(2)
 
   nelecs=ntemp
 
   len_work_int=0
   len_work_dbl=0
-  len_work2_dbl=0
 
 ! Cusolver initialization for the svd
 
   if(idbg.gt.50) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a,2i4)') today(1:8),now(1:8)," Solver init for ",sv_solver,ev_solver
+    select case(sv_solver)
+    case (SOLVER_EISPACK)
+      string = 'EISPACK'
+    case (SOLVER_MKL)
+      string = 'MKL dgesvd'
+    case (SOLVER_MKLD)
+      string = 'MKL dgesdd'
+    case (SOLVER_MKLJ)
+      string = 'MKL dgesvj'
+    end select
+    write(lfndbg,'("  SVD solver:",1x,a)') trim(string)
+    select case(ev_solver)
+    case (SOLVER_EISPACK)
+      string = 'EISPACK'
+    case (SOLVER_MKL)
+      string = 'MKL dsyev'
+    case (SOLVER_MKLD)
+      string = 'MKL dsyevd'
+    case (SOLVER_MKLJ)
+      string = 'MKL dsyevj'
+    end select
+    write(lfndbg,'("  EVD solver:",1x,a)') trim(string)
     flush(lfndbg)
   endif
 
@@ -134,30 +154,22 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
     endif
     lwork1m=max(1,lwork1m,lwork2m)
     lworki=max(1,lworki)
+    if(idbg.gt.50) then
+      write(lfndbg,'("  lwork1m=",i0," lwork2m=",i0," lworki=",i0)') lwork1m,lwork2m,lworki
+      flush(lfndbg)
+    endif
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif
 
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
-    len_work2_dbl=max(1,len_work2_dbl)
-
-    min_work_dbl=max(1_8,3*nelecs)
-    min_work_int=max(1_8,nelecs)
-    if(len_work_dbl<min_work_dbl .or. len_work_int<min_work_int) then
-      call gronor_abort(903,"Workspace too small")
-    endif
 
     if(idbg.gt.50) then
       write(lfndbg,'(a,i0,a,i0,a,3l1)') ' workspace dbl=',len_work_dbl, &
           ' int=',len_work_int,' flags',lsvcpu,levcpu,lsvtrns
       flush(lfndbg)
     endif
-
-    allocate(workspace_d(len_work_dbl))
-    allocate(workspace2_d(len_work2_dbl))
-    allocate(workspace_i(len_work_int))
-    allocate(workspace_i4(len_work_int))
 
     return
 end subroutine gronor_solver_init

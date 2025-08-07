@@ -56,6 +56,8 @@ subroutine gronor_worker()
   real (kind=8), allocatable :: csdiag(:),cdiag(:)
   real (kind=8), allocatable :: w1(:),w2(:,:)
   real (kind=8), allocatable :: taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
+  real (kind=8), allocatable :: workspace_d(:)
+  integer (kind=8), allocatable :: workspace_i(:)
 
   logical (kind=4) :: flag
 
@@ -117,7 +119,7 @@ subroutine gronor_worker()
 #ifdef _OPENMP
   call omp_set_num_threads(num_threads)
 
-!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag, &
+!$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i, &
 !$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
 !$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
@@ -170,6 +172,9 @@ subroutine gronor_worker()
 
   call gronor_solver_init(nelecs, a, u, w, ev)
 
+  allocate(workspace_d(len_work_dbl))
+  allocate(workspace_i(len_work_int))
+
   if(idbg.gt.50 .and. thread_id==0) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8)," Solver initialization completed"
@@ -219,7 +224,7 @@ subroutine gronor_worker()
   endif
 
 
-  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  call gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
   call gronor_solver_finalize()
 
@@ -231,6 +236,8 @@ subroutine gronor_worker()
   deallocate(w1)
   deallocate(w2)
   deallocate(taa)
+  deallocate(workspace_d)
+  deallocate(workspace_i)
   deallocate(u)
   deallocate(w)
   deallocate(wt)
@@ -272,7 +279,7 @@ subroutine gronor_worker()
 
 contains
 
-  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+  subroutine gronor_worker_process(va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
   use mpi
   use cidef
@@ -289,6 +296,8 @@ contains
   real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
   real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
+  real (kind=8), intent(inout) :: workspace_d(:)
+  integer (kind=8), intent(inout) :: workspace_i(:)
 
 !  external :: MPI_Recv,MPI_iRecv,MPI_iSend
 
@@ -517,7 +526,7 @@ contains
       endif
       call timer_start(47)
 
-      call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+      call gronor_calculate(ibase,jbase,idet,jdet,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
       call timer_stop(47)
 

@@ -38,7 +38,7 @@ module gronor_gnome_mod
   use gronor_dipole_mod,    only: gronor_dipole
   implicit none
 contains
-subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag)
+subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
   implicit none
 
@@ -46,6 +46,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   real (kind=8), intent(inout) :: u(:,:),w(:,:),wt(:,:),ev(:)
   real (kind=8), intent(inout) :: w1(:),w2(:,:),taa(:,:),sm(:,:),aaa(:,:),aat(:,:),tt(:,:)
   real (kind=8), intent(inout) :: sdiag(:),diag(:),bsdiag(:),bdiag(:),csdiag(:),cdiag(:)
+  real (kind=8), intent(inout) :: workspace_d(:)
+  integer (kind=8), intent(inout) :: workspace_i(:)
 
   external :: timer_start,timer_stop
   external :: gronor_abort
@@ -215,7 +217,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
     !  Calculation of the cofactor matrices and arrays corresponding to the total overlap
 
     call timer_start(15)
-    call gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag)
+    call gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,workspace_d,workspace_i)
     call timer_stop(15)
 
     if(idbg.ge.20) then

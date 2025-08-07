@@ -125,7 +125,9 @@ subroutine gronor_worker()
 !$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag,fildbg_thr) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
 !$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel, &
-!$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact)
+!$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact, &
+!$omp&        e1,e2,e2c,etot,etotb,deta,fac,fctr,mpoles, &
+!$omp&        e1tot,e2tot,sstot,hh,ss,ttest,ising)
 
   thread_id = omp_get_thread_num()
 

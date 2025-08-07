@@ -831,8 +831,8 @@ subroutine gronor_main()
   lfnwrn=27
 
   if(idbg.gt.0) then
-    write(fildbg,1300) trim(string),me
-1300 format(a,'-',i5.5,'.dbg ')
+    write(fildbg,1300) trim(root),me,0
+1300 format(a,'-',i5.5,'-',i3.3,'.dbg')
     open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
   endif
   if(itmp.gt.0) then

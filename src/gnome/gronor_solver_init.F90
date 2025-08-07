@@ -48,7 +48,8 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   external :: gronor_abort
 
   integer(kind=kind(nelecs)), intent(in) :: ntemp
-  real(kind=8) :: a(ntemp,ntemp),u(ntemp,ntemp),w(ntemp,ntemp),ev(ntemp)
+  real(kind=8), intent(inout), contiguous :: a(:,:), u(:,:), w(:,:)
+  real(kind=8), intent(inout), contiguous :: ev(:)
   character(len=255) :: string
   character(len=10) :: today, now
 
@@ -68,6 +69,28 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
   if(idbg.gt.50) then
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a,2i4)') today(1:8),now(1:8)," Solver init for ",sv_solver,ev_solver
+    select case(sv_solver)
+    case (SOLVER_EISPACK)
+      string = 'EISPACK'
+    case (SOLVER_MKL)
+      string = 'MKL dgesvd'
+    case (SOLVER_MKLD)
+      string = 'MKL dgesdd'
+    case (SOLVER_MKLJ)
+      string = 'MKL dgesvj'
+    end select
+    write(lfndbg,'("  SVD solver:",1x,a)') trim(string)
+    select case(ev_solver)
+    case (SOLVER_EISPACK)
+      string = 'EISPACK'
+    case (SOLVER_MKL)
+      string = 'MKL dsyev'
+    case (SOLVER_MKLD)
+      string = 'MKL dsyevd'
+    case (SOLVER_MKLJ)
+      string = 'MKL dsyevj'
+    end select
+    write(lfndbg,'("  EVD solver:",1x,a)') trim(string)
     flush(lfndbg)
   endif
 
@@ -132,6 +155,10 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
     endif
     lwork1m=max(1,lwork1m,lwork2m)
     lworki=max(1,lworki)
+    if(idbg.gt.50) then
+      write(lfndbg,'("  lwork1m=",i0," lwork2m=",i0," lworki=",i0)') lwork1m,lwork2m,lworki
+      flush(lfndbg)
+    endif
     len_work_dbl=max(len_work_dbl,lwork1m)
     len_work_int=max(len_work_int,lworki)
 #endif

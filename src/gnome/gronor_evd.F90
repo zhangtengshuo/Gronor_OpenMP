@@ -23,7 +23,7 @@ module gronor_evd_mod
   implicit none
 contains
 
-subroutine gronor_evd(a,diag,sdiag)
+subroutine gronor_evd(a,diag,sdiag,workspace_d,workspace_i)
 
   !> Routine that provides all possible calls to Eigensolver library routines
   !! including routines executed on the CPU or on GPU accelerators
@@ -71,6 +71,8 @@ subroutine gronor_evd(a,diag,sdiag)
   implicit none
 
   real (kind=8), intent(inout) :: a(:,:),diag(:),sdiag(:)
+  real (kind=8), intent(inout) :: workspace_d(:)
+  integer (kind=8), intent(inout) :: workspace_i(:)
 
   external :: tred2,tql2
 #ifdef MKL

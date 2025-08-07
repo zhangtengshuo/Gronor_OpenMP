@@ -22,7 +22,7 @@ module gronor_svd_mod
   implicit none
 contains
 
-subroutine gronor_svd(a,ev,u,w,sdiag,wt)
+subroutine gronor_svd(a,ev,u,w,sdiag,wt,workspace_d,workspace_i)
 
   !> Routine that provides all possible calls to Singular Value Decomposition library routines
   !! including routines executed on the CPU or on GPU accelerators 
@@ -73,6 +73,8 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   implicit none
 
   real (kind=8), intent(inout) :: a(:,:),ev(:),u(:,:),w(:,:),sdiag(:),wt(:,:)
+  real (kind=8), intent(inout) :: workspace_d(:)
+  integer (kind=8), intent(inout) :: workspace_i(:)
 
   external :: svd,dgesvd
 
@@ -92,6 +94,14 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   thread_id = 0
 #endif
   if(idbg.gt.10 .and. thread_id==0) then
+    if(iamacc.eq.1 .and. .not.lsvcpu) then
+#ifdef ACC
+      !$acc update host(a,u,w,wt,ev,sdiag)
+#endif
+#ifdef OMPTGT
+      !$omp target update from(a,u,w,wt,ev,sdiag)
+#endif
+    endif
     call swatch(today,now)
     write(lfndbg,'(a,1x,a,a)') today(1:8),now(1:8), &
          ' Array dimensions check in gronor_svd:'
@@ -104,34 +114,34 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
     write(lfndbg,'(" len_work_dbl=",i0," len_work_int=",i0," flags",3l1)') &
          len_work_dbl,len_work_int,lsvcpu,levcpu,lsvtrns
 
-    imax = min(size(a,1),500)
-    jmax = min(size(a,2),500)
+    imax = min(size(a,1),10)
+    jmax = min(size(a,2),10)
     write(lfndbg,'(a)') ' a contents:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (a(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(u,1),500)
-    jmax = min(size(u,2),500)
+    imax = min(size(u,1),10)
+    jmax = min(size(u,2),10)
     write(lfndbg,'(a)') ' u contents:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (u(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(w,1),500)
-    jmax = min(size(w,2),500)
+    imax = min(size(w,1),10)
+    jmax = min(size(w,2),10)
     write(lfndbg,'(a)') ' w contents:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (w(iout,jout),jout=1,jmax)
     enddo
-    imax = min(size(wt,1),500)
-    jmax = min(size(wt,2),500)
+    imax = min(size(wt,1),10)
+    jmax = min(size(wt,2),10)
     write(lfndbg,'(a)') ' wt contents:'
     do iout=1,imax
       write(lfndbg,'(1x,*(es12.4))') (wt(iout,jout),jout=1,jmax)
     enddo
-    jmax = min(size(ev),500)
+    jmax = min(size(ev),10)
     write(lfndbg,'(a)') ' ev contents:'
     write(lfndbg,'(1x,*(es12.4))') (ev(jout),jout=1,jmax)
-    jmax = min(size(sdiag),500)
+    jmax = min(size(sdiag),10)
     write(lfndbg,'(a)') ' sdiag contents:'
     write(lfndbg,'(1x,*(es12.4))') (sdiag(jout),jout=1,jmax)
     flush(lfndbg)
@@ -140,6 +150,9 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update host (a)
+#endif
+#ifdef OMPTGT
+  !$omp target update from(a)
 #endif
   endif
 
@@ -195,6 +208,9 @@ subroutine gronor_svd(a,ev,u,w,sdiag,wt)
   if(iamacc.eq.1.and.lsvcpu) then
 #ifdef ACC
 !$acc update device (ev,u,w)
+#endif
+#ifdef OMPTGT
+  !$omp target update to(ev,u,w)
 #endif
   endif
 

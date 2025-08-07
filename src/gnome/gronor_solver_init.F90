@@ -165,13 +165,13 @@ subroutine gronor_solver_init(ntemp,a,u,w,ev)
 
     len_work_dbl=max(1,len_work_dbl)
     len_work_int=max(1,len_work_int)
-    min_work_dbl=max(1_8,3*nelecs)
-    min_work_int=max(1_8,nelecs)
-    if(len_work_dbl<min_work_dbl .or. len_work_int<min_work_int) then
-      call gronor_abort(903,"Workspace too small")
-    endif
+!    min_work_dbl=max(1_8,3*nelecs)
+!    min_work_int=max(1_8,nelecs)
+!    if(len_work_dbl<min_work_dbl .or. len_work_int<min_work_int) then
+!      call gronor_abort(903,"Workspace too small")
+!    endif
 
-    if(idbg.gt.50) then
+    if(idbg.gt.10) then
       write(lfndbg,'(a,i0,a,i0,a,3l1)') ' workspace dbl=',len_work_dbl, &
           ' int=',len_work_int,' flags',lsvcpu,levcpu,lsvtrns
       flush(lfndbg)

@@ -26,6 +26,7 @@ module gronor_gnome_mod
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+  use cidef
 #ifdef _OPENMP
   use omp_lib
 #endif
@@ -38,7 +39,7 @@ module gronor_gnome_mod
   use gronor_dipole_mod,    only: gronor_dipole
   implicit none
 contains
-subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
+subroutine gronor_gnome(ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)
 
   implicit none
 
@@ -55,7 +56,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   external :: gronor_transvc
   external :: swatch
 
-  integer :: lfndbg,ihc,nhc
+  integer :: ihc,nhc
   integer :: idet=0,k=0,iv=0,ib=0,ntvc=0,ivc=0,ibas=0
 
   logical (kind=4) :: flag=.false.
@@ -126,6 +127,16 @@ subroutine gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,
   nvecb=ntclb+ntopb
   ntesta=nveca+ntcla
   ntestb=nvecb+ntclb
+
+  if(idbg.ge.0) then
+    write(lfndbg,*) 'Thread', thread_id, 'ntcl:', ntcl(1), ntcl(2)
+    write(lfndbg,*) 'Thread', thread_id, 'ntop:', ntop(1), ntop(2)
+    write(lfndbg,*) 'Thread', thread_id, 'ntcla,ntclb:', ntcla, ntclb
+    write(lfndbg,*) 'Thread', thread_id, 'ntopa,ntopb:', ntopa, ntopb
+    write(lfndbg,*) 'Thread', thread_id, 'nveca,nvecb:', nveca, nvecb
+    write(lfndbg,*) 'Thread', thread_id, 'ntesta,ntestb:', ntesta, ntestb
+    flush(lfndbg)
+  endif
 
   if(ntesta.ne.ntestb) call gronor_abort(305,"Number of electrons is inconsistent")
 

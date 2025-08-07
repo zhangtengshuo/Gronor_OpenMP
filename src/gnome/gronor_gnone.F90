@@ -32,11 +32,11 @@ module gronor_gnone_mod
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+  use cidef
   implicit none
 contains
-subroutine gronor_gnone(lfndbg,diag,bdiag,bsdiag,csdiag,ta,aaa)
+subroutine gronor_gnone(diag,bdiag,bsdiag,csdiag,ta,aaa)
   implicit none
-  integer :: lfndbg
   real (kind=8), intent(inout) :: diag(:),bdiag(:),bsdiag(:),csdiag(:),ta(:,:),aaa(:,:)
 
   integer :: j,k,ielem,jkoff,nn

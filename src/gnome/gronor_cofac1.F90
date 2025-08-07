@@ -28,9 +28,10 @@
       use gronor_svd_mod, only: gronor_svd
       use gronor_evd_mod, only: gronor_evd
       use omp_lib
+      use cidef
       implicit none
       contains
-      subroutine gronor_cofac1(lfndbg,a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,workspace_d,workspace_i)
+      subroutine gronor_cofac1(a,u,w,wt,ev,ta,diag,sdiag,cdiag,csdiag,workspace_d,workspace_i)
 
       implicit none
 
@@ -42,7 +43,6 @@
       external :: timer_start,timer_stop
       external :: gronor_abort
 
-      integer :: lfndbg
       integer :: i,j,idetuw,k
       integer :: imax,jmax,iout,jout
       real (kind=8) :: coef

@@ -26,9 +26,10 @@ module gronor_moover_mod
   use gnome_parameters
   use gnome_data
   use omp_lib
+  use cidef
   implicit none
 contains
-subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
+subroutine gronor_moover(va,vb,tb,ta,a)
 
   implicit none
 
@@ -36,7 +37,7 @@ subroutine gronor_moover(lfndbg,va,vb,tb,ta,a)
 
   external :: gronor_abort
 
-  integer :: lfndbg,i,nopala,nopalb,nalfab,i1,i2
+  integer :: i,nopala,nopalb,nalfab,i1,i2
   integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
   integer :: imax,jmax,iout,jout
   real (kind=8) :: sum

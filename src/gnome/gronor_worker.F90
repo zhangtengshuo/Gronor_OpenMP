@@ -49,6 +49,7 @@ subroutine gronor_worker()
   integer (kind=4) :: mpi_err_len, ierr2
   character(len=MPI_MAX_ERROR_STRING) :: mpi_err_str
   character(len=10) :: today, now
+  character(len=255) :: fildbg_thr
 
   real (kind=8), allocatable :: va(:,:),vb(:,:),tb(:,:),ta(:,:),a(:,:)
   real (kind=8), allocatable :: u(:,:),w(:,:),wt(:,:),ev(:)
@@ -121,12 +122,19 @@ subroutine gronor_worker()
 
 !$omp parallel private(thread_id,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i, &
 !$omp& ibase,jbase,idet,jdet,nidet,njdet,i,j,k,l2,n,iact,ibuf,status,tbuf,lfnmpi,mpifile,ireq,ierr,ncount,mpitag,mpidest, &
-!$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag) &
+!$omp& mpi_err_len,ierr2,mpi_err_str,today,now,flag,fildbg_thr) &
 !$omp& copyin(oterm,otreq,odupl,itreq,irbuf,icur,jcur,lsvcpu,levcpu,lsvtrns, &
 !$omp&        ndeti,ndetj,nacti,nactj,inacti,inactj,nelecs,nveca,nvecb,nstdim,mbasel, &
 !$omp&        ntcl,ntop,nclose,nopen,nelec,nact,ninact)
 
   thread_id = omp_get_thread_num()
+
+  lfndbg = 13 + thread_id
+  if(idbg.gt.0 .and. thread_id.gt.0) then
+    write(fildbg_thr,'(a,"-",i5.5,"-",i3.3,".dbg")') trim(root),me,thread_id
+    ! Include rank in filename to avoid collisions across MPI processes
+    open(unit=lfndbg,file=trim(fildbg_thr),form='formatted',status='unknown')
+  endif
 
   allocate(a(nelecs,nelecs))
   allocate(ta(mbasel,max(mbasel,nveca)))
@@ -260,6 +268,10 @@ subroutine gronor_worker()
   deallocate(vecb)
   deallocate(ioccn)
   if(allocated(melist)) deallocate(melist)
+
+  if(idbg.gt.0 .and. thread_id.gt.0) then
+    close(unit=lfndbg,status='keep')
+  endif
 
 #ifdef ACC
 !$acc end data

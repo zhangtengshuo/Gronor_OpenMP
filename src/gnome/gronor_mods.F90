@@ -114,6 +114,7 @@ module cidef
   integer :: lfnpro,lfndbg,lfnone,lfntwo,lfndat,lfntim,lfnabt
   integer :: lfnday,lfntst,lfnlog,lfncpr,lfnarx,lfnrnk,lfncml
   integer :: lfnwrn,lfnxrx,lfntmp
+!$omp threadprivate(lfndbg)
 
   character (len=255) :: user,host,date,time,cwd,command,git_commit
   character (len=255) :: lmodcomp,lmodcompv,lmodmpi,lmodmpiv

@@ -377,6 +377,30 @@ subroutine gronor_calculate(ib,jb,id1,id2,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,a
       if(idbg.ge.40) write(lfndbg,618) ij,i,j
 618   format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
+      ! Reset thread-local scratch arrays before GNOME evaluation
+      va    = 0.0d0
+      vb    = 0.0d0
+      tb    = 0.0d0
+      ta    = 0.0d0
+      a     = 0.0d0
+      u     = 0.0d0
+      w     = 0.0d0
+      wt    = 0.0d0
+      ev    = 0.0d0
+      w1    = 0.0d0
+      w2    = 0.0d0
+      taa   = 0.0d0
+      sm    = 0.0d0
+      aaa   = 0.0d0
+      aat   = 0.0d0
+      tt    = 0.0d0
+      sdiag = 0.0d0
+      diag  = 0.0d0
+      bsdiag = 0.0d0
+      bdiag = 0.0d0
+      csdiag = 0.0d0
+      cdiag  = 0.0d0
+
       call timer_start(6)
 
       call gronor_gnome(lfndbg,ihc,nhc,va,vb,tb,ta,a,u,w,wt,ev,w1,w2,taa,sm,aaa,aat,tt,sdiag,diag,bsdiag,bdiag,csdiag,cdiag,workspace_d,workspace_i)

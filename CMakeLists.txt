@@ -1567,6 +1567,11 @@ list (APPEND EXTERNAL_LIBRARIES ${LINALG_LIBRARIES})
 message (STATUS "Linear Algebra Libraries: ${LINALG_LIBRARIES}")
 message (STATUS "External Libraries: ${EXTERNAL_LIBRARIES}")
 
+# HDF5 debug support
+find_package(HDF5 REQUIRED COMPONENTS Fortran)
+include_directories(${HDF5_Fortran_INCLUDE_DIRS})
+list(APPEND EXTERNAL_LIBRARIES ${HDF5_Fortran_LIBRARIES})
+
 # global module directory
 
 set (MAIN_MOD_DIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/mod)

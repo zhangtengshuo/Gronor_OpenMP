@@ -35,6 +35,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   use cidef
   use gnome_data
   use gnome_parameters
+  use debug_hdf5
 
 #ifdef _OPENMP
   use omp_lib
@@ -60,34 +61,23 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   real (kind=8) :: btemp,btemp2
 
   logical (kind=4) :: flag
+  character(len=256) :: msg
 
   ndeti=idetb(ib)
   ndetj=idetb(jb)
   nacti=nactb(ib)
   nactj=nactb(jb)
   if(idbg.ge.50) then
-    write(lfndbg,600) ib,jb,id1,id2
-600 format(/,20('*'),' ',i5,' -',i5,' : ',i5,' -',i5,' ',20('*'))
-    write(lfndbg,601) ndeti
-601 format(/,' Left wavefunction has ',i8,' determinants:',/)
-    if(idbg.gt.90) then
-      do i=1,ndeti
-        write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
-602     format(i5,f15.5,32i3)
-      enddo
-    else
-      do i=1,min(ndeti,10)
-        write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
-      enddo
-      do i=max(11,ndeti-10),ndeti
-        write(lfndbg,602) i,civb(i,ib),(iocc(i,ib,k),k=1,nacti)
-      enddo
-    endif
-    write(lfndbg,603) ndetj
-603 format(//,' Right wavefunction has ',i8,' determinants:',/)
-    do i=1,ndetj
-      write(lfndbg,602) i,civb(i,jb),(iocc(i,jb,k),k=1,nactj)
-    enddo
+    write(msg,'("Starting gronor_calculate ib=",i0," jb=",i0," id1=",i0," id2=",i0)') ib,jb,id1,id2
+    call dbg_log_msg('calculate', trim(msg))
+    call dbg_write_int_scalar('calculate','ib',ib)
+    call dbg_write_int_scalar('calculate','jb',jb)
+    call dbg_write_int_scalar('calculate','id1',id1)
+    call dbg_write_int_scalar('calculate','id2',id2)
+    call dbg_write_int_scalar('calculate','ndeti',ndeti)
+    call dbg_write_array('calculate','civb_left',civb(1:ndeti,ib))
+    call dbg_write_int_scalar('calculate','ndetj',ndetj)
+    call dbg_write_array('calculate','civb_right',civb(1:ndetj,jb))
   endif
 
   ioff=ndxdet(ib,jb)
@@ -123,6 +113,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),' Terminating in gronor_calculate'
+          call dbg_log_msg('calculate','Terminating in gronor_calculate')
         endif
         oterm=.true.
         return
@@ -131,10 +122,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
     call timer_start(5)
 
-    if(idbg.ge.50) write(lfndbg,608) ij
-608 format(//,25('='),' Matrix element',i6,25('='),//, &
-        '         Left determinant      Right determinant',/, &
-        ' Irrep   inactive   active     inactive   active',//)
+    if(idbg.ge.50) call dbg_write_int_scalar('calculate','matrix_element',ij,step=ij)
 
     nelec(1)=0
     nelec(2)=0
@@ -428,6 +416,13 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
     endif
     buffer(1)=buffer(1)+e2buff
+  endif
+  if(idbg.ge.50) then
+    call dbg_write_array('calculate','buffer',buffer)
+    call dbg_write_scalar('calculate','e1tot',e1tot)
+    call dbg_write_scalar('calculate','e2tot',e2tot)
+    call dbg_write_scalar('calculate','etotb',etotb)
+    call dbg_write_scalar('calculate','sstot',sstot)
   endif
   call timer_stop(37)
 

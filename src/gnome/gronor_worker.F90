@@ -25,6 +25,8 @@ subroutine gronor_worker()
   use gnome_data
   use gnome_parameters
   use gnome_solvers
+  use debug_hdf5
+  use debug_hdf5
 
   implicit none
 
@@ -44,6 +46,8 @@ subroutine gronor_worker()
   real (kind=8) :: rbuf(17)
 
   logical (kind=4) :: flag
+  integer :: iter
+  character(len=256) :: msg
 
   if(managers.gt.0) then
     mstr=map2(me+1,9)
@@ -170,6 +174,7 @@ subroutine gronor_worker_process()
     write(lfndbg,130) date(1:8),time(1:8),' thisgroup=',(thisgroup(i),i=1,mgr+1)
 130 format(a,1x,a,1x,a,t30,11i5,/,(t35,10i5))
     flush(lfndbg)
+    call dbg_write_array('worker','rbuf',rbuf)
   endif
 
   !     If head thread signal master thread to start sending tasks
@@ -183,15 +188,19 @@ subroutine gronor_worker_process()
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signalled master'
       flush(lfndbg)
+      call dbg_log_msg('worker','Head signalled master')
     endif
     if(idbg.gt.10) then
       call swatch(date,time)
       write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
       flush(lfndbg)
+      write(msg,'("sent buffer to ",i5)') mstr
+      call dbg_log_msg('worker',trim(msg))
     endif
   endif
 
   ibase=1
+  iter=0
 
   do while(ibase.gt.0)
 
@@ -252,6 +261,13 @@ subroutine gronor_worker_process()
         flush(lfndbg)
       endif
 
+    endif
+
+    iter=iter+1
+    if(idbg.gt.0) then
+      write(msg,'("ibuf=",4i8)') (ibuf(i),i=1,4)
+      call dbg_log_msg('worker', trim(msg), step=iter)
+      call dbg_write_int_array('worker','ibuf',ibuf,step=iter)
     endif
 
 !     Generate the ME list for ibase=ibuf(1) and jbase=ibuf(2)
@@ -350,6 +366,8 @@ subroutine gronor_worker_process()
         write(lfndbg,'(a,1x,a,i5,a,6i10)') date(1:8),time(1:8), &
             me,' Entering gronor_calculate with ',ibase,jbase,idet,jdet,ntask,nbatch
         flush(lfndbg)
+        write(msg,'("Entering gronor_calculate with ",4i10)') ibase,jbase,idet,jdet
+        call dbg_log_msg('worker',trim(msg),step=iter)
       endif
       call timer_start(47)
       call gronor_calculate(ibase,jbase,idet,jdet)
@@ -364,14 +382,16 @@ subroutine gronor_worker_process()
       endif
       
       buffer(3)=timer_wall(47)
+      if(idbg.gt.0) call dbg_write_array('worker','buffer',buffer,step=iter)
       if(idbg.gt.30) then
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,i5,a)') date(1:8),time(1:8), &
             me,' Returned from gronor_calculate '
         flush(lfndbg)
+        call dbg_log_msg('worker','Returned from gronor_calculate',step=iter)
       endif
       if(idbg.ge.12) then
-        write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)          
+        write(lfndbg,*)'Multipoles after multiplying the coeffs',(buffer(i),i=9,17)
       endif
       call timer_start(48)
       if(iamhead.eq.1) then
@@ -388,6 +408,8 @@ subroutine gronor_worker_process()
           write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
               me,' sent results  ',mstr,(ibuf(i),i=1,4)
           flush(lfndbg)
+          write(msg,'("sent results ",4i7)') (ibuf(i),i=1,4)
+          call dbg_log_msg('worker',trim(msg),step=iter)
         endif
       endif
       call timer_stop(48)
@@ -396,5 +418,6 @@ subroutine gronor_worker_process()
     
   enddo
 
+  call dbg_log_msg('worker','Worker loop terminated')
   return
 end subroutine gronor_worker_process

@@ -27,6 +27,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+  use debug_hdf5
   !      use nvtx
 
   implicit none
@@ -66,19 +67,15 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   endif
 
   if(idbg.ge.20) then
-    write(lfndbg,600) nbasis
-600 format(/,' Number of basis functions is',t45,i8)
-    write(lfndbg,603) nelec(1)
-603 format(' Number of electrons is',t45,i8)
+    call dbg_write_int_scalar('gnome','nbasis',nbasis)
+    call dbg_write_int_scalar('gnome','nelec',nelec(1))
   endif
 
   do idet=1,2
 
     if(idbg.ge.20) then
-      write(lfndbg,604) idet
-604   format(/,' Transformation of MO set',i8,/)
-      write(lfndbg,605) (ioccup(k,idet),k=1,nact(idet))
-605   format(' Active orbital occupation : ',32i3)
+      call dbg_write_int_scalar('gnome','idet',idet,step=idet)
+      call dbg_write_int_array('gnome','ioccup',ioccup(1:nact(idet),idet),step=idet)
     endif
 
     call timer_start(11)
@@ -93,8 +90,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     call gronor_tranout(lfndbg,idet)
     call timer_stop(13)
 
-    if(idbg.ge.20) write(lfndbg,606) idet
-606 format(/,' Construction of M.O.set',i2,' completed')
+    if(idbg.ge.20) call dbg_log_msg('gnome','Construction of M.O.set completed',step=idet)
 
   enddo
 
@@ -107,6 +103,13 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   nvecb=ntclb+ntopb
   ntesta=nveca+ntcla
   ntestb=nvecb+ntclb
+
+  if(idbg.ge.20) then
+    call dbg_write_int_scalar('gnome','ntcla',ntcla)
+    call dbg_write_int_scalar('gnome','ntclb',ntclb)
+    call dbg_write_int_scalar('gnome','nveca',nveca)
+    call dbg_write_int_scalar('gnome','nvecb',nvecb)
+  endif
 
   if(ntesta.ne.ntestb) call gronor_abort(305,"Number of electrons is inconsistent")
 
@@ -168,14 +171,16 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     call timer_stop(15)
 
     if(idbg.ge.20) then
-      if(ising.eq.0) write(lfndbg,609)
-      if(ising.eq.1) write(lfndbg,610)
-      if(ising.eq.2) write(lfndbg,611)
-      if(ising.eq.3) write(lfndbg,612)
-609   format(/,' A has no singularities')
-610   format(/,' A has a single singularity')
-611   format(/,' A has two singularities: one electron matrix elements are zero')
-612   format(/,' A has more than two singularities: one and two electron matrix elements are zero')
+      select case(ising)
+      case(0)
+        call dbg_log_msg('gnome','A has no singularities')
+      case(1)
+        call dbg_log_msg('gnome','A has a single singularity')
+      case(2)
+        call dbg_log_msg('gnome','A has two singularities: one electron matrix elements are zero')
+      case(3)
+        call dbg_log_msg('gnome','A has more than two singularities: one and two electron matrix elements are zero')
+      end select
     endif
 
     if(ising.lt.3) then
@@ -245,6 +250,13 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
   else
 ! error! not in acc
+  endif
+
+  if(idbg.ge.20) then
+    call dbg_write_scalar('gnome','e1',e1)
+    call dbg_write_scalar('gnome','e2',e2)
+    call dbg_write_scalar('gnome','e2c',e2c)
+    call dbg_write_scalar('gnome','etot',etot)
   endif
 
   return

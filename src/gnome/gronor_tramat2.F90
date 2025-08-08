@@ -28,7 +28,9 @@ subroutine gronor_tramat2(lfndbg)
   use cidist
   use gnome_parameters
   use gnome_data
+#ifdef DEBUG_HDF5
   use debug_hdf5
+#endif
   implicit none
   integer :: lfndbg
 
@@ -37,8 +39,9 @@ subroutine gronor_tramat2(lfndbg)
   real (kind=8) :: aaamax,tamax
   real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
 
+#ifdef DEBUG_HDF5
   if(idbg.ge.13) call dbg_log_msg('tramat2','Cofactor matrix transform to symmetry functions')
-
+#endif
 
 !$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
 
@@ -260,6 +263,8 @@ subroutine gronor_tramat2(lfndbg)
 #ifdef ACC
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
 #endif
+
+#ifdef DEBUG_HDF5
     call dbg_write_array('tramat2','diag',diag(1:nbas))
     call dbg_write_array('tramat2','bdiag',bdiag(1:nbas))
     call dbg_write_array('tramat2','bsdiag',bsdiag(1:nbas))
@@ -267,6 +272,8 @@ subroutine gronor_tramat2(lfndbg)
     call dbg_write_array('tramat2','sdiag',sdiag(1:nbas))
     call dbg_write_array('tramat2','ta',reshape(ta,(/nbas*nbas/)))
     call dbg_write_array('tramat2','aaa',reshape(aaa,(/nbas*nbas/)))
+#endif
+
     tamax=0.0d0
     aaamax=0.0d0
     diagmax=0.0d0
@@ -285,6 +292,8 @@ subroutine gronor_tramat2(lfndbg)
         aaamax=max(aaamax,aaa(i,j))
       enddo
     enddo
+
+#ifdef DEBUG_HDF5
     call dbg_write_scalar('tramat2','tamax',tamax)
     call dbg_write_scalar('tramat2','aaamax',aaamax)
     call dbg_write_scalar('tramat2','diagmax',diagmax)
@@ -292,6 +301,8 @@ subroutine gronor_tramat2(lfndbg)
     call dbg_write_scalar('tramat2','bsdiagmax',bsdiagmax)
     call dbg_write_scalar('tramat2','csdiagmax',csdiagmax)
     call dbg_write_scalar('tramat2','sdiagmax',sdiagmax)
+#endif
+
   endif
 
   return

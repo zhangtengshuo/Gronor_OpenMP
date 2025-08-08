@@ -32,7 +32,9 @@ subroutine gronor_gnone(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+#ifdef DEBUG_HDF5
   use debug_hdf5
+#endif
 
   implicit none
   integer :: lfndbg
@@ -164,6 +166,7 @@ subroutine gronor_gnone(lfndbg)
   mpoles(8)=qsum5
   mpoles(9)=qsum6
 
+#ifdef DEBUG_HDF5
   if(idbg.ge.13) then
     call dbg_write_scalar('gnone','tsum',tsum)
     call dbg_write_scalar('gnone','vsum',vsum)
@@ -177,6 +180,7 @@ subroutine gronor_gnone(lfndbg)
     call dbg_write_scalar('gnone','qsum5',qsum5)
     call dbg_write_scalar('gnone','qsum6',qsum6)
   endif
+#endif
 
   if(idbg.ge.12) then
     write(lfndbg,120)

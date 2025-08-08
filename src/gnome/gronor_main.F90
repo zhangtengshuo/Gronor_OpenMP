@@ -61,17 +61,12 @@ subroutine gronor_main()
   use iso_c_binding
   use iso_fortran_env
   use gnome_solvers
-  use debug_hdf5
-#ifdef _OPENMP
   use omp_lib
-#endif
-  !      use iso_c_binding, only : c_loc, c_ptr
-
-#ifdef _OPENACC
   use openacc
-  !     use cuda_functions
+#ifdef DEBUG_HDF5
+  use debug_hdf5
 #endif
-  
+
   implicit none
 
   external :: gronor_abort
@@ -831,8 +826,11 @@ subroutine gronor_main()
     write(fildbg,1300) trim(string),me
 1300 format(a,'-',i5.5,'.dbg ')
     open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
+#ifdef DEBUG_HDF5
     call dbg_open(trim(fildbg)//'.h5', idbg, me)
+#endif
   endif
+  
   if(itmp.gt.0) then
     write(filtmp,1302) trim(string),me
 1302 format(a,'-',i5.5,'.tmp ')
@@ -2098,7 +2096,9 @@ subroutine gronor_main()
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),' mint2= ',mint2
           flush(lfndbg)
+#ifdef DEBUG_HDF5
           call dbg_write_scalar('main','mint2',mint2)
+#endif
         endif
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
@@ -2108,7 +2108,9 @@ subroutine gronor_main()
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
           flush(lfndbg)
+#ifdef DEBUG_HDF5
           call dbg_log_msg('main','Calling GronOR_worker')
+#endif
         endif
         call gronor_memory_usage()
         if(managers.eq.0) then
@@ -2391,7 +2393,9 @@ subroutine gronor_main()
         call swatch(date,time)
         write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
         flush(lfndbg)
+#ifdef DEBUG_HDF5
         call dbg_close()
+#endif
         close(unit=lfndbg,status='keep')
       endif
       call swatch(date,time)

@@ -27,7 +27,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+#ifdef DEBUG_HDF5
   use debug_hdf5
+#endif
   !      use nvtx
 
   implicit none
@@ -66,17 +68,23 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     if(oterm) return
   endif
 
+  
+#ifdef DEBUG_HDF5
   if(idbg.ge.20) then
     call dbg_write_int_scalar('gnome','nbasis',nbasis)
     call dbg_write_int_scalar('gnome','nelec',nelec(1))
   endif
+#endif
 
   do idet=1,2
 
+    
+#ifdef DEBUG_HDF5
     if(idbg.ge.20) then
       call dbg_write_int_scalar('gnome','idet',idet,step=idet)
       call dbg_write_int_array('gnome','ioccup',ioccup(1:nact(idet),idet),step=idet)
     endif
+#endif
 
     call timer_start(11)
     call gronor_transvc(lfndbg,idet)
@@ -90,7 +98,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     call gronor_tranout(lfndbg,idet)
     call timer_stop(13)
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.20) call dbg_log_msg('gnome','Construction of M.O.set completed',step=idet)
+#endif
 
   enddo
 
@@ -104,12 +114,14 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   ntesta=nveca+ntcla
   ntestb=nvecb+ntclb
 
+#ifdef DEBUG_HDF5
   if(idbg.ge.20) then
     call dbg_write_int_scalar('gnome','ntcla',ntcla)
     call dbg_write_int_scalar('gnome','ntclb',ntclb)
     call dbg_write_int_scalar('gnome','nveca',nveca)
     call dbg_write_int_scalar('gnome','nvecb',nvecb)
   endif
+#endif
 
   if(ntesta.ne.ntestb) call gronor_abort(305,"Number of electrons is inconsistent")
 
@@ -169,7 +181,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     call timer_start(15)
     call gronor_cofac1(lfndbg)
     call timer_stop(15)
-
+    
+#ifdef DEBUG_HDF5
     if(idbg.ge.20) then
       select case(ising)
       case(0)
@@ -182,6 +195,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
         call dbg_log_msg('gnome','A has more than two singularities: one and two electron matrix elements are zero')
       end select
     endif
+#endif
 
     if(ising.lt.3) then
 
@@ -252,12 +266,14 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 ! error! not in acc
   endif
 
+#ifdef DEBUG_HDF5
   if(idbg.ge.20) then
     call dbg_write_scalar('gnome','e1',e1)
     call dbg_write_scalar('gnome','e2',e2)
     call dbg_write_scalar('gnome','e2c',e2c)
     call dbg_write_scalar('gnome','etot',etot)
   endif
+#endif
 
   return
 end subroutine gronor_gnome

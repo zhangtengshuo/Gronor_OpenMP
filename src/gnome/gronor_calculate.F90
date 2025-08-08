@@ -35,7 +35,9 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   use cidef
   use gnome_data
   use gnome_parameters
+#ifdef DEBUG_HDF5
   use debug_hdf5
+#endif
 
 #ifdef _OPENMP
   use omp_lib
@@ -69,6 +71,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   nactj=nactb(jb)
   if(idbg.ge.50) then
     write(msg,'("Starting gronor_calculate ib=",i0," jb=",i0," id1=",i0," id2=",i0)') ib,jb,id1,id2
+#ifdef DEBUG_HDF5
     call dbg_log_msg('calculate', trim(msg))
     call dbg_write_int_scalar('calculate','ib',ib)
     call dbg_write_int_scalar('calculate','jb',jb)
@@ -78,6 +81,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     call dbg_write_array('calculate','civb_left',civb(1:ndeti,ib))
     call dbg_write_int_scalar('calculate','ndetj',ndetj)
     call dbg_write_array('calculate','civb_right',civb(1:ndetj,jb))
+#endif
   endif
 
   ioff=ndxdet(ib,jb)
@@ -113,7 +117,9 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         if(idbg.gt.10) then
           call swatch(date,time)
           write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),' Terminating in gronor_calculate'
+#ifdef DEBUG_HDF5
           call dbg_log_msg('calculate','Terminating in gronor_calculate')
+#endif
         endif
         oterm=.true.
         return
@@ -122,7 +128,9 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 
     call timer_start(5)
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) call dbg_write_int_scalar('calculate','matrix_element',ij,step=ij)
+#endif
 
     nelec(1)=0
     nelec(2)=0
@@ -417,6 +425,8 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     endif
     buffer(1)=buffer(1)+e2buff
   endif
+  
+#ifdef DEBUG_HDF5
   if(idbg.ge.50) then
     call dbg_write_array('calculate','buffer',buffer)
     call dbg_write_scalar('calculate','e1tot',e1tot)
@@ -424,6 +434,8 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     call dbg_write_scalar('calculate','etotb',etotb)
     call dbg_write_scalar('calculate','sstot',sstot)
   endif
+#endif
+
   call timer_stop(37)
 
   return

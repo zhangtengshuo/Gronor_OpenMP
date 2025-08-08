@@ -25,7 +25,9 @@
       use gnome_parameters
       use gnome_data
       use gnome_solvers
+#ifdef DEBUG_HDF5
       use debug_hdf5
+#endif
       
       implicit none
 
@@ -39,16 +41,13 @@
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
 
-
+#ifdef DEBUG_HDF5
       if(idbg.ge.30) call dbg_log_msg('cofac1','Cofactor matrix will be calculated')
-
-
       if(idbg.ge.90) then
-#ifdef ACC
 !$acc update host (a)
-#endif
         call dbg_write_array('cofac1','svd_input',reshape(a,(/nelecs*nelecs/)))
       endif
+#endif
 
       call timer_start(41)
       call gronor_svd()
@@ -101,6 +100,7 @@
 !   enddo
 ! enddo
       
+#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (u,w,a,ev)
@@ -110,6 +110,7 @@
         call dbg_write_array('cofac1','w',reshape(w,(/nelecs*nelecs/)))
         call dbg_write_array('cofac1','coef',reshape(a,(/nelecs*nelecs/)))
       endif
+#endif
 
       idetuw=1
 
@@ -141,6 +142,7 @@
 #endif
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
 
+#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (diag,cdiag,csdiag,sdiag)
@@ -150,6 +152,7 @@
         call dbg_write_array('cofac1','csdiag',csdiag(1:nelecs))
         call dbg_write_array('cofac1','sdiag',sdiag(1:nelecs))
       endif
+#endif
 
       cnorm=tau_SIN*cmax
       coef=idetuw

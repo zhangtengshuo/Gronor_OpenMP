@@ -1,3 +1,4 @@
+#ifdef DEBUG_HDF5
 module debug_hdf5
   use iso_fortran_env, only: int32
   use hdf5
@@ -232,3 +233,8 @@ contains
   end subroutine dbg_log_msg
 
 end module debug_hdf5
+
+#else
+module debug_hdf5
+end module debug_hdf5
+#endif

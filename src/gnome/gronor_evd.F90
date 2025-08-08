@@ -54,6 +54,9 @@ subroutine gronor_evd()
   use gnome_parameters
   use gnome_data
   use gnome_solvers
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
   use iso_c_binding
 
   ! library specific modules
@@ -133,6 +136,10 @@ subroutine gronor_evd()
 !$acc update device (diag)
 #endif
   endif
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.90) call dbg_write_array('evd','diag',diag(1:nelecs))
+#endif
 
   return
 end subroutine gronor_evd

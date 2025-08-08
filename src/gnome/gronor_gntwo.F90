@@ -35,6 +35,9 @@ subroutine gronor_gntwo(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
   use iso_c_binding, only : c_loc, c_ptr
 
   use openacc
@@ -72,8 +75,9 @@ subroutine gronor_gntwo(lfndbg)
 
   call timer_start(30)
 
-  if(idbg.ge.13) write(lfndbg,600)
-600 format(' Calculating two electron matrix element',/)
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) call dbg_log_msg('gntwo','Calculating two electron matrix element')
+#endif
 
   !      numint=ig(mod(me,mgr)+1)
 
@@ -102,6 +106,10 @@ subroutine gronor_gntwo(lfndbg)
     enddo
   enddo
 !$acc end kernels
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.50) call dbg_write_array('gntwo','sm',reshape(sm,(/nbas*nbas/)))
+#endif
 
   call timer_stop(30)
 
@@ -290,6 +298,13 @@ subroutine gronor_gntwo(lfndbg)
 
   call timer_stop(38)
 
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) then
+    call dbg_write_scalar('gntwo','e2',e2)
+    call dbg_write_scalar('gntwo','ts',ts)
+  endif
+#endif
+
   return
 end subroutine gronor_gntwo
 
@@ -300,6 +315,9 @@ subroutine gronor_gntwo_canonical(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
   use iso_c_binding, only : c_loc, c_ptr
 
 #ifdef _OPENACC
@@ -344,8 +362,9 @@ subroutine gronor_gntwo_canonical(lfndbg)
 
   call timer_start(30)
 
-  if(idbg.ge.13) write(lfndbg,600)
-600 format(' Calculating two electron matrix element',/)
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) call dbg_log_msg('gntwo_canonical','Calculating two electron matrix element')
+#endif
 
   !      numint=ig(mod(me,mgr)+1)
 
@@ -579,6 +598,12 @@ subroutine gronor_gntwo_canonical(lfndbg)
   ts=ts*fourdet
   e2=e2+ts
 
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) then
+    call dbg_write_scalar('gntwo_canonical','e2',e2)
+    call dbg_write_scalar('gntwo_canonical','ts',ts)
+  endif
+#endif
   call timer_stop(38)
 
   return

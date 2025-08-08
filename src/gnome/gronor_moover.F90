@@ -26,6 +26,9 @@ subroutine gronor_moover(lfndbg)
   use gnome_integrals
   use gnome_parameters
   use gnome_data
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
 
   implicit none
 
@@ -35,8 +38,9 @@ subroutine gronor_moover(lfndbg)
   integer :: ib,kb,iv,ie,ke,le,kk,ii,k,l,m1
   real (kind=8) :: sum
 
-  if(idbg.ge.13) write(lfndbg,601)
-601 format(/,' Calculation of the overlap matrix')
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) call dbg_log_msg('moover','Calculation of the overlap matrix')
+#endif
 
   !     calculate number of open shells with alpha spin
 
@@ -48,14 +52,23 @@ subroutine gronor_moover(lfndbg)
   do i=1,ntopb
     if(ioccn(i,2).eq.1) nopalb=nopalb+1
   enddo
-  
+
   nalfa=ntcla+nopala
   nalfab=ntclb+nopalb
   if(nalfa.ne.nalfab) call gronor_abort(320,"Inconsistent number of electron spins")
 
-  if(idbg.ge.14) write(lfndbg,602)
-602 format('  itypen icentn jtype jcent   icount      indbas     ' &
-        ,' indbas         overlap',//)
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) then
+    call dbg_write_int_scalar('moover','nopala',nopala)
+    call dbg_write_int_scalar('moover','nopalb',nopalb)
+    call dbg_write_int_scalar('moover','nalfa',nalfa)
+    call dbg_write_int_scalar('moover','nalfab',nalfab)
+  endif
+#endif
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.14) call dbg_log_msg('moover','overlap matrix setup')
+#endif
   
   ! Calculation of the overlap matrix ta from va, vb and s
 
@@ -190,6 +203,10 @@ subroutine gronor_moover(lfndbg)
   enddo
 
 !$acc end kernels
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.90) call dbg_write_array('moover','ta',reshape(ta,(/nelecs*nelecs/)))
+#endif
 
   return
 end subroutine gronor_moover

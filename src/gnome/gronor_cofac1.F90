@@ -25,6 +25,9 @@
       use gnome_parameters
       use gnome_data
       use gnome_solvers
+#ifdef DEBUG_HDF5
+      use debug_hdf5
+#endif
       
       implicit none
 
@@ -39,22 +42,19 @@
       integer :: nz1, nz2
 
 
-      if(idbg.ge.30) write(lfndbg,600)
- 600  format(/,' Cofactor matrix will be calculated')
+#ifdef DEBUG_HDF5
+      if(idbg.ge.30) call dbg_log_msg('cofac1','Cofactor matrix will be calculated')
+#endif
 
 
+#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (a)
 #endif
-        write(lfndbg,1601) nelecs,nelecs,mbasel
- 1601   format(//,' SVD input matrix:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (a(i,j),i=1,nelecs)
- 1602     format((3x,6e20.12))
-        enddo
-        flush(lfndbg)
+        call dbg_write_array('cofac1','svd_input',reshape(a,(/nelecs*nelecs/)))
       endif
+#endif
 
       call timer_start(41)
       call gronor_svd()
@@ -107,30 +107,17 @@
 !   enddo
 ! enddo
       
+#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (u,w,a,ev)
-#endif 
-        write(lfndbg,601) (ev(i),i=1,nelecs)
- 601    format(//,' Eigenvalues of diagonalized overlap matrix:',               &
-     &       //,(3x,6e20.12))
-        write(lfndbg,1603) nelecs,nelecs,mbasel
- 1603   format(//,' Matrix u:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (u(i,j),i=1,nelecs)
-        enddo
-        write(lfndbg,1604) nelecs,nelecs,mbasel
- 1604   format(//,' Matrix w:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (w(i,j),i=1,nelecs)
-        enddo
-        write(lfndbg,1605) nelecs,nelecs,mbasel
- 1605   format(//,' Coefficient matrix:',3i6,/)
-        do j=1,nelecs
-          write(lfndbg,1602) (a(i,j),i=1,nelecs)
-        enddo
-        flush(lfndbg)
+#endif
+        call dbg_write_array('cofac1','ev',ev(1:nelecs))
+        call dbg_write_array('cofac1','u',reshape(u,(/nelecs*nelecs/)))
+        call dbg_write_array('cofac1','w',reshape(w,(/nelecs*nelecs/)))
+        call dbg_write_array('cofac1','coef',reshape(a,(/nelecs*nelecs/)))
       endif
+#endif
 
       idetuw=1
 
@@ -162,14 +149,17 @@
 #endif
       if(cmax.le.0.01) call gronor_abort(310,"No overlap between m.o.s")
 
+#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
 #ifdef ACC
 !$acc update host (diag,cdiag,csdiag,sdiag)
 #endif
-        write(lfndbg,604) (diag(i),cdiag(i),csdiag(i),sdiag(i),i=1,nelecs)
- 604    format(//,' Diagonals:',//,(3x,4e20.12))
-        flush(lfndbg)
+        call dbg_write_array('cofac1','diag',diag(1:nelecs))
+        call dbg_write_array('cofac1','cdiag',cdiag(1:nelecs))
+        call dbg_write_array('cofac1','csdiag',csdiag(1:nelecs))
+        call dbg_write_array('cofac1','sdiag',sdiag(1:nelecs))
       endif
+#endif
 
       cnorm=tau_SIN*cmax
       coef=idetuw

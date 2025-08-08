@@ -166,7 +166,6 @@ subroutine gronor_gnone(lfndbg)
   mpoles(8)=qsum5
   mpoles(9)=qsum6
 
-
 #ifdef DEBUG_HDF5
   if(idbg.ge.13) then
     call dbg_write_scalar('gnone','tsum',tsum)

@@ -35,13 +35,12 @@ subroutine gronor_gntwo(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+  use iso_c_binding, only : c_loc, c_ptr
+  use openacc
+  use cuda_functions
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
-  use iso_c_binding, only : c_loc, c_ptr
-
-  use openacc
-  use cuda_functions
 
   implicit none
 
@@ -315,11 +314,10 @@ subroutine gronor_gntwo_canonical(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
+  use iso_c_binding, only : c_loc, c_ptr
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
-  use iso_c_binding, only : c_loc, c_ptr
-
 #ifdef _OPENACC
   use openacc
 #ifdef CUDA
@@ -604,6 +602,7 @@ subroutine gronor_gntwo_canonical(lfndbg)
     call dbg_write_scalar('gntwo_canonical','ts',ts)
   endif
 #endif
+
   call timer_stop(38)
 
   return

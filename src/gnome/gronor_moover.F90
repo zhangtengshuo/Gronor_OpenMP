@@ -57,6 +57,7 @@ subroutine gronor_moover(lfndbg)
   nalfab=ntclb+nopalb
   if(nalfa.ne.nalfab) call gronor_abort(320,"Inconsistent number of electron spins")
 
+
 #ifdef DEBUG_HDF5
   if(idbg.ge.13) then
     call dbg_write_int_scalar('moover','nopala',nopala)
@@ -64,9 +65,6 @@ subroutine gronor_moover(lfndbg)
     call dbg_write_int_scalar('moover','nalfa',nalfa)
     call dbg_write_int_scalar('moover','nalfab',nalfab)
   endif
-#endif
-
-#ifdef DEBUG_HDF5
   if(idbg.ge.14) call dbg_log_msg('moover','overlap matrix setup')
 #endif
   

@@ -61,19 +61,12 @@ subroutine gronor_main()
   use iso_c_binding
   use iso_fortran_env
   use gnome_solvers
+  use omp_lib
+  use openacc
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
-#ifdef _OPENMP
-  use omp_lib
-#endif
-  !      use iso_c_binding, only : c_loc, c_ptr
 
-#ifdef _OPENACC
-  use openacc
-  !     use cuda_functions
-#endif
-  
   implicit none
 
   external :: gronor_abort
@@ -837,6 +830,7 @@ subroutine gronor_main()
     call dbg_open(trim(fildbg)//'.h5', idbg, me)
 #endif
   endif
+  
   if(itmp.gt.0) then
     write(filtmp,1302) trim(string),me
 1302 format(a,'-',i5.5,'.tmp ')

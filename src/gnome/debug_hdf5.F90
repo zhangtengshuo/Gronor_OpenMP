@@ -233,6 +233,7 @@ contains
   end subroutine dbg_log_msg
 
 end module debug_hdf5
+
 #else
 module debug_hdf5
 end module debug_hdf5

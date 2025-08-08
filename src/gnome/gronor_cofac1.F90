@@ -41,17 +41,10 @@
       real (kind=8) :: cmax, cnorm, coefu
       integer :: nz1, nz2
 
-
 #ifdef DEBUG_HDF5
       if(idbg.ge.30) call dbg_log_msg('cofac1','Cofactor matrix will be calculated')
-#endif
-
-
-#ifdef DEBUG_HDF5
       if(idbg.ge.90) then
-#ifdef ACC
 !$acc update host (a)
-#endif
         call dbg_write_array('cofac1','svd_input',reshape(a,(/nelecs*nelecs/)))
       endif
 #endif

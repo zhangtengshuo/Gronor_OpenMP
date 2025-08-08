@@ -114,7 +114,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   ntesta=nveca+ntcla
   ntestb=nvecb+ntclb
 
-
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then
     call dbg_write_int_scalar('gnome','ntcla',ntcla)
@@ -182,27 +181,21 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     call timer_start(15)
     call gronor_cofac1(lfndbg)
     call timer_stop(15)
-
+    
+#ifdef DEBUG_HDF5
     if(idbg.ge.20) then
       select case(ising)
       case(0)
-#ifdef DEBUG_HDF5
         call dbg_log_msg('gnome','A has no singularities')
-#endif
       case(1)
-#ifdef DEBUG_HDF5
         call dbg_log_msg('gnome','A has a single singularity')
-#endif
       case(2)
-#ifdef DEBUG_HDF5
         call dbg_log_msg('gnome','A has two singularities: one electron matrix elements are zero')
-#endif
       case(3)
-#ifdef DEBUG_HDF5
         call dbg_log_msg('gnome','A has more than two singularities: one and two electron matrix elements are zero')
-#endif
       end select
     endif
+#endif
 
     if(ising.lt.3) then
 
@@ -272,7 +265,6 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   else
 ! error! not in acc
   endif
-
 
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then

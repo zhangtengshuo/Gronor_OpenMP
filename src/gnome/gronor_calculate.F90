@@ -435,6 +435,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     call dbg_write_scalar('calculate','sstot',sstot)
   endif
 #endif
+
   call timer_stop(37)
 
   return

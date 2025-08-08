@@ -175,9 +175,11 @@ subroutine gronor_worker_process()
     write(lfndbg,130) date(1:8),time(1:8),' thisgroup=',(thisgroup(i),i=1,mgr+1)
 130 format(a,1x,a,1x,a,t30,11i5,/,(t35,10i5))
     flush(lfndbg)
+
 #ifdef DEBUG_HDF5
     call dbg_write_array('worker','rbuf',rbuf)
 #endif
+
   endif
 
   !     If head thread signal master thread to start sending tasks
@@ -393,6 +395,7 @@ subroutine gronor_worker_process()
       endif
       
       buffer(3)=timer_wall(47)
+
 #ifdef DEBUG_HDF5
       if(idbg.gt.0) call dbg_write_array('worker','buffer',buffer,step=iter)
 #endif
@@ -438,5 +441,6 @@ subroutine gronor_worker_process()
 #ifdef DEBUG_HDF5
   call dbg_log_msg('worker','Worker loop terminated')
 #endif
+
   return
 end subroutine gronor_worker_process

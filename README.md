@@ -21,7 +21,7 @@ The original version was primarily optimized for supercomputing clusters and did
 
 4. **Parallel framework**:  
    - I'm being stubborn here - using a hybrid `MPI` + `OpenMP` + `OpenACC` approach (determined to make it work before refactoring).  
-   - Future optimization direction: `MPI` + `OpenMP` + `OpenMP` target offload.
+   - Future optimization direction: `MPI` + `OpenMP` + `OpenMP target offload`.
 
 ## Authors 
      T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN  

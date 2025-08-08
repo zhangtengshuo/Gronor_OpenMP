@@ -28,6 +28,7 @@ subroutine gronor_tramat2(lfndbg)
   use cidist
   use gnome_parameters
   use gnome_data
+  use debug_hdf5
   implicit none
   integer :: lfndbg
 
@@ -36,8 +37,7 @@ subroutine gronor_tramat2(lfndbg)
   real (kind=8) :: aaamax,tamax
   real (kind=8) :: diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
 
-  if(idbg.ge.13) write(lfndbg,600)
-600 format(/,' Cofactor matrix transform to symmetry functions')
+  if(idbg.ge.13) call dbg_log_msg('tramat2','Cofactor matrix transform to symmetry functions')
 
 
 !$acc kernels present(va,vb,diag,bdiag,cdiag,bsdiag,csdiag,ta,aaa,w1,w2)
@@ -257,13 +257,16 @@ subroutine gronor_tramat2(lfndbg)
 !$acc end kernels
   
   if(idbg.gt.90) then
+#ifdef ACC
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
-    write(lfndbg,1601) nbas,nelecs
-1601 format(//,' diag:',3i6,/)
-    do i=1,nbas
-      write(lfndbg,1602) diag(i),bdiag(i),bsdiag(i),csdiag(i),sdiag(i)
-    enddo
-1602 format((3x,6e20.12))
+#endif
+    call dbg_write_array('tramat2','diag',diag(1:nbas))
+    call dbg_write_array('tramat2','bdiag',bdiag(1:nbas))
+    call dbg_write_array('tramat2','bsdiag',bsdiag(1:nbas))
+    call dbg_write_array('tramat2','csdiag',csdiag(1:nbas))
+    call dbg_write_array('tramat2','sdiag',sdiag(1:nbas))
+    call dbg_write_array('tramat2','ta',reshape(ta,(/nbas*nbas/)))
+    call dbg_write_array('tramat2','aaa',reshape(aaa,(/nbas*nbas/)))
     tamax=0.0d0
     aaamax=0.0d0
     diagmax=0.0d0
@@ -282,8 +285,13 @@ subroutine gronor_tramat2(lfndbg)
         aaamax=max(aaamax,aaa(i,j))
       enddo
     enddo
-    write(lfndbg,'(a,7f16.5)') 'Max=',tamax,aaamax,diagmax,bdiagmax,bsdiagmax,csdiagmax,sdiagmax
-    flush(lfndbg)
+    call dbg_write_scalar('tramat2','tamax',tamax)
+    call dbg_write_scalar('tramat2','aaamax',aaamax)
+    call dbg_write_scalar('tramat2','diagmax',diagmax)
+    call dbg_write_scalar('tramat2','bdiagmax',bdiagmax)
+    call dbg_write_scalar('tramat2','bsdiagmax',bsdiagmax)
+    call dbg_write_scalar('tramat2','csdiagmax',csdiagmax)
+    call dbg_write_scalar('tramat2','sdiagmax',sdiagmax)
   endif
 
   return

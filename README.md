@@ -1,5 +1,28 @@
 # GronOR Non-Orthogonal Configuration Interaction
 
+This is a modified version of [GronOR](https://gitlab.com/gronor/gronor).  
+The original version was primarily optimized for supercomputing clusters and did not fully utilize GPU capabilities. The current modifications adapt the parallel framework for smaller-scale computations (which might seem somewhat unconventional).
+
+## Current Modifications and Future Goals
+
+1. **GPU subroutine optimization**:  
+   - Already implemented optimization for `cofac1`. Achieved 10x speedup with OpenACC (excluding SVD/EVD operations).  
+   - `gntwo` appears to have limited optimization potential under OpenACC - the current batch approach may not be optimal.  
+
+2. **SVD/EVD stays on CPU**:  
+   - The computation scale is too small to benefit significantly from GPU acceleration.  
+   - All GPU solvers have been removed - these operations will now run on CPU.  
+
+3. **OpenMP integration**:  
+   - **Multithreading now handles work rank tasks.**  
+   - Yes, OpenMP has been reintroduced (after being removed previously).  
+   - Generates sufficient SVD/EVD computation data to keep the GPU busy with `gntwo` calculations.  
+   - Addresses CPU/GPU idle time due to mutual waiting.  
+
+4. **Parallel framework**:  
+   - I'm being stubborn here - using a hybrid `MPI` + `OpenMP` + `OpenACC` approach (determined to make it work before refactoring).  
+   - Future optimization direction: `MPI` + `OpenMP` + `OpenMP` target offload.
+
 ## Authors 
      T. P. Straatsma, Oak Ridge National Laboratory, Oak Ridge, TN  
 	 C. de Graaf, University Rovira i Virgili, Tarragona, Spain  
@@ -15,7 +38,7 @@
 	Journal of Chemical Theory and Computation, 18, 3549-3565 (2022).  
 
 ## Install
-### Downloading from the GitLab repository:  
+### Download the origin GronOR from the GitLab repository:  
 ```bash
 git clone --recursive git@gitlab.com:gronor/gronor.git
 #or
@@ -26,9 +49,9 @@ The resulting master branch is the most recent release of gronor. To use an earl
 git checkout tags/23.08
 ```
 
-### Downloading from the Github repository for modified version:  
+### Downloading the modified version from the Github repository:  
 ```bash
-git clone --recursive https://github.com/zhangtengshuo/Gronor_OpenMP.git
+git clone https://github.com/zhangtengshuo/Gronor_OpenMP.git
 ```
 
 The initial directory structure is as follows:

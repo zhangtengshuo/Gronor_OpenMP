@@ -133,21 +133,22 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   if(nveca.ne.ntcl(1)+ntop(1)) call gronor_abort(306,"Incompatible nveca")
   if(nvecb.ne.ntcl(2)+ntop(2)) call gronor_abort(307,"Incompatible nvecb")
 
+  
+#ifdef DEBUG_HDF5
   if(idbg.gt.40) then
     do idet=1,2
       ntvc=ntcl(idet)+ntop(idet)
-      write(lfndbg,1603) ntvc
-1603  format(/,' Closed shell M.O.''s',i5,/)
+      call dbg_log_msg('gnome','Closed shell M.O.s',step=idet)
+      call dbg_write_int_scalar('gnome','ntvc',ntvc,step=idet)
       do ivc=1,ntvc
-        if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
-1604    format(/,' Open shell M.O.'' s:')
+        if(ivc.eq.ntcl(idet)+1) call dbg_log_msg('gnome','Open shell M.O.s:',step=idet)
         if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
-          write(lfndbg,1605)  ' (',ivc,')',(vec(ivc,ibas,idet),ibas=1,nbas)
-1605      format(a2,i3,a1,(t9,10f12.8))
+          call dbg_write_array('gnome','vec',vec(ivc,1:nbas,idet),step=ivc)
         endif
       enddo
     enddo
   endif
+#endif
 
   do ib=1,nbas
     do iv=1,nveca
@@ -160,11 +161,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     enddo
   enddo
 
-  if(idbg.ge.10) then
-    write(lfndbg,3612) iamacc
-3612 format(" GNOME with iamacc ",i5)
-    flush(lfndbg)
-  endif
+#ifdef DEBUG_HDF5
+  if(idbg.ge.10) call dbg_write_int_scalar('gnome','iamacc',iamacc)
+#endif
 
   if(iamacc.gt.0) then
 
@@ -215,10 +214,12 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
         call timer_stop(18)
       endif
 
+      
+#ifdef DEBUG_HDF5
       if(idbg.ge.30) then
-        if(icalc.eq.1.or.icalc.eq.3) write(lfndbg,613) icalc
-613     format(' No calculation of two-electron matrix elements',i4)
+        call dbg_log_msg('gnome','No calculation of two-electron matrix elements')
       endif
+#endif
 
       !     Transformation of the  m.o.'s into the bassisset of the two
       !     electron integrals
@@ -237,7 +238,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       !     Calculation of the one electron Hamiltonian matrix elements
 
       call timer_start(21)
-      if(icalc.le.1.and.ising.le.1) call gronor_gnone(lfndbg)
+      if(icalc.le.1.and.ising.le.1) call gronor_gnone()
       call timer_stop(21)
     endif
 
@@ -251,9 +252,9 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
       ! else
       ! Thanks! but we do not use batch 
         if(idevel.eq.0.or.mgr.gt.1) then
-          if(ising.le.2) call gronor_gntwo(lfndbg)
+          if(ising.le.2) call gronor_gntwo()
         else
-          if(ising.le.2) call gronor_gntwo_canonical(lfndbg)
+          if(ising.le.2) call gronor_gntwo_canonical()
         endif
       ! endif
       !         call nvtxEndRange

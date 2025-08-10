@@ -37,6 +37,9 @@ subroutine gronor_master()
   use cidist
   use gnome_data
   use gnome_parameters
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
 
   implicit none
 
@@ -62,6 +65,10 @@ subroutine gronor_master()
   integer, allocatable :: ntasks(:,:),ndets(:,:,:)
 
   integer :: ioff
+#ifdef DEBUG_HDF5
+  integer :: send_step
+  character(len=256) :: msg
+#endif
 
   allocate(lgroup(npg,5))
   allocate(lactive(npg))
@@ -107,6 +114,9 @@ subroutine gronor_master()
     lcount(i)=5*npg
   enddo
   ltotal=0
+#ifdef DEBUG_HDF5
+  send_step=0
+#endif
 
   !     Initialize the results matrices to zero
 
@@ -336,11 +346,6 @@ subroutine gronor_master()
 
       !     Loop over the number of determinant pairs for the current base pair
       
-      if(idbg.gt.50) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8)," Entering receive loop"
-        flush(lfndbg)
-      endif
   
       call timer_start(95)
       do while(ndone.lt.ijend)
@@ -389,13 +394,15 @@ subroutine gronor_master()
         enddo
         lcount(igrp)=5*npg
         ltotal=ltotal+1
-        
+#ifdef DEBUG_HDF5
         if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              mstr,' received buffer from',iremote,igrp,(lgroup(igrp,i),i=1,5)
-          flush(lfndbg)
+          write(msg,'(a,1x,a,1x,"received buffer from ",i5)') date(1:8),time(1:8),iremote
+          call dbg_log_msg('master',trim(msg),step=ltotal)
+          call dbg_write_array('master','buffer',buffer,step=ltotal)
         endif
+#endif
+
 
         !     If the request group completed a task accumulate into appropriate arrays
         !     The very first request comes without results so this is skipped
@@ -729,6 +736,15 @@ subroutine gronor_master()
         
         call MPI_Request_free(ireq,ierr)
         owait=.true.
+#ifdef DEBUG_HDF5
+        send_step=send_step+1
+        if(idbg.gt.10) then
+          call swatch(date,time)
+          write(msg,'(a,1x,a,1x,"sent task to ",i5)') date(1:8),time(1:8),iremote
+          call dbg_log_msg('master',trim(msg),step=send_step)
+          call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1)),step=send_step)
+        endif
+#endif
 
         !     Set ntasks(ibase,jbase) to 0 if this is the first task for the base pair
 
@@ -737,12 +753,6 @@ subroutine gronor_master()
 
         !     Debug message
 
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-              mstr,' sent ibuf to        ',iremote,igrp,(ibuf(i),i=1,4)
-          flush(lfndbg)
-        endif
 
         !     Progress entry
 
@@ -816,17 +826,19 @@ subroutine gronor_master()
     enddo
     lcount(igrp)=5*npg
     ltotal=ltotal+1
+#ifdef DEBUG_HDF5
+    if(idbg.gt.10) then
+      call swatch(date,time)
+      write(msg,'(a,1x,a,1x,"received buffer from ",i5)') date(1:8),time(1:8),iremote
+      call dbg_log_msg('master',trim(msg),step=ltotal)
+      call dbg_write_array('master','buffer',buffer,step=ltotal)
+    endif
+#endif
 
     !     Flag this group as still active
 
     lactive(igrp)=lactive(igrp)+1
 
-    if(idbg.gt.10) then
-      call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-          mstr,' received last buffer from',iremote
-      flush(lfndbg)
-    endif
     
     !     Accumulate results into appropriate arrays
     
@@ -1103,15 +1115,18 @@ subroutine gronor_master()
           call MPI_iSend(ipbuf(1,iremote+1),ncount,MPI_INTEGER8, &
               iremote,mpitag,MPI_COMM_WORLD,ireq,ierr)
           call MPI_Request_free(ireq,ierr)
+#ifdef DEBUG_HDF5
+          send_step=send_step+1
+          if(idbg.gt.10) then
+            call swatch(date,time)
+            write(msg,'(a,1x,a,1x,"sent duplicate to ",i5)') date(1:8),time(1:8),iremote
+            call dbg_log_msg('master',trim(msg),step=send_step)
+            call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1)),step=send_step)
+          endif
+#endif
 
           !     Debug message
           
-          if(idbg.gt.10) then
-            call swatch(date,time)
-            write(lfndbg,'(a,1x,a,i5,a,4i5)') date(1:8),time(1:8), &
-                mstr,' sent duplicate ibuf to   ',iremote
-            flush(lfndbg)
-          endif
 
           !     Progress entry
 
@@ -1208,13 +1223,16 @@ subroutine gronor_master()
 
     call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8,iremote,mpitag,MPI_COMM_WORLD,ireq2,ierr)
     call MPI_Request_free(ireq2,ierr)
-
+#ifdef DEBUG_HDF5
+    send_step=send_step+1
     if(idbg.gt.10) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-          mstr,' sent return to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq2
-      flush(lfndbg)
+      write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
+      call dbg_log_msg('master',trim(msg),step=send_step)
+      call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1)),step=send_step)
     endif
+#endif
+
   enddo
  
   if(iint.gt.0) then 
@@ -1230,11 +1248,15 @@ subroutine gronor_master()
         call MPI_iSend(itbuf(1,iremote+1),ncount,MPI_INTEGER8, &
             iremote,mpitag,MPI_COMM_WORLD,ireq9,ierr)
         call MPI_Request_free(ireq9,ierr)
+#ifdef DEBUG_HDF5
+        send_step=send_step+1
         if(idbg.gt.10) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a,2i5,a,4i5,i20)') date(1:8),time(1:8), &
-              ' Terminate signal sent to',iremote,mpitag,' buffer ',(itbuf(j,iremote+1),j=1,4),ireq9
+          write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
+          call dbg_log_msg('master',trim(msg),step=send_step)
+          call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1)),step=send_step)
         endif
+#endif
       endif
     enddo
   endif

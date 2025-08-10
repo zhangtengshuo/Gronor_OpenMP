@@ -259,12 +259,11 @@ subroutine gronor_tramat2(lfndbg)
 
 !$acc end kernels
   
+#ifdef DEBUG_HDF5
   if(idbg.gt.90) then
 #ifdef ACC
 !$acc update host(aaa,ta,diag,bdiag,bsdiag,csdiag,sdiag)
 #endif
-
-#ifdef DEBUG_HDF5
     call dbg_write_array('tramat2','diag',diag(1:nbas))
     call dbg_write_array('tramat2','bdiag',bdiag(1:nbas))
     call dbg_write_array('tramat2','bsdiag',bsdiag(1:nbas))
@@ -272,7 +271,6 @@ subroutine gronor_tramat2(lfndbg)
     call dbg_write_array('tramat2','sdiag',sdiag(1:nbas))
     call dbg_write_array('tramat2','ta',reshape(ta,(/nbas*nbas/)))
     call dbg_write_array('tramat2','aaa',reshape(aaa,(/nbas*nbas/)))
-#endif
 
     tamax=0.0d0
     aaamax=0.0d0
@@ -293,7 +291,6 @@ subroutine gronor_tramat2(lfndbg)
       enddo
     enddo
 
-#ifdef DEBUG_HDF5
     call dbg_write_scalar('tramat2','tamax',tamax)
     call dbg_write_scalar('tramat2','aaamax',aaamax)
     call dbg_write_scalar('tramat2','diagmax',diagmax)
@@ -301,9 +298,8 @@ subroutine gronor_tramat2(lfndbg)
     call dbg_write_scalar('tramat2','bsdiagmax',bsdiagmax)
     call dbg_write_scalar('tramat2','csdiagmax',csdiagmax)
     call dbg_write_scalar('tramat2','sdiagmax',sdiagmax)
-#endif
-
   endif
+#endif
 
   return
 end subroutine gronor_tramat2

@@ -28,7 +28,7 @@
 !! </table>
 !!
 
-subroutine gronor_gntwo(lfndbg)
+subroutine gronor_gntwo()
 
   use mpi
   use cidist
@@ -46,7 +46,7 @@ subroutine gronor_gntwo(lfndbg)
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg
+  integer :: i,ii,jj,k,l,n,kl,intg
 
   real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
@@ -301,13 +301,16 @@ subroutine gronor_gntwo(lfndbg)
   if(idbg.ge.13) then
     call dbg_write_scalar('gntwo','e2',e2)
     call dbg_write_scalar('gntwo','ts',ts)
+    call dbg_write_scalar('gntwo','e2n',e2n)
+    call dbg_write_scalar('gntwo','tsn',tsn)
+    call dbg_log_msg('gntwo','Two electron matrix element completed')
   endif
 #endif
 
   return
 end subroutine gronor_gntwo
 
-subroutine gronor_gntwo_canonical(lfndbg)
+subroutine gronor_gntwo_canonical()
 
   use mpi
   use cidist
@@ -329,7 +332,7 @@ subroutine gronor_gntwo_canonical(lfndbg)
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,k,l,n,kl,intg,intl,ls
+  integer :: i,k,l,n,kl,intg,intl,ls
   !     integer :: ii,jj
 
   real(kind=8) :: sum1,sum2,ts,fourdet
@@ -600,6 +603,7 @@ subroutine gronor_gntwo_canonical(lfndbg)
   if(idbg.ge.13) then
     call dbg_write_scalar('gntwo_canonical','e2',e2)
     call dbg_write_scalar('gntwo_canonical','ts',ts)
+    call dbg_log_msg('gntwo_canonical','Two electron canonical matrix element completed')
   endif
 #endif
 

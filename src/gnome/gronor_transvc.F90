@@ -41,7 +41,6 @@ subroutine gronor_transvc(lfndbg,idet)
   implicit none
   
   integer :: idet,m,n1,iop,ib,iv,lfndbg,k,i,l,im,ls,norbs
-  if(idbg.ge.17) write(lfndbg,601)
 601 format(/,' Determinant Irrep  Nclose  Nopen OccActive',/)
 
   ntop(idet)=0
@@ -57,7 +56,6 @@ subroutine gronor_transvc(lfndbg,idet)
       ioccn(m,idet)=iocopen(n1,idet)
     endif
   enddo
-  if(idbg.ge.13) write(lfndbg,602) idet,nclose(idet),nopen(idet),(ioccn(i,idet),i=1,nopen(idet))
 602 format(3i8,20i4)
 
   ntop(idet)=ntop(idet)+nopen(idet)
@@ -78,7 +76,6 @@ subroutine gronor_transvc(lfndbg,idet)
       vtemp(im,k,idet)=vec(im,k,idet)
     enddo
   enddo
-  if(idbg.ge.13) write(lfndbg,604)
 604 format(/,' M.O.''s are transformed')
 
   !     Put transformed M.O's in correct order: closed, alpha, beta
@@ -95,7 +92,6 @@ subroutine gronor_transvc(lfndbg,idet)
   enddo
   l=l+nopen(idet)
 
-  if(idbg.ge.13) write(lfndbg,606)
 606 format(/,' Closed shells ordered')
 
   !     Then order open alpha shell M.O.'s of all subspecies
@@ -114,7 +110,6 @@ subroutine gronor_transvc(lfndbg,idet)
   enddo
   ls=l
 
-  if(idbg.ge.13) write(lfndbg,608)
 608 format(/,' Open alpha shells ordered')
 
   !     Then order open beta shell M.O.'s of all subspecies
@@ -133,7 +128,6 @@ subroutine gronor_transvc(lfndbg,idet)
   enddo
   ls=l
 
-  if(idbg.ge.13) write(lfndbg,610)
 610 format(/,' Open beta shells ordered')
 
   return

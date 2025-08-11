@@ -23,16 +23,17 @@ subroutine gronor_dipole(lfndbg)
   use cidist
   use gnome_parameters
   use gnome_data
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
   implicit none
   integer :: lfndbg
 
   integer :: i,j
   real (kind=8) :: x,y,z,aij,dx,dy,dz,z1,xc,yc,zc,dtot
 
-  if(idbg.ge.13) write(lfndbg,600)
 600 format(' The dipole matrix elements will be calculated')
 
-  if(idbg.gt.13) write(lfndbg,601)
 601 format(4x,'i',3x,'j',13x,'dx',20x,'dy',20x,'dz',//)
 
   x=0.0d0
@@ -52,7 +53,6 @@ subroutine gronor_dipole(lfndbg)
         x=x+dx
         y=y+dy
         z=z+dz
-        if(idbg.gt.13) write(lfndbg,110) i,j,dx,dy,dz
 110     format(1x,2i4,3(2x,e20.10))
       endif
     enddo
@@ -60,21 +60,25 @@ subroutine gronor_dipole(lfndbg)
 
   if(idipole.eq.1) then
     if(me.eq.mstr) then
-      write(lfndbg,130)
-      write(lfndbg,140) x,y,z
-130   format(1x,'Dipole matrix elements',//)
-140   format(10x,'x-direction :',8x,f20.12,//, &
-             10x,'y-direction :',8x,f20.12,//, &
-             10x,'z-direction :',8x,f20.12,//)
+      return
     endif
-    return
-  elseif(idbg.ge.13) then
-    write(lfndbg,120)
-120 format(///,11x,'Dipole moment',//,1x,'electronic contribution :',//)
-    write(lfndbg,140) x,y,z
+  else
+#ifdef DEBUG_HDF5
+    if(idbg.ge.13) then
+      call dbg_log_msg('dipole','Dipole moment: electronic contribution')
+    endif
+#endif
   endif
 
   !     nuclear contribution to the dipole moment
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) then
+    call dbg_write_scalar('dipole','x_elec',x)
+    call dbg_write_scalar('dipole','y_elec',y)
+    call dbg_write_scalar('dipole','z_elec',z)
+  endif
+#endif
 
   dx=0.0d0
   dy=0.0d0
@@ -90,11 +94,10 @@ subroutine gronor_dipole(lfndbg)
     dz=dz+z1*zc
   enddo
 
-  if(idbg.ge.12) then
-    write(lfndbg,150)
-150 format(/,1x,'nuclear contribution :',//)
-    write(lfndbg,140) dx,dy,dz
-  endif
+  !     nuclear contribution to the dipole moment
+#ifdef DEBUG_HDF5
+  if(idbg.ge.12) call dbg_log_msg('dipole','nuclear contribution')
+#endif
 
   !     calculation of the total dipole moment
 
@@ -103,14 +106,15 @@ subroutine gronor_dipole(lfndbg)
   dz=dz+z
   dtot=sqrt(dx*dx+dy*dy+dz*dz)
 
+#ifdef DEBUG_HDF5
   if(idbg.ge.12) then
-    write(lfndbg,160)
-    write(lfndbg,140)dx,dy,dz
-    write(lfndbg,170) dtot
-160 format(/,1x,'Dipole moments :',//)
-170 format(10x,'Total dipole moment :',f20.12)
+    call dbg_log_msg('dipole','Dipole moments')
+    call dbg_write_scalar('dipole','dx',dx)
+    call dbg_write_scalar('dipole','dy',dy)
+    call dbg_write_scalar('dipole','dz',dz)
+    call dbg_write_scalar('dipole','dtot',dtot)
   endif
+#endif
 
   return
 end subroutine gronor_dipole
-

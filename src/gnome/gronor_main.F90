@@ -93,6 +93,7 @@ subroutine gronor_main()
   integer :: node
   real (kind=8) :: rdum(6)
   character (len=255) :: string,architecture,compiler
+  character(len=256) :: msg
   logical exist,first_pass
 
   real(kind=8), external :: timer_wall_total
@@ -201,7 +202,6 @@ subroutine gronor_main()
     lfnint=11
     lfnone=11
     lfntwo=12
-    lfndbg=13
     filpro=trim(string)//'.pro'
     lfnpro=14
     fildat=trim(string)//'.dat'
@@ -818,18 +818,20 @@ subroutine gronor_main()
 
   lfnone=11
   lfntwo=12
-  lfndbg=13
   lfnabt=26
   lfnwrn=27
 
+#ifdef DEBUG_HDF5
   if(idbg.gt.0) then
     write(fildbg,1300) trim(string),me
 1300 format(a,'-',i5.5,'.dbg ')
-    open(unit=lfndbg,file=trim(fildbg),form='formatted',status='unknown',err=996)
-#ifdef DEBUG_HDF5
     call dbg_open(trim(fildbg)//'.h5', idbg, me)
-#endif
+    call swatch(date,time)
+    write(msg,'("Debug start at ",a,1x,a,": rank=",i6,", idbg=",i6)') &
+        date(1:8),time(1:8),me,idbg
+    call dbg_log_msg('main',trim(msg))
   endif
+#endif
   
   if(itmp.gt.0) then
     write(filtmp,1302) trim(string),me
@@ -1409,12 +1411,20 @@ subroutine gronor_main()
         cptot=c_loc(memtot)
         !     istat=cudaMemGetInfo(cpfre,cptot)
         memavail=memfre
+#ifdef DEBUG_HDF5
         if(idbg.gt.0) then
           call swatch(date,time)
-          write(lfndbg,1301) date(1:8),time(1:8),' Device set to ',mydev,' of ',numdev
-1301      format(a,1x,a,1x,a,i3,a,i3)
-          flush(lfndbg)
+#ifdef GPUAMD
+          write(msg,'("Device set to ",i0," of ",i0," on AMD at ",a,1x,a)') &
+              mydev,numdev,date(1:8),time(1:8)
+#else
+          write(msg,'("Device set to ",i0," of ",i0," on NVIDIA at ",a,1x,a)') &
+              mydev,numdev,date(1:8),time(1:8)
+#endif
+          call dbg_log_msg('main',trim(msg))
         endif
+#endif
+
       else
         iamacc=0
       endif
@@ -1548,22 +1558,24 @@ subroutine gronor_main()
   ! First pass through make_basestate to determine maxcib
   first_pass = .true.
   do i=1,nbase
-
+    
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' entering make_basestate for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Entering make_basestate (first pass) for ibase ",i0," at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
 
     call gronor_make_basestate(i,first_pass)
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' returned from make_basestate for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Returned from make_basestate (first pass) for ibase ",i0," at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
 
     if(me.eq.mstr) then
       call timer_stop(99)
@@ -1575,12 +1587,14 @@ subroutine gronor_main()
       call timer_start(99)
     endif
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' Base state completed for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Base state completed for ibase ",i0," (first pass) at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
+
   enddo
 
   ! Now that maxcib is known, civb and iocc can be allocated
@@ -1590,22 +1604,24 @@ subroutine gronor_main()
   ! Second pass through make_basestate to actually fill civb and iocc
   first_pass = .false.
   do i=1,nbase
-
+    
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' entering make_basestate for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Entering make_basestate (second pass) for ibase ",i0," at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
 
     call gronor_make_basestate(i,first_pass)
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' returned from make_basestate for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Returned from make_basestate (second pass) for ibase ",i0," at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
 
     if(me.eq.mstr) then
       call timer_stop(99)
@@ -1616,12 +1632,14 @@ subroutine gronor_main()
       call timer_start(99)
     endif
 
+#ifdef DEBUG_HDF5
     if(idbg.ge.50) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,i4)') date(1:8),time(1:8), &
-          ' Base state completed for ibase ',i
-      flush(lfndbg)
+      write(msg,'("Base state completed for ibase ",i0," (second pass) at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
+
   enddo
   
   thres2=tau_CI / maxcoef
@@ -1671,23 +1689,24 @@ subroutine gronor_main()
   deallocate(iocc_aux)
 
   do i=1,nbase
+#ifdef DEBUG_HDF5
     if(idbg.gt.50) then
+      call swatch(date,time)
+      write(msg,'("Base state ",i0," recorded at ",a,1x,a)') i,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
       ndeti=idetb(i)
-      nacti=nactb(i)
-      write(lfndbg,1601) i,ndeti
-1601  format(/,' Basestate ',i4,' wavefunction has ',i8,' determinants:',/)
+      call dbg_write_int_scalar('main','ndeti',ndeti,step=i)
       do ib=1,ndeti
-        write(lfndbg,1602) ib,civb(ib,i),(iocc(ib,i,k),k=1,nacti)
-1602    format(i5,f15.5,32i3)
+        call dbg_write_scalar('main','civb',civb(ib,i),step=ib)
+        call dbg_write_int_array('main','iocc',iocc(ib,i,1:nactb(i)),step=ib)
       enddo
-      write(lfndbg,1603) i,nactb(i)+inactb(i),nbas
-1603  format(/,' Basestate ',i4,' vector ',2i8)
       do ivc=1,nactb(i)+inactb(i)
-        write(lfndbg,1604) '(',ivc,')',(vecsb(ibas,ivc,i),ibas=1,nbas)
-1604    format(a2,i3,a1,(t9,10f12.8))
+        if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.nactb(i)+inactb(i)-10) then
+          call dbg_write_array('main','vec',vec(ivc,1:nbas,i),step=ivc)
+        endif
       enddo
-      flush(lfndbg)
     endif
+#endif
   enddo
 
   call timer_stop(7)
@@ -1986,33 +2005,47 @@ subroutine gronor_main()
   if(me.ne.mstr) call timer_start(98)
   call timer_start(4)
 
+#ifdef DEBUG_HDF5
   if(idbg.gt.0) then
     call swatch(date,time)
 #ifdef GPUAMD
-    write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8), &
-        ' AMD    ',numdev,mydev,iamacc,nummps,numgpu,(map2(me+1,i),i=1,5)
+    write(msg,'("AMD rank info: numdev=",i0,", mydev=",i0,", iamacc=",i0,", nummps=",i0,", numgpu=",i0," at ",a,1x,a)') &
+        numdev,mydev,iamacc,nummps,numgpu,date(1:8),time(1:8)
 #else
-    write(lfndbg,'(a,1x,a,1x,a,11i5)') date(1:8),time(1:8), &
-        ' NVIDIA ',numdev,mydev,iamacc,nummps,numgpu,(map2(me+1,i),i=1,5)
+    write(msg,'("NVIDIA rank info: numdev=",i0,", mydev=",i0,", iamacc=",i0,", nummps=",i0,", numgpu=",i0," at ",a,1x,a)') &
+        numdev,mydev,iamacc,nummps,numgpu,date(1:8),time(1:8)
 #endif
-    flush(lfndbg)
+    call dbg_log_msg('main',trim(msg))
+    call dbg_write_int_scalar('main','numdev',numdev)
+    call dbg_write_int_scalar('main','mydev',mydev)
+    call dbg_write_int_scalar('main','iamacc',iamacc)
+    call dbg_write_int_scalar('main','nummps',nummps)
+    call dbg_write_int_scalar('main','numgpu',numgpu)
+    call dbg_write_int_array('main','map2',map2(me+1,1:5))
+    call swatch(date,time)
+    write(msg,'("Start memory/master at ",a,1x,a)') date(1:8),time(1:8)
+    call dbg_log_msg('main',trim(msg))
   endif
+#endif
 
   if(me.eq.mstr) then
+#ifdef DEBUG_HDF5
     if(idbg.gt.0) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_master'
-      flush(lfndbg)
+      write(msg,'("Calling GronOR_master at ",a,1x,a)') date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
     call gronor_memory_usage()
     call gronor_master()
   else
+#ifdef DEBUG_HDF5
     if(idbg.gt.0) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,1x,a,2i5)') date(1:8),time(1:8), &
- &         ' iamactive, iamacc=',iamactive,iamacc
-      flush(lfndbg)
+      write(msg,'("iamactive=",i0,", iamacc=",i0," at ",a,1x,a)') iamactive,iamacc,date(1:8),time(1:8)
+      call dbg_log_msg('main',trim(msg))
     endif
+#endif
     if(iamactive.eq.1) then
 
       l2=0
@@ -2092,26 +2125,22 @@ subroutine gronor_main()
       allocate(rwork(nelecs))
 
       if(iamacc.eq.1) then
-        if(idbg.gt.0) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a,i12)') date(1:8),time(1:8),' mint2= ',mint2
-          flush(lfndbg)
 #ifdef DEBUG_HDF5
+        if(idbg.gt.0) then
           call dbg_write_scalar('main','mint2',mint2)
-#endif
         endif
+#endif
 
 !$acc data copyin(g,lab,ndx,t,v,dqm,ndxtv,s) &
 !$acc& create(a,ta,tb,w1,w2,taa,u,w,wt,ev,rwork) &
 !$acc& create(diag,bdiag,cdiag,bsdiag,csdiag,sdiag,aaa,tt,aat,sm)
+#ifdef DEBUG_HDF5
         if(idbg.gt.0) then
           call swatch(date,time)
-          write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Calling GronOR_worker'
-          flush(lfndbg)
-#ifdef DEBUG_HDF5
-          call dbg_log_msg('main','Calling GronOR_worker')
-#endif
+          write(msg,'("Calling GronOR_worker at ",a,1x,a)') date(1:8),time(1:8)
+          call dbg_log_msg('main',trim(msg))
         endif
+#endif
         call gronor_memory_usage()
         if(managers.eq.0) then
           if(role.eq.worker) call gronor_worker()
@@ -2340,7 +2369,6 @@ subroutine gronor_main()
 
   if(me.eq.mstr) deallocate(numrecs)
 
-  !      close(unit=lfndbg,status='keep')
   if(me.eq.mstr) then
     if(ipro.ge.3) then
       close(unit=lfnpro,status='keep')
@@ -2376,10 +2404,11 @@ subroutine gronor_main()
     if(np.gt.nabort.and.(nalive+numidle+1.ne.np.or.otimeout).and.ires.ne.0) then
       ierror=0
       ierr=0
+#ifdef DEBUG_HDF5
       if(idbg.gt.0) then
-        write(lfndbg,'(a)') "Issuing mpi_abort"
-        flush(lfndbg)
+        call dbg_log_msg('main','Issuing mpi_abort')
       endif
+#endif
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,637) trim(date),trim(time)
 637   format(/,' Completion/abort of run ',2a10,/)
@@ -2387,17 +2416,16 @@ subroutine gronor_main()
       close(unit=lfnout,status='keep')
       call mpi_abort(MPI_COMM_WORLD,ierror,ierr)
     else
-      if(idbg.gt.0) then
-        write(lfndbg,'(a)') "Issuing mpi_finalize"
-        flush(lfndbg)
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,a,a)') date(1:8),time(1:8),' Closing ',trim(fildbg)
-        flush(lfndbg)
 #ifdef DEBUG_HDF5
+      if(idbg.gt.0) then
+        call dbg_log_msg('main','Issuing mpi_finalize')
+        call swatch(date,time)
+        write(msg,'("Completion at ",a,1x,a)') date(1:8),time(1:8)
+        call dbg_log_msg('main',trim(msg))
+        call dbg_log_msg('main','Closing debug file')
         call dbg_close()
-#endif
-        close(unit=lfndbg,status='keep')
       endif
+#endif
       call swatch(date,time)
       if(ipr.ge.0) write(lfnout,638) trim(date),trim(time)
 638   format(/,' Completion/finalize of run ',2a10,/)

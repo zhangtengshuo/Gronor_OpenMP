@@ -27,7 +27,7 @@
 !!
 
 
-subroutine gronor_gnone(lfndbg)
+subroutine gronor_gnone()
   use cidist
   use gnome_parameters
   use gnome_data
@@ -37,8 +37,6 @@ subroutine gronor_gnone(lfndbg)
 #endif
 
   implicit none
-  integer :: lfndbg
-
   integer :: j,k,ielem,jkoff,nn
   real (kind=8) :: tsum,vsum,abjk,potnuc1,tsj,vsj
   real (kind=8) :: dsum1,dsum2,dsum3
@@ -60,6 +58,10 @@ subroutine gronor_gnone(lfndbg)
   qsum6=0.0d0
   ielem=0
   jkoff=0
+
+#ifdef DEBUG_HDF5
+  if(idbg.ge.13) call dbg_log_msg('gnone','Starting one electron integral evaluation')
+#endif
 
 !$acc kernels present(t,v,dqm,diag,bdiag,bsdiag,csdiag,ta,aaa,ndxtv)
   if(ising.eq.0) then
@@ -167,9 +169,13 @@ subroutine gronor_gnone(lfndbg)
   mpoles(9)=qsum6
 
 #ifdef DEBUG_HDF5
-  if(idbg.ge.13) then
+  if(idbg.ge.12) then
+    call dbg_log_msg('gnone','The one electron matrix elements of h are')
+    call dbg_write_scalar('gnone','deta',deta)
     call dbg_write_scalar('gnone','tsum',tsum)
     call dbg_write_scalar('gnone','vsum',vsum)
+    call dbg_write_scalar('gnone','potnuc1',potnuc1)
+    call dbg_write_scalar('gnone','e1',e1)
     call dbg_write_scalar('gnone','dsum1',dsum1)
     call dbg_write_scalar('gnone','dsum2',dsum2)
     call dbg_write_scalar('gnone','dsum3',dsum3)
@@ -180,28 +186,7 @@ subroutine gronor_gnone(lfndbg)
     call dbg_write_scalar('gnone','qsum5',qsum5)
     call dbg_write_scalar('gnone','qsum6',qsum6)
   endif
+  if(idbg.ge.13) call dbg_log_msg('gnone','Completed one electron integral evaluation')
 #endif
-
-  if(idbg.ge.12) then
-    write(lfndbg,120)
-    write(lfndbg,130) deta,tsum,vsum,potnuc1,e1,dsum1,dsum2,dsum3, &
-        qsum1,qsum2,qsum3,qsum4,qsum5,qsum6
-110 format(1x,2i4,5(2x,e20.10))
-120 format(///,1x,'The one electron matrix elements of h are :',//)
-130 format(15x,'Total overlap              : ',f20.12,//, &
-        15x,'Kinetic energy term        : ',f20.12,//, &
-        15x,'Nuclear attraction term    : ',f20.12,//, &
-        15x,'Nuclear repulsion term     : ',f20.12,//, &
-        15x,'One-electron matrix element: ',f20.12,//, &
-        15x,'Dipole moment x (el)          : ',f20.12,//, &
-        15x,'Dipole moment y (el)           : ',f20.12,//, &
-        15x,'Dipole moment z (el)          : ',f20.12,//, &
-        15x,'Quadrupole moment xx (el)      : ',f20.12,//, &
-        15x,'Quadrupole moment xy (el)      : ',f20.12,//, &
-        15x,'Quadrupole moment xz (el)      : ',f20.12,//, &
-        15x,'Quadrupole moment yy (el)      : ',f20.12,//, &
-        15x,'Quadrupole moment yz (el)      : ',f20.12,//, &
-        15x,'Quadrupole moment zz (el)      : ',f20.12,//)
-  endif
   return
 end subroutine gronor_gnone

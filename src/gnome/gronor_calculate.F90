@@ -69,9 +69,9 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   ndetj=idetb(jb)
   nacti=nactb(ib)
   nactj=nactb(jb)
+#ifdef DEBUG_HDF5
   if(idbg.ge.50) then
     write(msg,'("Starting gronor_calculate ib=",i0," jb=",i0," id1=",i0," id2=",i0)') ib,jb,id1,id2
-#ifdef DEBUG_HDF5
     call dbg_log_msg('calculate', trim(msg))
     call dbg_write_int_scalar('calculate','ib',ib)
     call dbg_write_int_scalar('calculate','jb',jb)
@@ -81,8 +81,8 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     call dbg_write_array('calculate','civb_left',civb(1:ndeti,ib))
     call dbg_write_int_scalar('calculate','ndetj',ndetj)
     call dbg_write_array('calculate','civb_right',civb(1:ndetj,jb))
-#endif
   endif
+#endif
 
   ioff=ndxdet(ib,jb)
 
@@ -114,13 +114,11 @@ subroutine gronor_calculate(ib,jb,id1,id2)
       call MPI_Test(itreq,flag,status,ierr)
 
       if(flag) then
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,a)') date(1:8),time(1:8),' Terminating in gronor_calculate'
 #ifdef DEBUG_HDF5
+        if(idbg.gt.10) then
           call dbg_log_msg('calculate','Terminating in gronor_calculate')
-#endif
         endif
+#endif
         oterm=.true.
         return
       endif
@@ -215,14 +213,13 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         iocopen(k,2)=iocc(j,jb,k)
       enddo
 
+      
+#ifdef DEBUG_HDF5
       if(idbg.ge.40) then
-        write(lfndbg,610)
-610     format(//,' Active orbital occupation',/)
-        write(lfndbg,611) (ioccup(k,1),k=1,nact(1))
-        write(lfndbg,612) (ioccup(k,2),k=1,nact(2))
-611     format(' Left determinant :',(20i4))
-612     format(' Right determinant:',(20i4))
+        call dbg_write_int_array('calculate','ioccup_left',ioccup(1:nact(1),1))
+        call dbg_write_int_array('calculate','ioccup_right',ioccup(1:nact(2),2))
       endif
+#endif
 
       ncl=0
       nop=0
@@ -302,21 +299,21 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         endif
       enddo
 
+      
+#ifdef DEBUG_HDF5
       if(idbg.ge.60) then
         do idet=1,2
           ntvc=ntcl(idet)+ntop(idet)
-          write(lfndbg,1603) ntvc
-1603      format(/,' Closed shell M.O.''s',i5,/)
           do ivc=1,ntvc
-            if(ivc.eq.ntcl(idet)+1) write(lfndbg,1604)
-1604        format(/,' Open shell M.O.'' s:')
-            write(lfndbg,1605)  ' (',ivc,')',(vec(ivc,ibas,idet),ibas=1,nbas)
-1605        format(a2,i3,a1,(t9,10f12.8))
+            if(ivc.eq.ntcl(idet)+1) call dbg_log_msg('calculate','Open shell M.O.s:')
+            if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
+              call dbg_write_array('calculate','vec',vec(ivc,1:nbas,idet),step=ivc)
+            endif
           enddo
         enddo
       endif
+#endif
 
-      if(idbg.ge.40) write(lfndbg,618) ij,i,j
 618   format(//,' Entering GNOME :',i8,', for determinants',2i8)
 
       call timer_start(6)
@@ -328,7 +325,6 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         return
       endif
 
-      if(idbg.ge.40) write(lfndbg,619) ij,i,j
 619   format(/,' Exiting GNOME :',i8,', for determinants',2i8,//)
 
     endif
@@ -351,21 +347,24 @@ subroutine gronor_calculate(ib,jb,id1,id2)
           endif
         endif
       endif
+      
+#ifdef DEBUG_HDF5
       if(idbg.ge.12) then
-        call swatch(date,time)
-        write(lfndbg,651) date(1:8),time(1:8),ij,i,j,hh,ss
-651     format(a,1x,a,' Calculated values from gronor_gnome ',3i7,'  H:',f20.10,'  S:',f20.10)
+        call dbg_log_msg('calculate','Calculated values from gronor_gnome')
       endif
+#endif
       buffer(1)=buffer(1)+fac*civb(i,ib)*civb(j,jb)*hh
       buffer(2)=buffer(2)+fac*civb(i,ib)*civb(j,jb)*ss
       if(iamhead.eq.1)then
         do k=1,9
           buffer(k+8)=buffer(k+8)+fac*civb(i,ib)*civb(j,jb)*mpoles(k)
         enddo
+        
+#ifdef DEBUG_HDF5
         if(idbg.ge.12)then
-          write(lfndbg,*)'Gronor calculate head rank contributions', &
-              fac,(civb(i,ib)*civb(j,jb)*mpoles(k),k=1,9)
+          call dbg_log_msg('calculate','Updated multipole buffers')
         endif
+#endif
       endif
     else
 
@@ -403,11 +402,6 @@ subroutine gronor_calculate(ib,jb,id1,id2)
         mpitag=5
         call MPI_Recv(e2summ,ncount,MPI_REAL8,MPI_ANY_SOURCE,mpitag,MPI_COMM_WORLD,status,ierr)
         iremote=status(MPI_SOURCE)
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),me,' received e2buf from',iremote
-          flush(lfndbg)
-        endif
         e2buff=e2buff+e2summ
       enddo
     else
@@ -416,11 +410,6 @@ subroutine gronor_calculate(ib,jb,id1,id2)
       mpidest=thisgroup(2)
       call MPI_iSend(e2buff,ncount,MPI_REAL8,mpidest,mpitag,MPI_COMM_WORLD,ireq,ierr)
       call MPI_Request_free(ireq,ierr)
-      if(idbg.gt.10) then
-        call swatch(date,time)
-        write(lfndbg,'(a,1x,a,i5,a,i5)') date(1:8),time(1:8),me,' sent e2buf to',thisgroup(2)
-        flush(lfndbg)
-      endif
 
     endif
     buffer(1)=buffer(1)+e2buff

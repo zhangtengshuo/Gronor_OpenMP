@@ -24,8 +24,15 @@ subroutine gronor_manager()
   use cidist
   use cidef
   use gnome_parameters
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
 
   implicit none
+
+#ifdef DEBUG_HDF5
+  external :: swatch
+#endif
 
   integer (kind=4) :: ireq,ierr,ncount,mpitag,mpidest,iremote
   integer (kind=8) :: ibuf(4)
@@ -34,7 +41,16 @@ subroutine gronor_manager()
   integer (kind=8) :: numsnd,numrcv,numdets,idet,jdet,ibase,jbase,numtsk
 
   integer (kind=8) :: i,j,k,m
-  
+#ifdef DEBUG_HDF5
+  character(len=8) :: date,time
+  character(len=256) :: msg
+  integer :: istep
+#endif
+
+#ifdef DEBUG_HDF5
+  istep = 0
+#endif
+
   ! Signal the master to start sending tasks
 
   do i=1,17
@@ -52,16 +68,18 @@ subroutine gronor_manager()
   call MPI_iSend(rbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
   call MPI_Request_free(ireq,ierr)
 !  write(*,'(a,4f12.3)') "to mstr",(rbuf(k),k=1,4)
+#ifdef DEBUG_HDF5
   if(idbg.gt.20) then
     call swatch(date,time)
-    write(lfndbg,'(a,1x,a,1x,a)') date(1:8),time(1:8),' Head signaled master'
-    flush(lfndbg)
+    call dbg_log_msg('manager',trim(date)//' '//trim(time)//' Head signaled master')
   endif
   if(idbg.gt.10) then
     call swatch(date,time)
-    write(lfndbg,'(a,1x,a,i5,a,4i7)') date(1:8),time(1:8),me,' sent buffer   ',mstr
-    flush(lfndbg)
+    write(msg,'(i5,a,i5)') me,' sent buffer to ',mstr
+    call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg))
+    call dbg_write_array('manager','rbuf_init',rbuf)
   endif
+#endif
 
   ibase=1
 
@@ -75,13 +93,17 @@ subroutine gronor_manager()
     mpitag=2
     call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 !    write(*,'(a,4i5)') "from mstr ",(ibuf(k),k=1,4)
+    call timer_stop(51)
+#ifdef DEBUG_HDF5
+    istep = istep + 1
     if(idbg.gt.10) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-          me,' received task ',mstr,mpitag,(ibuf(i),i=1,4),ierr
-      flush(lfndbg)
+      write(msg,'(i5,a,i5,a,i5,a,i5)') me,' received task from ',mstr, &
+          ' tag ',mpitag,' ierr ',ierr
+      call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
+      call dbg_write_int_array('manager','ibuf_in',ibuf,step=istep)
     endif
-    call timer_stop(51)
+#endif
 
     if(ibuf(1).le.0) exit
 
@@ -221,12 +243,15 @@ subroutine gronor_manager()
     call MPI_iSend(tbuf,ncount,MPI_REAL8,mstr,mpitag,MPI_COMM_WORLD,ireq,ierr)
     call MPI_Request_free(ireq,ierr)
 !    write(*,'(a,4f12.3)') "to mstr",(tbuf(k),k=1,4)
+#ifdef DEBUG_HDF5
     if(idbg.gt.10) then
       call swatch(date,time)
-      write(lfndbg,'(a,1x,a,i5,a,7i7)') date(1:8),time(1:8), &
-          me,' sent results  ',mstr,(ibuf(i),i=1,4)
-      flush(lfndbg)
+      write(msg,'(i5,a,i5)') me,' sent results to ',mstr
+      call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
+      call dbg_write_array('manager','tbuf',tbuf,step=istep)
+      call dbg_write_int_array('manager','ibuf_out',ibuf,step=istep)
     endif
+#endif
     do i=1,17
       rbuf(i)=0.0d0
       tbuf(i)=0.0d0

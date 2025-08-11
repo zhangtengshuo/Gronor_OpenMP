@@ -180,6 +180,15 @@ endif ()
 
 message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+# Automatically enable debug utilities and HDF5 logging when using the
+# Debug build type. For all other build types the DEBUG option is forced
+# off so that HDF5 support is not linked in.
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEBUG ON CACHE BOOL "Debugging." FORCE)
+else()
+  set(DEBUG OFF CACHE BOOL "Debugging." FORCE)
+endif()
+
 set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Garble RelWithDebInfo Release Fast)
 
 # The place where GronOR is installed with make install.

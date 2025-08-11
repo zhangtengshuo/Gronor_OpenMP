@@ -23,29 +23,35 @@ subroutine gronor_tranout(lfndbg,idet)
   use cidist
   use gnome_parameters
   use gnome_data
+#ifdef DEBUG_HDF5
+  use debug_hdf5
+#endif
   implicit none
   integer :: idet, lfndbg
   integer :: ivc,ntvc,ibas,i
 
   ntvc=ntcl(idet)+ntop(idet)
 
+  
+#ifdef DEBUG_HDF5
   if(idbg.ge.25) then
-      write(lfndbg,601)  ntcl(idet),ntop(idet),(ioccn(i,idet),i=1,ntop(idet))
+    call dbg_write_int_scalar('tranout','nclose',ntcl(idet))
+    call dbg_write_int_scalar('tranout','nopen',ntop(idet))
+    call dbg_log_msg('tranout','M.O.s transformed and ordered')
   endif
-601 format(/,' Tranout: nclose:',i3,',nopen:',i3,',ocopen:',20i4)
-  if(idbg.ge.13) write(lfndbg,602)
-602 format(/,' M.O.''s transformed and ordered')
+#endif
 
+  
+#ifdef DEBUG_HDF5
   if(idbg.gt.23) then
-    write(lfndbg,603)
-603 format(/,' closed shell M.O.''s',/)
     do ivc=1,ntvc
-      if(ivc.eq.ntcl(idet)+1) write(lfndbg,604)
-604   format(/,' open shell M.O.'' s:')
-      write(lfndbg,605)  ' (',ivc,')',(vec(ivc,ibas,idet),ibas=1,nbas)
-605   format(a2,i3,a1,(t9,10f12.8))
+      if(ivc.eq.ntcl(idet)+1) call dbg_log_msg('tranout','open shell M.O.s:')
+      if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
+        call dbg_write_array('tranout','vec',vec(ivc,1:nbas,idet),step=ivc)
+      endif
     enddo
   endif
+#endif
 
   return
 end subroutine gronor_tranout

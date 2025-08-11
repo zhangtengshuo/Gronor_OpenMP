@@ -495,12 +495,7 @@ subroutine gronor_parallel_integral_input()
 #endif
         endif
 
-        if(idbg.gt.10) then
-          call swatch(date,time)
-          write(lfndbg,130) date(1:8),time(1:8),jint
-130       format(a,1x,a,1x,' Integrals broadcasted for batch ',i5)
-          flush(lfndbg)
-        endif
+        
         nint=nint+lint
         mint=mint-lint
       enddo
@@ -510,8 +505,6 @@ subroutine gronor_parallel_integral_input()
         mpitag=0
         call MPI_Bcast(lab(1,1),ncount,MPI_INTEGER2,mpitag,new_comm(igr),ierr)
         if(itmp.gt.0) then
-          write(lfndbg,'(a,5i6)') "LAB2 ",mlab,ncount,lab(1,mlab),lab(2,mlab)
-          flush(lfndbg)
         endif
       else
         ncount=2*mlab

@@ -24,6 +24,9 @@ subroutine gronor_print_dipole_moments()
   use gnome_parameters, only : itest,idbg,labmax
   use gnome_data, only : com
   use cidef
+#ifdef DEBUG_HDF5
+  use debug_hdf5, only : dbg_log_msg
+#endif
 
   implicit none
 
@@ -103,10 +106,11 @@ subroutine gronor_print_dipole_moments()
     enddo
   enddo
 
+#ifdef DEBUG_HDF5
   if ( idbg .ge. 5 ) then
-    write(lfndbg,*)'Nuclear contribution'
-    write(lfndbg,'(9f18.10)')(mnuc(i),i=1,9)
+    call dbg_log_msg('print_dipole_moments','Dipole moment matrices prepared')
   endif
+#endif
   do i=1,9
     do j=1,nbase
       dqbase(j,j,i)=dqbase(j,j,i)+mnuc(i)

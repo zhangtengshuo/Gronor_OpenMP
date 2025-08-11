@@ -13,6 +13,11 @@ message (STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${
 
 project (GronOR VERSION 25.03 LANGUAGES Fortran C CXX)
 
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+set(HDF5_ROOT $ENV{HDF5_ROOT} CACHE PATH "Path to HDF5 installation")
+
 # CMake optional parameters with defaults
 #    Note: MPI is not optional and removed from options list
 

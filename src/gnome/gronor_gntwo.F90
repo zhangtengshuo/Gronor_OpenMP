@@ -44,7 +44,7 @@ subroutine gronor_gntwo(lfndbg)
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg
+  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,nrow,ncol
 
   real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
@@ -52,10 +52,14 @@ subroutine gronor_gntwo(lfndbg)
   real (kind=4) :: e2t,tst
   real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real (kind=4), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  external :: sgemm
 #else
   real (kind=8) :: e2t,tst
   real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real (kind=8), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  external :: dgemm
 #endif
 
   real(kind=8), external :: timer_wall
@@ -113,8 +117,23 @@ subroutine gronor_gntwo(lfndbg)
 
     tst=ts
     kl=nbas*(nbas+1)/2
+    nrow=jntndx-intndx+1
+    ncol=kl
 
-!$acc kernels present(aat,aaa,tt,ta,sm,g,lab,ndx) copyin(kl,intndx,jntndx)
+#ifdef SINGLEP
+    allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
+#else
+    allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
+#endif
+
+    gmat=0.0
+    pmat=0.0
+    cmat=0.0
+
+!$acc enter data copyin(gmat,pmat,cmat)
+!$acc parallel loop gang vector collapse(2) &
+!$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat) &
+!$acc   copyin(kl,intndx,jntndx)
     do ii=intndx,jntndx
       do jj=ii,kl
         intg=ndx(ii)+jj
@@ -122,34 +141,34 @@ subroutine gronor_gntwo(lfndbg)
         k=lab(2,ii)
         l=lab(1,jj)
         n=lab(2,jj)
-        tst=tst+g(intg)*(sm(i,k)*sm(l,n) -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
+        gmat(ii-intndx+1,jj)=g(intg)
+        pmat(ii-intndx+1,jj)=sm(i,k)*sm(l,n)-aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
             -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
-            -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
+            -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k)
       enddo
     enddo
-!$acc end kernels
+!$acc end parallel
 
-!!! 可选改动。上面的代码实际上外层循环就已经占满所有 sm。
-! !$acc parallel loop gang vector collapse(2) &
-! !$acc   reduction(+:tst)                    &
-! !$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx) &
-! !$acc   copyin(kl,intndx,jntndx)
-!     do ii=intndx,jntndx
-!       do jj=intndx,kl
-!         if (jj < ii) cycle
-!         intg=ndx(ii)+jj
-!         i=lab(1,ii)
-!         k=lab(2,ii)
-!         l=lab(1,jj)
-!         n=lab(2,jj)
-!         tst=tst+g(intg)*(sm(i,k)*sm(l,n) -aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
-!             -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
-!             -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k))
-!       enddo
-!     enddo
-! !$acc end parallel
+!$acc host_data use_device(gmat,pmat,cmat)
+#ifdef SINGLEP
+    call sgemm('N','T',nrow,nrow,ncol,1.0,gmat,nrow,pmat,nrow,0.0,cmat,nrow)
+#else
+    call dgemm('N','T',nrow,nrow,ncol,1.0d0,gmat,nrow,pmat,nrow,0.0d0,cmat,nrow)
+#endif
+!$acc end host_data
 
+    sum2=0.0d0
+!$acc parallel loop present(cmat) reduction(+:sum2)
+    do i=1,nrow
+      sum2=sum2+cmat(i,i)
+    enddo
+!$acc end parallel
+
+    tst=ts+sum2
     ts=tst
+
+!$acc exit data delete(gmat,pmat,cmat)
+    deallocate(gmat,pmat,cmat)
 
     call timer_stop(31)
 

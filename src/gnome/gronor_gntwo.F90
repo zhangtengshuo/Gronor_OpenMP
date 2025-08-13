@@ -158,11 +158,22 @@ subroutine gronor_gntwo(lfndbg)
 !$acc end parallel
 
     istat = cublasCreate(cublas_handle)
+#ifdef SINGLEP
+    real(kind=4) :: alpha, beta
+    alpha = 1.0
+    beta  = 0.0
+#else
+    real(kind=8) :: alpha, beta
+    alpha = 1.0d0
+    beta  = 0.0d0
+#endif
 !$acc host_data use_device(gmat,pmat,cmat)
 #ifdef SINGLEP
-    istat = cublasSgemm(cublas_handle,'N','T',nrow,nrow,ncol,1.0,gmat,nrow,pmat,nrow,0.0,cmat,nrow)
+    istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
+         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
 #else
-    istat = cublasDgemm(cublas_handle,'N','T',nrow,nrow,ncol,1.0d0,gmat,nrow,pmat,nrow,0.0d0,cmat,nrow)
+    istat = cublasDgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
+         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
 #endif
 !$acc end host_data
     istat = cublasDestroy(cublas_handle)

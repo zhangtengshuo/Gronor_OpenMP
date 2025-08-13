@@ -130,11 +130,11 @@ subroutine gronor_gntwo(lfndbg)
     pmat=0.0
     cmat=0.0
 
-!$acc enter data copyin(gmat,pmat,cmat)
-!$acc parallel loop gang vector collapse(2) &
-!$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat) &
-!$acc   copyin(kl,intndx,jntndx)
+!$acc enter data copyin(gmat,pmat,cmat,kl,intndx,jntndx)
+!$acc parallel loop gang &
+!$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat,kl,intndx,jntndx)
     do ii=intndx,jntndx
+!$acc   loop vector
       do jj=ii,kl
         intg=ndx(ii)+jj
         i=lab(1,ii)
@@ -167,7 +167,7 @@ subroutine gronor_gntwo(lfndbg)
     tst=ts+sum2
     ts=tst
 
-!$acc exit data delete(gmat,pmat,cmat)
+!$acc exit data delete(gmat,pmat,cmat,kl,intndx,jntndx)
     deallocate(gmat,pmat,cmat)
 
     call timer_stop(31)

@@ -39,12 +39,15 @@ subroutine gronor_gntwo(lfndbg)
 
   use openacc
   use cuda_functions
+  use cublas
 
   implicit none
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,nrow,ncol
+  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,nrow,ncol,idx_i,idx_j
+  type(cublasHandle) :: cublas_handle
+  integer :: istat
 
   real(kind=8) :: e2n,tsn,sum2,ts,fourdet
 
@@ -53,13 +56,13 @@ subroutine gronor_gntwo(lfndbg)
   real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
   real (kind=4), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  external :: sgemm
+  real (kind=4) :: valg,valp
 #else
   real (kind=8) :: e2t,tst
   real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
   real (kind=8), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  external :: dgemm
+  real (kind=8) :: valg,valp
 #endif
 
   real(kind=8), external :: timer_wall
@@ -69,7 +72,6 @@ subroutine gronor_gntwo(lfndbg)
 
   logical :: ldiag,lbdiag
 
-  integer (kind=4) :: istat
   type(c_ptr) :: cpfre, cptot
 
   if(ising.ge.3) return
@@ -118,7 +120,7 @@ subroutine gronor_gntwo(lfndbg)
     tst=ts
     kl=nbas*(nbas+1)/2
     nrow=jntndx-intndx+1
-    ncol=kl
+    ncol=nrow
 
 #ifdef SINGLEP
     allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
@@ -130,32 +132,51 @@ subroutine gronor_gntwo(lfndbg)
     pmat=0.0
     cmat=0.0
 
-!$acc enter data copyin(gmat,pmat,cmat)
-!$acc parallel loop gang vector collapse(2) &
-!$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat) &
-!$acc   copyin(kl,intndx,jntndx)
+!$acc enter data create(gmat,pmat,cmat)
+!$acc parallel loop gang &
+!$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat)
     do ii=intndx,jntndx
-      do jj=ii,kl
+!$acc   loop vector
+      do jj=ii,jntndx
         intg=ndx(ii)+jj
         i=lab(1,ii)
         k=lab(2,ii)
         l=lab(1,jj)
         n=lab(2,jj)
-        gmat(ii-intndx+1,jj)=g(intg)
-        pmat(ii-intndx+1,jj)=sm(i,k)*sm(l,n)-aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
+        idx_i=ii-intndx+1
+        idx_j=jj-intndx+1
+        valg=g(intg)
+        valp=sm(i,k)*sm(l,n)-aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
             -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
             -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k)
+        gmat(idx_i,idx_j)=valg
+        gmat(idx_j,idx_i)=valg
+        pmat(idx_i,idx_j)=valp
+        pmat(idx_j,idx_i)=valp
       enddo
     enddo
 !$acc end parallel
 
+    istat = cublasCreate(cublas_handle)
+#ifdef SINGLEP
+    real(kind=4) :: alpha, beta
+    alpha = 1.0
+    beta  = 0.0
+#else
+    real(kind=8) :: alpha, beta
+    alpha = 1.0d0
+    beta  = 0.0d0
+#endif
 !$acc host_data use_device(gmat,pmat,cmat)
 #ifdef SINGLEP
-    call sgemm('N','T',nrow,nrow,ncol,1.0,gmat,nrow,pmat,nrow,0.0,cmat,nrow)
+    istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
+         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
 #else
-    call dgemm('N','T',nrow,nrow,ncol,1.0d0,gmat,nrow,pmat,nrow,0.0d0,cmat,nrow)
+    istat = cublasDgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
+         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
 #endif
 !$acc end host_data
+    istat = cublasDestroy(cublas_handle)
 
     sum2=0.0d0
 !$acc parallel loop present(cmat) reduction(+:sum2)

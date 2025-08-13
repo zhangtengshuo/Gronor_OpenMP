@@ -188,7 +188,7 @@ subroutine gronor_gntwo(lfndbg)
     tst=ts+sum2
     ts=tst
 
-!$acc exit data delete(gmat,pmat,cmat)
+!$acc exit data delete(gmat,pmat,cmat,kl,intndx,jntndx)
     deallocate(gmat,pmat,cmat)
 
     call timer_stop(31)

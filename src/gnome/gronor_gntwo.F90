@@ -51,6 +51,7 @@ subroutine gronor_gntwo(lfndbg)
 
 #ifdef SINGLEP
   real(kind=c_float) :: alpha, beta
+  real(kind=c_float), device :: d_alpha, d_beta
   real (kind=4)      :: e2n,tsn,sum2,ts,fourdet
   real (kind=4)      :: e2t,tst
   real (kind=4)      :: aai,abi,bai,bbi,aak,abk,bak,bbk
@@ -59,6 +60,7 @@ subroutine gronor_gntwo(lfndbg)
   real (kind=4)      :: valg,valp
 #else
   real(kind=c_double) :: alpha, beta
+  real(kind=c_double), device :: d_alpha, d_beta
   real (kind=8)       :: e2n,tsn,sum2,ts,fourdet
   real (kind=8)       :: e2t,tst
   real (kind=8)       :: aai,abi,bai,bbi,aak,abk,bak,bbk
@@ -162,13 +164,17 @@ subroutine gronor_gntwo(lfndbg)
 #ifdef SINGLEP
     alpha = 1.0
     beta  = 0.0
+    d_alpha = alpha
+    d_beta  = beta
     istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
+         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
 #else
     alpha = 1.0d0
     beta  = 0.0d0
+    d_alpha = alpha
+    d_beta  = beta
     istat = cublasDgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
+         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
 #endif
     istat = cublasDestroy(cublas_handle)
 

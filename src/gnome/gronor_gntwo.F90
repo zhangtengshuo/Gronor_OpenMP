@@ -35,8 +35,8 @@ subroutine gronor_gntwo(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
-  use iso_c_binding, only : c_loc, c_ptr, c_float, c_double
-
+  use iso_c_binding, only : c_loc, c_ptr
+  use cudafor
   use openacc
   use cuda_functions
   use cublas
@@ -50,21 +50,23 @@ subroutine gronor_gntwo(lfndbg)
   integer :: istat
 
 #ifdef SINGLEP
-  real(kind=c_float) :: alpha, beta
-  real (kind=4)      :: e2n,tsn,sum2,ts,fourdet
-  real (kind=4)      :: e2t,tst
-  real (kind=4)      :: aai,abi,bai,bbi,aak,abk,bak,bbk
-  real (kind=4)      :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-  real (kind=4), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  real (kind=4)      :: valg,valp
+  real(kind=4) :: alpha, beta
+  real(kind=4), device :: d_alpha, d_beta
+  real (kind=4) :: e2n,tsn,sum2,ts,fourdet
+  real (kind=4) :: e2t,tst
+  real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+  real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real (kind=4), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  real (kind=4) :: valg,valp
 #else
-  real(kind=c_double) :: alpha, beta
-  real (kind=8)       :: e2n,tsn,sum2,ts,fourdet
-  real (kind=8)       :: e2t,tst
-  real (kind=8)       :: aai,abi,bai,bbi,aak,abk,bak,bbk
-  real (kind=8)       :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-  real (kind=8), allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  real (kind=8)       :: valg,valp
+  real(kind=8) :: alpha, beta
+  real(kind=8), device :: d_alpha, d_beta
+  real (kind=8) :: e2n,tsn,sum2,ts,fourdet
+  real (kind=8) :: e2t,tst
+  real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+  real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real (kind=8), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  real (kind=8) :: valg,valp
 #endif
 
   real(kind=8), external :: timer_wall
@@ -134,7 +136,6 @@ subroutine gronor_gntwo(lfndbg)
     pmat=0.0
     cmat=0.0
 
-!$acc enter data create(gmat,pmat,cmat)
 !$acc parallel loop gang &
 !$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat)
     do ii=intndx,jntndx
@@ -163,19 +164,18 @@ subroutine gronor_gntwo(lfndbg)
 #ifdef SINGLEP
     alpha = 1.0
     beta  = 0.0
+    d_alpha = alpha
+    d_beta  = beta
+    istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
+         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
 #else
     alpha = 1.0d0
     beta  = 0.0d0
-#endif
-!$acc host_data use_device(gmat,pmat,cmat)
-#ifdef SINGLEP
-    istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
-#else
+    d_alpha = alpha
+    d_beta  = beta
     istat = cublasDgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, alpha, gmat, nrow, pmat, nrow, beta, cmat, nrow)
+         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
 #endif
-!$acc end host_data
     istat = cublasDestroy(cublas_handle)
 
     sum2=0.0d0
@@ -188,7 +188,6 @@ subroutine gronor_gntwo(lfndbg)
     tst=ts+sum2
     ts=tst
 
-!$acc exit data delete(gmat,pmat,cmat,kl,intndx,jntndx)
     deallocate(gmat,pmat,cmat)
 
     call timer_stop(31)

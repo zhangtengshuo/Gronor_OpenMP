@@ -35,8 +35,8 @@ subroutine gronor_gntwo(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
-  use iso_c_binding, only : c_loc, c_ptr, c_float, c_double
-
+  use iso_c_binding, only : c_loc, c_ptr
+  use cudafor
   use openacc
   use cuda_functions
   use cublas
@@ -50,23 +50,23 @@ subroutine gronor_gntwo(lfndbg)
   integer :: istat
 
 #ifdef SINGLEP
-  real(kind=c_float) :: alpha, beta
-  real(kind=c_float), device :: d_alpha, d_beta
-  real (kind=4)      :: e2n,tsn,sum2,ts,fourdet
-  real (kind=4)      :: e2t,tst
-  real (kind=4)      :: aai,abi,bai,bbi,aak,abk,bak,bbk
-  real (kind=4)      :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real(kind=4) :: alpha, beta
+  real(kind=4), device :: d_alpha, d_beta
+  real (kind=4) :: e2n,tsn,sum2,ts,fourdet
+  real (kind=4) :: e2t,tst
+  real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+  real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
   real (kind=4), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  real (kind=4)      :: valg,valp
+  real (kind=4) :: valg,valp
 #else
-  real(kind=c_double) :: alpha, beta
-  real(kind=c_double), device :: d_alpha, d_beta
-  real (kind=8)       :: e2n,tsn,sum2,ts,fourdet
-  real (kind=8)       :: e2t,tst
-  real (kind=8)       :: aai,abi,bai,bbi,aak,abk,bak,bbk
-  real (kind=8)       :: aaj,abj,baj,bbj,aal,abl,bal,bbl
+  real(kind=8) :: alpha, beta
+  real(kind=8), device :: d_alpha, d_beta
+  real (kind=8) :: e2n,tsn,sum2,ts,fourdet
+  real (kind=8) :: e2t,tst
+  real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
+  real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
   real (kind=8), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  real (kind=8)       :: valg,valp
+  real (kind=8) :: valg,valp
 #endif
 
   real(kind=8), external :: timer_wall

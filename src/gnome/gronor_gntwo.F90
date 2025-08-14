@@ -35,7 +35,7 @@ subroutine gronor_gntwo(lfndbg)
   use gnome_parameters
   use gnome_data
   use gnome_integrals
-  use iso_c_binding, only : c_loc, c_ptr
+  use iso_c_binding, only : c_loc, c_ptr, c_int, c_double
   use cudafor
   use openacc
   use cuda_functions
@@ -46,28 +46,17 @@ subroutine gronor_gntwo(lfndbg)
   external :: timer_start,timer_stop
 
   integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,nrow,ncol,idx_i,idx_j
+  integer(c_int) :: opN, opT
   type(cublasHandle) :: cublas_handle
   integer :: istat
 
-#ifdef SINGLEP
-  real(kind=4) :: alpha, beta
-  real(kind=4), device :: d_alpha, d_beta
-  real (kind=4) :: e2n,tsn,sum2,ts,fourdet
-  real (kind=4) :: e2t,tst
-  real (kind=4) :: aai,abi,bai,bbi,aak,abk,bak,bbk
-  real (kind=4) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-  real (kind=4), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
-  real (kind=4) :: valg,valp
-#else
-  real(kind=8) :: alpha, beta
-  real(kind=8), device :: d_alpha, d_beta
+  real(c_double) :: alpha, beta
   real (kind=8) :: e2n,tsn,sum2,ts,fourdet
   real (kind=8) :: e2t,tst
   real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-  real (kind=8), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  real (c_double), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
   real (kind=8) :: valg,valp
-#endif
 
   real(kind=8), external :: timer_wall
 
@@ -77,6 +66,9 @@ subroutine gronor_gntwo(lfndbg)
   logical :: ldiag,lbdiag
 
   type(c_ptr) :: cpfre, cptot
+
+  opN = CUBLAS_OP_N
+  opT = CUBLAS_OP_T
 
   if(ising.ge.3) return
 
@@ -126,11 +118,7 @@ subroutine gronor_gntwo(lfndbg)
     nrow=jntndx-intndx+1
     ncol=nrow
 
-#ifdef SINGLEP
     allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
-#else
-    allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
-#endif
 
     gmat=0.0
     pmat=0.0
@@ -161,21 +149,13 @@ subroutine gronor_gntwo(lfndbg)
 !$acc end parallel
 
     istat = cublasCreate(cublas_handle)
-#ifdef SINGLEP
-    alpha = 1.0
-    beta  = 0.0
-    d_alpha = alpha
-    d_beta  = beta
-    istat = cublasSgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
-#else
-    alpha = 1.0d0
-    beta  = 0.0d0
-    d_alpha = alpha
-    d_beta  = beta
-    istat = cublasDgemm_v2(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, &
-         nrow, nrow, ncol, d_alpha, gmat, nrow, pmat, nrow, d_beta, cmat, nrow)
-#endif
+    alpha = 1.0_c_double
+    beta  = 0.0_c_double
+    istat = cublasDgemm_v2( cublas_handle, opN, opT,                    &
+     int(nrow, c_int), int(nrow, c_int), int(ncol, c_int),          &
+     alpha, gmat, int(nrow, c_int),                                 &
+             pmat, int(nrow, c_int),                                 &
+     beta,  cmat, int(nrow, c_int) )
     istat = cublasDestroy(cublas_handle)
 
     sum2=0.0d0

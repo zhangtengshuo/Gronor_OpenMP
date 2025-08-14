@@ -33,7 +33,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, ex, rank32
-    integer(HSIZE_T), dimension(1) :: dims
+    integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
     if (present(step)) then
@@ -59,7 +59,7 @@ contains
     call h5screate_simple_f(1_int32, dims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     rank32 = int(dbg_rank, int32)
-    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, ierr)
+    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, adims, ierr)
     call h5aclose_f(attr, ierr)
     call h5sclose_f(attr_space, ierr)
 
@@ -74,7 +74,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, ex, rank32
-    integer(HSIZE_T), dimension(1) :: dims
+    integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
     if (present(step)) then
@@ -99,7 +99,7 @@ contains
     call h5screate_simple_f(1_int32, (/1_HSIZE_T/), attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     rank32 = int(dbg_rank, int32)
-    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, ierr)
+    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, adims, ierr)
     call h5aclose_f(attr, ierr)
     call h5sclose_f(attr_space, ierr)
 
@@ -114,7 +114,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, ex, value32, rank32
-    integer(HSIZE_T), dimension(1) :: dims
+    integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
     if (present(step)) then
@@ -140,7 +140,7 @@ contains
     call h5screate_simple_f(1_int32, dims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     rank32 = int(dbg_rank, int32)
-    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, ierr)
+    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, adims, ierr)
     call h5aclose_f(attr, ierr)
     call h5sclose_f(attr_space, ierr)
 
@@ -155,7 +155,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, ex, rank32
-    integer(HSIZE_T), dimension(1) :: dims
+    integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(int32) :: arr32(size(arr))
 
     if (dbg_file .lt. 0) return
@@ -182,7 +182,7 @@ contains
     call h5screate_simple_f(1_int32, (/1_HSIZE_T/), attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     rank32 = int(dbg_rank, int32)
-    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, ierr)
+    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, adims, ierr)
     call h5aclose_f(attr, ierr)
     call h5sclose_f(attr_space, ierr)
 
@@ -196,7 +196,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, dtype, attr_space, attr
     integer(int32) :: ierr, ex, rank32
-    integer(HSIZE_T), dimension(1) :: dims
+    integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(SIZE_T) :: len
 
     if (dbg_file .lt. 0) return
@@ -225,7 +225,7 @@ contains
     call h5screate_simple_f(1_int32, (/1_HSIZE_T/), attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     rank32 = int(dbg_rank, int32)
-    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, ierr)
+    call h5awrite_f(attr, H5T_NATIVE_INTEGER, rank32, adims, ierr)
     call h5aclose_f(attr, ierr)
     call h5sclose_f(attr_space, ierr)
 

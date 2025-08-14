@@ -45,17 +45,17 @@ subroutine gronor_gntwo(lfndbg)
 
   external :: timer_start,timer_stop
 
-  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,nrow,ncol,idx_i,idx_j
-  integer(c_int) :: opN, opT
+  integer :: lfndbg,i,ii,jj,k,l,n,kl,intg,idx_j
+  integer(c_int) :: nrow
   type(cublasHandle) :: cublas_handle
-  integer :: istat
+  integer(c_int) :: istat
 
-  real(c_double) :: alpha, beta
+  real (c_double) :: dotres, diagval
   real (kind=8) :: e2n,tsn,sum2,ts,fourdet
   real (kind=8) :: e2t,tst
   real (kind=8) :: aai,abi,bai,bbi,aak,abk,bak,bbk
   real (kind=8) :: aaj,abj,baj,bbj,aal,abl,bal,bbl
-  real (c_double), device, allocatable :: gmat(:,:),pmat(:,:),cmat(:,:)
+  real (c_double), device, allocatable :: gmat(:),pmat(:)
   real (kind=8) :: valg,valp
 
   real(kind=8), external :: timer_wall
@@ -67,8 +67,6 @@ subroutine gronor_gntwo(lfndbg)
 
   type(c_ptr) :: cpfre, cptot
 
-  opN = CUBLAS_OP_N
-  opT = CUBLAS_OP_T
 
   if(ising.ge.3) return
 
@@ -113,62 +111,44 @@ subroutine gronor_gntwo(lfndbg)
 
     call timer_start(31)
 
-    tst=ts
-    kl=nbas*(nbas+1)/2
-    nrow=jntndx-intndx+1
-    ncol=nrow
+      tst=ts
+      sum2=0.0d0
 
-    allocate(gmat(nrow,ncol),pmat(nrow,ncol),cmat(nrow,nrow))
-
-    gmat=0.0
-    pmat=0.0
-    cmat=0.0
+      istat = cublasCreate(cublas_handle)
+      do ii=intndx,jntndx
+        nrow = jntndx - ii + 1
+        allocate(gmat(int(nrow)),pmat(int(nrow)))
+        gmat = 0.0
+        pmat = 0.0
 
 !$acc parallel loop gang &
 !$acc   present(aat,aaa,tt,ta,sm,g,lab,ndx,gmat,pmat)
-    do ii=intndx,jntndx
-!$acc   loop vector
-      do jj=ii,jntndx
-        intg=ndx(ii)+jj
-        i=lab(1,ii)
-        k=lab(2,ii)
-        l=lab(1,jj)
-        n=lab(2,jj)
-        idx_i=ii-intndx+1
-        idx_j=jj-intndx+1
-        valg=g(intg)
-        valp=sm(i,k)*sm(l,n)-aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
-            -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
-            -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k)
-        gmat(idx_i,idx_j)=valg
-        gmat(idx_j,idx_i)=valg
-        pmat(idx_i,idx_j)=valp
-        pmat(idx_j,idx_i)=valp
+        do jj=ii,jntndx
+          intg = ndx(ii) + jj
+          i = lab(1,ii)
+          k = lab(2,ii)
+          l = lab(1,jj)
+          n = lab(2,jj)
+          idx_j = jj - ii + 1
+          valg = g(intg)
+          valp = sm(i,k)*sm(l,n)-aaa(i,n)*aaa(l,k)-ta(i,n)*ta(l,k) &
+              -aat(i,n)*aat(l,k)-tt(i,n)*tt(l,k)-aat(l,i)*aaa(n,k)-tt(l,i)*ta(n,k) &
+              -aaa(l,i)*aat(n,k)-ta(l,i)*tt(n,k)
+          gmat(idx_j) = valg
+          pmat(idx_j) = valp
+        enddo
+!$acc end parallel
+
+        istat = cublasDdot(cublas_handle, nrow, gmat, 1, pmat, 1, dotres)
+        diagval = gmat(1)*pmat(1)
+        sum2 = sum2 + 2.0d0*dotres - diagval
+
+        deallocate(gmat,pmat)
       enddo
-    enddo
-!$acc end parallel
+      istat = cublasDestroy(cublas_handle)
 
-    istat = cublasCreate(cublas_handle)
-    alpha = 1.0_c_double
-    beta  = 0.0_c_double
-    istat = cublasDgemm_v2( cublas_handle, opN, opT,                    &
-     int(nrow, c_int), int(nrow, c_int), int(ncol, c_int),          &
-     alpha, gmat, int(nrow, c_int),                                 &
-             pmat, int(nrow, c_int),                                 &
-     beta,  cmat, int(nrow, c_int) )
-    istat = cublasDestroy(cublas_handle)
-
-    sum2=0.0d0
-!$acc parallel loop present(cmat) reduction(+:sum2)
-    do i=1,nrow
-      sum2=sum2+cmat(i,i)
-    enddo
-!$acc end parallel
-
-    tst=ts+sum2
-    ts=tst
-
-    deallocate(gmat,pmat,cmat)
+      tst = ts + sum2
+      ts = tst
 
     call timer_stop(31)
 

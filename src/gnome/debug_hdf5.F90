@@ -32,7 +32,8 @@ contains
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
-    integer(int32) :: ierr, ex, rank32
+    integer(int32) :: ierr, rank32
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims
 
     if (dbg_file .lt. 0) return
@@ -43,7 +44,7 @@ contains
     end if
 
     call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex /= 0_int32) then
+    if (ex) then
       call h5gopen_f(dbg_file, trim(group), grp, ierr)
     else
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
@@ -73,7 +74,8 @@ contains
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
-    integer(int32) :: ierr, ex, rank32
+    integer(int32) :: ierr, rank32
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims
 
     if (dbg_file .lt. 0) return
@@ -84,7 +86,7 @@ contains
     end if
 
     call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex /= 0_int32) then
+    if (ex) then
       call h5gopen_f(dbg_file, trim(group), grp, ierr)
     else
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
@@ -113,7 +115,8 @@ contains
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
-    integer(int32) :: ierr, ex, value32, rank32
+    integer(int32) :: ierr, value32, rank32
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims
 
     if (dbg_file .lt. 0) return
@@ -124,7 +127,7 @@ contains
     end if
 
     call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex /= 0_int32) then
+    if (ex) then
       call h5gopen_f(dbg_file, trim(group), grp, ierr)
     else
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
@@ -154,7 +157,8 @@ contains
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
-    integer(int32) :: ierr, ex, rank32
+    integer(int32) :: ierr, rank32
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims
     integer(int32) :: arr32(size(arr))
 
@@ -166,7 +170,7 @@ contains
     end if
 
     call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex /= 0_int32) then
+    if (ex) then
       call h5gopen_f(dbg_file, trim(group), grp, ierr)
     else
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
@@ -195,7 +199,8 @@ contains
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, dtype, attr_space, attr
-    integer(int32) :: ierr, ex, rank32
+    integer(int32) :: ierr, rank32
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims
     integer(SIZE_T) :: len
 
@@ -207,7 +212,7 @@ contains
     end if
 
     call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex /= 0_int32) then
+    if (ex) then
       call h5gopen_f(dbg_file, trim(group), grp, ierr)
     else
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)

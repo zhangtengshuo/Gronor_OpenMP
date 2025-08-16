@@ -1583,9 +1583,9 @@ message (STATUS "External Libraries: ${EXTERNAL_LIBRARIES}")
 
 # HDF5 debug support
 if (DEBUG)
-  find_package(HDF5 REQUIRED COMPONENTS Fortran)
+  find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
   include_directories(${HDF5_Fortran_INCLUDE_DIRS})
-  list(APPEND EXTERNAL_LIBRARIES ${HDF5_Fortran_LIBRARIES})
+  list(APPEND EXTERNAL_LIBRARIES ${HDF5_Fortran_LIBRARIES} ${HDF5_HL_Fortran_LIBRARIES})
   add_definitions(-DDEBUG_HDF5)
 endif()
 

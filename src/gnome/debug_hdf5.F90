@@ -2,6 +2,7 @@
 module debug_hdf5
   use iso_fortran_env, only: int32
   use hdf5
+  use h5lt
   implicit none
   integer(HID_T) :: dbg_file = -1_HID_T
   integer :: dbg_level = 0
@@ -33,7 +34,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical(8) :: ex
+    integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -43,16 +44,19 @@ contains
       dset_name = trim(name)
     end if
 
-    call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex) then
-      call h5gopen_f(dbg_file, trim(group), grp, ierr)
-    else
+    call h5gopen_f(dbg_file, trim(group), grp, ierr)
+    if (ierr < 0) then
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
     end if
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
+    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    if (exists == 0) then
+      call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
+    else
+      call h5dopen_f(grp, trim(dset_name), dset, ierr)
+    end if
     call h5dwrite_f(dset, H5T_NATIVE_DOUBLE, value, dims, ierr)
     call h5sclose_f(space, ierr)
 
@@ -75,7 +79,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical :: ex
+    integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -85,16 +89,19 @@ contains
       dset_name = trim(name)
     end if
 
-    call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex) then
-      call h5gopen_f(dbg_file, trim(group), grp, ierr)
-    else
+    call h5gopen_f(dbg_file, trim(group), grp, ierr)
+    if (ierr < 0) then
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
     end if
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
+    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    if (exists == 0) then
+      call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
+    else
+      call h5dopen_f(grp, trim(dset_name), dset, ierr)
+    end if
     call h5dwrite_f(dset, H5T_NATIVE_DOUBLE, arr, dims, ierr)
     call h5sclose_f(space, ierr)
 
@@ -116,7 +123,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, value32, rank32
-    logical :: ex
+    integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -126,16 +133,19 @@ contains
       dset_name = trim(name)
     end if
 
-    call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex) then
-      call h5gopen_f(dbg_file, trim(group), grp, ierr)
-    else
+    call h5gopen_f(dbg_file, trim(group), grp, ierr)
+    if (ierr < 0) then
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
     end if
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
+    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    if (exists == 0) then
+      call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
+    else
+      call h5dopen_f(grp, trim(dset_name), dset, ierr)
+    end if
     value32 = int(value, int32)
     call h5dwrite_f(dset, H5T_NATIVE_INTEGER, value32, dims, ierr)
     call h5sclose_f(space, ierr)
@@ -158,7 +168,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical :: ex
+    integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(int32) :: arr32(size(arr))
 
@@ -169,16 +179,19 @@ contains
       dset_name = trim(name)
     end if
 
-    call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex) then
-      call h5gopen_f(dbg_file, trim(group), grp, ierr)
-    else
+    call h5gopen_f(dbg_file, trim(group), grp, ierr)
+    if (ierr < 0) then
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
     end if
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
+    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    if (exists == 0) then
+      call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
+    else
+      call h5dopen_f(grp, trim(dset_name), dset, ierr)
+    end if
     arr32 = int(arr, int32)
     call h5dwrite_f(dset, H5T_NATIVE_INTEGER, arr32, dims, ierr)
     call h5sclose_f(space, ierr)
@@ -200,7 +213,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, dtype, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical :: ex
+    integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(SIZE_T) :: len
 
@@ -211,10 +224,8 @@ contains
       dset_name = 'log'
     end if
 
-    call h5lexists_f(dbg_file, trim(group), ex, ierr)
-    if (ex) then
-      call h5gopen_f(dbg_file, trim(group), grp, ierr)
-    else
+    call h5gopen_f(dbg_file, trim(group), grp, ierr)
+    if (ierr < 0) then
       call h5gcreate_f(dbg_file, trim(group), grp, ierr)
     end if
 
@@ -223,7 +234,12 @@ contains
     call h5screate_simple_f(1_int32, dims, space, ierr)
     call h5tcopy_f(H5T_C_S1, dtype, ierr)
     call h5tset_size_f(dtype, len, ierr)
-    call h5dcreate_f(grp, trim(dset_name), dtype, space, dset, ierr)
+    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    if (exists == 0) then
+      call h5dcreate_f(grp, trim(dset_name), dtype, space, dset, ierr)
+    else
+      call h5dopen_f(grp, trim(dset_name), dset, ierr)
+    end if
     call h5dwrite_f(dset, dtype, msg(1:int(len,int32)), dims, ierr)
 
     ! rank attribute

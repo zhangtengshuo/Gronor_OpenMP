@@ -1,7 +1,6 @@
 #ifdef DEBUG_HDF5
 module debug_hdf5
   use iso_fortran_env, only: int32
-  use, intrinsic :: iso_c_binding, only: c_bool
   use hdf5
   implicit none
   integer(HID_T) :: dbg_file = -1_HID_T
@@ -34,7 +33,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical(c_bool) :: ex
+    logical(8) :: ex
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -76,7 +75,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical(c_bool) :: ex
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -117,7 +116,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, value32, rank32
-    logical(c_bool) :: ex
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
     if (dbg_file .lt. 0) return
@@ -159,7 +158,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical(c_bool) :: ex
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(int32) :: arr32(size(arr))
 
@@ -201,7 +200,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, dtype, attr_space, attr
     integer(int32) :: ierr, rank32
-    logical(c_bool) :: ex
+    logical :: ex
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
     integer(SIZE_T) :: len
 

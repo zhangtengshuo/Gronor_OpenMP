@@ -2,7 +2,6 @@
 module debug_hdf5
   use iso_fortran_env, only: int32
   use hdf5
-  use h5lt
   implicit none
   integer(HID_T) :: dbg_file = -1_HID_T
   integer(int32) :: dbg_level = 0
@@ -51,7 +50,7 @@ contains
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    exists = h5ltfind_dataset_f(grp, trim(dset_name))
+    call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
     else
@@ -96,7 +95,7 @@ contains
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    exists = h5ltfind_dataset_f(grp, trim(dset_name))
+    call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
     else
@@ -140,7 +139,7 @@ contains
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    exists = h5ltfind_dataset_f(grp, trim(dset_name))
+    call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
     else
@@ -184,7 +183,7 @@ contains
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    exists = h5ltfind_dataset_f(grp, trim(dset_name))
+    call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
     else
@@ -231,7 +230,7 @@ contains
     call h5screate_simple_f(1_int32, dims, space, ierr)
     call h5tcopy_f(H5T_C_S1, dtype, ierr)
     call h5tset_size_f(dtype, len, ierr)
-    exists = h5ltfind_dataset_f(grp, trim(dset_name))
+    call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), dtype, space, dset, ierr)
     else

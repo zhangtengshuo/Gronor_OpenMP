@@ -6,6 +6,12 @@ export CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/25.5/cuda
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
+# disable conda
+if command -v conda &> /dev/null; then
+    if [ -n "$CONDA_DEFAULT_ENV" ]; then 
+    conda deactivate
+    fi
+fi
 
 rm -rf build && mkdir build && cd build
 cmake -DOPENMP=OFF -DMKL=ON -DACC=ON -DCMAKE_BUILD_TYPE=Debug \

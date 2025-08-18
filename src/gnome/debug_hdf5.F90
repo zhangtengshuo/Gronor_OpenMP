@@ -51,7 +51,7 @@ contains
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    exists = h5ltfind_dataset_f(grp, trim(dset_name))
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
     else
@@ -96,7 +96,7 @@ contains
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    exists = h5ltfind_dataset_f(grp, trim(dset_name))
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
     else
@@ -140,7 +140,7 @@ contains
 
     dims(1) = 1_HSIZE_T
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    exists = h5ltfind_dataset_f(grp, trim(dset_name))
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
     else
@@ -186,7 +186,7 @@ contains
 
     dims(1) = int(size(arr), HSIZE_T)
     call h5screate_simple_f(1_int32, dims, space, ierr)
-    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    exists = h5ltfind_dataset_f(grp, trim(dset_name))
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
     else
@@ -234,7 +234,7 @@ contains
     call h5screate_simple_f(1_int32, dims, space, ierr)
     call h5tcopy_f(H5T_C_S1, dtype, ierr)
     call h5tset_size_f(dtype, len, ierr)
-    call h5ltfind_dataset_f(grp, trim(dset_name), exists, ierr)
+    exists = h5ltfind_dataset_f(grp, trim(dset_name))
     if (exists == 0) then
       call h5dcreate_f(grp, trim(dset_name), dtype, space, dset, ierr)
     else

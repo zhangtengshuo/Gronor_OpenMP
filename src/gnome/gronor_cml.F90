@@ -157,8 +157,8 @@ subroutine gronor_env_cml(version,version_type)
   info_cml='empty'
   call writetag_scalar_integer(lfncml,info_cml,6,ntask)
   call close_tag(lfncml,label,5)
-  call swatch(date,time)
-  runDate=date(1:8)//'  '//time(1:8)
+  call swatch(today,now)
+  runDate=today(1:8)//'  '//now(1:8)
   info_cml='dictRef="cc:runDate"'
   call open_tag(lfncml,label,info_cml,5)
   info_cml='empty'
@@ -366,8 +366,8 @@ subroutine gronor_finalize_cml
   info_cml='empty'
   call open_tag(lfncml,label,info_cml,indent)
   label='property'
-  call swatch(date,time)
-  stopDate=date(1:8)//'  '//time(1:8)
+  call swatch(today,now)
+  stopDate=today(1:8)//'  '//now(1:8)
   info_cml='dictRef="cc:jobdatetime.end"'
   call open_tag(lfncml,label,info_cml,5)
   info_cml='empty'

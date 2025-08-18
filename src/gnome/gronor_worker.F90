@@ -157,7 +157,6 @@ subroutine gronor_worker_process()
   integer (kind=4) :: status(MPI_STATUS_SIZE)
   real (kind=8) :: rbuf(17)
   character(len=256) :: msg
-  character(len=8) :: date,time
 
   logical (kind=4) :: flag
   
@@ -169,12 +168,12 @@ subroutine gronor_worker_process()
 
 #ifdef DEBUG_HDF5
   if(idbg.gt.0) then
-    call swatch(date,time)
+    call swatch(today,now)
     write(msg,'(a,1x,a,1x,"iamhead, numdev, master, mygroup =",4i5)') &
-        date(1:8),time(1:8),iamhead,numdev,mstr,mygroup
+        today(1:8),now(1:8),iamhead,numdev,mstr,mygroup
     call dbg_log_msg('worker',trim(msg))
-    call swatch(date,time)
-    write(msg,'(a,1x,a,1x,"thisgroup=")') date(1:8),time(1:8)
+    call swatch(today,now)
+    write(msg,'(a,1x,a,1x,"thisgroup=")') today(1:8),now(1:8)
     call dbg_log_msg('worker',trim(msg))
     call dbg_write_int_array('worker','thisgroup',int(thisgroup(1:mgr+1),int32))
     call dbg_write_array('worker','rbuf',rbuf)
@@ -190,13 +189,13 @@ subroutine gronor_worker_process()
     call MPI_Request_free(ireq,ierr)
 #ifdef DEBUG_HDF5
     if(idbg.gt.20) then
-      call swatch(date,time)
-      write(msg,'(a,1x,a,1x,"Head signalled master")') date(1:8),time(1:8)
+      call swatch(today,now)
+      write(msg,'(a,1x,a,1x,"Head signalled master")') today(1:8),now(1:8)
       call dbg_log_msg('worker',trim(msg))
     endif
     if(idbg.gt.10) then
-      call swatch(date,time)
-      write(msg,'(a,1x,a,1x,"sent buffer to ",i5)') date(1:8),time(1:8),mstr
+      call swatch(today,now)
+      write(msg,'(a,1x,a,1x,"sent buffer to ",i5)') today(1:8),now(1:8),mstr
       call dbg_log_msg('worker',trim(msg))
     endif
 #endif
@@ -217,8 +216,8 @@ subroutine gronor_worker_process()
       call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mstr,mpitag,MPI_COMM_WORLD,status,ierr)
 #ifdef DEBUG_HDF5
       if(idbg.gt.10) then
-        call swatch(date,time)
-        write(msg,'(a,1x,a,1x,"received task ",4i8)') date(1:8),time(1:8),(ibuf(i),i=1,4)
+        call swatch(today,now)
+        write(msg,'(a,1x,a,1x,"received task ",4i8)') today(1:8),now(1:8),(ibuf(i),i=1,4)
         call dbg_log_msg('worker',trim(msg))
       endif
 #endif
@@ -235,9 +234,9 @@ subroutine gronor_worker_process()
           call MPI_Request_free(ireq,ierr)
 #ifdef DEBUG_HDF5
           if(idbg.gt.10) then
-            call swatch(date,time)
+            call swatch(today,now)
             write(msg,'(a,1x,a,1x,"sent task to group rank ",i5,":",4i8)') &
-                date(1:8),time(1:8),thisgroup(i+2),(ibuf(k),k=1,4)
+                today(1:8),now(1:8),thisgroup(i+2),(ibuf(k),k=1,4)
             call dbg_log_msg('worker',trim(msg))
           endif
 #endif
@@ -251,8 +250,8 @@ subroutine gronor_worker_process()
 
 #ifdef DEBUG_HDF5
       if(idbg.gt.30) then
-        call swatch(date,time)
-        write(msg,'(a,1x,a,1x,"waiting for task from head rank ",i5)') date(1:8),time(1:8),thisgroup(2)
+        call swatch(today,now)
+        write(msg,'(a,1x,a,1x,"waiting for task from head rank ",i5)') today(1:8),now(1:8),thisgroup(2)
         call dbg_log_msg('worker',trim(msg))
       endif
 #endif
@@ -262,9 +261,9 @@ subroutine gronor_worker_process()
       call MPI_Recv(ibuf,ncount,MPI_INTEGER8,mpidest,mpitag,MPI_COMM_WORLD,status,ierr)
 #ifdef DEBUG_HDF5
       if(idbg.gt.10) then
-        call swatch(date,time)
+        call swatch(today,now)
         write(msg,'(a,1x,a,1x,"received task from head rank ",i5,":",4i8)') &
-            date(1:8),time(1:8),thisgroup(2),(ibuf(i),i=1,4)
+            today(1:8),now(1:8),thisgroup(2),(ibuf(i),i=1,4)
         call dbg_log_msg('worker',trim(msg))
       endif
 #endif
@@ -387,9 +386,9 @@ subroutine gronor_worker_process()
 #ifdef DEBUG_HDF5
         if(idbg.gt.0) call dbg_write_array('worker','rbuf',rbuf,step=iter)
         if(idbg.gt.10) then
-          call swatch(date,time)
+          call swatch(today,now)
           write(msg,'(a,1x,a,1x,"sent results ",4i7)') &
-              date(1:8),time(1:8),(ibuf(i),i=1,4)
+              today(1:8),now(1:8),(ibuf(i),i=1,4)
           call dbg_log_msg('worker',trim(msg),step=iter)
         endif
 #endif
@@ -401,8 +400,8 @@ subroutine gronor_worker_process()
   enddo
 
 #ifdef DEBUG_HDF5
-  call swatch(date,time)
-  write(msg,'(a,1x,a,1x,"Worker loop terminated")') date(1:8),time(1:8)
+  call swatch(today,now)
+  write(msg,'(a,1x,a,1x,"Worker loop terminated")') today(1:8),now(1:8)
   call dbg_log_msg('worker',trim(msg))
 #endif
 

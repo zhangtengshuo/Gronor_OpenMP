@@ -123,7 +123,7 @@ subroutine gronor_master()
 
   !     hbase(i,j)   collects the Hamiltonian matrix results for basestate combination i j
   !     sbase(i,j)   collects the overlap matrix results for basestate combination i j
-  !     tbase(i,j)   collects the wall clock time spent basestate combination i j
+  !     tbase(i,j)   collects the wall clock now spent basestate combination i j
   !     ntasks(i,j)  contains the task status for base state combination i j
   !                  -2 : base pair calculation has completed
   !                  -1 : base pair calculation has not yet started
@@ -279,8 +279,8 @@ subroutine gronor_master()
         if(loada.gt.1.and.ntaska.gt.1) ntaska=max(1,ntaska/loada)
         if(load.gt.1.and.ntask.gt.1) ntask=max(1,ntask/load)
         call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,715) date(1:8),time(1:8),timer_wall_total(99), &
+        call swatch(today,now)
+        write(lfnday,715) today(1:8),now(1:8),timer_wall_total(99), &
             '  :  Applied load balancing factors',loada,load
 715     format(a8,2x,a8,f12.3,a,2i5)
         call timer_start(99)
@@ -325,14 +325,14 @@ subroutine gronor_master()
       endif
       flush(lfnout)
 
-      call swatch(date,time)
+      call swatch(today,now)
       call timer_stop(99)
       if(.not.ofirst) then
         if(ntasks(ibase,jbase).ne.-2) then
-          write(lfnday,802) date(1:8),time(1:8),timer_wall_total(99), &
+          write(lfnday,802) today(1:8),now(1:8),timer_wall_total(99), &
               '  :  ',ibase,jbase,' started   ',c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
         else
-          write(lfnday,803) date(1:8),time(1:8), timer_wall_total(99), &
+          write(lfnday,803) today(1:8),now(1:8), timer_wall_total(99), &
               '  :  ',ibase,jbase,' read from checkpoint restart'
         endif
       endif
@@ -365,16 +365,16 @@ subroutine gronor_master()
         if(ofirst) then
           ofirst=.false.
           call timer_stop(99)
-          call swatch(date,time)
-          write(lfnday,705) date(1:8),time(1:8),timer_wall_total(99), &
+          call swatch(today,now)
+          write(lfnday,705) today(1:8),now(1:8),timer_wall_total(99), &
               '  :  Integral distribution completed'
-          write(lfnday,705) date(1:8),time(1:8),timer_wall_total(99), &
+          write(lfnday,705) today(1:8),now(1:8),timer_wall_total(99), &
               '  :  Start Hamiltonian calculation'
           if(ntasks(ibase,jbase).ne.-2) then
-            write(lfnday,802) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,802) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibase,jbase,' started   ',c2sum(ibase,jbase),nbdet(ibase,jbase),ndeti,ndetj
           else
-            write(lfnday,803) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,803) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibase,jbase,' read from checkpoint restart'
           endif
 705       format(a8,2x,a8,f12.3,a)
@@ -397,8 +397,8 @@ subroutine gronor_master()
         ltotal=ltotal+1
 #ifdef DEBUG_HDF5
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(msg,'(a,1x,a,1x,"received buffer from ",i5)') date(1:8),time(1:8),iremote
+          call swatch(today,now)
+          write(msg,'(a,1x,a,1x,"received buffer from ",i5)') today(1:8),now(1:8),iremote
           call dbg_log_msg('master',trim(msg),step=ltotal)
           call dbg_write_array('master','buffer',buffer,step=ltotal)
         endif
@@ -422,25 +422,25 @@ subroutine gronor_master()
           !     Write entry to progress file
           
           if(ipro.eq.1.or.ipro.eq.3) then
-            call swatch(date,time)
+            call swatch(today,now)
             if(ipro.eq.1) rewind(unit=lfnpro)
-            write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
+            write(lfnpro,680) today(1:8),now(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
                 lgroup(igrp,4)-lgroup(igrp,3)+1, &
               pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
 680         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ',2e16.8,5i8)
             flush(lfnpro)
           elseif(ipro.eq.2.or.ipro.eq.4) then
-            call swatch(date,time)
+            call swatch(today,now)
             if(ipro.eq.2) rewind(unit=lfnpro)
-            write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
+            write(lfnpro,681) today(1:8),now(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
                 lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
 681         format(a,1x,a,' Rcvd ',2i6,' : ',2i5,2i10,i6,f8.3,'% ')
             flush(lfnpro)
           endif
           if(me.eq.mstr.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
             call timer_stop(99)
-            call swatch(date,time)
-            write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
+            call swatch(today,now)
+            write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
                 pnrb(ibin,jbin),'% ( ',ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
 702         format(a8,2x,a8,f12.3,a,2i6,a,f5.1,a,i10,a,i10,a)
             flush(lfnday)
@@ -474,7 +474,7 @@ subroutine gronor_master()
           dqbase(ibin,jbin,8)=dqbase(ibin,jbin,8)+buffer(16)
           dqbase(ibin,jbin,9)=dqbase(ibin,jbin,9)+buffer(17)
 
-          !     Total number of completed tasks and maximum time for a completed task
+          !     Total number of completed tasks and maximum now for a completed task
 
           numtasks=numtasks+1
           tmax=max(tmax,buffer(3))
@@ -654,22 +654,22 @@ subroutine gronor_master()
 
             !     Write completion message to dayfile
 
-            call swatch(date,time)
+            call swatch(today,now)
             if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
               if(ibin.ne.jbin) then
-                write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99), &
+                write(lfnday,703) today(1:8),now(1:8),timer_wall_total(99), &
                     '  :  ',ibin,jbin,' completed, H,S   :',hbase(ibin,jbin),sbase(ibin,jbin)
               else
-                write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99), &
+                write(lfnday,703) today(1:8),now(1:8),timer_wall_total(99), &
                     '  :  ',ibin,jbin,' completed, H,S,H*:', &
                     hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin)
               endif
             else
               if(ibin.ne.jbin) then
-                write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99), &
+                write(lfnday,704) today(1:8),now(1:8),timer_wall_total(99), &
                     '  :  ',ibin,jbin,' completed, H,S   :',hbase(ibin,jbin),sbase(ibin,jbin)
               else
-                write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99), &
+                write(lfnday,704) today(1:8),now(1:8),timer_wall_total(99), &
                     '  :  ',ibin,jbin,' completed, H,S,H*:', &
                     hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin)
               endif
@@ -740,8 +740,8 @@ subroutine gronor_master()
 #ifdef DEBUG_HDF5
         send_step=send_step+1
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(msg,'(a,1x,a,1x,"sent task to ",i5)') date(1:8),time(1:8),iremote
+          call swatch(today,now)
+          write(msg,'(a,1x,a,1x,"sent task to ",i5)') today(1:8),now(1:8),iremote
           call dbg_log_msg('master',trim(msg),step=send_step)
           call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1),int32),step=send_step)
         endif
@@ -758,8 +758,8 @@ subroutine gronor_master()
         !     Progress entry
 
         if(ipr.eq.2.or.ipro.eq.4) then
-          call swatch(date,time)
-          write(lfnpro,682) date(1:8),time(1:8),iremote,igrp,(ibuf(j),j=1,4)
+          call swatch(today,now)
+          write(lfnpro,682) today(1:8),now(1:8),iremote,igrp,(ibuf(j),j=1,4)
 682       format(a,1x,a,' Sent ',2i6,' : ',2i5,2i10)
           flush(lfnpro)
         endif
@@ -785,9 +785,9 @@ subroutine gronor_master()
   !     Now the still outstanding tasks need to be collected
   !     Assuming that some may be unresponsive, duplicates of outstanding tasks are sent
 
-  call swatch(date,time)
+  call swatch(today,now)
   call timer_stop(99)
-  write(lfnday,8023) date(1:8),time(1:8),timer_wall_total(99),'  :  Switching to duplicate tasks'
+  write(lfnday,8023) today(1:8),now(1:8),timer_wall_total(99),'  :  Switching to duplicate tasks'
 8023 format(a8,2x,a8,f12.3,a)
   flush(lfnday)
   call timer_start(99)
@@ -829,8 +829,8 @@ subroutine gronor_master()
     ltotal=ltotal+1
 #ifdef DEBUG_HDF5
     if(idbg.gt.10) then
-      call swatch(date,time)
-      write(msg,'(a,1x,a,1x,"received buffer from ",i5)') date(1:8),time(1:8),iremote
+      call swatch(today,now)
+      write(msg,'(a,1x,a,1x,"received buffer from ",i5)') today(1:8),now(1:8),iremote
       call dbg_log_msg('master',trim(msg),step=ltotal)
       call dbg_write_array('master','buffer',buffer,step=ltotal)
     endif
@@ -855,13 +855,13 @@ subroutine gronor_master()
 
       if(ipro.eq.1.or.ipro.eq.3) then
         if(ipro.eq.1) rewind(unit=lfnpro)
-        write(lfnpro,680) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
+        write(lfnpro,680) today(1:8),now(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
             lgroup(igrp,4)-lgroup(igrp,3)+1, &
             pnrb(ibin,jbin),buffer(1),buffer(2),(int(buffer(j)),j=4,8)
         flush(lfnpro)
       elseif(ipro.eq.2.or.ipro.eq.4) then
         if(ipro.eq.2) rewind(unit=lfnpro)
-        write(lfnpro,681) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
+        write(lfnpro,681) today(1:8),now(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
             lgroup(igrp,4)-lgroup(igrp,3)+1,pnrb(ibin,jbin)
         flush(lfnpro)
       endif
@@ -870,8 +870,8 @@ subroutine gronor_master()
       
       if(me.eq.mstr.and.pnrb(ibin,jbin).ge.fday(ibin,jbin)) then
         call timer_stop(99)
-        call swatch(date,time)
-        write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
+        call swatch(today,now)
+        write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99),'  :  ',ibin,jbin,' at ', &
             pnrb(ibin,jbin),'% ( ',ndets(ibin,jbin,2),' / ',ndets(ibin,jbin,1),' )'
         flush(lfnday)
         call timer_start(99)
@@ -915,7 +915,7 @@ subroutine gronor_master()
       if(ntasks(ibin,jbin).eq.0) then
         call timer_stop(98)
         call timer_stop(99)
-        call swatch(date,time)
+        call swatch(today,now)
         if(ibin.eq.jbin) then
           ltemp=idetb(ibin)*(idetb(ibin)+1)/2
         else
@@ -1034,26 +1034,26 @@ subroutine gronor_master()
           flush(lfnout)
         endif
 
-        call swatch(date,time)
+        call swatch(today,now)
         write(lfncpr) ibin,jbin,hbase(ibin,jbin),sbase(ibin,jbin),tbase(ibin,jbin), &
             (nsing(ibin,jbin,k),k=1,4),(dqbase(ibin,jbin,k),k=1,9)
         flush(lfncpr)
 
         if(dabs(hbase(ibin,jbin)).lt.1.0e-05.or.dabs(sbase(ibin,jbin)).lt.1.0e-06) then
           if(ibin.ne.jbin) then
-            write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,703) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibin,jbin,' completed, H,S   :',hbase(ibin,jbin),sbase(ibin,jbin)
           else
-            write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,703) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibin,jbin,' completed, H,S,H*:', &
                 hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin)
           endif
         else
           if(ibin.ne.jbin) then
-            write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,704) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibin,jbin,' completed, H,S   :',hbase(ibin,jbin),sbase(ibin,jbin)
           else
-            write(lfnday,704) date(1:8),time(1:8),timer_wall_total(99), &
+            write(lfnday,704) today(1:8),now(1:8),timer_wall_total(99), &
                 '  :  ',ibin,jbin,' completed, H,S,H*:', &
                 hbase(ibin,jbin),sbase(ibin,jbin),hbase(ibin,jbin)/sbase(ibin,jbin)
           endif
@@ -1119,8 +1119,8 @@ subroutine gronor_master()
 #ifdef DEBUG_HDF5
           send_step=send_step+1
           if(idbg.gt.10) then
-            call swatch(date,time)
-            write(msg,'(a,1x,a,1x,"sent duplicate to ",i5)') date(1:8),time(1:8),iremote
+            call swatch(today,now)
+            write(msg,'(a,1x,a,1x,"sent duplicate to ",i5)') today(1:8),now(1:8),iremote
             call dbg_log_msg('master',trim(msg),step=send_step)
             call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1),int32),step=send_step)
           endif
@@ -1132,8 +1132,8 @@ subroutine gronor_master()
           !     Progress entry
 
           if(ipro.eq.2.or.ipro.eq.4) then
-            call swatch(date,time)
-            write(lfnpro,682) date(1:8),time(1:8), &
+            call swatch(today,now)
+            write(lfnpro,682) today(1:8),now(1:8), &
                 iremote,igrp,(ibuf(k),k=1,4)
             flush(lfnpro)
           endif
@@ -1154,7 +1154,7 @@ subroutine gronor_master()
       !     Received data other than matrix elements, should currently be impossible
 
       if(ipro.eq.1.or.ipro.eq.3) then
-        write(lfnpro,683) date(1:8),time(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
+        write(lfnpro,683) today(1:8),now(1:8),iremote,igrp,(lgroup(igrp,j),j=1,4), &
             lgroup(igrp,4)-lgroup(igrp,3)+1
 683     format(a,1x,a,' RCVD ',2i6,' : ',2i5,2i10,i6)
       endif
@@ -1181,8 +1181,8 @@ subroutine gronor_master()
   !     At this point all outstanding tasks have completed
 
   call timer_stop(99)
-  call swatch(date,time)
-  write(lfnday,706) date(1:8),time(1:8),timer_wall_total(99),'  :  Completed all tasks'
+  call swatch(today,now)
+  write(lfnday,706) today(1:8),now(1:8),timer_wall_total(99),'  :  Completed all tasks'
 706 format(a8,2x,a8,f12.3,a)
   flush(lfnday)
   call timer_start(99)
@@ -1227,8 +1227,8 @@ subroutine gronor_master()
 #ifdef DEBUG_HDF5
     send_step=send_step+1
     if(idbg.gt.10) then
-      call swatch(date,time)
-      write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
+      call swatch(today,now)
+      write(msg,'(a,1x,a,1x,"sent termination to ",i5)') today(1:8),now(1:8),iremote
       call dbg_log_msg('master',trim(msg),step=send_step)
       call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1),int32),step=send_step)
     endif
@@ -1252,8 +1252,8 @@ subroutine gronor_master()
 #ifdef DEBUG_HDF5
         send_step=send_step+1
         if(idbg.gt.10) then
-          call swatch(date,time)
-          write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
+          call swatch(today,now)
+          write(msg,'(a,1x,a,1x,"sent termination to ",i5)') today(1:8),now(1:8),iremote
           call dbg_log_msg('master',trim(msg),step=send_step)
           call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1),int32),step=send_step)
         endif

@@ -43,7 +43,6 @@ subroutine gronor_manager()
 
   integer (kind=8) :: i,j,k,m
 #ifdef DEBUG_HDF5
-  character(len=8) :: date,time
   character(len=256) :: msg
   integer :: istep
 #endif
@@ -71,13 +70,13 @@ subroutine gronor_manager()
 !  write(*,'(a,4f12.3)') "to mstr",(rbuf(k),k=1,4)
 #ifdef DEBUG_HDF5
   if(idbg.gt.20) then
-    call swatch(date,time)
-    call dbg_log_msg('manager',trim(date)//' '//trim(time)//' Head signaled master')
+    call swatch(today,now)
+    call dbg_log_msg('manager',trim(today)//' '//trim(now)//' Head signaled master')
   endif
   if(idbg.gt.10) then
-    call swatch(date,time)
+    call swatch(today,now)
     write(msg,'(i5,a,i5)') me,' sent buffer to ',mstr
-    call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg))
+    call dbg_log_msg('manager',trim(today)//' '//trim(now)//' '//trim(msg))
     call dbg_write_array('manager','rbuf_init',rbuf)
   endif
 #endif
@@ -98,10 +97,10 @@ subroutine gronor_manager()
 #ifdef DEBUG_HDF5
     istep = istep + 1
     if(idbg.gt.10) then
-      call swatch(date,time)
+      call swatch(today,now)
       write(msg,'(i5,a,i5,a,i5,a,i5)') me,' received task from ',mstr, &
           ' tag ',mpitag,' ierr ',ierr
-      call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
+      call dbg_log_msg('manager',trim(today)//' '//trim(now)//' '//trim(msg),step=istep)
       call dbg_write_int_array('manager','ibuf_in',int(ibuf,int32),step=istep)
     endif
 #endif
@@ -246,9 +245,9 @@ subroutine gronor_manager()
 !    write(*,'(a,4f12.3)') "to mstr",(tbuf(k),k=1,4)
 #ifdef DEBUG_HDF5
     if(idbg.gt.10) then
-      call swatch(date,time)
+      call swatch(today,now)
       write(msg,'(i5,a,i5)') me,' sent results to ',mstr
-      call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
+      call dbg_log_msg('manager',trim(today)//' '//trim(now)//' '//trim(msg),step=istep)
       call dbg_write_array('manager','tbuf',tbuf,step=istep)
       call dbg_write_int_array('manager','ibuf_out',int(ibuf,int32),step=istep)
     endif

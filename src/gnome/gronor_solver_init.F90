@@ -51,7 +51,6 @@ subroutine gronor_solver_init(ntemp)
   character(len=255) :: string
 #ifdef DEBUG_HDF5
   external :: swatch
-  character(len=8) :: date,time
 #endif
   
   integer (kind=8) :: lworki,lwork1m,lwork2m
@@ -69,8 +68,8 @@ subroutine gronor_solver_init(ntemp)
 ! Cusolver initialization for the svd
 #ifdef DEBUG_HDF5
   if(idbg.gt.50) then
-    call swatch(date,time)
-    write(string,'(a,1x,a,1x,a,2i4)') date(1:8),time(1:8),'Solver init for',sv_solver,ev_solver
+    call swatch(today,now)
+    write(string,'(a,1x,a,1x,a,2i4)') today(1:8),now(1:8),'Solver init for',sv_solver,ev_solver
     call dbg_log_msg('solver_init',trim(string))
   endif
 #endif

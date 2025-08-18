@@ -50,6 +50,7 @@ use cidef
 #ifdef DEBUG_HDF5
 use debug_hdf5, only : dbg_write_scalar, dbg_write_int_scalar, dbg_log_msg
 #endif
+use iso_fortran_env, only: int32
 
 implicit none
 
@@ -293,7 +294,7 @@ do iFrag=2,nmol
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then
     if(nmol .gt. 2) then
-      call dbg_write_int_scalar('makebasestate','target_spin',target_spin)
+      call dbg_write_int_scalar('makebasestate','target_spin',int(target_spin,int32))
     endif
   endif
 #endif
@@ -328,7 +329,7 @@ do iFrag=2,nmol
 
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then
-    call dbg_write_int_scalar('makebasestate','newdets',newdets)
+    call dbg_write_int_scalar('makebasestate','newdets',int(newdets,int32))
   endif
 #endif
 ! create the new intermediate occupations and coefficients

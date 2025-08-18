@@ -29,6 +29,7 @@ subroutine gronor_moover(lfndbg)
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
 
   implicit none
 
@@ -60,10 +61,10 @@ subroutine gronor_moover(lfndbg)
 
 #ifdef DEBUG_HDF5
   if(idbg.ge.13) then
-    call dbg_write_int_scalar('moover','nopala',nopala)
-    call dbg_write_int_scalar('moover','nopalb',nopalb)
-    call dbg_write_int_scalar('moover','nalfa',nalfa)
-    call dbg_write_int_scalar('moover','nalfab',nalfab)
+    call dbg_write_int_scalar('moover','nopala',int(nopala,int32))
+    call dbg_write_int_scalar('moover','nopalb',int(nopalb,int32))
+    call dbg_write_int_scalar('moover','nalfa',int(nalfa,int32))
+    call dbg_write_int_scalar('moover','nalfab',int(nalfab,int32))
   endif
   if(idbg.ge.14) call dbg_log_msg('moover','overlap matrix setup')
 #endif

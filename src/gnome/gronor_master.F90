@@ -40,6 +40,7 @@ subroutine gronor_master()
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
 
   implicit none
 
@@ -742,7 +743,7 @@ subroutine gronor_master()
           call swatch(date,time)
           write(msg,'(a,1x,a,1x,"sent task to ",i5)') date(1:8),time(1:8),iremote
           call dbg_log_msg('master',trim(msg),step=send_step)
-          call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1)),step=send_step)
+          call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1),int32),step=send_step)
         endif
 #endif
 
@@ -1121,7 +1122,7 @@ subroutine gronor_master()
             call swatch(date,time)
             write(msg,'(a,1x,a,1x,"sent duplicate to ",i5)') date(1:8),time(1:8),iremote
             call dbg_log_msg('master',trim(msg),step=send_step)
-            call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1)),step=send_step)
+            call dbg_write_int_array('master','ibuf',int(ipbuf(:,iremote+1),int32),step=send_step)
           endif
 #endif
 
@@ -1229,7 +1230,7 @@ subroutine gronor_master()
       call swatch(date,time)
       write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
       call dbg_log_msg('master',trim(msg),step=send_step)
-      call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1)),step=send_step)
+      call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1),int32),step=send_step)
     endif
 #endif
 
@@ -1254,7 +1255,7 @@ subroutine gronor_master()
           call swatch(date,time)
           write(msg,'(a,1x,a,1x,"sent termination to ",i5)') date(1:8),time(1:8),iremote
           call dbg_log_msg('master',trim(msg),step=send_step)
-          call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1)),step=send_step)
+          call dbg_write_int_array('master','ibuf',int(itbuf(:,iremote+1),int32),step=send_step)
         endif
 #endif
       endif

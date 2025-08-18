@@ -30,6 +30,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
   !      use nvtx
 
   implicit none
@@ -71,8 +72,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then
-    call dbg_write_int_scalar('gnome','nbasis',nbasis)
-    call dbg_write_int_scalar('gnome','nelec',nelec(1))
+    call dbg_write_int_scalar('gnome','nbasis',int(nbasis,int32))
+    call dbg_write_int_scalar('gnome','nelec',int(nelec(1),int32))
   endif
 #endif
 
@@ -81,8 +82,8 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     
 #ifdef DEBUG_HDF5
     if(idbg.ge.20) then
-      call dbg_write_int_scalar('gnome','idet',idet,step=idet)
-      call dbg_write_int_array('gnome','ioccup',ioccup(1:nact(idet),idet),step=idet)
+      call dbg_write_int_scalar('gnome','idet',int(idet,int32),step=idet)
+      call dbg_write_int_array('gnome','ioccup',int(ioccup(1:nact(idet),idet),int32),step=idet)
     endif
 #endif
 
@@ -116,10 +117,10 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
 
 #ifdef DEBUG_HDF5
   if(idbg.ge.20) then
-    call dbg_write_int_scalar('gnome','ntcla',ntcla)
-    call dbg_write_int_scalar('gnome','ntclb',ntclb)
-    call dbg_write_int_scalar('gnome','nveca',nveca)
-    call dbg_write_int_scalar('gnome','nvecb',nvecb)
+    call dbg_write_int_scalar('gnome','ntcla',int(ntcla,int32))
+    call dbg_write_int_scalar('gnome','ntclb',int(ntclb,int32))
+    call dbg_write_int_scalar('gnome','nveca',int(nveca,int32))
+    call dbg_write_int_scalar('gnome','nvecb',int(nvecb,int32))
   endif
 #endif
 
@@ -139,7 +140,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
     do idet=1,2
       ntvc=ntcl(idet)+ntop(idet)
       call dbg_log_msg('gnome','Closed shell M.O.s',step=idet)
-      call dbg_write_int_scalar('gnome','ntvc',ntvc,step=idet)
+      call dbg_write_int_scalar('gnome','ntvc',int(ntvc,int32),step=idet)
       do ivc=1,ntvc
         if(ivc.eq.ntcl(idet)+1) call dbg_log_msg('gnome','Open shell M.O.s:',step=idet)
         if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.ntvc-10) then
@@ -162,7 +163,7 @@ subroutine gronor_gnome(lfndbg,ihc,nhc)
   enddo
 
 #ifdef DEBUG_HDF5
-  if(idbg.ge.10) call dbg_write_int_scalar('gnome','iamacc',iamacc)
+  if(idbg.ge.10) call dbg_write_int_scalar('gnome','iamacc',int(iamacc,int32))
 #endif
 
   if(iamacc.gt.0) then

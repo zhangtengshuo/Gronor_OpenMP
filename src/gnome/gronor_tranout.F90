@@ -26,6 +26,7 @@ subroutine gronor_tranout(lfndbg,idet)
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
   implicit none
   integer :: idet, lfndbg
   integer :: ivc,ntvc,ibas,i
@@ -35,8 +36,8 @@ subroutine gronor_tranout(lfndbg,idet)
   
 #ifdef DEBUG_HDF5
   if(idbg.ge.25) then
-    call dbg_write_int_scalar('tranout','nclose',ntcl(idet))
-    call dbg_write_int_scalar('tranout','nopen',ntop(idet))
+    call dbg_write_int_scalar('tranout','nclose',int(ntcl(idet),int32))
+    call dbg_write_int_scalar('tranout','nopen',int(ntop(idet),int32))
     call dbg_log_msg('tranout','M.O.s transformed and ordered')
   endif
 #endif

@@ -47,7 +47,7 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
   integer (kind=8) :: irtim,nreqso,nreqsc
   integer (kind=8) :: nrecav
   real (kind=8) :: recav
-  character (len=255) :: date,time
+  character (len=255) :: today,now
   logical (kind=4) :: flag
   logical :: openrcv
 
@@ -238,8 +238,8 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
       flush(lfnout)
 
       call timer_stop(99)
-      call swatch(date,time)
-      write(lfnday,706) date(1:8),time(1:8),timer_wall_total(99), &
+      call swatch(today,now)
+      write(lfnday,706) today(1:8),now(1:8),timer_wall_total(99), &
           '  :  Reported detailed timings analysis'
 706   format(a8,2x,a8,f12.3,a)
       flush(lfnday)
@@ -306,16 +306,16 @@ subroutine gronor_timings(lfnout,lfnday,lfntim)
           ' Total number of node-hours used',t55,f12.3)
       flush(lfnout)
     endif
-    call swatch(date,time)
-    write(lfnday,702) date(1:8),time(1:8),timer_wall_total(99), &
+    call swatch(today,now)
+    write(lfnday,702) today(1:8),now(1:8),timer_wall_total(99), &
         '  :  Reported timings summary'
 702 format(a8,2x,a8,f12.3,a)
     flush(lfnday)
-    call swatch(date,time)
-    write(lfnday,703) date(1:8),time(1:8),timer_wall_total(99),np, &
-        date(1:8),time(1:8),timer_wall_total(99),npg*mgr+1, &
-        date(1:8),time(1:8),timer_wall_total(99),nalive*mgr+1, &
-        date(1:8),time(1:8),timer_wall_total(99),numidle
+    call swatch(today,now)
+    write(lfnday,703) today(1:8),now(1:8),timer_wall_total(99),np, &
+        today(1:8),now(1:8),timer_wall_total(99),npg*mgr+1, &
+        today(1:8),now(1:8),timer_wall_total(99),nalive*mgr+1, &
+        today(1:8),now(1:8),timer_wall_total(99),numidle
 703 format(a8,2x,a8,f12.3,'  :  Completion of job with',t60,i8,' total ranks',/, &
         a8,2x,a8,f12.3,'  :',t60,i8,' assigned ranks',/, &
         a8,2x,a8,f12.3,'  :',t60,i8,' active ranks',/, &

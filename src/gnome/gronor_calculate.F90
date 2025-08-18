@@ -38,6 +38,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
 
 #ifdef _OPENMP
   use omp_lib
@@ -73,13 +74,13 @@ subroutine gronor_calculate(ib,jb,id1,id2)
   if(idbg.ge.50) then
     write(msg,'("Starting gronor_calculate ib=",i0," jb=",i0," id1=",i0," id2=",i0)') ib,jb,id1,id2
     call dbg_log_msg('calculate', trim(msg))
-    call dbg_write_int_scalar('calculate','ib',ib)
-    call dbg_write_int_scalar('calculate','jb',jb)
-    call dbg_write_int_scalar('calculate','id1',id1)
-    call dbg_write_int_scalar('calculate','id2',id2)
-    call dbg_write_int_scalar('calculate','ndeti',ndeti)
+    call dbg_write_int_scalar('calculate','ib',int(ib,int32))
+    call dbg_write_int_scalar('calculate','jb',int(jb,int32))
+    call dbg_write_int_scalar('calculate','id1',int(id1,int32))
+    call dbg_write_int_scalar('calculate','id2',int(id2,int32))
+    call dbg_write_int_scalar('calculate','ndeti',int(ndeti,int32))
     call dbg_write_array('calculate','civb_left',civb(1:ndeti,ib))
-    call dbg_write_int_scalar('calculate','ndetj',ndetj)
+    call dbg_write_int_scalar('calculate','ndetj',int(ndetj,int32))
     call dbg_write_array('calculate','civb_right',civb(1:ndetj,jb))
   endif
 #endif
@@ -127,7 +128,7 @@ subroutine gronor_calculate(ib,jb,id1,id2)
     call timer_start(5)
 
 #ifdef DEBUG_HDF5
-    if(idbg.ge.50) call dbg_write_int_scalar('calculate','matrix_element',ij,step=ij)
+    if(idbg.ge.50) call dbg_write_int_scalar('calculate','matrix_element',int(ij,int32),step=ij)
 #endif
 
     nelec(1)=0
@@ -216,8 +217,8 @@ subroutine gronor_calculate(ib,jb,id1,id2)
       
 #ifdef DEBUG_HDF5
       if(idbg.ge.40) then
-        call dbg_write_int_array('calculate','ioccup_left',ioccup(1:nact(1),1))
-        call dbg_write_int_array('calculate','ioccup_right',ioccup(1:nact(2),2))
+        call dbg_write_int_array('calculate','ioccup_left',int(ioccup(1:nact(1),1),int32))
+        call dbg_write_int_array('calculate','ioccup_right',int(ioccup(1:nact(2),2),int32))
       endif
 #endif
 

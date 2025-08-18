@@ -27,6 +27,7 @@ subroutine gronor_manager()
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
 
   implicit none
 
@@ -101,7 +102,7 @@ subroutine gronor_manager()
       write(msg,'(i5,a,i5,a,i5,a,i5)') me,' received task from ',mstr, &
           ' tag ',mpitag,' ierr ',ierr
       call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
-      call dbg_write_int_array('manager','ibuf_in',ibuf,step=istep)
+      call dbg_write_int_array('manager','ibuf_in',int(ibuf,int32),step=istep)
     endif
 #endif
 
@@ -249,7 +250,7 @@ subroutine gronor_manager()
       write(msg,'(i5,a,i5)') me,' sent results to ',mstr
       call dbg_log_msg('manager',trim(date)//' '//trim(time)//' '//trim(msg),step=istep)
       call dbg_write_array('manager','tbuf',tbuf,step=istep)
-      call dbg_write_int_array('manager','ibuf_out',ibuf,step=istep)
+      call dbg_write_int_array('manager','ibuf_out',int(ibuf,int32),step=istep)
     endif
 #endif
     do i=1,17

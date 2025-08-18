@@ -28,6 +28,7 @@ subroutine gronor_worker()
 #ifdef DEBUG_HDF5
   use debug_hdf5
 #endif
+  use iso_fortran_env, only: int32
 
   implicit none
 
@@ -175,7 +176,7 @@ subroutine gronor_worker_process()
     call swatch(date,time)
     write(msg,'(a,1x,a,1x,"thisgroup=")') date(1:8),time(1:8)
     call dbg_log_msg('worker',trim(msg))
-    call dbg_write_int_array('worker','thisgroup',thisgroup(1:mgr+1))
+    call dbg_write_int_array('worker','thisgroup',int(thisgroup(1:mgr+1),int32))
     call dbg_write_array('worker','rbuf',rbuf)
   endif
 #endif
@@ -275,7 +276,7 @@ subroutine gronor_worker_process()
     if(idbg.gt.0) then
       write(msg,'("ibuf=",4i8)') (ibuf(i),i=1,4)
       call dbg_log_msg('worker', trim(msg), step=iter)
-      call dbg_write_int_array('worker','ibuf',ibuf,step=iter)
+      call dbg_write_int_array('worker','ibuf',int(ibuf,int32),step=iter)
     endif
 #endif
 

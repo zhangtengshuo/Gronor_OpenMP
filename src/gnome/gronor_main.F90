@@ -825,7 +825,7 @@ subroutine gronor_main()
   if(idbg.gt.0) then
     write(fildbg,1300) trim(string),me
 1300 format(a,'-',i5.5,'.dbg ')
-    call dbg_open(trim(fildbg)//'.h5', idbg, me)
+    call dbg_open(trim(fildbg)//'.h5', int(idbg,int32), int(me,int32))
     call swatch(date,time)
     write(msg,'("Debug start at ",a,1x,a,": rank=",i6,", idbg=",i6)') &
         date(1:8),time(1:8),me,idbg
@@ -1695,10 +1695,10 @@ subroutine gronor_main()
       write(msg,'("Base state ",i0," recorded at ",a,1x,a)') i,date(1:8),time(1:8)
       call dbg_log_msg('main',trim(msg))
       ndeti=idetb(i)
-      call dbg_write_int_scalar('main','ndeti',ndeti,step=i)
+      call dbg_write_int_scalar('main','ndeti',int(ndeti,int32),step=i)
       do ib=1,ndeti
         call dbg_write_scalar('main','civb',civb(ib,i),step=ib)
-        call dbg_write_int_array('main','iocc',iocc(ib,i,1:nactb(i)),step=ib)
+        call dbg_write_int_array('main','iocc',int(iocc(ib,i,1:nactb(i)),int32),step=ib)
       enddo
       do ivc=1,nactb(i)+inactb(i)
         if(idbg.gt.90.or.ivc.lt.11.or.ivc.gt.nactb(i)+inactb(i)-10) then
@@ -2016,12 +2016,12 @@ subroutine gronor_main()
         numdev,mydev,iamacc,nummps,numgpu,date(1:8),time(1:8)
 #endif
     call dbg_log_msg('main',trim(msg))
-    call dbg_write_int_scalar('main','numdev',numdev)
-    call dbg_write_int_scalar('main','mydev',mydev)
-    call dbg_write_int_scalar('main','iamacc',iamacc)
-    call dbg_write_int_scalar('main','nummps',nummps)
-    call dbg_write_int_scalar('main','numgpu',numgpu)
-    call dbg_write_int_array('main','map2',map2(me+1,1:5))
+    call dbg_write_int_scalar('main','numdev',int(numdev,int32))
+    call dbg_write_int_scalar('main','mydev',int(mydev,int32))
+    call dbg_write_int_scalar('main','iamacc',int(iamacc,int32))
+    call dbg_write_int_scalar('main','nummps',int(nummps,int32))
+    call dbg_write_int_scalar('main','numgpu',int(numgpu,int32))
+    call dbg_write_int_array('main','map2',int(map2(me+1,1:5),int32))
     call swatch(date,time)
     write(msg,'("Start memory/master at ",a,1x,a)') date(1:8),time(1:8)
     call dbg_log_msg('main',trim(msg))
@@ -2127,7 +2127,7 @@ subroutine gronor_main()
       if(iamacc.eq.1) then
 #ifdef DEBUG_HDF5
         if(idbg.gt.0) then
-          call dbg_write_scalar('main','mint2',mint2)
+          call dbg_write_int_scalar('main','mint2',int(mint2,int32))
         endif
 #endif
 

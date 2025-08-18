@@ -5,12 +5,12 @@ module debug_hdf5
   use h5lt
   implicit none
   integer(HID_T) :: dbg_file = -1_HID_T
-  integer :: dbg_level = 0
-  integer :: dbg_rank = -1
+  integer(int32) :: dbg_level = 0
+  integer(int32) :: dbg_rank = -1
 contains
   subroutine dbg_open(filename, level, rank)
     character(len=*), intent(in) :: filename
-    integer, intent(in) :: level, rank
+    integer(int32), intent(in) :: level, rank
     integer(int32) :: ierr
     dbg_level = level
     dbg_rank = rank
@@ -118,11 +118,11 @@ contains
 
   subroutine dbg_write_int_scalar(group, name, value, step)
     character(len=*), intent(in) :: group, name
-    integer, intent(in) :: value
+    integer(int32), intent(in) :: value
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
-    integer(int32) :: ierr, value32, rank32
+    integer(int32) :: ierr, rank32
     integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
 
@@ -146,8 +146,7 @@ contains
     else
       call h5dopen_f(grp, trim(dset_name), dset, ierr)
     end if
-    value32 = int(value, int32)
-    call h5dwrite_f(dset, H5T_NATIVE_INTEGER, value32, dims, ierr)
+    call h5dwrite_f(dset, H5T_NATIVE_INTEGER, value, dims, ierr)
     call h5sclose_f(space, ierr)
 
     call h5screate_simple_f(1_int32, dims, attr_space, ierr)
@@ -163,14 +162,13 @@ contains
 
   subroutine dbg_write_int_array(group, name, arr, step)
     character(len=*), intent(in) :: group, name
-    integer, intent(in) :: arr(:)
+    integer(int32), intent(in) :: arr(:)
     integer, intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T) :: grp, space, dset, attr_space, attr
     integer(int32) :: ierr, rank32
     integer :: exists
     integer(HSIZE_T), dimension(1) :: dims, adims = (/1_HSIZE_T/)
-    integer(int32) :: arr32(size(arr))
 
     if (dbg_file .lt. 0) return
     if (present(step)) then
@@ -192,8 +190,7 @@ contains
     else
       call h5dopen_f(grp, trim(dset_name), dset, ierr)
     end if
-    arr32 = int(arr, int32)
-    call h5dwrite_f(dset, H5T_NATIVE_INTEGER, arr32, dims, ierr)
+    call h5dwrite_f(dset, H5T_NATIVE_INTEGER, arr, dims, ierr)
     call h5sclose_f(space, ierr)
 
     call h5screate_simple_f(1_int32, (/1_HSIZE_T/), attr_space, ierr)

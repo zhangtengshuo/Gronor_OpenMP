@@ -14,7 +14,7 @@ if command -v conda &> /dev/null; then
 fi
 
 rm -rf build && mkdir build && cd build
-cmake -DOPENMP=OFF -DMKL=ON -DACC=ON -DILP64=ON -DCMAKE_BUILD_TYPE=Debug \
+cmake -DOPENMP=OFF -DMKL=ON -DACC=ON -DCMAKE_BUILD_TYPE=Debug \
       -DHDF5_ROOT=/home/shuo/bin/hdf5_1.14.6 \
       -DCMAKE_INSTALL_PREFIX=/home/shuo/bin/gronor-25.06_HDF5 ..
 make 

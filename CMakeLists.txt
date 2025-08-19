@@ -44,7 +44,6 @@ option (DEBUG "Debugging." OFF)
 option (AVX512 "Compiler option for AVX512." OFF)
 option (GPU "GPU Vendor" NVIDIA)
 option (GUI "Graphical User Interface" OFF)
-option (ILP64 "Use 8-byte default integers" OFF)
 
 # Set global session identifier
 
@@ -1271,7 +1270,7 @@ if (NOT CMAKE_GENERATOR STREQUAL "Ninja")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_PREPROCESS}")
 endif ()
 
-if (ADDRMODE EQUAL 64 AND ILP64)
+if (ADDRMODE EQUAL 64)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FFLAGS_${FCID}_ILP64}")
 endif ()
 

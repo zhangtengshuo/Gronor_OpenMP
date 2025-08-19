@@ -32,7 +32,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
     integer            :: ierr
-    logical(kind=4)    :: exists
+    logical            :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
     if (dbg_file <= 0) return
@@ -77,7 +77,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
     integer            :: ierr
-    logical(kind=4)    :: exists
+    logical            :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
     if (dbg_file <= 0) return
@@ -121,7 +121,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
     integer            :: ierr
-    logical(kind=4)    :: exists
+    logical            :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
     if (dbg_file <= 0) return
@@ -165,7 +165,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
     integer            :: ierr
-    logical(kind=4)    :: exists
+    logical            :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
     if (dbg_file <= 0) return
@@ -208,7 +208,7 @@ contains
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, dtype, attr_space, attr
     integer            :: ierr
-    logical(kind=4)    :: exists
+    logical            :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
     integer(SIZE_T)    :: len
 

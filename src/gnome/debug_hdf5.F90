@@ -3,13 +3,13 @@ module debug_hdf5
   use hdf5
   implicit none
   integer(HID_T) :: dbg_file = 0
-  integer(kind=4) :: dbg_level = 0
-  integer(kind=4) :: dbg_rank  = 0
+  integer :: dbg_level = 0
+  integer :: dbg_rank  = 0
 contains
   subroutine dbg_open(filename, level, rank_in)
     character(len=*), intent(in) :: filename
-    integer(kind=4), intent(in) :: level, rank_in
-    integer(kind=4) :: ierr
+    integer,          intent(in) :: level, rank_in
+    integer :: ierr
     dbg_level = level
     dbg_rank  = rank_in
     call h5open_f(ierr)
@@ -17,7 +17,7 @@ contains
   end subroutine dbg_open
 
   subroutine dbg_close()
-    integer(kind=4) :: ierr
+    integer :: ierr
     if (dbg_file > 0) then
       call h5fclose_f(dbg_file, ierr)
       dbg_file = 0
@@ -28,10 +28,10 @@ contains
   subroutine dbg_write_scalar(group, name, value, step)
     character(len=*), intent(in) :: group, name
     real(8),          intent(in) :: value
-    integer(kind=4), intent(in), optional :: step
+    integer,          intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
-    integer(kind=4)    :: ierr
+    integer            :: ierr
     logical(kind=4)    :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
@@ -48,7 +48,7 @@ contains
     end if
 
     dims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), dims, space, ierr)
+    call h5screate_simple_f(1, dims, space, ierr)
     call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (.not. exists) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
@@ -60,7 +60,7 @@ contains
 
     ! rank attribute
     adims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), adims, attr_space, ierr)
+    call h5screate_simple_f(1, adims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     call h5awrite_f(attr, H5T_NATIVE_INTEGER, dbg_rank, adims, ierr)
     call h5aclose_f(attr, ierr)
@@ -73,10 +73,10 @@ contains
   subroutine dbg_write_array(group, name, arr, step)
     character(len=*), intent(in) :: group, name
     real(8),          intent(in) :: arr(:)
-    integer(kind=4), intent(in), optional :: step
+    integer,          intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
-    integer(kind=4)    :: ierr
+    integer            :: ierr
     logical(kind=4)    :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
@@ -104,7 +104,7 @@ contains
     call h5sclose_f(space, ierr)
 
     adims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), adims, attr_space, ierr)
+    call h5screate_simple_f(1, adims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     call h5awrite_f(attr, H5T_NATIVE_INTEGER, dbg_rank, adims, ierr)
     call h5aclose_f(attr, ierr)
@@ -116,11 +116,11 @@ contains
 
   subroutine dbg_write_int_scalar(group, name, value, step)
     character(len=*), intent(in) :: group, name
-    integer(kind=4), intent(in) :: value
-    integer(kind=4), intent(in), optional :: step
+    integer,          intent(in) :: value
+    integer,          intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
-    integer(kind=4)    :: ierr
+    integer            :: ierr
     logical(kind=4)    :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
@@ -137,7 +137,7 @@ contains
     end if
 
     dims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), dims, space, ierr)
+    call h5screate_simple_f(1, dims, space, ierr)
     call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (.not. exists) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
@@ -148,7 +148,7 @@ contains
     call h5sclose_f(space, ierr)
 
     adims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), adims, attr_space, ierr)
+    call h5screate_simple_f(1, adims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     call h5awrite_f(attr, H5T_NATIVE_INTEGER, dbg_rank, adims, ierr)
     call h5aclose_f(attr, ierr)
@@ -160,11 +160,11 @@ contains
 
   subroutine dbg_write_int_array(group, name, arr, step)
     character(len=*), intent(in) :: group, name
-    integer(kind=4), intent(in) :: arr(:)
-    integer(kind=4), intent(in), optional :: step
+    integer,          intent(in) :: arr(:)
+    integer,          intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, attr_space, attr
-    integer(kind=4)    :: ierr
+    integer            :: ierr
     logical(kind=4)    :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
 
@@ -192,7 +192,7 @@ contains
     call h5sclose_f(space, ierr)
 
     adims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), adims, attr_space, ierr)
+    call h5screate_simple_f(1, adims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     call h5awrite_f(attr, H5T_NATIVE_INTEGER, dbg_rank, adims, ierr)
     call h5aclose_f(attr, ierr)
@@ -204,10 +204,10 @@ contains
 
   subroutine dbg_log_msg(group, msg, step)
     character(len=*), intent(in) :: group, msg
-    integer(kind=4), intent(in), optional :: step
+    integer,          intent(in), optional :: step
     character(len=256) :: dset_name
     integer(HID_T)     :: grp, space, dset, dtype, attr_space, attr
-    integer(kind=4)    :: ierr
+    integer            :: ierr
     logical(kind=4)    :: exists
     integer(HSIZE_T)   :: dims(1), adims(1)
     integer(SIZE_T)    :: len
@@ -226,7 +226,7 @@ contains
 
     len = int(len_trim(msg), SIZE_T)
     dims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), dims, space, ierr)
+    call h5screate_simple_f(1, dims, space, ierr)
     call h5tcopy_f(H5T_C_S1, dtype, ierr)
     call h5tset_size_f(dtype, len, ierr)
     call h5lexists_f(grp, trim(dset_name), exists, ierr)
@@ -239,7 +239,7 @@ contains
 
     ! rank attribute
     adims(1) = int(1, kind=HSIZE_T)
-    call h5screate_simple_f(int(1,kind=4), adims, attr_space, ierr)
+    call h5screate_simple_f(1, adims, attr_space, ierr)
     call h5acreate_f(dset, "rank", H5T_NATIVE_INTEGER, attr_space, attr, ierr)
     call h5awrite_f(attr, H5T_NATIVE_INTEGER, dbg_rank, adims, ierr)
     call h5aclose_f(attr, ierr)

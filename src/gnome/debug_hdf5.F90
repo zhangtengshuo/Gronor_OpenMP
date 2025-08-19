@@ -93,7 +93,7 @@ contains
     end if
 
     dims(1) = int(size(arr), HSIZE_T)
-    call h5screate_simple_f(1, dims, space, ierr)
+    call h5screate_simple_f(int(1,kind=4), dims, space, ierr)
     call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (.not. exists) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_DOUBLE, space, dset, ierr)
@@ -181,7 +181,7 @@ contains
     end if
 
     dims(1) = int(size(arr), HSIZE_T)
-    call h5screate_simple_f(1, dims, space, ierr)
+    call h5screate_simple_f(int(1,kind=4), dims, space, ierr)
     call h5lexists_f(grp, trim(dset_name), exists, ierr)
     if (.not. exists) then
       call h5dcreate_f(grp, trim(dset_name), H5T_NATIVE_INTEGER, space, dset, ierr)
